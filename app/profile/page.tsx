@@ -31,6 +31,7 @@ import {
     Download,
 } from "lucide-react"
 import { toPng } from "html-to-image"
+import { BottomNav } from "@/components/BottomNav"
 
 function CertificateCard({ name, date }: { name: string; date: string }) {
     return (
@@ -351,7 +352,7 @@ export default function ProfilePage() {
 
             {/* ==================== REFERRAL CODE MODAL ==================== */}
             {showReferralModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={() => setShowReferralModal(false)}>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={() => setShowReferralModal(false)}>
                     <div
                         className="w-full max-w-md bg-white rounded-3xl p-6 pb-8"
                         onClick={(e) => e.stopPropagation()}
@@ -420,7 +421,7 @@ export default function ProfilePage() {
 
             {/* ==================== CERTIFICATE MODAL ==================== */}
             {showCertModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowCertModal(false)}>
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4" onClick={() => setShowCertModal(false)}>
                     <div
                         className="w-full max-w-sm bg-white rounded-3xl overflow-hidden max-h-[85vh] flex flex-col"
                         onClick={(e) => e.stopPropagation()}
@@ -464,6 +465,8 @@ export default function ProfilePage() {
                     </div>
                 </div>
             )}
+
+            <BottomNav active="profile" />
         </div>
     )
 }

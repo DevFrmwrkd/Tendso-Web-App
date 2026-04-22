@@ -6,7 +6,8 @@ import { api } from "@/convex/_generated/api"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import Link from "next/link"
-import { Wallet, Store, Plus, Clock, Loader2, Bell, User } from "lucide-react"
+import { Wallet, Store, Clock, Loader2, Bell, User } from "lucide-react"
+import { BottomNav } from "@/components/BottomNav"
 
 export default function DashboardPage() {
     const router = useRouter()
@@ -229,23 +230,7 @@ export default function DashboardPage() {
                 </div>
             </main>
 
-            {/* Bottom Navigation */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-zinc-100 px-6 py-2 pb-6 flex items-center justify-center z-50">
-                {/* Floating Action Button */}
-                <div className="relative -top-6">
-                    <Link
-                        href="/submit/info"
-                        className="group flex items-center gap-0 bg-emerald-500 rounded-full text-white shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/50 transition-all duration-300 ease-out overflow-hidden"
-                    >
-                        <div className="w-14 h-14 flex items-center justify-center shrink-0">
-                            <Plus className="w-8 h-8 group-hover:rotate-90 transition-transform duration-300" />
-                        </div>
-                        <span className="max-w-0 overflow-hidden whitespace-nowrap font-bold text-sm group-hover:max-w-[120px] group-hover:pr-5 transition-all duration-300 ease-out">
-                            Add Submission
-                        </span>
-                    </Link>
-                </div>
-            </div>
+            <BottomNav active="home" />
         </div>
     )
 }

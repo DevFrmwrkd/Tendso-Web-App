@@ -29,6 +29,14 @@ export default function SubmissionDetailPage() {
         id ? { id: id as Id<"submissions"> } : "skip"
     )
 
+    // Get latest deployed website info (publishedUrl / customDomain).
+    // submission.websiteUrl can go stale after edits or custom-domain activation —
+    // the generatedWebsites record holds the authoritative current deployment.
+    const generatedWebsite = useQuery(
+        api.generatedWebsites.getBySubmissionId,
+        submission?._id ? { submissionId: submission._id } : "skip"
+    )
+
     // Get resolved photo URLs (only for legacy Convex storage IDs)
     // R2 URLs start with http and don't need resolution
     const needsResolution = submission?.photos?.some((p: any) => p.startsWith('convex:') || !p.startsWith('http'))
@@ -78,6 +86,18 @@ export default function SubmissionDetailPage() {
             </div>
         )
     }
+
+    // Resolve the latest live URL.
+    // Priority: custom domain when live → generatedWebsite.customDomain → publishedUrl → legacy websiteUrl.
+    const normalizeUrl = (u: string) => (u.startsWith('http') ? u : `https://${u}`)
+    const latestWebsiteUrl =
+        (submission.domainStatus === 'live' && submission.requestedDomain
+            ? normalizeUrl(submission.requestedDomain)
+            : null) ||
+        (generatedWebsite?.customDomain ? normalizeUrl(generatedWebsite.customDomain) : null) ||
+        generatedWebsite?.publishedUrl ||
+        submission.websiteUrl ||
+        null
 
     // Check if submission is incomplete (draft)
     // Now also check for R2 URLs (videoUrl/audioUrl) in addition to Convex storage IDs
@@ -293,11 +313,11 @@ export default function SubmissionDetailPage() {
                         </div>
 
                         {/* Website URL */}
-                        {submission.websiteUrl && (
+                        {latestWebsiteUrl && (
                             <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
                                 <h2 className="text-lg font-bold text-gray-900 mb-3">Generated Website</h2>
                                 <a
-                                    href={submission.websiteUrl}
+                                    href={latestWebsiteUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors"
@@ -305,6 +325,7 @@ export default function SubmissionDetailPage() {
                                     <Globe className="w-4 h-4" />
                                     Visit Live Website
                                 </a>
+                                <p className="mt-2 text-xs text-gray-600 break-all">{latestWebsiteUrl}</p>
                             </div>
                         )}
 

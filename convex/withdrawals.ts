@@ -1,12 +1,15 @@
 import { v } from 'convex/values';
-import { query, mutation, internalMutation, internalAction } from './_generated/server';
+import { query, mutation, internalMutation, internalAction, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
 
 // ==================== MUTATIONS ====================
 
 /**
- * Create instant withdrawal request with automatic Wise transfer
- * No admin approval needed - transfers instantly to user's Wise account
+ * Create a withdrawal request. For Wise payouts, the row is inserted as 'pending',
+ * then moved to 'processing' once the Wise recipient/quote/transfer have been created
+ * (see processWiseTransfer). It only flips to 'completed' when Wise fires the
+ * outgoing_payment_sent webhook — at which point totalWithdrawn is incremented and the
+ * success notification is sent. This matches the mobile flow in WISE-PAYMENT-FLOW-MOBILE.md.
  */
 export const create = mutation({
     args: {
@@ -21,153 +24,197 @@ export const create = mutation({
         accountDetails: v.string(),
     },
     handler: async (ctx, args): Promise<any> => {
-        // Validate minimum withdrawal
         if (args.amount < 100) {
             throw new Error('Minimum withdrawal is ₱100');
         }
 
-        // Check balance
         const creator = await ctx.db.get(args.creatorId);
         if (!creator) throw new Error('Creator not found');
         if ((creator.balance || 0) < args.amount) {
             throw new Error('Insufficient balance');
         }
 
-        // Generate unique reference for tracking
         const reference = `PAYOUT-${args.creatorId.substring(0, 8)}-${Date.now()}`;
 
-        let wiseTransactionId: string | undefined = undefined;
-        let wiseStatus: string | undefined = undefined;
-        let errorMessage: string | undefined = undefined;
-
-        // For Wise payouts - schedule automatic transfer
-        if (args.payoutMethod === 'wise_email') {
-            try {
-                // Schedule Wise API transfer (runs asynchronously)
-                // The action will update the withdrawal record when complete
-                await ctx.scheduler.runAfter(
-                    0,
-                    internal.withdrawals.processWiseTransfer,
-                    {
-                        targetEmail: args.accountDetails,
-                        amount: args.amount,
-                        reference,
-                    }
-                );
-                // Mark as processing - Wise action will update when it completes
-                wiseStatus = 'PROCESSING';
-            } catch (error) {
-                errorMessage = error instanceof Error ? error.message : 'Failed to schedule Wise transfer';
-                console.error('Wise transfer scheduling error:', errorMessage);
-                wiseStatus = 'FAILED';
-            }
-        }
-
-        // Deduct balance immediately (funds are locked)
+        // Deduct balance immediately (funds are locked until Wise completes or refunds)
         await ctx.db.patch(args.creatorId, {
             balance: (creator.balance || 0) - args.amount,
         });
 
-        // Create withdrawal record with status completed for non-admin workflows
+        // Row starts as 'pending' — will move to 'processing' once Wise IDs exist.
+        // For wise_email, also persist the email on the row so the history UI can show it.
         const withdrawalId = await ctx.db.insert('withdrawals', {
             creatorId: args.creatorId,
             amount: args.amount,
             payoutMethod: args.payoutMethod,
             accountDetails: args.accountDetails,
-            status: 'completed', // Instant completion - no admin needed
+            wiseEmail: args.payoutMethod === 'wise_email' ? args.accountDetails : undefined,
+            accountHolderName: `${creator.firstName || ''} ${creator.lastName || ''}`.trim() || creator.email || 'Creator',
+            status: 'pending',
             reference,
-            wiseTransactionId,
-            wiseStatus,
-            errorMessage,
             createdAt: Date.now(),
-            processedAt: Date.now(),
         });
 
-        // Update totalWithdrawn
-        await ctx.db.patch(args.creatorId, {
-            totalWithdrawn: (creator.totalWithdrawn || 0) + args.amount,
-        });
-
-        // Send success notification to user
-        await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
-            creatorId: args.creatorId,
-            type: 'payout_sent',
-            title: 'Withdrawal Completed! 🎉',
-            body: `₱${args.amount.toLocaleString()} has been sent to your ${
-                args.payoutMethod === 'wise_email' ? 'Wise' : args.payoutMethod.toUpperCase()
-            } account`,
-            data: { 
-                withdrawalId, 
-                amount: args.amount,
-                reference,
-                wiseTransactionId,
-            },
-        });
-
-        // Log to audit system
-        await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
-            adminId: 'system', // Automatic system withdrawal, no admin involvement
-            action: 'payout_sent' as const,
-            targetType: 'withdrawal' as const,
-            targetId: withdrawalId,
-            metadata: {
-                amount: args.amount,
-                method: args.payoutMethod,
-                reference,
-                wiseTransactionId,
-                wiseStatus,
-                errorMessage: errorMessage || undefined,
-                instant: true,
-            },
-        });
+        // Schedule the async Wise transfer creation.
+        if (args.payoutMethod === 'wise_email') {
+            await ctx.scheduler.runAfter(0, internal.withdrawals.processWiseTransfer, {
+                withdrawalId,
+            });
+        }
 
         return {
             _id: withdrawalId,
             amount: args.amount,
-            status: 'completed',
+            status: 'pending',
             reference,
-            wiseTransactionId,
-            wiseStatus,
-            message: errorMessage 
-                ? `Transfer queued but may require manual processing: ${errorMessage}`
-                : 'Withdrawal completed instantly!',
+            message: 'Withdrawal queued. We\'ll notify you when it\'s sent.',
         };
     },
 });
 
+// ==================== WISE TRANSFER CREATION (real) ====================
+
 /**
- * Internal action: Process Wise transfer via API
+ * Internal query used by processWiseTransfer to load the withdrawal + creator
+ * without racing the commit of the create() mutation.
+ */
+export const getByIdInternal = internalQuery({
+    args: { id: v.id('withdrawals') },
+    handler: async (ctx, args) => {
+        return await ctx.db.get(args.id);
+    },
+});
+
+/**
+ * Internal mutation: persist the Wise IDs and flip status to 'processing'.
+ * Called from processWiseTransfer once recipient/quote/transfer all succeed.
+ */
+export const setWiseTransferIds = internalMutation({
+    args: {
+        withdrawalId: v.id('withdrawals'),
+        wiseTransferId: v.string(),
+        wiseRecipientId: v.string(),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.withdrawalId, {
+            wiseTransferId: args.wiseTransferId,
+            wiseRecipientId: args.wiseRecipientId,
+            wiseStatus: 'PROCESSING',
+            status: 'processing',
+        });
+    },
+});
+
+/**
+ * Internal mutation: mark a withdrawal as failed, restore the creator's balance,
+ * and notify them. Used when the Wise API call fails before a transfer ID exists.
+ */
+export const markFailed = internalMutation({
+    args: {
+        withdrawalId: v.id('withdrawals'),
+        reason: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const withdrawal = await ctx.db.get(args.withdrawalId);
+        if (!withdrawal) return;
+
+        // Restore balance
+        const creator = await ctx.db.get(withdrawal.creatorId);
+        if (creator) {
+            await ctx.db.patch(withdrawal.creatorId, {
+                balance: (creator.balance || 0) + withdrawal.amount,
+            });
+        }
+
+        await ctx.db.patch(args.withdrawalId, {
+            status: 'failed',
+            wiseStatus: 'FAILED',
+            failureReason: args.reason,
+            errorMessage: args.reason,
+        });
+
+        // Notify creator
+        await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
+            creatorId: withdrawal.creatorId,
+            type: 'system',
+            title: 'Withdrawal Failed',
+            body: `Your withdrawal of ₱${withdrawal.amount} could not be sent. The amount has been returned to your balance.`,
+            data: { withdrawalId: args.withdrawalId, amount: withdrawal.amount, reason: args.reason },
+        });
+    },
+});
+
+/**
+ * Internal action: create the Wise recipient → quote → transfer, then persist IDs.
+ * On any failure, mark the withdrawal failed and restore the balance.
+ * The funding step is intentionally NOT called — admin approves/funds manually in
+ * the Wise dashboard (per WISE-PAYMENT-FLOW-MOBILE.md Stage 4).
  */
 export const processWiseTransfer = internalAction({
     args: {
-        targetEmail: v.string(),
-        amount: v.number(),
-        reference: v.string(),
+        withdrawalId: v.id('withdrawals'),
     },
     handler: async (ctx, args) => {
+        const withdrawal: any = await ctx.runQuery(internal.withdrawals.getByIdInternal, {
+            id: args.withdrawalId,
+        });
+        if (!withdrawal) {
+            console.error(`[WISE] Withdrawal ${args.withdrawalId} not found`);
+            return;
+        }
+        if (withdrawal.status !== 'pending') {
+            console.warn(`[WISE] Withdrawal ${args.withdrawalId} already ${withdrawal.status}, skipping`);
+            return;
+        }
+
+        const email: string = withdrawal.wiseEmail || withdrawal.accountDetails;
+        const holderName: string = withdrawal.accountHolderName || 'Creator';
+        const amount: number = withdrawal.amount;
+        const reference: string = withdrawal.reference || `PAYOUT-${args.withdrawalId}`;
+
         try {
-            // Simulate Wise API call
-            // In production, this will integrate with actual Wise API
-            // For now, we'll create a mock response
+            const { createEmailRecipient, createQuote, createTransfer } = await import('./lib/wise');
 
-            const mockTransferId = `WISE-${args.reference}`;
-            
-            // TODO: Integrate actual Wise API
-            // const wiseSdk = require('@transferwise/sdk');
-            // const transfer = await wiseSdk.transfers.create({...});
+            const recipient = await createEmailRecipient({ accountHolderName: holderName, email });
+            const quote = await createQuote({ sourceAmount: amount });
+            const customerTransactionId = crypto.randomUUID();
+            const transfer = await createTransfer({
+                recipientId: recipient.id,
+                quoteId: quote.id,
+                customerTransactionId,
+                reference,
+            });
 
-            console.log(`[Wise Transfer] Processing ${args.amount} to ${args.targetEmail}`);
+            await ctx.runMutation(internal.withdrawals.setWiseTransferIds, {
+                withdrawalId: args.withdrawalId,
+                wiseTransferId: transfer.id,
+                wiseRecipientId: recipient.id,
+            });
 
-            return {
-                id: mockTransferId,
-                status: 'PROCESSING',
-                reference: args.reference,
-                amount: args.amount,
-                targetEmail: args.targetEmail,
-            };
+            // Audit log: transfer created (awaiting manual funding in Wise dashboard)
+            await ctx.runMutation(internal.auditLogs.log, {
+                adminId: 'system:wise',
+                action: 'payout_sent',
+                targetType: 'withdrawal',
+                targetId: args.withdrawalId,
+                metadata: {
+                    amount,
+                    method: 'wise_email',
+                    reference,
+                    wiseTransferId: transfer.id,
+                    wiseRecipientId: recipient.id,
+                    stage: 'transfer_created_awaiting_funding',
+                },
+            });
+
+            console.log(`[WISE] Transfer ${transfer.id} created for withdrawal ${args.withdrawalId}`);
         } catch (error) {
-            console.error('Wise API error:', error);
-            throw new Error(`Failed to process Wise transfer: ${error}`);
+            const reason = error instanceof Error ? error.message : 'Unknown Wise API error';
+            console.error(`[WISE] Failed to create transfer for withdrawal ${args.withdrawalId}:`, reason);
+            await ctx.runMutation(internal.withdrawals.markFailed, {
+                withdrawalId: args.withdrawalId,
+                reason,
+            });
         }
     },
 });

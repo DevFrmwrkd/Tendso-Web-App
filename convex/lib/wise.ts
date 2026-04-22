@@ -19,6 +19,17 @@ function getWiseToken(): string {
     return token
 }
 
+function getWiseProfileId(): string {
+    const id = process.env.WISE_PROFILE_ID
+    if (!id) throw new Error('WISE_PROFILE_ID env var must be set')
+    return id
+}
+
+function getPayoutBalanceId(): string | undefined {
+    const id = process.env.WISE_CREATOR_PAYOUT_BALANCE_ID
+    return id && id.length > 0 ? id : undefined
+}
+
 async function wiseRequest(path: string, options: RequestInit = {}): Promise<any> {
     const token = getWiseToken()
     const response = await fetch(`${getBaseUrl()}${path}`, {
@@ -43,6 +54,83 @@ async function wiseRequest(path: string, options: RequestInit = {}): Promise<any
         throw new Error(`Wise API error (${response.status}): ${errorMsg}`)
     }
     return data
+}
+
+// ==================== TRANSFER CREATION ====================
+
+/**
+ * Create an email-type recipient on Wise.
+ * Wise will send the funds to this email address; if the recipient doesn't have a
+ * Wise account, Wise sends an invitation link (7-day claim window).
+ */
+export async function createEmailRecipient(params: {
+    accountHolderName: string
+    email: string
+}): Promise<{ id: string }> {
+    const profileId = getWiseProfileId()
+    const data = await wiseRequest('/v1/accounts', {
+        method: 'POST',
+        body: JSON.stringify({
+            currency: 'PHP',
+            type: 'email',
+            profile: Number(profileId),
+            accountHolderName: params.accountHolderName,
+            details: { email: params.email },
+        }),
+    })
+    return { id: String(data?.id ?? '') }
+}
+
+/**
+ * Create a PHP → PHP quote at fixed rate (1:1, no FX).
+ * Sourced from the Creator Payout jar when WISE_CREATOR_PAYOUT_BALANCE_ID is set,
+ * otherwise falls back to the profile's main balance.
+ */
+export async function createQuote(params: {
+    sourceAmount: number
+}): Promise<{ id: string }> {
+    const profileId = getWiseProfileId()
+    const body: Record<string, unknown> = {
+        profile: Number(profileId),
+        source: 'PHP',
+        target: 'PHP',
+        rateType: 'FIXED',
+        sourceAmount: params.sourceAmount,
+        type: 'BALANCE_PAYOUT',
+    }
+    const balanceId = getPayoutBalanceId()
+    if (balanceId) body.sourceBalanceId = Number(balanceId)
+
+    const data = await wiseRequest('/v1/quotes', {
+        method: 'POST',
+        body: JSON.stringify(body),
+    })
+    return { id: String(data?.id ?? '') }
+}
+
+/**
+ * Create a transfer tying a recipient to a quote.
+ * `customerTransactionId` must be a UUID and enables Wise-side idempotency.
+ * `reference` is the memo the admin sees in the Wise dashboard (≤ 30 chars).
+ */
+export async function createTransfer(params: {
+    recipientId: string
+    quoteId: string
+    customerTransactionId: string
+    reference: string
+}): Promise<{ id: string }> {
+    const data = await wiseRequest('/v1/transfers', {
+        method: 'POST',
+        body: JSON.stringify({
+            targetAccount: Number(params.recipientId),
+            quote: Number(params.quoteId),
+            customerTransactionId: params.customerTransactionId,
+            details: {
+                reference: params.reference.slice(0, 30),
+            },
+        }),
+    })
+    return { id: String(data?.id ?? '') }
 }
 
 // ==================== TRANSFER STATUS ====================
