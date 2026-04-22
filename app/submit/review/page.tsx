@@ -60,17 +60,33 @@ export default function ReviewSubmissionPage() {
         submission?.photos?.length ? { storageIds: submission.photos } : "skip"
     )
 
-    // Get interview URL (video or audio)
-    // First check R2 URLs (new), then fall back to storage IDs (legacy)
-    const hasR2Video = !!submission?.videoUrl
-    const hasR2Audio = !!submission?.audioUrl
+    // Get interview URL (video or audio).
+    // Client-side resolution first — full URLs pass through, R2 relative paths
+    // (audio/..., videos/...) get prefixed with NEXT_PUBLIC_R2_PUBLIC_URL so the
+    // preview works even if the server query hasn't redeployed yet. Only true
+    // Convex storage IDs require the server round-trip.
+    const r2PublicUrl = (process.env.NEXT_PUBLIC_R2_PUBLIC_URL || '').replace(/\/$/, '')
+    const resolveStoragePath = (val?: string | null): string | null => {
+        if (!val) return null
+        if (val.startsWith('http://') || val.startsWith('https://')) return val
+        if (/^(images|videos|audio)\//.test(val) && r2PublicUrl) return `${r2PublicUrl}/${val}`
+        return null
+    }
+
+    const directInterviewUrl =
+        resolveStoragePath(submission?.videoUrl) ||
+        resolveStoragePath(submission?.audioUrl) ||
+        resolveStoragePath(submission?.videoStorageId?.toString()) ||
+        resolveStoragePath(submission?.audioStorageId?.toString())
+
     const interviewStorageId = submission?.videoStorageId || submission?.audioStorageId
+    const needsServerResolution =
+        !directInterviewUrl && !!interviewStorageId
     const legacyInterviewUrl = useQuery(
         api.files.getUrlByString,
-        interviewStorageId && !hasR2Video && !hasR2Audio ? { storageId: interviewStorageId.toString() } : "skip"
+        needsServerResolution ? { storageId: interviewStorageId!.toString() } : "skip"
     )
-    // Use R2 URL if available, otherwise use legacy storage URL
-    const interviewUrl = submission?.videoUrl || submission?.audioUrl || legacyInterviewUrl
+    const interviewUrl = directInterviewUrl || legacyInterviewUrl || null
 
     // Mutations
     const submitSubmission = useMutation(api.submissions.submit)
@@ -338,6 +354,30 @@ export default function ReviewSubmissionPage() {
                                     <span className="ml-2 text-sm text-gray-500">Loading preview...</span>
                                 </div>
                             )}
+
+                            {/* AI Transcript */}
+                            {submission.transcript ? (
+                                <div className="mt-4 pt-4 border-t border-gray-100">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                                            AI Transcript
+                                        </h4>
+                                        <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                                            Generated
+                                        </span>
+                                    </div>
+                                    <div className="bg-gray-50 rounded-lg p-3 max-h-64 overflow-y-auto">
+                                        <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">
+                                            {submission.transcript}
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : (hasVideo || hasAudio) && submission.transcriptionStatus === 'processing' ? (
+                                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center gap-2 text-xs text-gray-500">
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <span>Transcript generating…</span>
+                                </div>
+                            ) : null}
                         </div>
                     </div>
 
@@ -349,7 +389,7 @@ export default function ReviewSubmissionPage() {
                                 Custom Domain (Optional)
                             </h3>
                             <span className={`text-xs font-bold px-2 py-1 rounded-full ${wantsCustomDomain ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
-                                {wantsCustomDomain ? '+₱500' : 'Not included'}
+                                {wantsCustomDomain ? '₱1,500 total' : 'Not included'}
                             </span>
                         </div>
                         <div className="p-4 space-y-3">
@@ -364,7 +404,7 @@ export default function ReviewSubmissionPage() {
                                         value={domainInput}
                                         onChange={(e) => setDomainInput(e.target.value)}
                                         placeholder="e.g. yourbusiness.com (leave blank for standard)"
-                                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg font-mono text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
                                     />
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                                         {checkingDomain ? (
@@ -385,12 +425,12 @@ export default function ReviewSubmissionPage() {
                                 <div className="text-xs">
                                     {domainCheck.available && domainCheck.withinBudget && (
                                         <p className="text-green-700 font-semibold">
-                                            ✓ Available · ₱{domainCheck.pricePHP} (within budget — included in your ₱1,500 fee)
+                                            ✓ Available — included in the ₱1,500 business-owner fee.
                                         </p>
                                     )}
                                     {domainCheck.available && !domainCheck.withinBudget && (
                                         <p className="text-amber-700 font-semibold">
-                                            ⚠ Available but ₱{domainCheck.pricePHP} exceeds the ₱500 included budget. Pick another domain.
+                                            ⚠ This domain costs more than our included budget. Try a different TLD below.
                                         </p>
                                     )}
                                     {!domainCheck.available && (
@@ -401,32 +441,69 @@ export default function ReviewSubmissionPage() {
                                 </div>
                             )}
 
-                            {/* Suggestions */}
-                            {wantsCustomDomain && domainCheck?.suggestions && domainCheck.suggestions.length > 0 && (
-                                <div>
-                                    <p className="text-xs font-semibold text-gray-700 mb-2">Try these alternatives:</p>
-                                    <div className="space-y-1.5">
-                                        {domainCheck.suggestions.slice(0, 5).map((sug) => (
-                                            <button
-                                                key={sug.domain}
-                                                type="button"
-                                                onClick={() => setDomainInput(sug.domain)}
-                                                disabled={!sug.withinBudget}
-                                                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-left text-xs transition-all ${
-                                                    sug.withinBudget
-                                                        ? 'bg-white hover:border-emerald-400 border-gray-200'
-                                                        : 'bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed'
-                                                }`}
-                                            >
-                                                <span className="font-mono font-semibold text-gray-900">{sug.domain}</span>
-                                                <span className={`font-semibold ${sug.withinBudget ? 'text-green-700' : 'text-amber-700'}`}>
-                                                    ₱{sug.pricePHP} {sug.withinBudget ? '✓' : '(over)'}
-                                                </span>
-                                            </button>
-                                        ))}
+                            {/* Suggestions — always render when the typed domain is unavailable.
+                                If Hostinger returned alternatives, show those with prices.
+                                Otherwise generate TLD variants client-side so the creator
+                                always has something to click. Clicking fills the input and
+                                re-runs the real availability check. */}
+                            {wantsCustomDomain && domainCheck && domainCheck.available === false && (() => {
+                                const serverSuggestions = domainCheck.suggestions || []
+                                const typed = (domainCheck.domain || domainInput.trim().toLowerCase())
+                                const baseName = typed.split('.')[0]
+                                const typedTld = typed.split('.').slice(1).join('.')
+                                const fallbackTlds = ['com', 'net', 'co', 'shop', 'store', 'online', 'xyz', 'site']
+                                const fallbackSuggestions = baseName
+                                    ? fallbackTlds
+                                          .filter((t) => t !== typedTld)
+                                          .slice(0, 6)
+                                          .map((tld) => ({
+                                              domain: `${baseName}.${tld}`,
+                                              pricePHP: 0,
+                                              withinBudget: true as boolean,
+                                              isFallback: true,
+                                          }))
+                                    : []
+
+                                const items = serverSuggestions.length > 0
+                                    ? serverSuggestions.map((s) => ({ ...s, isFallback: false }))
+                                    : fallbackSuggestions
+
+                                if (items.length === 0) return null
+
+                                return (
+                                    <div>
+                                        <p className="text-xs font-semibold text-gray-700 mb-2">
+                                            {serverSuggestions.length > 0
+                                                ? 'Try these alternatives:'
+                                                : 'Try a different TLD (click to check):'}
+                                        </p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                            {items.slice(0, 6).map((sug) => (
+                                                <button
+                                                    key={sug.domain}
+                                                    type="button"
+                                                    onClick={() => setDomainInput(sug.domain)}
+                                                    disabled={!sug.withinBudget}
+                                                    className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border text-left text-xs transition-all ${
+                                                        sug.withinBudget
+                                                            ? 'bg-white hover:border-emerald-400 border-gray-200 text-gray-900'
+                                                            : 'bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed text-gray-500'
+                                                    }`}
+                                                >
+                                                    <span className="font-mono font-semibold text-gray-900 truncate">{sug.domain}</span>
+                                                    <span
+                                                        className={`font-semibold shrink-0 ${
+                                                            sug.withinBudget ? 'text-emerald-600' : 'text-amber-700'
+                                                        }`}
+                                                    >
+                                                        {sug.isFallback ? 'Check' : sug.withinBudget ? 'Available ✓' : 'Over budget'}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )
+                            })()}
 
                             {/* Renewal disclaimer (only when domain is being added) */}
                             {wantsCustomDomain && (

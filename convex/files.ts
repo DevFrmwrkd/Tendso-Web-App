@@ -28,8 +28,26 @@ export const getUrl = query({
 export const getUrlByString = query({
     args: { storageId: v.string() },
     handler: async (ctx, args) => {
+        const idString = args.storageId;
+        const r2PublicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, '');
+
         try {
-            return await ctx.storage.getUrl(args.storageId as Id<"_storage">);
+            // Already a full URL — pass through
+            if (idString.startsWith('http://') || idString.startsWith('https://')) {
+                return idString;
+            }
+
+            // R2 relative paths (images/..., videos/..., audio/...) — prepend R2 public URL
+            if (/^(images|videos|audio)\//.test(idString) && r2PublicUrl) {
+                return `${r2PublicUrl}/${idString}`;
+            }
+
+            // Handle "convex:storageId" prefix
+            const storageId = idString.startsWith('convex:')
+                ? idString.replace('convex:', '')
+                : idString;
+
+            return await ctx.storage.getUrl(storageId as Id<"_storage">);
         } catch {
             return null;
         }

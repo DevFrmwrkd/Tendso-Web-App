@@ -31,17 +31,29 @@ export async function POST(request: NextRequest) {
         const { audioUrl, useConvexStorage, videoStorageId, audioStorageId, videoUrl } = body
         submissionId = body.submissionId
 
-        // Priority: R2 URLs (videoUrl/audioUrl from body) > Convex storage URLs
-        let mediaUrl = videoUrl || audioUrl
+        // Resolve a submitted field (url or storage id) into a fetchable URL.
+        // Handles full https URLs, R2 relative paths (audio/..., videos/..., images/...),
+        // and the `convex:` prefix. Returns null for Convex storage IDs we can't resolve here.
+        const r2Prefix = process.env.R2_PUBLIC_URL?.replace(/\/$/, '')
+        const resolveToUrl = (val?: string | null): string | null => {
+            if (!val) return null
+            if (val.startsWith('http://') || val.startsWith('https://')) return val
+            if (/^(images|videos|audio)\//.test(val) && r2Prefix) return `${r2Prefix}/${val}`
+            return null
+        }
 
-        // If no direct URL and using Convex storage, get the actual URL
-        if (!mediaUrl && useConvexStorage && (videoStorageId || audioStorageId)) {
-            const storageId = videoStorageId || audioStorageId
+        // Priority: full URLs first, then try R2-shaped storage IDs locally,
+        // then fall back to a Convex round-trip for legacy Convex storage IDs.
+        let mediaUrl =
+            resolveToUrl(videoUrl) ||
+            resolveToUrl(audioUrl) ||
+            resolveToUrl(videoStorageId?.toString()) ||
+            resolveToUrl(audioStorageId?.toString())
+
+        if (!mediaUrl && (videoStorageId || audioStorageId)) {
+            const storageId = (videoStorageId || audioStorageId).toString()
             try {
-                // Get URL from Convex storage
-                const url = await convex.query(api.files.getUrlByString, {
-                    storageId: storageId.toString()
-                })
+                const url = await convex.query(api.files.getUrlByString, { storageId })
                 if (url) {
                     mediaUrl = url
                 }
@@ -51,9 +63,51 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // Last-resort: re-read the submission from Convex in case the client
+        // sent stale values. A creator who just uploaded audio on an older tab
+        // might have a submission row with audioUrl set even if the client
+        // state didn't reflect it yet.
+        if (!mediaUrl && submissionId) {
+            try {
+                const fresh: any = await convex.query(api.submissions.getById, {
+                    id: submissionId as Id<"submissions">,
+                })
+                if (fresh) {
+                    mediaUrl =
+                        resolveToUrl(fresh.videoUrl) ||
+                        resolveToUrl(fresh.audioUrl) ||
+                        resolveToUrl(fresh.videoStorageId?.toString?.()) ||
+                        resolveToUrl(fresh.audioStorageId?.toString?.())
+                    if (!mediaUrl) {
+                        const sid = fresh.videoStorageId || fresh.audioStorageId
+                        if (sid) {
+                            const url = await convex.query(api.files.getUrlByString, {
+                                storageId: sid.toString(),
+                            })
+                            if (url) mediaUrl = url
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Fallback submission fetch failed:', err)
+            }
+        }
+
         if (!mediaUrl) {
+            console.error('[TRANSCRIBE] No URL resolvable', {
+                submissionId,
+                hasVideoUrl: !!videoUrl,
+                hasAudioUrl: !!audioUrl,
+                hasVideoStorageId: !!videoStorageId,
+                hasAudioStorageId: !!audioStorageId,
+                useConvexStorage,
+                r2PrefixSet: !!r2Prefix,
+            })
             return NextResponse.json({ error: 'Audio/Video URL is required' }, { status: 400 })
         }
+
+        // Unused legacy flag; kept to avoid breaking older clients that still send it.
+        void useConvexStorage
 
         // Set transcription status to processing
         if (submissionId) {

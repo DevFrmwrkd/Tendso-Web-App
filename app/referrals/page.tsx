@@ -19,6 +19,7 @@ import {
     Star,
     Banknote,
 } from "lucide-react"
+import { BottomNav } from "@/components/BottomNav"
 
 export default function ReferralsPage() {
     const router = useRouter()
@@ -266,6 +267,8 @@ export default function ReferralsPage() {
                     </div>
                 </div>
             </main>
+
+            <BottomNav active="referral" />
         </div>
     )
 }

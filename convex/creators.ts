@@ -186,6 +186,7 @@ export const update = mutation({
         profileImage: v.optional(v.string()),
         payoutMethod: v.optional(v.string()),
         payoutDetails: v.optional(v.string()),
+        wiseEmail: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const { id, ...updates } = args;
