@@ -21,36 +21,23 @@ import {
     CheckCircle,
     XCircle,
     RefreshCw,
-    ChevronDown,
+    Mail,
+    ExternalLink,
 } from "lucide-react"
+import { BottomNav } from "@/components/BottomNav"
 
-const BANKS = [
-    { name: "BDO Unibank", code: "BDO", digits: 10 },
-    { name: "BPI", code: "BPI", digits: 10 },
-    { name: "Metrobank", code: "MBTC", digits: 13 },
-    { name: "UnionBank", code: "UBP", digits: 12 },
-    { name: "Landbank", code: "LBP", digits: 10 },
-    { name: "PNB", code: "PNB", digits: 12 },
-    { name: "RCBC", code: "RCBC", digits: 10 },
-    { name: "Security Bank", code: "SECB", digits: 13 },
-    { name: "China Bank", code: "CB", digits: 12 },
-    { name: "EastWest Bank", code: "EW", digits: 12 },
-    { name: "AUB", code: "AUB", digits: 12 },
-    { name: "UCPB", code: "UCPB", digits: 12 },
-    { name: "PSBank", code: "PSB", digits: 12 },
-    { name: "Robinsons Bank", code: "RBB", digits: 12 },
-    { name: "GCash (via GXI)", code: "GXI", digits: 11 },
-]
+const WISE_REFERRAL_URL =
+    "https://wise.com/invite/dic/theoimmorosalesv?utm_source=desktop-invite-tab-copylink&utm_medium=invite&utm_campaign=&utm_content=&referralCode=theoimmorosalesv"
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function WalletPage() {
     const router = useRouter()
     const { user, isLoaded, isSignedIn } = useUser()
+    const [showSetupModal, setShowSetupModal] = useState(false)
     const [showWithdrawModal, setShowWithdrawModal] = useState(false)
     const [amount, setAmount] = useState("")
-    const [accountHolderName, setAccountHolderName] = useState("")
-    const [selectedBankIndex, setSelectedBankIndex] = useState<number | null>(null)
-    const [accountNumber, setAccountNumber] = useState("")
-    const [city, setCity] = useState("")
+    const [wiseEmailInput, setWiseEmailInput] = useState("")
     const [error, setError] = useState("")
     const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -75,6 +62,7 @@ export default function WalletPage() {
     )
 
     const createWithdrawal = useMutation(api.withdrawals.create)
+    const updateCreator = useMutation(api.creators.update)
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
@@ -87,6 +75,13 @@ export default function WalletPage() {
             router.push("/onboarding")
         }
     }, [isLoaded, isSignedIn, creator, router])
+
+    // Pre-fill saved Wise email when modals open
+    useEffect(() => {
+        if (creator?.wiseEmail && !wiseEmailInput) {
+            setWiseEmailInput(creator.wiseEmail)
+        }
+    }, [creator?.wiseEmail]) // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!isLoaded || !isSignedIn || creator === undefined) {
         return (
@@ -108,7 +103,35 @@ export default function WalletPage() {
     const totalEarned = earningsSummary?.total || creator.totalEarnings || 0
     const totalWithdrawn = earningsSummary?.withdrawn || creator.totalWithdrawn || 0
 
-    const selectedBank = selectedBankIndex !== null ? BANKS[selectedBankIndex] : null
+    const handleStartWithdraw = () => {
+        setError("")
+        if (creator.wiseEmail) {
+            setWiseEmailInput(creator.wiseEmail)
+            setShowWithdrawModal(true)
+        } else {
+            setShowSetupModal(true)
+        }
+    }
+
+    const handleSaveWiseEmail = async () => {
+        setError("")
+        const normalized = wiseEmailInput.trim().toLowerCase()
+        if (!EMAIL_REGEX.test(normalized)) {
+            setError("Please enter a valid email address.")
+            return
+        }
+        try {
+            setIsSubmitting(true)
+            await updateCreator({ id: creator._id, wiseEmail: normalized })
+            setWiseEmailInput(normalized)
+            setShowSetupModal(false)
+            setShowWithdrawModal(true)
+        } catch (err: any) {
+            setError(err.message || "Failed to save Wise email. Please try again.")
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
 
     const handleWithdraw = async () => {
         setError("")
@@ -122,47 +145,26 @@ export default function WalletPage() {
             setError("Insufficient balance.")
             return
         }
-        if (!accountHolderName.trim()) {
-            setError("Please enter the account holder name.")
-            return
-        }
-        if (!selectedBank) {
-            setError("Please select a bank.")
-            return
-        }
-        if (!accountNumber.trim()) {
-            setError("Please enter your account number.")
-            return
-        }
-        if (accountNumber.replace(/\s/g, "").length !== selectedBank.digits) {
-            setError(`${selectedBank.name} requires exactly ${selectedBank.digits} digits.`)
-            return
-        }
-        if (!city.trim()) {
-            setError("Please enter your city.")
+        const normalizedEmail = wiseEmailInput.trim().toLowerCase()
+        if (!EMAIL_REGEX.test(normalizedEmail)) {
+            setError("Please enter a valid Wise email address.")
             return
         }
 
         try {
             setIsSubmitting(true)
+            // Persist updated Wise email on the creator profile so it's remembered next time
+            if (normalizedEmail !== creator.wiseEmail) {
+                await updateCreator({ id: creator._id, wiseEmail: normalizedEmail })
+            }
             await createWithdrawal({
                 creatorId: creator._id,
                 amount: withdrawAmount,
-                payoutMethod: "bank_transfer",
-                accountDetails: JSON.stringify({
-                    accountHolderName: accountHolderName.trim(),
-                    bankName: selectedBank.name,
-                    bankCode: selectedBank.code,
-                    accountNumber: accountNumber.replace(/\s/g, ""),
-                    city: city.trim(),
-                }),
+                payoutMethod: "wise_email",
+                accountDetails: normalizedEmail,
             })
             setShowWithdrawModal(false)
             setAmount("")
-            setAccountHolderName("")
-            setSelectedBankIndex(null)
-            setAccountNumber("")
-            setCity("")
         } catch (err: any) {
             setError(err.message || "Withdrawal failed. Please try again.")
         } finally {
@@ -271,13 +273,20 @@ export default function WalletPage() {
 
                 {/* Withdraw Button */}
                 <Button
-                    onClick={() => setShowWithdrawModal(true)}
+                    onClick={handleStartWithdraw}
                     disabled={balance < 100}
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl h-12 mb-6 shadow-lg shadow-emerald-500/20"
+                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl h-12 mb-2 shadow-lg shadow-emerald-500/20"
                 >
                     <ArrowDownRight className="w-5 h-5 mr-2" />
                     Withdraw Funds
                 </Button>
+                <p className="text-[11px] text-zinc-500 text-center mb-6">
+                    Paid via Wise to{" "}
+                    <span className="font-semibold text-zinc-700">
+                        {creator.wiseEmail || "your Wise email"}
+                    </span>
+                    . Min. PHP 100.
+                </p>
 
                 {/* Recent Earnings */}
                 <div className="mb-6">
@@ -324,13 +333,16 @@ export default function WalletPage() {
                     <div className="space-y-3">
                         {withdrawals && withdrawals.length > 0 ? (
                             withdrawals.map((withdrawal: any) => {
-                                let bankLabel = "Bank Transfer"
-                                try {
-                                    const details = JSON.parse(withdrawal.accountDetails)
-                                    bankLabel = details.bankName || bankLabel
-                                } catch {
-                                    // ignore parse errors
-                                }
+                                // Prefer the persisted wiseEmail column; fall back to accountDetails
+                                // (which is the raw email for wise_email withdrawals).
+                                const wiseEmail =
+                                    withdrawal.wiseEmail ||
+                                    (withdrawal.payoutMethod === "wise_email"
+                                        ? withdrawal.accountDetails
+                                        : null)
+                                const label = wiseEmail
+                                    ? `Wise: ${wiseEmail}`
+                                    : "Wise Transfer"
 
                                 return (
                                     <div
@@ -341,12 +353,12 @@ export default function WalletPage() {
                                             <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
                                                 <ArrowDownRight className="w-5 h-5 text-zinc-500" />
                                             </div>
-                                            <div>
+                                            <div className="min-w-0">
                                                 <h3 className="font-bold text-sm text-zinc-900">
                                                     PHP {formatCurrency(withdrawal.amount)}
                                                 </h3>
-                                                <p className="text-[10px] text-zinc-500">
-                                                    {bankLabel} · {formatDate(withdrawal.createdAt)}
+                                                <p className="text-[10px] text-zinc-500 truncate">
+                                                    {label} · {formatDate(withdrawal.createdAt)}
                                                 </p>
                                             </div>
                                         </div>
@@ -363,10 +375,93 @@ export default function WalletPage() {
                 </div>
             </main>
 
+            {/* Wise Setup Modal — first-time Wise email capture */}
+            {showSetupModal && (
+                <div className="fixed inset-0 bg-black/50 z-[60] flex items-end sm:items-center justify-center">
+                    <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 pb-10 animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+                                    <Mail className="w-4 h-4 text-emerald-600" />
+                                </div>
+                                <h2 className="text-lg font-bold text-zinc-900">Set up Wise payouts</h2>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setShowSetupModal(false)
+                                    setError("")
+                                }}
+                                className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-colors"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        <p className="text-sm text-zinc-600 mb-5">
+                            We&apos;ll send your earnings to your Wise account by email. Enter the email
+                            you use (or plan to use) on Wise — we&apos;ll remember it for next time.
+                        </p>
+
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="setupEmail" className="text-sm font-semibold text-zinc-700">
+                                    Wise account email
+                                </Label>
+                                <Input
+                                    id="setupEmail"
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    value={wiseEmailInput}
+                                    onChange={(e) => setWiseEmailInput(e.target.value)}
+                                    className="mt-1 rounded-xl border-zinc-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                />
+                            </div>
+
+                            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-xs text-zinc-700 space-y-2">
+                                <p className="font-semibold text-emerald-700">
+                                    Don&apos;t have a Wise account yet?
+                                </p>
+                                <p>
+                                    Wise is free. Sign up with our referral link — you and Negosyo Digital
+                                    both get a bonus when your first payout clears.
+                                </p>
+                                <a
+                                    href={WISE_REFERRAL_URL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:text-emerald-800"
+                                >
+                                    Sign up on Wise <ExternalLink className="w-3 h-3" />
+                                </a>
+                                <p className="text-zinc-500">
+                                    Then come back and enter the same email here.
+                                </p>
+                            </div>
+
+                            {error && (
+                                <p className="text-sm text-red-600 font-medium bg-red-50 p-3 rounded-xl">{error}</p>
+                            )}
+
+                            <Button
+                                onClick={handleSaveWiseEmail}
+                                disabled={isSubmitting}
+                                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl h-12 shadow-lg shadow-emerald-500/20"
+                            >
+                                {isSubmitting ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    "Save & Continue"
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Withdraw Modal */}
             {showWithdrawModal && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-                    <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 pb-10 animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-black/50 z-[60] flex items-end sm:items-center justify-center">
+                    <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 pb-10 animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-6">
                             <h2 className="text-lg font-bold text-zinc-900">Withdraw Funds</h2>
                             <button
@@ -403,76 +498,30 @@ export default function WalletPage() {
                             </div>
 
                             <div>
-                                <Label htmlFor="accountHolderName" className="text-sm font-semibold text-zinc-700">
-                                    Account Holder Name
+                                <Label htmlFor="wiseEmail" className="text-sm font-semibold text-zinc-700">
+                                    Wise account email
                                 </Label>
                                 <Input
-                                    id="accountHolderName"
-                                    type="text"
-                                    placeholder="Full name on the account"
-                                    value={accountHolderName}
-                                    onChange={(e) => setAccountHolderName(e.target.value)}
+                                    id="wiseEmail"
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    value={wiseEmailInput}
+                                    onChange={(e) => setWiseEmailInput(e.target.value)}
                                     className="mt-1 rounded-xl border-zinc-200 focus:border-emerald-500 focus:ring-emerald-500"
                                 />
-                            </div>
-
-                            <div>
-                                <Label htmlFor="bank" className="text-sm font-semibold text-zinc-700">
-                                    Bank
-                                </Label>
-                                <div className="relative mt-1">
-                                    <select
-                                        id="bank"
-                                        value={selectedBankIndex !== null ? selectedBankIndex : ""}
-                                        onChange={(e) =>
-                                            setSelectedBankIndex(e.target.value !== "" ? parseInt(e.target.value) : null)
-                                        }
-                                        className="w-full h-10 rounded-xl border border-zinc-200 bg-white px-3 pr-10 text-sm text-zinc-900 focus:border-emerald-500 focus:ring-emerald-500 focus:outline-none appearance-none"
+                                <p className="text-[11px] text-zinc-500 mt-1">
+                                    Must match the email on your Wise account. If you don&apos;t have one,{" "}
+                                    <a
+                                        href={WISE_REFERRAL_URL}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="font-semibold text-emerald-600 hover:text-emerald-700 underline"
                                     >
-                                        <option value="">Select a bank</option>
-                                        {BANKS.map((bank, index) => (
-                                            <option key={bank.code} value={index}>
-                                                {bank.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
-                                </div>
-                            </div>
-
-                            <div>
-                                <Label htmlFor="accountNumber" className="text-sm font-semibold text-zinc-700">
-                                    Account Number
-                                    {selectedBank && (
-                                        <span className="text-zinc-400 font-normal ml-1">
-                                            ({selectedBank.digits} digits)
-                                        </span>
-                                    )}
-                                </Label>
-                                <Input
-                                    id="accountNumber"
-                                    type="text"
-                                    inputMode="numeric"
-                                    placeholder={selectedBank ? `${selectedBank.digits}-digit account number` : "Account number"}
-                                    value={accountNumber}
-                                    onChange={(e) => setAccountNumber(e.target.value.replace(/[^0-9\s]/g, ""))}
-                                    maxLength={selectedBank ? selectedBank.digits + 3 : 16}
-                                    className="mt-1 rounded-xl border-zinc-200 focus:border-emerald-500 focus:ring-emerald-500"
-                                />
-                            </div>
-
-                            <div>
-                                <Label htmlFor="city" className="text-sm font-semibold text-zinc-700">
-                                    City
-                                </Label>
-                                <Input
-                                    id="city"
-                                    type="text"
-                                    placeholder="e.g., Manila"
-                                    value={city}
-                                    onChange={(e) => setCity(e.target.value)}
-                                    className="mt-1 rounded-xl border-zinc-200 focus:border-emerald-500 focus:ring-emerald-500"
-                                />
+                                        sign up with our referral link
+                                    </a>{" "}
+                                    first — otherwise you have 7 days to claim via email before the transfer
+                                    auto-refunds.
+                                </p>
                             </div>
 
                             {error && (
@@ -494,6 +543,8 @@ export default function WalletPage() {
                     </div>
                 </div>
             )}
+
+            <BottomNav active="wallet" />
         </div>
     )
 }

@@ -237,16 +237,42 @@ export async function suggestAlternatives(
             }),
         })
 
-        const results = Array.isArray(data) ? data : (data?.data || data?.results || [])
-        const suggestions: Array<{ domain: string; priceUSD: number; pricePHP: number; withinBudget: boolean }> = []
+        // Log the raw response shape once per call so we can verify which
+        // field Hostinger actually puts alternatives in. Safe to keep — these
+        // go to Convex logs, not the client.
+        console.log(
+            `[HOSTINGER] suggestAlternatives(${baseName}) response keys:`,
+            data && typeof data === 'object' ? Object.keys(data) : typeof data
+        )
 
-        for (const r of results) {
+        // Hostinger can return alternatives in a few shapes. Merge all of them
+        // before filtering so we don't drop suggestions that live under an
+        // alternates/suggestions key instead of the main results array.
+        const fromArrayRoot = Array.isArray(data) ? data : []
+        const fromData = Array.isArray(data?.data) ? data.data : []
+        const fromResults = Array.isArray(data?.results) ? data.results : []
+        const fromAlternatives = Array.isArray(data?.alternatives) ? data.alternatives : []
+        const fromSuggestions = Array.isArray(data?.suggestions) ? data.suggestions : []
+        const allCandidates = [
+            ...fromArrayRoot,
+            ...fromData,
+            ...fromResults,
+            ...fromAlternatives,
+            ...fromSuggestions,
+        ]
+
+        const suggestions: Array<{ domain: string; priceUSD: number; pricePHP: number; withinBudget: boolean }> = []
+        const seen = new Set<string>()
+
+        for (const r of allCandidates) {
             if (!r?.is_available && !r?.available) continue
             if (r?.is_premium === true || r?.premium === true) continue
-            const fullDomain = r.domain || `${baseName}.${r.tld}`
+            const fullDomain: string = (r.domain || (r.tld ? `${baseName}.${r.tld}` : '')).toLowerCase()
+            if (!fullDomain || seen.has(fullDomain)) continue
             const priceUSD = parseFloat(r.price?.amount || r.price?.usd || r.price || '0')
             if (priceUSD <= 0) continue
             const pricePHP = await usdToPhp(priceUSD)
+            seen.add(fullDomain)
             suggestions.push({
                 domain: fullDomain,
                 priceUSD,
@@ -254,6 +280,13 @@ export async function suggestAlternatives(
                 withinBudget: pricePHP <= maxBudgetPHP,
             })
             if (suggestions.length >= 8) break
+        }
+
+        if (suggestions.length === 0) {
+            console.log(
+                `[HOSTINGER] suggestAlternatives(${baseName}) parsed 0 suggestions from ${allCandidates.length} candidates. Raw sample:`,
+                JSON.stringify(allCandidates.slice(0, 3))
+            )
         }
 
         return suggestions.sort((a, b) => {
