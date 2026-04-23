@@ -6,12 +6,27 @@ import { Id } from '@/convex/_generated/dataModel'
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3'
 
 /**
- * Extract R2 key from a public URL.
- * E.g., "https://pub-xxx.r2.dev/images/1234-abc.jpg" → "images/1234-abc.jpg"
+ * Extract R2 key from a stored value. Handles two shapes:
+ *   1. Full public URL ("https://pub-xxx.r2.dev/images/1234-abc.jpg") — strip the prefix.
+ *   2. Relative R2 path ("audio/1776945779223-fdhx1veh.m4a") — return as-is.
+ *
+ * The mobile APK writes relative paths into *StorageId fields; web writes full
+ * URLs into *Url fields. This handles both. Returns null only when the value
+ * clearly isn't an R2 asset (empty, Convex storage ID, or a foreign URL).
  */
-function extractR2Key(url: string, r2PublicUrl: string | undefined): string | null {
-    if (!r2PublicUrl || !url.startsWith(r2PublicUrl)) return null
-    return url.replace(r2PublicUrl + '/', '')
+function extractR2Key(value: string | undefined | null, r2PublicUrl: string | undefined): string | null {
+    if (!value) return null
+    // Relative R2 path under a known folder
+    if (/^(images|videos|audio|avatars)\//.test(value)) return value
+    // Full URL — must match our R2 public URL prefix
+    if (value.startsWith('http')) {
+        if (r2PublicUrl && value.startsWith(r2PublicUrl)) {
+            return value.replace(r2PublicUrl + '/', '')
+        }
+        // Foreign URL — not one of our R2 keys, skip
+        return null
+    }
+    return null
 }
 
 /**
@@ -218,54 +233,58 @@ export async function POST(request: NextRequest) {
                     requestHandler: { requestTimeout: 10_000 },
                 })
 
-                // Collect all R2 URLs to delete from ALL sources
-                const r2Urls: string[] = []
+                // Collect all R2 references (full URLs AND relative paths) to delete from ALL sources.
+                // Mobile stores R2 keys in *StorageId fields; web stores full URLs in *Url fields.
+                // We accept either shape — extractR2Key below normalizes them into bucket keys.
+                const r2Refs: string[] = []
 
-                // Source 1: Submission photos
+                // Source 1: Submission photos (strings — may be full URLs OR relative paths)
                 if (submission.photos && Array.isArray(submission.photos)) {
                     for (const photo of submission.photos) {
-                        if (typeof photo === 'string' && photo.startsWith('http')) {
-                            r2Urls.push(photo)
+                        if (typeof photo === 'string' && photo) {
+                            r2Refs.push(photo)
                         }
                     }
                 }
-                const submissionPhotoCount = r2Urls.length
+                const submissionPhotoCount = r2Refs.length
 
-                // Source 2: Submission video URL
-                if (submission.videoUrl && submission.videoUrl.startsWith('http')) {
-                    r2Urls.push(submission.videoUrl)
+                // Source 2 + 2b: Submission video (both URL and storageId — mobile uses storageId)
+                if (submission.videoUrl) r2Refs.push(submission.videoUrl)
+                if (submission.videoStorageId && typeof submission.videoStorageId === 'string') {
+                    r2Refs.push(submission.videoStorageId)
                 }
 
-                // Source 3: Submission audio URL
-                if (submission.audioUrl && submission.audioUrl.startsWith('http')) {
-                    r2Urls.push(submission.audioUrl)
+                // Source 3 + 3b: Submission audio (same — both URL and storageId fields)
+                if (submission.audioUrl) r2Refs.push(submission.audioUrl)
+                if (submission.audioStorageId && typeof submission.audioStorageId === 'string') {
+                    r2Refs.push(submission.audioStorageId)
                 }
 
                 // Source 4: Enhanced images from generatedWebsites (top-level)
                 const enhancedFromWebsite = collectEnhancedImageUrls(website?.enhancedImages)
-                r2Urls.push(...enhancedFromWebsite)
+                r2Refs.push(...enhancedFromWebsite)
 
                 // Source 5: Enhanced images from generatedWebsites.extractedContent
                 const enhancedFromExtracted = collectEnhancedImageUrls((website?.extractedContent as any)?.enhancedImages)
-                r2Urls.push(...enhancedFromExtracted)
+                r2Refs.push(...enhancedFromExtracted)
 
                 // Source 6: Enhanced images from websiteContent
                 const enhancedFromContent = collectEnhancedImageUrls(websiteContent?.enhancedImages)
-                r2Urls.push(...enhancedFromContent)
+                r2Refs.push(...enhancedFromContent)
 
                 // Source 7: Section images from generatedWebsites.images
                 const sectionFromWebsite = collectSectionImageUrls(website?.images)
-                r2Urls.push(...sectionFromWebsite)
+                r2Refs.push(...sectionFromWebsite)
 
                 // Source 8: Section images from websiteContent.images
                 const sectionFromContent = collectSectionImageUrls(websiteContent?.images)
-                r2Urls.push(...sectionFromContent)
+                r2Refs.push(...sectionFromContent)
 
                 // Source 9: Featured images from generatedWebsites
                 if (website?.featuredImages && Array.isArray(website.featuredImages)) {
                     for (const img of website.featuredImages) {
-                        if (typeof img === 'string' && img.startsWith('http')) {
-                            r2Urls.push(img)
+                        if (typeof img === 'string' && img) {
+                            r2Refs.push(img)
                         }
                     }
                 }
@@ -273,31 +292,31 @@ export async function POST(request: NextRequest) {
                 // Source 10: Featured images from websiteContent
                 if (websiteContent?.featuredImages && Array.isArray(websiteContent.featuredImages)) {
                     for (const img of websiteContent.featuredImages) {
-                        if (typeof img === 'string' && img.startsWith('http')) {
-                            r2Urls.push(img)
+                        if (typeof img === 'string' && img) {
+                            r2Refs.push(img)
                         }
                     }
                 }
 
-                // Deduplicate URLs
-                const uniqueR2Urls = [...new Set(r2Urls)]
+                // Normalize all refs → R2 object keys, dedupe, drop anything that
+                // isn't one of our R2 assets (foreign URLs, Convex storage IDs, etc).
+                const resolvedKeys = r2Refs
+                    .map(ref => extractR2Key(ref, r2PublicUrl))
+                    .filter((key): key is string => key !== null)
+                const uniqueKeys = [...new Set(resolvedKeys)]
 
-                console.log(`[delete-submission] R2 URLs collected: ${uniqueR2Urls.length} unique (${r2Urls.length} total before dedup)`)
+                console.log(`[delete-submission] R2 refs collected: ${r2Refs.length} raw → ${resolvedKeys.length} resolved → ${uniqueKeys.length} unique`)
                 console.log(`[delete-submission]   - submission.photos: ${submissionPhotoCount}`)
-                console.log(`[delete-submission]   - submission.videoUrl: ${submission.videoUrl ? 1 : 0}`)
-                console.log(`[delete-submission]   - submission.audioUrl: ${submission.audioUrl ? 1 : 0}`)
+                console.log(`[delete-submission]   - submission.videoUrl: ${submission.videoUrl ? 1 : 0}, videoStorageId: ${submission.videoStorageId ? 1 : 0}`)
+                console.log(`[delete-submission]   - submission.audioUrl: ${submission.audioUrl ? 1 : 0}, audioStorageId: ${submission.audioStorageId ? 1 : 0}`)
                 console.log(`[delete-submission]   - enhanced (website): ${enhancedFromWebsite.length}`)
                 console.log(`[delete-submission]   - enhanced (extractedContent): ${enhancedFromExtracted.length}`)
                 console.log(`[delete-submission]   - enhanced (websiteContent): ${enhancedFromContent.length}`)
                 console.log(`[delete-submission]   - section images (website): ${sectionFromWebsite.length}`)
                 console.log(`[delete-submission]   - section images (content): ${sectionFromContent.length}`)
 
-                // Extract keys and delete
                 const r2Results = await Promise.allSettled(
-                    uniqueR2Urls
-                        .map(url => extractR2Key(url, r2PublicUrl))
-                        .filter((key): key is string => key !== null)
-                        .map(key => deleteR2File(r2Client, r2BucketName, key))
+                    uniqueKeys.map(key => deleteR2File(r2Client, r2BucketName, key))
                 )
 
                 let r2Deleted = 0

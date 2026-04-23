@@ -266,6 +266,71 @@ export const rejectSubmission = mutation({
 /**
  * Mark a submission as deployed — triggers audit + notification + analytics
  */
+/**
+ * Mark a submission as having a generated website.
+ *
+ * Referenced by the mobile app (Google Play binary) — keep exported. See
+ * docs/00-Overview-Mobile.md §admin.
+ */
+export const markWebsiteGenerated = mutation({
+    args: {
+        submissionId: v.id('submissions'),
+        adminId: v.string(),
+        websiteUrl: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission) throw new Error('Submission not found');
+
+        const updates: Record<string, unknown> = { status: 'website_generated' };
+        if (args.websiteUrl) updates.websiteUrl = args.websiteUrl;
+        await ctx.db.patch(args.submissionId, updates);
+
+        await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
+            adminId: args.adminId,
+            action: 'website_generated',
+            targetType: 'submission',
+            targetId: args.submissionId,
+            metadata: { businessName: submission.businessName, websiteUrl: args.websiteUrl },
+        });
+
+        return args.submissionId;
+    },
+});
+
+/**
+ * Alias for submissions.getAllWithCreator — mobile references it as
+ * `admin.getAllSubmissionsWithCreators`. Keep exported.
+ */
+export const getAllSubmissionsWithCreators = query({
+    args: {},
+    handler: async (ctx) => {
+        const submissions = await ctx.db
+            .query('submissions')
+            .order('desc')
+            .collect();
+
+        return Promise.all(
+            submissions.map(async (submission) => {
+                const creator = await ctx.db.get(submission.creatorId);
+                return {
+                    ...submission,
+                    creator: creator
+                        ? {
+                              _id: creator._id,
+                              firstName: creator.firstName,
+                              lastName: creator.lastName,
+                              email: creator.email,
+                              phone: creator.phone,
+                              profileImage: creator.profileImage,
+                          }
+                        : null,
+                };
+            })
+        );
+    },
+});
+
 export const markDeployed = mutation({
     args: {
         submissionId: v.id('submissions'),

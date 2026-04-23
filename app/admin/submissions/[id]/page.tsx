@@ -856,9 +856,26 @@ export default function SubmissionDetailPage() {
                 body: JSON.stringify({ submissionId: submissionData._id }),
             })
 
+            const data = await response.json().catch(() => ({} as any))
+
             if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || 'Failed to delete submission')
+                throw new Error(data?.error || 'Failed to delete submission')
+            }
+
+            // If some external asset (Airtable, Cloudflare, R2) failed to delete,
+            // show a warning before navigating away — otherwise orphan records are
+            // invisible to the admin.
+            const failed: Array<{ asset: string; error: string }> = data?.failedAssets || []
+            if (failed.length > 0) {
+                setShowDeleteModal(false)
+                setModalType('error')
+                setModalMessage(
+                    `Submission record deleted, but ${failed.length} external ${failed.length === 1 ? 'asset' : 'assets'} could not be cleaned up:\n\n` +
+                    failed.map((f) => `• ${f.asset}: ${f.error}`).join('\n') +
+                    `\n\nThese may need manual cleanup.`
+                )
+                setShowModal(true)
+                return
             }
 
             // Redirect to admin dashboard after successful deletion
