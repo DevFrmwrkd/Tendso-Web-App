@@ -1,6 +1,5 @@
 import { v } from 'convex/values';
-import { query, mutation, internalQuery } from './_generated/server';
-import { Id } from './_generated/dataModel';
+import { query, mutation, internalQuery, internalMutation, internalAction } from './_generated/server';
 import { internal } from './_generated/api';
 
 // ==================== QUERIES ====================
@@ -199,8 +198,11 @@ export const create = mutation({
         coordinates: v.optional(v.object({ lat: v.number(), lng: v.number() })),
         hasProducts: v.optional(v.boolean()),
         photos: v.optional(v.array(v.string())),
-        videoStorageId: v.optional(v.id('_storage')),
-        audioStorageId: v.optional(v.id('_storage')),
+        // Accept plain strings — the mobile APK stores R2 object keys here
+        // (e.g. "audio/1721293-a2b3c4d5.m4a"), which are NOT Convex storage IDs.
+        // schema.ts declares these as v.string() too, so patching works either way.
+        videoStorageId: v.optional(v.string()),
+        audioStorageId: v.optional(v.string()),
         transcript: v.optional(v.string()),
         amount: v.optional(v.number()),
         creatorPayout: v.optional(v.number()),
@@ -274,8 +276,12 @@ export const update = mutation({
         businessDescription: v.optional(v.string()),
         hasProducts: v.optional(v.boolean()),
         photos: v.optional(v.array(v.string())),
-        videoStorageId: v.optional(v.id('_storage')),
-        audioStorageId: v.optional(v.id('_storage')),
+        // Accept plain strings — mobile APK stores R2 object keys here
+        // ("audio/1721293-a2b3c4d5.m4a"), NOT Convex internal storage IDs.
+        // schema.ts already declares these as v.string() for the same reason.
+        // Mobile-referenced — do not tighten back to v.id('_storage').
+        videoStorageId: v.optional(v.string()),
+        audioStorageId: v.optional(v.string()),
         // R2 URLs (preferred for new uploads)
         videoUrl: v.optional(v.string()),
         audioUrl: v.optional(v.string()),
@@ -298,6 +304,38 @@ export const update = mutation({
         );
 
         await ctx.db.patch(id, filteredUpdates);
+
+        // Auto-schedule transcription when media is freshly attached and there's
+        // no existing transcript. This mirrors the behavior mobile's submissions.update
+        // used to have — keeping the contract alive so mobile users stop seeing
+        // "Transcript generating…" spinners that never resolve. See
+        // docs/00-Overview-Mobile.md §submissions.
+        const mediaFieldSet = !!(
+            updates.audioStorageId ||
+            updates.videoStorageId ||
+            updates.audioUrl ||
+            updates.videoUrl
+        );
+        const touchedTranscriptDirectly = updates.transcript !== undefined || updates.transcriptionStatus !== undefined;
+
+        if (mediaFieldSet && !touchedTranscriptDirectly) {
+            const current = await ctx.db.get(id);
+            if (current && !current.transcript && current.transcriptionStatus !== 'processing') {
+                // Determine which media we just set. Prefer video over audio if both were set.
+                const isVideo = !!(updates.videoStorageId || updates.videoUrl);
+                const storageId =
+                    (updates.videoStorageId as string | undefined) ||
+                    (updates.videoUrl as string | undefined) ||
+                    (updates.audioStorageId as string | undefined) ||
+                    (updates.audioUrl as string | undefined);
+
+                await ctx.scheduler.runAfter(0, internal.submissions.transcribeMedia, {
+                    submissionId: id,
+                    storageId,
+                    mediaType: isVideo ? 'video' : 'audio',
+                });
+            }
+        }
     },
 });
 
@@ -511,5 +549,220 @@ export const remove = mutation({
         }
 
         await ctx.db.delete(args.id);
+    },
+});
+
+// ==================== TRANSCRIPTION INTERNALS ====================
+//
+// These three functions are referenced by the mobile app (Google Play binary).
+// Mobile's `submissions.update` mutation and internal transcription pipeline
+// call them by name. Do NOT remove any of them — the deployed mobile binary
+// will start throwing "function not found" errors on submission media flows if
+// any of these are missing from the Convex deployment.
+//
+// See docs/00-Overview-Mobile.md §submissions for the mobile-side contract.
+
+/**
+ * Persist a completed transcript on a submission.
+ * Mirrors mobile's internal mutation name.
+ */
+export const updateTranscription = internalMutation({
+    args: {
+        submissionId: v.id('submissions'),
+        transcription: v.string(),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.submissionId, {
+            transcript: args.transcription,
+            transcriptionStatus: 'complete',
+            transcriptionUpdatedAt: Date.now(),
+        });
+    },
+});
+
+/**
+ * Update the transcription lifecycle status on a submission.
+ * Mirrors mobile's internal mutation name.
+ */
+export const updateTranscriptionStatus = internalMutation({
+    args: {
+        submissionId: v.id('submissions'),
+        status: v.string(), // processing | complete | failed (string for cross-deploy safety)
+        error: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const patch: Record<string, unknown> = {
+            transcriptionStatus: args.status,
+        };
+        if (args.error !== undefined) patch.transcriptionError = args.error;
+        if (args.status === 'complete' || args.status === 'failed') {
+            patch.transcriptionUpdatedAt = Date.now();
+        }
+        await ctx.db.patch(args.submissionId, patch);
+    },
+});
+
+// ==================== GROQ WHISPER HELPER ====================
+
+/**
+ * POST one media chunk to Groq Whisper and return the transcript text.
+ * Retries once on transient connection errors. Throws on unrecoverable failures.
+ */
+async function callGroqWhisper(
+    chunk: ArrayBuffer,
+    filename: string,
+    groqKey: string
+): Promise<string> {
+    const form = new FormData();
+    form.append('file', new Blob([chunk]), filename);
+    form.append('model', 'whisper-large-v3');
+    form.append('response_format', 'json');
+
+    for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+            const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${groqKey}` },
+                body: form,
+            });
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                throw new Error(`Groq API ${res.status}: ${text.slice(0, 300)}`);
+            }
+            const json: any = await res.json();
+            return typeof json?.text === 'string' ? json.text : '';
+        } catch (err: any) {
+            const isTransient =
+                err?.code === 'ECONNRESET' ||
+                err?.cause?.code === 'ECONNRESET' ||
+                /Connection error|fetch failed|network/i.test(err?.message || '');
+            if (isTransient && attempt < 2) {
+                await new Promise((r) => setTimeout(r, 3000));
+                continue;
+            }
+            throw err;
+        }
+    }
+    throw new Error('Groq transcription failed after retries');
+}
+
+/**
+ * Trigger transcription for a submission's media file.
+ *
+ * Mobile-referenced via scheduler from submissions.update. Calls Groq Whisper
+ * directly with chunking support for 500MB+ files. DO NOT replace with a Next.js
+ * round-trip — see docs/changes/MOBILE-PARTY-FIX-TRANSCRIBE.md for the incident
+ * (2026-04-23) where the round-trip pattern 404'd in production because:
+ *   1. Clerk middleware was blocking the server-to-server call, AND
+ *   2. Convex in the cloud can't reach localhost during dev anyway.
+ *
+ * Direct-Groq removes one network hop, one auth surface, and one env-var
+ * dependency. Chunking lives in convex/lib/media-chunker.ts and handles
+ * webm/mp3/wav/mp4 at EBML Cluster / MP3 frame / PCM / AAC ADTS boundaries.
+ *
+ * Env vars required on the Convex deployment: GROQ_API_KEY, R2_PUBLIC_URL.
+ */
+export const transcribeMedia = internalAction({
+    args: {
+        submissionId: v.id('submissions'),
+        storageId: v.optional(v.string()),
+        mediaType: v.optional(v.union(v.literal('video'), v.literal('audio'))),
+    },
+    handler: async (ctx, args) => {
+        // Mark as processing so UIs can show a spinner while Groq works.
+        await ctx.runMutation(internal.submissions.updateTranscriptionStatus, {
+            submissionId: args.submissionId,
+            status: 'processing',
+        });
+
+        try {
+            const groqKey = process.env.GROQ_API_KEY;
+            if (!groqKey) {
+                throw new Error('GROQ_API_KEY env var not set on this Convex deployment');
+            }
+
+            // Resolve the storageId/URL/path to a fetchable HTTPS URL.
+            const r2Prefix = process.env.R2_PUBLIC_URL?.replace(/\/$/, '');
+            const raw = args.storageId || '';
+            let mediaUrl: string | null = null;
+            if (raw.startsWith('http://') || raw.startsWith('https://')) {
+                mediaUrl = raw;
+            } else if (/^(images|videos|audio)\//.test(raw) && r2Prefix) {
+                mediaUrl = `${r2Prefix}/${raw}`;
+            }
+            // Fallback: re-read the submission fields directly.
+            if (!mediaUrl) {
+                const fresh: any = await ctx.runQuery(internal.submissions.getByIdInternal, {
+                    id: args.submissionId,
+                });
+                const candidates = [fresh?.videoUrl, fresh?.audioUrl, fresh?.videoStorageId, fresh?.audioStorageId]
+                    .filter(Boolean) as string[];
+                for (const f of candidates) {
+                    if (f.startsWith('http')) { mediaUrl = f; break; }
+                    if (/^(images|videos|audio)\//.test(f) && r2Prefix) {
+                        mediaUrl = `${r2Prefix}/${f}`;
+                        break;
+                    }
+                }
+            }
+            if (!mediaUrl) {
+                throw new Error(`Could not resolve a fetchable URL for storageId "${args.storageId}"`);
+            }
+
+            // Download the media into memory as an ArrayBuffer.
+            console.log(`[transcribeMedia] Fetching ${mediaUrl}`);
+            const mediaRes = await fetch(mediaUrl);
+            if (!mediaRes.ok) {
+                throw new Error(`Failed to download media (HTTP ${mediaRes.status}): ${mediaUrl}`);
+            }
+            const contentType = mediaRes.headers.get('content-type') || '';
+            const buffer = await mediaRes.arrayBuffer();
+            const sizeMB = buffer.byteLength / 1024 / 1024;
+            console.log(
+                `[transcribeMedia] Downloaded ${sizeMB.toFixed(1)}MB, content-type="${contentType}"`
+            );
+
+            // Chunk if necessary — handles webm/mp3/wav/mp4. Files under the limit
+            // return as a single-element array.
+            const { chunkMediaFile, getFileExtension } = await import('./lib/mediaChunker');
+            const chunks = chunkMediaFile(buffer, contentType, undefined, mediaUrl);
+            const extension = getFileExtension(contentType, mediaUrl);
+            console.log(`[transcribeMedia] Split into ${chunks.length} chunk(s)`);
+
+            // Transcribe each chunk. Serial rather than parallel to respect Groq's
+            // rate limits and avoid memory spikes for very large files.
+            const transcripts: string[] = [];
+            for (let i = 0; i < chunks.length; i++) {
+                const filename = chunks.length > 1
+                    ? `chunk-${i + 1}-of-${chunks.length}.${extension}`
+                    : `audio.${extension}`;
+                console.log(
+                    `[transcribeMedia] Groq request ${i + 1}/${chunks.length} (${(chunks[i].byteLength / 1024 / 1024).toFixed(1)}MB)`
+                );
+                const text = await callGroqWhisper(chunks[i], filename, groqKey);
+                transcripts.push(text);
+            }
+
+            const fullTranscript = transcripts.join(' ').trim();
+            if (!fullTranscript) {
+                throw new Error('Groq returned an empty transcript');
+            }
+
+            await ctx.runMutation(internal.submissions.updateTranscription, {
+                submissionId: args.submissionId,
+                transcription: fullTranscript,
+            });
+            console.log(
+                `[transcribeMedia] Saved transcript for ${args.submissionId} (${fullTranscript.length} chars)`
+            );
+        } catch (error) {
+            const reason = error instanceof Error ? error.message : 'Unknown transcription error';
+            console.error(`[transcribeMedia] submissionId=${args.submissionId}:`, reason);
+            await ctx.runMutation(internal.submissions.updateTranscriptionStatus, {
+                submissionId: args.submissionId,
+                status: 'failed',
+                error: reason,
+            });
+        }
     },
 });
