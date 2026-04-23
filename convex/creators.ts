@@ -51,6 +51,31 @@ export const getByEmail = query({
 });
 
 /**
+ * Check whether an email matches a soft-deleted creator account.
+ *
+ * Mobile-referenced — do NOT remove, do NOT add an auth guard. Called
+ * unauthenticated from the mobile signup + forgot-password screens the moment
+ * the form mounts, so the caller is by definition not yet signed in. Any
+ * `requireAuth` / `requireAdmin` wrapper here produces `Server Error` on the
+ * client and totally blocks new-user signup on the Google Play APK.
+ *
+ * See docs/changes/MOBILE-REGISTER-ERROR.md for the incident that caused
+ * signup outage on 2026-04-23 when this query was missing from the web repo.
+ *
+ * Returns only a boolean — does not expose any account metadata.
+ */
+export const isDeletedByEmail = query({
+    args: { email: v.string() },
+    handler: async (ctx, args) => {
+        const creator = await ctx.db
+            .query('creators')
+            .withIndex('by_email', (q) => q.eq('email', args.email))
+            .first();
+        return creator?.isDeleted === true;
+    },
+});
+
+/**
  * Get creator by referral code
  */
 export const getByReferralCode = query({

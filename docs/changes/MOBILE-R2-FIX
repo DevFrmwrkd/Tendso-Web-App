@@ -1,0 +1,291 @@
+# Mobile R2 Upload Server Error — Fix Plan — 2026-04-23
+
+> **Resolved 2026-04-23.** Root cause was **not** missing R2 env vars (this doc's "prime suspect"). The env vars were all present on `energetic-panther-693`.
+>
+> Actual cause: **arg-shape mismatch on `r2.generateUploadUrl`**. The Play Store APK calls it with `{ folder, filename, contentType }` (lowercase + explicit `folder`). This repo's validator declared `{ fileName, fileType, submissionId?, mediaType? }` (camelCase, no `folder`). Convex's validator rejected the mobile call shape as "unknown fields + missing required fields" — and that rejection surfaces on the client as `Server Error`, indistinguishable from a handler-threw exception.
+>
+> Fix: [`convex/r2.ts`](../../convex/r2.ts) now declares every field optional at the validator and normalizes inside the handler (accepts both `fileName`/`filename`, both `fileType`/`contentType`, both web and mobile call shapes). Return value includes both `key` (web) and `fileKey` (mobile). Same treatment for the `generateR2UploadUrl` alias.
+>
+> See [`MOBILE-FUNCTION-PARITY.md §Follow-up — 2026-04-23`](./MOBILE-FUNCTION-PARITY.md) for the full writeup, including the "three classes of `Server Error`" diagnostic table that distinguishes validator rejections from handler exceptions.
+>
+> The §3 diagnostic steps below remain useful for **any future** mobile R2 breakage (run them before assuming this is the same class of bug), but §3.3 (env-var restore) is not the fix that was applied here.
+
+## For the implementing agent
+
+You are being asked to diagnose and fix a production error on the mobile Android APK. The APK calls a Convex action on the shared deployment `energetic-panther-693` and receives a generic server error. This document tells you exactly what to check, in what order, and what to change. Do not make schema changes unless the diagnostic steps below prove one is needed.
+
+Read this file top-to-bottom before touching any code.
+
+---
+
+## 1. The observed error
+
+The mobile photo-upload step (`Step 2 of 4 — Upload Photos`) fails with this exact client-side message:
+
+```
+[CONVEX A(r2:generateUploadUrl)] [Request ID: f8dda4145493b9b2] Server Error
+Called by client
+```
+
+Interpret this precisely:
+
+- `A(...)` means **action**. The function exists in the deployment bundle (if it were missing, the error would say "Could not find public function").
+- `Server Error` means the action handler was invoked and **threw an unhandled exception at runtime**.
+- This is *not* the same problem [`MOBILE-PARITY.md`](./MOBILE-PARITY.md) describes, where the function was missing from the bundle (404). That class of breakage produces a different error string.
+
+So the fix is **not** "re-add the function." The function is already there. Something inside the handler is throwing.
+
+---
+
+## 2. Where the error is almost certainly coming from
+
+Open [`convex/r2.ts`](../../convex/r2.ts). The `generateUploadUrl` action is:
+
+```ts
+export const generateUploadUrl = action({
+  args: { folder: v.string(), filename: v.string(), contentType: v.string() },
+  handler: async (ctx, args) => {
+    const config = getR2Config();               // ← throws if env vars missing
+    const fileKey = generateFileKey(args.folder, args.filename);
+    const uploadUrl = await generatePresignedUrl(
+      "PUT", fileKey, args.contentType, config, 3600
+    );
+    ...
+  },
+});
+```
+
+The mobile app calls this with exactly `{ folder: "images", filename: "photo-0.jpg", contentType: "image/jpeg" }` — matches the signature. The argument validator would raise a *validator* error (different shape), not "Server Error", if mobile sent the wrong shape.
+
+That leaves three places inside the handler that can throw:
+
+1. **`getR2Config()`** — [`convex/lib/r2Helpers.ts:22-26`](../../convex/lib/r2Helpers.ts) throws `Error("R2 credentials not configured…")` if any of:
+   - `R2_ACCOUNT_ID`
+   - `R2_ACCESS_KEY_ID`
+   - `R2_SECRET_ACCESS_KEY`
+
+   …are missing on the deployment. `R2_BUCKET_NAME` and `R2_PUBLIC_URL` have defaults/are optional.
+
+2. **`generatePresignedUrl()`** — uses `crypto.subtle`. Will throw if `config.accessKeyId` / `config.secretAccessKey` are empty strings rather than `undefined` (the null-check at line 22 only catches `undefined`/falsy from `process.env`, but an empty string is also falsy, so this is actually covered).
+
+3. **`generateFileKey()`** — pure string ops, cannot throw for the mobile inputs.
+
+→ **Prime suspect: one of the three R2 env vars is not set on `energetic-panther-693`.**
+
+This is consistent with the user's note "I ran `npx convex deploy` on the web side and now mobile breaks." `convex deploy` does *not* wipe env vars — but if the env vars were originally set from the **mobile** team's `.env.local` (via their local `npx convex deploy`), and the web repo's `.env.local` is missing them, no redeploy is needed to reproduce. What likely happened: a **codegen-only** deploy from web would not rewrite env vars, but a **full deploy** that's run from a shell where these vars are set in `.env.local` can push local values that override what mobile set. Either way, the server now lacks valid R2 credentials.
+
+---
+
+## 3. Diagnostic steps — run these first, in order
+
+Do not change any code until step 3.2 confirms the hypothesis. If it disproves the hypothesis, jump to §5.
+
+### 3.1 List the env vars on the shared deployment
+
+```bash
+npx convex env list
+```
+
+Confirm the output includes:
+
+- `R2_ACCOUNT_ID`
+- `R2_ACCESS_KEY_ID`
+- `R2_SECRET_ACCESS_KEY`
+- `R2_BUCKET_NAME` (optional but expected; defaults to `negosyo-digital`)
+- `R2_PUBLIC_URL` (optional but expected for public photo URLs)
+
+If any of the first three are missing → this is the fix. Go to §3.3.
+
+If all three are present → go to §3.4 (check the **values** are real).
+
+### 3.2 Tail production logs while reproducing
+
+```bash
+npx convex logs --prod --tail
+```
+
+In a second terminal or on the device, trigger the photo upload again. You should see the thrown error string in the logs. Expect one of:
+
+- `R2 credentials not configured. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY` → §3.3
+- A crypto / signature error → §3.4
+- Something else entirely → paste it into this doc under §5 and escalate.
+
+### 3.3 Restore the R2 env vars
+
+Get the correct values from the mobile team's `.env.local` (or the R2 dashboard). Then:
+
+```bash
+npx convex env set R2_ACCOUNT_ID <value>
+npx convex env set R2_ACCESS_KEY_ID <value>
+npx convex env set R2_SECRET_ACCESS_KEY <value>
+# Optional — only if missing:
+npx convex env set R2_BUCKET_NAME negosyo-digital
+npx convex env set R2_PUBLIC_URL <value>
+```
+
+**Do not commit these values to git.** They are secrets; set them directly against the deployment.
+
+Reproduce the mobile upload. It should now return an `uploadUrl` + `fileKey`.
+
+### 3.4 If env vars look correct but uploads still fail
+
+- Pull the exact values from `npx convex env get R2_SECRET_ACCESS_KEY` (don't just check they exist — check they're the right values). A stale/rotated key will yield a 403 on the presigned PUT, but that surfaces as a 403 from R2 on the `fetch(uploadUrl, ...)` call from the *client*, not as a Convex Server Error. So if the Convex Server Error persists with env vars present, the error is inside the handler — re-run §3.2 and read the thrown message exactly.
+
+---
+
+## 4. Function-parity hardening (separate from the fix above)
+
+This is cleanup the prior [`MOBILE-PARITY.md`](./MOBILE-PARITY.md) claimed was done but isn't actually in the repo. Do this **after** §3 has the error resolved, as a follow-up commit.
+
+### 4.1 Add `generateR2UploadUrl` as an explicit alias
+
+Mobile client code uses the local variable name `generateR2UploadUrl` but binds it to `api.r2.generateUploadUrl`. If the mobile build is ever changed to call `api.r2.generateR2UploadUrl` by that actual name, the APK will 404. Add the alias now, as an insurance policy matching what `MOBILE-PARITY.md` §`convex/r2.ts` describes:
+
+In [`convex/r2.ts`](../../convex/r2.ts), extract the core logic into a private helper, then export two action wrappers:
+
+```ts
+// Shared implementation — both exports call this.
+async function generateUploadUrlImpl(args: {
+  folder?: string;
+  filename: string;
+  contentType: string;
+  mediaType?: "photo" | "video" | "audio" | "profile" | "avatar";
+}) {
+  const config = getR2Config();
+  const folder = args.folder ?? folderFromMediaType(args.mediaType);
+  const fileKey = generateFileKey(folder, args.filename);
+  const uploadUrl = await generatePresignedUrl("PUT", fileKey, args.contentType, config, 3600);
+  const publicUrl = config.publicUrl
+    ? `${config.publicUrl}/${fileKey}`
+    : `https://${config.accountId}.r2.cloudflarestorage.com/${config.bucketName}/${fileKey}`;
+  return { uploadUrl, fileKey, publicUrl };
+}
+
+function folderFromMediaType(mt?: string) {
+  switch (mt) {
+    case "video": return "videos";
+    case "audio": return "audio";
+    case "profile":
+    case "avatar": return "avatars";
+    default: return "images"; // photo + fallback
+  }
+}
+
+// Existing web name — keep signature loose so either caller style works.
+// Mobile-referenced — do not remove.
+export const generateUploadUrl = action({
+  args: {
+    folder: v.optional(v.string()),
+    filename: v.string(),
+    contentType: v.string(),
+    mediaType: v.optional(v.union(
+      v.literal("photo"), v.literal("video"), v.literal("audio"),
+      v.literal("profile"), v.literal("avatar"),
+    )),
+    submissionId: v.optional(v.id("submissions")), // accepted but unused; future-proofing
+  },
+  handler: (_ctx, args) => generateUploadUrlImpl(args),
+});
+
+// Mobile-referenced — do not remove. Alias of generateUploadUrl.
+export const generateR2UploadUrl = action({
+  args: {
+    folder: v.optional(v.string()),
+    filename: v.string(),
+    contentType: v.string(),
+    mediaType: v.optional(v.union(
+      v.literal("photo"), v.literal("video"), v.literal("audio"),
+      v.literal("profile"), v.literal("avatar"),
+    )),
+    submissionId: v.optional(v.id("submissions")),
+  },
+  handler: (_ctx, args) => generateUploadUrlImpl(args),
+});
+```
+
+**Rules for this change:**
+
+- Either `folder` or `mediaType` must effectively resolve to a folder. The fallback in `folderFromMediaType` handles the case where both are missing (defaults to `images`), matching current behavior for mobile's photo upload.
+- Do NOT tighten the existing `generateUploadUrl` signature. It is called from production APKs in the field; any required-field change becomes a 400 for installed users.
+- The comment strings `Mobile-referenced — do not remove` must stay verbatim. A later `npx convex deploy --dry-run` diff from someone cleaning up "unused" exports is the failure mode we're guarding against.
+
+### 4.2 Other functions named in MOBILE-PARITY.md
+
+I verified these are already present in the web repo — do **not** re-add them:
+
+| File | Function | Present? |
+|---|---|---|
+| `convex/submissions.ts` | `updateTranscription` | yes (L352) |
+| `convex/submissions.ts` | `updateTranscriptionStatus` | yes (L372) |
+| `convex/submissions.ts` | `transcribeMedia` | yes (L390) |
+| `convex/admin.ts` | `markWebsiteGenerated` | yes (L122) |
+| `convex/admin.ts` | `getAllSubmissionsWithCreators` | yes (L356) |
+| `convex/withdrawals.ts` | `updateStatus` | yes (L107) |
+| `convex/withdrawals.ts` | `updateByTransactionRef` | yes (L233) |
+
+Only `generateR2UploadUrl` (alias) is actually missing.
+
+---
+
+## 5. Schema — do NOT modify
+
+I compared the web [`convex/schema.ts`](../../convex/schema.ts) against the mobile inventory in [`docs/01-mobile-app/00-Overview-Mobile.md`](../01-mobile-app/00-Overview-Mobile.md) §Convex Backend table-by-table. Every field the mobile APK reads or writes is already defined in the web schema, and every web-only extension is declared `v.optional(...)`, so mobile writes never fail validation on fields it doesn't know about.
+
+Tables audited and confirmed superset-or-equal:
+
+- `creators`, `submissions`, `generatedWebsites`, `websiteContent` (deprecated), `earnings`, `withdrawals`, `payoutMethods`, `leads`, `leadNotes`, `notifications`, `pushTokens`, `referrals`, `analytics`, `websiteAnalytics`, `auditLogs`, `settings`
+
+Web also has tables mobile doesn't reference (`rateLimits`, `paymentTokens`) — harmless, keep as-is.
+
+**Therefore no schema edits are in scope for this fix.** If §3.2's logs reveal a *schema* validation error (e.g. "Object contains extra field" or "Field X is required"), update this section with the specific field and get explicit approval before changing the schema — a schema change on the shared deployment affects both apps and requires coordination with the mobile team.
+
+---
+
+## 6. Safer deploy procedure — apply this going forward
+
+Before every `npx convex deploy` from **this** web repo:
+
+```bash
+npx convex deploy --dry-run
+```
+
+Read the output. The `functions to be deleted` section **must be empty**. If it isn't, each entry is a function the mobile APK is calling by name. Copy it from the mobile repo (or from the inventory in `docs/01-mobile-app/00-Overview-Mobile.md §Convex Backend — All Functions`) into this repo's `convex/` folder first, then deploy.
+
+`npx convex dev` runs codegen and incremental pushes but operates on your local dev deployment unless `CONVEX_DEPLOYMENT` points at `energetic-panther-693`. **Verify which deployment you're targeting before pushing.** Check with:
+
+```bash
+npx convex env get CONVEX_DEPLOYMENT
+# or inspect .env.local
+```
+
+If the value is `prod:energetic-panther-693`, you are about to touch production. Proceed with `--dry-run` first.
+
+---
+
+## 7. Longer-term — split deployments
+
+The root cause of this entire class of bug is that web and mobile share one Convex deployment. Every deploy from one repo is a function-bundle replacement for both. The recommendation in [`MOBILE-PARITY.md §Longer-term`](./MOBILE-PARITY.md) stands: give web its own deployment, re-point `NEXT_PUBLIC_CONVEX_URL`, migrate / dual-write any data that needs to be visible to both platforms. Not in scope for this fix — logged here so it doesn't get lost.
+
+---
+
+## 8. Acceptance checklist
+
+An agent finishing this task must confirm **all** of the below:
+
+- [ ] `npx convex env list` on `energetic-panther-693` shows `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` present with real values.
+- [ ] Reproducing the mobile photo-upload step returns an upload URL and the subsequent PUT to R2 succeeds. Screenshot or curl transcript attached to the PR.
+- [ ] `convex/r2.ts` exports `generateR2UploadUrl` as an action with the loose-signature variant described in §4.1. `generateUploadUrl` remains exported and still accepts `{ folder, filename, contentType }` from production APKs.
+- [ ] `npx convex deploy --dry-run` output shows zero "functions to be deleted" before the final deploy.
+- [ ] `schema.ts` is **unchanged**.
+- [ ] No R2 credentials are committed to git (search the diff for `R2_` literal values).
+- [ ] A short note is added to [`MOBILE-PARITY.md`](./MOBILE-PARITY.md) at the end, linking to this doc and noting the root cause was missing env vars, not missing functions — so the next person reading MOBILE-PARITY.md isn't misled into thinking a function-restore cycle fixes "Server Error" cases.
+
+---
+
+## References
+
+- Prior incident writeup: [`MOBILE-PARITY.md`](./MOBILE-PARITY.md)
+- Prior schema-sync incident: [`docs/changes/ADMIN-SCHEMA-CHANGE.md`](../changes/ADMIN-SCHEMA-CHANGE.md)
+- Mobile function inventory: [`docs/01-mobile-app/00-Overview-Mobile.md`](../01-mobile-app/00-Overview-Mobile.md) §Convex Backend — All Functions
+- R2 helpers: [`convex/lib/r2Helpers.ts`](../../convex/lib/r2Helpers.ts)
+- Affected client-side callers (mobile): [`app/(app)/submit/photos.tsx:215`](../../app/(app)/submit/photos.tsx#L215), [`app/(app)/edit-profile.tsx:135`](../../app/(app)/edit-profile.tsx#L135), [`hooks/useOfflineSync.ts:151`](../../hooks/useOfflineSync.ts#L151)

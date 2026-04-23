@@ -25,6 +25,7 @@ import type * as leads from "../leads.js";
 import type * as lib_cloudflare from "../lib/cloudflare.js";
 import type * as lib_fxRate from "../lib/fxRate.js";
 import type * as lib_hostinger from "../lib/hostinger.js";
+import type * as lib_mediaChunker from "../lib/mediaChunker.js";
 import type * as lib_wise from "../lib/wise.js";
 import type * as migrations_migrateContent from "../migrations/migrateContent.js";
 import type * as notifications from "../notifications.js";
@@ -64,6 +65,7 @@ declare const fullApi: ApiFromModules<{
   "lib/cloudflare": typeof lib_cloudflare;
   "lib/fxRate": typeof lib_fxRate;
   "lib/hostinger": typeof lib_hostinger;
+  "lib/mediaChunker": typeof lib_mediaChunker;
   "lib/wise": typeof lib_wise;
   "migrations/migrateContent": typeof migrations_migrateContent;
   notifications: typeof notifications;

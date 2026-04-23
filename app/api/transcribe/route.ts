@@ -14,18 +14,36 @@ export async function POST(request: NextRequest) {
     let submissionId: string | undefined
 
     try {
-        // Check Clerk authentication
-        const { userId } = await auth()
-        if (!userId) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
+        // Allow server-to-server calls from Convex (scheduled transcribeMedia action)
+        // to bypass Clerk auth via a shared secret header. Server-side only —
+        // never surface this header to the browser.
+        const providedSecret = request.headers.get('X-Internal-Secret')
+        const expectedSecret = process.env.INTERNAL_API_SECRET
+        const isInternalCall = !!expectedSecret && providedSecret === expectedSecret
 
-        // Rate limit: expensive operation (5/min)
-        const { checkRateLimit, RATE_LIMITS } = await import('@/lib/security')
-        const { allowed } = checkRateLimit(`transcribe:${userId}`, RATE_LIMITS.expensive.maxRequests, RATE_LIMITS.expensive.windowMs)
-        if (!allowed) {
-            return NextResponse.json({ error: 'Too many transcription requests. Please wait a moment.' }, { status: 429 })
+        let authedUserId: string | null = null
+        if (!isInternalCall) {
+            const { userId } = await auth()
+            if (!userId) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+            }
+            authedUserId = userId
+
+            // Rate limit: expensive operation (5/min) — only applied to user-initiated calls.
+            // Internal calls come from our own scheduler so we don't rate-limit them.
+            const { checkRateLimit, RATE_LIMITS } = await import('@/lib/security')
+            const { allowed } = checkRateLimit(
+                `transcribe:${userId}`,
+                RATE_LIMITS.expensive.maxRequests,
+                RATE_LIMITS.expensive.windowMs
+            )
+            if (!allowed) {
+                return NextResponse.json({ error: 'Too many transcription requests. Please wait a moment.' }, { status: 429 })
+            }
         }
+        // Suppress unused-var warning when called as internal (userId may be used
+        // later for per-user audit logs).
+        void authedUserId
 
         const body = await request.json()
         const { audioUrl, useConvexStorage, videoStorageId, audioStorageId, videoUrl } = body

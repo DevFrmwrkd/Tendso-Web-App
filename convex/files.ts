@@ -13,12 +13,33 @@ export const generateUploadUrl = mutation({
 });
 
 /**
- * Get a URL for a stored file
+ * Get a URL for a stored file.
+ *
+ * Accepts any of: a full URL, an R2 relative path (images/..., videos/...,
+ * audio/...), a `convex:` prefixed ID, or a raw Convex storage ID. Mobile APK
+ * calls this with R2 object keys, which are not Convex storage IDs — a strict
+ * v.id('_storage') validator would reject those before the handler runs.
+ * Mobile-referenced — do not tighten the validator back.
  */
 export const getUrl = query({
-    args: { storageId: v.id('_storage') },
+    args: { storageId: v.string() },
     handler: async (ctx, args) => {
-        return await ctx.storage.getUrl(args.storageId);
+        const idString = args.storageId;
+        const r2PublicUrl = process.env.R2_PUBLIC_URL?.replace(/\/$/, '');
+        try {
+            if (idString.startsWith('http://') || idString.startsWith('https://')) {
+                return idString;
+            }
+            if (/^(images|videos|audio)\//.test(idString) && r2PublicUrl) {
+                return `${r2PublicUrl}/${idString}`;
+            }
+            const storageId = idString.startsWith('convex:')
+                ? idString.replace('convex:', '')
+                : idString;
+            return await ctx.storage.getUrl(storageId as Id<"_storage">);
+        } catch {
+            return null;
+        }
     },
 });
 
@@ -96,11 +117,23 @@ export const getMultipleUrls = query({
 });
 
 /**
- * Delete a file from storage
+ * Delete a file from Convex storage.
+ *
+ * Accepts a string for cross-caller compatibility. If the string looks like
+ * an R2 relative path or a full URL, Convex storage deletion is skipped
+ * (R2 files must be deleted through `r2.deleteFile`). Mobile-referenced —
+ * do not tighten the validator.
  */
 export const deleteFile = mutation({
-    args: { storageId: v.id('_storage') },
+    args: { storageId: v.string() },
     handler: async (ctx, args) => {
-        await ctx.storage.delete(args.storageId);
+        const s = args.storageId;
+        const looksLikeR2 = s.startsWith('http://') || s.startsWith('https://') || /^(images|videos|audio)\//.test(s);
+        if (looksLikeR2) {
+            console.warn(`[files.deleteFile] Called with R2 path "${s}" — skipping Convex storage delete. Use r2.deleteFile for R2 files.`);
+            return;
+        }
+        const id = s.startsWith('convex:') ? s.replace('convex:', '') : s;
+        await ctx.storage.delete(id as Id<"_storage">);
     },
 });
