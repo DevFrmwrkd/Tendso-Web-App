@@ -306,6 +306,81 @@ export const adminRetry = mutation({
     },
 });
 
+/**
+ * Admin override — public mutation name mobile expects. Behaviour mirrors
+ * adminRetry() but the arg shape matches docs/00-Overview-Mobile.md §withdrawals
+ * (id, status, transactionRef?, adminId) so the mobile admin UI keeps working.
+ */
+export const updateStatus = mutation({
+    args: {
+        id: v.id('withdrawals'),
+        status: v.union(
+            v.literal('processing'),
+            v.literal('completed'),
+            v.literal('failed')
+        ),
+        transactionRef: v.optional(v.string()),
+        adminId: v.string(),
+        failureReason: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const withdrawal = await ctx.db.get(args.id);
+        if (!withdrawal) throw new Error('Withdrawal not found');
+
+        const updates: Record<string, unknown> = { status: args.status };
+        if (args.transactionRef !== undefined) updates.transactionRef = args.transactionRef;
+        if (args.failureReason !== undefined) updates.failureReason = args.failureReason;
+
+        if (args.status === 'completed') {
+            updates.processedAt = Date.now();
+            const creator = await ctx.db.get(withdrawal.creatorId);
+            if (creator) {
+                await ctx.db.patch(withdrawal.creatorId, {
+                    totalWithdrawn: (creator.totalWithdrawn || 0) + withdrawal.amount,
+                });
+            }
+            await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
+                creatorId: withdrawal.creatorId,
+                type: 'payout_sent',
+                title: 'Withdrawal Completed',
+                body: `Your withdrawal of ₱${withdrawal.amount} has been sent!`,
+                data: { withdrawalId: args.id, amount: withdrawal.amount },
+            });
+        } else if (args.status === 'failed') {
+            const creator = await ctx.db.get(withdrawal.creatorId);
+            if (creator) {
+                await ctx.db.patch(withdrawal.creatorId, {
+                    balance: (creator.balance || 0) + withdrawal.amount,
+                });
+            }
+            await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
+                creatorId: withdrawal.creatorId,
+                type: 'system',
+                title: 'Withdrawal Failed',
+                body: `Your withdrawal of ₱${withdrawal.amount} could not be processed. Balance restored.`,
+                data: { withdrawalId: args.id, amount: withdrawal.amount },
+            });
+        }
+
+        await ctx.db.patch(args.id, updates);
+
+        await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
+            adminId: args.adminId,
+            action: 'payout_admin_override',
+            targetType: 'withdrawal',
+            targetId: args.id,
+            metadata: {
+                amount: withdrawal.amount,
+                status: args.status,
+                transactionRef: args.transactionRef,
+                failureReason: args.failureReason,
+            },
+        });
+
+        return args.id;
+    },
+});
+
 // ==================== QUERIES ====================
 
 /**
@@ -383,6 +458,79 @@ export const getAll = query({
 });
 
 // ==================== INTERNAL MUTATIONS ====================
+
+/**
+ * Alias for mobile webhook handler — mobile's http.ts looks up withdrawals by
+ * `transactionRef` rather than `wiseTransferId`. Kept as a separate export so
+ * the deployed mobile binary's webhook path stays intact.
+ */
+export const updateByTransactionRef = internalMutation({
+    args: {
+        transactionRef: v.string(),
+        status: v.union(
+            v.literal('processing'),
+            v.literal('completed'),
+            v.literal('failed')
+        ),
+    },
+    handler: async (ctx, args) => {
+        // Search by transactionRef OR wiseTransferId — platforms have used both
+        // field names historically. This keeps the webhook working regardless
+        // of which field the transfer ID got persisted under.
+        const byRef = await ctx.db
+            .query('withdrawals')
+            .filter((q) => q.eq(q.field('transactionRef'), args.transactionRef))
+            .collect();
+        const byTransferId = byRef.length === 0
+            ? await ctx.db
+                  .query('withdrawals')
+                  .filter((q) => q.eq(q.field('wiseTransferId'), args.transactionRef))
+                  .collect()
+            : [];
+        const withdrawal = byRef[0] ?? byTransferId[0];
+        if (!withdrawal) {
+            console.error(`No withdrawal found for transactionRef: ${args.transactionRef}`);
+            return;
+        }
+
+        const updates: Record<string, unknown> = { status: args.status };
+
+        if (args.status === 'completed') {
+            updates.processedAt = Date.now();
+            const creator = await ctx.db.get(withdrawal.creatorId);
+            if (creator) {
+                await ctx.db.patch(withdrawal.creatorId, {
+                    totalWithdrawn: (creator.totalWithdrawn || 0) + withdrawal.amount,
+                });
+            }
+            await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
+                creatorId: withdrawal.creatorId,
+                type: 'payout_sent',
+                title: 'Withdrawal Completed',
+                body: `Your withdrawal of ₱${withdrawal.amount} has been sent!`,
+                data: { withdrawalId: withdrawal._id, amount: withdrawal.amount },
+            });
+        }
+
+        if (args.status === 'failed') {
+            const creator = await ctx.db.get(withdrawal.creatorId);
+            if (creator) {
+                await ctx.db.patch(withdrawal.creatorId, {
+                    balance: (creator.balance || 0) + withdrawal.amount,
+                });
+            }
+            await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
+                creatorId: withdrawal.creatorId,
+                type: 'system',
+                title: 'Withdrawal Failed',
+                body: `Your withdrawal of ₱${withdrawal.amount} could not be processed. Balance restored.`,
+                data: { withdrawalId: withdrawal._id, amount: withdrawal.amount },
+            });
+        }
+
+        await ctx.db.patch(withdrawal._id, updates);
+    },
+});
 
 /**
  * Update withdrawal status by Wise transfer ID.

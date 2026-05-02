@@ -163,15 +163,3 @@ The function-parity audit needs to specifically call out any function the mobile
 - `creators.getByClerkId` — gets called post-signup but during initial bootstrap before profile exists
 
 Before ever adding an auth wrapper to any function in `convex/creators.ts`, check whether the mobile signup / forgot-password / onboarding screens call it. If they do, either leave it unauthenticated or split into two exports (one public, one `*Admin` variant).
-
----
-
-## Fifth occurrence — mobile withdrawal blocked by validator-shape mismatch — 2026-04-23 (same day)
-
-Same class as the second occurrence (mutation arg validator tighter than what mobile sends), this time on `withdrawals.create`. Mobile sends `{creatorId, amount, wiseEmail}` per the Wise refactor; web's deployed validator demanded `{creatorId, amount, payoutMethod, accountDetails}`. Convex rejected mobile's call before the handler ran with `ArgumentValidationError: Object is missing the required field 'accountDetails'`.
-
-- **Critical user constraint:** "fix mobile without breaking the other pipeline and features." Web's wallet UI in this same repo (`app/wallet/page.tsx`) calls the legacy shape. Replacing wholesale with the mobile-only signature would have broken the web wallet too.
-- **Fix**: dual-shape validator — `payoutMethod`, `accountDetails`, `wiseEmail` are all `v.optional(...)`. Handler normalizes either shape into a canonical `wise_email` withdrawal: if `wiseEmail` is present (mobile path), derive `payoutMethod = 'wise_email'` and `accountDetails = wiseEmail`; otherwise use the explicit `payoutMethod`/`accountDetails` (web path). This is the same pattern documented in this file's R2 section — proven safe for cross-shape compatibility.
-- See [`MOBILE-WITHDRAWAL-FIX.md`](./MOBILE-WITHDRAWAL-FIX.md) for the full writeup.
-
-**Lesson refined again — the dual-shape validator pattern is now the standard play for shared-deployment shape divergence.** Five times in one day a fix has reduced to "make the validator permissive at the boundary, normalize in the handler." Any cross-repo Convex function with a non-trivial signature is a candidate for the same treatment proactively. Audit candidates worth scanning when time allows: `creators.create`, `creators.update`, `notifications.createAndSend`, `referrals.createFromSignup`, `leads.create`. If any of those have signatures tighter than what the mobile inventory in `docs/00-Overview-Mobile.md` describes, give them the same dual-shape treatment before mobile hits them in production.

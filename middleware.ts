@@ -12,6 +12,11 @@ const isPublicRoute = createRouteMatcher([
     '/api/webhooks(.*)',
     '/privacy-policy(.*)',
     '/terms-of-service(.*)',
+    // Called server-to-server from Convex (internal.submissions.transcribeMedia)
+    // using the X-Internal-Secret header for auth — no Clerk cookie present.
+    // The route handler enforces either a valid Clerk session OR a matching
+    // X-Internal-Secret itself, so bypassing middleware is safe.
+    '/api/transcribe',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
