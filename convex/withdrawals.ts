@@ -5,27 +5,65 @@ import { internal } from './_generated/api';
 // ==================== MUTATIONS ====================
 
 /**
- * Create a withdrawal request. For Wise payouts, the row is inserted as 'pending',
- * then moved to 'processing' once the Wise recipient/quote/transfer have been created
- * (see processWiseTransfer). It only flips to 'completed' when Wise fires the
- * outgoing_payment_sent webhook — at which point totalWithdrawn is incremented and the
- * success notification is sent. This matches the mobile flow in WISE-PAYMENT-FLOW-MOBILE.md.
+ * Create a withdrawal request. Row is inserted as 'pending', then moved to
+ * 'processing' once Wise recipient/quote/transfer have been created (see
+ * processWiseTransfer). It only flips to 'completed' when Wise fires the
+ * outgoing_payment_sent webhook — at which point totalWithdrawn is incremented
+ * and the success notification is sent. This matches WISE-PAYMENT-FLOW-MOBILE.md.
+ *
+ * Mobile-referenced — accepts BOTH arg shapes:
+ *
+ *   Web (this repo's wallet UI):
+ *     { creatorId, amount, payoutMethod: 'wise_email', accountDetails: <email> }
+ *
+ *   Mobile (Google Play APK):
+ *     { creatorId, amount, wiseEmail: <email> }
+ *
+ * Mobile only knows about Wise email payouts; web's signature was the legacy
+ * one that supported gcash/maya/bank_transfer/wise_email. The handler normalizes
+ * either shape into a `wise_email` withdrawal. Do NOT remove `wiseEmail` from
+ * the validator — that's how mobile reaches this mutation. See
+ * docs/changes/MOBILE-WITHDRAWAL-FIX.md for the incident on 2026-04-23.
  */
 export const create = mutation({
     args: {
         creatorId: v.id('creators'),
         amount: v.number(),
-        payoutMethod: v.union(
+        // Web-style args (legacy)
+        payoutMethod: v.optional(v.union(
             v.literal('gcash'),
             v.literal('maya'),
             v.literal('bank_transfer'),
             v.literal('wise_email')
-        ),
-        accountDetails: v.string(),
+        )),
+        accountDetails: v.optional(v.string()),
+        // Mobile-style arg (Wise refactor)
+        wiseEmail: v.optional(v.string()),
     },
     handler: async (ctx, args): Promise<any> => {
         if (args.amount < 100) {
             throw new Error('Minimum withdrawal is ₱100');
+        }
+
+        // Normalize web/mobile call shapes into one canonical {payoutMethod, accountDetails, wiseEmail}.
+        // Mobile sends only wiseEmail → derive everything from it. Web sends payoutMethod+accountDetails.
+        let payoutMethod: 'gcash' | 'maya' | 'bank_transfer' | 'wise_email' | undefined = args.payoutMethod;
+        let accountDetails: string | undefined = args.accountDetails;
+        let wiseEmail: string | undefined = args.wiseEmail?.trim().toLowerCase() || undefined;
+
+        if (wiseEmail) {
+            // Mobile path — wiseEmail wins; payoutMethod is wise_email by definition.
+            payoutMethod = 'wise_email';
+            accountDetails = accountDetails || wiseEmail;
+        } else if (payoutMethod === 'wise_email' && accountDetails) {
+            // Web path on the wise_email branch — accountDetails IS the email.
+            wiseEmail = accountDetails.trim().toLowerCase();
+        }
+
+        if (!payoutMethod || !accountDetails) {
+            throw new Error(
+                'Withdrawal requires either { wiseEmail } (mobile) or { payoutMethod, accountDetails } (web)'
+            );
         }
 
         const creator = await ctx.db.get(args.creatorId);
@@ -42,13 +80,12 @@ export const create = mutation({
         });
 
         // Row starts as 'pending' — will move to 'processing' once Wise IDs exist.
-        // For wise_email, also persist the email on the row so the history UI can show it.
         const withdrawalId = await ctx.db.insert('withdrawals', {
             creatorId: args.creatorId,
             amount: args.amount,
-            payoutMethod: args.payoutMethod,
-            accountDetails: args.accountDetails,
-            wiseEmail: args.payoutMethod === 'wise_email' ? args.accountDetails : undefined,
+            payoutMethod,
+            accountDetails,
+            wiseEmail: payoutMethod === 'wise_email' ? wiseEmail : undefined,
             accountHolderName: `${creator.firstName || ''} ${creator.lastName || ''}`.trim() || creator.email || 'Creator',
             status: 'pending',
             reference,
@@ -56,7 +93,7 @@ export const create = mutation({
         });
 
         // Schedule the async Wise transfer creation.
-        if (args.payoutMethod === 'wise_email') {
+        if (payoutMethod === 'wise_email') {
             await ctx.scheduler.runAfter(0, internal.withdrawals.processWiseTransfer, {
                 withdrawalId,
             });
