@@ -168,7 +168,16 @@ export default function EditProfilePage() {
                     </div>
                     <div className="space-y-2">
                         <Label className="text-zinc-700 font-medium">Phone Number</Label>
-                        <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="09123456789" className="h-12 bg-zinc-50 border-zinc-200 rounded-xl" />
+                        <Input
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            autoComplete="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                            placeholder="09123456789"
+                            className="h-12 bg-zinc-50 border-zinc-200 rounded-xl"
+                        />
                     </div>
                     <Button type="submit" disabled={loading} className="w-full h-12 bg-zinc-900 hover:bg-zinc-800 text-white font-semibold rounded-xl">
                         {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Save Changes"}

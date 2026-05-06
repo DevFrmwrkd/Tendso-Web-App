@@ -137,8 +137,8 @@ export default function WalletPage() {
         setError("")
 
         const withdrawAmount = parseFloat(amount)
-        if (isNaN(withdrawAmount) || withdrawAmount < 100) {
-            setError("Minimum withdrawal amount is PHP 100.")
+        if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+            setError("Withdrawal amount must be greater than zero.")
             return
         }
         if (withdrawAmount > balance) {
@@ -274,7 +274,7 @@ export default function WalletPage() {
                 {/* Withdraw Button */}
                 <Button
                     onClick={handleStartWithdraw}
-                    disabled={balance < 100}
+                    disabled={balance <= 0}
                     className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl h-12 mb-2 shadow-lg shadow-emerald-500/20"
                 >
                     <ArrowDownRight className="w-5 h-5 mr-2" />
@@ -285,7 +285,7 @@ export default function WalletPage() {
                     <span className="font-semibold text-zinc-700">
                         {creator.wiseEmail || "your Wise email"}
                     </span>
-                    . Min. PHP 100.
+                    . You receive the full amount — Wise transfer fees are on us.
                 </p>
 
                 {/* Recent Earnings */}
@@ -488,9 +488,9 @@ export default function WalletPage() {
                                 <Input
                                     id="amount"
                                     type="number"
-                                    min={100}
+                                    min={1}
                                     max={balance}
-                                    placeholder="Min. 100"
+                                    placeholder="Any positive amount"
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
                                     className="mt-1 rounded-xl border-zinc-200 focus:border-emerald-500 focus:ring-emerald-500"
