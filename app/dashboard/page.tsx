@@ -151,17 +151,17 @@ export default function DashboardPage() {
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-white p-3 rounded-2xl border border-emerald-500 shadow-sm text-center">
+                    <div className="bg-white p-3 rounded-2xl border border-zinc-200 shadow-sm text-center">
                         <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1">Submissions</p>
                         <p className="text-lg font-bold text-zinc-900">{submissions?.length ?? 0}</p>
                     </div>
-                    <div className="bg-white p-3 rounded-2xl border border-emerald-500 shadow-sm text-center">
+                    <div className="bg-white p-3 rounded-2xl border border-zinc-200 shadow-sm text-center">
                         <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1">In Review</p>
                         <p className="text-lg font-bold text-yellow-600">
                             {submissions?.filter((s: any) => s.status === 'submitted' || s.status === 'in_review').length ?? 0}
                         </p>
                     </div>
-                    <div className="bg-white p-3 rounded-2xl border border-emerald-500 shadow-sm text-center">
+                    <div className="bg-white p-3 rounded-2xl border border-zinc-200 shadow-sm text-center">
                         <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1">Verified</p>
                         <p className="text-lg font-bold text-emerald-600">
                             {submissions?.filter((s: any) => s.status === 'approved' || s.status === 'paid' || s.status === 'deployed' || s.status === 'completed').length ?? 0}
@@ -202,7 +202,7 @@ export default function DashboardPage() {
 
                             return (
                                 <Link key={sub._id} href={`/submissions/${sub._id}`}>
-                                    <div className="bg-white rounded-2xl p-3 border border-emerald-500 shadow-sm flex items-center justify-between hover:border-emerald-600 hover:shadow-md transition-all cursor-pointer">
+                                    <div className="bg-white rounded-2xl p-3 border border-zinc-200 shadow-sm flex items-center justify-between hover:border-zinc-300 hover:shadow-md transition-all cursor-pointer">
                                         <div className="flex items-center gap-3">
                                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${getStatusBg()}`}>
                                                 {isDraft ? <Clock className="w-5 h-5" /> : <Store className="w-5 h-5" />}
@@ -222,7 +222,7 @@ export default function DashboardPage() {
                             )
                         })}
                         {recentSubmissions.length === 0 && (
-                            <div className="text-center py-6 bg-emerald-50/10 rounded-2xl border border-dashed border-emerald-500">
+                            <div className="text-center py-6 bg-zinc-50/40 rounded-2xl border border-dashed border-zinc-200">
                                 <p className="text-zinc-500 text-xs">No submissions yet.</p>
                             </div>
                         )}

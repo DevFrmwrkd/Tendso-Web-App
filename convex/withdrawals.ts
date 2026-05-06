@@ -41,8 +41,12 @@ export const create = mutation({
         wiseEmail: v.optional(v.string()),
     },
     handler: async (ctx, args): Promise<any> => {
-        if (args.amount < 100) {
-            throw new Error('Minimum withdrawal is ₱100');
+        // No fixed minimum — only floor is amount > 0. Fee absorption (createQuote
+        // uses targetAmount) means the platform pays Wise's per-transfer fee, not
+        // the creator. Reintroducing a hardcoded floor would contradict the UI.
+        // See docs/changes/WISE-WITHDRAWAL-FIX-MIN.md.
+        if (args.amount <= 0) {
+            throw new Error('Withdrawal amount must be greater than zero');
         }
 
         // Normalize web/mobile call shapes into one canonical {payoutMethod, accountDetails, wiseEmail}.
@@ -213,7 +217,7 @@ export const processWiseTransfer = internalAction({
             const { createEmailRecipient, createQuote, createTransfer } = await import('./lib/wise');
 
             const recipient = await createEmailRecipient({ accountHolderName: holderName, email });
-            const quote = await createQuote({ sourceAmount: amount });
+            const quote = await createQuote({ amountPHP: amount });
             const customerTransactionId = crypto.randomUUID();
             const transfer = await createTransfer({
                 recipientId: recipient.id,
