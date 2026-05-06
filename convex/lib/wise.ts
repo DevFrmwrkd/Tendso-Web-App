@@ -85,9 +85,16 @@ export async function createEmailRecipient(params: {
  * Create a PHP → PHP quote at fixed rate (1:1, no FX).
  * Sourced from the Creator Payout jar when WISE_CREATOR_PAYOUT_BALANCE_ID is set,
  * otherwise falls back to the profile's main balance.
+ *
+ * Mobile-referenced — DO NOT switch back to sourceAmount. Wise charges a
+ * transfer fee on every quote; with `targetAmount` the recipient receives the
+ * full amountPHP and the platform's PHP balance is debited amountPHP + fee.
+ * With `sourceAmount` the fee is silently deducted from amountPHP and creators
+ * receive less than they withdrew (e.g. ₱100 → ₱83.22 — that exact incident
+ * triggered this change). See docs/changes/WISE-WITHDRAWAL-FIX-MIN.md.
  */
 export async function createQuote(params: {
-    sourceAmount: number
+    amountPHP: number
 }): Promise<{ id: string }> {
     const profileId = getWiseProfileId()
     const body: Record<string, unknown> = {
@@ -95,7 +102,8 @@ export async function createQuote(params: {
         source: 'PHP',
         target: 'PHP',
         rateType: 'FIXED',
-        sourceAmount: params.sourceAmount,
+        // Recipient gets exactly amountPHP; platform pays the fee.
+        targetAmount: params.amountPHP,
         type: 'BALANCE_PAYOUT',
     }
     const balanceId = getPayoutBalanceId()
