@@ -10,6 +10,8 @@ import ScrollToTop from "@/components/landing/ScrollToTop";
 import HeroSection from "@/components/landing/HeroSection";
 import MarqueeSection from "@/components/landing/MarqueeSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
+import BusinessPricingSection from "@/components/landing/BusinessPricingSection";
+import ShowcaseSection from "@/components/landing/ShowcaseSection";
 import EarningsSection from "@/components/landing/EarningsSection";
 import CtaSection from "@/components/landing/CtaSection";
 
@@ -31,6 +33,8 @@ export default function Home() {
         <HeroSection />
         <MarqueeSection />
         <FeaturesSection />
+        <BusinessPricingSection />
+        <ShowcaseSection />
         <EarningsSection />
         <CtaSection />
       </main>
