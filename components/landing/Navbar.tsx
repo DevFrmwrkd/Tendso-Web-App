@@ -6,76 +6,83 @@ import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/public/logo.png";
 import { Menu, X, ArrowRight } from "lucide-react";
-import { Bricolage_Grotesque } from 'next/font/google';
 
-const bricolage = Bricolage_Grotesque({ subsets: ['latin'], weight: ['600', '800'] });
+const navLinks = [
+  { name: "How it works", href: "#how-it-works" },
+  { name: "Live sites", href: "#showcase" },
+  { name: "Pricing", href: "#pricing" },
+  { name: "About", href: "/about" },
+  { name: "Creators", href: "/creators" },
+];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "Features", href: "#features" },
-    { name: "Earnings", href: "#earnings" },
-    { name: "Privacy Policy", href: "/privacy-policy" },
-  ];
-
   return (
     <motion.nav
-      initial={{ y: -100 }}
+      initial={{ y: -80 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ease-in-out border-b border-white/5 backdrop-blur-md ${
-        scrolled ? "bg-black/70 py-4 shadow-2xl shadow-[#00FF66]/5" : "bg-transparent py-6"
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 backdrop-blur-md ${
+        scrolled
+          ? "bg-white/85 py-3 shadow-sm border-b border-neutral-200"
+          : "bg-transparent py-5 border-b border-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
+      <div className="max-w-7xl mx-auto px-6 md:px-10 flex justify-between items-center">
         {/* BRAND */}
-        <Link href="/" className={`text-white text-2xl tracking-tighter hover:opacity-80 transition-opacity flex items-center gap-3 ${bricolage.className}`}>
-          <Image src={Logo} alt="Logo" width={36} height={36} className="rounded-xl shadow-[0_0_15px_rgba(0,255,102,0.4)]" />
-          NegosyoDigital
+        <Link
+          href="/"
+          className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
+          aria-label="Negosyo Digital home"
+        >
+          <Image src={Logo} alt="" width={36} height={36} className="rounded-lg shadow-sm shadow-emerald-500/20" />
+          <span
+            style={{ fontFamily: "var(--font-fraunces)" }}
+            className="text-xl font-semibold text-neutral-900 tracking-tight"
+          >
+            Negosyo Digital
+          </span>
         </Link>
 
         {/* DESKTOP NAV */}
-        <div className="hidden md:flex items-center gap-8">
-          <div className="flex bg-white/5 backdrop-blur-xl rounded-full px-6 py-2 border border-white/10 gap-6">
+        <div className="hidden md:flex items-center gap-6">
+          <div className="flex items-center gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-white/70 hover:text-[#00FF66] text-sm font-medium tracking-wide transition-colors"
+                className="text-neutral-700 hover:text-emerald-700 text-sm font-medium transition-colors"
               >
                 {link.name}
               </Link>
             ))}
           </div>
-          
-          <Link href="/login">
-            <motion.button 
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className={`group flex items-center gap-2 bg-[#00FF66] text-black px-6 py-2.5 rounded-full font-bold text-sm overflow-hidden relative ${bricolage.className}`}
-            >
-              <div className="absolute inset-0 w-full h-full bg-black/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-              <span className="relative z-10">LOGIN</span>
-              <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
-            </motion.button>
+
+          <Link
+            href="/signup"
+            className="group flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full font-semibold text-sm transition-all hover:scale-[1.02] shadow-sm shadow-emerald-600/20 min-h-[40px]"
+          >
+            <span>Become a Creator</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
           </Link>
         </div>
 
         {/* MOBILE TOGGLE */}
         <button
-          className="md:hidden text-white/80 hover:text-white"
+          className="md:hidden w-11 h-11 flex items-center justify-center text-neutral-900 hover:text-emerald-700 rounded-full transition-colors"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={mobileMenuOpen}
         >
-          {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          {mobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
         </button>
       </div>
 
@@ -86,37 +93,38 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "100vh" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-2xl border-t border-white/10 overflow-hidden"
+            transition={{ duration: 0.3 }}
+            className="md:hidden absolute top-full left-0 w-full bg-white border-t border-neutral-200 overflow-hidden"
           >
-            <div className="flex flex-col px-6 py-10 gap-6">
-              {navLinks.map((link, i) => (
-                <motion.div
+            <div className="flex flex-col px-6 py-8 gap-1">
+              {navLinks.map((link) => (
+                <Link
                   key={link.name}
-                  initial={{ x: -20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: i * 0.1 }}
+                  href={link.href}
+                  className="text-neutral-900 hover:text-emerald-700 text-2xl font-medium py-3 transition-colors min-h-[48px] flex items-center"
+                  onClick={() => setMobileMenuOpen(false)}
+                  style={{ fontFamily: "var(--font-fraunces)" }}
                 >
-                  <Link
-                    href={link.href}
-                    className="text-white text-3xl font-light tracking-tight hover:text-[#00FF66] transition-colors"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {link.name}
-                  </Link>
-                </motion.div>
-              ))}
-              <motion.div
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.4 }}
-                className="mt-8"
-              >
-                <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <button className={`w-full bg-[#1D00FF] hover:bg-[#1D00FF]/90 text-white px-8 py-4 rounded-full font-bold text-xl tracking-wider uppercase ${bricolage.className}`}>
-                    Login
-                  </button>
+                  {link.name}
                 </Link>
-              </motion.div>
+              ))}
+
+              <Link
+                href="/signup"
+                onClick={() => setMobileMenuOpen(false)}
+                className="mt-6 group flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-4 rounded-full font-semibold text-base transition-colors shadow-md shadow-emerald-600/20 min-h-[52px]"
+              >
+                Become a Creator
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="mt-2 flex items-center justify-center gap-2 bg-white border border-neutral-200 hover:border-emerald-300 text-neutral-900 py-3.5 rounded-full font-semibold text-sm transition-colors min-h-[48px]"
+              >
+                Login
+              </Link>
             </div>
           </motion.div>
         )}

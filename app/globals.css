@@ -2,56 +2,101 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a0a0a;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-plus-jakarta), system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-plus-jakarta), system-ui, sans-serif;
 }
 
-/* Clerk social button text color fix */
-.cl-socialButtonsBlockButton span,
-.cl-socialButtonsBlockButtonText {
-  color: white !important;
+/* Respect reduced motion globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
-/* Clerk password toggle icon fix */
+/* Focus-visible accent (emerald) */
+:focus-visible {
+  outline: 2px solid #10b981;
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Clerk widget — light theme on white auth cards */
+.cl-card {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.cl-headerTitle,
+.cl-headerSubtitle {
+  color: #0a0a0a !important;
+}
+.cl-formFieldLabel,
+.cl-identityPreviewText,
+.cl-formFieldHintText {
+  color: #525252 !important;
+}
+.cl-formFieldInput {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+  color: #0a0a0a !important;
+}
+.cl-formFieldInput:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 1px #10b981 !important;
+}
 .cl-formFieldInputShowPasswordButton,
 .cl-formFieldInputShowPasswordIcon {
-  color: white !important;
+  color: #525252 !important;
 }
-
-/* Clerk alternative method button text fix */
+.cl-dividerLine {
+  background-color: #e5e7eb !important;
+}
+.cl-dividerText {
+  color: #737373 !important;
+}
+.cl-footerActionText {
+  color: #525252 !important;
+}
+.cl-footerActionLink {
+  color: #047857 !important;
+}
+.cl-footerActionLink:hover {
+  color: #064e3b !important;
+}
+.cl-socialButtonsBlockButton {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+.cl-socialButtonsBlockButton:hover {
+  background: #f9fafb !important;
+  border-color: #d1fae5 !important;
+}
+.cl-socialButtonsBlockButton span,
+.cl-socialButtonsBlockButtonText {
+  color: #0a0a0a !important;
+}
 .cl-alternativeMethods button,
 .cl-alternativeMethods span,
 .cl-alternativeMethodsBlockButton,
 .cl-alternativeMethodsBlockButton span,
-[data-localization-key*="alternativeMethods"],
-/* Broader fix for all buttons in the dark Clerk card */
-.cl-card button span,
-.cl-card button,
-.cl-card [role="button"],
-.cl-card [role="button"] span,
-.cl-main button span,
-.cl-footerAction button span,
 .cl-identityPreview__button span,
 .cl-identityPreviewEditButton span,
 .cl-identityPreviewEditButtonIcon {
-  color: white !important;
+  color: #0a0a0a !important;
 }
