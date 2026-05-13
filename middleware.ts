@@ -12,6 +12,8 @@ const isPublicRoute = createRouteMatcher([
     '/api/webhooks(.*)',
     '/privacy-policy(.*)',
     '/terms-of-service(.*)',
+    '/creators(.*)',
+    '/about(.*)',
     // Called server-to-server from Convex (internal.submissions.transcribeMedia)
     // using the X-Internal-Secret header for auth — no Clerk cookie present.
     // The route handler enforces either a valid Clerk session OR a matching

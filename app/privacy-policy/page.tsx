@@ -1,38 +1,61 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ShieldAlert, Fingerprint, Lock, Database, FileText, Bell, Clock, Scale, BookOpen, AlertTriangle, MessageSquare } from "lucide-react";
-import { Bricolage_Grotesque, Outfit } from 'next/font/google';
+import {
+  ShieldAlert,
+  Fingerprint,
+  Lock,
+  Database,
+  FileText,
+  Bell,
+  Clock,
+  Scale,
+  BookOpen,
+  AlertTriangle,
+  MessageSquare,
+} from "lucide-react";
 
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import ScrollToTop from "@/components/landing/ScrollToTop";
 
-const bricolage = Bricolage_Grotesque({ subsets: ['latin'], weight: ['400', '600', '800'] });
-const outfit = Outfit({ subsets: ['latin'], weight: ['300', '400', '600'] });
-
 const policySections = [
   {
-    icon: <Database className="w-8 h-8 text-[#00F0FF]" />,
+    icon: Database,
     title: "1. Information We Collect",
     content: (
       <>
-        <p className="mb-4">We collect information that you provide directly to us when using the Negosyo Digital app.</p>
-        <ul className="list-disc pl-5 space-y-2 opacity-80">
-          <li><strong>Account Information:</strong> Name, email address, phone number, password, profile photo, and referral codes provided during registration.</li>
-          <li><strong>Submission Content:</strong> Business photos, video/audio recordings, interview transcriptions, business owner details (name, phone, email), and business information (name, type, address, city).</li>
-          <li><strong>Device & Usage Data:</strong> Device type, operating system, push notification tokens, network connectivity status, and app usage patterns.</li>
+        <p className="mb-4">
+          We collect information that you provide directly to us when using the Negosyo Digital app.
+        </p>
+        <ul className="list-disc pl-5 space-y-2">
+          <li>
+            <strong className="text-neutral-900">Account Information:</strong> Name, email address, phone number,
+            password, profile photo, and referral codes provided during registration.
+          </li>
+          <li>
+            <strong className="text-neutral-900">Submission Content:</strong> Business photos, video/audio
+            recordings, interview transcriptions, business owner details (name, phone, email), and business
+            information (name, type, address, city).
+          </li>
+          <li>
+            <strong className="text-neutral-900">Device &amp; Usage Data:</strong> Device type, operating system,
+            push notification tokens, network connectivity status, and app usage patterns.
+          </li>
         </ul>
       </>
-    )
+    ),
   },
   {
-    icon: <Fingerprint className="w-8 h-8 text-[#00FF66]" />,
+    icon: Fingerprint,
     title: "2. How We Use Your Data",
     content: (
       <>
-        <p className="mb-4">We use the information we collect to provide, maintain, and improve our services. Specifically, we use your data to:</p>
-        <ul className="list-disc pl-5 space-y-2 opacity-80">
+        <p className="mb-4">
+          We use the information we collect to provide, maintain, and improve our services. Specifically, we use
+          your data to:
+        </p>
+        <ul className="list-disc pl-5 space-y-2">
           <li>Process and manage business submissions</li>
           <li>Generate AI-enhanced websites for digitized businesses</li>
           <li>Process creator payouts via Wise bank transfers</li>
@@ -43,15 +66,17 @@ const policySections = [
           <li>Monitor app performance and usage analytics</li>
         </ul>
       </>
-    )
+    ),
   },
   {
-    icon: <Lock className="w-8 h-8 text-[#39FF14]" />,
+    icon: Lock,
     title: "3. Data Storage & Security",
     content: (
       <>
-        <p className="mb-4">We implement industry-standard security measures to protect your personal information:</p>
-        <ul className="list-disc pl-5 space-y-2 opacity-80">
+        <p className="mb-4">
+          We implement industry-standard security measures to protect your personal information:
+        </p>
+        <ul className="list-disc pl-5 space-y-2">
           <li>Authentication tokens stored securely via Expo SecureStore</li>
           <li>Encrypted data transmission for all API communications</li>
           <li>Secure file uploads via presigned URLs</li>
@@ -60,30 +85,45 @@ const policySections = [
           <li>Regular security audits and vulnerability assessments</li>
         </ul>
       </>
-    )
+    ),
   },
   {
-    icon: <FileText className="w-8 h-8 text-[#1D00FF]" />,
+    icon: FileText,
     title: "4. Business Owner Data",
-    content: "When creators submit business information, they collect data about business owners including name, phone number, optional email, business name, type, address, and city. This data is used to generate a professional website for the business and create lead records. Business owners are contacted via the information provided to verify and manage their generated websites. Photos, videos, and audio recordings of the business are stored securely and processed through our AI content pipeline."
+    content: (
+      <p>
+        When creators submit business information, they collect data about business owners including name, phone
+        number, optional email, business name, type, address, and city. This data is used to generate a
+        professional website for the business and create lead records. Business owners are contacted via the
+        information provided to verify and manage their generated websites. Photos, videos, and audio recordings
+        of the business are stored securely and processed through our AI content pipeline.
+      </p>
+    ),
   },
   {
-    icon: <Bell className="w-8 h-8 text-[#00F0FF]" />,
+    icon: Bell,
     title: "5. Push Notifications",
     content: (
       <>
-        <p className="mb-4">We use Expo Push Notifications to keep you informed about important updates. You may receive notifications for: Submission status changes (approved, rejected, deployed), Payout confirmations and withdrawal updates, New lead alerts from generated websites, and System announcements and important updates.</p>
-        <p>You can manage notification preferences through your device settings. Push notification tokens are stored securely and deactivated when invalid.</p>
+        <p className="mb-4">
+          We use Expo Push Notifications to keep you informed about important updates. You may receive
+          notifications for: submission status changes (approved, rejected, deployed), payout confirmations and
+          withdrawal updates, new lead alerts from generated websites, and system announcements.
+        </p>
+        <p>
+          You can manage notification preferences through your device settings. Push notification tokens are
+          stored securely and deactivated when invalid.
+        </p>
       </>
-    )
+    ),
   },
   {
-    icon: <Clock className="w-8 h-8 text-[#00FF66]" />,
+    icon: Clock,
     title: "6. Data Retention",
     content: (
       <>
         <p className="mb-4">We retain your data according to the following policies:</p>
-        <ul className="list-disc pl-5 space-y-2 opacity-80">
+        <ul className="list-disc pl-5 space-y-2">
           <li>Active account data is retained for the lifetime of your account</li>
           <li>Submission content is retained indefinitely to maintain generated websites</li>
           <li>Local form draft caches expire after 7 days automatically</li>
@@ -91,15 +131,17 @@ const policySections = [
           <li>Deleted accounts: personal data removed within 30 days; anonymized analytics retained</li>
         </ul>
       </>
-    )
+    ),
   },
   {
-    icon: <Scale className="w-8 h-8 text-[#39FF14]" />,
+    icon: Scale,
     title: "7. Your Rights",
     content: (
       <>
-        <p className="mb-4">Under the Philippine Data Privacy Act of 2012 (RA 10173), you have the following rights:</p>
-        <ul className="list-disc pl-5 space-y-2 opacity-80">
+        <p className="mb-4">
+          Under the Philippine Data Privacy Act of 2012 (RA 10173), you have the following rights:
+        </p>
+        <ul className="list-disc pl-5 space-y-2">
           <li>Right to be informed about how your data is collected and processed</li>
           <li>Right to access your personal data held by us</li>
           <li>Right to object to data processing activities</li>
@@ -108,104 +150,151 @@ const policySections = [
           <li>Right to data portability in a structured, machine-readable format</li>
         </ul>
       </>
-    )
+    ),
   },
   {
-    icon: <BookOpen className="w-8 h-8 text-[#1D00FF]" />,
+    icon: BookOpen,
     title: "8. Philippine DPA Compliance",
-    content: "Negosyo Digital is committed to complying with Republic Act No. 10173 (Data Privacy Act of 2012) and its Implementing Rules and Regulations. We process personal data based on legitimate interest and consent, maintain appropriate organizational and technical security measures, and have designated a Data Protection Officer to oversee compliance. We ensure all data processing activities are conducted in accordance with the principles of transparency, legitimate purpose, and proportionality as mandated by the National Privacy Commission."
+    content: (
+      <p>
+        Negosyo Digital is committed to complying with Republic Act No. 10173 (Data Privacy Act of 2012) and its
+        Implementing Rules and Regulations. We process personal data based on legitimate interest and consent,
+        maintain appropriate organizational and technical security measures, and have designated a Data Protection
+        Officer to oversee compliance. We ensure all data processing activities are conducted in accordance with
+        the principles of transparency, legitimate purpose, and proportionality as mandated by the National
+        Privacy Commission.
+      </p>
+    ),
   },
   {
-    icon: <AlertTriangle className="w-8 h-8 text-[#00F0FF]" />,
+    icon: AlertTriangle,
     title: "9. Open Platform for All Ages",
-    content: "Negosyo Digital is open to users of all ages — including students, young entrepreneurs, and anyone who wants to help digitalize local businesses and earn from it. There are no age restrictions to use the platform or register as a Creator. We believe in empowering the next generation of Filipino digital entrepreneurs."
+    content: (
+      <p>
+        Negosyo Digital is open to users of all ages — including students, young entrepreneurs, and anyone who
+        wants to help digitize local businesses and earn from it. There are no age restrictions to use the
+        platform or register as a Creator. We believe in empowering the next generation of Filipino digital
+        entrepreneurs.
+      </p>
+    ),
   },
   {
-    icon: <MessageSquare className="w-8 h-8 text-[#00FF66]" />,
+    icon: MessageSquare,
     title: "10. Policy Updates",
-    content: "We may update this Privacy Policy from time to time to reflect changes in our practices, technology, or legal requirements. When we make significant changes, we will notify you through the app via push notification and update the 'Last updated' date at the top of this page. We encourage you to review this policy periodically. Continued use of the app after changes constitutes acceptance of the updated policy."
-  }
+    content: (
+      <p>
+        We may update this Privacy Policy from time to time to reflect changes in our practices, technology, or
+        legal requirements. When we make significant changes, we will notify you through the app via push
+        notification and update the &quot;Last updated&quot; date at the top of this page. We encourage you to
+        review this policy periodically. Continued use of the app after changes constitutes acceptance of the
+        updated policy.
+      </p>
+    ),
+  },
 ];
 
 export default function PrivacyPolicy() {
   return (
-    <div className={`min-h-screen bg-black text-white selection:bg-[#00F0FF] selection:text-black overflow-x-hidden ${outfit.className}`}>
+    <div className="min-h-screen bg-white text-neutral-900 selection:bg-emerald-500 selection:text-white overflow-x-hidden">
       <Navbar />
-      
-      {/* BACKGROUND EFFECTS */}
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-      <div className="fixed top-0 right-[20%] w-[40%] h-[40%] bg-[#00F0FF] rounded-full mix-blend-screen filter blur-[250px] opacity-20 pointer-events-none" />
 
-      <main className="relative z-10 w-full pt-48 pb-32 px-6 max-w-5xl mx-auto flex flex-col items-center">
-        
+      {/* Soft ambient wash */}
+      <div className="fixed top-0 right-[10%] w-[40%] h-[40%] bg-emerald-50 rounded-full filter blur-[180px] opacity-70 pointer-events-none" />
+
+      <main className="relative z-10 w-full pt-36 sm:pt-44 pb-24 sm:pb-32 px-6 max-w-5xl mx-auto flex flex-col items-center">
         {/* HEADER */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-          className="text-center w-full mb-20"
+          transition={{ duration: 0.6 }}
+          className="text-center w-full mb-14 sm:mb-20"
         >
-          <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.4, type: "spring" }}
-            className="mb-8 p-4 rounded-3xl bg-white/5 border border-white/10 inline-block backdrop-blur-xl"
-          >
-            <ShieldAlert className="w-12 h-12 text-[#00F0FF]" />
-          </motion.div>
-          
-          <h1 className={`text-6xl md:text-8xl font-black uppercase tracking-tighter mb-6 ${bricolage.className}`}>
-            Privacy <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00F0FF] to-[#1D00FF]">Policy</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-white/50 max-w-2xl mx-auto font-light">
-            Last updated: February 2026. Your privacy matters to us. This policy explains how Negosyo Digital collects, uses, and protects your personal information.
+          <div className="mb-7 inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-md shadow-emerald-500/10">
+            <ShieldAlert className="w-8 h-8 text-emerald-700" />
+          </div>
+
+          <p className="text-xs uppercase tracking-widest font-bold text-emerald-700 mb-3">
+            Last updated · February 2026
           </p>
-          <div className="w-px h-24 bg-gradient-to-b from-[#00F0FF] to-transparent mx-auto mt-12" />
+          <h1
+            style={{ fontFamily: "var(--font-fraunces)" }}
+            className="text-5xl sm:text-6xl md:text-7xl font-semibold tracking-tight text-neutral-900 leading-[1.05] mb-5"
+          >
+            Privacy <span className="italic text-emerald-700">policy.</span>
+          </h1>
+          <p className="text-base sm:text-lg md:text-xl text-neutral-700 max-w-2xl mx-auto leading-relaxed">
+            Your privacy matters to us. This policy explains how Negosyo Digital collects, uses, and protects your
+            personal information.
+          </p>
+
+          <div className="w-px h-16 bg-gradient-to-b from-emerald-400 to-transparent mx-auto mt-10" aria-hidden />
         </motion.div>
 
         {/* CONTENT SECTIONS */}
-        <div className="w-full grid gap-12">
-          {policySections.map((section, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ delay: idx * 0.1, duration: 0.6 }}
-              className="group p-8 md:p-12 rounded-[2rem] bg-white/5 border border-white/10 hover:border-white/30 transition-all relative overflow-hidden backdrop-blur-md"
-            >
-              <div className="flex flex-col md:flex-row gap-8 items-start">
-                <div className="p-4 bg-black/50 rounded-2xl border border-white/10 shrink-0 shadow-lg shadow-black/50">
-                  {section.icon}
-                </div>
-                <div className="w-full">
-                  <h3 className={`text-3xl font-bold tracking-tight mb-4 text-white group-hover:text-[#00F0FF] transition-colors ${bricolage.className}`}>
-                    {section.title}
-                  </h3>
-                  <div className="text-white/70 text-lg leading-relaxed font-light">
-                    {section.content}
+        <div className="w-full grid gap-6 sm:gap-8">
+          {policySections.map((section, idx) => {
+            const Icon = section.icon;
+            return (
+              <motion.section
+                key={idx}
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: idx * 0.05, duration: 0.5 }}
+                className="group p-7 sm:p-9 rounded-3xl bg-white border border-neutral-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-900/5 transition-all"
+              >
+                <div className="flex flex-col sm:flex-row gap-5 sm:gap-7 items-start">
+                  <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-2xl shrink-0">
+                    <Icon className="w-6 h-6 text-emerald-700" />
+                  </div>
+                  <div className="w-full min-w-0">
+                    <h3
+                      style={{ fontFamily: "var(--font-fraunces)" }}
+                      className="text-2xl sm:text-3xl font-semibold tracking-tight mb-4 text-neutral-900 group-hover:text-emerald-800 transition-colors leading-tight"
+                    >
+                      {section.title}
+                    </h3>
+                    <div className="text-neutral-700 text-[15px] sm:text-base leading-relaxed">
+                      {section.content}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.section>
+            );
+          })}
         </div>
 
         {/* 11. CONTACT US BANNER */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="w-full mt-24 p-12 rounded-[3rem] bg-gradient-to-br from-[#1D00FF]/20 to-[#00F0FF]/10 border border-[#00F0FF]/20 text-center relative overflow-hidden flex flex-col items-center"
+          transition={{ duration: 0.6 }}
+          className="w-full mt-16 sm:mt-20 p-8 sm:p-12 rounded-[2rem] bg-neutral-900 text-white text-center relative overflow-hidden flex flex-col items-center"
         >
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none mix-blend-overlay" />
-          <h3 className={`text-4xl font-black uppercase tracking-tighter mb-4 relative z-10 ${bricolage.className}`}>
-            11. Contact Us
+          <div
+            className="absolute inset-0 opacity-[0.15] pointer-events-none"
+            style={{
+              backgroundImage: "radial-gradient(circle at center, #d1fae5 1px, transparent 1px)",
+              backgroundSize: "32px 32px",
+            }}
+            aria-hidden
+          />
+          <div className="absolute -top-20 -right-20 w-[320px] h-[320px] bg-emerald-500/20 rounded-full filter blur-[120px] pointer-events-none" aria-hidden />
+
+          <h3
+            style={{ fontFamily: "var(--font-fraunces)" }}
+            className="relative z-10 text-3xl sm:text-4xl font-semibold mb-3"
+          >
+            11. Contact us
           </h3>
-          <p className="text-white/70 text-lg mb-8 max-w-xl mx-auto relative z-10 font-light">
-            If you have any questions about this Privacy Policy or our data practices, please contact us through the Help & FAQ section in your profile settings or reach out directly to operations.
+          <p className="relative z-10 text-white/75 text-base sm:text-lg mb-7 max-w-xl mx-auto leading-relaxed">
+            If you have any questions about this Privacy Policy or our data practices, please reach out directly.
           </p>
-          <a href="mailto:frmwrkd.media@gmail.com" className={`inline-block bg-[#00F0FF] text-black px-12 py-5 rounded-full font-bold uppercase tracking-widest hover:bg-white hover:scale-105 transition-all shadow-[0_0_30px_rgba(0,240,255,0.4)] relative z-10 ${bricolage.className}`}>
+          <a
+            href="mailto:frmwrkd.media@gmail.com"
+            className="relative z-10 inline-flex items-center gap-2 bg-emerald-500 hover:bg-emerald-400 text-neutral-900 px-7 py-4 rounded-full font-semibold text-base sm:text-lg transition-transform hover:scale-[1.02] shadow-xl shadow-emerald-500/30 min-h-[52px]"
+          >
             frmwrkd.media@gmail.com
           </a>
         </motion.div>

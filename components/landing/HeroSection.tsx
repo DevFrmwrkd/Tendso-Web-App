@@ -1,24 +1,23 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion";
-import { MoveRight, Activity, Download } from "lucide-react";
-import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
+import { Phone, Download, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Bricolage_Grotesque } from 'next/font/google';
 
 import DashboardImg from "@/public/dashboard.png";
 
-const bricolage = Bricolage_Grotesque({ subsets: ['latin'], weight: ['400', '600', '800'] });
+const PHONE_DISPLAY = "0967 145 5245";
+const PHONE_TEL = "tel:+639671455245";
 
 export default function HeroSection() {
-  const containerRef = useRef(null);
   const apkUrl = useQuery(api.settings.get, { key: "apk_download_url" }) as string | null;
   const [downloading, setDownloading] = useState(false);
   const [showIosGuide, setShowIosGuide] = useState(false);
   const deferredPrompt = useRef<any>(null);
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -39,14 +38,12 @@ export default function HeroSection() {
       setShowIosGuide(true);
       return;
     }
-
     if (deferredPrompt.current) {
       deferredPrompt.current.prompt();
       const { outcome } = await deferredPrompt.current.userChoice;
       deferredPrompt.current = null;
       if (outcome === "accepted") return;
     }
-
     if (!apkUrl || downloading) return;
     setDownloading(true);
     try {
@@ -67,198 +64,174 @@ export default function HeroSection() {
     }
   };
 
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end end"]
-  });
-
-  const yOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-  const yMove = useTransform(scrollYProgress, [0, 0.2], [0, -100]);
+  const fadeUp = reduceMotion
+    ? {}
+    : {
+        initial: { opacity: 0, y: 20 },
+        animate: { opacity: 1, y: 0 },
+      };
 
   return (
-    <section
-      ref={containerRef}
-      className="relative w-full min-h-screen pt-32 pb-20 px-6 overflow-hidden flex items-center bg-white"
-    >
-      {/* Soft ambient tint — light green washes, NOT screen-blend blobs */}
-      <div className="absolute -top-32 -left-32 w-[500px] h-[500px] bg-emerald-100 rounded-full filter blur-[120px] opacity-60 pointer-events-none" />
-      <div className="absolute -bottom-40 -right-32 w-[600px] h-[600px] bg-emerald-50 rounded-full filter blur-[140px] opacity-80 pointer-events-none" />
+    <section className="relative w-full pt-28 pb-20 sm:pt-32 sm:pb-24 px-6 overflow-hidden flex items-center bg-white">
+      {/* Soft light-green wash */}
+      <div className="absolute -top-32 -right-20 w-[480px] h-[480px] bg-emerald-50 rounded-full filter blur-[120px] opacity-80 pointer-events-none" />
+      <div className="absolute -bottom-40 -left-32 w-[520px] h-[520px] bg-emerald-100/60 rounded-full filter blur-[140px] opacity-70 pointer-events-none" />
 
-      {/* Subtle dot grid */}
-      <div
-        className="absolute inset-0 opacity-[0.08] pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(circle at center, #059669 1px, transparent 1px)',
-          backgroundSize: '36px 36px'
-        }}
-      />
-
-      <motion.div
-        style={{ opacity: yOpacity, y: yMove }}
-        className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center relative z-10"
-      >
-        {/* LEFT COLUMN - TEXT CONTENT */}
+      <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-center relative z-10">
+        {/* LEFT — text */}
         <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="mb-8 inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-200 bg-emerald-50"
+            {...fadeUp}
+            transition={{ duration: 0.5 }}
+            className="mb-6 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-emerald-200 bg-emerald-50"
           >
-            <span className="relative flex w-2 h-2">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-75 animate-ping" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
-            </span>
-            <span className="text-xs uppercase tracking-widest font-bold text-emerald-700">
-              Creator Network Active
+            <ShieldCheck className="w-4 h-4 text-emerald-700" />
+            <span className="text-xs font-semibold tracking-wide text-emerald-800">
+              Live websites for Filipino local businesses
             </span>
           </motion.div>
 
           <motion.h1
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className={`text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black uppercase tracking-tighter leading-[0.85] mb-8 text-neutral-900 ${bricolage.className}`}
+            {...fadeUp}
+            transition={{ duration: 0.6, delay: 0.05 }}
+            style={{ fontFamily: "var(--font-fraunces)" }}
+            className="text-[2.5rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight text-neutral-900 mb-5"
           >
-            Digitize MSMEs.<br />
-            <span className="text-emerald-600">
-              Get Paid.
-            </span>
+            Your business,<br />
+            <span className="text-emerald-700 italic">online in 48 hours.</span>
           </motion.h1>
 
           <motion.p
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-            className="text-lg md:text-2xl text-neutral-700 max-w-xl font-light mb-12 leading-relaxed"
+            {...fadeUp}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-base sm:text-lg md:text-xl text-neutral-700 max-w-xl mb-3 leading-relaxed"
           >
-            Join Negosyo Digital as a Certified Creator. Visit local businesses, capture their story, and let our AI pipeline transform it into a website. You earn for every successful launch.
+            Real coded websites for local businesses — barber shops, restaurants, salons, auto repair, clinics, and more. <span className="font-semibold text-neutral-900">₱1,000 one-time.</span> No monthly fees.
+          </motion.p>
+
+          <motion.p
+            {...fadeUp}
+            transition={{ duration: 0.6, delay: 0.15 }}
+            className="text-sm text-neutral-600 max-w-xl mb-10 italic"
+          >
+            You only pay when your website is live.
           </motion.p>
 
           <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-col sm:flex-row flex-wrap items-center gap-4 w-full sm:w-auto"
+            {...fadeUp}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto"
           >
-            <Link href="#features" className="w-full sm:w-auto">
-              <button className={`w-full sm:w-auto group relative overflow-hidden bg-emerald-500 text-white px-8 py-4 rounded-full font-black text-lg tracking-wider uppercase transition-all hover:scale-105 hover:bg-emerald-600 hover:shadow-lg hover:shadow-emerald-500/30 ${bricolage.className}`}>
-                <span className="relative z-10 flex items-center justify-center gap-3">
-                  How it Works <MoveRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </span>
-              </button>
-            </Link>
+            {/* PRIMARY: Phone CTA (black bg, max contrast) */}
+            <a
+              href={PHONE_TEL}
+              className="group flex items-center justify-center gap-3 bg-neutral-900 hover:bg-black text-white px-6 sm:px-7 py-4 rounded-full font-semibold text-base sm:text-lg transition-transform hover:scale-[1.02] shadow-lg shadow-neutral-900/15 min-h-[52px]"
+              aria-label={`Call us at ${PHONE_DISPLAY}`}
+            >
+              <Phone className="w-5 h-5 text-emerald-400 group-hover:rotate-12 transition-transform" />
+              <span>Call us: {PHONE_DISPLAY}</span>
+            </a>
 
+            {/* SECONDARY: Install App */}
             {apkUrl ? (
               <button
                 onClick={handleInstall}
                 disabled={downloading}
-                className={`w-full sm:w-auto group flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-neutral-900 text-white hover:bg-black transition-all hover:scale-105 hover:shadow-lg hover:shadow-neutral-900/20 font-bold text-lg uppercase tracking-wider disabled:opacity-70 ${bricolage.className}`}
+                className="group flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-4 rounded-full font-semibold text-base transition-colors disabled:opacity-70 min-h-[52px]"
               >
-                {downloading ? "Downloading..." : "Install App"} <Download className={`w-5 h-5 ${downloading ? "animate-bounce" : "group-hover:translate-y-1"} transition-transform`} />
+                <Download className={`w-5 h-5 ${downloading ? "animate-bounce" : "group-hover:translate-y-0.5 transition-transform"}`} />
+                {downloading ? "Downloading…" : "Install App"}
               </button>
             ) : (
-              <button disabled className={`w-full sm:w-auto group flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-neutral-200 text-neutral-500 cursor-not-allowed font-bold text-lg uppercase tracking-wider ${bricolage.className}`}>
-                Install App <Download className="w-5 h-5" />
+              <button
+                disabled
+                className="flex items-center justify-center gap-2 bg-neutral-100 text-neutral-400 px-6 py-4 rounded-full font-semibold text-base cursor-not-allowed min-h-[52px]"
+                aria-label="App install currently unavailable"
+              >
+                <Download className="w-5 h-5" />
+                Install App
               </button>
             )}
           </motion.div>
+
+
         </div>
 
-        {/* RIGHT COLUMN - FLOATING WIDGET */}
+        {/* RIGHT — single product preview, no fake widgets */}
         <motion.div
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 1, delay: 0.5, type: "spring", damping: 20 }}
-          className="relative hidden lg:block"
+          initial={reduceMotion ? {} : { opacity: 0, scale: 0.96 }}
+          animate={reduceMotion ? {} : { opacity: 1, scale: 1 }}
+          transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          className="relative w-full max-w-md mx-auto lg:max-w-none"
         >
-          {/* Soft green halo behind */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] bg-emerald-100/70 rounded-full blur-[80px] pointer-events-none -z-10" />
+          <div className="absolute -inset-4 bg-emerald-100/50 rounded-[3rem] blur-2xl pointer-events-none" />
+          <div className="relative rounded-3xl p-1.5 bg-white shadow-2xl shadow-emerald-900/10 border border-neutral-200">
+            <Image
+              src={DashboardImg}
+              alt="Preview of a business owner's dashboard inside the Negosyo Digital app"
+              width={800}
+              height={1600}
+              className="w-full h-auto rounded-2xl border border-neutral-100 object-cover max-h-[520px] sm:max-h-[600px] object-top"
+              priority
+              sizes="(max-width: 1024px) 90vw, 520px"
+            />
+          </div>
 
-          <div className="relative z-10 transform sm:rotate-2 hover:rotate-0 transition-transform duration-700 ease-out">
-            <div className="rounded-3xl p-2 bg-white shadow-2xl shadow-emerald-500/10 border border-neutral-200">
-              <Image
-                src={DashboardImg}
-                alt="App Dashboard Preview"
-                width={800}
-                height={1600}
-                className="w-full h-auto rounded-2xl border border-neutral-100 object-cover max-h-[700px] mx-auto object-top"
-                priority
-              />
+          {/* Single trust chip — concrete facts, no fluff */}
+          <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 lg:left-auto lg:right-4 lg:translate-x-0 bg-white px-5 py-3 rounded-2xl shadow-xl shadow-emerald-900/10 border border-emerald-100 flex items-center gap-3 whitespace-nowrap">
+            <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center">
+              <ShieldCheck className="w-5 h-5 text-emerald-700" />
             </div>
-
-            {/* Floating cards */}
-            <motion.div
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1.2, duration: 0.8 }}
-              className="absolute -bottom-10 -left-12 bg-white border border-emerald-200 p-6 rounded-3xl shadow-xl shadow-emerald-500/10"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-emerald-50 flex items-center justify-center border border-emerald-200">
-                  <Activity className="w-6 h-6 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-neutral-500 text-xs font-bold uppercase tracking-widest mb-1">Live Transfers</p>
-                  <p className={`text-neutral-900 text-2xl font-black ${bricolage.className}`}>₱ 12,400.00</p>
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div
-              initial={{ y: -50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 1.5, duration: 0.8 }}
-              className="absolute -top-8 -right-8 bg-neutral-900 text-white p-5 rounded-3xl shadow-xl shadow-neutral-900/20"
-            >
-              <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1 text-center">Verified Submissions</p>
-              <p className={`text-center text-3xl font-black ${bricolage.className}`}>
-                <span className="text-emerald-400">↑</span> 28
-              </p>
-            </motion.div>
+            <div className="text-left">
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">What you get</p>
+              <p className="text-sm font-semibold text-neutral-900">Real coded · 48 hours · ₱1,000</p>
+            </div>
           </div>
         </motion.div>
-      </motion.div>
+      </div>
 
       {/* iOS Add to Home Screen Guide */}
       {showIosGuide && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-end justify-center" onClick={() => setShowIosGuide(false)}>
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-end justify-center"
+          onClick={() => setShowIosGuide(false)}
+        >
           <motion.div
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            transition={{ duration: 0.3 }}
             className="w-full max-w-md mx-4 mb-8 bg-white rounded-2xl p-6 text-neutral-900 shadow-2xl border border-neutral-200"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center mb-6">
               <div className="w-14 h-14 mx-auto mb-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center">
-                <Image src="/logo.png" alt="Negosyo Digital" width={36} height={36} className="rounded-lg" />
+                <Image src="/logo.png" alt="" width={36} height={36} className="rounded-lg" />
               </div>
-              <h3 className={`text-xl font-bold text-neutral-900 ${bricolage.className}`}>Install Negosyo Digital</h3>
+              <h3 style={{ fontFamily: "var(--font-fraunces)" }} className="text-2xl font-semibold">Install Negosyo Digital</h3>
               <p className="text-neutral-500 text-sm mt-1">Add to your home screen in 2 steps</p>
             </div>
 
-            <div className="space-y-4 mb-6">
+            <div className="space-y-3 mb-6">
               <div className="flex items-center gap-4 p-3 bg-neutral-50 rounded-xl border border-neutral-100">
-                <div className="w-10 h-10 bg-[#007AFF] rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-[#007AFF] rounded-xl flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-neutral-900">1. Tap the Share button</p>
+                  <p className="text-sm font-semibold">1. Tap the Share button</p>
                   <p className="text-xs text-neutral-500">The square icon with an arrow at the bottom of Safari</p>
                 </div>
               </div>
 
               <div className="flex items-center gap-4 p-3 bg-neutral-50 rounded-xl border border-neutral-100">
-                <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shrink-0">
                   <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-neutral-900">2. Tap &quot;Add to Home Screen&quot;</p>
+                  <p className="text-sm font-semibold">2. Tap &quot;Add to Home Screen&quot;</p>
                   <p className="text-xs text-neutral-500">Scroll down in the share menu to find it</p>
                 </div>
               </div>
@@ -266,7 +239,7 @@ export default function HeroSection() {
 
             <button
               onClick={() => setShowIosGuide(false)}
-              className={`w-full py-3 bg-neutral-900 hover:bg-black text-white rounded-xl font-semibold text-sm transition-colors ${bricolage.className}`}
+              className="w-full py-3 bg-neutral-900 hover:bg-black text-white rounded-xl font-semibold text-sm transition-colors min-h-[44px]"
             >
               Got it
             </button>
