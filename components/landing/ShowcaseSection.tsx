@@ -13,7 +13,6 @@ const showcase = [
         slug: "hapag",
         name: "Hapag",
         category: "Restaurant · Filipino Cuisine",
-        accent: "#00FF66",
         src: "/Pages/hapag.png",
         url: "https://hapag.pages.dev/",
     },
@@ -21,7 +20,6 @@ const showcase = [
         slug: "aloja",
         name: "Aloja Carvajal",
         category: "Aesthetic & Beauty Studio",
-        accent: "#00F0FF",
         src: "/Pages/aloja.png",
         url: "https://aloja-carvajal-aesthetic-and-beauty-studio.pages.dev/",
     },
@@ -29,7 +27,6 @@ const showcase = [
         slug: "beauty-me",
         name: "Beauty Me",
         category: "Salon · Massage · Spa",
-        accent: "#FF00AA",
         src: "/Pages/beauty-me.png",
         url: "https://beauty-me-salon-massage-spa.frmwrkd-media.workers.dev/",
     },
@@ -37,16 +34,11 @@ const showcase = [
         slug: "ben-joe",
         name: "Ben Joe Tire Supply",
         category: "Auto · Tire Supply",
-        accent: "#FFB800",
         src: "/Pages/ben-joe.png",
         url: "https://benjoetiresupply.com/",
     },
 ];
 
-/**
- * Strip the protocol from a URL for display in the faux address bar.
- * E.g. "https://benjoetiresupply.com/" -> "benjoetiresupply.com"
- */
 function displayUrl(url: string): string {
     return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
 }
@@ -65,7 +57,6 @@ export default function ShowcaseSection() {
     const next = useCallback(() => goTo(active + 1), [active, goTo]);
     const prev = useCallback(() => goTo(active - 1), [active, goTo]);
 
-    // Autoplay — pauses on hover
     useEffect(() => {
         if (paused) return;
         const t = setInterval(() => {
@@ -74,7 +65,6 @@ export default function ShowcaseSection() {
         return () => clearInterval(t);
     }, [paused]);
 
-    // Keyboard navigation when section is focused
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === "ArrowRight") next();
@@ -89,25 +79,22 @@ export default function ShowcaseSection() {
     return (
         <section
             id="showcase"
-            className="w-full py-32 px-6 max-w-7xl mx-auto relative z-10 border-t border-white/5"
+            className="w-full py-24 md:py-32 px-6 max-w-7xl mx-auto relative z-10 border-t border-neutral-100"
         >
-            {/* Ambient glow */}
-            <div
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full mix-blend-screen filter blur-[200px] opacity-20 pointer-events-none transition-colors duration-700"
-                style={{ backgroundColor: current.accent }}
-            />
+            {/* Ambient backdrop */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-emerald-100 filter blur-[180px] opacity-50 pointer-events-none" />
 
             {/* Header */}
-            <div className="text-center mb-16 relative z-10">
+            <div className="text-center mb-12 md:mb-16 relative z-10">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    className="inline-flex items-center gap-3 px-6 py-2 rounded-full border border-[#00FF66]/40 bg-[#00FF66]/10 mb-8"
+                    className="inline-flex items-center gap-3 px-6 py-2 rounded-full border border-emerald-200 bg-emerald-50 mb-8"
                 >
-                    <span className="w-3 h-3 rounded-full bg-[#00FF66] animate-pulse" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
                     <span
-                        className={`text-[#00FF66] text-sm uppercase tracking-widest font-black ${bricolage.className}`}
+                        className={`text-emerald-700 text-sm uppercase tracking-widest font-black ${bricolage.className}`}
                     >
                         Real Sites · Live Now
                     </span>
@@ -117,10 +104,10 @@ export default function ShowcaseSection() {
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className={`text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] ${bricolage.className}`}
+                    className={`text-5xl sm:text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] text-neutral-900 ${bricolage.className}`}
                 >
                     Live work.{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00FF66] to-[#00F0FF]">
+                    <span className="text-emerald-600">
                         No mockups.
                     </span>
                 </motion.h2>
@@ -130,7 +117,7 @@ export default function ShowcaseSection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.2 }}
-                    className="text-white/60 text-lg md:text-2xl mt-6 max-w-2xl mx-auto font-light"
+                    className="text-neutral-700 text-lg md:text-2xl mt-6 max-w-2xl mx-auto font-light"
                 >
                     Real Filipino MSMEs we&apos;ve already digitized.
                 </motion.p>
@@ -144,13 +131,10 @@ export default function ShowcaseSection() {
                 aria-roledescription="carousel"
                 aria-label="Showcase of websites we've built"
             >
-                {/* Frame — browser chrome look */}
-                <div
-                    className="relative rounded-[2rem] md:rounded-[2.5rem] border bg-white/5 backdrop-blur-md p-2 md:p-3 transition-colors duration-700 overflow-hidden"
-                    style={{ borderColor: `${current.accent}55` }}
-                >
-                    {/* Faux browser address bar — also a clickable link to the live site */}
-                    <div className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 border-b border-white/10">
+                {/* Browser-chrome frame */}
+                <div className="relative rounded-[2rem] md:rounded-[2.5rem] border border-neutral-200 bg-white p-2 md:p-3 shadow-2xl shadow-emerald-500/10 overflow-hidden">
+                    {/* Address bar */}
+                    <div className="flex items-center gap-2 px-3 md:px-4 py-2 md:py-3 border-b border-neutral-100">
                         <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#FF5F57]" />
                         <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#FFBD2E]" />
                         <span className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-[#28C840]" />
@@ -159,21 +143,21 @@ export default function ShowcaseSection() {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label={`Open ${current.name} live site (opens in a new tab)`}
-                            className="flex-1 mx-2 md:mx-4 px-3 md:px-4 py-1 md:py-1.5 rounded-full bg-black/40 text-[10px] md:text-xs text-white/60 hover:text-white truncate flex items-center gap-2 border border-white/5 hover:border-white/20 transition-colors"
+                            className="flex-1 mx-2 md:mx-4 px-3 md:px-4 py-1 md:py-1.5 rounded-full bg-neutral-50 text-[10px] md:text-xs text-neutral-600 hover:text-neutral-900 truncate flex items-center gap-2 border border-neutral-200 hover:border-emerald-300 transition-colors"
                         >
-                            <span className="text-[#00FF66]">●</span>
+                            <span className="text-emerald-500">●</span>
                             <span className="truncate">{displayUrl(current.url)}</span>
                             <ExternalLink className="w-3 h-3 ml-auto opacity-60 shrink-0" />
                         </a>
                     </div>
 
-                    {/* Image area — entire frame is clickable to open the live site */}
+                    {/* Image area */}
                     <a
                         href={current.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Open ${current.name} live site (opens in a new tab)`}
-                        className="relative aspect-[16/10] sm:aspect-[16/9] overflow-hidden rounded-[1.25rem] md:rounded-[1.75rem] bg-black block group/frame cursor-pointer"
+                        className="relative aspect-[16/10] sm:aspect-[16/9] overflow-hidden rounded-[1.25rem] md:rounded-[1.75rem] bg-neutral-100 block group/frame cursor-pointer"
                     >
                         <AnimatePresence mode="wait">
                             <motion.div
@@ -195,16 +179,9 @@ export default function ShowcaseSection() {
                             </motion.div>
                         </AnimatePresence>
 
-                        {/* "Visit site" hover overlay (desktop only — mobile uses the always-visible badge) */}
+                        {/* Hover overlay (desktop) */}
                         <div className="hidden md:flex absolute inset-0 items-center justify-center bg-black/0 group-hover/frame:bg-black/30 transition-colors duration-300 pointer-events-none z-10">
-                            <div
-                                className="opacity-0 group-hover/frame:opacity-100 translate-y-2 group-hover/frame:translate-y-0 transition-all duration-300 px-6 py-3 rounded-full font-black uppercase tracking-widest text-sm flex items-center gap-2 backdrop-blur-md border"
-                                style={{
-                                    backgroundColor: `${current.accent}DD`,
-                                    color: "#000",
-                                    borderColor: current.accent,
-                                }}
-                            >
+                            <div className="opacity-0 group-hover/frame:opacity-100 translate-y-2 group-hover/frame:translate-y-0 transition-all duration-300 px-6 py-3 rounded-full font-black uppercase tracking-widest text-sm flex items-center gap-2 bg-emerald-500 text-white shadow-lg">
                                 Visit Site <ExternalLink className="w-4 h-4" />
                             </div>
                         </div>
@@ -221,10 +198,7 @@ export default function ShowcaseSection() {
                             >
                                 <div className="flex items-end justify-between gap-4">
                                     <div className="min-w-0">
-                                        <p
-                                            className="text-[10px] md:text-xs uppercase tracking-widest font-black mb-1"
-                                            style={{ color: current.accent }}
-                                        >
+                                        <p className="text-[10px] md:text-xs uppercase tracking-widest font-black mb-1 text-emerald-300">
                                             {current.category}
                                         </p>
                                         <h3
@@ -233,17 +207,8 @@ export default function ShowcaseSection() {
                                             {current.name}
                                         </h3>
                                     </div>
-                                    <div
-                                        className="hidden sm:flex shrink-0 items-center gap-2 px-3 md:px-4 py-2 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest border backdrop-blur-md"
-                                        style={{
-                                            borderColor: `${current.accent}66`,
-                                            color: current.accent,
-                                        }}
-                                    >
-                                        <span
-                                            className="w-2 h-2 rounded-full animate-pulse"
-                                            style={{ backgroundColor: current.accent }}
-                                        />
+                                    <div className="hidden sm:flex shrink-0 items-center gap-2 px-3 md:px-4 py-2 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest border border-emerald-400/60 text-emerald-300 backdrop-blur-md">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                                         Live
                                         <ExternalLink className="w-3 h-3" />
                                     </div>
@@ -253,18 +218,18 @@ export default function ShowcaseSection() {
                     </a>
                 </div>
 
-                {/* Arrow controls — overlap the frame on desktop, sit below on mobile */}
+                {/* Arrow controls (desktop) */}
                 <button
                     onClick={prev}
                     aria-label="Previous showcase"
-                    className="hidden md:flex absolute top-1/2 -left-4 lg:-left-8 -translate-y-1/2 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 hover:scale-110 transition-all items-center justify-center text-white z-20"
+                    className="hidden md:flex absolute top-1/2 -left-4 lg:-left-8 -translate-y-1/2 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 hover:scale-110 shadow-lg transition-all items-center justify-center text-neutral-900 z-20"
                 >
                     <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
                 </button>
                 <button
                     onClick={next}
                     aria-label="Next showcase"
-                    className="hidden md:flex absolute top-1/2 -right-4 lg:-right-8 -translate-y-1/2 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 hover:bg-white/20 hover:scale-110 transition-all items-center justify-center text-white z-20"
+                    className="hidden md:flex absolute top-1/2 -right-4 lg:-right-8 -translate-y-1/2 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 hover:scale-110 shadow-lg transition-all items-center justify-center text-neutral-900 z-20"
                 >
                     <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
                 </button>
@@ -274,7 +239,7 @@ export default function ShowcaseSection() {
                     <button
                         onClick={prev}
                         aria-label="Previous showcase"
-                        className="w-11 h-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white"
+                        className="w-11 h-11 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-neutral-900 shadow-sm"
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
@@ -287,7 +252,7 @@ export default function ShowcaseSection() {
                                 className="h-2 rounded-full transition-all"
                                 style={{
                                     width: i === active ? 32 : 8,
-                                    backgroundColor: i === active ? current.accent : "rgba(255,255,255,0.20)",
+                                    backgroundColor: i === active ? "#10b981" : "#e5e5e5",
                                 }}
                             />
                         ))}
@@ -295,7 +260,7 @@ export default function ShowcaseSection() {
                     <button
                         onClick={next}
                         aria-label="Next showcase"
-                        className="w-11 h-11 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-white"
+                        className="w-11 h-11 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-neutral-900 shadow-sm"
                     >
                         <ChevronRight className="w-5 h-5" />
                     </button>
@@ -311,13 +276,13 @@ export default function ShowcaseSection() {
                             className="h-2 rounded-full transition-all"
                             style={{
                                 width: i === active ? 48 : 12,
-                                backgroundColor: i === active ? current.accent : "rgba(255,255,255,0.20)",
+                                backgroundColor: i === active ? "#10b981" : "#e5e5e5",
                             }}
                         />
                     ))}
                 </div>
 
-                {/* Thumbnail strip — visible on tablet+ for quick jumps */}
+                {/* Thumbnail strip */}
                 <div className="hidden lg:grid grid-cols-4 gap-4 mt-12">
                     {showcase.map((s, i) => (
                         <button
@@ -326,12 +291,9 @@ export default function ShowcaseSection() {
                             aria-label={`Open ${s.name} preview`}
                             className={`group relative aspect-video overflow-hidden rounded-xl border transition-all ${
                                 i === active
-                                    ? "scale-100 opacity-100"
-                                    : "scale-95 opacity-50 hover:opacity-100 hover:scale-100"
+                                    ? "scale-100 opacity-100 border-emerald-400 shadow-md shadow-emerald-500/20"
+                                    : "scale-95 opacity-60 hover:opacity-100 hover:scale-100 border-neutral-200"
                             }`}
-                            style={{
-                                borderColor: i === active ? `${s.accent}AA` : "rgba(255,255,255,0.10)",
-                            }}
                         >
                             <Image
                                 src={s.src}
@@ -342,8 +304,9 @@ export default function ShowcaseSection() {
                             />
                             <div className="absolute inset-x-0 bottom-0 p-2 bg-gradient-to-t from-black/90 to-transparent">
                                 <p
-                                    className={`text-xs font-black uppercase tracking-wide truncate ${bricolage.className}`}
-                                    style={{ color: i === active ? s.accent : "#fff" }}
+                                    className={`text-xs font-black uppercase tracking-wide truncate ${
+                                        i === active ? "text-emerald-300" : "text-white"
+                                    } ${bricolage.className}`}
                                 >
                                     {s.name}
                                 </p>

@@ -32,38 +32,39 @@ export default function Navbar() {
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ease-in-out border-b border-white/5 backdrop-blur-md ${
-        scrolled ? "bg-black/70 py-4 shadow-2xl shadow-[#00FF66]/5" : "bg-transparent py-6"
+      className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ease-in-out backdrop-blur-md ${
+        scrolled
+          ? "bg-white/80 py-4 shadow-sm border-b border-neutral-200"
+          : "bg-transparent py-6 border-b border-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex justify-between items-center">
         {/* BRAND */}
-        <Link href="/" className={`text-white text-2xl tracking-tighter hover:opacity-80 transition-opacity flex items-center gap-3 ${bricolage.className}`}>
-          <Image src={Logo} alt="Logo" width={36} height={36} className="rounded-xl shadow-[0_0_15px_rgba(0,255,102,0.4)]" />
+        <Link href="/" className={`text-neutral-900 text-2xl tracking-tighter hover:opacity-80 transition-opacity flex items-center gap-3 ${bricolage.className}`}>
+          <Image src={Logo} alt="Logo" width={36} height={36} className="rounded-xl shadow-md shadow-emerald-500/20" />
           NegosyoDigital
         </Link>
 
         {/* DESKTOP NAV */}
-        <div className="hidden md:flex items-center gap-8">
-          <div className="flex bg-white/5 backdrop-blur-xl rounded-full px-6 py-2 border border-white/10 gap-6">
+        <div className="hidden md:flex items-center gap-6">
+          <div className="flex bg-neutral-50 rounded-full px-6 py-2 border border-neutral-200 gap-6">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-white/70 hover:text-[#00FF66] text-sm font-medium tracking-wide transition-colors"
+                className="text-neutral-700 hover:text-emerald-600 text-sm font-medium tracking-wide transition-colors"
               >
                 {link.name}
               </Link>
             ))}
           </div>
-          
+
           <Link href="/login">
-            <motion.button 
+            <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className={`group flex items-center gap-2 bg-[#00FF66] text-black px-6 py-2.5 rounded-full font-bold text-sm overflow-hidden relative ${bricolage.className}`}
+              className={`group flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-full font-bold text-sm overflow-hidden relative shadow-md shadow-emerald-500/30 transition-colors ${bricolage.className}`}
             >
-              <div className="absolute inset-0 w-full h-full bg-black/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
               <span className="relative z-10">LOGIN</span>
               <ArrowRight className="w-4 h-4 relative z-10 group-hover:translate-x-1 transition-transform" />
             </motion.button>
@@ -72,8 +73,9 @@ export default function Navbar() {
 
         {/* MOBILE TOGGLE */}
         <button
-          className="md:hidden text-white/80 hover:text-white"
+          className="md:hidden text-neutral-900 hover:text-emerald-600 transition-colors"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label="Toggle menu"
         >
           {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
@@ -86,7 +88,7 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "100vh" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden absolute top-full left-0 w-full bg-black/95 backdrop-blur-2xl border-t border-white/10 overflow-hidden"
+            className="md:hidden absolute top-full left-0 w-full bg-white border-t border-neutral-200 overflow-hidden"
           >
             <div className="flex flex-col px-6 py-10 gap-6">
               {navLinks.map((link, i) => (
@@ -98,7 +100,7 @@ export default function Navbar() {
                 >
                   <Link
                     href={link.href}
-                    className="text-white text-3xl font-light tracking-tight hover:text-[#00FF66] transition-colors"
+                    className="text-neutral-900 text-3xl font-light tracking-tight hover:text-emerald-600 transition-colors"
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {link.name}
@@ -112,7 +114,7 @@ export default function Navbar() {
                 className="mt-8"
               >
                 <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
-                  <button className={`w-full bg-[#1D00FF] hover:bg-[#1D00FF]/90 text-white px-8 py-4 rounded-full font-bold text-xl tracking-wider uppercase ${bricolage.className}`}>
+                  <button className={`w-full bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-full font-bold text-xl tracking-wider uppercase transition-colors ${bricolage.className}`}>
                     Login
                   </button>
                 </Link>

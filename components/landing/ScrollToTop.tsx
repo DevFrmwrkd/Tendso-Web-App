@@ -9,7 +9,6 @@ export default function ScrollToTop() {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      // Show button when page is scrolled down 300px
       if (window.scrollY > 300) {
         setIsVisible(true);
       } else {
@@ -37,7 +36,7 @@ export default function ScrollToTop() {
           exit={{ opacity: 0, scale: 0.5, y: 20 }}
           transition={{ type: "spring", stiffness: 300, damping: 20 }}
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-50 p-4 rounded-full bg-[#1D00FF] text-white shadow-xl shadow-[#1D00FF]/30 hover:bg-[#00FF66] hover:text-black hover:shadow-[#00FF66]/30 backdrop-blur-md transition-colors"
+          className="fixed bottom-8 right-8 z-50 p-4 rounded-full bg-emerald-500 text-white shadow-xl shadow-emerald-500/40 hover:bg-emerald-600 hover:scale-105 transition-all"
           aria-label="Scroll to top"
         >
           <ArrowUp className="w-6 h-6" />

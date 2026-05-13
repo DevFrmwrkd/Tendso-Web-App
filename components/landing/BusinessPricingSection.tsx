@@ -12,9 +12,6 @@ const tiers = [
         name: "Standard",
         price: "1,000",
         tagline: "Instant website generation and deployment",
-        accent: "#00FF66",
-        accentSoft: "rgba(0,255,102,0.10)",
-        accentBorder: "rgba(0,255,102,0.30)",
         icon: Zap,
         featured: false,
         ctaLabel: "Get Started",
@@ -32,9 +29,6 @@ const tiers = [
         name: "With Custom Domain",
         price: "1,500",
         tagline: "Your own .com — fully owned by you",
-        accent: "#00F0FF",
-        accentSoft: "rgba(0,240,255,0.12)",
-        accentBorder: "rgba(0,240,255,0.40)",
         icon: Globe2,
         featured: true,
         ctaLabel: "Get a Custom Domain",
@@ -52,22 +46,25 @@ const tiers = [
 
 export default function BusinessPricingSection() {
     return (
-        <section id="pricing" className="w-full py-32 px-6 max-w-7xl mx-auto relative z-10 border-t border-white/5">
-            {/* Background ambient glow */}
-            <div className="absolute top-1/3 left-0 w-[400px] h-[400px] bg-[#00F0FF] rounded-full mix-blend-screen filter blur-[250px] opacity-10 pointer-events-none" />
-            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-[#00FF66] rounded-full mix-blend-screen filter blur-[200px] opacity-10 pointer-events-none" />
+        <section
+            id="pricing"
+            className="w-full py-24 md:py-32 px-6 max-w-7xl mx-auto relative z-10 border-t border-neutral-100"
+        >
+            {/* Soft ambient backdrop */}
+            <div className="absolute top-1/3 left-0 w-[400px] h-[400px] bg-emerald-100 rounded-full filter blur-[180px] opacity-50 pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-emerald-50 rounded-full filter blur-[160px] opacity-70 pointer-events-none" />
 
             {/* Header */}
-            <div className="text-center mb-20 relative z-10">
+            <div className="text-center mb-16 md:mb-20 relative z-10">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    className="inline-flex items-center gap-3 px-6 py-2 rounded-full border border-[#00F0FF]/40 bg-[#00F0FF]/10 mb-8"
+                    className="inline-flex items-center gap-3 px-6 py-2 rounded-full border border-emerald-200 bg-emerald-50 mb-8"
                 >
-                    <span className="w-3 h-3 rounded-full bg-[#00F0FF] animate-pulse" />
+                    <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
                     <span
-                        className={`text-[#00F0FF] text-sm uppercase tracking-widest font-black ${bricolage.className}`}
+                        className={`text-emerald-700 text-sm uppercase tracking-widest font-black ${bricolage.className}`}
                     >
                         For Business Owners
                     </span>
@@ -77,10 +74,10 @@ export default function BusinessPricingSection() {
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    className={`text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] ${bricolage.className}`}
+                    className={`text-5xl sm:text-6xl md:text-8xl font-black uppercase tracking-tighter leading-[0.9] text-neutral-900 ${bricolage.className}`}
                 >
                     Live in{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00FF66] to-[#00F0FF]">
+                    <span className="text-emerald-600">
                         48 hours.
                     </span>
                 </motion.h2>
@@ -90,14 +87,14 @@ export default function BusinessPricingSection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.2 }}
-                    className="text-white/60 text-lg md:text-2xl mt-6 max-w-2xl mx-auto font-light"
+                    className="text-neutral-700 text-lg md:text-2xl mt-6 max-w-2xl mx-auto font-light"
                 >
                     One-time payment. No monthly fees. No contracts.
                 </motion.p>
             </div>
 
             {/* Pricing cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto relative z-10">
                 {tiers.map((tier, idx) => {
                     const Icon = tier.icon;
                     return (
@@ -107,84 +104,102 @@ export default function BusinessPricingSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ delay: idx * 0.15, duration: 0.6 }}
-                            className={`relative flex flex-col h-full rounded-[2.5rem] p-10 backdrop-blur-md overflow-hidden group ${
+                            className={`relative flex flex-col h-full rounded-[2.5rem] p-8 md:p-10 overflow-hidden group transition-shadow ${
                                 tier.featured
-                                    ? "bg-gradient-to-b from-[#00F0FF]/10 to-transparent border-2"
-                                    : "bg-white/5 border"
+                                    ? "bg-neutral-900 text-white border-2 border-emerald-500 shadow-xl shadow-emerald-500/20"
+                                    : "bg-white border border-neutral-200 hover:border-emerald-300 hover:shadow-xl hover:shadow-emerald-500/10"
                             }`}
-                            style={{
-                                borderColor: tier.featured ? tier.accentBorder : "rgba(255,255,255,0.10)",
-                            }}
                         >
-                            {/* "Most Popular" ribbon for the featured tier */}
+                            {/* "Most Popular" ribbon */}
                             {tier.featured && (
-                                <div
-                                    className="absolute top-6 right-6 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest"
-                                    style={{
-                                        backgroundColor: tier.accent,
-                                        color: "#000",
-                                    }}
-                                >
+                                <div className="absolute top-6 right-6 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white">
                                     Most Popular
                                 </div>
                             )}
 
-                            {/* Decorative icon halo behind */}
+                            {/* Decorative icon halo */}
                             <div
-                                className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-150 transition-transform duration-700 pointer-events-none"
-                                style={{ color: tier.accent }}
+                                className={`absolute top-0 right-0 p-12 opacity-10 group-hover:scale-150 transition-transform duration-700 pointer-events-none ${
+                                    tier.featured ? "text-emerald-400" : "text-emerald-600"
+                                }`}
                             >
                                 <Icon className="w-20 h-20" />
                             </div>
 
                             {/* Foreground icon chip */}
                             <div
-                                className="mb-6 p-5 rounded-2xl w-max border backdrop-blur-xl bg-black/40"
-                                style={{ borderColor: tier.accentBorder }}
+                                className={`mb-6 p-5 rounded-2xl w-max border ${
+                                    tier.featured
+                                        ? "bg-emerald-500/10 border-emerald-500/30"
+                                        : "bg-emerald-50 border-emerald-200"
+                                }`}
                             >
-                                <Icon className="w-10 h-10" style={{ color: tier.accent }} />
+                                <Icon
+                                    className={`w-10 h-10 ${
+                                        tier.featured ? "text-emerald-400" : "text-emerald-600"
+                                    }`}
+                                />
                             </div>
 
                             {/* Tier name */}
                             <h3
-                                className={`text-2xl font-bold uppercase text-white/80 tracking-wide mb-2 ${bricolage.className}`}
+                                className={`text-2xl font-bold uppercase tracking-wide mb-2 ${
+                                    tier.featured ? "text-white/80" : "text-neutral-700"
+                                } ${bricolage.className}`}
                             >
                                 {tier.name}
                             </h3>
 
                             {/* Tagline */}
-                            <p className="text-white/60 text-sm mb-8 font-light leading-relaxed">
+                            <p
+                                className={`text-sm mb-8 font-light leading-relaxed ${
+                                    tier.featured ? "text-white/60" : "text-neutral-600"
+                                }`}
+                            >
                                 {tier.tagline}
                             </p>
 
                             {/* Price */}
                             <div className="flex items-baseline gap-2 mb-8">
                                 <span
-                                    className={`text-2xl font-bold text-white/40 ${bricolage.className}`}
+                                    className={`text-2xl font-bold ${
+                                        tier.featured ? "text-white/40" : "text-neutral-400"
+                                    } ${bricolage.className}`}
                                 >
                                     PHP
                                 </span>
                                 <span
-                                    className={`text-7xl md:text-8xl font-black text-white tracking-tighter ${bricolage.className}`}
+                                    className={`text-6xl sm:text-7xl md:text-8xl font-black tracking-tighter ${
+                                        tier.featured ? "text-white" : "text-neutral-900"
+                                    } ${bricolage.className}`}
                                 >
                                     {tier.price}
                                 </span>
                             </div>
 
-                            <p className="text-white/40 text-xs uppercase tracking-widest mb-8 font-bold">
+                            <p
+                                className={`text-xs uppercase tracking-widest mb-8 font-bold ${
+                                    tier.featured ? "text-white/40" : "text-neutral-500"
+                                }`}
+                            >
                                 One-time · No Hidden Fees
                             </p>
 
                             {/* Features list */}
                             <ul className="space-y-3 mb-10">
                                 {tier.features.map((feature, i) => (
-                                    <li key={i} className="flex items-start gap-3 text-white/80 text-sm">
+                                    <li
+                                        key={i}
+                                        className={`flex items-start gap-3 text-sm ${
+                                            tier.featured ? "text-white/80" : "text-neutral-700"
+                                        }`}
+                                    >
                                         <span
-                                            className="shrink-0 mt-0.5 rounded-full p-0.5"
-                                            style={{
-                                                backgroundColor: tier.accentSoft,
-                                                color: tier.accent,
-                                            }}
+                                            className={`shrink-0 mt-0.5 rounded-full p-0.5 ${
+                                                tier.featured
+                                                    ? "bg-emerald-500/20 text-emerald-400"
+                                                    : "bg-emerald-100 text-emerald-700"
+                                            }`}
                                         >
                                             <Check className="w-3.5 h-3.5" strokeWidth={3} />
                                         </span>
@@ -196,12 +211,11 @@ export default function BusinessPricingSection() {
                             {/* CTA */}
                             <Link href={tier.ctaHref} className="mt-auto">
                                 <button
-                                    className={`w-full py-5 rounded-full font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all hover:opacity-90 hover:gap-5 ${bricolage.className}`}
-                                    style={{
-                                        backgroundColor: tier.featured ? tier.accent : "rgba(255,255,255,0.10)",
-                                        color: tier.featured ? "#000" : "#fff",
-                                        border: tier.featured ? "none" : `1px solid ${tier.accentBorder}`,
-                                    }}
+                                    className={`w-full py-4 md:py-5 rounded-full font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all hover:gap-5 ${
+                                        tier.featured
+                                            ? "bg-emerald-500 text-white hover:bg-emerald-400"
+                                            : "bg-neutral-900 text-white hover:bg-emerald-600"
+                                    } ${bricolage.className}`}
                                 >
                                     {tier.ctaLabel}
                                     <ArrowRight className="w-5 h-5" />
@@ -212,16 +226,16 @@ export default function BusinessPricingSection() {
                 })}
             </div>
 
-            {/* Footnote on renewals */}
+            {/* Footnote */}
             <motion.p
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.4 }}
-                className="text-center text-white/40 text-xs md:text-sm mt-10 max-w-2xl mx-auto font-light leading-relaxed"
+                className="text-center text-neutral-500 text-xs md:text-sm mt-10 max-w-2xl mx-auto font-light leading-relaxed relative z-10"
             >
                 After year 1, custom domain renewal is approximately{" "}
-                <span className="text-white/60">₱1,120/year (~$20)</span> — paid directly to the registrar.
+                <span className="text-neutral-700 font-medium">₱1,120/year (~$20)</span> — paid directly to the registrar.
                 We don&apos;t auto-renew. Full control stays with you.
             </motion.p>
         </section>
