@@ -1,0 +1,135 @@
+---
+/**
+ * AboutK2 - Barber Shop / Three Generations
+ * Heritage timeline showing 3 generations of barbers as a 3-column grid.
+ */
+interface Props {
+  businessName: string;
+  description: string;
+  headline?: string;
+  tagline?: string;
+  tags?: string[];
+  usps?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  description,
+  headline = 'Three Generations',
+  tagline,
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.aboutHeadline !== false;
+const showDescription = visibility?.aboutDescription !== false;
+const showImages = visibility?.aboutImages !== false;
+
+const generations = [
+  { year: '1958', name: 'The Founder', role: 'First Master', photo: photos[0] },
+  { year: '1984', name: 'The Inheritor', role: 'Second Generation', photo: photos[1] },
+  { year: 'Today', name: 'The Current', role: 'Third Master', photo: photos[2] || photos[0] },
+];
+---
+
+<section
+  id="about"
+  class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  <div class="mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="text-center mb-16 md:mb-20">
+      <div class="barber-fade-up inline-flex items-center gap-4 mb-6">
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--primary)]">— A family trade —</span>
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+      </div>
+
+      {showHeadline && (
+        <h2
+          class="barber-fade-up font-bold leading-[0.95] tracking-tight text-[var(--text)] mb-5"
+          style="font-size: clamp(2.75rem, 6vw, 5rem); animation-delay: 0.1s;"
+        >
+          {headline}
+        </h2>
+      )}
+
+      {showDescription && (
+        <p class="barber-fade-up max-w-2xl mx-auto text-[var(--text-muted)] leading-[1.85] italic" style="font-size: 1.1rem; animation-delay: 0.2s;">
+          {description}
+        </p>
+      )}
+    </div>
+
+    {/* Timeline */}
+    {showImages && (
+      <div class="relative">
+        {/* Horizontal connecting line */}
+        <div class="hidden md:block absolute top-1/4 left-[16.66%] right-[16.66%] h-px bg-[var(--accent)]/40"></div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          {generations.map((gen, i) => (
+            <div
+              class="barber-fade-up relative text-center"
+              style={`animation-delay: ${i * 0.15 + 0.3}s;`}
+            >
+              {/* Year marker on timeline */}
+              <div class="relative inline-flex flex-col items-center mb-6">
+                <div class="bg-[var(--primary)] border-2 border-[var(--accent)] px-4 py-1 mb-2 z-10 relative">
+                  <span class="text-[10px] font-bold uppercase tracking-[0.35em] text-[var(--bg)]">{gen.year}</span>
+                </div>
+              </div>
+
+              {/* Portrait in vintage oval frame */}
+              <div class="relative max-w-[200px] mx-auto mb-5">
+                <div class="absolute -inset-2 border border-[var(--accent)]/40 rounded-full"></div>
+                <div class="aspect-square overflow-hidden rounded-full bg-[var(--text)] shadow-[0_20px_40px_-12px_rgba(26,12,16,0.4)] border-2 border-[var(--accent)]">
+                  {gen.photo ? (
+                    <img
+                      src={gen.photo}
+                      alt={gen.name}
+                      class="w-full h-full object-cover"
+                      style="filter: sepia(0.55) contrast(1.1) brightness(0.9);"
+                    />
+                  ) : (
+                    <div class="w-full h-full flex items-center justify-center text-[var(--accent)] text-5xl">✂</div>
+                  )}
+                </div>
+              </div>
+
+              <h3 class="text-2xl font-bold text-[var(--text)] mb-1" style="font-size: 1.65rem;">{gen.name}</h3>
+              <p class="text-[10px] uppercase tracking-[0.35em] text-[var(--primary)] italic">— {gen.role} —</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Family signature */}
+    <div class="barber-fade-up mt-16 text-center" style="animation-delay: 0.7s">
+      <div class="inline-flex items-center gap-3">
+        <span class="h-px w-16 bg-[var(--primary)]/30"></span>
+        <span class="text-[var(--accent)] text-2xl">✂</span>
+        <span class="font-bold italic text-[var(--text)] text-2xl">{businessName}</span>
+        <span class="text-[var(--accent)] text-2xl">✂</span>
+        <span class="h-px w-16 bg-[var(--primary)]/30"></span>
+      </div>
+      <p class="mt-3 text-xs uppercase tracking-[0.45em] text-[var(--primary)]/70 italic">— The family trade —</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .barber-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .barber-fade-up { animation: none; opacity: 1; transform: none; }
+  }
+</style>

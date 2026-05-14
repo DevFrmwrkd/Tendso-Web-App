@@ -1,0 +1,200 @@
+---
+/**
+ * AboutK - Barber Shop / Heritage Story
+ * Cream parchment background, magazine-spread layout.
+ * Left: portrait photo in vintage oval frame. Right: chapter heading + description + credentials.
+ * Vibe: family legacy, "since [year]" storytelling.
+ */
+interface Props {
+  businessName: string;
+  description: string;
+  headline?: string;
+  tagline?: string;
+  tags?: string[];
+  usps?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  description,
+  headline = 'Our Story',
+  tagline,
+  tags = [],
+  usps = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+const galleryPhotos = photos.slice(1, 4);
+
+const showHeadline = visibility?.aboutHeadline !== false;
+const showDescription = visibility?.aboutDescription !== false;
+const showImages = visibility?.aboutImages !== false;
+const showTagline = visibility?.aboutTagline !== false && !!tagline;
+const showTags = visibility?.aboutTags !== false && tags.length > 0;
+---
+
+<section
+  id="about"
+  class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  {/* Top ornamental scissors divider */}
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 flex items-center gap-5 pt-10">
+    <span class="h-px w-16 bg-[var(--accent)]"></span>
+    <span class="text-[var(--primary)] text-xl barber-scissors-pulse">✂</span>
+    <span class="h-px w-16 bg-[var(--accent)]"></span>
+  </div>
+
+  <div class="mx-auto max-w-7xl px-6 lg:px-12">
+    <div class="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-12 lg:gap-20 items-center">
+
+      {/* LEFT — Portrait with vintage frame */}
+      {showImages && (
+        <div class="barber-frame-fade order-2 lg:order-1">
+          <div class="relative">
+            {/* Outer brass frame */}
+            <div class="absolute -inset-4 border-2 border-[var(--accent)]/60 pointer-events-none"></div>
+            <div class="absolute -inset-2 border border-[var(--primary)]/30 pointer-events-none"></div>
+
+            {/* Main image */}
+            <div class="relative aspect-[3/4] overflow-hidden bg-[var(--text)] shadow-[0_30px_60px_-15px_rgba(26,12,16,0.4)]">
+              {mainPhoto ? (
+                <img
+                  src={mainPhoto}
+                  alt={businessName}
+                  class="absolute inset-0 w-full h-full object-cover"
+                  style="filter: sepia(0.4) contrast(1.05) brightness(0.9);"
+                />
+              ) : (
+                <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-7xl">✂</div>
+              )}
+              <div class="absolute inset-0 bg-gradient-to-t from-[var(--text)]/30 to-transparent"></div>
+
+              {/* Engraved plaque overlay */}
+              <div class="absolute bottom-0 inset-x-0 bg-[var(--text)]/85 backdrop-blur-sm border-t border-[var(--accent)]/40 px-6 py-4">
+                <p class="text-[9px] font-bold uppercase tracking-[0.4em] text-[var(--accent)] mb-1">— THE CHAIR —</p>
+                <p class="text-[var(--bg)] text-sm font-bold uppercase tracking-[0.15em]">{businessName}</p>
+              </div>
+            </div>
+
+            {/* Side gallery photos (if multiple) */}
+            {galleryPhotos.length > 0 && (
+              <div class="hidden md:flex absolute -right-8 -bottom-8 flex-col gap-2">
+                {galleryPhotos.slice(0, 2).map((p, i) => (
+                  <div class="w-20 h-20 overflow-hidden border-2 border-[var(--bg)] shadow-lg" style={`transform: rotate(${i === 0 ? 4 : -3}deg);`}>
+                    <img src={p} alt="" class="w-full h-full object-cover" style="filter: sepia(0.5) contrast(1.05);" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* RIGHT — Story text */}
+      <div class="order-1 lg:order-2">
+
+        {showTagline && (
+          <div class="barber-fade-up mb-4">
+            <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--primary)]">
+              ✦ {tagline} ✦
+            </span>
+          </div>
+        )}
+
+        {showHeadline && (
+          <h2
+            class="barber-fade-up font-bold leading-[0.95] tracking-tight text-[var(--text)] mb-2"
+            style="font-size: clamp(2.5rem, 5vw, 4.5rem); animation-delay: 0.1s;"
+          >
+            {headline}
+          </h2>
+        )}
+
+        <div class="barber-fade-up mb-8 flex items-center gap-3" style="animation-delay: 0.2s">
+          <span class="h-px w-24 bg-[var(--accent)]"></span>
+          <span class="text-[10px] uppercase tracking-[0.3em] text-[var(--primary)]/70 italic">— A heritage cut</span>
+        </div>
+
+        {showDescription && (
+          <p
+            class="barber-fade-up text-[var(--text-muted)] leading-[1.8] mb-10"
+            style="font-size: clamp(1rem, 1.3vw, 1.15rem); animation-delay: 0.3s; column-count: 1; column-gap: 2rem;"
+          >
+            {description}
+          </p>
+        )}
+
+        {/* USPs as credentials list */}
+        {usps.length > 0 && (
+          <div class="barber-fade-up mb-10" style="animation-delay: 0.4s">
+            <ul class="space-y-3">
+              {usps.slice(0, 4).map((usp) => (
+                <li class="flex items-start gap-3 text-[var(--text-muted)]">
+                  <span class="text-[var(--accent)] text-lg mt-0.5">✦</span>
+                  <span class="text-sm leading-relaxed">{usp}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Tags as service-style chips */}
+        {showTags && (
+          <div class="barber-fade-up flex flex-wrap gap-2" style="animation-delay: 0.5s">
+            {tags.map((tag) => (
+              <span class="inline-flex items-center px-4 py-2 border border-[var(--primary)]/30 text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-colors">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Signature flourish */}
+        <div class="barber-fade-up mt-12 flex items-center gap-4" style="animation-delay: 0.6s">
+          <span class="text-[var(--primary)] text-2xl">✂</span>
+          <span class="font-bold italic text-[var(--text)] text-lg">{businessName}</span>
+          <span class="h-px flex-1 bg-[var(--accent)]/40"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .barber-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes barberFadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .barber-frame-fade {
+    opacity: 0;
+    transform: scale(0.95);
+    animation: barberFrameFade 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+  }
+  @keyframes barberFrameFade {
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .barber-scissors-pulse {
+    animation: barberScissorsPulse 3s ease-in-out infinite;
+    display: inline-block;
+  }
+  @keyframes barberScissorsPulse {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(15deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .barber-fade-up, .barber-frame-fade { animation-duration: 0.01ms; opacity: 1; transform: none; }
+    .barber-scissors-pulse { animation: none; }
+  }
+</style>

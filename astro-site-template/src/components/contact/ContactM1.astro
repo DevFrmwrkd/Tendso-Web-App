@@ -1,0 +1,223 @@
+---
+/**
+ * ContactM - Salon/Spa / Booking Sanctuary
+ * Soft cream with sage flourishes, booking-focused.
+ * Hours displayed as elegant cards, Instagram + phone prominent.
+ * Vibe: a personal invitation to visit.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  whatsapp?: string;
+  messenger?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  description,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.contactHeadline !== false;
+const showDescription = visibility?.contactDescription !== false && !!description;
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+
+const year = new Date().getFullYear();
+
+const hours = [
+  { day: 'Monday', time: 'By appointment' },
+  { day: 'Tuesday – Friday', time: '10:00 – 19:00' },
+  { day: 'Saturday', time: '09:00 – 18:00' },
+  { day: 'Sunday', time: '10:00 – 16:00' },
+];
+---
+
+<section
+  id="contact"
+  class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  {/* Soft watercolor blobs */}
+  <div class="absolute -top-40 -left-32 w-[600px] h-[600px] rounded-full bg-[#f4d9d0] opacity-40 blur-[120px] pointer-events-none"></div>
+  <div class="absolute -bottom-40 -right-32 w-[500px] h-[500px] rounded-full bg-[#dde5d3] opacity-40 blur-[120px] pointer-events-none"></div>
+
+  {/* Floating petals — fewer than hero, subtle */}
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    {Array.from({ length: 4 }).map((_, i) => {
+      const left = (i * 27 + 12) % 100;
+      const delay = i * 4;
+      const size = 16 + (i % 2) * 8;
+      const rot = i * 60;
+      return (
+        <span
+          class="petal-c absolute opacity-30"
+          style={`left: ${left}%; animation-delay: ${delay}s; --rot: ${rot}deg;`}
+        >
+          <svg width={size} height={size} viewBox="0 0 24 24">
+            <ellipse cx="12" cy="12" rx="6" ry="11" fill="#d4a8a0" transform="rotate(45 12 12)" opacity="0.6"/>
+          </svg>
+        </span>
+      );
+    })}
+  </div>
+
+  <div class="relative z-10 mx-auto max-w-5xl px-6 lg:px-12">
+
+    {/* Header */}
+    <div class="text-center mb-16">
+      <div class="salon-fade-up inline-flex items-center gap-3 mb-6">
+        <span class="h-px w-16 bg-[var(--primary)]/40"></span>
+        <span class="text-[var(--accent)]">❀</span>
+        <span class="text-[11px] uppercase tracking-[0.45em] text-[var(--primary)] italic">— Visit us —</span>
+        <span class="text-[var(--accent)]">❀</span>
+        <span class="h-px w-16 bg-[var(--primary)]/40"></span>
+      </div>
+
+      {showHeadline && (
+        <h2
+          class="salon-fade-up font-normal leading-[1.05] tracking-tight text-[var(--text)] mb-6"
+          style="font-size: clamp(3rem, 6vw, 5.5rem); animation-delay: 0.1s;"
+        >
+          Reserve your<br/>
+          <span class="italic text-[var(--primary)]">moment</span>
+        </h2>
+      )}
+
+      {showDescription && (
+        <p
+          class="salon-fade-up max-w-xl mx-auto text-[var(--text-muted)] italic font-light leading-relaxed"
+          style="font-size: 1.15rem; animation-delay: 0.2s;"
+        >
+          {description}
+        </p>
+      )}
+    </div>
+
+    {/* Booking card */}
+    <div class="salon-fade-up bg-[var(--surface)] rounded-[3rem] p-8 md:p-12 lg:p-16 border border-[var(--primary)]/15 shadow-[0_40px_80px_-25px_rgba(184,123,108,0.25)] mb-12" style="animation-delay: 0.3s">
+
+      {/* Top phone CTA */}
+      <div class="text-center pb-8 border-b border-[var(--primary)]/15 mb-8">
+        <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--primary)] italic mb-3">— Call or message to book —</p>
+        <a
+          href={`tel:${phone}`}
+          class="inline-block text-3xl md:text-4xl lg:text-5xl font-normal text-[var(--text)] hover:text-[var(--primary)] transition-colors tracking-wide"
+        >
+          {phone}
+        </a>
+        {email && (
+          <a
+            href={`mailto:${email}`}
+            class="block mt-3 text-sm italic text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors break-all"
+          >
+            {email}
+          </a>
+        )}
+      </div>
+
+      {/* Hours grid */}
+      {showInfo && (
+        <>
+          <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--primary)] italic text-center mb-6">— Hours —</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+            {hours.map((h) => (
+              <div class="flex items-center justify-between py-3 px-4 rounded-full bg-[var(--bg)]/70 border border-[var(--primary)]/10">
+                <span class="text-sm font-medium text-[var(--text)] italic">{h.day}</span>
+                <span class="text-sm text-[var(--primary)]">{h.time}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Address */}
+          {address && (
+            <div class="text-center pt-6 border-t border-[var(--primary)]/15">
+              <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--primary)] italic mb-3">— Find us —</p>
+              <p class="text-base text-[var(--text)] italic">{address}</p>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+
+    {/* Primary CTA button */}
+    <div class="text-center mb-12">
+      <a
+        href={`tel:${phone}`}
+        class="salon-fade-up inline-flex items-center justify-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] rounded-full px-12 py-5 text-xs font-medium uppercase tracking-[0.4em] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-12px_rgba(184,123,108,0.6)]"
+        style="animation-delay: 0.5s;"
+      >
+        <span>❀</span> Reserve a treatment <span>❀</span>
+      </a>
+    </div>
+
+    {/* Social row */}
+    {showSocial && (
+      <div class="salon-fade-up flex justify-center gap-3 mb-12" style="animation-delay: 0.6s">
+        {socialLinks.map((link) => (
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-12 h-12 rounded-full border border-[var(--primary)]/30 flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-all hover:-translate-y-1"
+            aria-label={link.platform}
+          >
+            <span class="text-xs font-medium uppercase italic">{link.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    {/* Signature flourish */}
+    <div class="salon-fade-up flex flex-col items-center gap-3 pt-8 border-t border-[var(--primary)]/15" style="animation-delay: 0.7s">
+      <span class="text-[var(--accent)] text-2xl salon-flourish-pulse">❀</span>
+      <p class="text-base italic text-[var(--text)]" style="font-size: 1.25rem;">— {businessName} —</p>
+      <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--text-muted)]/60 italic">est. © {year}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .petal-c {
+    top: -50px;
+    animation: petalDriftC 22s linear infinite;
+  }
+  @keyframes petalDriftC {
+    0% { transform: translateY(-50px) translateX(0) rotate(var(--rot, 0deg)); opacity: 0; }
+    10% { opacity: 0.4; }
+    50% { transform: translateY(50vh) translateX(30px) rotate(calc(var(--rot, 0deg) + 180deg)); }
+    90% { opacity: 0.3; }
+    100% { transform: translateY(110vh) translateX(-30px) rotate(calc(var(--rot, 0deg) + 360deg)); opacity: 0; }
+  }
+
+  .salon-fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: salonFadeUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes salonFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  .salon-flourish-pulse {
+    display: inline-block;
+    animation: salonFlourish 4s ease-in-out infinite;
+  }
+  @keyframes salonFlourish {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(60deg) scale(1.15); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .petal-c, .salon-flourish-pulse { animation: none; }
+    .salon-fade-up { animation-duration: 0.01ms; opacity: 1; transform: none; }
+  }
+</style>

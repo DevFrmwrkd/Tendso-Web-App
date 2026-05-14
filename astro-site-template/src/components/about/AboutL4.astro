@@ -1,0 +1,103 @@
+---
+/**
+ * AboutL4 - Automobile Shop / Years on the Job
+ * Vertical timeline of decades / years on the bay.
+ * Each milestone is a year-stamped node with story.
+ */
+interface Props {
+  businessName: string;
+  description: string;
+  headline?: string;
+  tagline?: string;
+  tags?: string[];
+  usps?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  description,
+  headline = 'Years on the job',
+  tagline,
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+
+const showHeadline = visibility?.aboutHeadline !== false;
+const showDescription = visibility?.aboutDescription !== false;
+const showImages = visibility?.aboutImages !== false;
+const showTagline = visibility?.aboutTagline !== false && !!tagline;
+
+const currentYear = new Date().getFullYear();
+const milestones = [
+  { year: currentYear - 18, title: 'First bay opens', body: 'Started in a single bay with one lift and a borrowed compressor.' },
+  { year: currentYear - 12, title: 'Second location', body: 'Added body & paint after demand outgrew the original shop.' },
+  { year: currentYear - 6, title: 'Diagnostic upgrade', body: 'Invested in modern OBD-II tooling and EV-ready training.' },
+  { year: currentYear, title: 'Still turning wrenches', body: 'Same crew, sharper tools, same straight talk.' },
+];
+---
+
+<section id="about" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-5xl px-6 lg:px-12">
+
+    <div class="text-center mb-16">
+      {showTagline && (
+        <p class="auto-fade-up text-[10px] font-bold font-mono uppercase tracking-[0.5em] text-[var(--primary)] mb-4">— {tagline} —</p>
+      )}
+      {showHeadline && (
+        <h2 class="auto-fade-up font-black uppercase leading-[0.95] tracking-tight text-[var(--text)] mb-5" style="font-size: clamp(2.5rem, 6vw, 4.5rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showDescription && (
+        <p class="auto-fade-up text-[var(--text-muted)] max-w-2xl mx-auto leading-[1.7]" style="font-size: 1.1rem; animation-delay: 0.2s;">{description}</p>
+      )}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-12 items-start">
+      {/* LEFT — Photo block + big number */}
+      {showImages && (
+        <div class="auto-fade-up lg:sticky lg:top-24" style="animation-delay: 0.3s">
+          <div class="relative aspect-[3/4] overflow-hidden bg-[var(--surface)] border-2 border-[var(--accent)]/40 mb-4">
+            {mainPhoto ? (
+              <img src={mainPhoto} alt={businessName} class="absolute inset-0 w-full h-full object-cover" style="filter: contrast(1.2) saturate(0.7) sepia(0.1);" />
+            ) : (
+              <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-9xl">🛠</div>
+            )}
+            <div class="absolute inset-0 bg-gradient-to-t from-[var(--bg)]/80 via-transparent to-[var(--bg)]/20"></div>
+            {/* Big year stamp */}
+            <div class="absolute top-4 right-4 bg-[var(--bg)]/90 border-2 border-[var(--primary)] px-3 py-2">
+              <p class="text-[9px] font-mono uppercase tracking-[0.3em] text-[var(--primary)]">EST.</p>
+              <p class="text-2xl font-black text-[var(--text)]">{currentYear - 18}</p>
+            </div>
+          </div>
+          <p class="text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--accent)]">— Same shop, since day one —</p>
+        </div>
+      )}
+
+      {/* RIGHT — Timeline */}
+      <div class="relative">
+        <div class="absolute left-4 top-2 bottom-2 w-0.5 bg-[var(--accent)]/30"></div>
+        <div class="space-y-10">
+          {milestones.map((m, i) => (
+            <div class="auto-fade-up relative pl-14" style={`animation-delay: ${0.35 + i * 0.12}s`}>
+              <div class="absolute left-0 top-1 w-8 h-8 rounded-full bg-[var(--primary)] border-4 border-[var(--bg)] flex items-center justify-center shadow-[0_0_0_3px_var(--accent)]">
+                <span class="text-[var(--bg)] text-xs font-black">{i + 1}</span>
+              </div>
+              <p class="text-3xl font-black font-mono text-[var(--primary)] leading-none mb-2 tracking-tight">{m.year}</p>
+              <p class="text-lg font-black uppercase text-[var(--text)] mb-2 tracking-tight">{m.title}</p>
+              <p class="text-sm text-[var(--text-muted)] leading-relaxed max-w-md">{m.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .auto-fade-up { opacity: 0; transform: translateY(20px); animation: autoFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .auto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

@@ -1,0 +1,125 @@
+---
+/**
+ * ContactM3 - Salon/Spa / Instagram Direct
+ * Social-first contact. DM-style booking encouragement.
+ * Phone screen aesthetic with @-handle prominent + secondary channels.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+
+const igHandle = socialLinks.find(s => s.platform.toLowerCase().includes('insta'))?.url || `@${businessName.toLowerCase().replace(/\s+/g, '')}`;
+const handleDisplay = igHandle.startsWith('@') ? igHandle : `@${businessName.toLowerCase().replace(/\s+/g, '')}`;
+
+const year = new Date().getFullYear();
+---
+
+<section id="contact" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-15 blur-[150px]" style="background: var(--primary);"></div>
+
+  <div class="relative z-10 mx-auto max-w-4xl px-6 lg:px-12">
+
+    <div class="text-center mb-12">
+      <p class="salon-fade-up text-[10px] uppercase tracking-[0.55em] text-[var(--accent)] italic mb-5">— Slide into our DMs —</p>
+      <h2 class="salon-fade-up font-light italic leading-[1.05] text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.5rem, 6vw, 4.25rem); animation-delay: 0.1s;">Book on instagram</h2>
+      <p class="salon-fade-up text-[var(--text-muted)] italic leading-[1.8] max-w-xl mx-auto" style="font-size: 1.1rem; animation-delay: 0.2s;">Send us a DM, peek at recent work, and reserve your slot — all in one tap.</p>
+    </div>
+
+    {/* Phone mockup card */}
+    <div class="salon-fade-up max-w-md mx-auto mb-10" style="animation-delay: 0.3s">
+      <div class="relative bg-[var(--surface)] rounded-[40px] p-3 shadow-[0_40px_80px_-20px_rgba(184,123,108,0.4)] border border-[var(--primary)]/15">
+        <div class="bg-[var(--bg)] rounded-[32px] p-6 min-h-[400px] relative overflow-hidden">
+          {/* Top status bar */}
+          <div class="flex items-center justify-between text-[10px] text-[var(--text-muted)] mb-6">
+            <span>9:41</span>
+            <span class="w-12 h-1 bg-[var(--primary)]/30 rounded-full"></span>
+            <span>●●●</span>
+          </div>
+
+          {/* Profile */}
+          <div class="text-center mb-6">
+            <div class="w-20 h-20 rounded-full mx-auto mb-3 flex items-center justify-center text-3xl italic text-[var(--bg)]" style="background: var(--primary); font-family: var(--heading-font);">{businessName.charAt(0)}</div>
+            <p class="text-xl italic text-[var(--primary)]" style="font-family: var(--heading-font);">{handleDisplay}</p>
+            <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--accent)] italic mt-1">Salon · spa · wellness</p>
+          </div>
+
+          {/* DM bubbles */}
+          <div class="space-y-3 mb-6">
+            <div class="bg-[var(--surface)] rounded-2xl rounded-bl-md px-4 py-2.5 max-w-[80%]">
+              <p class="text-sm italic text-[var(--text)]">Hi! I'd love to book a facial 🌿</p>
+            </div>
+            <div class="bg-[var(--primary)] text-[var(--bg)] rounded-2xl rounded-br-md px-4 py-2.5 max-w-[80%] ml-auto">
+              <p class="text-sm italic">Welcome ✦ what day works for you?</p>
+            </div>
+          </div>
+
+          {/* Open in IG button */}
+          {showSocial && socialLinks.length > 0 && (
+            <a href={socialLinks[0].url} target="_blank" rel="noopener noreferrer" class="block text-center bg-[var(--primary)] text-[var(--bg)] py-3 rounded-full text-[11px] uppercase tracking-[0.4em] italic hover:-translate-y-0.5 transition-all">
+              ✉ Open chat
+            </a>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* Backup channels */}
+    {showInfo && (
+      <div class="salon-fade-up grid grid-cols-1 md:grid-cols-3 gap-3" style="animation-delay: 0.45s">
+        <a href={`tel:${phone}`} class="bg-[var(--surface)] rounded-2xl p-5 text-center hover:-translate-y-1 transition-all border border-[var(--primary)]/15 hover:border-[var(--primary)]/40">
+          <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic mb-2">— Call —</p>
+          <p class="text-lg italic text-[var(--primary)]" style="font-family: var(--heading-font);">{phone}</p>
+        </a>
+        {email && (
+          <a href={`mailto:${email}`} class="bg-[var(--surface)] rounded-2xl p-5 text-center hover:-translate-y-1 transition-all border border-[var(--primary)]/15 hover:border-[var(--primary)]/40">
+            <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic mb-2">— Email —</p>
+            <p class="text-sm italic text-[var(--primary)] break-all">{email}</p>
+          </a>
+        )}
+        {address && (
+          <div class="bg-[var(--surface)] rounded-2xl p-5 text-center border border-[var(--primary)]/15">
+            <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic mb-2">— Visit —</p>
+            <p class="text-sm italic text-[var(--text)]">{address}</p>
+          </div>
+        )}
+      </div>
+    )}
+
+    {showSocial && socialLinks.length > 1 && (
+      <div class="salon-fade-up flex justify-center gap-2 mt-8" style="animation-delay: 0.55s">
+        {socialLinks.slice(1).map((l) => (
+          <a href={l.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full border border-[var(--primary)]/40 hover:border-[var(--primary)] flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-colors" aria-label={l.platform}>
+            <span class="text-xs italic">{l.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <p class="text-center text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic mt-10">— © {year} · {businessName} —</p>
+  </div>
+</section>
+
+<style>
+  .salon-fade-up { opacity: 0; transform: translateY(20px); animation: salonFadeUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes salonFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .salon-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

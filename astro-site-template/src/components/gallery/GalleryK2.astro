@@ -1,0 +1,137 @@
+---
+/**
+ * GalleryK2 - Barber Shop / Before & After
+ * Side-by-side before/after pairs for each cut.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  items: Array<{ title: string; description: string; image?: string; tags?: string[] }>;
+  images?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'Before / After',
+  subheadline = 'Same chair. Different man.',
+  items = [],
+  images = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.galleryHeadline !== false;
+const showSubheadline = visibility?.gallerySubheadline !== false && !!subheadline;
+const showItems = visibility?.galleryItems !== false;
+
+const all = items.length > 0
+  ? items
+  : (images.length > 0
+      ? images.map((img, i) => ({ image: img, title: `Cut #${i + 1}`, description: '', tags: [] }))
+      : photos.slice(0, 6).map((p, i) => ({ image: p, title: `Cut #${i + 1}`, description: '', tags: [] })));
+
+// Pair them up: each entry uses index i for "before" and i+1 for "after"
+const pairs: Array<{ title: string; before: string; after: string; description: string }> = [];
+for (let i = 0; i < all.length; i += 2) {
+  const before = all[i]?.image || '';
+  const after = all[i + 1]?.image || all[i]?.image || '';
+  if (!before) continue;
+  pairs.push({
+    title: all[i].title || `Transformation ${pairs.length + 1}`,
+    description: all[i].description || '',
+    before,
+    after,
+  });
+}
+---
+
+<section id="gallery" class="relative w-full bg-[var(--text)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="text-center mb-16">
+      <div class="barber-fade-up inline-flex items-center gap-4 mb-6">
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--accent)]">— The proof —</span>
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+      </div>
+      {showHeadline && (
+        <h2 class="barber-fade-up font-bold leading-[0.95] tracking-tight text-[var(--bg)] mb-5" style="font-size: clamp(2.75rem, 6vw, 5rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="barber-fade-up text-[var(--accent)] italic" style="font-size: 1.15rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showItems && pairs.length > 0 && (
+      <div class="space-y-12 lg:space-y-16">
+        {pairs.slice(0, 4).map((pair, i) => (
+          <div class="barber-fade-up max-w-5xl mx-auto" style={`animation-delay: ${i * 0.15 + 0.3}s;`}>
+            <div class="text-center mb-6">
+              <p class="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--accent)]">№ {(i + 1).toString().padStart(2, '0')}</p>
+              <h3 class="text-2xl font-bold text-[var(--bg)] mt-2 italic" style="font-size: 1.65rem;">{pair.title}</h3>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 lg:gap-6">
+              {/* BEFORE */}
+              <div class="relative group">
+                <div class="absolute -top-3 left-4 bg-[var(--text)] text-[var(--accent)] px-3 py-1 z-10 border border-[var(--accent)]/40">
+                  <span class="text-[10px] font-bold uppercase tracking-[0.45em]">— Before —</span>
+                </div>
+                <div class="relative aspect-[3/4] overflow-hidden bg-[var(--text)] border-2 border-[var(--primary)]/40">
+                  <img
+                    src={pair.before}
+                    alt="Before"
+                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    style="filter: sepia(0.5) contrast(0.95) brightness(0.85) grayscale(0.3);"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+
+              {/* Arrow center */}
+              <div class="hidden absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 bg-[var(--accent)] text-[var(--text)] rounded-full w-12 h-12 items-center justify-center text-xl shadow-lg">
+                ✂
+              </div>
+
+              {/* AFTER */}
+              <div class="relative group">
+                <div class="absolute -top-3 left-4 bg-[var(--accent)] text-[var(--text)] px-3 py-1 z-10">
+                  <span class="text-[10px] font-bold uppercase tracking-[0.45em]">— After —</span>
+                </div>
+                <div class="relative aspect-[3/4] overflow-hidden bg-[var(--text)] border-2 border-[var(--accent)]">
+                  <img
+                    src={pair.after}
+                    alt="After"
+                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    style="filter: sepia(0.25) contrast(1.1) brightness(1);"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {pair.description && (
+              <p class="text-center text-[var(--bg)]/70 italic mt-6 max-w-2xl mx-auto" style="font-size: 1rem;">"{pair.description}"</p>
+            )}
+          </div>
+        ))}
+      </div>
+    )}
+
+    {pairs.length === 0 && (
+      <div class="text-center py-16">
+        <span class="text-6xl text-[var(--accent)]/30">✂</span>
+        <p class="mt-4 text-[var(--bg)]/60 italic">Transformations being recorded.</p>
+      </div>
+    )}
+
+    <p class="text-center text-[var(--accent)]/50 italic mt-16">— Every man leaves looking like the best version of himself —</p>
+  </div>
+</section>
+
+<style>
+  .barber-fade-up { opacity: 0; transform: translateY(20px); animation: barberFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .barber-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

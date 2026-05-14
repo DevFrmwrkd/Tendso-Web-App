@@ -1,0 +1,190 @@
+---
+/**
+ * GalleryL - Automobile Shop / Case File Showcase
+ * Each item presented as a "case file" — workshop folder treatment with
+ * technical stamps, classified bars, before/after toggle on hover.
+ * Vibe: archived service records.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  items: Array<{
+    title: string;
+    description: string;
+    image?: string;
+    tags?: string[];
+  }>;
+  images?: string[];
+  ctaText?: string;
+  ctaLink?: string;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'Case Files',
+  subheadline = 'A few of the jobs that came through our bay',
+  items = [],
+  images = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.galleryHeadline !== false;
+const showSubheadline = visibility?.gallerySubheadline !== false && !!subheadline;
+const showItems = visibility?.galleryItems !== false;
+
+const galleryItems = items.length > 0
+  ? items
+  : (images.length > 0
+      ? images.map((img, i) => ({ image: img, title: `Job #${(i + 1).toString().padStart(4, '0')}`, description: '', tags: [] }))
+      : photos.slice(0, 6).map((p, i) => ({ image: p, title: `Job #${(i + 1).toString().padStart(4, '0')}`, description: '', tags: [] })));
+
+const stamps = ['COMPLETED', 'CERTIFIED', 'INSPECTED', 'APPROVED', 'CLEARED', 'SIGNED OFF'];
+---
+
+<section
+  id="gallery"
+  class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  {/* Blueprint grid */}
+  <div
+    class="absolute inset-0 opacity-[0.04] pointer-events-none"
+    style="background-image: linear-gradient(rgba(74,107,138,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(74,107,138,0.5) 1px, transparent 1px); background-size: 50px 50px;"
+  ></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    {/* Header */}
+    <div class="text-center mb-16 md:mb-20">
+      <div class="auto-fade-up inline-flex items-center gap-3 mb-6">
+        <span class="h-px w-10 bg-[var(--primary)]"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--primary)]">// ARCHIVE.PORTFOLIO</span>
+        <span class="h-px w-10 bg-[var(--primary)]"></span>
+      </div>
+
+      {showHeadline && (
+        <h2
+          class="auto-fade-up font-black leading-[0.95] tracking-tight text-[var(--text)] uppercase mb-5"
+          style="font-size: clamp(2.5rem, 5.5vw, 4.5rem); animation-delay: 0.1s;"
+        >
+          {headline}
+        </h2>
+      )}
+
+      {showSubheadline && (
+        <p
+          class="auto-fade-up max-w-2xl mx-auto text-[var(--text-muted)] leading-relaxed"
+          style="animation-delay: 0.2s;"
+        >
+          {subheadline}
+        </p>
+      )}
+    </div>
+
+    {/* Case file grid */}
+    {showItems && galleryItems.length > 0 && (
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {galleryItems.slice(0, 9).map((item: any, index: number) => {
+          const stamp = stamps[index % stamps.length];
+          return (
+            <article
+              class="case-file group relative bg-[var(--surface)] border border-[var(--accent)]/30 overflow-hidden transition-all duration-300 hover:border-[var(--primary)]/60"
+              style={`animation-delay: ${index * 0.08 + 0.3}s;`}
+            >
+              {/* File header strip */}
+              <div class="flex items-center justify-between bg-[var(--surface)] border-b border-[var(--accent)]/30 px-4 py-2.5">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-[var(--primary)]"></span>
+                  <span class="text-[10px] font-mono uppercase tracking-[0.25em] text-[var(--text-muted)]">
+                    FILE / {(index + 1).toString().padStart(4, '0')}
+                  </span>
+                </div>
+                <span class="text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--accent)]">
+                  {new Date().getFullYear()}.{(index + 1).toString().padStart(2, '0')}
+                </span>
+              </div>
+
+              {/* Image area */}
+              <div class="relative aspect-[4/3] overflow-hidden bg-[var(--bg)]">
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    style="filter: contrast(1.1) saturate(0.85);"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-6xl">⚙</div>
+                )}
+                <div class="absolute inset-0 bg-gradient-to-t from-[var(--surface)]/80 via-transparent to-transparent"></div>
+
+                {/* Stamped seal — appears on hover */}
+                <div class="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-all duration-500 group-hover:rotate-[-8deg]">
+                  <div class="border-2 border-[var(--primary)] text-[var(--primary)] px-3 py-1 text-[10px] font-black uppercase tracking-[0.3em] bg-[var(--surface)]/70">
+                    ✓ {stamp}
+                  </div>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div class="p-5">
+                <h3 class="text-base font-black uppercase tracking-tight text-[var(--text)] mb-2 leading-tight">
+                  {item.title}
+                </h3>
+                {item.description && (
+                  <p class="text-xs text-[var(--text-muted)] leading-relaxed line-clamp-2">{item.description}</p>
+                )}
+
+                {/* Tags as job specs */}
+                {item.tags && item.tags.length > 0 && (
+                  <div class="flex flex-wrap gap-1.5 mt-4 pt-4 border-t border-[var(--accent)]/20">
+                    {item.tags.slice(0, 3).map((tag: string) => (
+                      <span class="inline-flex items-center px-2 py-0.5 bg-[var(--accent)]/10 border border-[var(--accent)]/30 text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--text-muted)]">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom action strip */}
+              <div class="flex items-center justify-between px-4 py-2 border-t border-[var(--accent)]/20 bg-[var(--surface)]">
+                <span class="text-[9px] font-mono uppercase tracking-[0.3em] text-[var(--accent)]">// STATUS</span>
+                <span class="text-[9px] font-mono uppercase tracking-[0.3em] text-[var(--primary)]">CLOSED ✓</span>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )}
+
+    {galleryItems.length === 0 && (
+      <div class="text-center py-20 border border-dashed border-[var(--accent)]/30">
+        <span class="text-6xl text-[var(--accent)]/40">⚙</span>
+        <p class="mt-4 text-[var(--text-muted)]">Archive populating. Check back soon.</p>
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .auto-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: autoFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  .case-file {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: autoFadeUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auto-fade-up, .case-file { animation-duration: 0.01ms; opacity: 1; transform: none; }
+  }
+</style>

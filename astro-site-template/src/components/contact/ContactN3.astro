@@ -1,0 +1,115 @@
+---
+/**
+ * ContactN3 - Restaurant / Tonight's Booking
+ * Tonight-focused booking with party-size picker and time-slot grid.
+ * "When are you joining us tonight?" feel.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+const year = new Date().getFullYear();
+
+const tonightSlots = ['5:30', '6:00', '6:30', '7:00', '7:30', '8:00', '8:30', '9:00'];
+const partySizes = [2, 3, 4, 5, 6, 8];
+
+const tonight = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+---
+
+<section id="contact" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-5xl px-6 lg:px-12">
+
+    <div class="text-center mb-12">
+      <p class="resto-fade-up text-[10px] uppercase tracking-[0.55em] text-[var(--accent)] italic mb-5">— Tonight · {tonight} —</p>
+      <h2 class="resto-fade-up font-bold italic leading-[1.05] text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.5rem, 6vw, 4.5rem); animation-delay: 0.1s;">When can we expect you?</h2>
+      <p class="resto-fade-up text-[var(--text-muted)] italic leading-[1.8] max-w-xl mx-auto" style="font-size: 1.1rem; animation-delay: 0.2s;">Pick a time, tell us your party, we'll have the table ready.</p>
+    </div>
+
+    {/* Booking widget */}
+    <div class="resto-fade-up bg-[var(--surface)] border-2 border-[var(--text)]/15 p-8 lg:p-10 mb-10" style="animation-delay: 0.3s; box-shadow: 0 40px 80px -20px rgba(42,31,28,0.2);">
+
+      {/* Party size */}
+      <div class="mb-8">
+        <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-4">— Party size —</p>
+        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+          {partySizes.map((n, i) => (
+            <button class={`py-4 border-2 transition-all hover:-translate-y-0.5 ${i === 1 ? 'bg-[var(--primary)] text-[var(--bg)] border-[var(--primary)]' : 'border-[var(--text)]/20 hover:border-[var(--primary)] text-[var(--text)]'}`} type="button">
+              <p class="text-2xl font-bold italic" style="font-family: var(--heading-font);">{n}</p>
+              <p class="text-[9px] uppercase tracking-[0.3em] italic">guests</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Time slots */}
+      <div class="mb-8 pt-6 border-t border-dashed border-[var(--text)]/20">
+        <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-4">— Time tonight —</p>
+        <div class="grid grid-cols-4 sm:grid-cols-8 gap-2">
+          {tonightSlots.map((s, i) => (
+            <button class={`py-3 border transition-all hover:-translate-y-0.5 ${i === 2 ? 'bg-[var(--primary)] text-[var(--bg)] border-[var(--primary)]' : 'border-[var(--text)]/20 hover:border-[var(--primary)] text-[var(--text)]'}`} type="button">
+              <p class="text-base font-bold italic" style="font-family: var(--heading-font);">{s}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-6 border-t border-dashed border-[var(--text)]/20">
+        <a href={`tel:${phone}`} class="block bg-[var(--primary)] text-[var(--bg)] py-4 text-center text-[11px] font-bold uppercase tracking-[0.4em] hover:-translate-y-0.5 transition-all">
+          ☎ Call {phone}
+        </a>
+        {email && (
+          <a href={`mailto:${email}?subject=Reservation%20tonight`} class="block border-2 border-[var(--text)]/30 hover:border-[var(--text)] text-[var(--text)] py-4 text-center text-[11px] font-bold uppercase tracking-[0.4em] transition-all">
+            ✉ Email reservation
+          </a>
+        )}
+      </div>
+
+      <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic text-center mt-5">— Walk-ins also welcome · ask for the next table —</p>
+    </div>
+
+    {/* Footer info */}
+    {showInfo && address && (
+      <div class="resto-fade-up text-center" style="animation-delay: 0.5s">
+        <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic mb-2">— Find us at —</p>
+        <p class="text-lg italic text-[var(--text)]">{address}</p>
+      </div>
+    )}
+
+    {showSocial && (
+      <div class="resto-fade-up flex justify-center gap-2 mt-8" style="animation-delay: 0.6s">
+        {socialLinks.map((l) => (
+          <a href={l.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full border border-[var(--primary)]/40 hover:border-[var(--primary)] flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-colors" aria-label={l.platform}>
+            <span class="text-xs italic">{l.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <p class="text-center text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic mt-10">— © {year} · {businessName} —</p>
+  </div>
+</section>
+
+<style>
+  .resto-fade-up { opacity: 0; transform: translateY(20px); animation: restoFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes restoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .resto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

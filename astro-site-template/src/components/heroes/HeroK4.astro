@@ -1,0 +1,205 @@
+---
+/**
+ * HeroK4 - Barber Shop / The Open Chair
+ * Centered hero with portrait-orientation chair photo and spotlight,
+ * "Your seat is reserved" warmth. Text wraps elegantly around the focal image.
+ * Distinct from K1/K2/K3: single centered image as focal point, spotlight effect.
+ */
+interface Props {
+  businessName: string;
+  headline: string;
+  description: string;
+  badgeText?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryLink?: string;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  headline,
+  description,
+  badgeText = 'Your chair awaits',
+  ctaLabel = 'Reserve your chair',
+  ctaLink = '#contact',
+  ctaSecondaryLabel = 'View services',
+  ctaSecondaryLink = '#services',
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+
+const showHeadline = visibility?.heroHeadline !== false;
+const showTagline = visibility?.heroTagline !== false && !!badgeText;
+const showDescription = visibility?.heroDescription !== false;
+const showButton = visibility?.heroButton !== false;
+const showImage = visibility?.heroImage !== false;
+---
+
+<section
+  id="hero"
+  class="relative w-full min-h-screen overflow-hidden bg-[var(--text)] flex items-center justify-center"
+  style="font-family: var(--body-font);"
+>
+  {/* Spotlight cone from top — radial gradient */}
+  <div
+    class="absolute inset-0 z-0 pointer-events-none"
+    style="background: radial-gradient(ellipse 60% 80% at center top, rgba(201,169,97,0.18), transparent 70%);"
+  ></div>
+
+  {/* Wood-grain floor texture */}
+  <div
+    class="absolute bottom-0 inset-x-0 h-1/3 opacity-[0.08] pointer-events-none"
+    style="background-image: repeating-linear-gradient(0deg, transparent 0 3px, var(--accent) 3px 4px);"
+  ></div>
+
+  <div class="relative z-10 w-full max-w-6xl mx-auto px-6 lg:px-12 py-20 lg:py-28">
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-8 lg:gap-16 items-center">
+
+      {/* LEFT — Heritage credit + tagline */}
+      <div class="text-center lg:text-right order-2 lg:order-1">
+        {showTagline && (
+          <div class="barber-fade-up mb-6">
+            <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--accent)]">
+              ✦ {badgeText} ✦
+            </span>
+          </div>
+        )}
+
+        {showHeadline && (
+          <h1
+            class="barber-fade-up font-bold leading-[0.95] tracking-tight text-[var(--bg)] mb-6"
+            style="font-size: clamp(2.5rem, 6vw, 5rem); animation-delay: 0.1s;"
+          >
+            {headline}
+          </h1>
+        )}
+
+        <div class="barber-fade-up flex items-center justify-center lg:justify-end gap-3 mb-6" style="animation-delay: 0.2s">
+          <span class="h-px w-12 bg-[var(--accent)]/50"></span>
+          <span class="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)]/70 italic">— {businessName}</span>
+        </div>
+
+        {showDescription && (
+          <p
+            class="barber-fade-up text-[var(--bg)]/80 leading-[1.75] italic max-w-md lg:ml-auto"
+            style="font-size: clamp(0.95rem, 1.2vw, 1.1rem); animation-delay: 0.3s;"
+          >
+            {description}
+          </p>
+        )}
+      </div>
+
+      {/* CENTER — Chair image with spotlight */}
+      {showImage && (
+        <div class="order-1 lg:order-2 relative flex justify-center">
+          <div class="barber-chair-reveal relative">
+            {/* Spotlight halo behind image */}
+            <div class="absolute inset-0 rounded-full bg-gradient-to-b from-[var(--accent)]/30 via-[var(--accent)]/10 to-transparent blur-3xl scale-150 pointer-events-none"></div>
+
+            {/* Chair image in tall portrait frame */}
+            <div class="relative w-56 h-80 sm:w-64 sm:h-96 lg:w-72 lg:h-[480px] overflow-hidden bg-[var(--text)] border-2 border-[var(--accent)]/40 shadow-[0_40px_80px_-20px_rgba(201,169,97,0.4)]">
+              {mainPhoto ? (
+                <img
+                  src={mainPhoto}
+                  alt={businessName}
+                  class="absolute inset-0 w-full h-full object-cover"
+                  style="filter: sepia(0.4) contrast(1.1) brightness(0.85);"
+                />
+              ) : (
+                <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)]">
+                  <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M6 4h12v8H6z"/>
+                    <path d="M8 12v8M16 12v8"/>
+                    <path d="M4 8h2M18 8h2"/>
+                  </svg>
+                </div>
+              )}
+              <div class="absolute inset-0 bg-gradient-to-t from-[var(--text)]/70 via-transparent to-transparent"></div>
+
+              {/* Brass corner accents */}
+              <div class="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[var(--accent)]"></div>
+              <div class="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[var(--accent)]"></div>
+              <div class="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[var(--accent)]"></div>
+              <div class="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[var(--accent)]"></div>
+            </div>
+
+            {/* "RESERVED" tag hanging on chair */}
+            <div class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-[var(--accent)] text-[var(--text)] px-4 py-1.5 shadow-lg rotate-[-3deg] barber-tag-swing">
+              <p class="text-[9px] font-bold uppercase tracking-[0.35em]">— RESERVED —</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RIGHT — CTAs */}
+      <div class="text-center lg:text-left order-3">
+        {showButton && (
+          <div class="barber-fade-up space-y-3" style="animation-delay: 0.4s">
+            <a
+              href={ctaLink}
+              class="group block w-full max-w-xs mx-auto lg:mx-0 bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text)] px-8 py-5 text-xs font-bold uppercase tracking-[0.35em] transition-all hover:-translate-y-1 hover:shadow-[0_15px_30px_-10px_rgba(201,169,97,0.5)] text-center"
+            >
+              <span class="block text-2xl mb-2">✂</span>
+              {ctaLabel}
+            </a>
+            <a
+              href={ctaSecondaryLink}
+              class="block w-full max-w-xs mx-auto lg:mx-0 border border-[var(--accent)]/30 hover:border-[var(--accent)] text-[var(--bg)] hover:text-[var(--accent)] px-8 py-4 text-xs font-bold uppercase tracking-[0.35em] transition-colors text-center"
+            >
+              {ctaSecondaryLabel} →
+            </a>
+
+            <div class="pt-6 border-t border-[var(--accent)]/15">
+              <p class="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)]/60 italic">
+                Walk-ins welcome
+              </p>
+              <p class="text-[10px] uppercase tracking-[0.3em] text-[var(--accent)]/40 italic mt-1">
+                or by appointment
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .barber-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  .barber-chair-reveal {
+    opacity: 0;
+    transform: scale(0.92);
+    animation: barberChairReveal 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+  }
+  @keyframes barberChairReveal { to { opacity: 1; transform: scale(1); } }
+
+  /* Reserved tag swings gently */
+  .barber-tag-swing {
+    animation: barberTagSwing 4s ease-in-out infinite;
+    transform-origin: top center;
+  }
+  @keyframes barberTagSwing {
+    0%, 100% { transform: translateX(-50%) rotate(-3deg); }
+    50% { transform: translateX(-50%) rotate(3deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .barber-fade-up, .barber-chair-reveal, .barber-tag-swing {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    .barber-tag-swing { transform: translateX(-50%) rotate(-3deg); }
+  }
+</style>

@@ -1,0 +1,179 @@
+---
+/**
+ * ContactO5 - Clinic / Telehealth
+ * Telehealth / video-visit focused. Big "start a video visit" CTA,
+ * device requirements, what you can do via video.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+const year = new Date().getFullYear();
+
+const useCases = [
+  { name: 'Follow-up visits', body: 'Check-ins after a procedure or new diagnosis.', icon: '◐' },
+  { name: 'Medication management', body: 'Refills, dosage adjustments, side-effect review.', icon: '💊' },
+  { name: 'Minor concerns', body: 'Rashes, mild infections, lab review.', icon: '◇' },
+  { name: 'Mental health', body: 'Therapy and psychiatric care from home.', icon: '◊' },
+];
+---
+
+<section id="contact" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="absolute top-0 -right-32 w-[500px] h-[500px] rounded-full opacity-[0.08] blur-[120px]" style="background: var(--accent);"></div>
+
+  <div class="relative z-10 mx-auto max-w-6xl px-6 lg:px-12">
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-10 items-center mb-12">
+      {/* LEFT — Pitch + CTA */}
+      <div>
+        <div class="clinic-fade-up inline-flex items-center gap-2 mb-6 bg-[var(--accent)]/15 text-[var(--accent)] px-4 py-2 rounded-full">
+          <span class="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse"></span>
+          <span class="text-[11px] font-semibold tracking-wide">Telehealth · live now</span>
+        </div>
+
+        <h2 class="clinic-fade-up font-bold leading-[1.05] tracking-tight text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.25rem, 5vw, 4rem); animation-delay: 0.1s;">See your provider from home</h2>
+        <p class="clinic-fade-up text-[var(--text-muted)] leading-[1.8] mb-8" style="font-size: 1.05rem; animation-delay: 0.2s;">For check-ins, follow-ups, and quick concerns. Available on your phone, tablet, or browser.</p>
+
+        <div class="clinic-fade-up flex flex-col sm:flex-row gap-3 mb-8" style="animation-delay: 0.3s">
+          <a href="#start-visit" class="group inline-flex items-center justify-center gap-2 bg-[var(--primary)] text-[var(--bg)] px-7 py-4 text-sm font-semibold rounded-lg transition-all hover:-translate-y-0.5 hover:shadow-lg">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+            Start video visit
+          </a>
+          <a href={`tel:${phone}`} class="inline-flex items-center justify-center gap-2 border-2 border-[var(--text)]/15 hover:border-[var(--primary)] text-[var(--text)] hover:text-[var(--primary)] px-7 py-4 text-sm font-semibold rounded-lg transition-all">
+            Or call · {phone}
+          </a>
+        </div>
+
+        {/* Device requirements */}
+        <div class="clinic-fade-up bg-[var(--surface)] rounded-2xl p-5 border border-[var(--text)]/10" style="animation-delay: 0.4s">
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent)] mb-3">— What you need —</p>
+          <div class="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Camera', icon: '📷' },
+              { label: 'Microphone', icon: '🎤' },
+              { label: 'Internet', icon: '🌐' },
+            ].map((d) => (
+              <div class="text-center">
+                <div class="text-xl mb-1">{d.icon}</div>
+                <p class="text-xs font-medium text-[var(--text)]">{d.label}</p>
+              </div>
+            ))}
+          </div>
+          <p class="text-[10px] text-[var(--text-muted)] text-center mt-3 pt-3 border-t border-[var(--text)]/10">Works on iOS, Android, and modern browsers. HIPAA-compliant connection.</p>
+        </div>
+      </div>
+
+      {/* RIGHT — Video-call mockup */}
+      <div class="clinic-fade-up relative" style="animation-delay: 0.35s">
+        <div class="relative aspect-[4/5] bg-[var(--text)] rounded-3xl overflow-hidden shadow-2xl">
+          {/* Provider video */}
+          <div class="absolute inset-0 bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] opacity-90 flex items-center justify-center">
+            <span class="text-[var(--bg)] text-9xl">⚕</span>
+          </div>
+
+          {/* Top bar */}
+          <div class="absolute top-4 left-4 right-4 flex items-center justify-between">
+            <div class="flex items-center gap-2 bg-[var(--bg)]/20 backdrop-blur-sm rounded-full px-3 py-1.5">
+              <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span>
+              <span class="text-[10px] font-bold text-[var(--bg)] uppercase tracking-wider">Live · 04:23</span>
+            </div>
+            <div class="bg-[var(--bg)]/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-[10px] font-medium text-[var(--bg)]">
+              Encrypted
+            </div>
+          </div>
+
+          {/* Patient PIP */}
+          <div class="absolute top-20 right-4 w-24 h-32 bg-[var(--text)]/60 backdrop-blur-sm rounded-2xl border-2 border-[var(--bg)]/20 flex items-center justify-center">
+            <span class="text-3xl">🧑</span>
+          </div>
+
+          {/* Provider name */}
+          <div class="absolute bottom-20 left-4 right-4">
+            <p class="text-[var(--bg)] text-lg font-bold mb-0.5">Dr. on call</p>
+            <p class="text-[var(--bg)]/80 text-xs">{businessName}</p>
+          </div>
+
+          {/* Call controls */}
+          <div class="absolute bottom-4 left-4 right-4 flex items-center justify-center gap-3">
+            {['🎤', '📹', '💬'].map((icon) => (
+              <button class="w-12 h-12 rounded-full bg-[var(--bg)]/20 backdrop-blur-sm flex items-center justify-center text-lg hover:bg-[var(--bg)]/30 transition-colors" type="button">{icon}</button>
+            ))}
+            <button class="w-12 h-12 rounded-full bg-red-500 flex items-center justify-center text-lg text-white" type="button">✕</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Use cases */}
+    <div class="bg-[var(--surface)] rounded-3xl p-7 border border-[var(--text)]/10 mb-8">
+      <p class="text-center text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)] mb-5">— When telehealth makes sense —</p>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {useCases.map((u, i) => (
+          <div class="clinic-fade-up text-center bg-[var(--bg)] rounded-2xl p-4 border border-[var(--text)]/5" style={`animation-delay: ${0.6 + i * 0.06}s`}>
+            <div class="text-2xl mb-2 text-[var(--accent)]">{u.icon}</div>
+            <p class="text-sm font-bold text-[var(--text)] mb-1">{u.name}</p>
+            <p class="text-[10px] text-[var(--text-muted)] leading-tight">{u.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Fallback contact */}
+    {showInfo && (
+      <div class="clinic-fade-up grid grid-cols-1 md:grid-cols-3 gap-3 mb-6" style="animation-delay: 0.85s">
+        {email && (
+          <a href={`mailto:${email}`} class="bg-[var(--bg)] border border-[var(--text)]/10 hover:border-[var(--primary)] rounded-xl p-4 text-center transition-colors">
+            <p class="text-[10px] uppercase tracking-wider text-[var(--accent)] font-bold mb-1">Email</p>
+            <p class="text-sm font-semibold text-[var(--text)] break-all">{email}</p>
+          </a>
+        )}
+        <a href={`tel:${phone}`} class="bg-[var(--bg)] border border-[var(--text)]/10 hover:border-[var(--primary)] rounded-xl p-4 text-center transition-colors">
+          <p class="text-[10px] uppercase tracking-wider text-[var(--accent)] font-bold mb-1">Call</p>
+          <p class="text-sm font-semibold text-[var(--text)]">{phone}</p>
+        </a>
+        {address && (
+          <div class="bg-[var(--bg)] border border-[var(--text)]/10 rounded-xl p-4 text-center">
+            <p class="text-[10px] uppercase tracking-wider text-[var(--accent)] font-bold mb-1">In-person</p>
+            <p class="text-sm font-semibold text-[var(--text)]">{address}</p>
+          </div>
+        )}
+      </div>
+    )}
+
+    {showSocial && (
+      <div class="clinic-fade-up flex justify-center gap-2 mb-6" style="animation-delay: 0.95s">
+        {socialLinks.map((l) => (
+          <a href={l.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full border border-[var(--text)]/15 hover:border-[var(--primary)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors" aria-label={l.platform}>
+            <span class="text-xs font-semibold">{l.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <p class="text-center text-xs text-[var(--text-muted)]">© {year} · {businessName} · Telehealth visits HIPAA-encrypted end-to-end</p>
+  </div>
+</section>
+
+<style>
+  .clinic-fade-up { opacity: 0; transform: translateY(20px); animation: clinicFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes clinicFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .clinic-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

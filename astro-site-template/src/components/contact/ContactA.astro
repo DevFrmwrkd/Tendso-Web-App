@@ -82,8 +82,9 @@ const socialIcons: Record<string, string> = {
       <p
         class="reveal-delay-2 reveal mb-16 max-w-2xl leading-[1.6] text-[var(--text-muted)] font-medium"
         style="font-size: var(--fs-lg);"
+        data-field="footer.brand_blurb"
+        set:html={description}
       >
-        {description}
       </p>
     )}
 
@@ -102,7 +103,12 @@ const socialIcons: Record<string, string> = {
             </div>
             <div>
               <p class="mb-2 text-[var(--fs-xs)] font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-60">HQ</p>
-              <p class="text-[var(--fs-base)] leading-relaxed text-[var(--text)] font-bold">{address}</p>
+              <p
+                class="text-[var(--fs-base)] leading-relaxed text-[var(--text)] font-bold"
+                data-field="contact.address"
+                set:html={address}
+              >
+              </p>
             </div>
           </div>
         )}
@@ -118,7 +124,7 @@ const socialIcons: Record<string, string> = {
           <div>
             <p class="mb-2 text-[var(--fs-xs)] font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-60">Message</p>
             <a href={`mailto:${email}`} class="text-[var(--fs-base)] font-bold text-[var(--text)] transition-all hover:text-[var(--primary)] border-b-2 border-transparent hover:border-[var(--primary)]">
-              {email}
+              <span data-field="contact.email" set:html={email}></span>
             </a>
           </div>
         </div>
@@ -133,7 +139,7 @@ const socialIcons: Record<string, string> = {
           <div>
             <p class="mb-2 text-[var(--fs-xs)] font-bold uppercase tracking-widest text-[var(--text-muted)] opacity-60">Direct</p>
             <a href={`tel:${phone}`} class="text-[var(--fs-base)] font-bold text-[var(--text)] transition-all hover:text-[var(--primary)] border-b-2 border-transparent hover:border-[var(--primary)]">
-              {phone}
+              <span data-field="contact.phone" set:html={phone}></span>
             </a>
           </div>
         </div>

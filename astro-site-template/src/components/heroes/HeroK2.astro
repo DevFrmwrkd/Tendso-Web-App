@@ -1,0 +1,201 @@
+---
+/**
+ * HeroK2 - Barber Shop / Storefront Window
+ * Full-bleed shop-interior image with window-pane grid overlay, "OPEN" hanging sign,
+ * text overlaid on lower portion. Like looking into the shop from the street.
+ * Distinct from K1: full-bleed (not split), centered text, atmospheric glass-window vibe.
+ */
+interface Props {
+  businessName: string;
+  headline: string;
+  description: string;
+  badgeText?: string;
+  testimonial?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryLink?: string;
+  photos: string[];
+  services?: Array<{ name: string; description: string }>;
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  headline,
+  description,
+  badgeText = 'Walk-ins welcome',
+  ctaLabel = 'Book a cut',
+  ctaLink = '#contact',
+  ctaSecondaryLabel = 'View services',
+  ctaSecondaryLink = '#services',
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+
+const showHeadline = visibility?.heroHeadline !== false;
+const showTagline = visibility?.heroTagline !== false && !!badgeText;
+const showDescription = visibility?.heroDescription !== false;
+const showButton = visibility?.heroButton !== false;
+const showImage = visibility?.heroImage !== false;
+---
+
+<section
+  id="hero"
+  class="relative w-full min-h-screen overflow-hidden bg-[var(--text)]"
+  style="font-family: var(--body-font);"
+>
+  {/* Full-bleed shop image with sepia */}
+  {showImage && mainPhoto && (
+    <div class="absolute inset-0 z-0">
+      <img
+        src={mainPhoto}
+        alt={businessName}
+        class="w-full h-full object-cover"
+        style="filter: sepia(0.5) contrast(1.1) brightness(0.7) saturate(0.85);"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-[var(--text)] via-[var(--text)]/60 to-[var(--text)]/30"></div>
+    </div>
+  )}
+
+  {/* Fallback dark texture if no photo */}
+  {(!showImage || !mainPhoto) && (
+    <div class="absolute inset-0 bg-gradient-to-br from-[var(--text)] via-[var(--secondary)] to-[var(--text)]"></div>
+  )}
+
+  {/* Window-pane grid overlay — looks like 3x2 shop window dividers */}
+  <div class="absolute inset-0 z-10 pointer-events-none">
+    {/* Horizontal divider */}
+    <div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-px bg-[var(--accent)]/30"></div>
+    {/* Vertical dividers */}
+    <div class="absolute top-0 bottom-0 left-1/3 w-px bg-[var(--accent)]/30"></div>
+    <div class="absolute top-0 bottom-0 right-1/3 w-px bg-[var(--accent)]/30"></div>
+    {/* Outer window frame */}
+    <div class="absolute inset-6 sm:inset-10 border-2 border-[var(--accent)]/40"></div>
+    <div class="absolute inset-8 sm:inset-12 border border-[var(--accent)]/20"></div>
+  </div>
+
+  {/* Hanging "OPEN" sign — top center */}
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center barber-sign-swing">
+    {/* Hanging chain */}
+    <div class="w-px h-12 sm:h-16 bg-[var(--accent)]/60"></div>
+    <div class="bg-[var(--primary)] border-2 border-[var(--accent)] px-6 py-3 shadow-[0_10px_20px_-5px_rgba(201,169,97,0.4)]">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-[var(--accent)] barber-open-pulse"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.5em] text-[var(--bg)]">— OPEN —</span>
+        <span class="w-2 h-2 rounded-full bg-[var(--accent)] barber-open-pulse" style="animation-delay: 0.7s"></span>
+      </div>
+    </div>
+  </div>
+
+  {/* Content — centered in bottom half */}
+  <div class="relative z-20 min-h-screen flex flex-col justify-end items-center text-center pb-24 sm:pb-32 lg:pb-40 px-6 max-w-4xl mx-auto">
+
+    {showTagline && (
+      <div class="barber-fade-up mb-6 inline-flex items-center gap-4">
+        <span class="h-px w-12 bg-[var(--accent)]"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--accent)]">
+          {badgeText}
+        </span>
+        <span class="h-px w-12 bg-[var(--accent)]"></span>
+      </div>
+    )}
+
+    {showHeadline && (
+      <h1
+        class="barber-fade-up font-bold leading-[0.95] tracking-tight text-[var(--bg)] mb-6"
+        style="font-size: clamp(3rem, 8vw, 6rem); animation-delay: 0.1s; text-shadow: 0 4px 30px rgba(0,0,0,0.5);"
+      >
+        {headline}
+      </h1>
+    )}
+
+    {/* Business name reflection in window */}
+    <div class="barber-fade-up mb-8 flex items-center gap-3" style="animation-delay: 0.2s">
+      <span class="text-[var(--accent)]">✦</span>
+      <span class="text-xs sm:text-sm font-medium uppercase tracking-[0.45em] text-[var(--accent)] italic">
+        {businessName}
+      </span>
+      <span class="text-[var(--accent)]">✦</span>
+    </div>
+
+    {showDescription && (
+      <p
+        class="barber-fade-up max-w-xl text-[var(--bg)]/85 leading-[1.7] mb-10 italic"
+        style="font-size: clamp(1rem, 1.3vw, 1.15rem); animation-delay: 0.3s; text-shadow: 0 2px 20px rgba(0,0,0,0.5);"
+      >
+        {description}
+      </p>
+    )}
+
+    {showButton && (
+      <div class="barber-fade-up flex flex-col sm:flex-row gap-3" style="animation-delay: 0.4s">
+        <a
+          href={ctaLink}
+          class="group inline-flex items-center justify-center gap-3 bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text)] px-10 py-4 text-xs font-bold uppercase tracking-[0.35em] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-12px_rgba(201,169,97,0.5)]"
+        >
+          <span>✂</span> {ctaLabel}
+        </a>
+        <a
+          href={ctaSecondaryLink}
+          class="inline-flex items-center justify-center gap-2 border border-[var(--accent)]/40 hover:border-[var(--accent)] text-[var(--bg)] hover:bg-[var(--accent)]/10 px-10 py-4 text-xs font-bold uppercase tracking-[0.35em] transition-colors"
+        >
+          {ctaSecondaryLabel} →
+        </a>
+      </div>
+    )}
+
+    {/* Scroll indicator */}
+    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 barber-scroll-bounce">
+      <span class="text-[9px] font-bold uppercase tracking-[0.45em] text-[var(--accent)]/60">Step inside</span>
+      <span class="text-[var(--accent)] text-xl">↓</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .barber-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  /* Sign gently swings */
+  .barber-sign-swing {
+    animation: barberSignSwing 4s ease-in-out infinite;
+    transform-origin: top center;
+  }
+  @keyframes barberSignSwing {
+    0%, 100% { transform: translateX(-50%) rotate(-2deg); }
+    50% { transform: translateX(-50%) rotate(2deg); }
+  }
+
+  .barber-open-pulse {
+    animation: barberOpenPulse 2s ease-in-out infinite;
+  }
+  @keyframes barberOpenPulse {
+    0%, 100% { opacity: 0.4; box-shadow: 0 0 0 rgba(201,169,97,0); }
+    50% { opacity: 1; box-shadow: 0 0 12px rgba(201,169,97,0.8); }
+  }
+
+  .barber-scroll-bounce {
+    animation: barberScrollBounce 2.5s ease-in-out infinite;
+  }
+  @keyframes barberScrollBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.6; }
+    50% { transform: translateX(-50%) translateY(6px); opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .barber-fade-up, .barber-sign-swing, .barber-open-pulse, .barber-scroll-bounce {
+      animation: none;
+      opacity: 1;
+      transform: none;
+    }
+    .barber-sign-swing { transform: translateX(-50%); }
+    .barber-scroll-bounce { transform: translateX(-50%); }
+  }
+</style>

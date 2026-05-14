@@ -1,0 +1,126 @@
+---
+/**
+ * ContactM5 - Salon/Spa / Concierge
+ * High-touch concierge service feel. Dark luxe panel with gold accents,
+ * "your dedicated concierge" copy, personal-touch contact channels.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  socialLinks = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+
+const portrait = photos[0] || '';
+const year = new Date().getFullYear();
+---
+
+<section id="contact" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="absolute top-1/3 -right-32 w-[500px] h-[500px] rounded-full opacity-15 blur-[120px]" style="background: var(--primary);"></div>
+
+  <div class="relative z-10 mx-auto max-w-6xl px-6 lg:px-12">
+
+    {/* Concierge panel */}
+    <div class="salon-fade-up bg-[var(--text)] rounded-3xl overflow-hidden relative" style="box-shadow: 0 50px 100px -25px rgba(61,46,42,0.5);">
+      {/* Inner gold border */}
+      <div class="absolute inset-4 border border-[var(--primary)]/40 rounded-2xl pointer-events-none"></div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.3fr]">
+        {/* LEFT — Concierge portrait */}
+        <div class="relative aspect-[4/5] lg:aspect-auto bg-[var(--text)] overflow-hidden">
+          {portrait ? (
+            <img src={portrait} alt="Concierge" class="absolute inset-0 w-full h-full object-cover" style="filter: brightness(0.9);" />
+          ) : (
+            <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-9xl italic" style="font-family: var(--heading-font);">m</div>
+          )}
+          <div class="absolute inset-0 bg-gradient-to-t from-[var(--text)]/80 via-transparent to-transparent"></div>
+
+          <div class="absolute bottom-8 left-8 right-8">
+            <p class="text-[10px] uppercase tracking-[0.55em] text-[var(--primary)] italic mb-2">— Your concierge —</p>
+            <p class="text-3xl italic text-[var(--bg)]" style="font-family: var(--heading-font);">{businessName}</p>
+          </div>
+        </div>
+
+        {/* RIGHT — Concierge details */}
+        <div class="p-10 lg:p-14 flex flex-col justify-center">
+          <p class="text-[10px] uppercase tracking-[0.55em] text-[var(--primary)] italic mb-5">— Private booking —</p>
+          <h2 class="font-light italic leading-[1.05] text-[var(--bg)] mb-6" style="font-family: var(--heading-font); font-size: clamp(2rem, 4.5vw, 3.25rem);">A dedicated concierge for your visit</h2>
+          <p class="text-[var(--bg)]/70 italic leading-[1.8] mb-10" style="font-size: 1rem;">From first inquiry to last sip of tea on your way out — one point of contact, attentive throughout.</p>
+
+          {/* Channels */}
+          {showInfo && (
+            <div class="space-y-5 mb-10">
+              <a href={`tel:${phone}`} class="block group">
+                <div class="flex items-center justify-between py-4 border-b border-[var(--primary)]/30">
+                  <div>
+                    <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--primary)]/70 italic mb-1">— Direct line —</p>
+                    <p class="text-xl italic text-[var(--bg)] group-hover:text-[var(--primary)] transition-colors" style="font-family: var(--heading-font);">{phone}</p>
+                  </div>
+                  <span class="text-[var(--primary)] text-2xl group-hover:translate-x-1 transition-transform">→</span>
+                </div>
+              </a>
+
+              {email && (
+                <a href={`mailto:${email}`} class="block group">
+                  <div class="flex items-center justify-between py-4 border-b border-[var(--primary)]/30">
+                    <div>
+                      <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--primary)]/70 italic mb-1">— Private email —</p>
+                      <p class="text-sm italic text-[var(--bg)] group-hover:text-[var(--primary)] transition-colors break-all">{email}</p>
+                    </div>
+                    <span class="text-[var(--primary)] text-2xl group-hover:translate-x-1 transition-transform">→</span>
+                  </div>
+                </a>
+              )}
+
+              {address && (
+                <div class="py-4">
+                  <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--primary)]/70 italic mb-1">— Visit —</p>
+                  <p class="text-sm italic text-[var(--bg)]">{address}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <a href={`tel:${phone}`} class="block bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--text)] py-4 text-center text-[11px] uppercase tracking-[0.5em] italic rounded-full hover:-translate-y-0.5 transition-all">
+            ✦ Reach my concierge
+          </a>
+
+          {showSocial && (
+            <div class="flex gap-2 mt-6">
+              {socialLinks.map((l) => (
+                <a href={l.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full border border-[var(--primary)]/40 hover:border-[var(--primary)] flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--text)] transition-colors" aria-label={l.platform}>
+                  <span class="text-xs italic">{l.platform.charAt(0)}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <p class="text-center text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic mt-10">— © {year} · {businessName} · Discretion assured —</p>
+  </div>
+</section>
+
+<style>
+  .salon-fade-up { opacity: 0; transform: translateY(20px); animation: salonFadeUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes salonFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .salon-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

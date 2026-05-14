@@ -1,0 +1,118 @@
+---
+/**
+ * ContactO3 - Clinic / After Hours
+ * After-hours emergency / nurse-line / urgent care escalation.
+ * Clear triage: "Is this an emergency?" tree, after-hours line prominent.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+const year = new Date().getFullYear();
+---
+
+<section id="contact" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-5xl px-6 lg:px-12">
+
+    <div class="text-center mb-10 max-w-3xl mx-auto">
+      <p class="clinic-fade-up text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)] mb-4">— After-hours triage —</p>
+      <h2 class="clinic-fade-up font-bold leading-[1.05] tracking-tight text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.25rem, 5vw, 4rem); animation-delay: 0.1s;">Need care after hours?</h2>
+      <p class="clinic-fade-up text-[var(--text-muted)] leading-[1.75]" style="font-size: 1.05rem; animation-delay: 0.2s;">Here is exactly what to do, depending on how urgent it is.</p>
+    </div>
+
+    {/* Triage tree */}
+    <div class="space-y-4 mb-10">
+      {/* Emergency */}
+      <div class="clinic-fade-up bg-[var(--surface)] border-l-8 border-red-500 rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center gap-5" style="animation-delay: 0.3s">
+        <div class="w-14 h-14 rounded-2xl bg-red-500/15 flex items-center justify-center shrink-0">
+          <svg class="w-7 h-7 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-red-500 mb-1">Life-threatening</p>
+          <h3 class="text-xl font-bold text-[var(--text)] mb-1">Severe chest pain · breathing trouble · stroke signs</h3>
+          <p class="text-sm text-[var(--text-muted)]">Call emergency services immediately. Do not wait for a callback.</p>
+        </div>
+        <a href="tel:911" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg text-sm font-bold whitespace-nowrap transition-all hover:-translate-y-0.5">
+          Call 911
+        </a>
+      </div>
+
+      {/* Urgent */}
+      <div class="clinic-fade-up bg-[var(--surface)] border-l-8 border-[var(--primary)] rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center gap-5" style="animation-delay: 0.4s">
+        <div class="w-14 h-14 rounded-2xl bg-[var(--primary)]/15 flex items-center justify-center shrink-0">
+          <svg class="w-7 h-7 text-[var(--primary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)] mb-1">Urgent · same-day</p>
+          <h3 class="text-xl font-bold text-[var(--text)] mb-1">High fever · severe pain · sudden symptoms</h3>
+          <p class="text-sm text-[var(--text-muted)]">Call our 24/7 after-hours nurse line. We will triage and advise next steps.</p>
+        </div>
+        <a href={`tel:${phone}`} class="bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] px-6 py-3 rounded-lg text-sm font-bold whitespace-nowrap transition-all hover:-translate-y-0.5">
+          Nurse line · {phone}
+        </a>
+      </div>
+
+      {/* Non-urgent */}
+      <div class="clinic-fade-up bg-[var(--surface)] border-l-8 border-[var(--accent)] rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center gap-5" style="animation-delay: 0.5s">
+        <div class="w-14 h-14 rounded-2xl bg-[var(--accent)]/15 flex items-center justify-center shrink-0">
+          <svg class="w-7 h-7 text-[var(--accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent)] mb-1">Non-urgent</p>
+          <h3 class="text-xl font-bold text-[var(--text)] mb-1">Refills · questions · scheduling</h3>
+          <p class="text-sm text-[var(--text-muted)]">Use the patient portal or email. We will respond next business day.</p>
+        </div>
+        {email && (
+          <a href={`mailto:${email}`} class="bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--bg)] px-6 py-3 rounded-lg text-sm font-bold whitespace-nowrap transition-all hover:-translate-y-0.5">
+            Email us
+          </a>
+        )}
+      </div>
+    </div>
+
+    {/* Hours / address */}
+    {showInfo && (
+      <div class="clinic-fade-up bg-[var(--surface)] rounded-2xl p-6 border border-[var(--text)]/10 text-center" style="animation-delay: 0.6s">
+        <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent)] mb-3">— Regular clinic hours —</p>
+        <p class="text-sm text-[var(--text)] mb-2">Mon — Fri · 8 AM to 6 PM · Sat · 9 AM to 1 PM</p>
+        {address && <p class="text-xs text-[var(--text-muted)]">{address}</p>}
+      </div>
+    )}
+
+    {showSocial && (
+      <div class="clinic-fade-up flex justify-center gap-2 mt-8" style="animation-delay: 0.7s">
+        {socialLinks.map((l) => (
+          <a href={l.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full border border-[var(--text)]/15 hover:border-[var(--primary)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors" aria-label={l.platform}>
+            <span class="text-xs font-semibold">{l.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <p class="text-center text-xs text-[var(--text-muted)] mt-10">© {year} · {businessName}</p>
+  </div>
+</section>
+
+<style>
+  .clinic-fade-up { opacity: 0; transform: translateY(20px); animation: clinicFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes clinicFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .clinic-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

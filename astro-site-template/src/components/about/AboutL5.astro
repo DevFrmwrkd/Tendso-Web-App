@@ -1,0 +1,113 @@
+---
+/**
+ * AboutL5 - Automobile Shop / Customer Cars
+ * Photo wall of customer cars + short story. Polaroid-feel mosaic of cars the
+ * shop has worked on, anchored by a credibility paragraph.
+ */
+interface Props {
+  businessName: string;
+  description: string;
+  headline?: string;
+  tagline?: string;
+  tags?: string[];
+  usps?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  description,
+  headline = 'Cars we\'ve cared for',
+  tagline,
+  tags = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.aboutHeadline !== false;
+const showDescription = visibility?.aboutDescription !== false;
+const showImages = visibility?.aboutImages !== false;
+const showTagline = visibility?.aboutTagline !== false && !!tagline;
+const showTags = visibility?.aboutTags !== false && tags.length > 0;
+
+const carImages = photos.slice(0, 6);
+const placeholders = ['🚗', '🛻', '🚙', '🏎', '🚐', '🚕'];
+---
+
+<section id="about" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div
+    class="absolute inset-0 z-0 opacity-[0.05] pointer-events-none"
+    style="background-image: repeating-linear-gradient(45deg, transparent 0 14px, var(--accent) 14px 15px);"
+  ></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="text-center mb-16 max-w-3xl mx-auto">
+      {showTagline && (
+        <p class="auto-fade-up text-[10px] font-bold font-mono uppercase tracking-[0.5em] text-[var(--primary)] mb-4">— {tagline} —</p>
+      )}
+      {showHeadline && (
+        <h2 class="auto-fade-up font-black uppercase leading-[0.95] tracking-tight text-[var(--text)] mb-6" style="font-size: clamp(2.5rem, 6vw, 4.5rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showDescription && (
+        <p class="auto-fade-up text-[var(--text-muted)] leading-[1.75]" style="font-size: 1.1rem; animation-delay: 0.2s;">{description}</p>
+      )}
+    </div>
+
+    {showImages && (
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-12">
+        {Array.from({ length: 6 }).map((_, i) => {
+          const photo = carImages[i];
+          const rot = [-2, 1.5, -1, 2, -1.5, 1][i];
+          return (
+            <div class="auto-fade-up relative" style={`animation-delay: ${0.3 + i * 0.07}s; transform: rotate(${rot}deg);`}>
+              <div class="relative aspect-square bg-[var(--surface)] p-2 shadow-[0_15px_30px_-10px_rgba(0,0,0,0.6)] border border-[var(--accent)]/30">
+                <div class="relative w-full h-full overflow-hidden bg-[var(--bg)]">
+                  {photo ? (
+                    <img src={photo} alt={`Customer car ${i + 1}`} class="absolute inset-0 w-full h-full object-cover" style="filter: contrast(1.1) saturate(0.85);" />
+                  ) : (
+                    <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-5xl">{placeholders[i]}</div>
+                  )}
+                </div>
+                {/* Tape strip */}
+                <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-10 h-3 bg-[var(--primary)]/30"></div>
+                <p class="text-[8px] font-mono uppercase tracking-[0.3em] text-[var(--text-muted)] mt-1 text-center">CAR · 0{i + 1}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    {/* Bottom row — stats + tags */}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto pt-10 border-t border-[var(--accent)]/30">
+      <div class="auto-fade-up text-center" style="animation-delay: 0.85s">
+        <p class="text-4xl font-black text-[var(--primary)] mb-1">5K+</p>
+        <p class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--text-muted)]">Cars serviced</p>
+      </div>
+      <div class="auto-fade-up text-center" style="animation-delay: 0.95s">
+        <p class="text-4xl font-black text-[var(--primary)] mb-1">98%</p>
+        <p class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--text-muted)]">Return customers</p>
+      </div>
+      <div class="auto-fade-up text-center" style="animation-delay: 1.05s">
+        <p class="text-4xl font-black text-[var(--primary)] mb-1">All</p>
+        <p class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--text-muted)]">Makes · models · era</p>
+      </div>
+    </div>
+
+    {showTags && (
+      <div class="auto-fade-up flex flex-wrap justify-center gap-2 mt-10" style="animation-delay: 1.15s">
+        {tags.map((tag) => (
+          <span class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--text-muted)] border border-[var(--accent)]/30 px-3 py-1.5">{tag}</span>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .auto-fade-up { opacity: 0; transform: translateY(20px); animation: autoFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .auto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

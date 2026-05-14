@@ -1,0 +1,137 @@
+---
+/**
+ * HeroN2 - Restaurant / Chef Special
+ * Chef-driven focus with chalkboard "special of the day" headline treatment,
+ * big plate image, chef's signature stamp. Bistro / market-driven vibe.
+ */
+interface Props {
+  businessName: string;
+  headline: string;
+  description: string;
+  badgeText?: string;
+  testimonial?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryLink?: string;
+  photos: string[];
+  services?: Array<{ name: string; description: string }>;
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  headline,
+  description,
+  badgeText = "Chef's special tonight",
+  testimonial,
+  ctaLabel = 'Reserve for tonight',
+  ctaLink = '#contact',
+  ctaSecondaryLabel = "Tonight's menu",
+  ctaSecondaryLink = '#services',
+  photos = [],
+  services = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+const todaysSpecial = services[0]?.name || 'Slow-braised short rib';
+
+const showHeadline = visibility?.heroHeadline !== false;
+const showTagline = visibility?.heroTagline !== false && !!badgeText;
+const showDescription = visibility?.heroDescription !== false;
+const showTestimonial = visibility?.heroTestimonial !== false && !!testimonial;
+const showButton = visibility?.heroButton !== false;
+const showImage = visibility?.heroImage !== false;
+---
+
+<section id="hero" class="relative w-full min-h-screen overflow-hidden bg-[var(--bg)] flex items-center" style="font-family: var(--body-font);">
+
+  {/* Paper grain */}
+  <div class="absolute inset-0 z-0 opacity-[0.05] pointer-events-none" style="background-image: radial-gradient(circle at 25% 25%, var(--primary) 0.5px, transparent 1px), radial-gradient(circle at 75% 75%, var(--accent) 0.5px, transparent 1px); background-size: 4px 4px, 6px 6px;"></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12 py-20 w-full">
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.1fr] gap-12 lg:gap-16 items-center">
+
+      {/* LEFT — Text */}
+      <div>
+        {showTagline && (
+          <div class="resto-fade-up inline-flex items-center gap-3 bg-[var(--text)] text-[var(--bg)] px-4 py-2 mb-8 rounded-full">
+            <span class="w-1.5 h-1.5 rounded-full bg-[var(--primary)] animate-pulse"></span>
+            <span class="text-[10px] uppercase tracking-[0.4em] italic">{badgeText}</span>
+          </div>
+        )}
+
+        {showHeadline && (
+          <h1 class="resto-fade-up font-bold leading-[0.95] tracking-tight text-[var(--text)] mb-6" style="font-family: var(--heading-font); font-size: clamp(2.5rem, 6.5vw, 5rem); animation-delay: 0.1s;">
+            {headline}
+          </h1>
+        )}
+
+        {/* Chalkboard special */}
+        <div class="resto-fade-up bg-[var(--text)] text-[var(--bg)] p-5 mb-8 relative" style="animation-delay: 0.2s">
+          <div class="absolute top-2 left-2 right-2 bottom-2 border border-dashed border-[var(--bg)]/30 pointer-events-none"></div>
+          <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-2">— Tonight's special —</p>
+          <p class="text-2xl italic text-[var(--bg)]" style="font-family: var(--heading-font);">{todaysSpecial}</p>
+          <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--accent)] italic mt-2">— Limited portions · while it lasts —</p>
+        </div>
+
+        {showDescription && (
+          <p class="resto-fade-up text-[var(--text-muted)] leading-[1.8] mb-10 max-w-lg" style="font-size: clamp(1rem, 1.25vw, 1.15rem); animation-delay: 0.3s;">
+            {description}
+          </p>
+        )}
+
+        {showButton && (
+          <div class="resto-fade-up flex flex-col sm:flex-row gap-3" style="animation-delay: 0.4s">
+            <a href={ctaLink} class="group inline-flex items-center justify-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] px-8 py-4 text-xs font-bold uppercase tracking-[0.3em] transition-all hover:-translate-y-0.5">
+              {ctaLabel} <span class="group-hover:translate-x-1 transition-transform">→</span>
+            </a>
+            <a href={ctaSecondaryLink} class="inline-flex items-center justify-center gap-3 border-2 border-[var(--text)]/30 hover:border-[var(--text)] text-[var(--text)] hover:bg-[var(--text)]/5 px-8 py-4 text-xs font-bold uppercase tracking-[0.3em] transition-all">
+              {ctaSecondaryLabel}
+            </a>
+          </div>
+        )}
+
+        {showTestimonial && (
+          <p class="resto-fade-up italic text-sm text-[var(--text-muted)] mt-10 max-w-md border-l-2 border-[var(--primary)]/40 pl-4" style="animation-delay: 0.5s">"{testimonial}"</p>
+        )}
+      </div>
+
+      {/* RIGHT — Plate */}
+      {showImage && (
+        <div class="resto-fade-up relative" style="animation-delay: 0.25s">
+          {/* Circular plate frame */}
+          <div class="relative aspect-square rounded-full overflow-hidden bg-[var(--surface)] border-[12px] border-[var(--bg)] shadow-[0_50px_100px_-25px_rgba(42,31,28,0.5)]">
+            {mainPhoto ? (
+              <img src={mainPhoto} alt={businessName} class="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-9xl">🍽</div>
+            )}
+            {/* Inner rim */}
+            <div class="absolute inset-3 rounded-full border-2 border-[var(--bg)]/50 pointer-events-none"></div>
+          </div>
+
+          {/* Chef stamp */}
+          <div class="absolute -bottom-6 -left-4 w-28 h-28 rounded-full bg-[var(--primary)] flex flex-col items-center justify-center text-[var(--bg)] rotate-[-12deg] shadow-xl">
+            <span class="text-2xl mb-0.5">✦</span>
+            <p class="text-[8px] uppercase tracking-[0.35em] italic">Signed</p>
+            <p class="text-[10px] italic" style="font-family: var(--heading-font);">Chef</p>
+          </div>
+
+          {/* Floating spice tag */}
+          <div class="absolute top-8 -right-4 bg-[var(--bg)] border border-[var(--accent)]/40 rounded-full px-4 py-2 shadow-md">
+            <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--accent)] italic">— Market-driven —</p>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .resto-fade-up { opacity: 0; transform: translateY(20px); animation: restoFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes restoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .resto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

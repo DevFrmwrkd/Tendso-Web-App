@@ -1,0 +1,116 @@
+---
+/**
+ * ServicesM3 - Salon/Spa / Half-Day Spa
+ * Half-day spa experience structured as an itinerary — hour-by-hour timeline.
+ * Each block shows time + activity, like a curated spa schedule.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  services: Array<{ name: string; description: string; price?: string; duration?: string; icon?: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'A half-day, made yours',
+  subheadline = 'A four-hour itinerary, designed to soften everything that\'s tightened all week.',
+  services = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.servicesHeadline !== false;
+const showSubheadline = visibility?.servicesSubheadline !== false && !!subheadline;
+const showList = visibility?.servicesList !== false;
+
+const sidePhoto = photos[0] || '';
+
+const defaults = [
+  { time: '10:00', activity: 'Arrival & tea ritual', body: 'Warm welcome with a custom herbal blend.', icon: '☕' },
+  { time: '10:30', activity: 'Body massage', body: 'Full-body Swedish or aromatherapy, your choice.', icon: '❀' },
+  { time: '11:45', activity: 'Custom facial', body: 'Skin analysis followed by tailored facial.', icon: '✦' },
+  { time: '13:00', activity: 'Hands & feet', body: 'Soak, exfoliation, polish, and hand massage.', icon: '❦' },
+  { time: '14:00', activity: 'Closing & light bite', body: 'Fresh juice and seasonal fruit to send you off.', icon: '🍃' },
+];
+
+const items = services.length > 0
+  ? services.slice(0, 5).map((s, i) => ({
+      time: defaults[i].time,
+      activity: s.name,
+      body: s.description || defaults[i].body,
+      icon: defaults[i].icon,
+    }))
+  : defaults;
+---
+
+<section id="services" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="absolute top-1/3 -right-20 w-[400px] h-[400px] rounded-full opacity-15 blur-[100px]" style="background: var(--primary);"></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <p class="salon-fade-up text-[10px] uppercase tracking-[0.55em] text-[var(--accent)] italic mb-5">— Half-day itinerary · 4 hrs —</p>
+      {showHeadline && (
+        <h2 class="salon-fade-up font-light italic leading-[1.05] text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.5rem, 5.5vw, 4.25rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="salon-fade-up text-[var(--text-muted)] italic leading-[1.8]" style="font-size: 1.1rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-12 items-start">
+      {/* LEFT — Image */}
+      {sidePhoto && (
+        <div class="salon-fade-up lg:sticky lg:top-24" style="animation-delay: 0.3s">
+          <div class="relative aspect-[3/4] overflow-hidden bg-[var(--surface)] rounded-tl-[140px] rounded-br-[140px]">
+            <img src={sidePhoto} alt="Spa itinerary" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+            <div class="absolute inset-0 bg-gradient-to-tr from-[var(--primary)]/15 to-transparent"></div>
+            <div class="absolute bottom-6 left-6 right-6 bg-[var(--bg)]/85 backdrop-blur-sm rounded-2xl px-4 py-3 text-center">
+              <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--primary)] italic">— Four hours · all yours —</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RIGHT — Timeline */}
+      {showList && (
+        <div class="relative">
+          <div class="absolute left-12 top-3 bottom-3 w-px bg-[var(--primary)]/30"></div>
+          <div class="space-y-8">
+            {items.map((it, i) => (
+              <div class="salon-fade-up relative pl-28" style={`animation-delay: ${0.4 + i * 0.1}s`}>
+                <div class="absolute left-0 top-0">
+                  <p class="text-2xl italic text-[var(--primary)] font-light leading-none" style="font-family: var(--heading-font);">{it.time}</p>
+                </div>
+                <div class="absolute left-[44px] top-1 w-4 h-4 rounded-full bg-[var(--primary)] border-4 border-[var(--bg)] shadow-[0_0_0_2px_var(--accent)]"></div>
+
+                <div class="flex items-start gap-3 mb-2">
+                  <span class="text-xl text-[var(--accent)]">{it.icon}</span>
+                  <h3 class="text-xl italic text-[var(--primary)]" style="font-family: var(--heading-font);">{it.activity}</h3>
+                </div>
+                <p class="text-sm text-[var(--text-muted)] italic leading-[1.7]">{it.body}</p>
+              </div>
+            ))}
+          </div>
+
+          <div class="salon-fade-up mt-10 ml-28 pt-6 border-t border-dashed border-[var(--primary)]/30" style="animation-delay: 0.95s">
+            <div class="flex items-baseline justify-between gap-4 mb-3">
+              <span class="text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic">— All-in —</span>
+              <span class="text-4xl italic text-[var(--primary)]" style="font-family: var(--heading-font);">₱4,500</span>
+            </div>
+            <a href="#contact" class="block text-center bg-[var(--primary)] text-[var(--bg)] py-3.5 text-[11px] uppercase tracking-[0.4em] italic rounded-full hover:-translate-y-0.5 transition-all">
+              Reserve your itinerary →
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .salon-fade-up { opacity: 0; transform: translateY(20px); animation: salonFadeUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes salonFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .salon-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

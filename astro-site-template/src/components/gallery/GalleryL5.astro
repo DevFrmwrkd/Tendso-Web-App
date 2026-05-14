@@ -1,0 +1,121 @@
+---
+/**
+ * GalleryL5 - Automobile Shop / Custom Builds
+ * Featured custom builds showcased magazine-spread style.
+ * One hero build + smaller secondary builds in a sidebar gallery.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  items: Array<{ title: string; description: string; image?: string; tags?: string[] }>;
+  images?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'Custom builds',
+  subheadline = 'One-off rigs, owner spec\'d, bay-built.',
+  items = [],
+  images = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.galleryHeadline !== false;
+const showSubheadline = visibility?.gallerySubheadline !== false && !!subheadline;
+const showItems = visibility?.galleryItems !== false;
+
+const allPhotos = items.length > 0 ? items : (images.length > 0 ? images.map(img => ({ image: img, title: '', description: '', tags: [] })) : photos.map(p => ({ image: p, title: '', description: '', tags: [] })));
+
+const defaults = [
+  { title: 'Project: Overland', spec: 'Roof-rack rig · lifted · all-terrain' },
+  { title: 'Show car restoration', spec: 'Period-correct rebuild · OEM parts' },
+  { title: 'Performance tune', spec: 'Stage-2 ECU · cold-air · downpipe' },
+  { title: 'Daily-driver refresh', spec: 'New paint · interior · suspension' },
+  { title: 'Track-day prep', spec: 'Brake upgrade · coilovers · stripped' },
+];
+
+const builds = allPhotos.slice(0, 5).map((it: any, i: number) => ({
+  image: it.image,
+  title: it.title || defaults[i].title,
+  spec: it.description || defaults[i].spec,
+}));
+
+while (builds.length < 3) {
+  const i = builds.length;
+  builds.push({ image: undefined, title: defaults[i].title, spec: defaults[i].spec });
+}
+
+const hero = builds[0];
+const secondaries = builds.slice(1, 5);
+---
+
+<section id="gallery" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6 items-end mb-12">
+      <div>
+        <p class="auto-fade-up text-[10px] font-mono font-black uppercase tracking-[0.5em] text-[var(--primary)] mb-4">— BUILDS ISSUE · {new Date().getFullYear()} —</p>
+        {showHeadline && (
+          <h2 class="auto-fade-up font-black uppercase leading-[0.92] tracking-tight text-[var(--text)] mb-4" style="font-size: clamp(2.25rem, 5.5vw, 4rem); animation-delay: 0.1s;">{headline}</h2>
+        )}
+      </div>
+      {showSubheadline && (
+        <p class="auto-fade-up text-[var(--text-muted)] leading-[1.75] lg:text-right" style="font-size: 1.1rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showItems && (
+      <div class="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-5">
+        {/* Hero build */}
+        <div class="auto-fade-up relative group" style="animation-delay: 0.3s">
+          <div class="relative aspect-[4/5] lg:aspect-auto lg:h-full overflow-hidden bg-[var(--surface)] border-4 border-[var(--primary)]">
+            {hero.image ? (
+              <img src={hero.image} alt={hero.title} class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" style="filter: contrast(1.15) saturate(0.9);" />
+            ) : (
+              <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-9xl">🚗</div>
+            )}
+            <div class="absolute inset-0 bg-gradient-to-t from-[var(--bg)]/90 via-transparent to-[var(--bg)]/20"></div>
+
+            {/* Hero label */}
+            <div class="absolute top-5 left-5 bg-[var(--primary)] text-[var(--bg)] px-4 py-2 font-mono font-black text-[10px] tracking-[0.4em]">★ FEATURE</div>
+
+            {/* Caption */}
+            <div class="absolute bottom-6 left-6 right-6">
+              <p class="text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--primary)] mb-2">— Featured build —</p>
+              <h3 class="text-3xl md:text-4xl font-black uppercase text-[var(--text)] mb-2 tracking-tight">{hero.title}</h3>
+              <p class="text-sm italic text-[var(--text)]/80">{hero.spec}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Secondary builds — 2x2 grid */}
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 content-start">
+          {secondaries.map((b, i) => (
+            <div class="auto-fade-up relative group" style={`animation-delay: ${0.4 + i * 0.08}s`}>
+              <div class="relative aspect-square overflow-hidden bg-[var(--surface)] border-2 border-[var(--accent)]/40 hover:border-[var(--primary)] transition-colors">
+                {b.image ? (
+                  <img src={b.image} alt={b.title} class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" style="filter: contrast(1.1) saturate(0.85);" loading="lazy" />
+                ) : (
+                  <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-6xl">⚙</div>
+                )}
+                <div class="absolute inset-0 bg-gradient-to-t from-[var(--bg)]/85 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div class="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <p class="text-[9px] font-mono uppercase tracking-[0.35em] text-[var(--primary)] mb-1">BUILD · 0{i + 2}</p>
+                  <p class="text-sm font-black uppercase text-[var(--text)] tracking-tight">{b.title}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .auto-fade-up { opacity: 0; transform: translateY(20px); animation: autoFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .auto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>
