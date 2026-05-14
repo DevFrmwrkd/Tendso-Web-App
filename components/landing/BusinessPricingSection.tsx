@@ -1,8 +1,11 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Zap, Globe2, Check, ArrowRight } from "lucide-react";
+import { Zap, Globe2, Check, ArrowRight, Store, Phone } from "lucide-react";
 import Link from "next/link";
+
+const PHONE_DISPLAY = "0967 145 5245";
+const PHONE_TEL = "tel:+639671455245";
 
 const tiers = [
     {
@@ -46,19 +49,44 @@ export default function BusinessPricingSection() {
 
     return (
         <section
-            id="pricing"
-            className="w-full py-20 sm:py-24 px-6 max-w-7xl mx-auto relative z-10 bg-emerald-50/40 sm:rounded-[2rem] sm:my-12"
+            id="for-business"
+            className="w-full py-20 sm:py-24 px-6 max-w-7xl mx-auto relative z-10 bg-emerald-50/40 sm:rounded-[2rem] sm:my-12 scroll-mt-24"
         >
+            {/* Audience switch band — clear signal this is for business owners */}
+            <div className="max-w-3xl mx-auto mb-10 relative z-10">
+                <div className="flex flex-col sm:flex-row items-center gap-4 bg-white border border-emerald-200 rounded-2xl px-5 py-4 shadow-sm">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center shrink-0">
+                        <Store className="w-6 h-6 text-emerald-700" />
+                    </div>
+                    <div className="flex-1 text-center sm:text-left">
+                        <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-700 mb-1">
+                            For business owners
+                        </p>
+                        <p className="text-sm text-neutral-700 leading-relaxed">
+                            A creator may already be on the way to your shop. Or skip the wait — call us directly and we&apos;ll get your website live in 48 hours.
+                        </p>
+                    </div>
+                    <a
+                        href={PHONE_TEL}
+                        className="group inline-flex items-center justify-center gap-2 bg-neutral-900 hover:bg-black text-white px-5 py-2.5 rounded-full font-semibold text-sm transition-colors shrink-0 min-h-[40px]"
+                        aria-label={`Call us at ${PHONE_DISPLAY}`}
+                    >
+                        <Phone className="w-4 h-4 text-emerald-400 group-hover:rotate-12 transition-transform" />
+                        Call {PHONE_DISPLAY}
+                    </a>
+                </div>
+            </div>
+
             {/* Header */}
             <div className="text-center max-w-2xl mx-auto mb-12 sm:mb-14 relative z-10">
                 <p className="text-xs uppercase tracking-widest font-bold text-emerald-700 mb-3">
-                    Pricing · One-time payment
+                    Business pricing · One-time payment
                 </p>
                 <h2
                     style={{ fontFamily: "var(--font-fraunces)" }}
                     className="text-4xl sm:text-5xl md:text-6xl font-semibold text-neutral-900 leading-[1.05] mb-5"
                 >
-                    Live in <span className="italic text-emerald-700">48 hours.</span>
+                    Your business, live in <span className="italic text-emerald-700">48 hours.</span>
                 </h2>
                 <p className="text-base sm:text-lg text-neutral-700 leading-relaxed">
                     One-time payment. No monthly fees. No contracts. You only pay when your website is live.

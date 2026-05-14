@@ -73,10 +73,9 @@ const headlineParts = splitHeadline(headline);
     {showHeadline && (
       <div class="reveal mb-24 text-center md:mb-40">
         <h2 class="mx-auto max-w-5xl font-black leading-[1.1] tracking-tighter text-[var(--text)]"
-            style="font-size: var(--fs-display); font-family: var(--heading-font, inherit);">
-          {headlineParts.regular}{headlineParts.italic && (
-            <span class="italic font-light opacity-50 block lg:inline-block lg:ml-4">{headlineParts.italic}</span>
-          )}
+            style="font-size: var(--fs-display); font-family: var(--heading-font, inherit);"
+            data-field="about_headline"
+            set:html={headline}>
         </h2>
       </div>
     )}
@@ -105,16 +104,18 @@ const headlineParts = splitHeadline(headline);
 
           {showTagline && (
             <div class="reveal-delay-2 reveal mb-10 w-fit rounded-full bg-[var(--primary)]/10 border border-[var(--primary)]/20 px-8 py-3">
-              <p class="text-[var(--fs-xs)] font-bold uppercase tracking-[0.4em] text-[var(--primary)]">
-                {tagline}
+              <p class="text-[var(--fs-xs)] font-bold uppercase tracking-[0.4em] text-[var(--primary)]"
+                 data-field="about_tagline"
+                 set:html={tagline}>
               </p>
             </div>
           )}
 
           {showDescription && (
             <p class="reveal-delay-3 reveal mb-16 leading-[1.6] text-[var(--text-muted)] font-medium"
-               style="font-size: var(--fs-lg);">
-              {description}
+               style="font-size: var(--fs-lg);"
+               data-field="about_description"
+               set:html={description}>
             </p>
           )}
 

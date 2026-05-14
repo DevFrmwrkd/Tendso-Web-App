@@ -25,8 +25,8 @@ const showcase: Showcase[] = [
         slug: "aloja",
         name: "Aloja Carvajal",
         category: "Beauty Studio",
-        src: "/Pages/aloja.png",
-        url: "https://aloja-carvajal-aesthetic-and-beauty-studio.pages.dev/",
+        src: "/Pages/aloja2.png",
+        url: "https://aloja-carvajal-aesthetic-and-beauty-studio.frmwrkd-media.workers.dev/",
     },
     {
         slug: "hapag",
@@ -85,26 +85,26 @@ export default function ShowcaseSection() {
     return (
         <section
             id="showcase"
-            className="w-full py-20 sm:py-24 px-6 max-w-7xl mx-auto relative z-10"
+            className="w-full py-20 sm:py-24 px-4 sm:px-6 lg:px-10 relative z-10"
         >
             {/* Header */}
-            <div className="max-w-2xl mx-auto text-center mb-12 sm:mb-14 relative z-10">
+            <div className="max-w-2xl mx-auto text-center mb-12 sm:mb-14 relative z-10 px-2">
                 <p className="text-xs uppercase tracking-widest font-bold text-emerald-700 mb-3">
-                    Real stories
+                    What creators have shipped
                 </p>
                 <h2
                     style={{ fontFamily: "var(--font-fraunces)" }}
                     className="text-4xl sm:text-5xl md:text-6xl font-semibold text-neutral-900 leading-[1.05] mb-5"
                 >
-                    Live work. <span className="italic text-emerald-700">No mockups.</span>
+                    Real sites. <span className="italic text-emerald-700">Real payouts.</span>
                 </h2>
                 <p className="text-base sm:text-lg text-neutral-700 leading-relaxed">
-                    Local businesses already running on Negosyo Digital. Tap any preview to visit their live site.
+                    Every site below started with one creator walking into a local shop. Tap any preview to see the live result.
                 </p>
             </div>
 
             <div
-                className="relative max-w-5xl mx-auto"
+                className="relative w-full max-w-[1600px] mx-auto"
                 onMouseEnter={() => setPaused(true)}
                 onMouseLeave={() => setPaused(false)}
                 aria-roledescription="carousel"

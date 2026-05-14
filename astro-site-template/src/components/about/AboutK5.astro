@@ -1,0 +1,139 @@
+---
+/**
+ * AboutK5 - Barber Shop / Apprentice Path
+ * Vertical stepped timeline showing the path from apprentice to master.
+ */
+interface Props {
+  businessName: string;
+  description: string;
+  headline?: string;
+  tagline?: string;
+  tags?: string[];
+  usps?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  description,
+  headline = 'The Path to Mastery',
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+const showHeadline = visibility?.aboutHeadline !== false;
+const showDescription = visibility?.aboutDescription !== false;
+const showImages = visibility?.aboutImages !== false;
+
+const steps = [
+  { stage: 'Apprentice', years: 'Year 1', desc: 'Sweep the floor. Watch every cut. Learn the strop.' },
+  { stage: 'Journeyman', years: 'Years 2–4', desc: 'First chair, simple cuts. Earn the trust of the regulars.' },
+  { stage: 'Cutter', years: 'Years 5–9', desc: 'Hot towel, straight razor, the full ceremony.' },
+  { stage: 'Master', years: 'Year 10+', desc: 'Train the next apprentice. Carry the trade forward.' },
+];
+---
+
+<section
+  id="about"
+  class="relative w-full bg-[var(--text)] py-24 md:py-32 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  <div class="absolute inset-0 opacity-[0.04] pointer-events-none" style="background-image: repeating-linear-gradient(0deg, transparent 0 3px, var(--accent) 3px 4px);"></div>
+
+  <div class="relative z-10 mx-auto max-w-6xl px-6 lg:px-12">
+
+    <div class="text-center mb-16 md:mb-20">
+      <div class="barber-fade-up inline-flex items-center gap-4 mb-6">
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--accent)]">— A trade, not a job —</span>
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+      </div>
+
+      {showHeadline && (
+        <h2 class="barber-fade-up font-bold leading-[0.95] tracking-tight text-[var(--bg)] mb-5" style="font-size: clamp(2.75rem, 6vw, 5rem); animation-delay: 0.1s;">
+          {headline}
+        </h2>
+      )}
+
+      {showDescription && (
+        <p class="barber-fade-up max-w-2xl mx-auto text-[var(--bg)]/75 leading-[1.85] italic" style="font-size: 1.1rem; animation-delay: 0.2s;">
+          {description}
+        </p>
+      )}
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-12 lg:gap-16 items-start">
+
+      {/* LEFT - portrait */}
+      {showImages && (
+        <div class="barber-fade-up sticky top-32" style="animation-delay: 0.3s">
+          <div class="relative">
+            <div class="absolute -inset-3 border-2 border-[var(--accent)]/40"></div>
+            <div class="relative aspect-[3/4] overflow-hidden bg-[var(--text)] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.6)]">
+              {mainPhoto ? (
+                <img src={mainPhoto} alt={businessName} class="w-full h-full object-cover" style="filter: sepia(0.4) contrast(1.1) brightness(0.85);" />
+              ) : (
+                <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-9xl">✂</div>
+              )}
+              <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[var(--text)] to-transparent p-6 pt-12">
+                <p class="text-[var(--accent)] text-[10px] font-bold uppercase tracking-[0.45em] mb-1">— The chair —</p>
+                <p class="text-[var(--bg)] italic text-xl font-bold">{businessName}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RIGHT - vertical stepped timeline */}
+      <div class="relative">
+        {/* Vertical line connecting steps */}
+        <div class="absolute left-7 top-0 bottom-0 w-px bg-[var(--accent)]/40"></div>
+
+        <ol class="space-y-10">
+          {steps.map((step, i) => (
+            <li class="barber-fade-up relative pl-20" style={`animation-delay: ${i * 0.15 + 0.4}s`}>
+              {/* Step badge */}
+              <div class="absolute left-0 top-0 flex flex-col items-center">
+                <div class="w-14 h-14 rounded-full bg-[var(--primary)] border-2 border-[var(--accent)] flex items-center justify-center text-[var(--bg)] font-bold text-lg z-10">
+                  {i + 1}
+                </div>
+              </div>
+
+              {/* Content */}
+              <div class="pb-2">
+                <div class="flex items-baseline gap-3 mb-2">
+                  <h3 class="text-2xl font-bold text-[var(--bg)]" style="font-size: 1.65rem;">{step.stage}</h3>
+                  <span class="text-[10px] font-bold uppercase tracking-[0.35em] text-[var(--accent)]">{step.years}</span>
+                </div>
+                <p class="text-[var(--bg)]/75 leading-relaxed italic" style="font-size: 1.05rem;">{step.desc}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        {/* End marker */}
+        <div class="relative pl-20 mt-10 barber-fade-up" style="animation-delay: 1s">
+          <div class="absolute left-0 top-0 w-14 h-14 rounded-full bg-[var(--accent)] flex items-center justify-center text-[var(--text)] text-2xl">
+            ✂
+          </div>
+          <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic mb-1 pt-3">— And so —</p>
+          <p class="text-[var(--bg)] text-xl italic" style="font-size: 1.35rem;">The trade lives on.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .barber-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .barber-fade-up { animation: none; opacity: 1; transform: none; }
+  }
+</style>

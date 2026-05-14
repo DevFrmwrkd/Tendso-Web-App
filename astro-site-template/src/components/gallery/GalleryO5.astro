@@ -1,0 +1,123 @@
+---
+/**
+ * GalleryO5 - Clinic / Virtual Tour
+ * Step-through virtual tour of clinic spaces. Numbered stops through reception,
+ * exam rooms, lab, etc. Each stop with photo + description.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  items: Array<{ title: string; description: string; image?: string; tags?: string[] }>;
+  images?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'A walk through',
+  subheadline = 'See where you will be cared for, before you arrive.',
+  items = [],
+  images = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.galleryHeadline !== false;
+const showSubheadline = visibility?.gallerySubheadline !== false && !!subheadline;
+const showItems = visibility?.galleryItems !== false;
+
+const allPhotos = items.length > 0 ? items : (images.length > 0 ? images.map(img => ({ image: img, title: '', description: '', tags: [] })) : photos.map(p => ({ image: p, title: '', description: '', tags: [] })));
+
+const defaultStops = [
+  { name: 'Reception', body: 'Quick check-in, never crowded. Comfortable seating, daylight.', icon: '◐' },
+  { name: 'Exam rooms', body: 'Four private rooms, each fully equipped. Calm lighting, no clinical chill.', icon: '◇' },
+  { name: 'Lab & imaging', body: 'On-site bloodwork, EKG, ultrasound, x-ray. Most results, same day.', icon: '◈' },
+  { name: 'Consult lounge', body: 'For test results and follow-up conversations. Quiet, unhurried.', icon: '◊' },
+];
+
+const stops = allPhotos.slice(0, 4).map((it: any, i: number) => ({
+  image: it.image,
+  name: it.title || defaultStops[i].name,
+  body: it.description || defaultStops[i].body,
+  icon: defaultStops[i].icon,
+}));
+
+while (stops.length < 4) {
+  const i = stops.length;
+  stops.push({ image: undefined, name: defaultStops[i].name, body: defaultStops[i].body, icon: defaultStops[i].icon });
+}
+---
+
+<section id="gallery" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="text-center mb-14 max-w-3xl mx-auto">
+      <p class="clinic-fade-up text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)] mb-4">— Virtual tour · 4 stops —</p>
+      {showHeadline && (
+        <h2 class="clinic-fade-up font-bold leading-[1.05] tracking-tight text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.25rem, 5vw, 4rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="clinic-fade-up text-[var(--text-muted)] leading-[1.75]" style="font-size: 1.1rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showItems && (
+      <div class="relative">
+        {/* Stop sticky nav */}
+        <div class="hidden lg:flex justify-center gap-2 mb-8">
+          {stops.map((s, i) => (
+            <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 bg-[var(--surface)] border border-[var(--text)]/10 rounded-full px-3 py-1.5">
+                <span class="w-5 h-5 rounded-full bg-[var(--primary)] text-[var(--bg)] flex items-center justify-center text-[9px] font-bold">{i + 1}</span>
+                <span class="text-xs font-medium text-[var(--text)]">{s.name}</span>
+              </div>
+              {i < stops.length - 1 && <span class="text-[var(--text)]/30 text-xs">→</span>}
+            </div>
+          ))}
+        </div>
+
+        {/* Stops */}
+        <div class="space-y-10">
+          {stops.map((s, i) => {
+            const isEven = i % 2 === 0;
+            return (
+              <div class={`clinic-fade-up grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center ${isEven ? '' : 'lg:grid-flow-dense'}`} style={`animation-delay: ${0.3 + i * 0.1}s`}>
+                {/* Image */}
+                <div class={isEven ? '' : 'lg:col-start-2'}>
+                  <div class="relative aspect-[4/3] overflow-hidden bg-[var(--surface)] rounded-3xl">
+                    {s.image ? (
+                      <img src={s.image} alt={s.name} class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-9xl">{s.icon}</div>
+                    )}
+                    <div class="absolute top-5 left-5 bg-[var(--bg)] rounded-full px-4 py-2 shadow-md flex items-center gap-2">
+                      <span class="w-7 h-7 rounded-full bg-[var(--primary)] text-[var(--bg)] flex items-center justify-center text-xs font-bold">{i + 1}</span>
+                      <span class="text-[10px] font-bold uppercase tracking-wider text-[var(--primary)]">Stop {String(i + 1).padStart(2, '0')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div class={isEven ? '' : 'lg:col-start-1 lg:row-start-1'}>
+                  <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent)] mb-3">— Step {String(i + 1).padStart(2, '0')} —</p>
+                  <h3 class="text-3xl font-bold text-[var(--text)] mb-4" style="font-family: var(--heading-font);">{s.name}</h3>
+                  <p class="text-[var(--text-muted)] leading-[1.8] mb-4" style="font-size: 1.05rem;">{s.body}</p>
+                  <div class="flex items-center gap-3 pt-4 border-t border-[var(--text)]/10">
+                    <svg class="w-4 h-4 text-[var(--accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="text-xs text-[var(--accent)] font-semibold">Photographed in {new Date().getFullYear()}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .clinic-fade-up { opacity: 0; transform: translateY(20px); animation: clinicFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes clinicFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .clinic-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

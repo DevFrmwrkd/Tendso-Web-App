@@ -1,0 +1,118 @@
+---
+/**
+ * ContactN2 - Restaurant / Walk-In Sign
+ * Painted sidewalk sign aesthetic. "Open" board with hours scrawled,
+ * casual welcoming feel, no-reservation-needed vibe.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+const year = new Date().getFullYear();
+---
+
+<section id="contact" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-3xl px-6 lg:px-12">
+
+    {/* Sidewalk sign — slight tilt */}
+    <div class="resto-fade-up relative" style="transform: rotate(-1deg);">
+      <div class="bg-[var(--text)] text-[var(--bg)] p-10 lg:p-14 relative" style="box-shadow: 0 50px 80px -25px rgba(42,31,28,0.6);">
+        {/* Chalk frame */}
+        <div class="absolute inset-3 border-2 border-dashed border-[var(--bg)]/30 pointer-events-none"></div>
+
+        {/* Top OPEN tag */}
+        <div class="text-center mb-8">
+          <div class="inline-block bg-[var(--primary)] text-[var(--bg)] px-8 py-3 rotate-[-2deg] shadow-md mb-5">
+            <p class="text-3xl font-bold italic tracking-tight" style="font-family: var(--heading-font);">OPEN</p>
+          </div>
+          <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic">— Walk right in —</p>
+        </div>
+
+        <h2 class="text-center font-bold italic leading-[1.05] mb-8" style="font-family: var(--heading-font); font-size: clamp(2rem, 5vw, 3.5rem);">No reservation needed</h2>
+
+        {showInfo && (
+          <div class="space-y-6 mb-8">
+            {/* Phone */}
+            <div class="text-center pb-5 border-b border-dashed border-[var(--bg)]/30">
+              <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-2">— Or call ahead —</p>
+              <a href={`tel:${phone}`} class="text-3xl font-bold italic tracking-tight hover:text-[var(--primary)] transition-colors" style="font-family: var(--heading-font);">{phone}</a>
+            </div>
+
+            {address && (
+              <div class="text-center pb-5 border-b border-dashed border-[var(--bg)]/30">
+                <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-2">— Find us —</p>
+                <p class="text-base italic leading-relaxed">{address}</p>
+              </div>
+            )}
+
+            {email && (
+              <div class="text-center">
+                <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-2">— Write —</p>
+                <a href={`mailto:${email}`} class="text-sm italic hover:text-[var(--primary)] transition-colors break-all">{email}</a>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Hours block */}
+        <div class="bg-[var(--bg)]/10 border border-dashed border-[var(--bg)]/30 p-5 mb-8">
+          <p class="text-center text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-3">— Hours scrawled —</p>
+          <div class="text-center space-y-1">
+            <p class="text-sm italic">Mon — Fri · 5 PM — 11 PM</p>
+            <p class="text-sm italic">Sat — Sun · 11 AM — 11 PM</p>
+          </div>
+        </div>
+
+        {/* Signature scrawl */}
+        <div class="text-center pt-4 border-t border-dashed border-[var(--bg)]/30">
+          <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-1">— With love from —</p>
+          <p class="text-2xl italic" style="font-family: var(--heading-font);">{businessName}</p>
+        </div>
+
+        {/* Corner pin */}
+        <div class="absolute top-3 right-3 w-3 h-3 rounded-full bg-[var(--primary)] shadow-md"></div>
+        <div class="absolute top-3 left-3 w-3 h-3 rounded-full bg-[var(--primary)] shadow-md"></div>
+      </div>
+
+      {/* Wooden support legs effect */}
+      <div class="hidden sm:block absolute -bottom-6 left-1/4 w-1 h-12 bg-[var(--text)]/60 rotate-12"></div>
+      <div class="hidden sm:block absolute -bottom-6 right-1/4 w-1 h-12 bg-[var(--text)]/60 -rotate-12"></div>
+    </div>
+
+    {showSocial && (
+      <div class="resto-fade-up flex justify-center gap-2 mt-16" style="animation-delay: 0.4s">
+        {socialLinks.map((l) => (
+          <a href={l.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full border border-[var(--primary)]/40 hover:border-[var(--primary)] flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-colors" aria-label={l.platform}>
+            <span class="text-xs italic">{l.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <p class="text-center text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic mt-10">— © {year} · {businessName} —</p>
+  </div>
+</section>
+
+<style>
+  .resto-fade-up { opacity: 0; transform: translateY(20px); animation: restoFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes restoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .resto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

@@ -46,16 +46,18 @@ const showItems = visibility?.galleryItems !== false;
         <h2
           class="reveal mb-8 font-bold leading-tight tracking-tight text-[var(--text)]"
           style="font-size: var(--fs-2xl); font-family: var(--heading-font, inherit);"
+          data-field="featured_headline"
+          set:html={headline}
         >
-          {headline}
         </h2>
       )}
       {showSubheadline && (
         <p
           class="reveal-delay-1 reveal mx-auto max-w-3xl leading-relaxed text-[var(--text-muted)] font-medium"
           style="font-size: var(--fs-lg);"
+          data-field="featured_subheadline"
+          set:html={subheadline}
         >
-          {subheadline}
         </p>
       )}
     </div>
@@ -93,11 +95,16 @@ const showItems = visibility?.galleryItems !== false;
             <h3
               class={`mb-6 font-bold leading-tight tracking-tight ${textColor}`}
               style="font-size: var(--fs-xl); font-family: var(--heading-font, inherit);"
+              data-field={`featured_products.${index}.title`}
+              set:html={item.title}
             >
-              {item.title}
             </h3>
-            <p class={`mb-10 leading-[1.6] ${descColor} font-medium`} style="font-size: var(--fs-base);">
-              {item.description}
+            <p
+              class={`mb-10 leading-[1.6] ${descColor} font-medium`}
+              style="font-size: var(--fs-base);"
+              data-field={`featured_products.${index}.description`}
+              set:html={item.description}
+            >
             </p>
 
             {/* Tags */}

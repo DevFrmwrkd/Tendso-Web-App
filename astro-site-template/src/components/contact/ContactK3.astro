@@ -1,0 +1,130 @@
+---
+/**
+ * ContactK3 - Barber Shop / Reservation Card
+ * Like a fancy reservation card you'd save in your wallet.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+const year = new Date().getFullYear();
+---
+
+<section id="contact" class="relative w-full bg-[var(--text)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="absolute inset-0 opacity-[0.04] pointer-events-none" style="background-image: repeating-linear-gradient(90deg, transparent 0 4px, var(--accent) 4px 5px);"></div>
+
+  <div class="relative z-10 mx-auto max-w-2xl px-6 lg:px-12">
+
+    <div class="text-center mb-12">
+      <div class="barber-fade-up inline-flex items-center gap-4 mb-6">
+        <span class="h-px w-12 bg-[var(--accent)]"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--accent)]">— Reservations —</span>
+        <span class="h-px w-12 bg-[var(--accent)]"></span>
+      </div>
+      <h2 class="barber-fade-up font-bold leading-[1] tracking-tight text-[var(--bg)] mb-3" style="font-size: clamp(2.5rem, 6vw, 4.5rem); animation-delay: 0.1s;">
+        Reserve your chair
+      </h2>
+    </div>
+
+    {/* The reservation card */}
+    <div class="barber-card barber-fade-up bg-[var(--bg)] p-8 sm:p-10 relative shadow-[0_50px_100px_-25px_rgba(0,0,0,0.7)]" style="animation-delay: 0.3s">
+      {/* Perforated edges decoration */}
+      <div class="absolute -top-1 inset-x-4 h-2" style="background-image: radial-gradient(circle at 1px 50%, var(--text) 0 1px, transparent 1.5px); background-size: 8px 100%;"></div>
+      <div class="absolute -bottom-1 inset-x-4 h-2" style="background-image: radial-gradient(circle at 1px 50%, var(--text) 0 1px, transparent 1.5px); background-size: 8px 100%;"></div>
+
+      {/* Card header */}
+      <div class="text-center border-b-2 border-dashed border-[var(--primary)]/30 pb-6 mb-6">
+        <p class="text-[var(--accent)] text-3xl mb-1">✂</p>
+        <h3 class="text-2xl font-bold text-[var(--primary)] italic" style="font-size: 1.85rem;">{businessName}</h3>
+        <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)]/70 italic mt-1">— Master Barbers —</p>
+      </div>
+
+      {/* Reservation fields */}
+      <dl class="space-y-5 mb-6">
+        <div class="flex items-start gap-4 pb-4 border-b border-dotted border-[var(--primary)]/20">
+          <dt class="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--primary)] w-24 shrink-0 pt-1.5">Call</dt>
+          <dd>
+            <a href={`tel:${phone}`} class="text-2xl font-bold text-[var(--text)] hover:text-[var(--primary)] transition-colors italic block" style="font-size: 1.65rem;">{phone}</a>
+            <p class="text-xs text-[var(--primary)]/70 italic mt-1">Available during shop hours</p>
+          </dd>
+        </div>
+
+        {email && (
+          <div class="flex items-start gap-4 pb-4 border-b border-dotted border-[var(--primary)]/20">
+            <dt class="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--primary)] w-24 shrink-0 pt-1.5">Email</dt>
+            <dd>
+              <a href={`mailto:${email}`} class="text-base text-[var(--text)] hover:text-[var(--primary)] italic break-all transition-colors">{email}</a>
+            </dd>
+          </div>
+        )}
+
+        {address && (
+          <div class="flex items-start gap-4 pb-4 border-b border-dotted border-[var(--primary)]/20">
+            <dt class="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--primary)] w-24 shrink-0 pt-1.5">Visit</dt>
+            <dd>
+              <p class="text-base text-[var(--text)] italic leading-relaxed">{address}</p>
+            </dd>
+          </div>
+        )}
+
+        <div class="flex items-start gap-4">
+          <dt class="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--primary)] w-24 shrink-0 pt-1.5">Hours</dt>
+          <dd class="text-base text-[var(--text)] italic">
+            <p>Mon–Fri 9–8 · Sat 9–9 · Sun 10–6</p>
+          </dd>
+        </div>
+      </dl>
+
+      {/* CTA */}
+      <a href={`tel:${phone}`} class="block bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] py-4 text-center text-xs font-bold uppercase tracking-[0.45em] transition-colors">
+        ✂ Call to reserve
+      </a>
+
+      {/* Wax seal */}
+      <div class="absolute -bottom-6 -right-4 w-16 h-16 rounded-full bg-[var(--primary)] border-4 border-[var(--primary)] flex items-center justify-center shadow-xl rotate-12">
+        <span class="text-[var(--accent)] text-xl">✂</span>
+      </div>
+
+      {/* Reservation number */}
+      <p class="text-center text-[9px] uppercase tracking-[0.5em] text-[var(--primary)]/50 mt-6 italic">
+        — N° {Math.floor(Math.random() * 9000 + 1000)} · {year} —
+      </p>
+    </div>
+
+    {showSocial && (
+      <div class="barber-fade-up flex justify-center gap-3 mt-10" style="animation-delay: 0.5s">
+        {socialLinks.map((link) => (
+          <a href={link.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 border border-[var(--accent)]/30 flex items-center justify-center text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--text)] transition-all" aria-label={link.platform}>
+            <span class="text-xs font-bold uppercase">{link.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .barber-fade-up { opacity: 0; transform: translateY(20px); animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+  .barber-card { opacity: 0; transform: translateY(40px) rotate(-2deg); animation: barberCardReveal 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes barberCardReveal { to { opacity: 1; transform: translateY(0) rotate(0); } }
+  @media (prefers-reduced-motion: reduce) { .barber-fade-up, .barber-card { animation: none; opacity: 1; transform: none; } }
+</style>

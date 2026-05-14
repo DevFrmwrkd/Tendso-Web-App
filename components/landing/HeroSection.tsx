@@ -1,16 +1,13 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Phone, Download, ShieldCheck } from "lucide-react";
+import { Download, Wallet, ArrowDown } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 
-import DashboardImg from "@/public/dashboard.png";
-
-const PHONE_DISPLAY = "0967 145 5245";
-const PHONE_TEL = "tel:+639671455245";
+import HeroImg from "@/public/Images/hero-image.png";
 
 export default function HeroSection() {
   const apkUrl = useQuery(api.settings.get, { key: "apk_download_url" }) as string | null;
@@ -85,9 +82,9 @@ export default function HeroSection() {
             transition={{ duration: 0.5 }}
             className="mb-6 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-emerald-200 bg-emerald-50"
           >
-            <ShieldCheck className="w-4 h-4 text-emerald-700" />
+            <Wallet className="w-4 h-4 text-emerald-700" />
             <span className="text-xs font-semibold tracking-wide text-emerald-800">
-              Live websites for Filipino local businesses
+              Side hustle · paid in cash to your Wise wallet
             </span>
           </motion.div>
 
@@ -97,8 +94,8 @@ export default function HeroSection() {
             style={{ fontFamily: "var(--font-fraunces)" }}
             className="text-[2.5rem] leading-[1.05] sm:text-5xl md:text-6xl lg:text-7xl font-semibold tracking-tight text-neutral-900 mb-5"
           >
-            Your business,<br />
-            <span className="text-emerald-700 italic">online in 48 hours.</span>
+            Earn ₱300–₱500<br />
+            <span className="text-emerald-700 italic">every time a local business says yes.</span>
           </motion.h1>
 
           <motion.p
@@ -106,7 +103,7 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-base sm:text-lg md:text-xl text-neutral-700 max-w-xl mb-3 leading-relaxed"
           >
-            Real coded websites for local businesses — barber shops, restaurants, salons, auto repair, clinics, and more. <span className="font-semibold text-neutral-900">₱1,000 one-time.</span> No monthly fees.
+            We pay you to record one short interview at a local shop — barber shops, restaurants, salons, auto repair. <span className="font-semibold text-neutral-900">Our AI builds the website.</span> You get paid to your Wise wallet.
           </motion.p>
 
           <motion.p
@@ -114,7 +111,7 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="text-sm text-neutral-600 max-w-xl mb-10 italic"
           >
-            You only pay when your website is live.
+            No selling. No deposits. No tech needed.
           </motion.p>
 
           <motion.div
@@ -122,36 +119,35 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto"
           >
-            {/* PRIMARY: Phone CTA (black bg, max contrast) */}
-            <a
-              href={PHONE_TEL}
-              className="group flex items-center justify-center gap-3 bg-neutral-900 hover:bg-black text-white px-6 sm:px-7 py-4 rounded-full font-semibold text-base sm:text-lg transition-transform hover:scale-[1.02] shadow-lg shadow-neutral-900/15 min-h-[52px]"
-              aria-label={`Call us at ${PHONE_DISPLAY}`}
-            >
-              <Phone className="w-5 h-5 text-emerald-400 group-hover:rotate-12 transition-transform" />
-              <span>Call us: {PHONE_DISPLAY}</span>
-            </a>
-
-            {/* SECONDARY: Install App */}
+            {/* PRIMARY: Start earning — Install creator app */}
             {apkUrl ? (
               <button
                 onClick={handleInstall}
                 disabled={downloading}
-                className="group flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-4 rounded-full font-semibold text-base transition-colors disabled:opacity-70 min-h-[52px]"
+                className="group flex items-center justify-center gap-3 bg-neutral-900 hover:bg-black text-white px-6 sm:px-7 py-4 rounded-full font-semibold text-base sm:text-lg transition-transform hover:scale-[1.02] shadow-lg shadow-neutral-900/15 min-h-[52px] disabled:opacity-70"
               >
-                <Download className={`w-5 h-5 ${downloading ? "animate-bounce" : "group-hover:translate-y-0.5 transition-transform"}`} />
-                {downloading ? "Downloading…" : "Install App"}
+                <Download className={`w-5 h-5 text-emerald-400 ${downloading ? "animate-bounce" : "group-hover:translate-y-0.5 transition-transform"}`} />
+                <span>{downloading ? "Downloading…" : "Start earning · install app"}</span>
               </button>
             ) : (
               <button
                 disabled
-                className="flex items-center justify-center gap-2 bg-neutral-100 text-neutral-400 px-6 py-4 rounded-full font-semibold text-base cursor-not-allowed min-h-[52px]"
+                className="flex items-center justify-center gap-3 bg-neutral-900 text-white/50 px-6 sm:px-7 py-4 rounded-full font-semibold text-base sm:text-lg min-h-[52px] cursor-not-allowed"
                 aria-label="App install currently unavailable"
               >
                 <Download className="w-5 h-5" />
-                Install App
+                Start earning · install app
               </button>
             )}
+
+            {/* SECONDARY: Business owner anchor */}
+            <a
+              href="#for-business"
+              className="group flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-4 rounded-full font-semibold text-base transition-colors min-h-[52px]"
+            >
+              I own a business
+              <ArrowDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
+            </a>
           </motion.div>
 
 
@@ -164,27 +160,31 @@ export default function HeroSection() {
           transition={{ duration: 0.7, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="relative w-full max-w-md mx-auto lg:max-w-none"
         >
-          <div className="absolute -inset-4 bg-emerald-100/50 rounded-[3rem] blur-2xl pointer-events-none" />
-          <div className="relative rounded-3xl p-1.5 bg-white shadow-2xl shadow-emerald-900/10 border border-neutral-200">
+          {/* Layered emerald halos — give the floating phone real depth */}
+          <div className="absolute inset-0 -m-12 bg-gradient-to-br from-emerald-200/50 via-emerald-100/40 to-transparent rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute inset-0 -m-4 bg-emerald-300/20 rounded-full blur-3xl pointer-events-none" />
+
+          {/* Phone mockup — transparent PNG, floats freely, subtle lift on hover */}
+          <div className="relative flex items-center justify-center group">
             <Image
-              src={DashboardImg}
-              alt="Preview of a business owner's dashboard inside the Negosyo Digital app"
+              src={HeroImg}
+              alt="Negosyo Digital creators interviewing local business owners — side-hustle income to your Wise wallet"
               width={800}
               height={1600}
-              className="w-full h-auto rounded-2xl border border-neutral-100 object-cover max-h-[520px] sm:max-h-[600px] object-top"
+              className="w-full h-auto max-h-[640px] object-contain drop-shadow-[0_40px_80px_rgba(6,95,70,0.30)] transition-transform duration-500 ease-out group-hover:-translate-y-2"
               priority
-              sizes="(max-width: 1024px) 90vw, 520px"
+              sizes="(max-width: 1024px) 90vw, 640px"
             />
           </div>
 
-          {/* Single trust chip — concrete facts, no fluff */}
-          <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 lg:left-auto lg:right-4 lg:translate-x-0 bg-white px-5 py-3 rounded-2xl shadow-xl shadow-emerald-900/10 border border-emerald-100 flex items-center gap-3 whitespace-nowrap">
+          {/* Floating trust chip — what creators earn per gig */}
+          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 lg:left-auto lg:right-0 lg:translate-x-0 bg-white px-5 py-3 rounded-2xl shadow-xl shadow-emerald-900/15 border border-emerald-100 flex items-center gap-3 whitespace-nowrap">
             <div className="w-10 h-10 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-emerald-700" />
+              <Wallet className="w-5 h-5 text-emerald-700" />
             </div>
             <div className="text-left">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">What you get</p>
-              <p className="text-sm font-semibold text-neutral-900">Real coded · 48 hours · ₱1,000</p>
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-emerald-700">Per business</p>
+              <p className="text-sm font-semibold text-neutral-900">₱300 audio · ₱500 video · paid via Wise</p>
             </div>
           </div>
         </motion.div>

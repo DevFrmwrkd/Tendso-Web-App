@@ -1,0 +1,215 @@
+---
+/**
+ * ContactN - Restaurant / Reservation Desk
+ * Warm cream background with terracotta accents, reservation-focused layout.
+ * Hours displayed elegantly, phone-prominent, "We're saving a table for you" warmth.
+ * Vibe: a personal invitation to dine.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  whatsapp?: string;
+  messenger?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  description,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.contactHeadline !== false;
+const showDescription = visibility?.contactDescription !== false && !!description;
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+
+const year = new Date().getFullYear();
+
+const hours = [
+  { day: 'Monday', time: 'Closed', closed: true },
+  { day: 'Tuesday – Thursday', time: '11:30 – 22:00', closed: false },
+  { day: 'Friday – Saturday', time: '11:30 – 23:00', closed: false },
+  { day: 'Sunday', time: '11:00 – 21:00', closed: false },
+];
+---
+
+<section
+  id="contact"
+  class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  {/* Warm blobs */}
+  <div class="absolute -top-32 -left-20 w-[500px] h-[500px] rounded-full bg-[#fbe9c8] opacity-40 blur-[120px] pointer-events-none"></div>
+  <div class="absolute -bottom-32 -right-20 w-[500px] h-[500px] rounded-full bg-[#dde0c4] opacity-40 blur-[120px] pointer-events-none"></div>
+
+  {/* Top ornamental rule */}
+  <div class="absolute top-10 left-1/2 -translate-x-1/2 flex items-center gap-5 z-10">
+    <span class="h-px w-16 bg-[var(--primary)]/40"></span>
+    <span class="text-[var(--accent)] text-xl rest-flourish-pulse">❋</span>
+    <span class="h-px w-16 bg-[var(--primary)]/40"></span>
+  </div>
+
+  <div class="relative z-10 mx-auto max-w-5xl px-6 lg:px-12 mt-12">
+
+    {/* Header */}
+    {showHeadline && (
+      <div class="text-center mb-12">
+        <div class="rest-fade-up inline-flex items-center gap-3 mb-6">
+          <span class="text-[var(--primary)]">✦</span>
+          <span class="text-[11px] uppercase tracking-[0.45em] text-[var(--primary)] italic">— Visit & Reserve —</span>
+          <span class="text-[var(--primary)]">✦</span>
+        </div>
+
+        <h2
+          class="rest-fade-up font-normal leading-[1.05] tracking-tight text-[var(--text)] mb-6"
+          style="font-size: clamp(3rem, 6vw, 5.5rem); animation-delay: 0.1s;"
+        >
+          A table for <span class="italic text-[var(--primary)]">you</span>
+        </h2>
+
+        {showDescription && (
+          <p
+            class="rest-fade-up max-w-xl mx-auto text-[var(--text-muted)] italic font-light"
+            style="font-size: 1.15rem; animation-delay: 0.2s;"
+          >
+            {description}
+          </p>
+        )}
+      </div>
+    )}
+
+    {/* Reservation card */}
+    <div class="rest-fade-up bg-[var(--text)] text-[var(--bg)] p-8 md:p-12 lg:p-16 mb-12 relative overflow-hidden" style="animation-delay: 0.3s">
+
+      {/* Corner ornaments */}
+      <div class="absolute top-4 left-4 w-8 h-8 border-t-2 border-l-2 border-[var(--accent)]"></div>
+      <div class="absolute top-4 right-4 w-8 h-8 border-t-2 border-r-2 border-[var(--accent)]"></div>
+      <div class="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[var(--accent)]"></div>
+      <div class="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[var(--accent)]"></div>
+
+      <div class="text-center">
+        <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic mb-4">— Reservations —</p>
+        <a
+          href={`tel:${phone}`}
+          class="block text-3xl md:text-5xl lg:text-6xl font-normal text-[var(--bg)] hover:text-[var(--accent)] transition-colors tracking-wide leading-tight"
+        >
+          {phone}
+        </a>
+        {email && (
+          <a
+            href={`mailto:${email}`}
+            class="block mt-4 text-sm italic text-[var(--bg)]/70 hover:text-[var(--accent)] transition-colors break-all"
+          >
+            {email}
+          </a>
+        )}
+
+        <div class="my-8 flex items-center justify-center gap-3">
+          <span class="h-px w-12 bg-[var(--accent)]/40"></span>
+          <span class="text-[var(--accent)] text-xs">✦</span>
+          <span class="h-px w-12 bg-[var(--accent)]/40"></span>
+        </div>
+
+        {/* CTA */}
+        <a
+          href={`tel:${phone}`}
+          class="inline-flex items-center justify-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] px-10 py-4 text-xs font-medium uppercase tracking-[0.4em] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-12px_rgba(196,90,58,0.5)]"
+          style="border-radius: 999px;"
+        >
+          <span>✦</span> Book a table <span>✦</span>
+        </a>
+      </div>
+    </div>
+
+    {/* Hours + Address grid */}
+    {showInfo && (
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+
+        {/* Hours */}
+        <div class="rest-fade-up bg-[var(--surface)] border border-[var(--primary)]/15 p-8 lg:p-10" style="animation-delay: 0.4s">
+          <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--primary)] italic text-center mb-6">— Hours —</p>
+          <ul class="space-y-3">
+            {hours.map((h) => (
+              <li class="flex items-center justify-between py-2 border-b border-dotted border-[var(--primary)]/15 last:border-b-0">
+                <span class="text-base text-[var(--text)] italic">{h.day}</span>
+                <span class={`text-base italic ${h.closed ? 'text-[var(--text-muted)]/50' : 'text-[var(--primary)]'}`}>{h.time}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Address */}
+        {address && (
+          <div class="rest-fade-up bg-[var(--surface)] border border-[var(--primary)]/15 p-8 lg:p-10 flex flex-col" style="animation-delay: 0.5s">
+            <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--primary)] italic text-center mb-6">— Find us —</p>
+            <p class="text-base lg:text-lg text-[var(--text)] italic leading-relaxed text-center flex-1 flex items-center justify-center">
+              {address}
+            </p>
+            <div class="mt-6 flex items-center justify-center gap-2">
+              <span class="text-[var(--accent)] text-xs">❋</span>
+              <span class="text-[10px] uppercase tracking-[0.4em] text-[var(--text-muted)]/60 italic">Walk-ins welcome</span>
+              <span class="text-[var(--accent)] text-xs">❋</span>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* Social */}
+    {showSocial && (
+      <div class="rest-fade-up flex justify-center gap-3 mb-12" style="animation-delay: 0.6s">
+        {socialLinks.map((link) => (
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-12 h-12 rounded-full border border-[var(--primary)]/30 flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-all hover:-translate-y-1"
+            aria-label={link.platform}
+          >
+            <span class="text-xs font-medium uppercase italic">{link.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    {/* Signature flourish */}
+    <div class="rest-fade-up flex flex-col items-center gap-2 pt-8 border-t border-[var(--primary)]/15" style="animation-delay: 0.7s">
+      <span class="text-[var(--accent)] text-2xl rest-flourish-pulse">❋</span>
+      <p class="text-base italic text-[var(--text)]" style="font-size: 1.25rem;">— {businessName} —</p>
+      <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--text-muted)]/60 italic">est. © {year} · Bon appétit</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .rest-fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: restFadeUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes restFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  .rest-flourish-pulse {
+    display: inline-block;
+    animation: restFlourish 4s ease-in-out infinite;
+  }
+  @keyframes restFlourish {
+    0%, 100% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(45deg) scale(1.1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rest-fade-up { animation-duration: 0.01ms; opacity: 1; transform: none; }
+    .rest-flourish-pulse { animation: none; }
+  }
+</style>

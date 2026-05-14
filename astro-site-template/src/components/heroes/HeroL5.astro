@@ -1,0 +1,168 @@
+---
+/**
+ * HeroL5 - Automobile Shop / Spec Sheet
+ * Data-dense technical spec sheet layout. Monospaced labels, tabular alignment,
+ * QR-style block, version stamp. Reads like a vehicle data plate or service manual cover.
+ */
+interface Props {
+  businessName: string;
+  headline: string;
+  description: string;
+  badgeText?: string;
+  testimonial?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryLink?: string;
+  photos: string[];
+  services?: Array<{ name: string; description: string }>;
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  headline,
+  description,
+  badgeText = 'Shop spec sheet · rev. 01',
+  testimonial,
+  ctaLabel = 'Request service',
+  ctaLink = '#contact',
+  ctaSecondaryLabel = 'Full catalog',
+  ctaSecondaryLink = '#services',
+  photos = [],
+  services = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+const year = new Date().getFullYear();
+
+const showHeadline = visibility?.heroHeadline !== false;
+const showTagline = visibility?.heroTagline !== false && !!badgeText;
+const showDescription = visibility?.heroDescription !== false;
+const showTestimonial = visibility?.heroTestimonial !== false && !!testimonial;
+const showButton = visibility?.heroButton !== false;
+const showImage = visibility?.heroImage !== false;
+
+// Spec rows
+const specs = [
+  { label: 'TYPE', value: 'Service Garage' },
+  { label: 'BAYS', value: '04 active' },
+  { label: 'RATE', value: 'Hourly · flat' },
+  { label: 'CARDS', value: 'Cash · GCash' },
+];
+---
+
+<section
+  id="hero"
+  class="relative w-full min-h-screen overflow-hidden bg-[var(--bg)] py-16 lg:py-20"
+  style="font-family: var(--body-font);"
+>
+  <div class="relative z-10 mx-auto max-w-6xl px-6 lg:px-10">
+
+    {/* Spec sheet frame */}
+    <div class="auto-fade-up bg-[var(--surface)] border-2 border-[var(--accent)]/50 relative" style="animation-delay: 0.05s">
+
+      {/* Sheet header bar */}
+      <div class="border-b-2 border-[var(--accent)]/50 px-6 py-3 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.3em]">
+        <span class="text-[var(--primary)]">// SPEC-SHEET</span>
+        <span class="text-[var(--text-muted)] hidden sm:inline">DOC ID · {businessName.toUpperCase().replace(/\s+/g, '-').slice(0, 16)}</span>
+        <span class="text-[var(--text-muted)]">REV {year}</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-0 lg:gap-8">
+
+        {/* LEFT side — labeled fields */}
+        <div class="p-6 lg:p-10 border-b lg:border-b-0 lg:border-r-2 border-[var(--accent)]/30">
+          {showTagline && (
+            <p class="text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--primary)] mb-6">{badgeText}</p>
+          )}
+
+          {showHeadline && (
+            <h1 class="font-black uppercase leading-[0.92] tracking-tight text-[var(--text)] mb-8" style="font-size: clamp(2.25rem, 5.5vw, 4rem);">
+              {headline}
+            </h1>
+          )}
+
+          {showDescription && (
+            <p class="text-[var(--text-muted)] leading-[1.7] mb-8" style="font-size: clamp(0.95rem, 1.15vw, 1.05rem);">
+              {description}
+            </p>
+          )}
+
+          {/* Spec table */}
+          <div class="border-t border-[var(--accent)]/30 mb-8">
+            {specs.map((s) => (
+              <div class="flex border-b border-[var(--accent)]/20 py-3 gap-4">
+                <span class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--accent)] w-20 shrink-0">{s.label}</span>
+                <span class="text-sm text-[var(--text)] font-mono">{s.value}</span>
+              </div>
+            ))}
+          </div>
+
+          {showButton && (
+            <div class="flex flex-col sm:flex-row gap-3">
+              <a href={ctaLink} class="group inline-flex items-center justify-center gap-3 bg-[var(--primary)] text-[var(--bg)] px-7 py-3.5 text-[11px] font-black uppercase tracking-[0.35em] transition-all hover:-translate-y-0.5">
+                {ctaLabel} <span>→</span>
+              </a>
+              <a href={ctaSecondaryLink} class="inline-flex items-center justify-center gap-3 border-2 border-[var(--accent)]/50 hover:border-[var(--accent)] text-[var(--text)] px-7 py-3.5 text-[11px] font-black uppercase tracking-[0.35em] transition-all">
+                {ctaSecondaryLabel}
+              </a>
+            </div>
+          )}
+        </div>
+
+        {/* RIGHT side — image + technical readout */}
+        <div class="p-6 lg:p-10 flex flex-col">
+          {showImage && (
+            <div class="relative aspect-[4/5] bg-[var(--bg)] overflow-hidden mb-5">
+              {mainPhoto ? (
+                <img src={mainPhoto} alt={businessName} class="absolute inset-0 w-full h-full object-cover" style="filter: contrast(1.15) saturate(0.85);" />
+              ) : (
+                <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-9xl">⚙</div>
+              )}
+              {/* Corner registration marks */}
+              <div class="absolute top-2 left-2 w-4 h-4 border-t border-l border-[var(--primary)]"></div>
+              <div class="absolute top-2 right-2 w-4 h-4 border-t border-r border-[var(--primary)]"></div>
+              <div class="absolute bottom-2 left-2 w-4 h-4 border-b border-l border-[var(--primary)]"></div>
+              <div class="absolute bottom-2 right-2 w-4 h-4 border-b border-r border-[var(--primary)]"></div>
+              {/* Fig label */}
+              <div class="absolute bottom-3 left-1/2 -translate-x-1/2 bg-[var(--surface)]/90 px-3 py-1">
+                <span class="text-[9px] font-mono uppercase tracking-[0.35em] text-[var(--text)]">FIG. 01</span>
+              </div>
+            </div>
+          )}
+
+          {/* Bottom: faux QR + signature */}
+          <div class="grid grid-cols-[80px_1fr] gap-4 items-center mt-auto">
+            <div class="aspect-square bg-[var(--bg)] grid grid-cols-5 grid-rows-5 gap-px p-1.5">
+              {Array.from({ length: 25 }).map((_, i) => (
+                <div class={`${[0, 2, 3, 6, 8, 12, 13, 14, 17, 18, 21, 23, 24].includes(i) ? 'bg-[var(--primary)]' : 'bg-[var(--surface)]'}`}></div>
+              ))}
+            </div>
+            <div class="flex-1">
+              <p class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--accent)] mb-2">SIGNED · CHIEF MECH.</p>
+              <p class="text-2xl italic text-[var(--primary)] font-bold">{businessName}</p>
+              {showTestimonial && (
+                <p class="text-[10px] italic text-[var(--text-muted)] mt-1">"{testimonial}"</p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sheet footer bar */}
+      <div class="border-t-2 border-[var(--accent)]/50 px-6 py-2 flex items-center justify-between text-[9px] font-mono uppercase tracking-[0.3em] text-[var(--text-muted)]">
+        <span>SHEET 1 OF 1</span>
+        <span class="hidden sm:inline">DO NOT REPRODUCE</span>
+        <span>PAGE · 001</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .auto-fade-up { opacity: 0; transform: translateY(20px); animation: autoFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .auto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

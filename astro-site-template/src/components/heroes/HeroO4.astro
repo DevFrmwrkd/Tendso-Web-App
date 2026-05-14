@@ -1,0 +1,131 @@
+---
+/**
+ * HeroO4 - Clinic / Wellness Center
+ * Holistic wellness focus. Calmer, integrated-care feel.
+ * Sage-green ambiance, mindfulness language, "whole-person" framing.
+ */
+interface Props {
+  businessName: string;
+  headline: string;
+  description: string;
+  badgeText?: string;
+  testimonial?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryLink?: string;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  headline,
+  description,
+  badgeText = 'Integrative wellness · whole-person care',
+  testimonial,
+  ctaLabel = 'Begin your visit',
+  ctaLink = '#contact',
+  ctaSecondaryLabel = 'Our approach',
+  ctaSecondaryLink = '#services',
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+
+const showHeadline = visibility?.heroHeadline !== false;
+const showTagline = visibility?.heroTagline !== false && !!badgeText;
+const showDescription = visibility?.heroDescription !== false;
+const showTestimonial = visibility?.heroTestimonial !== false && !!testimonial;
+const showButton = visibility?.heroButton !== false;
+const showImage = visibility?.heroImage !== false;
+---
+
+<section id="hero" class="relative w-full min-h-screen overflow-hidden bg-[var(--bg)] flex items-center" style="font-family: var(--body-font);">
+  {/* Soft wellness wash */}
+  <div class="absolute top-0 -right-32 w-[600px] h-[600px] rounded-full opacity-[0.08] blur-[120px]" style="background: var(--accent);"></div>
+  <div class="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full opacity-[0.06] blur-[120px]" style="background: var(--primary);"></div>
+
+  <div class="relative z-10 mx-auto max-w-6xl px-6 lg:px-12 py-20 w-full">
+
+    {/* Centered narrative layout */}
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      {showTagline && (
+        <div class="clinic-fade-up inline-flex items-center gap-3 mb-8 bg-[var(--accent)]/12 px-5 py-2 rounded-full">
+          <svg class="w-4 h-4 text-[var(--accent)]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 8 8 16 12 22C16 16 16 8 12 2Z"/></svg>
+          <span class="text-[11px] font-semibold tracking-wide text-[var(--accent)]">{badgeText}</span>
+        </div>
+      )}
+
+      {showHeadline && (
+        <h1 class="clinic-fade-up font-light leading-[1.05] tracking-tight text-[var(--text)] mb-6" style="font-family: var(--heading-font); font-size: clamp(2.5rem, 6.5vw, 5.25rem); animation-delay: 0.1s;">
+          {headline}
+        </h1>
+      )}
+
+      {/* Soft leaf divider */}
+      <div class="clinic-fade-up flex items-center justify-center gap-3 mb-8" style="animation-delay: 0.2s">
+        <span class="h-px w-12 bg-[var(--accent)]/40"></span>
+        <svg class="w-4 h-4 text-[var(--accent)]" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8 8 8 16 12 22C16 16 16 8 12 2Z"/></svg>
+        <span class="h-px w-12 bg-[var(--accent)]/40"></span>
+      </div>
+
+      {showDescription && (
+        <p class="clinic-fade-up text-[var(--text-muted)] leading-[1.8] mb-10 max-w-xl mx-auto" style="font-size: clamp(1.05rem, 1.3vw, 1.2rem); animation-delay: 0.3s;">
+          {description}
+        </p>
+      )}
+
+      {showButton && (
+        <div class="clinic-fade-up flex flex-col sm:flex-row gap-3 justify-center mb-10" style="animation-delay: 0.4s">
+          <a href={ctaLink} class="group inline-flex items-center justify-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--bg)] px-8 py-4 text-sm font-semibold rounded-full transition-all hover:-translate-y-0.5 hover:shadow-lg">
+            {ctaLabel}
+            <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href={ctaSecondaryLink} class="inline-flex items-center justify-center gap-2 border-2 border-[var(--accent)]/30 hover:border-[var(--accent)] text-[var(--accent)] px-8 py-4 text-sm font-semibold rounded-full transition-all">
+            {ctaSecondaryLabel}
+          </a>
+        </div>
+      )}
+    </div>
+
+    {/* Photo + four-pillar row */}
+    {showImage && (
+      <div class="clinic-fade-up max-w-5xl mx-auto" style="animation-delay: 0.5s">
+        <div class="relative aspect-[16/8] overflow-hidden bg-[var(--surface)] rounded-3xl mb-6">
+          {mainPhoto ? (
+            <img src={mainPhoto} alt={businessName} class="absolute inset-0 w-full h-full object-cover" />
+          ) : (
+            <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-9xl">🌿</div>
+          )}
+          <div class="absolute inset-0 bg-gradient-to-tr from-[var(--accent)]/10 to-transparent"></div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Mind', body: 'Stress · sleep · cognition' },
+            { label: 'Body', body: 'Movement · nutrition · vitals' },
+            { label: 'Sleep', body: 'Rest · recovery · routine' },
+            { label: 'Daily', body: 'Habits · check-ins · plans' },
+          ].map((p) => (
+            <div class="bg-[var(--surface)] rounded-2xl p-4 text-center border border-[var(--text)]/10">
+              <p class="text-sm font-bold text-[var(--accent)] mb-1">{p.label}</p>
+              <p class="text-[10px] text-[var(--text-muted)] leading-tight">{p.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {showTestimonial && (
+      <p class="clinic-fade-up text-center italic text-sm text-[var(--text-muted)] mt-10 max-w-md mx-auto" style="animation-delay: 0.6s">"{testimonial}"</p>
+    )}
+  </div>
+</section>
+
+<style>
+  .clinic-fade-up { opacity: 0; transform: translateY(20px); animation: clinicFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes clinicFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .clinic-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

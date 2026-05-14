@@ -45,8 +45,9 @@ export default function Footer() {
               Product
             </h4>
             <Link href="#how-it-works" className="text-white/70 hover:text-white text-sm transition-colors">How it works</Link>
+            <Link href="#earnings" className="text-white/70 hover:text-white text-sm transition-colors">Creator earnings</Link>
             <Link href="#showcase" className="text-white/70 hover:text-white text-sm transition-colors">Live sites</Link>
-            <Link href="#pricing" className="text-white/70 hover:text-white text-sm transition-colors">Pricing</Link>
+            <Link href="#for-business" className="text-white/70 hover:text-white text-sm transition-colors">For business owners</Link>
             <Link href="/creators" className="text-white/70 hover:text-white text-sm transition-colors flex items-center gap-1 group">
               Earn as a creator
               <ArrowUpRight className="w-3.5 h-3.5 opacity-60 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />

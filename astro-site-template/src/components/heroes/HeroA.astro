@@ -54,22 +54,24 @@ const showImage = visibility?.heroImage !== false;
         <div class="reveal mb-10 w-fit items-center gap-4 rounded-full border border-[var(--text)]/10 bg-[var(--surface)] px-6 py-3 shadow-xl shadow-black/5">
           <span class="flex items-center gap-3">
             <span class="h-3 w-3 rounded-full bg-[var(--primary)] shadow-[0_0_15px_var(--primary)] animate-pulse-dot"></span>
-            <span class="text-[var(--fs-xs)] font-bold uppercase tracking-[0.25em] text-[var(--text-muted)]">{badgeText}</span>
+            <span class="text-[var(--fs-xs)] font-bold uppercase tracking-[0.25em] text-[var(--text-muted)]" data-field="hero_badge_text" set:html={badgeText}></span>
           </span>
         </div>
       )}
 
       {showHeadline && (
         <h1 class="reveal-delay-1 reveal mb-8 font-bold leading-[1.05] tracking-tight text-[var(--text)]"
-            style="font-size: var(--fs-display); font-family: var(--heading-font, inherit);">
-          {headline}
+            style="font-size: var(--fs-display); font-family: var(--heading-font, inherit);"
+            data-field="tagline"
+            set:html={headline}>
         </h1>
       )}
 
       {showDescription && (
         <p class="reveal-delay-2 reveal mb-14 max-w-[500px] leading-[1.6] text-[var(--text-muted)] font-medium"
-           style="font-size: var(--fs-lg);">
-          {description}
+           style="font-size: var(--fs-lg);"
+           data-field="about"
+           set:html={description}>
         </p>
       )}
 
@@ -77,7 +79,7 @@ const showImage = visibility?.heroImage !== false;
         <div class="reveal-delay-3 reveal">
           <a href={ctaLink}
              class="group inline-flex w-fit items-center justify-center gap-4 rounded-full bg-[var(--primary)] px-10 py-6 text-[var(--fs-sm)] font-bold uppercase tracking-widest text-[var(--text-inverse)] transition-all duration-500 hover:scale-105 hover:shadow-[0_20px_50px_rgba(var(--primary-rgb),0.4)] hover:-translate-y-1">
-            {ctaLabel}
+            <span data-field="hero_cta.label" set:html={ctaLabel}></span>
             <span class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--text-inverse)] text-[var(--primary)] transition-all duration-500 group-hover:rotate-[360deg]">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M7 7h10v10"></path>
@@ -113,7 +115,7 @@ const showImage = visibility?.heroImage !== false;
                   </svg>
                 ))}
               </div>
-              <p class="text-[var(--fs-xs)] font-bold italic leading-[1.6] text-[var(--text)] tracking-tight">"{testimonial}"</p>
+              <p class="text-[var(--fs-xs)] font-bold italic leading-[1.6] text-[var(--text)] tracking-tight">&ldquo;<span data-field="hero_testimonial" set:html={testimonial}></span>&rdquo;</p>
             </div>
           )}
         </div>

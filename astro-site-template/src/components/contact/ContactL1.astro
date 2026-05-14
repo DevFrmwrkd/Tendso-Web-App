@@ -1,0 +1,235 @@
+---
+/**
+ * ContactL - Automobile Shop / Operations Desk
+ * Dark workshop with safety-stripe borders, technical info dashboard layout.
+ * Status indicators, operating hours dashboard, emergency call prominence.
+ * Vibe: garage front desk, no-frills service hours sign.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  whatsapp?: string;
+  messenger?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  description,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.contactHeadline !== false;
+const showDescription = visibility?.contactDescription !== false && !!description;
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+
+const year = new Date().getFullYear();
+
+const hours = [
+  { day: 'MON', time: '08:00 – 18:00', status: 'OPEN' },
+  { day: 'TUE', time: '08:00 – 18:00', status: 'OPEN' },
+  { day: 'WED', time: '08:00 – 18:00', status: 'OPEN' },
+  { day: 'THU', time: '08:00 – 18:00', status: 'OPEN' },
+  { day: 'FRI', time: '08:00 – 18:00', status: 'OPEN' },
+  { day: 'SAT', time: '09:00 – 16:00', status: 'OPEN' },
+  { day: 'SUN', time: '—', status: 'CLOSED' },
+];
+---
+
+<section
+  id="contact"
+  class="relative w-full bg-[var(--surface)] py-24 md:py-32 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  {/* Safety stripes top */}
+  <div class="absolute top-0 inset-x-0 h-2"
+       style="background-image: repeating-linear-gradient(135deg, var(--primary) 0 12px, var(--bg) 12px 24px);">
+  </div>
+
+  {/* Blueprint grid */}
+  <div
+    class="absolute inset-0 opacity-[0.04] pointer-events-none"
+    style="background-image: linear-gradient(rgba(74,107,138,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(74,107,138,0.5) 1px, transparent 1px); background-size: 50px 50px;"
+  ></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    {/* Status strip */}
+    <div class="auto-fade-up mb-12 flex items-center justify-center gap-4 flex-wrap">
+      <span class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--primary)]/10 border border-[var(--primary)]/40">
+        <span class="w-2 h-2 rounded-full bg-[var(--primary)] animate-pulse"></span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--primary)]">BAY STATUS: ACCEPTING</span>
+      </span>
+    </div>
+
+    {/* Header */}
+    {showHeadline && (
+      <div class="text-center mb-14">
+        <div class="auto-fade-up inline-flex items-center gap-3 mb-4" style="animation-delay: 0.1s">
+          <span class="h-px w-10 bg-[var(--primary)]"></span>
+          <span class="text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--primary)]">// CONTACT.OPS</span>
+          <span class="h-px w-10 bg-[var(--primary)]"></span>
+        </div>
+        <h2
+          class="auto-fade-up font-black leading-[0.95] tracking-tight text-[var(--text)] uppercase"
+          style="font-size: clamp(2.5rem, 5.5vw, 4.5rem); animation-delay: 0.2s;"
+        >
+          {businessName}
+        </h2>
+        {showDescription && (
+          <p
+            class="auto-fade-up max-w-xl mx-auto mt-6 text-[var(--text-muted)]"
+            style="animation-delay: 0.3s;"
+          >
+            {description}
+          </p>
+        )}
+      </div>
+    )}
+
+    {/* Main grid — info + hours */}
+    {showInfo && (
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+
+        {/* LEFT — Quick contact panel */}
+        <div class="auto-fade-up bg-[var(--bg)] border border-[var(--accent)]/30 p-7 lg:p-9" style="animation-delay: 0.4s">
+
+          {/* Corner markers */}
+          <div class="relative">
+            {/* Phone */}
+            <a
+              href={`tel:${phone}`}
+              class="group block mb-6 pb-6 border-b border-[var(--accent)]/20"
+            >
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--primary)]">// CALL</span>
+                <span class="h-px flex-1 bg-[var(--accent)]/20"></span>
+              </div>
+              <p class="text-2xl lg:text-3xl font-black text-[var(--text)] tracking-wide group-hover:text-[var(--primary)] transition-colors">
+                {phone}
+              </p>
+              <p class="text-[10px] uppercase tracking-[0.3em] text-[var(--text-muted)] mt-1">Tap to call · Fastest response</p>
+            </a>
+
+            {/* Email */}
+            {email && (
+              <a
+                href={`mailto:${email}`}
+                class="group block mb-6 pb-6 border-b border-[var(--accent)]/20"
+              >
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--primary)]">// EMAIL</span>
+                  <span class="h-px flex-1 bg-[var(--accent)]/20"></span>
+                </div>
+                <p class="text-base lg:text-lg font-bold text-[var(--text)] group-hover:text-[var(--primary)] transition-colors break-all">
+                  {email}
+                </p>
+              </a>
+            )}
+
+            {/* Address */}
+            {address && (
+              <div>
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--primary)]">// LOCATION</span>
+                  <span class="h-px flex-1 bg-[var(--accent)]/20"></span>
+                </div>
+                <p class="text-base font-bold text-[var(--text)] leading-relaxed">{address}</p>
+              </div>
+            )}
+          </div>
+
+          {/* CTA */}
+          <a
+            href={`tel:${phone}`}
+            class="mt-8 inline-flex w-full items-center justify-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] px-6 py-4 text-xs font-black uppercase tracking-[0.3em] transition-all hover:-translate-y-0.5"
+          >
+            ☎ Call now · Free quote
+          </a>
+        </div>
+
+        {/* RIGHT — Hours dashboard */}
+        <div class="auto-fade-up bg-[var(--bg)] border border-[var(--accent)]/30 p-7 lg:p-9" style="animation-delay: 0.5s">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--primary)]">// HOURS.OPS</span>
+            </div>
+            <span class="text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--accent)]">GMT+8</span>
+          </div>
+
+          <ul class="space-y-2">
+            {hours.map((h) => (
+              <li class="flex items-center justify-between py-2 px-3 border border-transparent hover:border-[var(--accent)]/30 transition-colors">
+                <div class="flex items-center gap-4 flex-1">
+                  <span class="text-xs font-mono font-bold uppercase tracking-[0.3em] text-[var(--text-muted)] w-10">{h.day}</span>
+                  <span class={`text-sm font-bold ${h.status === 'OPEN' ? 'text-[var(--text)]' : 'text-[var(--accent)]'}`}>{h.time}</span>
+                </div>
+                <span class={`text-[9px] font-mono font-bold uppercase tracking-[0.3em] px-2 py-1 ${h.status === 'OPEN' ? 'bg-[var(--primary)]/10 text-[var(--primary)]' : 'bg-[var(--accent)]/10 text-[var(--accent)]'}`}>
+                  {h.status}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    )}
+
+    {/* Social */}
+    {showSocial && (
+      <div class="auto-fade-up flex justify-center gap-3 mb-12" style="animation-delay: 0.6s">
+        {socialLinks.map((link) => (
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-11 h-11 border border-[var(--accent)]/40 flex items-center justify-center text-[var(--text-muted)] hover:bg-[var(--primary)] hover:text-[var(--bg)] hover:border-[var(--primary)] transition-all"
+            aria-label={link.platform}
+          >
+            <span class="text-xs font-bold uppercase">{link.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    {/* Footer signature */}
+    <div class="auto-fade-up flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-[var(--accent)]/20" style="animation-delay: 0.7s">
+      <div class="flex items-center gap-3">
+        <span class="text-[var(--primary)] text-lg">⚙</span>
+        <span class="text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--text-muted)]">
+          © {year} / {businessName}
+        </span>
+      </div>
+      <span class="text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--accent)]">
+        // CERTIFIED · LICENSED · INSURED
+      </span>
+    </div>
+  </div>
+
+  {/* Safety stripes bottom */}
+  <div class="absolute bottom-0 inset-x-0 h-2"
+       style="background-image: repeating-linear-gradient(135deg, var(--primary) 0 12px, var(--bg) 12px 24px);">
+  </div>
+</section>
+
+<style>
+  .auto-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: autoFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auto-fade-up { animation-duration: 0.01ms; opacity: 1; transform: none; }
+  }
+</style>

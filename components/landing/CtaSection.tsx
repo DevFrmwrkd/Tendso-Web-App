@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Phone, ArrowUpRight } from "lucide-react";
+import { Wallet, Phone, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 const PHONE_DISPLAY = "0967 145 5245";
@@ -42,38 +42,41 @@ export default function CtaSection() {
           style={{ fontFamily: "var(--font-fraunces)" }}
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.05] mb-6"
         >
-          Ready to take your <span className="italic text-emerald-400">negosyo</span> online?
+          Your first <span className="italic text-emerald-400">payout</span> is one interview away.
         </h2>
 
         <p className="text-white/75 text-lg sm:text-xl font-normal mb-10 max-w-xl leading-relaxed">
-          Call us. We&apos;ll explain everything in 15 minutes — no pressure, no commitment. You only pay ₱1,000 once your site is live.
+          Install the app, walk into one local shop, record a short interview. We do the rest. You get paid to your Wise wallet — usually within 24 hours.
         </p>
 
+        {/* Split CTA — creator primary, business secondary */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
-          <a
-            href={PHONE_TEL}
-            className="group flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-400 text-neutral-900 px-7 sm:px-8 py-4 sm:py-5 rounded-full font-bold text-base sm:text-lg transition-transform hover:scale-[1.02] shadow-2xl shadow-emerald-500/30 min-h-[56px]"
-            aria-label={`Call us now at ${PHONE_DISPLAY}`}
-          >
-            <Phone className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-            Call now: {PHONE_DISPLAY}
-          </a>
-
           <Link
-            href="#pricing"
+            href="/signup"
+            className="group flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-400 text-neutral-900 px-7 sm:px-8 py-4 sm:py-5 rounded-full font-bold text-base sm:text-lg transition-transform hover:scale-[1.02] shadow-2xl shadow-emerald-500/30 min-h-[56px]"
+          >
+            <Wallet className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+            Start earning
+            <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+
+          <a
+            href="#for-business"
             className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white px-7 py-4 rounded-full font-semibold text-base transition-colors border border-white/20 min-h-[56px]"
           >
-            See pricing
-          </Link>
+            I own a business
+          </a>
         </div>
 
-        <Link
-          href="/creators"
-          className="mt-10 inline-flex items-center gap-1.5 text-sm text-white/60 hover:text-emerald-300 transition-colors group"
+        {/* Business owner direct line — small, below */}
+        <a
+          href={PHONE_TEL}
+          className="mt-10 inline-flex items-center gap-2 text-sm text-white/60 hover:text-emerald-300 transition-colors group"
+          aria-label={`Business owners — call us at ${PHONE_DISPLAY}`}
         >
-          Looking to earn as a creator instead?
-          <ArrowUpRight className="w-4 h-4 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+          <Phone className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+          Business owner? Call us directly: <span className="font-semibold">{PHONE_DISPLAY}</span>
+        </a>
       </motion.div>
     </section>
   );

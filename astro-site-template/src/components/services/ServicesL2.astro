@@ -1,0 +1,121 @@
+---
+/**
+ * ServicesL2 - Automobile Shop / Package Pricing
+ * Three-tier service package layout (Basic / Standard / Premium).
+ * Industrial card style with featured center tier highlighted.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  services: Array<{ name: string; description: string; price?: string; icon?: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'Service packages',
+  subheadline = 'Pick the level that fits the rig. No hidden line items.',
+  services = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.servicesHeadline !== false;
+const showSubheadline = visibility?.servicesSubheadline !== false && !!subheadline;
+const showList = visibility?.servicesList !== false;
+
+// Build 3 tiered packages from services list
+const defaults = [
+  {
+    tier: 'BASIC',
+    name: 'Quick check',
+    price: '₱799',
+    items: ['Oil & filter change', 'Tire pressure check', 'Fluid top-up', 'Brake visual'],
+    featured: false,
+  },
+  {
+    tier: 'STANDARD',
+    name: 'Full service',
+    price: '₱2,499',
+    items: ['Full oil change', 'Brake inspection', 'Battery test', 'Engine diagnostic', 'Belt & hose check'],
+    featured: true,
+  },
+  {
+    tier: 'PREMIUM',
+    name: 'Pro overhaul',
+    price: '₱5,999',
+    items: ['Everything in Standard', 'Transmission service', 'Coolant flush', 'AC system check', 'Alignment & balance'],
+    featured: false,
+  },
+];
+
+const packages = services.length >= 3
+  ? services.slice(0, 3).map((s, i) => ({
+      tier: defaults[i].tier,
+      name: s.name,
+      price: s.price || defaults[i].price,
+      items: s.description ? s.description.split(/[.,;]+/).map(x => x.trim()).filter(Boolean).slice(0, 5) : defaults[i].items,
+      featured: i === 1,
+    }))
+  : defaults;
+---
+
+<section id="services" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-6xl px-6 lg:px-12">
+
+    <div class="text-center mb-16">
+      <div class="auto-fade-up inline-flex items-center gap-3 mb-5">
+        <span class="h-px w-10 bg-[var(--primary)]"></span>
+        <span class="text-[10px] font-bold font-mono uppercase tracking-[0.5em] text-[var(--primary)]">— Pricing tiers —</span>
+        <span class="h-px w-10 bg-[var(--primary)]"></span>
+      </div>
+      {showHeadline && (
+        <h2 class="auto-fade-up font-black uppercase leading-[0.95] tracking-tight text-[var(--text)] mb-5" style="font-size: clamp(2.5rem, 6vw, 4.5rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="auto-fade-up text-[var(--text-muted)] max-w-xl mx-auto leading-[1.7]" style="font-size: 1.05rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showList && (
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {packages.map((pkg, i) => (
+          <div
+            class={`auto-fade-up relative bg-[var(--surface)] p-7 transition-all hover:-translate-y-1 ${pkg.featured ? 'border-4 border-[var(--primary)] md:scale-105 shadow-[0_25px_50px_-15px_rgba(0,0,0,0.5)]' : 'border-2 border-[var(--accent)]/30'}`}
+            style={`animation-delay: ${0.25 + i * 0.1}s`}
+          >
+            {pkg.featured && (
+              <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--primary)] text-[var(--bg)] px-4 py-1 text-[10px] font-black font-mono uppercase tracking-[0.4em] whitespace-nowrap">★ Most picked</div>
+            )}
+
+            <p class="text-[10px] font-mono font-black uppercase tracking-[0.5em] text-[var(--primary)] mb-3">{pkg.tier}</p>
+            <h3 class="text-2xl font-black uppercase text-[var(--text)] mb-4 tracking-tight">{pkg.name}</h3>
+
+            <div class="flex items-baseline gap-1 mb-5 pb-5 border-b-2 border-dashed border-[var(--accent)]/30">
+              <span class="text-4xl font-black text-[var(--text)]">{pkg.price}</span>
+              <span class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--text-muted)]">/ visit</span>
+            </div>
+
+            <ul class="space-y-2.5 mb-6">
+              {pkg.items.map((item) => (
+                <li class="flex items-start gap-2 text-sm text-[var(--text-muted)]">
+                  <span class="text-[var(--primary)] mt-0.5 shrink-0">✓</span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <a href="#contact" class={`block text-center py-3 text-[11px] font-black font-mono uppercase tracking-[0.35em] transition-all ${pkg.featured ? 'bg-[var(--primary)] text-[var(--bg)] hover:-translate-y-0.5' : 'border-2 border-[var(--accent)]/50 hover:border-[var(--primary)] text-[var(--text)]'}`}>
+              Book this →
+            </a>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .auto-fade-up { opacity: 0; transform: translateY(20px); animation: autoFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .auto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

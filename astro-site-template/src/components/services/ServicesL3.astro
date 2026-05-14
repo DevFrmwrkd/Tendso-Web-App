@@ -1,0 +1,115 @@
+---
+/**
+ * ServicesL3 - Automobile Shop / Diagnostic Tree
+ * Flowchart-style decision tree of services with branching connections.
+ * "Symptom → likely service" visual mapping.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  services: Array<{ name: string; description: string; price?: string; icon?: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'Diagnostic tree',
+  subheadline = 'Tell us the symptom — we map it to the fix.',
+  services = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.servicesHeadline !== false;
+const showSubheadline = visibility?.servicesSubheadline !== false && !!subheadline;
+const showList = visibility?.servicesList !== false;
+
+const defaultBranches = [
+  {
+    symptom: 'Engine knocking',
+    code: 'P0301',
+    fixes: ['Spark plug check', 'Fuel injector clean', 'Timing belt'],
+  },
+  {
+    symptom: 'Brakes squealing',
+    code: 'BRK-02',
+    fixes: ['Pad replacement', 'Rotor resurface', 'Brake fluid flush'],
+  },
+  {
+    symptom: 'Battery dead',
+    code: 'ELC-04',
+    fixes: ['Battery test', 'Alternator check', 'Cable cleaning'],
+  },
+  {
+    symptom: 'AC not cold',
+    code: 'AC-09',
+    fixes: ['Refrigerant top-up', 'Compressor test', 'Cabin filter'],
+  },
+];
+
+const branches = services.length >= 4
+  ? services.slice(0, 4).map((s, i) => ({
+      symptom: s.name,
+      code: defaultBranches[i].code,
+      fixes: s.description ? s.description.split(/[.,;]+/).map(x => x.trim()).filter(Boolean).slice(0, 3) : defaultBranches[i].fixes,
+    }))
+  : defaultBranches;
+---
+
+<section id="services" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div
+    class="absolute inset-0 z-0 opacity-[0.05] pointer-events-none"
+    style="background-image: linear-gradient(var(--accent) 1px, transparent 1px), linear-gradient(90deg, var(--accent) 1px, transparent 1px); background-size: 48px 48px;"
+  ></div>
+
+  <div class="relative z-10 mx-auto max-w-6xl px-6 lg:px-12">
+
+    <div class="text-center mb-16">
+      <p class="auto-fade-up text-[10px] font-mono font-black uppercase tracking-[0.5em] text-[var(--primary)] mb-4">// SYS · DIAGNOSTIC TREE v1.0</p>
+      {showHeadline && (
+        <h2 class="auto-fade-up font-black uppercase leading-[0.95] tracking-tight text-[var(--text)] mb-5" style="font-size: clamp(2.5rem, 6vw, 4.5rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="auto-fade-up text-[var(--text-muted)] max-w-xl mx-auto leading-[1.7]" style="font-size: 1.05rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showList && (
+      <div class="space-y-6">
+        {branches.map((b, i) => (
+          <div class="auto-fade-up grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 items-start" style={`animation-delay: ${0.25 + i * 0.1}s`}>
+            {/* Symptom node */}
+            <div class="bg-[var(--surface)] border-2 border-[var(--primary)] p-5 relative">
+              <p class="text-[9px] font-mono uppercase tracking-[0.4em] text-[var(--primary)] mb-2">SYMPTOM · {b.code}</p>
+              <p class="text-xl font-black uppercase text-[var(--text)] tracking-tight">{b.symptom}</p>
+              {/* Arrow */}
+              <div class="hidden lg:flex absolute -right-4 top-1/2 -translate-y-1/2 items-center">
+                <span class="text-[var(--primary)] text-2xl">▶</span>
+              </div>
+            </div>
+
+            {/* Fix branches */}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {b.fixes.map((fix, j) => (
+                <div class="bg-[var(--surface)]/50 border border-[var(--accent)]/30 p-4 hover:border-[var(--primary)] transition-colors group">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class="w-2 h-2 bg-[var(--primary)] group-hover:scale-150 transition-transform"></span>
+                    <span class="text-[9px] font-mono uppercase tracking-[0.3em] text-[var(--accent)]">FIX · 0{j + 1}</span>
+                  </div>
+                  <p class="text-sm font-bold text-[var(--text)] leading-snug">{fix}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    <p class="auto-fade-up text-center text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--accent)] mt-14" style="animation-delay: 0.9s">— Bring it in. We trace the root, not the symptom. —</p>
+  </div>
+</section>
+
+<style>
+  .auto-fade-up { opacity: 0; transform: translateY(20px); animation: autoFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .auto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

@@ -1,0 +1,164 @@
+---
+/**
+ * AboutK4 - Barber Shop / Chair Stories
+ * Central chair photo with 4 customer-quote cards arranged around it.
+ */
+interface Props {
+  businessName: string;
+  description: string;
+  headline?: string;
+  tagline?: string;
+  tags?: string[];
+  usps?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  description,
+  headline = 'Stories from the chair',
+  tags = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+const showHeadline = visibility?.aboutHeadline !== false;
+const showDescription = visibility?.aboutDescription !== false;
+const showImages = visibility?.aboutImages !== false;
+
+const stories = [
+  { quote: 'Sharpest cut in town. Been coming here for 20 years.', name: '— Eduardo, regular since 2004' },
+  { quote: 'My boy got his first haircut here. Now he brings his own boys.', name: '— Mateo, family man' },
+  { quote: 'The hot towel is reason enough to walk in.', name: '— Joaquín, every Friday' },
+  { quote: 'A proper shave like my grandfather used to get.', name: '— Andres, traditionalist' },
+];
+---
+
+<section
+  id="about"
+  class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  <div class="absolute inset-0 opacity-[0.05] pointer-events-none" style="background-image: repeating-linear-gradient(0deg, transparent 0 3px, var(--text) 3px 4px);"></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="text-center mb-16">
+      <div class="barber-fade-up inline-flex items-center gap-4 mb-6">
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+        <span class="text-[var(--accent)] text-xl">✂</span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--primary)]">— Patron accounts —</span>
+        <span class="text-[var(--accent)] text-xl">✂</span>
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+      </div>
+
+      {showHeadline && (
+        <h2
+          class="barber-fade-up font-bold leading-[0.95] tracking-tight text-[var(--text)] mb-5"
+          style="font-size: clamp(2.75rem, 6vw, 5rem); animation-delay: 0.1s;"
+        >
+          {headline}
+        </h2>
+      )}
+
+      {showDescription && (
+        <p class="barber-fade-up max-w-2xl mx-auto text-[var(--text-muted)] leading-[1.85] italic" style="font-size: 1.1rem; animation-delay: 0.2s;">
+          {description}
+        </p>
+      )}
+    </div>
+
+    {/* Hub-and-spoke layout */}
+    <div class="relative grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10 items-center">
+
+      {/* LEFT COLUMN — 2 quote cards */}
+      <div class="space-y-6 order-2 lg:order-1">
+        {stories.slice(0, 2).map((s, i) => (
+          <div
+            class="barber-fade-up bg-[var(--surface)] border border-[var(--primary)]/15 p-6 lg:p-7 shadow-[0_20px_40px_-15px_rgba(26,12,16,0.2)] relative"
+            style={`animation-delay: ${0.3 + i * 0.1}s; transform: rotate(${i === 0 ? -1.5 : 1}deg);`}
+          >
+            <div class="flex gap-1 mb-3">
+              {Array.from({ length: 5 }).map(() => <span class="text-[var(--accent)] text-sm">★</span>)}
+            </div>
+            <p class="text-[var(--text-muted)] italic leading-relaxed mb-3" style="font-size: 1.05rem;">"{s.quote}"</p>
+            <p class="text-[10px] uppercase tracking-[0.35em] text-[var(--primary)] italic">{s.name}</p>
+            {/* Tape strip */}
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-4 bg-[var(--accent)]/30 rotate-3"></div>
+          </div>
+        ))}
+      </div>
+
+      {/* CENTER — The chair photo */}
+      {showImages && (
+        <div class="order-1 lg:order-2 flex justify-center">
+          <div class="barber-fade-up relative" style="animation-delay: 0.2s">
+            <div class="absolute -inset-4 border-2 border-[var(--accent)]/40 pointer-events-none"></div>
+            <div class="relative aspect-[3/4] w-64 sm:w-72 lg:w-80 overflow-hidden bg-[var(--text)] shadow-[0_30px_60px_-15px_rgba(26,12,16,0.5)]">
+              {mainPhoto ? (
+                <img
+                  src={mainPhoto}
+                  alt={businessName}
+                  class="absolute inset-0 w-full h-full object-cover"
+                  style="filter: sepia(0.4) contrast(1.1) brightness(0.92);"
+                />
+              ) : (
+                <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-9xl">✂</div>
+              )}
+              <div class="absolute inset-0 bg-gradient-to-t from-[var(--text)]/40 via-transparent to-transparent"></div>
+              <div class="absolute bottom-0 inset-x-0 p-5 bg-gradient-to-t from-[var(--text)] to-transparent">
+                <p class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--accent)] mb-1">— Where the stories happen —</p>
+                <p class="text-[var(--bg)] italic font-bold" style="font-size: 1.15rem;">{businessName}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RIGHT COLUMN — 2 quote cards */}
+      <div class="space-y-6 order-3">
+        {stories.slice(2, 4).map((s, i) => (
+          <div
+            class="barber-fade-up bg-[var(--surface)] border border-[var(--primary)]/15 p-6 lg:p-7 shadow-[0_20px_40px_-15px_rgba(26,12,16,0.2)] relative"
+            style={`animation-delay: ${0.5 + i * 0.1}s; transform: rotate(${i === 0 ? 1.5 : -1}deg);`}
+          >
+            <div class="flex gap-1 mb-3">
+              {Array.from({ length: 5 }).map(() => <span class="text-[var(--accent)] text-sm">★</span>)}
+            </div>
+            <p class="text-[var(--text-muted)] italic leading-relaxed mb-3" style="font-size: 1.05rem;">"{s.quote}"</p>
+            <p class="text-[10px] uppercase tracking-[0.35em] text-[var(--primary)] italic">{s.name}</p>
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 w-12 h-4 bg-[var(--accent)]/30 -rotate-3"></div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Tags as "shop talk" */}
+    {tags.length > 0 && (
+      <div class="barber-fade-up mt-16 text-center" style="animation-delay: 0.8s">
+        <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--primary)] italic mb-4">— Shop talk —</p>
+        <div class="flex flex-wrap justify-center gap-2">
+          {tags.map((tag) => (
+            <span class="inline-flex items-center px-4 py-1.5 border border-[var(--primary)]/30 bg-[var(--surface)] text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)] italic">
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .barber-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    .barber-fade-up { animation: none; opacity: 1; transform: none; }
+  }
+</style>

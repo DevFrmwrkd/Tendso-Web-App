@@ -1,0 +1,219 @@
+---
+/**
+ * AboutN - Restaurant / The Kitchen Story
+ * Warm cream backdrop with terracotta accents.
+ * Top: ingredient ticker scrolling. Middle: chef portrait + heritage story.
+ * Olive-green decorative motifs, "Recipe since" stamp.
+ * Vibe: chef-owner authenticity, generational recipes.
+ */
+interface Props {
+  businessName: string;
+  description: string;
+  headline?: string;
+  tagline?: string;
+  tags?: string[];
+  usps?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  description,
+  headline = 'From our kitchen',
+  tagline,
+  tags = [],
+  usps = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+
+const showHeadline = visibility?.aboutHeadline !== false;
+const showDescription = visibility?.aboutDescription !== false;
+const showImages = visibility?.aboutImages !== false;
+const showTagline = visibility?.aboutTagline !== false && !!tagline;
+const showTags = visibility?.aboutTags !== false && tags.length > 0;
+
+// Ingredient ticker — derive from tags or use defaults
+const ingredients = tags.length > 0
+  ? tags
+  : ['Fresh herbs', 'Slow simmered', 'Locally sourced', 'Wood-fired', 'House-made', 'Hand-rolled', 'Seasonal'];
+---
+
+<section
+  id="about"
+  class="relative w-full bg-[var(--bg)] py-20 md:py-28 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  {/* Top ingredient ticker */}
+  <div class="border-y border-[var(--primary)]/20 bg-[var(--text)] py-3 overflow-hidden">
+    <div class="rest-ticker flex items-center gap-12 whitespace-nowrap">
+      {[...ingredients, ...ingredients, ...ingredients].map((ing) => (
+        <span class="flex items-center gap-12 text-[11px] uppercase tracking-[0.45em] text-[var(--bg)]/80 italic">
+          <span class="text-[var(--accent)]">✦</span>
+          {ing}
+        </span>
+      ))}
+    </div>
+  </div>
+
+  {/* Warm gradient blobs */}
+  <div class="absolute top-1/4 -right-32 w-[450px] h-[450px] rounded-full bg-[#f0d9a6] opacity-30 blur-[120px] pointer-events-none"></div>
+  <div class="absolute -bottom-20 -left-20 w-[400px] h-[400px] rounded-full bg-[#dde0c4] opacity-40 blur-[110px] pointer-events-none"></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12 mt-16 lg:mt-24">
+    <div class="grid grid-cols-1 lg:grid-cols-[5fr_7fr] gap-12 lg:gap-20 items-center">
+
+      {/* LEFT — Chef portrait with "since" stamp */}
+      {showImages && (
+        <div class="rest-image-fade order-2 lg:order-1 relative">
+          {/* Olive accent square behind */}
+          <div class="absolute -inset-3 bg-[var(--accent)]/15 -rotate-2 pointer-events-none"></div>
+
+          {/* Main photo */}
+          <div class="relative aspect-[3/4] overflow-hidden bg-[var(--text)] shadow-[0_30px_60px_-15px_rgba(42,31,28,0.4)]">
+            {mainPhoto ? (
+              <img
+                src={mainPhoto}
+                alt={businessName}
+                class="absolute inset-0 w-full h-full object-cover"
+                style="filter: contrast(1.05) saturate(1.05);"
+              />
+            ) : (
+              <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-9xl">✦</div>
+            )}
+            <div class="absolute inset-0 bg-gradient-to-t from-[var(--text)]/50 via-transparent to-transparent"></div>
+
+            {/* Recipe stamp overlay */}
+            <div class="absolute top-4 right-4 bg-[var(--bg)] border-2 border-[var(--primary)] rounded-full p-4 rotate-[-12deg] shadow-lg rest-stamp">
+              <div class="text-center">
+                <p class="text-[8px] font-medium uppercase tracking-[0.35em] text-[var(--primary)] italic">— Recipe since —</p>
+                <p class="text-2xl font-normal text-[var(--text)]" style="font-size: 1.5rem;">2018</p>
+              </div>
+            </div>
+
+            {/* Bottom name plaque */}
+            <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[var(--text)]/95 to-transparent p-6 pt-12">
+              <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--accent)] italic mb-1">— The kitchen —</p>
+              <p class="text-[var(--bg)] text-xl italic leading-tight" style="font-size: 1.5rem;">{businessName}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* RIGHT — Story */}
+      <div class="order-1 lg:order-2">
+        {showTagline && (
+          <div class="rest-fade-up mb-6 inline-flex items-center gap-2">
+            <span class="text-[var(--accent)]">❋</span>
+            <span class="text-[11px] font-medium uppercase tracking-[0.45em] text-[var(--primary)] italic">{tagline}</span>
+          </div>
+        )}
+
+        {showHeadline && (
+          <h2
+            class="rest-fade-up font-normal leading-[1.05] tracking-tight text-[var(--text)] mb-2"
+            style="font-size: clamp(2.5rem, 5.5vw, 4.5rem); animation-delay: 0.1s;"
+          >
+            {headline}
+          </h2>
+        )}
+
+        <div class="rest-fade-up flex items-center gap-3 mb-8" style="animation-delay: 0.2s">
+          <span class="text-[var(--primary)] text-xs">❋</span>
+          <span class="h-px w-12 bg-[var(--primary)]"></span>
+          <span class="text-[10px] uppercase tracking-[0.4em] text-[var(--text-muted)]/80 italic">— A family recipe</span>
+        </div>
+
+        {showDescription && (
+          <p
+            class="rest-fade-up text-[var(--text-muted)] leading-[1.85] mb-10 italic"
+            style="font-size: clamp(1.05rem, 1.3vw, 1.2rem); animation-delay: 0.3s;"
+          >
+            {description}
+          </p>
+        )}
+
+        {/* USPs as kitchen tenets */}
+        {usps.length > 0 && (
+          <div class="rest-fade-up bg-[#fbe9c8]/40 border-l-4 border-[var(--primary)] p-6 lg:p-8 mb-10" style="animation-delay: 0.4s">
+            <p class="text-[10px] font-medium uppercase tracking-[0.45em] text-[var(--primary)] italic mb-4">— What we believe —</p>
+            <ul class="space-y-3">
+              {usps.slice(0, 4).map((usp) => (
+                <li class="flex items-start gap-3 text-[var(--text)]">
+                  <span class="text-[var(--accent)] mt-1">✦</span>
+                  <span class="text-base leading-relaxed italic" style="font-size: 1.05rem;">{usp}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* Signature flourish */}
+        <div class="rest-fade-up mt-12 flex items-end gap-4" style="animation-delay: 0.5s">
+          <div class="flex flex-col">
+            <span class="text-2xl italic text-[var(--primary)]" style="font-size: 1.85rem;">— Chef & owner</span>
+            <span class="text-[10px] uppercase tracking-[0.4em] text-[var(--text-muted)]/60 mt-1 italic">with gratitude</span>
+          </div>
+          <span class="text-[var(--accent)] text-2xl mb-1">❋</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Bottom ingredient ticker — reverse direction */}
+  <div class="border-y border-[var(--primary)]/20 bg-[var(--accent)] py-3 overflow-hidden mt-20">
+    <div class="rest-ticker-reverse flex items-center gap-12 whitespace-nowrap">
+      {[...ingredients, ...ingredients, ...ingredients].map((ing) => (
+        <span class="flex items-center gap-12 text-[11px] uppercase tracking-[0.45em] text-[var(--bg)]/85 italic">
+          <span class="text-[var(--accent)]">✦</span>
+          {ing}
+        </span>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .rest-fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: restFadeUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes restFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  .rest-image-fade {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: restFadeUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards;
+  }
+
+  .rest-ticker {
+    animation: restTickerScroll 40s linear infinite;
+    width: max-content;
+  }
+  .rest-ticker-reverse {
+    animation: restTickerScrollReverse 40s linear infinite;
+    width: max-content;
+  }
+  @keyframes restTickerScroll { to { transform: translateX(-33.333%); } }
+  @keyframes restTickerScrollReverse {
+    from { transform: translateX(-33.333%); }
+    to { transform: translateX(0); }
+  }
+
+  .rest-stamp {
+    animation: restStampPulse 3s ease-in-out infinite;
+  }
+  @keyframes restStampPulse {
+    0%, 100% { transform: rotate(-12deg) scale(1); }
+    50% { transform: rotate(-12deg) scale(1.05); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rest-fade-up, .rest-image-fade { animation-duration: 0.01ms; opacity: 1; transform: none; }
+    .rest-ticker, .rest-ticker-reverse, .rest-stamp { animation: none; }
+  }
+</style>

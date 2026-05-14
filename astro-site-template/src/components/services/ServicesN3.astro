@@ -1,0 +1,128 @@
+---
+/**
+ * ServicesN3 - Restaurant / Wine Pairing
+ * Dishes paired with wines. Two-column "dish / wine" layout per pairing.
+ * Sommelier-feel cards with grape notes and tasting suggestions.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  services: Array<{ name: string; description: string; price?: string; icon?: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'Wine pairings',
+  subheadline = 'Each dish, met by a bottle. The sommelier\'s choices for the table.',
+  services = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.servicesHeadline !== false;
+const showSubheadline = visibility?.servicesSubheadline !== false && !!subheadline;
+const showList = visibility?.servicesList !== false;
+
+const defaults = [
+  {
+    dish: 'Seared scallops',
+    dishBody: 'Brown butter · capers · lemon zest',
+    wine: 'Chardonnay · Sonoma',
+    wineNote: 'Buttery oak · stone fruit · long finish',
+    price: '₱1,250',
+  },
+  {
+    dish: 'Wagyu skewers',
+    dishBody: 'Charcoal grilled · sea salt · sansho',
+    wine: 'Pinot Noir · Oregon',
+    wineNote: 'Bright cherry · earthy · medium body',
+    price: '₱1,650',
+  },
+  {
+    dish: 'Truffle risotto',
+    dishBody: 'Carnaroli · aged parmesan · black truffle',
+    wine: 'Barolo · Piedmont',
+    wineNote: 'Rose petal · tar · structured tannins',
+    price: '₱1,950',
+  },
+  {
+    dish: 'Chocolate tart',
+    dishBody: 'Dark ganache · olive oil · sea salt',
+    wine: 'Port · Douro',
+    wineNote: 'Black cherry · cocoa · velvet finish',
+    price: '₱950',
+  },
+];
+
+const pairings = services.length > 0
+  ? services.slice(0, 4).map((s, i) => ({
+      dish: s.name,
+      dishBody: s.description || defaults[i].dishBody,
+      wine: defaults[i].wine,
+      wineNote: defaults[i].wineNote,
+      price: s.price || defaults[i].price,
+    }))
+  : defaults;
+---
+
+<section id="services" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-6xl px-6 lg:px-12">
+
+    <div class="text-center mb-16">
+      <p class="resto-fade-up text-[10px] uppercase tracking-[0.55em] text-[var(--accent)] italic mb-5">— From the cellar —</p>
+      {showHeadline && (
+        <h2 class="resto-fade-up font-bold italic leading-[1.05] text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.5rem, 5.5vw, 4.5rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="resto-fade-up text-[var(--text-muted)] italic leading-[1.8] max-w-xl mx-auto" style="font-size: 1.1rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showList && (
+      <div class="space-y-6">
+        {pairings.map((p, i) => (
+          <div class="resto-fade-up grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto] gap-5 items-center bg-[var(--surface)] p-6 lg:p-7 border-l-4 border-[var(--primary)]" style={`animation-delay: ${0.25 + i * 0.1}s`}>
+            {/* Dish */}
+            <div>
+              <p class="text-[9px] uppercase tracking-[0.5em] text-[var(--accent)] italic mb-2">— Dish · No. 0{i + 1} —</p>
+              <h3 class="text-xl italic text-[var(--text)] mb-1.5" style="font-family: var(--heading-font);">{p.dish}</h3>
+              <p class="text-sm text-[var(--text-muted)] italic leading-[1.5]">{p.dishBody}</p>
+            </div>
+
+            {/* Pairing icon */}
+            <div class="hidden md:flex items-center justify-center">
+              <div class="w-12 h-12 rounded-full bg-[var(--primary)]/15 flex items-center justify-center">
+                <span class="text-2xl">✦</span>
+              </div>
+            </div>
+
+            {/* Wine */}
+            <div>
+              <p class="text-[9px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-2">— Paired with —</p>
+              <p class="text-xl italic text-[var(--primary)] mb-1.5" style="font-family: var(--heading-font);">🍷 {p.wine}</p>
+              <p class="text-sm text-[var(--text-muted)] italic leading-[1.5]">{p.wineNote}</p>
+            </div>
+
+            {/* Price */}
+            <div class="text-right">
+              <p class="text-[9px] uppercase tracking-[0.5em] text-[var(--accent)] italic mb-1">— Pair —</p>
+              <p class="text-2xl font-bold italic text-[var(--primary)]" style="font-family: var(--heading-font);">{p.price}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    <div class="text-center mt-12">
+      <a href="#contact" class="resto-fade-up inline-flex items-center justify-center gap-3 bg-[var(--text)] hover:bg-[var(--text)] text-[var(--bg)] px-10 py-4 text-[11px] font-bold uppercase tracking-[0.4em] transition-all hover:-translate-y-0.5" style="animation-delay: 0.7s">
+        🍷 Reserve a tasting →
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .resto-fade-up { opacity: 0; transform: translateY(20px); animation: restoFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes restoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .resto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>
