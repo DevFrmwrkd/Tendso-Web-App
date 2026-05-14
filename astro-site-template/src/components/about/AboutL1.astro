@@ -1,0 +1,194 @@
+---
+/**
+ * AboutL - Automobile Shop / Workshop Floor Story
+ * Dark workshop ambiance with technical specs, animated counter stats, blueprint motifs.
+ * Vibe: years-of-experience credibility, mechanic floor authenticity.
+ */
+interface Props {
+  businessName: string;
+  description: string;
+  headline?: string;
+  tagline?: string;
+  tags?: string[];
+  usps?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  description,
+  headline = 'Our Workshop',
+  tagline,
+  tags = [],
+  usps = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+
+const showHeadline = visibility?.aboutHeadline !== false;
+const showDescription = visibility?.aboutDescription !== false;
+const showImages = visibility?.aboutImages !== false;
+const showTagline = visibility?.aboutTagline !== false && !!tagline;
+const showTags = visibility?.aboutTags !== false && tags.length > 0;
+
+// Stats — derived from tags or default values
+const stats = [
+  { num: '15+', label: 'Years on the bay' },
+  { num: '5K+', label: 'Vehicles serviced' },
+  { num: '24h', label: 'Average turnaround' },
+  { num: '100%', label: 'ASE certified' },
+];
+---
+
+<section
+  id="about"
+  class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  {/* Blueprint grid */}
+  <div
+    class="absolute inset-0 opacity-[0.05] pointer-events-none"
+    style="background-image: linear-gradient(rgba(74,107,138,0.6) 1px, transparent 1px), linear-gradient(90deg, rgba(74,107,138,0.6) 1px, transparent 1px); background-size: 40px 40px;"
+  ></div>
+
+  {/* Safety stripe at top */}
+  <div class="absolute top-0 inset-x-0 h-2 bg-gradient-to-r from-[var(--primary)] via-[var(--bg)] to-[var(--primary)] opacity-40"
+       style="background-image: repeating-linear-gradient(135deg, var(--primary) 0 12px, var(--bg) 12px 24px); background-size: 24px 24px; opacity: 0.5;">
+  </div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="grid grid-cols-1 lg:grid-cols-[6fr_5fr] gap-12 lg:gap-20 items-center mb-16">
+
+      {/* LEFT — Story */}
+      <div>
+        {showTagline && (
+          <div class="auto-fade-up mb-6 inline-flex items-center gap-3">
+            <span class="h-px w-8 bg-[var(--primary)]"></span>
+            <span class="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--primary)]">{tagline}</span>
+          </div>
+        )}
+
+        {showHeadline && (
+          <h2
+            class="auto-fade-up font-black leading-[0.95] tracking-tight text-[var(--text)] uppercase mb-8"
+            style="font-size: clamp(2.5rem, 5.5vw, 4.5rem); animation-delay: 0.1s;"
+          >
+            {headline}
+          </h2>
+        )}
+
+        <div class="auto-fade-up flex items-center gap-3 mb-8" style="animation-delay: 0.2s">
+          <span class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--accent)]">// File: 001</span>
+          <span class="h-px flex-1 bg-[var(--accent)]/30"></span>
+          <span class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--accent)]">// CLASSIFIED: Public</span>
+        </div>
+
+        {showDescription && (
+          <p
+            class="auto-fade-up text-[var(--text-muted)] leading-[1.75] mb-10"
+            style="font-size: clamp(1rem, 1.3vw, 1.15rem); animation-delay: 0.3s;"
+          >
+            {description}
+          </p>
+        )}
+
+        {/* USPs as bullet list */}
+        {usps.length > 0 && (
+          <ul class="auto-fade-up space-y-3 mb-10" style="animation-delay: 0.4s">
+            {usps.slice(0, 4).map((usp) => (
+              <li class="flex items-start gap-3 text-[var(--text)]">
+                <span class="text-[var(--primary)] font-mono mt-0.5 text-sm">▸</span>
+                <span class="text-sm leading-relaxed">{usp}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {/* Tags as certifications */}
+        {showTags && (
+          <div class="auto-fade-up flex flex-wrap gap-2" style="animation-delay: 0.5s">
+            {tags.map((tag) => (
+              <span class="inline-flex items-center gap-2 px-3 py-1.5 border border-[var(--accent)]/40 bg-[var(--surface)] text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--primary)]">
+                <span class="text-[var(--accent)]">●</span>
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* RIGHT — Workshop photo with technical overlay */}
+      {showImages && (
+        <div class="auto-fade-up relative" style="animation-delay: 0.2s">
+          {mainPhoto ? (
+            <div class="relative aspect-[4/5] overflow-hidden bg-[var(--surface)]">
+              {/* Technical corner markers */}
+              <div class="absolute top-0 left-0 w-12 h-12 border-t-2 border-l-2 border-[var(--primary)] z-20"></div>
+              <div class="absolute bottom-0 right-0 w-12 h-12 border-b-2 border-r-2 border-[var(--primary)] z-20"></div>
+
+              <img
+                src={mainPhoto}
+                alt={businessName}
+                class="absolute inset-0 w-full h-full object-cover"
+                style="filter: contrast(1.1) saturate(0.8);"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-[var(--bg)]/80 via-[var(--bg)]/20 to-transparent"></div>
+
+              {/* Spec label */}
+              <div class="absolute top-6 right-6 bg-[var(--surface)]/90 backdrop-blur-sm border border-[var(--accent)]/40 px-3 py-2 z-20">
+                <p class="text-[9px] font-mono uppercase tracking-[0.25em] text-[var(--text-muted)]">// BAY 03</p>
+              </div>
+
+              {/* Bottom credential plaque */}
+              <div class="absolute bottom-6 left-6 right-6 bg-[var(--surface)]/95 backdrop-blur-md border-l-4 border-[var(--primary)] p-4 z-20">
+                <p class="text-[9px] font-mono uppercase tracking-[0.3em] text-[var(--primary)] mb-1">// LICENSED</p>
+                <p class="text-[var(--text)] text-sm font-bold uppercase tracking-wide">{businessName}</p>
+              </div>
+            </div>
+          ) : (
+            <div class="aspect-[4/5] bg-[var(--surface)] flex items-center justify-center">
+              <span class="text-[var(--accent)] text-9xl">⚙</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+
+    {/* Stats row */}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--accent)]/20 border border-[var(--accent)]/30">
+      {stats.map((stat, i) => (
+        <div
+          class="auto-fade-up bg-[var(--bg)] p-6 lg:p-8 text-center"
+          style={`animation-delay: ${0.5 + i * 0.1}s`}
+        >
+          <p
+            class="font-black text-[var(--primary)] leading-none mb-2"
+            style="font-size: clamp(2.25rem, 4vw, 3.5rem);"
+          >
+            {stat.num}
+          </p>
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--text-muted)]">
+            {stat.label}
+          </p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .auto-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: autoFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auto-fade-up { animation-duration: 0.01ms; opacity: 1; transform: none; }
+  }
+</style>

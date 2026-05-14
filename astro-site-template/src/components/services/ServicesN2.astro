@@ -1,0 +1,93 @@
+---
+/**
+ * ServicesN2 - Restaurant / Prix Fixe
+ * Set-price multi-course menu. Three courses laid out as a fixed-price experience.
+ * Elegant menu card with course numbering and total at bottom.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  services: Array<{ name: string; description: string; price?: string; icon?: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = "Prix fixe menu",
+  subheadline = "Three courses, one price. The kitchen's recommendation for the night.",
+  services = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.servicesHeadline !== false;
+const showSubheadline = visibility?.servicesSubheadline !== false && !!subheadline;
+const showList = visibility?.servicesList !== false;
+
+const defaults = [
+  { course: 'Starter', name: 'Heirloom tomato salad', body: 'Garden herbs · aged balsamic · burrata cream' },
+  { course: 'Main', name: 'Braised short rib', body: 'Slow-cooked 6 hours · root vegetable purée · pan jus' },
+  { course: 'Dessert', name: 'Dark chocolate tart', body: 'Sea salt · olive oil · espresso ice cream' },
+];
+
+const courses = services.length >= 3
+  ? services.slice(0, 3).map((s, i) => ({
+      course: defaults[i].course,
+      name: s.name,
+      body: s.description || defaults[i].body,
+    }))
+  : defaults;
+---
+
+<section id="services" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-3xl px-6 lg:px-12">
+
+    {/* Menu card */}
+    <div class="resto-fade-up bg-[var(--surface)] border-2 border-[var(--text)]/15 relative" style="box-shadow: 0 40px 80px -20px rgba(42,31,28,0.25);">
+
+      {/* Top crest */}
+      <div class="border-b-2 border-double border-[var(--text)]/30 px-8 lg:px-12 py-8 text-center">
+        <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-3">— Tonight's prix fixe —</p>
+        {showHeadline && (
+          <h2 class="font-bold italic leading-[1.05] text-[var(--text)] mb-2" style="font-family: var(--heading-font); font-size: clamp(2rem, 4.5vw, 3.25rem);">{headline}</h2>
+        )}
+        {showSubheadline && (
+          <p class="text-[var(--text-muted)] italic text-sm leading-[1.6] max-w-md mx-auto">{subheadline}</p>
+        )}
+      </div>
+
+      {showList && (
+        <div class="px-8 lg:px-12 py-10 space-y-8">
+          {courses.map((c, i) => (
+            <div class="text-center">
+              <div class="flex items-center justify-center gap-3 mb-3">
+                <span class="h-px w-10 bg-[var(--accent)]/40"></span>
+                <span class="text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic">— {c.course} · No. 0{i + 1} —</span>
+                <span class="h-px w-10 bg-[var(--accent)]/40"></span>
+              </div>
+              <h3 class="text-2xl md:text-3xl italic text-[var(--primary)] mb-2" style="font-family: var(--heading-font);">{c.name}</h3>
+              <p class="text-sm text-[var(--text-muted)] italic leading-[1.7] max-w-md mx-auto">{c.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Footer total */}
+      <div class="border-t-2 border-double border-[var(--text)]/30 px-8 lg:px-12 py-8 text-center">
+        <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic mb-3">— All courses —</p>
+        <p class="text-5xl font-bold italic text-[var(--primary)] mb-5 tracking-tight" style="font-family: var(--heading-font);">₱1,850</p>
+        <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--text-muted)] italic mb-6">Wine pairing · +₱950 per person</p>
+        <a href="#contact" class="inline-flex items-center justify-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] px-10 py-3.5 text-[11px] font-bold uppercase tracking-[0.4em] transition-all hover:-translate-y-0.5">
+          Reserve this menu →
+        </a>
+      </div>
+    </div>
+
+    <p class="text-center text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic mt-8">— Menu changes weekly · ask for tonight's —</p>
+  </div>
+</section>
+
+<style>
+  .resto-fade-up { opacity: 0; transform: translateY(20px); animation: restoFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes restoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .resto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

@@ -1,0 +1,309 @@
+---
+/**
+ * HeroO - Clinic / Medical Practice
+ * Clean white backdrop with medical blue accents, EKG-pulse line animation,
+ * "Accepting new patients" status bar, clinical photo with medical-record frame.
+ * Vibe: trustworthy, professional, no flourish.
+ */
+interface Props {
+  businessName: string;
+  headline: string;
+  description: string;
+  badgeText?: string;
+  testimonial?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryLink?: string;
+  photos: string[];
+  services?: Array<{ name: string; description: string }>;
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  headline,
+  description,
+  badgeText = 'Accepting new patients',
+  testimonial,
+  ctaLabel = 'Book an appointment',
+  ctaLink = '#contact',
+  ctaSecondaryLabel = 'Our services',
+  ctaSecondaryLink = '#services',
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+
+const showHeadline = visibility?.heroHeadline !== false;
+const showTagline = visibility?.heroTagline !== false && !!badgeText;
+const showDescription = visibility?.heroDescription !== false;
+const showTestimonial = visibility?.heroTestimonial !== false && !!testimonial;
+const showButton = visibility?.heroButton !== false;
+const showImage = visibility?.heroImage !== false;
+---
+
+<section
+  id="hero"
+  class="relative w-full min-h-screen overflow-hidden bg-white"
+  style="font-family: var(--body-font);"
+>
+  {/* Subtle light blue gradient bg */}
+  <div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-bl from-[#e8f0fa]/60 via-transparent to-transparent pointer-events-none"></div>
+  <div class="absolute bottom-0 left-0 w-1/3 h-1/2 bg-gradient-to-tr from-[#e8f0fa]/40 via-transparent to-transparent pointer-events-none"></div>
+
+  {/* Top status bar */}
+  <div class="clinic-fade-down relative z-20 border-b border-[#e5e7eb] bg-white">
+    <div class="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between text-xs">
+      <div class="flex items-center gap-2">
+        <span class="relative flex w-2 h-2">
+          <span class="absolute inline-flex h-full w-full rounded-full bg-[var(--accent)] opacity-60 animate-ping"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-[var(--accent)]"></span>
+        </span>
+        <span class="font-semibold text-[var(--accent)] tracking-wide">{badgeText}</span>
+        <span class="hidden sm:inline text-[var(--text-muted)]">· Same-day appointments available</span>
+      </div>
+      <div class="hidden md:flex items-center gap-2 text-[var(--text-muted)]">
+        <span class="font-semibold">{businessName}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12 pt-16 pb-20 lg:pt-24">
+    <div class="grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-16 items-center">
+
+      {/* LEFT — Text */}
+      <div>
+        {showTagline && (
+          <div class="clinic-fade-up mb-8 inline-flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-[var(--primary)]/10 border border-[var(--primary)]/20 flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11.5 a3.5 3.5 0 1 1 7 0 c0 1.5 -1 2.5 -3.5 5 c-2.5 -2.5 -3.5 -3.5 -3.5 -5z"/>
+                <path d="M12 2v3M12 16v6"/>
+                <path d="M2 11h3M19 11h3"/>
+              </svg>
+            </div>
+            <div>
+              <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--primary)]">Licensed clinic</p>
+              <p class="text-xs text-[var(--text-muted)]">Trusted care since 2010</p>
+            </div>
+          </div>
+        )}
+
+        {showHeadline && (
+          <h1
+            class="clinic-fade-up font-bold leading-[1.05] tracking-tight text-[var(--text)] mb-6"
+            style="font-size: clamp(2.5rem, 6.5vw, 5rem); animation-delay: 0.1s;"
+          >
+            {headline}
+          </h1>
+        )}
+
+        {/* EKG pulse line */}
+        <div class="clinic-fade-up mb-8 h-6 overflow-hidden" style="animation-delay: 0.2s">
+          <svg class="clinic-ekg w-full h-full" viewBox="0 0 600 24" preserveAspectRatio="none">
+            <path
+              d="M0 12 L100 12 L120 4 L140 20 L160 12 L260 12 L280 4 L300 20 L320 12 L420 12 L440 4 L460 20 L480 12 L600 12"
+              stroke="var(--primary)"
+              stroke-width="2"
+              fill="none"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </div>
+
+        {showDescription && (
+          <p
+            class="clinic-fade-up max-w-[520px] text-[var(--text-muted)] leading-[1.7] mb-10"
+            style="font-size: clamp(1rem, 1.25vw, 1.15rem); animation-delay: 0.3s;"
+          >
+            {description}
+          </p>
+        )}
+
+        {showButton && (
+          <div
+            class="clinic-fade-up flex flex-col sm:flex-row gap-3"
+            style="animation-delay: 0.4s;"
+          >
+            <a
+              href={ctaLink}
+              class="group inline-flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary)] text-white px-7 py-4 text-sm font-semibold rounded-xl transition-all hover:-translate-y-0.5 hover:shadow-[0_15px_30px_-10px_rgba(37,99,168,0.4)]"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              {ctaLabel}
+            </a>
+            <a
+              href={ctaSecondaryLink}
+              class="inline-flex items-center justify-center gap-2 border-2 border-[#e5e7eb] hover:border-[var(--primary)] hover:bg-[#e8f0fa]/30 text-[var(--text)] hover:text-[var(--primary)] px-7 py-4 text-sm font-semibold rounded-xl transition-colors"
+            >
+              {ctaSecondaryLabel} →
+            </a>
+          </div>
+        )}
+
+        {/* Trust badges */}
+        <div class="clinic-fade-up mt-10 flex flex-wrap items-center gap-6" style="animation-delay: 0.5s">
+          <div class="flex items-center gap-2 text-[var(--text-muted)]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span class="text-xs font-medium">Licensed practitioners</span>
+          </div>
+          <div class="flex items-center gap-2 text-[var(--text-muted)]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="9 12 11 14 15 10"/>
+            </svg>
+            <span class="text-xs font-medium">Insurance accepted</span>
+          </div>
+          <div class="flex items-center gap-2 text-[var(--text-muted)]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <span class="text-xs font-medium">Open weekends</span>
+          </div>
+        </div>
+
+        {showTestimonial && (
+          <div
+            class="clinic-fade-up mt-10 max-w-md p-5 rounded-2xl bg-[var(--surface)] border border-[#e5e7eb]"
+            style="animation-delay: 0.6s;"
+          >
+            <div class="flex items-center gap-1 mb-2">
+              {Array.from({ length: 5 }).map(() => (
+                <span class="text-[#d4a443]">★</span>
+              ))}
+            </div>
+            <p class="text-sm text-[var(--text)] leading-relaxed mb-2">"{testimonial}"</p>
+            <p class="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">— Verified patient review</p>
+          </div>
+        )}
+      </div>
+
+      {/* RIGHT — Clinical photo */}
+      {showImage && (
+        <div class="relative">
+          <div class="clinic-image-reveal relative">
+            {/* Soft blue glow */}
+            <div class="absolute -inset-4 rounded-3xl bg-[var(--primary)]/10 blur-2xl pointer-events-none"></div>
+
+            <div class="relative aspect-[4/5] rounded-3xl overflow-hidden bg-[#e8f0fa] shadow-[0_30px_60px_-15px_rgba(31,41,55,0.25)]">
+              {mainPhoto ? (
+                <img
+                  src={mainPhoto}
+                  alt={businessName}
+                  class="absolute inset-0 w-full h-full object-cover"
+                  style="filter: contrast(1.02) saturate(0.95);"
+                />
+              ) : (
+                <div class="absolute inset-0 flex items-center justify-center">
+                  <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5" opacity="0.4">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.29 1.51 4.04 3 5.5l7 7Z"/>
+                  </svg>
+                </div>
+              )}
+              <div class="absolute inset-0 bg-gradient-to-t from-[var(--text)]/20 via-transparent to-transparent"></div>
+            </div>
+
+            {/* Floating stat card */}
+            <div class="clinic-stat-card absolute -bottom-6 -left-6 lg:-left-12 bg-white rounded-2xl px-6 py-4 shadow-[0_20px_40px_-12px_rgba(31,41,55,0.2)] border border-[#e5e7eb]">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-[var(--accent)]/10 border border-[var(--accent)]/20 flex items-center justify-center">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--accent)]">Care team</p>
+                  <p class="text-base font-bold text-[var(--text)]">12 specialists</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating appointment card */}
+            <div class="clinic-cal-card absolute top-6 -right-2 lg:-right-8 bg-white rounded-2xl px-5 py-3 shadow-[0_15px_30px_-10px_rgba(31,41,55,0.2)] border border-[#e5e7eb]">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-[var(--primary)] flex items-center justify-center text-white">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-[9px] font-bold uppercase tracking-[0.25em] text-[var(--text-muted)]">Next available</p>
+                  <p class="text-sm font-bold text-[var(--text)]">Today, 3:00 PM</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  .clinic-fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: clinicFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .clinic-fade-down {
+    opacity: 0;
+    transform: translateY(-15px);
+    animation: clinicFadeDown 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes clinicFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @keyframes clinicFadeDown { to { opacity: 1; transform: translateY(0); } }
+
+  .clinic-image-reveal {
+    opacity: 0;
+    transform: scale(0.96);
+    animation: clinicImageReveal 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+  }
+  @keyframes clinicImageReveal { to { opacity: 1; transform: scale(1); } }
+
+  .clinic-stat-card {
+    opacity: 0;
+    transform: translateY(15px);
+    animation: clinicFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
+  }
+  .clinic-cal-card {
+    opacity: 0;
+    transform: translateY(-15px);
+    animation: clinicFadeDown 1s cubic-bezier(0.22, 1, 0.36, 1) 1.1s forwards;
+  }
+
+  /* EKG pulse - dash animation along the path */
+  .clinic-ekg path {
+    stroke-dasharray: 100 1000;
+    stroke-dashoffset: 1000;
+    animation: clinicEkg 3s linear infinite;
+  }
+  @keyframes clinicEkg {
+    to { stroke-dashoffset: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .clinic-fade-up, .clinic-fade-down, .clinic-image-reveal, .clinic-stat-card, .clinic-cal-card {
+      animation-duration: 0.01ms;
+      opacity: 1;
+      transform: none;
+    }
+    .clinic-ekg path { animation: none; stroke-dasharray: none; }
+  }
+</style>

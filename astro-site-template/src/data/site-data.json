@@ -1,7 +1,7 @@
 {
   "layout": {
-    "businessName": "StepRight Shoes",
-    "tagline": "Step into Style",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "tagline": "Beauty that lasts, confidence that grows",
     "navLinks": [
       {
         "href": "#about",
@@ -21,21 +21,21 @@
       }
     ],
     "socialLinks": [],
-    "colorScheme": "auto",
-    "fontPairing": "modern",
+    "colorScheme": "red",
+    "fontPairing": "classic",
     "contact": {
-      "address": "andrea.villanueva@example.com, Manila",
-      "email": "azedge17@gmail.com",
-      "phone": "912 345 4567"
+      "address": "Heritage homes, Marilao, Bulacan, Marilao",
+      "email": "josephinecarvajal110168@gmail.com",
+      "phone": "9177871293"
     },
-    "navbarStyle": "A"
+    "navbarStyle": "M1"
   },
   "customizations": {
-    "heroStyle": "A",
-    "aboutStyle": "A",
-    "servicesStyle": "A",
-    "galleryStyle": "A",
-    "contactStyle": "A"
+    "heroStyle": "M1",
+    "aboutStyle": "E",
+    "servicesStyle": "E",
+    "galleryStyle": "E",
+    "contactStyle": "C"
   },
   "visibility": {
     "heroSection": true,
@@ -72,27 +72,26 @@
     "contactSocial": true
   },
   "hero": {
-    "businessName": "StepRight Shoes",
-    "headline": "Step into Style",
-    "description": "StepRight Shoes offers a wide range of stylish and comfortable shoes for men, women, and children, blending fashion with function. With a focus on customer care and personalized service, we help customers find the perfect fit for every occasion. Our vision is to provide high-quality footwear that ensures customers always step out with confidence.",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "headline": "Beauty that lasts, confidence that grows",
+    "description": "Josephine Carvajal is a premier barber and salon in Marilao, Bulacan, dedicated to providing personalized beauty services that cater to each client's unique needs. With a focus on creating a welcoming and comfortable environment, our experienced team helps clients feel confident and beautiful. We offer a range of services for everyday beauty needs and special occasions.",
     "photos": [
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692022832-itgf9vxg.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692024256-3rvxbby0.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692025005-h22pak89.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692025716-bseg52yl.jpg"
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
     ],
     "services": [
       {
-        "description": "Expert shoe fitting services to ensure the perfect fit",
-        "name": "Shoe Fitting"
+        "description": "Customized haircuts, styling, and grooming for men and women",
+        "name": "Hair Styling"
       },
       {
-        "description": "Personalized shoe styling advice to complete your outfit",
-        "name": "Shoe Styling"
+        "description": "Professional hair coloring and highlighting services to enhance your look",
+        "name": "Hair Color"
       },
       {
-        "description": "Tips and guidance on how to care for and maintain your shoes",
-        "name": "Shoe Care"
+        "description": "Expert makeup applications for weddings, parties, and other special events",
+        "name": "Makeup Services"
       }
     ],
     "visibility": {
@@ -105,19 +104,18 @@
     }
   },
   "about": {
-    "businessName": "StepRight Shoes",
-    "description": "StepRight Shoes offers a wide range of stylish and comfortable shoes for men, women, and children, blending fashion with function. With a focus on customer care and personalized service, we help customers find the perfect fit for every occasion. Our vision is to provide high-quality footwear that ensures customers always step out with confidence.",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "description": "Josephine Carvajal is a premier barber and salon in Marilao, Bulacan, dedicated to providing personalized beauty services that cater to each client's unique needs. With a focus on creating a welcoming and comfortable environment, our experienced team helps clients feel confident and beautiful. We offer a range of services for everyday beauty needs and special occasions.",
     "headline": "About Us",
     "usps": [
-      "High-quality materials",
-      "Trendy designs",
-      "Affordable prices"
+      "Personalized care",
+      "Experienced team",
+      "Welcoming environment"
     ],
     "photos": [
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692022832-itgf9vxg.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692024256-3rvxbby0.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692025005-h22pak89.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692025716-bseg52yl.jpg"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg"
     ],
     "visibility": {
       "aboutBadge": true,
@@ -132,20 +130,20 @@
     "headline": "Our Services",
     "services": [
       {
-        "description": "Expert shoe fitting services to ensure the perfect fit",
-        "name": "Shoe Fitting"
+        "description": "Customized haircuts, styling, and grooming for men and women",
+        "name": "Hair Styling"
       },
       {
-        "description": "Personalized shoe styling advice to complete your outfit",
-        "name": "Shoe Styling"
+        "description": "Professional hair coloring and highlighting services to enhance your look",
+        "name": "Hair Color"
       },
       {
-        "description": "Tips and guidance on how to care for and maintain your shoes",
-        "name": "Shoe Care"
+        "description": "Expert makeup applications for weddings, parties, and other special events",
+        "name": "Makeup Services"
       }
     ],
     "photos": [
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692022832-itgf9vxg.jpg"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf"
     ],
     "visibility": {
       "servicesBadge": true,
@@ -157,57 +155,58 @@
     }
   },
   "gallery": {
-    "headline": "Featured Products",
-    "subheadline": "Discover our latest collections, from casual sneakers to formal leather shoes",
+    "headline": "Our Featured Services",
+    "subheadline": "Showcasing our expertise in beauty and wellness",
     "items": [
       {
-        "title": "Summer Sandals Collection",
-        "description": "Our summer sandals collection features stylish and comfortable designs perfect for warm weather. With a range of colors and styles to choose from, you're sure to find the perfect pair to complement your summer outfit. Made from high-quality materials, our sandals are durable and long-lasting.",
-        "image": "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692022832-itgf9vxg.jpg",
+        "title": "Wedding Day Makeup",
+        "description": "Our team provided expert makeup services for a beautiful bride on her special day, ensuring she felt confident and stunning. We used high-quality products and techniques to create a flawless, long-lasting look. The result was a truly unforgettable wedding day appearance.",
+        "image": "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg",
         "tags": [
-          "Sandals",
-          "Summer",
-          "3-6 months"
+          "Makeup",
+          "Full-day"
         ],
         "testimonial": {
-          "author": "Emily Chen",
-          "quote": "I recently purchased a pair of sandals from StepRight Shoes and I'm absolutely loving them! The quality is exceptional and the style is so on-trend. I've been wearing them non-stop all summer."
+          "author": "Ms. Rodriguez",
+          "quote": "I felt like a princess on my wedding day, thanks to the amazing makeup services from Josephine Carvajal. The team was professional, friendly, and truly talented. I received countless compliments on my makeup, and I couldn't be happier with the results."
         }
       },
       {
-        "title": "Leather Boots Collection",
-        "description": "Our leather boots collection features elegant and sophisticated designs perfect for formal occasions. With a range of styles to choose from, including ankle boots and knee-high boots, you're sure to find the perfect pair to complete your outfit. Made from high-quality leather, our boots are durable and long-lasting.",
-        "image": "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692024256-3rvxbby0.jpg",
+        "title": "Men's Grooming Package",
+        "description": "Our barber and salon services cater to men's grooming needs, providing a relaxing and rejuvenating experience. From haircuts to shaving, we use only the best products and techniques to ensure our clients look and feel their best. This package includes a haircut, shave, and facial treatment.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
         "tags": [
-          "Boots",
-          "Formal",
-          "6-12 months"
+          "Grooming",
+          "Half-day"
         ],
         "testimonial": {
-          "author": "David Lee",
-          "quote": "I purchased a pair of leather boots from StepRight Shoes and I'm so impressed with the quality and craftsmanship. The boots are comfortable and stylish, and I've received so many compliments on them."
+          "author": "Mr. Santos",
+          "quote": "I've never felt so refreshed and revitalized after a grooming session. The team at Josephine Carvajal is exceptional, and their attention to detail is impressive. I highly recommend their men's grooming package to anyone looking for a top-notch experience."
         }
       },
       {
-        "title": "Sneakers Collection",
-        "description": "Our sneakers collection features stylish and comfortable designs perfect for casual wear. With a range of colors and styles to choose from, you're sure to find the perfect pair to complement your outfit. Made from high-quality materials, our sneakers are durable and long-lasting.",
-        "image": "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692025005-h22pak89.jpg",
+        "title": "Hair Color Transformation",
+        "description": "Our experienced team can transform your hair with our professional coloring services. From subtle highlights to bold, vibrant colors, we use only the best products to achieve the desired look. This client underwent a stunning hair color transformation, and the result was a dramatic, eye-catching new look.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
         "tags": [
-          "Sneakers",
-          "Casual",
-          "1-3 months"
+          "Hair Color",
+          "Full-day"
         ],
         "testimonial": {
-          "author": "Sarah Kim",
-          "quote": "I recently purchased a pair of sneakers from StepRight Shoes and I'm loving them! The quality is great and the style is so on-trend. I've been wearing them all the time, from running errands to hanging out with friends."
+          "author": "Ms. Garcia",
+          "quote": "I was blown away by the hair color transformation I received at Josephine Carvajal. The team was knowledgeable, friendly, and truly skilled. My new hair color is everything I wanted and more – I've received countless compliments, and I feel like a completely new person."
         }
       }
     ],
+    "images": [
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg",
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959902485-nou2bbkq.jpg",
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959906265-7t4pjpwa.jpg"
+    ],
     "photos": [
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692022832-itgf9vxg.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692024256-3rvxbby0.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692025005-h22pak89.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692025716-bseg52yl.jpg"
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
     ],
     "visibility": {
       "galleryHeadline": true,
@@ -218,17 +217,16 @@
     }
   },
   "contact": {
-    "businessName": "StepRight Shoes",
-    "email": "azedge17@gmail.com",
-    "phone": "912 345 4567",
-    "address": "andrea.villanueva@example.com, Manila",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "email": "josephinecarvajal110168@gmail.com",
+    "phone": "9177871293",
+    "address": "Heritage homes, Marilao, Bulacan, Marilao",
     "description": "For any inquiries or to explore your vision further, we invite you to contact our professional team using the details provided below.",
     "socialLinks": [],
     "photos": [
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692022832-itgf9vxg.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692024256-3rvxbby0.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692025005-h22pak89.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1769692025716-bseg52yl.jpg"
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
     ],
     "visibility": {
       "contactBadge": true,

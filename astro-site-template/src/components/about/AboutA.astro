@@ -55,8 +55,9 @@ const galleryPhotos = photos.slice(0, 4);
 
         {showHeadline && (
           <h2 class="reveal-delay-1 reveal font-bold leading-tight tracking-tight text-[var(--text)]"
-              style="font-size: var(--fs-2xl); font-family: var(--heading-font, inherit);">
-            {headline}
+              style="font-size: var(--fs-2xl); font-family: var(--heading-font, inherit);"
+              data-field="about_headline"
+              set:html={headline}>
           </h2>
         )}
       </div>
@@ -65,8 +66,9 @@ const galleryPhotos = photos.slice(0, 4);
       {showDescription && (
         <div class="reveal-delay-2 reveal flex items-start md:pt-4 lg:pt-12">
           <p class="max-w-xl leading-[1.6] text-[var(--text-muted)] font-medium"
-             style="font-size: var(--fs-lg);">
-            {description}
+             style="font-size: var(--fs-lg);"
+             data-field="about_description"
+             set:html={description}>
           </p>
         </div>
       )}

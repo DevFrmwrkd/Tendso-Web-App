@@ -88,8 +88,9 @@ const serviceIcons: string[] = [
           <h2
             class="reveal-delay-1 reveal mb-16 font-bold leading-tight tracking-tight text-[var(--text)]"
             style="font-size: var(--fs-2xl); font-family: var(--heading-font, inherit);"
+            data-field="services_headline"
+            set:html={headline}
           >
-            {headline}
           </h2>
         )}
 
@@ -111,8 +112,11 @@ const serviceIcons: string[] = [
                     set:html={serviceIcons[index % serviceIcons.length]}
                   />
                   {/* Name */}
-                  <span class="flex-1 text-[var(--fs-lg)] font-bold text-[var(--text)] tracking-tight">
-                    {service.name}
+                  <span
+                    class="flex-1 text-[var(--fs-lg)] font-bold text-[var(--text)] tracking-tight"
+                    data-field={`services.${index}.name`}
+                    set:html={service.name}
+                  >
                   </span>
                   {/* Toggle icon */}
                   <span class="services-toggle-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--text)]/10 text-[var(--fs-xs)] transition-all duration-300 group-hover:border-[var(--primary)]">
@@ -130,8 +134,12 @@ const serviceIcons: string[] = [
                   style={index === 0 ? 'max-height: 400px;' : 'max-height: 0;'}
                 >
                   <div class="pb-8 pl-24 pr-8 md:pl-28">
-                    <p class="leading-relaxed text-[var(--text-muted)] font-medium" style="font-size: var(--fs-base);">
-                      {service.description}
+                    <p
+                      class="leading-relaxed text-[var(--text-muted)] font-medium"
+                      style="font-size: var(--fs-base);"
+                      data-field={`services.${index}.description`}
+                      set:html={service.description}
+                    >
                     </p>
                   </div>
                 </div>

@@ -1,0 +1,114 @@
+---
+/**
+ * ServicesK3 - Barber Shop / Service Stations
+ * Grid of "stations" each with icon + name representing the shop floor.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  services: Array<{ name: string; description: string; price?: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'The Stations',
+  subheadline = 'Walk the floor. Every chair, every craft.',
+  services = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.servicesHeadline !== false;
+const showSubheadline = visibility?.servicesSubheadline !== false && !!subheadline;
+const showList = visibility?.servicesList !== false;
+
+const defaultPrices = ['250', '350', '450', '550', '650', '750'];
+const icons = [
+  '<path d="M12 2L9 5h3l3-3z M12 10l-3-3m3-2l3 3 M2 22h20M12 14l-2 8m4-8l2 8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  '<path d="M8 5l8 8M8 13l8-8M3 21l4-4M21 21l-4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  '<path d="M5 7l14 0M5 12l14 0M5 17l8 0" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  '<circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M6 21v-2a6 6 0 0112 0v2" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  '<path d="M3 7l3-3 3 3M9 4v8M21 17l-3 3-3-3M15 20v-8" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  '<rect x="3" y="6" width="18" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><path d="M8 2v4M16 2v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+];
+---
+
+<section id="services" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="text-center mb-16">
+      <div class="barber-fade-up inline-flex items-center gap-4 mb-6">
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--primary)]">— The shop floor —</span>
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+      </div>
+      {showHeadline && (
+        <h2 class="barber-fade-up font-bold leading-[0.95] tracking-tight text-[var(--text)] mb-5" style="font-size: clamp(2.75rem, 6vw, 5rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="barber-fade-up max-w-xl mx-auto text-[var(--text-muted)] italic" style="font-size: 1.1rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showList && (
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {services.map((service, i) => {
+          const price = service.price || defaultPrices[i % defaultPrices.length];
+          const icon = icons[i % icons.length];
+          return (
+            <div class="station barber-fade-up relative group" style={`animation-delay: ${i * 0.08 + 0.3}s;`}>
+              {/* Station floor — wood-grain rectangle */}
+              <div class="relative bg-[var(--text)] p-8 border-2 border-[var(--primary)]/30 hover:border-[var(--accent)] transition-all duration-300 hover:-translate-y-2 hover:shadow-[0_30px_60px_-20px_rgba(26,12,16,0.4)]">
+                {/* Floor texture */}
+                <div class="absolute inset-0 opacity-[0.08] pointer-events-none" style="background-image: repeating-linear-gradient(90deg, transparent 0 4px, var(--accent) 4px 5px);"></div>
+
+                {/* Station number plaque */}
+                <div class="relative flex items-center justify-between mb-6">
+                  <span class="text-[10px] font-bold uppercase tracking-[0.4em] text-[var(--accent)]/70">Station {(i + 1).toString().padStart(2, '0')}</span>
+                  <div class="w-6 h-px bg-[var(--accent)]/40"></div>
+                </div>
+
+                {/* Icon in brass frame */}
+                <div class="relative mx-auto mb-6 w-20 h-20 rounded-full bg-[var(--accent)]/10 border-2 border-[var(--accent)] flex items-center justify-center text-[var(--accent)] group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500">
+                  <svg width="36" height="36" viewBox="0 0 24 24" set:html={icon}></svg>
+                </div>
+
+                {/* Service name */}
+                <h3 class="text-center text-[var(--bg)] font-bold tracking-tight text-2xl mb-2 italic" style="font-size: 1.65rem;">{service.name}</h3>
+
+                {service.description && (
+                  <p class="text-center text-[var(--bg)]/70 italic text-sm leading-relaxed mb-5" style="font-size: 0.95rem;">"{service.description}"</p>
+                )}
+
+                {/* Price plaque */}
+                <div class="flex items-center justify-center gap-2 pt-4 border-t border-[var(--accent)]/20">
+                  <span class="text-[10px] uppercase tracking-[0.35em] text-[var(--accent)]/70">From</span>
+                  <span class="text-2xl font-bold text-[var(--accent)]" style="font-size: 1.5rem;">₱{price}</span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    {services.length === 0 && (
+      <div class="text-center py-16">
+        <span class="text-6xl text-[var(--accent)]/30">✂</span>
+        <p class="mt-4 text-[var(--text-muted)]/60 italic">The floor is being readied.</p>
+      </div>
+    )}
+
+    <div class="text-center mt-14">
+      <a href="#contact" class="inline-flex items-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] px-10 py-4 text-xs font-bold uppercase tracking-[0.35em] transition-all hover:-translate-y-1">
+        ✂ Reserve your station
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .barber-fade-up { opacity: 0; transform: translateY(20px); animation: barberFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .barber-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

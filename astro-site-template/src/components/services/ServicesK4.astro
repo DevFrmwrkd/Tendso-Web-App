@@ -1,0 +1,136 @@
+---
+/**
+ * ServicesK4 - Barber Shop / Numbered Tiers
+ * Three packaged tiers (The Essential / The Classic / The Master) — 3-up pricing cards.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  services: Array<{ name: string; description: string; price?: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'Three Tiers',
+  subheadline = 'Pick your ceremony.',
+  services = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.servicesHeadline !== false;
+const showSubheadline = visibility?.servicesSubheadline !== false && !!subheadline;
+const showList = visibility?.servicesList !== false;
+
+// Build 3 tiers from services
+const tiers = [
+  {
+    name: 'The Essential',
+    price: '250',
+    badge: null,
+    includes: services.slice(0, 2).map(s => s.name).length > 0 ? services.slice(0, 2).map(s => s.name) : ['Classic Cut', 'Trim & Style'],
+    tagline: 'Quick & clean'
+  },
+  {
+    name: 'The Classic',
+    price: '550',
+    badge: 'Most Popular',
+    includes: services.slice(0, 4).map(s => s.name).length > 0 ? services.slice(0, 4).map(s => s.name) : ['Cut + Style', 'Hot Towel', 'Beard Trim', 'Neck Shave'],
+    tagline: 'The full chair'
+  },
+  {
+    name: 'The Master',
+    price: '950',
+    badge: 'Signature',
+    includes: services.length > 0 ? services.slice(0, 6).map(s => s.name) : ['Cut + Style', 'Hot Towel', 'Straight Razor', 'Beard Sculpt', 'Hair Treatment', 'Aftercare'],
+    tagline: 'The full ceremony'
+  },
+];
+---
+
+<section id="services" class="relative w-full bg-[var(--text)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="text-center mb-16">
+      <div class="barber-fade-up inline-flex items-center gap-4 mb-6">
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--accent)]">— Pick your tier —</span>
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+      </div>
+      {showHeadline && (
+        <h2 class="barber-fade-up font-bold leading-[0.95] tracking-tight text-[var(--bg)] mb-5" style="font-size: clamp(2.75rem, 6vw, 5rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="barber-fade-up text-[var(--accent)] italic" style="font-size: 1.15rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showList && (
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6">
+        {tiers.map((tier, i) => {
+          const isFeatured = i === 1;
+          return (
+            <div
+              class={`tier-card barber-fade-up relative ${isFeatured ? 'md:scale-105 md:-translate-y-2' : ''}`}
+              style={`animation-delay: ${i * 0.12 + 0.3}s;`}
+            >
+              {tier.badge && (
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--accent)] text-[var(--text)] px-4 py-1 text-[10px] font-bold uppercase tracking-[0.35em] z-10 shadow-lg">
+                  ✦ {tier.badge}
+                </div>
+              )}
+
+              <div class={`relative h-full p-8 lg:p-10 border-2 ${isFeatured ? 'bg-[var(--primary)] border-[var(--accent)]' : 'bg-[var(--text)] border-[var(--primary)]/40 hover:border-[var(--accent)]'} transition-all duration-300 hover:-translate-y-1`}>
+
+                <p class={`text-[10px] uppercase tracking-[0.4em] mb-2 italic ${isFeatured ? 'text-[var(--bg)]/80' : 'text-[var(--accent)]/80'}`}>
+                  Tier {i + 1}
+                </p>
+                <h3 class={`text-3xl font-bold mb-1 italic ${isFeatured ? 'text-[var(--bg)]' : 'text-[var(--bg)]'}`} style="font-size: 2rem;">{tier.name}</h3>
+                <p class={`text-sm italic mb-8 ${isFeatured ? 'text-[var(--bg)]/70' : 'text-[var(--accent)]/70'}`}>{tier.tagline}</p>
+
+                <div class="mb-8 pb-8 border-b border-dashed border-[var(--accent)]/30">
+                  <div class="flex items-baseline gap-2">
+                    <span class={`text-sm font-bold uppercase tracking-widest ${isFeatured ? 'text-[var(--bg)]/60' : 'text-[var(--accent)]/60'}`}>₱</span>
+                    <span class={`font-bold tracking-tight ${isFeatured ? 'text-[var(--bg)]' : 'text-[var(--bg)]'}`} style="font-size: 4rem; line-height: 0.9;">{tier.price}</span>
+                  </div>
+                  <p class={`text-[10px] uppercase tracking-[0.35em] mt-2 italic ${isFeatured ? 'text-[var(--bg)]/60' : 'text-[var(--accent)]/60'}`}>
+                    Per visit · no tax
+                  </p>
+                </div>
+
+                <ul class="space-y-3 mb-10">
+                  {tier.includes.map((item) => (
+                    <li class={`flex items-start gap-3 text-sm ${isFeatured ? 'text-[var(--bg)]/90' : 'text-[var(--bg)]/80'}`} style="font-size: 0.95rem;">
+                      <span class={`mt-0.5 ${isFeatured ? 'text-[var(--accent)]' : 'text-[var(--accent)]'}`}>✓</span>
+                      <span class="italic">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <a
+                  href="#contact"
+                  class={`absolute bottom-8 left-8 right-8 inline-flex items-center justify-center gap-2 px-6 py-3 text-xs font-bold uppercase tracking-[0.35em] transition-colors text-center ${
+                    isFeatured
+                      ? 'bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text)]'
+                      : 'border border-[var(--accent)] text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--text)]'
+                  }`}
+                >
+                  Choose tier
+                </a>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    <p class="text-center text-[var(--accent)]/60 italic text-sm mt-16">— Hot towel & aftercare included in every tier —</p>
+  </div>
+</section>
+
+<style>
+  .barber-fade-up { opacity: 0; transform: translateY(20px); animation: barberFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+  .tier-card { opacity: 0; transform: translateY(30px); animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @media (prefers-reduced-motion: reduce) { .barber-fade-up, .tier-card { animation: none; opacity: 1; transform: none; } }
+</style>

@@ -1,0 +1,127 @@
+---
+/**
+ * HeroL3 - Automobile Shop / Lifted Truck
+ * Bold off-road / heavy-duty aesthetic. Stacked oversize type, tire-tread divider,
+ * "no nonsense" emblem, full-bleed image with grit overlay.
+ */
+interface Props {
+  businessName: string;
+  headline: string;
+  description: string;
+  badgeText?: string;
+  testimonial?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryLink?: string;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  headline,
+  description,
+  badgeText = 'Heavy duty · 4x4 · diesel',
+  testimonial,
+  ctaLabel = 'Get it lifted',
+  ctaLink = '#contact',
+  ctaSecondaryLabel = 'Build list',
+  ctaSecondaryLink = '#services',
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+
+const showHeadline = visibility?.heroHeadline !== false;
+const showTagline = visibility?.heroTagline !== false && !!badgeText;
+const showDescription = visibility?.heroDescription !== false;
+const showTestimonial = visibility?.heroTestimonial !== false && !!testimonial;
+const showButton = visibility?.heroButton !== false;
+const showImage = visibility?.heroImage !== false;
+---
+
+<section
+  id="hero"
+  class="relative w-full min-h-screen overflow-hidden bg-[var(--bg)] flex flex-col"
+  style="font-family: var(--body-font);"
+>
+  {/* Full-bleed image */}
+  {showImage && mainPhoto && (
+    <div class="absolute inset-0 z-0">
+      <img src={mainPhoto} alt={businessName} class="auto-image-reveal w-full h-full object-cover" style="filter: contrast(1.25) saturate(0.7) brightness(0.55);" />
+      <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.3) 40%, rgba(0,0,0,0.85) 100%);"></div>
+      {/* Grit noise */}
+      <div class="absolute inset-0 opacity-[0.15] mix-blend-overlay pointer-events-none" style="background-image: radial-gradient(circle at 30% 30%, var(--text) 0.5px, transparent 1px), radial-gradient(circle at 70% 70%, var(--text) 0.5px, transparent 1px); background-size: 4px 4px, 6px 6px;"></div>
+    </div>
+  )}
+
+  <div class="relative z-10 mx-auto max-w-7xl w-full px-6 lg:px-12 pt-24 pb-24 flex-1 flex flex-col justify-center">
+
+    {/* Top emblem */}
+    <div class="auto-fade-up flex items-center gap-4 mb-12">
+      <div class="w-12 h-12 rounded-full border-2 border-[var(--primary)] flex items-center justify-center">
+        <span class="text-[var(--primary)] text-2xl">⊕</span>
+      </div>
+      {showTagline && (
+        <span class="text-[10px] font-black font-mono uppercase tracking-[0.5em] text-[var(--primary)]">{badgeText}</span>
+      )}
+    </div>
+
+    {showHeadline && (
+      <h1 class="auto-fade-up font-black uppercase text-[var(--text)] leading-[0.85] tracking-tighter mb-10" style="font-size: clamp(3rem, 11vw, 9rem); animation-delay: 0.15s;">
+        {headline}
+      </h1>
+    )}
+
+    {/* Tire tread divider */}
+    <div class="auto-fade-up flex items-center gap-3 mb-10" style="animation-delay: 0.25s">
+      <div class="h-4 w-32 relative overflow-hidden bg-[var(--text)]/20">
+        <div class="absolute inset-0" style="background-image: repeating-linear-gradient(90deg, var(--primary) 0 6px, transparent 6px 12px);"></div>
+      </div>
+      <span class="text-[10px] font-bold font-mono uppercase tracking-[0.4em] text-[var(--text)]/70">// {businessName}</span>
+    </div>
+
+    {showDescription && (
+      <p class="auto-fade-up max-w-2xl text-[var(--text)]/80 leading-[1.65] mb-12" style="font-size: clamp(1.05rem, 1.4vw, 1.25rem); animation-delay: 0.35s;">
+        {description}
+      </p>
+    )}
+
+    {showButton && (
+      <div class="auto-fade-up flex flex-col sm:flex-row gap-4" style="animation-delay: 0.45s">
+        <a href={ctaLink} class="group inline-flex items-center gap-3 bg-[var(--primary)] text-[var(--bg)] px-10 py-5 text-xs font-black uppercase tracking-[0.35em] transition-all hover:translate-x-1">
+          {ctaLabel}
+          <span class="text-lg">▶</span>
+        </a>
+        <a href={ctaSecondaryLink} class="inline-flex items-center gap-3 border-2 border-[var(--text)]/40 hover:border-[var(--primary)] text-[var(--text)] hover:text-[var(--primary)] px-10 py-5 text-xs font-black uppercase tracking-[0.35em] transition-all">
+          {ctaSecondaryLabel}
+        </a>
+      </div>
+    )}
+
+    {showTestimonial && (
+      <div class="auto-fade-up mt-16 max-w-md border-l-4 border-[var(--primary)] pl-5" style="animation-delay: 0.55s">
+        <p class="text-sm text-[var(--text)]/90 italic mb-1">"{testimonial}"</p>
+        <p class="text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--primary)]">— Verified build</p>
+      </div>
+    )}
+  </div>
+
+  {/* Bottom strip with tire tread */}
+  <div class="relative z-10 bg-[var(--bg)]/95 border-t-2 border-[var(--primary)] py-3">
+    <div class="mx-auto max-w-7xl px-6 lg:px-12 flex items-center justify-between text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--text)]/60">
+      <span>EST. SHOP · LIFT KITS · OFF-ROAD</span>
+      <span class="hidden sm:inline">SERVING TRUCKS, SUVS, 4X4 RIGS</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .auto-fade-up { opacity: 0; transform: translateY(28px); animation: autoFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  .auto-image-reveal { opacity: 0; transform: scale(1.06); animation: autoImageReveal 1.4s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes autoImageReveal { to { opacity: 1; transform: scale(1); } }
+  @media (prefers-reduced-motion: reduce) { .auto-fade-up, .auto-image-reveal { animation: none; opacity: 1; transform: none; } }
+</style>

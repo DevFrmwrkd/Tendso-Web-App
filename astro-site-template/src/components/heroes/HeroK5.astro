@@ -1,0 +1,255 @@
+---
+/**
+ * HeroK5 - Barber Shop / Old School Newspaper
+ * Multi-column newspaper classified-ad layout on cream paper.
+ * Banner ribbon headline, classified-style column text, vintage type ornaments.
+ * Distinct from others: newspaper aesthetic, multi-column body, no image-as-focal.
+ */
+interface Props {
+  businessName: string;
+  headline: string;
+  description: string;
+  badgeText?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryLink?: string;
+  photos: string[];
+  services?: Array<{ name: string; description: string }>;
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  headline,
+  description,
+  badgeText = 'Daily Edition',
+  ctaLabel = 'Book a cut',
+  ctaLink = '#contact',
+  ctaSecondaryLabel = 'View services',
+  ctaSecondaryLink = '#services',
+  photos = [],
+  services = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+
+const showHeadline = visibility?.heroHeadline !== false;
+const showDescription = visibility?.heroDescription !== false;
+const showButton = visibility?.heroButton !== false;
+const showImage = visibility?.heroImage !== false;
+
+// Today's date for masthead
+const today = new Date().toLocaleDateString('en-US', {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+
+const featuredServices = services.slice(0, 3).map(s => s.name);
+const defaultServices = ['Classic Cut', 'Hot Towel Shave', 'Beard Trim'];
+const displayServices = featuredServices.length > 0 ? featuredServices : defaultServices;
+---
+
+<section
+  id="hero"
+  class="relative w-full min-h-screen overflow-hidden bg-[var(--bg)]"
+  style="font-family: var(--body-font);"
+>
+  {/* Newsprint texture overlay */}
+  <div
+    class="absolute inset-0 opacity-[0.06] pointer-events-none"
+    style="background-image: repeating-linear-gradient(0deg, transparent 0 2px, var(--text) 2px 3px);"
+  ></div>
+
+  <div class="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-10 py-12 lg:py-16">
+
+    {/* MASTHEAD — Like a newspaper header */}
+    <header class="barber-fade-up border-y-4 border-double border-[var(--text)] py-5 mb-8">
+      <div class="flex items-center justify-between gap-4 mb-3 text-[10px] uppercase tracking-[0.3em] text-[var(--primary)] font-bold">
+        <span>VOL. XLII · No. 1138</span>
+        <span class="hidden sm:inline italic">— {badgeText} —</span>
+        <span class="text-right">Price: One Shilling</span>
+      </div>
+
+      <h2
+        class="text-center font-bold uppercase tracking-[0.2em] text-[var(--text)] leading-none"
+        style="font-size: clamp(2rem, 5vw, 4rem);"
+      >
+        ★ {businessName} ★
+      </h2>
+
+      <p class="text-center text-[10px] uppercase tracking-[0.45em] text-[var(--primary)] italic mt-3">
+        {today}
+      </p>
+    </header>
+
+    {/* THREE COLUMN LAYOUT */}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+
+      {/* COL 1 — Hours sidebar (left) */}
+      <aside class="lg:col-span-3 order-3 lg:order-1">
+        <div class="barber-fade-up border-t-2 border-[var(--text)] pt-4" style="animation-delay: 0.1s">
+          <h3 class="text-[10px] font-bold uppercase tracking-[0.35em] text-[var(--primary)] mb-3">
+            ✂ Shop Hours
+          </h3>
+          <ul class="space-y-2 text-sm text-[var(--text)]">
+            <li class="flex justify-between border-b border-dotted border-[var(--primary)]/30 pb-1">
+              <span class="italic">Mon — Fri</span>
+              <span class="font-bold">9 — 8</span>
+            </li>
+            <li class="flex justify-between border-b border-dotted border-[var(--primary)]/30 pb-1">
+              <span class="italic">Saturday</span>
+              <span class="font-bold">9 — 9</span>
+            </li>
+            <li class="flex justify-between">
+              <span class="italic">Sunday</span>
+              <span class="font-bold">10 — 6</span>
+            </li>
+          </ul>
+
+          <div class="mt-6 pt-6 border-t border-[var(--primary)]/20">
+            <h3 class="text-[10px] font-bold uppercase tracking-[0.35em] text-[var(--primary)] mb-3">
+              Today's Special
+            </h3>
+            <ul class="space-y-1.5 text-sm italic text-[var(--text-muted)]">
+              {displayServices.map((s) => (
+                <li class="flex items-baseline gap-2">
+                  <span class="text-[var(--accent)] text-xs">✦</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </aside>
+
+      {/* COL 2 — Main story (center) */}
+      <main class="lg:col-span-6 order-1 lg:order-2 text-center">
+        <div class="barber-fade-up" style="animation-delay: 0.15s">
+          <p class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--primary)] mb-3">
+            — Top Story —
+          </p>
+        </div>
+
+        {showHeadline && (
+          <h1
+            class="barber-fade-up font-bold leading-[1] tracking-tight text-[var(--text)] mb-2 uppercase"
+            style="font-size: clamp(2.5rem, 7vw, 5.5rem); animation-delay: 0.2s;"
+          >
+            {headline}
+          </h1>
+        )}
+
+        <div class="barber-fade-up flex items-center justify-center gap-3 my-6" style="animation-delay: 0.25s">
+          <span class="h-px w-12 bg-[var(--primary)]"></span>
+          <span class="text-[var(--accent)] text-xl">✂</span>
+          <span class="h-px w-12 bg-[var(--primary)]"></span>
+        </div>
+
+        {/* Subheadline */}
+        <div class="barber-fade-up mb-6" style="animation-delay: 0.3s">
+          <p class="text-sm italic text-[var(--primary)] tracking-wide">
+            — A Resident's Account of Master Barbery, As Reported From The Shop Floor —
+          </p>
+        </div>
+
+        {/* Body in 2-column on lg */}
+        {showDescription && (
+          <p
+            class="barber-fade-up text-[var(--text-muted)] leading-[1.85] text-justify columns-1 sm:columns-2 gap-6"
+            style="font-size: clamp(0.95rem, 1.15vw, 1.05rem); animation-delay: 0.35s;"
+          >
+            <span class="float-left text-6xl leading-[0.85] mr-3 mt-1 text-[var(--primary)] font-bold" style="font-family: 'Times New Roman', serif;">"</span>
+            {description}
+          </p>
+        )}
+
+        {/* CTAs */}
+        {showButton && (
+          <div class="barber-fade-up mt-10 flex flex-col sm:flex-row items-center justify-center gap-3" style="animation-delay: 0.45s">
+            <a
+              href={ctaLink}
+              class="group inline-flex items-center justify-center gap-3 bg-[var(--text)] hover:bg-[var(--primary)] text-[var(--bg)] px-8 py-3 text-xs font-bold uppercase tracking-[0.35em] transition-colors"
+            >
+              <span>✂</span> {ctaLabel}
+            </a>
+            <a
+              href={ctaSecondaryLink}
+              class="inline-flex items-center justify-center gap-2 text-[var(--primary)] hover:text-[var(--text)] px-6 py-3 text-xs font-bold uppercase tracking-[0.35em] underline decoration-[var(--accent)] decoration-2 underline-offset-4 transition-colors italic"
+            >
+              {ctaSecondaryLabel}
+            </a>
+          </div>
+        )}
+      </main>
+
+      {/* COL 3 — Photo sidebar (right) */}
+      <aside class="lg:col-span-3 order-2 lg:order-3">
+        <div class="barber-fade-up border-t-2 border-[var(--text)] pt-4" style="animation-delay: 0.2s">
+          <h3 class="text-[10px] font-bold uppercase tracking-[0.35em] text-[var(--primary)] mb-3">
+            ✦ Inside the Shop
+          </h3>
+
+          {showImage && mainPhoto ? (
+            <figure class="bg-[var(--text)] p-2 border border-[var(--primary)]/20">
+              <img
+                src={mainPhoto}
+                alt={businessName}
+                class="w-full aspect-[3/4] object-cover"
+                style="filter: sepia(0.5) contrast(1.05) brightness(0.88) grayscale(0.2);"
+              />
+              <figcaption class="text-[9px] uppercase tracking-[0.3em] text-[var(--accent)] mt-2 text-center italic">
+                — On location, daily —
+              </figcaption>
+            </figure>
+          ) : (
+            <div class="bg-[var(--text)] aspect-[3/4] flex items-center justify-center text-[var(--accent)] text-6xl">
+              ✂
+            </div>
+          )}
+
+          <div class="mt-6 pt-6 border-t border-[var(--primary)]/20 text-center">
+            <p class="text-[9px] uppercase tracking-[0.4em] text-[var(--primary)] italic mb-2">— Patrons say —</p>
+            <p class="text-sm italic text-[var(--text-muted)] leading-relaxed">
+              "Sharpest cut in town since '32."
+            </p>
+            <div class="flex items-center justify-center gap-1 mt-2">
+              {Array.from({ length: 5 }).map(() => (
+                <span class="text-[var(--accent)] text-xs">★</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    {/* BOTTOM RIBBON BANNER */}
+    <div class="barber-fade-up mt-12 border-y-4 border-double border-[var(--text)] py-4" style="animation-delay: 0.5s">
+      <div class="flex items-center justify-center gap-4 sm:gap-8 text-[10px] sm:text-xs uppercase tracking-[0.35em] text-[var(--text)] font-bold flex-wrap">
+        <span>✦ Hot Towel</span>
+        <span class="text-[var(--accent)]">✂</span>
+        <span>✦ Straight Razor</span>
+        <span class="text-[var(--accent)]">✂</span>
+        <span>✦ Beard Sculpting</span>
+        <span class="text-[var(--accent)]">✂</span>
+        <span>✦ Master Cuts</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .barber-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .barber-fade-up { animation: none; opacity: 1; transform: none; }
+  }
+</style>

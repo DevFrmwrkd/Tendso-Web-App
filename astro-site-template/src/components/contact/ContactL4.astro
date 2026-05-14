@@ -1,0 +1,122 @@
+---
+/**
+ * ContactL4 - Automobile Shop / Workshop Hours
+ * Big bold hours-board focused layout. Each day on a card, with status badge.
+ * Reads like a workshop opening-hours sign with prominent "now open" status.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+
+const days = [
+  { day: 'MON', hours: '08:00 — 18:00', open: true },
+  { day: 'TUE', hours: '08:00 — 18:00', open: true },
+  { day: 'WED', hours: '08:00 — 18:00', open: true },
+  { day: 'THU', hours: '08:00 — 18:00', open: true },
+  { day: 'FRI', hours: '08:00 — 20:00', open: true },
+  { day: 'SAT', hours: '09:00 — 17:00', open: true },
+  { day: 'SUN', hours: 'CLOSED', open: false },
+];
+
+// Today index (0 = Monday)
+const todayIdx = (new Date().getDay() + 6) % 7;
+---
+
+<section id="contact" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-6xl px-6 lg:px-12">
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.5fr] gap-12 items-start mb-12">
+      {/* LEFT — Heading */}
+      <div class="lg:sticky lg:top-24">
+        <p class="auto-fade-up text-[10px] font-mono font-black uppercase tracking-[0.5em] text-[var(--primary)] mb-4">— WORKSHOP HOURS · {new Date().getFullYear()} —</p>
+        <h2 class="auto-fade-up font-black uppercase leading-[0.92] tracking-tight text-[var(--text)] mb-6" style="font-size: clamp(2.25rem, 5.5vw, 4rem); animation-delay: 0.1s;">When the bays are open</h2>
+        <p class="auto-fade-up text-[var(--text-muted)] leading-[1.7] mb-8" style="font-size: 1.05rem; animation-delay: 0.2s;">Drive in any time during open hours. Last service starts 30 minutes before close.</p>
+
+        {/* Now-status banner */}
+        <div class="auto-fade-up bg-[var(--surface)] border-l-4 border-[var(--primary)] px-5 py-4" style="animation-delay: 0.3s">
+          <div class="flex items-center gap-3 mb-1">
+            <span class="w-2.5 h-2.5 rounded-full bg-[var(--primary)] animate-pulse"></span>
+            <p class="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-[var(--primary)]">{days[todayIdx].open ? 'OPEN NOW' : 'CLOSED'}</p>
+          </div>
+          <p class="text-2xl font-black text-[var(--text)] font-mono">{days[todayIdx].hours}</p>
+          <p class="text-[10px] font-mono uppercase tracking-[0.3em] text-[var(--text-muted)] mt-1">— Today, {days[todayIdx].day} —</p>
+        </div>
+      </div>
+
+      {/* RIGHT — Hours grid */}
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {days.map((d, i) => (
+          <div
+            class={`auto-fade-up bg-[var(--surface)] p-5 flex items-center justify-between transition-colors ${i === todayIdx ? 'border-2 border-[var(--primary)]' : 'border-2 border-[var(--accent)]/30 hover:border-[var(--accent)]/60'}`}
+            style={`animation-delay: ${0.35 + i * 0.06}s`}
+          >
+            <div>
+              <p class={`text-3xl font-black font-mono tracking-tight ${i === todayIdx ? 'text-[var(--primary)]' : 'text-[var(--text)]'}`}>{d.day}</p>
+              <p class={`text-[9px] font-mono uppercase tracking-[0.4em] mt-1 ${d.open ? 'text-[var(--text-muted)]' : 'text-[var(--accent)]'}`}>{d.open ? 'OPEN' : 'CLOSED'}</p>
+            </div>
+            <p class={`text-base font-mono font-bold ${d.open ? 'text-[var(--text)]' : 'text-[var(--text-muted)]/50'}`}>{d.hours}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Bottom contact strip */}
+    {showInfo && (
+      <div class="auto-fade-up grid grid-cols-1 md:grid-cols-3 gap-3 pt-10 border-t border-[var(--accent)]/30" style="animation-delay: 0.85s">
+        <a href={`tel:${phone}`} class="bg-[var(--primary)] text-[var(--bg)] p-5 text-center hover:-translate-y-0.5 transition-all">
+          <p class="text-[9px] font-mono uppercase tracking-[0.4em] opacity-80 mb-1">PHONE</p>
+          <p class="text-base font-black font-mono">{phone}</p>
+        </a>
+        {email && (
+          <a href={`mailto:${email}`} class="bg-[var(--surface)] border-2 border-[var(--accent)]/40 hover:border-[var(--primary)] p-5 text-center transition-colors">
+            <p class="text-[9px] font-mono uppercase tracking-[0.4em] text-[var(--accent)] mb-1">EMAIL</p>
+            <p class="text-sm font-bold text-[var(--text)] break-all">{email}</p>
+          </a>
+        )}
+        {address && (
+          <div class="bg-[var(--surface)] border-2 border-[var(--accent)]/40 p-5 text-center">
+            <p class="text-[9px] font-mono uppercase tracking-[0.4em] text-[var(--accent)] mb-1">FIND US</p>
+            <p class="text-sm font-bold text-[var(--text)]">{address}</p>
+          </div>
+        )}
+      </div>
+    )}
+
+    {showSocial && (
+      <div class="auto-fade-up flex justify-center gap-2 mt-10" style="animation-delay: 0.95s">
+        {socialLinks.map((l) => (
+          <a href={l.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 border border-[var(--accent)]/40 hover:border-[var(--primary)] flex items-center justify-center text-[var(--accent)] hover:text-[var(--primary)] transition-colors" aria-label={l.platform}>
+            <span class="text-xs font-bold uppercase">{l.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <p class="text-center text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--text-muted)] mt-10">— © {new Date().getFullYear()} · {businessName} —</p>
+  </div>
+</section>
+
+<style>
+  .auto-fade-up { opacity: 0; transform: translateY(20px); animation: autoFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .auto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

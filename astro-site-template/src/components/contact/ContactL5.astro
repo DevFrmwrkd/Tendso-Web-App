@@ -1,0 +1,126 @@
+---
+/**
+ * ContactL5 - Automobile Shop / Tow Service
+ * Emergency 24/7 tow-service feel. Big red-alert call line, "stranded?" headline,
+ * roadside-emergency aesthetic with rotating beacon motif.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+---
+
+<section id="contact" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  {/* Hazard stripes - top & bottom */}
+  <div class="absolute top-0 inset-x-0 h-4 z-10" style="background-image: repeating-linear-gradient(45deg, var(--primary) 0 18px, var(--bg) 18px 36px);"></div>
+  <div class="absolute bottom-0 inset-x-0 h-4 z-10" style="background-image: repeating-linear-gradient(-45deg, var(--primary) 0 18px, var(--bg) 18px 36px);"></div>
+
+  <div class="relative z-10 mx-auto max-w-5xl px-6 lg:px-12">
+
+    {/* Beacon header */}
+    <div class="text-center mb-12">
+      <div class="auto-fade-up inline-flex items-center justify-center w-20 h-20 rounded-full bg-[var(--primary)] mb-6 relative">
+        <div class="absolute inset-0 rounded-full bg-[var(--primary)] beacon-pulse"></div>
+        <span class="relative text-3xl text-[var(--bg)]">⚠</span>
+      </div>
+      <p class="auto-fade-up text-[10px] font-mono font-black uppercase tracking-[0.5em] text-[var(--primary)] mb-4" style="animation-delay: 0.1s">— 24 / 7 ROADSIDE ASSIST —</p>
+      <h2 class="auto-fade-up font-black uppercase leading-[0.9] tracking-tight text-[var(--text)] mb-5" style="font-size: clamp(2.5rem, 7vw, 5rem); animation-delay: 0.15s;">Stranded?<br/>We come to you.</h2>
+      <p class="auto-fade-up text-[var(--text-muted)] max-w-xl mx-auto leading-[1.7]" style="font-size: 1.1rem; animation-delay: 0.25s;">Flat. Battery. Lockout. Won't start. Day or night, one call gets a truck on the way.</p>
+    </div>
+
+    {/* Big phone CTA */}
+    {showInfo && (
+      <div class="auto-fade-up bg-[var(--surface)] border-4 border-[var(--primary)] p-8 md:p-12 mb-10 relative" style="animation-delay: 0.35s">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-[var(--bg)] px-4 py-1 border-2 border-[var(--primary)]">
+          <p class="text-[10px] font-mono font-black uppercase tracking-[0.4em] text-[var(--primary)]">EMERGENCY LINE</p>
+        </div>
+
+        <p class="text-center text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--accent)] mb-3 mt-2">— TAP TO CALL —</p>
+        <a href={`tel:${phone}`} class="block text-center text-4xl sm:text-5xl md:text-6xl font-black font-mono text-[var(--primary)] hover:scale-105 transition-transform mb-3 tracking-tight">
+          {phone}
+        </a>
+        <p class="text-center text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--text-muted)]">— Open 24 hrs · 7 days · 365 —</p>
+      </div>
+    )}
+
+    {/* Service capabilities */}
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
+      {[
+        { icon: '🔋', label: 'JUMP START' },
+        { icon: '⛽', label: 'FUEL DELIVERY' },
+        { icon: '🔧', label: 'FLAT FIX' },
+        { icon: '🚚', label: 'TOW TO SHOP' },
+      ].map((s, i) => (
+        <div class="auto-fade-up bg-[var(--surface)] border border-[var(--accent)]/40 p-4 text-center hover:border-[var(--primary)] transition-colors" style={`animation-delay: ${0.5 + i * 0.07}s`}>
+          <span class="text-3xl mb-2 block">{s.icon}</span>
+          <p class="text-[9px] font-mono font-black uppercase tracking-[0.3em] text-[var(--text)]">{s.label}</p>
+        </div>
+      ))}
+    </div>
+
+    {/* Backup contacts */}
+    {showInfo && (email || address) && (
+      <div class="auto-fade-up grid grid-cols-1 md:grid-cols-2 gap-3 pt-8 border-t border-[var(--accent)]/30" style="animation-delay: 0.85s">
+        {email && (
+          <a href={`mailto:${email}?subject=Roadside%20assist`} class="bg-[var(--surface)] border border-[var(--accent)]/40 hover:border-[var(--primary)] p-4 flex items-center gap-3 transition-colors">
+            <span class="text-[var(--primary)] text-xl">✉</span>
+            <div>
+              <p class="text-[9px] font-mono uppercase tracking-[0.4em] text-[var(--accent)] mb-1">NON-URGENT · EMAIL</p>
+              <p class="text-sm font-bold text-[var(--text)] break-all">{email}</p>
+            </div>
+          </a>
+        )}
+        {address && (
+          <div class="bg-[var(--surface)] border border-[var(--accent)]/40 p-4 flex items-center gap-3">
+            <span class="text-[var(--primary)] text-xl">📍</span>
+            <div>
+              <p class="text-[9px] font-mono uppercase tracking-[0.4em] text-[var(--accent)] mb-1">SHOP BASE</p>
+              <p class="text-sm font-bold text-[var(--text)]">{address}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+
+    {showSocial && (
+      <div class="auto-fade-up flex justify-center gap-2 mt-10" style="animation-delay: 0.95s">
+        {socialLinks.map((l) => (
+          <a href={l.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 border border-[var(--accent)]/40 hover:border-[var(--primary)] flex items-center justify-center text-[var(--accent)] hover:text-[var(--primary)] transition-colors" aria-label={l.platform}>
+            <span class="text-xs font-bold uppercase">{l.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <p class="text-center text-[10px] font-mono uppercase tracking-[0.4em] text-[var(--text-muted)] mt-10">— © {new Date().getFullYear()} · {businessName} · Always on call —</p>
+  </div>
+</section>
+
+<style>
+  .auto-fade-up { opacity: 0; transform: translateY(20px); animation: autoFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes autoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  .beacon-pulse { animation: beaconPulse 2s ease-in-out infinite; }
+  @keyframes beaconPulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.5); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) { .auto-fade-up, .beacon-pulse { animation: none; opacity: 1; transform: none; } }
+</style>

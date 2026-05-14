@@ -1,0 +1,132 @@
+---
+/**
+ * GalleryN5 - Restaurant / Seasonal
+ * Four-season menu progression. Spring / Summer / Autumn / Winter sections,
+ * each with featured dishes from that time of year.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  items: Array<{ title: string; description: string; image?: string; tags?: string[] }>;
+  images?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'The seasons on a plate',
+  subheadline = 'What we cook depends on what the season has grown. Here\'s the year.',
+  items = [],
+  images = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.galleryHeadline !== false;
+const showSubheadline = visibility?.gallerySubheadline !== false && !!subheadline;
+const showItems = visibility?.galleryItems !== false;
+
+const allPhotos = items.length > 0 ? items : (images.length > 0 ? images.map(img => ({ image: img, title: '', description: '', tags: [] })) : photos.map(p => ({ image: p, title: '', description: '', tags: [] })));
+
+const seasons = [
+  {
+    name: 'Spring',
+    months: 'Mar — May',
+    icon: '🌱',
+    note: 'Young greens, soft herbs, the first stone fruit.',
+    dish: allPhotos[0]?.title || 'Asparagus risotto',
+    image: allPhotos[0]?.image,
+  },
+  {
+    name: 'Summer',
+    months: 'Jun — Aug',
+    icon: '🌞',
+    note: 'Tomato weight, basil heat, ocean salt at noon.',
+    dish: allPhotos[1]?.title || 'Heirloom tomato carpaccio',
+    image: allPhotos[1]?.image,
+  },
+  {
+    name: 'Autumn',
+    months: 'Sep — Nov',
+    icon: '🍂',
+    note: 'Mushrooms, root vegetables, deeper sauces.',
+    dish: allPhotos[2]?.title || 'Wild mushroom pappardelle',
+    image: allPhotos[2]?.image,
+  },
+  {
+    name: 'Winter',
+    months: 'Dec — Feb',
+    icon: '❄',
+    note: 'Slow braises, citrus, comfort on the plate.',
+    dish: allPhotos[3]?.title || 'Braised short rib',
+    image: allPhotos[3]?.image,
+  },
+];
+
+// Determine current season
+const month = new Date().getMonth();
+const currentSeasonIdx = month < 2 || month === 11 ? 3 : month < 5 ? 0 : month < 8 ? 1 : 2;
+---
+
+<section id="gallery" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="text-center mb-16">
+      <p class="resto-fade-up text-[10px] uppercase tracking-[0.55em] text-[var(--accent)] italic mb-5">— Four seasons · one kitchen —</p>
+      {showHeadline && (
+        <h2 class="resto-fade-up font-bold italic leading-[1.05] text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.5rem, 5.5vw, 4.5rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="resto-fade-up text-[var(--text-muted)] italic leading-[1.8] max-w-xl mx-auto" style="font-size: 1.1rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showItems && (
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {seasons.map((s, i) => {
+          const isNow = i === currentSeasonIdx;
+          return (
+            <div
+              class={`resto-fade-up relative bg-[var(--surface)] overflow-hidden transition-all duration-500 hover:-translate-y-1 ${isNow ? 'border-2 border-[var(--primary)] shadow-[0_30px_60px_-15px_rgba(196,90,58,0.3)]' : 'border border-[var(--text)]/15'}`}
+              style={`animation-delay: ${0.3 + i * 0.1}s`}
+            >
+              <div class="grid grid-cols-[1fr_1.3fr]">
+                {/* Image */}
+                <div class="relative aspect-square">
+                  {s.image ? (
+                    <img src={s.image} alt={s.dish} class="absolute inset-0 w-full h-full object-cover" style="filter: contrast(1.05) saturate(1.05);" loading="lazy" />
+                  ) : (
+                    <div class="absolute inset-0 flex items-center justify-center bg-[var(--bg)] text-7xl">{s.icon}</div>
+                  )}
+                  {isNow && (
+                    <div class="absolute top-3 left-3 bg-[var(--primary)] text-[var(--bg)] px-3 py-1 rounded-full text-[9px] uppercase tracking-[0.4em] italic">In season</div>
+                  )}
+                </div>
+
+                {/* Content */}
+                <div class="p-6 flex flex-col justify-center">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="text-2xl">{s.icon}</span>
+                    <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic">— {s.months} —</p>
+                  </div>
+                  <h3 class="text-3xl italic text-[var(--primary)] mb-3" style="font-family: var(--heading-font);">{s.name}</h3>
+                  <p class="text-xs text-[var(--text-muted)] italic leading-[1.6] mb-4 pb-3 border-b border-dashed border-[var(--text)]/20">{s.note}</p>
+                  <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic mb-1">— On the menu —</p>
+                  <p class="text-base italic text-[var(--text)]" style="font-family: var(--heading-font);">{s.dish}</p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    <p class="text-center text-[10px] uppercase tracking-[0.55em] text-[var(--accent)] italic mt-14">— Menu shifts with the calendar —</p>
+  </div>
+</section>
+
+<style>
+  .resto-fade-up { opacity: 0; transform: translateY(20px); animation: restoFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes restoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .resto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

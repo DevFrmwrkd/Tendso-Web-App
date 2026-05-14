@@ -1,0 +1,124 @@
+---
+/**
+ * GalleryO4 - Clinic / Patient Stories
+ * Patient stories with photo + quote + outcome. Real-people testimonials,
+ * editorial style. Names anonymized but stories specific.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  items: Array<{ title: string; description: string; image?: string; tags?: string[] }>;
+  images?: string[];
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'Patient stories',
+  subheadline = 'Real visits, real progress. Shared with permission.',
+  items = [],
+  images = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.galleryHeadline !== false;
+const showSubheadline = visibility?.gallerySubheadline !== false && !!subheadline;
+const showItems = visibility?.galleryItems !== false;
+
+const allPhotos = items.length > 0 ? items : (images.length > 0 ? images.map(img => ({ image: img, title: '', description: '', tags: [] })) : photos.map(p => ({ image: p, title: '', description: '', tags: [] })));
+
+const defaultStories = [
+  { name: 'M.R.', age: 'Age 52', condition: 'Hypertension', outcome: 'Off two medications in 8 months', quote: 'My blood pressure dropped without forcing it. I just kept showing up.' },
+  { name: 'J.S.', age: 'Age 34', condition: 'Migraine', outcome: 'Pain-free for 6 months', quote: 'They asked questions no doctor had before. Turned out to be diet.' },
+  { name: 'A.L.', age: 'Age 67', condition: 'Diabetes', outcome: 'A1C from 9.1 to 6.3', quote: 'They explained without making me feel small.' },
+];
+
+const stories = allPhotos.slice(0, 3).map((it: any, i: number) => ({
+  image: it.image,
+  name: defaultStories[i].name,
+  age: defaultStories[i].age,
+  condition: it.title || defaultStories[i].condition,
+  outcome: it.description || defaultStories[i].outcome,
+  quote: defaultStories[i].quote,
+}));
+
+while (stories.length < 3) {
+  const i = stories.length;
+  stories.push({ image: undefined, ...defaultStories[i] });
+}
+---
+
+<section id="gallery" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    <div class="text-center mb-14 max-w-3xl mx-auto">
+      <p class="clinic-fade-up text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)] mb-4">— Outcomes, in their words —</p>
+      {showHeadline && (
+        <h2 class="clinic-fade-up font-bold leading-[1.05] tracking-tight text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.25rem, 5vw, 4rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="clinic-fade-up text-[var(--text-muted)] leading-[1.75]" style="font-size: 1.1rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showItems && (
+      <div class="space-y-8">
+        {stories.map((s, i) => {
+          const isEven = i % 2 === 0;
+          return (
+            <div class={`clinic-fade-up grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center ${isEven ? '' : 'lg:grid-flow-dense'}`} style={`animation-delay: ${0.3 + i * 0.12}s`}>
+              {/* Photo */}
+              <div class={isEven ? '' : 'lg:col-start-2'}>
+                <div class="relative aspect-[4/3] overflow-hidden bg-[var(--surface)] rounded-3xl">
+                  {s.image ? (
+                    <img src={s.image} alt={`Patient ${s.name}`} class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                  ) : (
+                    <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-9xl">⚕</div>
+                  )}
+                  <div class="absolute inset-0 bg-gradient-to-t from-[var(--text)]/40 to-transparent"></div>
+                  {/* Patient tag */}
+                  <div class="absolute top-5 left-5 bg-[var(--bg)]/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-md">
+                    <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)]">Patient · {s.name} · {s.age}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Story content */}
+              <div class={isEven ? '' : 'lg:col-start-1 lg:row-start-1'}>
+                <div class="inline-flex items-center gap-2 bg-[var(--accent)]/15 text-[var(--accent)] px-3 py-1.5 rounded-full mb-4">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[var(--accent)]"></span>
+                  <span class="text-[10px] font-bold uppercase tracking-[0.25em]">Story {String(i + 1).padStart(2, '0')}</span>
+                </div>
+
+                <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)] mb-2">— Came in for —</p>
+                <h3 class="text-2xl font-bold text-[var(--text)] mb-5" style="font-family: var(--heading-font);">{s.condition}</h3>
+
+                <div class="bg-[var(--surface)] border-l-4 border-[var(--primary)] p-5 rounded-r-2xl mb-5">
+                  <p class="text-base italic text-[var(--text)] leading-[1.7] mb-3">"{s.quote}"</p>
+                  <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--accent)]">— {s.name}, in their own words</p>
+                </div>
+
+                <div class="flex items-start gap-3 pt-4 border-t border-[var(--text)]/10">
+                  <svg class="w-5 h-5 text-[var(--accent)] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  <div>
+                    <p class="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--accent)] mb-1">Outcome</p>
+                    <p class="text-sm font-semibold text-[var(--text)]">{s.outcome}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    <p class="text-center text-xs text-[var(--text-muted)] mt-14">All stories shared with informed patient consent. Names anonymized.</p>
+  </div>
+</section>
+
+<style>
+  .clinic-fade-up { opacity: 0; transform: translateY(20px); animation: clinicFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes clinicFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .clinic-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

@@ -1,0 +1,145 @@
+---
+/**
+ * ContactK4 - Barber Shop / Old Postcard
+ * Vintage postcard layout with stamp + address lines + "wish you were here" feel.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  description,
+  socialLinks = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+const year = new Date().getFullYear();
+---
+
+<section id="contact" class="relative w-full bg-[var(--text-muted)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-5xl px-6 lg:px-12">
+
+    <div class="text-center mb-12">
+      <div class="barber-fade-up inline-flex items-center gap-4 mb-4">
+        <span class="text-[var(--accent)] text-2xl">✉</span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--accent)]">— Greetings from —</span>
+        <span class="text-[var(--accent)] text-2xl">✉</span>
+      </div>
+      <h2 class="barber-fade-up font-bold tracking-tight text-[var(--bg)] mb-2 italic" style="font-size: clamp(2rem, 5vw, 3.5rem); animation-delay: 0.1s;">
+        {businessName}
+      </h2>
+    </div>
+
+    {/* The postcard */}
+    <div class="barber-postcard relative bg-[var(--bg)] aspect-[7/4] max-w-4xl mx-auto shadow-[0_50px_100px_-25px_rgba(0,0,0,0.7)]">
+      {/* Stamp & postmark */}
+      <div class="absolute top-4 right-4 sm:top-6 sm:right-6 z-10">
+        <div class="w-16 h-20 sm:w-20 sm:h-24 bg-[var(--primary)] border-2 border-[var(--accent)] p-1.5 shadow-md rotate-[2deg]">
+          <div class="w-full h-full border border-[var(--accent)]/60 flex flex-col items-center justify-center text-[var(--accent)]">
+            <span class="text-2xl">✂</span>
+            <span class="text-[8px] uppercase tracking-[0.3em] mt-1">{year}</span>
+          </div>
+        </div>
+        {/* Postmark stamp */}
+        <div class="absolute top-2 -left-4 rotate-[-12deg]">
+          <div class="border-2 border-[var(--primary)]/40 rounded-full w-14 h-14 flex items-center justify-center">
+            <p class="text-[7px] font-bold uppercase tracking-widest text-[var(--primary)]/50 text-center leading-tight">POSTED<br/>SHOP</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Central divider */}
+      <div class="absolute top-0 bottom-0 left-1/2 w-px bg-[var(--primary)]/30"></div>
+
+      {/* LEFT SIDE — Photo */}
+      <div class="absolute left-0 top-0 bottom-0 w-1/2 p-4 sm:p-6">
+        <div class="relative h-full overflow-hidden bg-[var(--text)] border-2 border-[var(--accent)]/30">
+          {mainPhoto ? (
+            <img src={mainPhoto} alt={businessName} class="absolute inset-0 w-full h-full object-cover" style="filter: sepia(0.55) contrast(1.05) brightness(0.85) grayscale(0.2);" />
+          ) : (
+            <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-6xl">✂</div>
+          )}
+          <div class="absolute bottom-2 left-2 right-2 text-center">
+            <p class="text-[8px] uppercase tracking-[0.45em] text-[var(--bg)] italic bg-[var(--text)]/60 backdrop-blur-sm py-1">Greetings from the shop</p>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE — Address & message */}
+      <div class="absolute right-0 top-0 bottom-0 w-1/2 p-4 sm:p-6 flex flex-col">
+
+        {/* Top message */}
+        <div class="flex-1 pb-4 border-b border-dashed border-[var(--primary)]/30">
+          <p class="text-[var(--primary)] italic text-[10px] uppercase tracking-[0.4em] mb-3">— Dear friend, —</p>
+          {description ? (
+            <p class="text-[var(--text-muted)] italic text-sm leading-relaxed" style="font-size: clamp(0.85rem, 1.1vw, 1rem);">{description}</p>
+          ) : (
+            <p class="text-[var(--text-muted)] italic text-sm leading-relaxed" style="font-size: clamp(0.85rem, 1.1vw, 1rem);">
+              The chair is open. Hot towel ready. Your name's on the list. Come find us — we'll be sharpening the razors.
+            </p>
+          )}
+        </div>
+
+        {/* Bottom address lines */}
+        <div class="pt-4 space-y-2">
+          {address && (
+            <div class="flex items-start gap-2 border-b border-dotted border-[var(--primary)]/30 pb-1">
+              <span class="text-[9px] uppercase tracking-[0.35em] text-[var(--primary)]/70 mt-0.5">Visit:</span>
+              <span class="text-xs text-[var(--text)] italic flex-1" style="font-size: 0.85rem;">{address}</span>
+            </div>
+          )}
+          <div class="flex items-start gap-2 border-b border-dotted border-[var(--primary)]/30 pb-1">
+            <span class="text-[9px] uppercase tracking-[0.35em] text-[var(--primary)]/70 mt-0.5">Phone:</span>
+            <a href={`tel:${phone}`} class="text-xs font-bold text-[var(--primary)] italic flex-1 hover:text-[var(--text)]" style="font-size: 0.85rem;">{phone}</a>
+          </div>
+          {email && (
+            <div class="flex items-start gap-2">
+              <span class="text-[9px] uppercase tracking-[0.35em] text-[var(--primary)]/70 mt-0.5">Write:</span>
+              <a href={`mailto:${email}`} class="text-xs text-[var(--text)] italic flex-1 break-all hover:text-[var(--primary)]" style="font-size: 0.85rem;">{email}</a>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+
+    {/* CTA below postcard */}
+    <div class="barber-fade-up text-center mt-12" style="animation-delay: 0.5s">
+      <a href={`tel:${phone}`} class="inline-flex items-center gap-3 bg-[var(--accent)] hover:bg-[var(--accent)] text-[var(--text)] px-10 py-4 text-xs font-bold uppercase tracking-[0.45em] transition-all hover:-translate-y-1">
+        ✂ Wire ahead
+      </a>
+    </div>
+
+    {showSocial && (
+      <div class="barber-fade-up flex justify-center gap-3 mt-8" style="animation-delay: 0.6s">
+        {socialLinks.map((link) => (
+          <a href={link.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 border border-[var(--accent)]/30 flex items-center justify-center text-[var(--accent)] hover:bg-[var(--accent)] hover:text-[var(--text)] transition-all" aria-label={link.platform}>
+            <span class="text-xs font-bold uppercase">{link.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  .barber-fade-up { opacity: 0; transform: translateY(20px); animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes barberFadeUp { to { opacity: 1; transform: translateY(0); } }
+  .barber-postcard { opacity: 0; transform: translateY(30px) rotate(-1deg); animation: barberPostcardReveal 1.3s cubic-bezier(0.22, 1, 0.36, 1) 0.2s forwards; }
+  @keyframes barberPostcardReveal { to { opacity: 1; transform: translateY(0) rotate(0); } }
+  @media (prefers-reduced-motion: reduce) { .barber-fade-up, .barber-postcard { animation: none; opacity: 1; transform: none; } }
+</style>

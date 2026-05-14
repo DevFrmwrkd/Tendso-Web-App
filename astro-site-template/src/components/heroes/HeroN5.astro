@@ -1,0 +1,144 @@
+---
+/**
+ * HeroN5 - Restaurant / Bistro Window
+ * Bistro front-window feel — like looking through a cafe window from the street.
+ * Window frame divides the layout, "open" sign, hours posted, warm interior glow.
+ */
+interface Props {
+  businessName: string;
+  headline: string;
+  description: string;
+  badgeText?: string;
+  testimonial?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryLink?: string;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  headline,
+  description,
+  badgeText = 'Open · come right in',
+  testimonial,
+  ctaLabel = 'Step inside',
+  ctaLink = '#contact',
+  ctaSecondaryLabel = 'See menu',
+  ctaSecondaryLink = '#services',
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+const year = new Date().getFullYear();
+
+const showHeadline = visibility?.heroHeadline !== false;
+const showTagline = visibility?.heroTagline !== false && !!badgeText;
+const showDescription = visibility?.heroDescription !== false;
+const showTestimonial = visibility?.heroTestimonial !== false && !!testimonial;
+const showButton = visibility?.heroButton !== false;
+const showImage = visibility?.heroImage !== false;
+---
+
+<section id="hero" class="relative w-full min-h-screen overflow-hidden bg-[var(--bg)]" style="font-family: var(--body-font);">
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12 py-16 lg:py-20">
+
+    {/* Window frame */}
+    <div class="resto-fade-up border-[18px] border-[var(--text)] relative" style="box-shadow: 0 40px 80px -20px rgba(42,31,28,0.4);">
+
+      {/* Open sign — hanging */}
+      <div class="absolute -top-1 left-1/2 -translate-x-1/2 -mt-12 bg-[var(--primary)] text-[var(--bg)] px-6 py-3 rounded-md shadow-xl rotate-[-2deg]">
+        <p class="text-[10px] uppercase tracking-[0.5em] italic mb-0.5 text-[var(--bg)]/70">— Welcome —</p>
+        <p class="text-2xl font-bold tracking-tight italic" style="font-family: var(--heading-font);">Open</p>
+      </div>
+
+      {/* Cross-mullion frame */}
+      <div class="absolute top-0 bottom-0 left-1/2 w-1 bg-[var(--text)] z-30 hidden md:block"></div>
+      <div class="absolute left-0 right-0 top-1/2 h-1 bg-[var(--text)] z-30 hidden md:block"></div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 grid-rows-2 min-h-[500px]">
+
+        {/* TOP LEFT — Headline pane */}
+        <div class="bg-[var(--surface)] p-8 lg:p-12 flex flex-col justify-center">
+          {showTagline && (
+            <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-4">— {badgeText} —</p>
+          )}
+          {showHeadline && (
+            <h1 class="font-bold leading-[0.95] tracking-tight text-[var(--text)] mb-4" style="font-family: var(--heading-font); font-size: clamp(2rem, 4.5vw, 3.5rem);">
+              {headline}
+            </h1>
+          )}
+        </div>
+
+        {/* TOP RIGHT — Image pane */}
+        {showImage && (
+          <div class="relative overflow-hidden bg-[var(--surface)] min-h-[200px]">
+            {mainPhoto ? (
+              <img src={mainPhoto} alt={businessName} class="absolute inset-0 w-full h-full object-cover" style="filter: brightness(1.05) saturate(1.05);" />
+            ) : (
+              <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-9xl">🥘</div>
+            )}
+            {/* Glow */}
+            <div class="absolute inset-0 bg-gradient-to-tr from-[var(--primary)]/20 via-transparent to-[var(--accent)]/10"></div>
+          </div>
+        )}
+
+        {/* BOTTOM LEFT — Hours pane */}
+        <div class="bg-[var(--text)] text-[var(--bg)] p-8 lg:p-12 flex flex-col justify-center">
+          <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic mb-4">— Hours posted —</p>
+          <div class="space-y-2 mb-6">
+            <div class="flex items-baseline justify-between gap-3 text-sm">
+              <span class="italic text-[var(--bg)]/70">Mon — Fri</span>
+              <span class="font-bold tracking-tight">5 — 10 PM</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-3 text-sm">
+              <span class="italic text-[var(--bg)]/70">Saturday</span>
+              <span class="font-bold tracking-tight">11 AM — 11 PM</span>
+            </div>
+            <div class="flex items-baseline justify-between gap-3 text-sm">
+              <span class="italic text-[var(--bg)]/70">Sunday</span>
+              <span class="font-bold tracking-tight">10 AM — 9 PM</span>
+            </div>
+          </div>
+          <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--accent)] italic">— Est. {year - 12} · always warm —</p>
+        </div>
+
+        {/* BOTTOM RIGHT — CTA pane */}
+        <div class="bg-[var(--surface)] p-8 lg:p-12 flex flex-col justify-center">
+          {showDescription && (
+            <p class="text-[var(--text-muted)] italic leading-[1.7] mb-6" style="font-size: 0.95rem;">{description}</p>
+          )}
+          {showButton && (
+            <div class="flex flex-col gap-3">
+              <a href={ctaLink} class="group inline-flex items-center justify-center gap-3 bg-[var(--primary)] text-[var(--bg)] px-6 py-3.5 text-xs font-bold uppercase tracking-[0.35em] transition-all hover:-translate-y-0.5">
+                {ctaLabel} <span class="group-hover:translate-x-1 transition-transform">→</span>
+              </a>
+              <a href={ctaSecondaryLink} class="inline-flex items-center justify-center gap-3 border-2 border-[var(--text)]/30 hover:border-[var(--text)] text-[var(--text)] px-6 py-3.5 text-xs font-bold uppercase tracking-[0.35em] transition-all">
+                {ctaSecondaryLabel}
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom name plate */}
+      <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 mb-[-30px] bg-[var(--bg)] border-4 border-[var(--text)] px-6 py-2">
+        <p class="text-xl font-bold italic text-[var(--text)] tracking-tight" style="font-family: var(--heading-font);">{businessName}</p>
+      </div>
+    </div>
+
+    {showTestimonial && (
+      <p class="resto-fade-up italic text-sm text-[var(--text-muted)] text-center mt-16 max-w-md mx-auto" style="animation-delay: 0.4s">"{testimonial}"</p>
+    )}
+  </div>
+</section>
+
+<style>
+  .resto-fade-up { opacity: 0; transform: translateY(20px); animation: restoFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes restoFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .resto-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

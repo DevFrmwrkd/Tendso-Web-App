@@ -1,0 +1,273 @@
+---
+/**
+ * HeroM - Salon/Spa / Sanctuary Calm
+ * Soft cream backdrop with curved decorative arch + image in oval-curved frame.
+ * Floating petals drift across, sage-green leaf flourishes, serif typography.
+ * Vibe: spa sanctuary, ethereal feminine luxury.
+ */
+interface Props {
+  businessName: string;
+  headline: string;
+  description: string;
+  badgeText?: string;
+  testimonial?: string;
+  ctaLabel?: string;
+  ctaLink?: string;
+  ctaSecondaryLabel?: string;
+  ctaSecondaryLink?: string;
+  photos: string[];
+  services?: Array<{ name: string; description: string }>;
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  headline,
+  description,
+  badgeText = 'Your sanctuary',
+  testimonial,
+  ctaLabel = 'Book your treatment',
+  ctaLink = '#contact',
+  ctaSecondaryLabel = 'View services',
+  ctaSecondaryLink = '#services',
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const mainPhoto = photos[0] || '';
+
+const showHeadline = visibility?.heroHeadline !== false;
+const showTagline = visibility?.heroTagline !== false && !!badgeText;
+const showDescription = visibility?.heroDescription !== false;
+const showTestimonial = visibility?.heroTestimonial !== false && !!testimonial;
+const showButton = visibility?.heroButton !== false;
+const showImage = visibility?.heroImage !== false;
+---
+
+<section
+  id="hero"
+  class="relative w-full min-h-screen overflow-hidden bg-[var(--bg)]"
+  style="font-family: var(--body-font);"
+>
+  {/* Soft watercolor gradient blobs */}
+  <div class="absolute -top-32 -right-20 w-[500px] h-[500px] rounded-full bg-[#f4d9d0] opacity-50 blur-[80px] pointer-events-none"></div>
+  <div class="absolute -bottom-40 -left-20 w-[600px] h-[600px] rounded-full bg-[#e8ddd1] opacity-50 blur-[100px] pointer-events-none"></div>
+  <div class="absolute top-1/2 left-1/3 w-[300px] h-[300px] rounded-full bg-[#dde5d3] opacity-40 blur-[80px] pointer-events-none"></div>
+
+  {/* Floating petals — pure SVG, position absolute */}
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    {Array.from({ length: 8 }).map((_, i) => {
+      const left = (i * 13 + 7) % 100;
+      const delay = i * 1.8;
+      const duration = 18 + (i % 4) * 3;
+      const size = 14 + (i % 3) * 6;
+      const rot = i * 45;
+      return (
+        <span
+          class="petal absolute opacity-50"
+          style={`left: ${left}%; animation-delay: ${delay}s; animation-duration: ${duration}s; --rot: ${rot}deg;`}
+        >
+          <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="12" cy="12" rx="6" ry="11" fill="#d4a8a0" transform="rotate(45 12 12)" opacity="0.7"/>
+          </svg>
+        </span>
+      );
+    })}
+  </div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12 pt-32 pb-24 lg:pt-40 lg:pb-32">
+    <div class="grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-20 items-center">
+
+      {/* LEFT — Text */}
+      <div>
+        {showTagline && (
+          <div class="salon-fade-up mb-8 inline-flex items-center gap-3">
+            <span class="text-[var(--accent)]">❀</span>
+            <span class="text-[11px] font-medium uppercase tracking-[0.45em] text-[var(--primary)] italic">
+              {badgeText}
+            </span>
+            <span class="text-[var(--accent)]">❀</span>
+          </div>
+        )}
+
+        {showHeadline && (
+          <h1
+            class="salon-fade-up font-normal leading-[0.95] tracking-tight text-[var(--text)] mb-8"
+            style="font-size: clamp(3rem, 7.5vw, 6.5rem); animation-delay: 0.15s;"
+          >
+            {headline}
+          </h1>
+        )}
+
+        <div class="salon-fade-up flex items-center gap-3 mb-8" style="animation-delay: 0.25s">
+          <span class="h-px w-12 bg-[var(--primary)]"></span>
+          <span class="text-[10px] uppercase tracking-[0.4em] text-[var(--primary)]/70 italic">— Curated for you</span>
+        </div>
+
+        {showDescription && (
+          <p
+            class="salon-fade-up max-w-[480px] text-[var(--text-muted)] leading-[1.8] mb-12 italic"
+            style="font-size: clamp(1.05rem, 1.4vw, 1.3rem); animation-delay: 0.35s;"
+          >
+            {description}
+          </p>
+        )}
+
+        {showButton && (
+          <div
+            class="salon-fade-up flex flex-col sm:flex-row gap-3 items-center sm:items-start"
+            style="animation-delay: 0.45s;"
+          >
+            <a
+              href={ctaLink}
+              class="group inline-flex items-center justify-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] rounded-full px-10 py-4 text-xs font-medium uppercase tracking-[0.35em] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-12px_rgba(184,123,108,0.5)]"
+            >
+              <span class="text-base">❀</span> {ctaLabel}
+            </a>
+            <a
+              href={ctaSecondaryLink}
+              class="inline-flex items-center justify-center gap-2 text-[var(--text)] hover:text-[var(--primary)] px-6 py-4 text-xs font-medium uppercase tracking-[0.35em] transition-colors italic border-b border-transparent hover:border-[var(--primary)]"
+            >
+              {ctaSecondaryLabel} →
+            </a>
+          </div>
+        )}
+
+        {showTestimonial && (
+          <div
+            class="salon-fade-up mt-16 max-w-[460px]"
+            style="animation-delay: 0.55s;"
+          >
+            <div class="flex items-center gap-2 mb-3">
+              {Array.from({ length: 5 }).map(() => (
+                <span class="text-[var(--primary)] text-sm">❀</span>
+              ))}
+            </div>
+            <p class="text-sm italic text-[var(--text-muted)] leading-relaxed mb-3 font-light" style="font-size: 1.05rem;">
+              "{testimonial}"
+            </p>
+            <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--primary)] italic">— A returning guest</p>
+          </div>
+        )}
+      </div>
+
+      {/* RIGHT — Oval-framed image */}
+      {showImage && (
+        <div class="relative hidden lg:block">
+          <div class="salon-image-reveal relative">
+            {/* Outer thin ring */}
+            <div
+              class="absolute -inset-6 border border-[var(--primary)]/30 pointer-events-none"
+              style="border-radius: 50% / 45%; transform: rotate(2deg);"
+            ></div>
+            {/* Sage accent ring */}
+            <div
+              class="absolute -inset-2 border border-[var(--accent)]/40 pointer-events-none"
+              style="border-radius: 50% / 45%; transform: rotate(-2deg);"
+            ></div>
+
+            {/* Image in oval frame */}
+            <div
+              class="relative aspect-[3/4] overflow-hidden bg-[var(--text)] shadow-[0_40px_80px_-20px_rgba(61,46,42,0.4)]"
+              style="border-radius: 50% / 45%;"
+            >
+              {mainPhoto ? (
+                <img
+                  src={mainPhoto}
+                  alt={businessName}
+                  class="absolute inset-0 w-full h-full object-cover"
+                  style="filter: saturate(0.85) brightness(1.02);"
+                />
+              ) : (
+                <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-9xl">❀</div>
+              )}
+              <div class="absolute inset-0 bg-gradient-to-t from-[var(--text)]/30 via-transparent to-transparent"></div>
+            </div>
+
+            {/* Floating treatment card */}
+            <div
+              class="salon-float-card absolute -bottom-8 -left-8 bg-[var(--bg)] rounded-3xl px-7 py-5 shadow-[0_20px_40px_-12px_rgba(61,46,42,0.25)] border border-[var(--primary)]/20"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-[var(--accent)]/15 border border-[var(--accent)]/40 flex items-center justify-center text-[var(--accent)]">
+                  ❀
+                </div>
+                <div>
+                  <p class="text-[10px] uppercase tracking-[0.35em] text-[var(--primary)] mb-1">Signature</p>
+                  <p class="text-sm font-medium text-[var(--text)]">60-minute treatments</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Top right sage flourish */}
+            <div class="absolute -top-6 -right-6 text-[var(--accent)]/60 text-5xl pointer-events-none salon-flourish">
+              ❀
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Floating petal animation */
+  .petal {
+    top: -50px;
+    animation-name: petalDrift;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  @keyframes petalDrift {
+    0% {
+      transform: translateY(-50px) translateX(0) rotate(var(--rot, 0deg));
+      opacity: 0;
+    }
+    10% { opacity: 0.6; }
+    50% {
+      transform: translateY(50vh) translateX(40px) rotate(calc(var(--rot, 0deg) + 180deg));
+    }
+    90% { opacity: 0.4; }
+    100% {
+      transform: translateY(110vh) translateX(-30px) rotate(calc(var(--rot, 0deg) + 360deg));
+      opacity: 0;
+    }
+  }
+
+  .salon-fade-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: salonFadeUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes salonFadeUp { to { opacity: 1; transform: translateY(0); } }
+
+  .salon-image-reveal {
+    opacity: 0;
+    transform: scale(0.95) rotate(-2deg);
+    animation: salonImageReveal 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+  }
+  @keyframes salonImageReveal {
+    to { opacity: 1; transform: scale(1) rotate(0); }
+  }
+
+  .salon-float-card {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: salonFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
+  }
+
+  .salon-flourish {
+    animation: salonFlourishSpin 25s linear infinite;
+    transform-origin: center;
+  }
+  @keyframes salonFlourishSpin { to { transform: rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .petal, .salon-flourish { animation: none; }
+    .salon-fade-up, .salon-image-reveal, .salon-float-card {
+      animation-duration: 0.01ms;
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

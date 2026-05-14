@@ -1,0 +1,149 @@
+---
+/**
+ * ContactO4 - Clinic / Insurance Verify
+ * Insurance verification focused. Step-by-step flow showing how to check
+ * coverage before visit. Form-style fields and a verification phone line.
+ */
+interface Props {
+  businessName: string;
+  email: string;
+  phone: string;
+  address?: string;
+  description?: string;
+  socialLinks?: Array<{ platform: string; url: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  businessName,
+  email,
+  phone,
+  address,
+  socialLinks = [],
+  visibility,
+} = Astro.props;
+
+const showInfo = visibility?.contactInfo !== false;
+const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
+const year = new Date().getFullYear();
+
+const insurers = ['PhilHealth', 'Maxicare', 'Medicard', 'Intellicare', 'Pacific Cross', 'Caritas'];
+---
+
+<section id="contact" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-5xl px-6 lg:px-12">
+
+    <div class="text-center mb-12 max-w-3xl mx-auto">
+      <p class="clinic-fade-up text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)] mb-4">— Before your visit —</p>
+      <h2 class="clinic-fade-up font-bold leading-[1.05] tracking-tight text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.25rem, 5vw, 4rem); animation-delay: 0.1s;">Verify your insurance</h2>
+      <p class="clinic-fade-up text-[var(--text-muted)] leading-[1.75]" style="font-size: 1.05rem; animation-delay: 0.2s;">Confirm what's covered in under 24 hours. No surprises at the front desk.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-6">
+      {/* LEFT — Verification form preview */}
+      <div class="clinic-fade-up bg-[var(--surface)] rounded-3xl p-7 lg:p-8 border border-[var(--text)]/10" style="animation-delay: 0.3s">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-10 h-10 rounded-xl bg-[var(--primary)]/15 flex items-center justify-center">
+            <svg class="w-5 h-5 text-[var(--primary)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18"/></svg>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)]">Verification request</p>
+            <p class="text-sm text-[var(--text-muted)]">Form takes about 2 minutes</p>
+          </div>
+        </div>
+
+        {/* Form fields */}
+        <div class="space-y-4 mb-6">
+          <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--accent)] mb-2 block">— Your name —</label>
+            <div class="border-b-2 border-[var(--text)]/15 pb-2 text-sm text-[var(--text-muted)] italic">First and last</div>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--accent)] mb-2 block">— Insurance provider —</label>
+            <div class="grid grid-cols-3 gap-2">
+              {insurers.map((ins, i) => (
+                <button class={`py-2 px-2 text-xs font-medium border rounded-lg transition-all ${i === 1 ? 'bg-[var(--primary)] text-[var(--bg)] border-[var(--primary)]' : 'border-[var(--text)]/15 text-[var(--text)] hover:border-[var(--primary)]'}`} type="button">{ins}</button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--accent)] mb-2 block">— Member ID —</label>
+            <div class="border-b-2 border-[var(--text)]/15 pb-2 text-sm text-[var(--text-muted)] italic">XX-XXXX-XXXX</div>
+          </div>
+
+          <div>
+            <label class="text-[10px] font-bold uppercase tracking-[0.25em] text-[var(--accent)] mb-2 block">— Service needed —</label>
+            <div class="border-b-2 border-[var(--text)]/15 pb-2 text-sm text-[var(--text-muted)] italic">Type of visit or procedure</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-5 border-t border-[var(--text)]/10">
+          <a href={`mailto:${email || ''}?subject=Insurance%20verification`} class="block bg-[var(--primary)] text-[var(--bg)] text-center py-3 rounded-lg text-sm font-semibold hover:-translate-y-0.5 transition-all">
+            Send for verification
+          </a>
+          <a href={`tel:${phone}`} class="block border-2 border-[var(--text)]/15 hover:border-[var(--primary)] text-[var(--text)] hover:text-[var(--primary)] text-center py-3 rounded-lg text-sm font-semibold transition-all">
+            Or call instead
+          </a>
+        </div>
+      </div>
+
+      {/* RIGHT — How it works + contact */}
+      <div class="space-y-4">
+        <div class="clinic-fade-up bg-[var(--surface)] rounded-2xl p-6 border border-[var(--text)]/10" style="animation-delay: 0.4s">
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent)] mb-4">— How it works —</p>
+          <ol class="space-y-3">
+            {[
+              'Submit the form or call our billing line',
+              'We contact your insurer within 4 business hours',
+              'You receive a coverage summary within 24 hours',
+              'Approved? Schedule your visit with no surprises.',
+            ].map((step, i) => (
+              <li class="flex items-start gap-3">
+                <div class="w-6 h-6 rounded-full bg-[var(--primary)] text-[var(--bg)] flex items-center justify-center text-[10px] font-bold shrink-0">{i + 1}</div>
+                <p class="text-xs text-[var(--text-muted)] leading-[1.6] pt-0.5">{step}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {showInfo && (
+          <div class="clinic-fade-up bg-[var(--text)] text-[var(--bg)] rounded-2xl p-6" style="animation-delay: 0.5s">
+            <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent)] mb-3">— Billing line —</p>
+            <a href={`tel:${phone}`} class="text-2xl font-bold mb-1 block hover:text-[var(--accent)] transition-colors" style="font-family: var(--heading-font);">{phone}</a>
+            <p class="text-xs text-[var(--bg)]/70">Mon — Fri, 9 AM to 5 PM</p>
+            {email && (
+              <a href={`mailto:${email}`} class="block mt-3 pt-3 border-t border-[var(--bg)]/15 text-xs text-[var(--bg)]/85 hover:text-[var(--accent)] break-all transition-colors">
+                {email}
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+
+    {showInfo && address && (
+      <p class="clinic-fade-up text-center text-xs text-[var(--text-muted)] mt-10" style="animation-delay: 0.6s">Visit · {address}</p>
+    )}
+
+    {showSocial && (
+      <div class="clinic-fade-up flex justify-center gap-2 mt-6" style="animation-delay: 0.7s">
+        {socialLinks.map((l) => (
+          <a href={l.url} target="_blank" rel="noopener noreferrer" class="w-10 h-10 rounded-full border border-[var(--text)]/15 hover:border-[var(--primary)] flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors" aria-label={l.platform}>
+            <span class="text-xs font-semibold">{l.platform.charAt(0)}</span>
+          </a>
+        ))}
+      </div>
+    )}
+
+    <p class="text-center text-xs text-[var(--text-muted)] mt-8">© {year} · {businessName}</p>
+  </div>
+</section>
+
+<style>
+  .clinic-fade-up { opacity: 0; transform: translateY(20px); animation: clinicFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes clinicFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .clinic-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>

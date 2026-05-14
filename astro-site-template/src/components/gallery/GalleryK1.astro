@@ -1,0 +1,198 @@
+---
+/**
+ * GalleryK - Barber Shop / Vintage Portrait Wall
+ * Cream parchment background, framed polaroid-style portraits in a slightly-rotated grid.
+ * Hover lifts and straightens the photo, revealing client name + cut style.
+ * Vibe: barber's wall of regulars.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  items: Array<{
+    title: string;
+    description: string;
+    image?: string;
+    tags?: string[];
+  }>;
+  images?: string[];
+  ctaText?: string;
+  ctaLink?: string;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'The Chair',
+  subheadline = 'A few of our regulars',
+  items = [],
+  images = [],
+  photos = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.galleryHeadline !== false;
+const showSubheadline = visibility?.gallerySubheadline !== false && !!subheadline;
+const showItems = visibility?.galleryItems !== false;
+
+// Use items if available, otherwise fall back to images or photos
+const galleryImages = items.length > 0
+  ? items
+  : (images.length > 0
+      ? images.map((img, i) => ({ image: img, title: `Cut #${i + 1}`, description: '', tags: [] }))
+      : photos.slice(0, 6).map((p, i) => ({ image: p, title: `Cut #${i + 1}`, description: '', tags: [] })));
+
+// Pre-computed rotation angles (deterministic so it doesn't shuffle on rebuild)
+const rotations = [-2.5, 1.8, -1.2, 2.4, -2.1, 1.5, -1.8, 2.2, -2.4];
+---
+
+<section
+  id="gallery"
+  class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden"
+  style="font-family: var(--body-font);"
+>
+  {/* Wood-grain horizontal texture (faint) */}
+  <div
+    class="absolute inset-0 opacity-[0.04] pointer-events-none"
+    style="background-image: repeating-linear-gradient(0deg, transparent 0 3px, var(--text) 3px 4px);"
+  ></div>
+
+  <div class="relative z-10 mx-auto max-w-7xl px-6 lg:px-12">
+
+    {/* Header */}
+    <div class="text-center mb-16 md:mb-20">
+      <div class="barber-fade-up inline-flex items-center gap-4 mb-6">
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+        <span class="text-[10px] font-bold uppercase tracking-[0.45em] text-[var(--primary)]">— The Wall —</span>
+        <span class="h-px w-10 bg-[var(--accent)]"></span>
+      </div>
+
+      {showHeadline && (
+        <h2
+          class="barber-fade-up font-bold leading-[0.95] tracking-tight text-[var(--text)] mb-4"
+          style="font-size: clamp(2.75rem, 6vw, 5rem); animation-delay: 0.1s;"
+        >
+          {headline}
+        </h2>
+      )}
+
+      {showSubheadline && (
+        <p
+          class="barber-fade-up text-[var(--text-muted)] italic text-sm md:text-base"
+          style="animation-delay: 0.2s;"
+        >
+          {subheadline}
+        </p>
+      )}
+    </div>
+
+    {/* Polaroid grid */}
+    {showItems && galleryImages.length > 0 && (
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10">
+        {galleryImages.slice(0, 8).map((item: any, index: number) => {
+          const rot = rotations[index % rotations.length];
+          return (
+            <div
+              class="barber-polaroid group cursor-pointer"
+              style={`animation-delay: ${index * 0.1 + 0.3}s; --rest-rotate: ${rot}deg;`}
+            >
+              <div class="relative bg-[var(--surface)] p-3 pb-12 shadow-[0_15px_35px_-10px_rgba(26,12,16,0.35)] transition-all duration-500 group-hover:shadow-[0_25px_50px_-15px_rgba(26,12,16,0.5)]">
+
+                {/* Tape strip at top */}
+                <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-16 h-5 bg-[var(--accent)]/30 backdrop-blur-sm rotate-2 border-y border-[var(--accent)]/40"></div>
+
+                {/* Image */}
+                <div class="relative aspect-square overflow-hidden bg-[var(--text)]">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.title || 'Client cut'}
+                      class="absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+                      style="filter: sepia(0.4) contrast(1.05) brightness(0.92);"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-6xl">✂</div>
+                  )}
+                  {/* Vignette */}
+                  <div class="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-[var(--text)]/30 pointer-events-none"></div>
+                </div>
+
+                {/* Caption — handwritten style */}
+                <div class="absolute bottom-2 inset-x-3 text-center">
+                  <p class="text-[var(--text)] text-sm font-bold italic">
+                    {item.title}
+                  </p>
+                  {item.description && (
+                    <p class="text-[var(--primary)] text-[10px] uppercase tracking-[0.2em] mt-0.5 truncate">
+                      {item.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    )}
+
+    {galleryImages.length === 0 && (
+      <div class="text-center py-20">
+        <span class="text-6xl text-[var(--accent)]/30">✂</span>
+        <p class="mt-4 text-[var(--text-muted)]/60 italic">More portraits coming soon.</p>
+      </div>
+    )}
+
+    {/* Bottom flourish */}
+    <div class="text-center mt-16">
+      <div class="inline-flex items-center gap-4">
+        <span class="h-px w-16 bg-[var(--primary)]/30"></span>
+        <span class="text-[var(--primary)] text-xl">✂</span>
+        <span class="h-px w-16 bg-[var(--primary)]/30"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .barber-fade-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: barberFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes barberFadeUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .barber-polaroid {
+    opacity: 0;
+    transform: translateY(30px) rotate(0deg);
+    animation: barberPolaroidIn 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes barberPolaroidIn {
+    to {
+      opacity: 1;
+      transform: translateY(0) rotate(var(--rest-rotate, 0deg));
+    }
+  }
+
+  /* Hover straightens the photo */
+  .barber-polaroid:hover > div {
+    transform: rotate(calc(var(--rest-rotate, 0deg) * -0.5)) translateY(-6px);
+  }
+  .barber-polaroid > div {
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .bg-gradient-radial {
+    background: radial-gradient(circle, var(--tw-gradient-stops));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .barber-fade-up, .barber-polaroid {
+      animation-duration: 0.01ms;
+      opacity: 1;
+      transform: rotate(var(--rest-rotate, 0deg));
+    }
+    .barber-polaroid:hover > div { transform: none; }
+  }
+</style>

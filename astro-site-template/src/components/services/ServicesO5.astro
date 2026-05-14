@@ -1,0 +1,113 @@
+---
+/**
+ * ServicesO5 - Clinic / Preventive Plans
+ * Subscription-style preventive care plans. Annual wellness, family, senior tiers.
+ * Bundle pricing with included visits, labs, screenings.
+ */
+interface Props {
+  headline?: string;
+  subheadline?: string;
+  services: Array<{ name: string; description: string; price?: string; icon?: string }>;
+  photos: string[];
+  visibility?: Record<string, boolean>;
+}
+
+const {
+  headline = 'Preventive care plans',
+  subheadline = 'Care planned ahead, not reacted to. One annual fee covers what keeps you ahead.',
+  services = [],
+  visibility,
+} = Astro.props;
+
+const showHeadline = visibility?.servicesHeadline !== false;
+const showSubheadline = visibility?.servicesSubheadline !== false && !!subheadline;
+const showList = visibility?.servicesList !== false;
+
+const plans = [
+  {
+    name: 'Essential',
+    audience: 'Single adult',
+    price: '₱8,500',
+    period: '/ year',
+    features: ['Annual physical', 'Standard labs', 'EKG once yearly', 'Vaccination updates'],
+    featured: false,
+  },
+  {
+    name: 'Family plan',
+    audience: 'Up to 4 members',
+    price: '₱22,000',
+    period: '/ year',
+    features: ['Annual physical for all', 'Pediatric well-visits', 'Lab panels', 'Same-day sick visits', 'Coordinated care'],
+    featured: true,
+  },
+  {
+    name: 'Senior care',
+    audience: 'Age 65+',
+    price: '₱14,000',
+    period: '/ year',
+    features: ['Twice-yearly physical', 'Chronic monitoring', 'Medication review', 'Bone density', 'House call (if needed)'],
+    featured: false,
+  },
+];
+---
+
+<section id="services" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
+  <div class="relative z-10 mx-auto max-w-6xl px-6 lg:px-12">
+
+    <div class="text-center mb-14 max-w-3xl mx-auto">
+      <p class="clinic-fade-up text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--primary)] mb-4">— Membership care —</p>
+      {showHeadline && (
+        <h2 class="clinic-fade-up font-bold leading-[1.05] tracking-tight text-[var(--text)] mb-5" style="font-family: var(--heading-font); font-size: clamp(2.25rem, 5vw, 4rem); animation-delay: 0.1s;">{headline}</h2>
+      )}
+      {showSubheadline && (
+        <p class="clinic-fade-up text-[var(--text-muted)] leading-[1.75]" style="font-size: 1.1rem; animation-delay: 0.2s;">{subheadline}</p>
+      )}
+    </div>
+
+    {showList && (
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {plans.map((p, i) => (
+          <div
+            class={`clinic-fade-up relative bg-[var(--surface)] rounded-3xl overflow-hidden transition-all hover:-translate-y-1 ${p.featured ? 'border-2 border-[var(--primary)] md:scale-105 shadow-2xl' : 'border border-[var(--text)]/10 hover:border-[var(--primary)]/30 hover:shadow-xl'}`}
+            style={`animation-delay: ${0.3 + i * 0.1}s`}
+          >
+            {p.featured && (
+              <div class="bg-[var(--primary)] text-[var(--bg)] text-center py-2 text-[10px] font-bold uppercase tracking-[0.4em]">— Most enrolled —</div>
+            )}
+
+            <div class="p-8">
+              <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-[var(--accent)] mb-2">— {p.audience} —</p>
+              <h3 class="text-3xl font-bold text-[var(--text)] mb-5" style="font-family: var(--heading-font);">{p.name}</h3>
+
+              <div class="flex items-baseline gap-1 mb-6 pb-6 border-b border-[var(--text)]/10">
+                <span class={`text-4xl font-bold ${p.featured ? 'text-[var(--primary)]' : 'text-[var(--text)]'}`} style="font-family: var(--heading-font);">{p.price}</span>
+                <span class="text-sm text-[var(--text-muted)]">{p.period}</span>
+              </div>
+
+              <ul class="space-y-3 mb-8">
+                {p.features.map((f) => (
+                  <li class="flex items-start gap-3 text-sm">
+                    <svg class="w-4 h-4 text-[var(--accent)] mt-0.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="text-[var(--text-muted)]">{f}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <a href="#contact" class={`block text-center py-3.5 text-sm font-semibold rounded-lg transition-all ${p.featured ? 'bg-[var(--primary)] text-[var(--bg)] hover:-translate-y-0.5 hover:shadow-lg' : 'border-2 border-[var(--text)]/15 hover:border-[var(--primary)] text-[var(--text)] hover:text-[var(--primary)]'}`}>
+                Enroll today →
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    <p class="text-center text-xs text-[var(--text-muted)] mt-10">Plans renew annually. Insurance still covers what's covered — the plan covers the rest.</p>
+  </div>
+</section>
+
+<style>
+  .clinic-fade-up { opacity: 0; transform: translateY(20px); animation: clinicFadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  @keyframes clinicFadeUp { to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { .clinic-fade-up { animation: none; opacity: 1; transform: none; } }
+</style>
