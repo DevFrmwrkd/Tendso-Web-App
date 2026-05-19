@@ -940,22 +940,33 @@ export default function SubmissionDetailPage() {
                                                 services: [],
                                                 contact: {},
                                             }),
+                                            // Prefer saved websiteContent images (user's last edit) over enhanced
+                                                // defaults — otherwise a fresh upload disappears on reload as soon as
+                                                // any enhanced image is available.
                                             images:
-                                                hasEnhancedImages && enhancedImagesByCategory?.categories.hero?.length
-                                                    ? enhancedImagesByCategory.categories.hero
-                                                    : websiteContent?.images || submission.photos || [],
+                                                websiteContent?.images?.length
+                                                    ? websiteContent.images
+                                                    : (hasEnhancedImages && enhancedImagesByCategory?.categories.hero?.length
+                                                        ? enhancedImagesByCategory.categories.hero
+                                                        : submission.photos || []),
                                             about_images:
-                                                hasEnhancedImages && enhancedImagesByCategory?.categories.about?.length
-                                                    ? enhancedImagesByCategory.categories.about
-                                                    : websiteContent?.about_images,
+                                                websiteContent?.about_images?.length
+                                                    ? websiteContent.about_images
+                                                    : (hasEnhancedImages && enhancedImagesByCategory?.categories.about?.length
+                                                        ? enhancedImagesByCategory.categories.about
+                                                        : undefined),
                                             services_image:
-                                                hasEnhancedImages && enhancedImagesByCategory?.categories.services?.length
-                                                    ? enhancedImagesByCategory.categories.services[0]
-                                                    : websiteContent?.services_image,
+                                                websiteContent?.services_image
+                                                    ? websiteContent.services_image
+                                                    : (hasEnhancedImages && enhancedImagesByCategory?.categories.services?.length
+                                                        ? enhancedImagesByCategory.categories.services[0]
+                                                        : undefined),
                                             featured_images:
-                                                hasEnhancedImages && enhancedImagesByCategory?.categories.featured?.length
-                                                    ? enhancedImagesByCategory.categories.featured
-                                                    : websiteContent?.featured_images,
+                                                websiteContent?.featured_images?.length
+                                                    ? websiteContent.featured_images
+                                                    : (hasEnhancedImages && enhancedImagesByCategory?.categories.featured?.length
+                                                        ? enhancedImagesByCategory.categories.featured
+                                                        : undefined),
                                         }}
                                         htmlContent={websiteHtmlContent || ""}
                                         submissionId={submissionId}

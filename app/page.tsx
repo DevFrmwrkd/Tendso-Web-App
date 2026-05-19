@@ -1,47 +1,82 @@
+"use client";
+
+import { useState } from "react";
+
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import ScrollToTop from "@/components/landing/ScrollToTop";
 
 import HeroSection from "@/components/landing/HeroSection";
-import HowItWorks from "@/components/landing/HowItWorks";
 import ShowcaseSection from "@/components/landing/ShowcaseSection";
+import HowItWorks from "@/components/landing/HowItWorks";
+import ProcessSection from "@/components/landing/ProcessSection";
+import ManifestoSection from "@/components/landing/ManifestoSection";
 import BusinessPricingSection from "@/components/landing/BusinessPricingSection";
 import EarningsSection from "@/components/landing/EarningsSection";
+import DirectorySection from "@/components/landing/DirectorySection";
+import FaqSection from "@/components/landing/FaqSection";
 import CtaSection from "@/components/landing/CtaSection";
 
+import StickyCTA from "@/components/landing/StickyCTA";
+import ChatBot from "@/components/landing/ChatBot";
+import CreatorSheet from "@/components/landing/CreatorSheet";
+import BusinessSheet from "@/components/landing/BusinessSheet";
+
+import type { Creator, LiveBusiness } from "@/components/landing/landingData";
+
 export default function Home() {
-  return (
-    <div
-      className="min-h-screen overflow-x-hidden"
-      style={{
-        background: "var(--khaki)",
-        color: "var(--ink)",
-      }}
-    >
-      <Navbar />
+    const [selectedCreator, setSelectedCreator] = useState<Creator | null>(null);
+    const [selectedBusiness, setSelectedBusiness] = useState<LiveBusiness | null>(null);
 
-      <main className="relative z-10 w-full flex flex-col items-center">
-        {/* § 01 — THE VISION (hero) — business-owner-led NEO LAB editorial */}
-        <HeroSection />
+    return (
+        <div className="neo min-h-screen overflow-x-hidden">
+            <Navbar />
 
-        {/* § 02 — HOW IT WORKS (3 steps + phone image relocated here) */}
-        <HowItWorks />
+            <main>
+                {/* § 01 — Hero with counters + two doors */}
+                <HeroSection />
 
-        {/* § 03 — REAL WORK (live sites carousel) */}
-        <ShowcaseSection />
+                {/* § 02 — Live map (Convex listPublished → falls back to 4 known sites) */}
+                <ShowcaseSection
+                    onSelectCreator={setSelectedCreator}
+                    onSelectBusiness={setSelectedBusiness}
+                />
 
-        {/* § 04 — THE PRICE (₱1,000 / ₱1,500 pricing) */}
-        <BusinessPricingSection />
+                {/* § 03 — How it works (two tracks side-by-side) */}
+                <HowItWorks />
 
-        {/* § 05 — FOR CREATORS (dark navy break — secondary audience) */}
-        <EarningsSection />
+                {/* § Process — Online Kit pipeline */}
+                <ProcessSection />
 
-        {/* § 10 — THE VISION (closing) */}
-        <CtaSection />
-      </main>
+                {/* § 04 — Pricing (₱1,000 / ₱1,500) */}
+                <BusinessPricingSection />
 
-      <Footer />
-      <ScrollToTop />
-    </div>
-  );
+                {/* § 05 — For creators (dark slab — ₱500 / ₱300 / ₱1,000) */}
+                <EarningsSection />
+
+                {/* § Manifesto — the 99% statement */}
+                <ManifestoSection />
+
+                {/* § 06 — Directory (rails of creators + businesses) */}
+                <DirectorySection
+                    onSelectCreator={setSelectedCreator}
+                    onSelectBusiness={setSelectedBusiness}
+                />
+
+                {/* § 08 — FAQ */}
+                <FaqSection />
+
+                {/* § 10 — Final CTA (the two doors, big) */}
+                <CtaSection />
+            </main>
+
+            <Footer />
+
+            <StickyCTA />
+            <ChatBot />
+            <CreatorSheet creator={selectedCreator} onClose={() => setSelectedCreator(null)} />
+            <BusinessSheet business={selectedBusiness} onClose={() => setSelectedBusiness(null)} />
+            <ScrollToTop />
+        </div>
+    );
 }

@@ -1,190 +1,227 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
-import { Video, Mic, Gift, ArrowRight, Wallet } from "lucide-react";
 import Link from "next/link";
-
-const earningRates = [
-  {
-    icon: Video,
-    title: "Video Interview",
-    amount: "₱500",
-    desc: "Earn directly to your Wise wallet for a successful video interview and 3–5 location photos.",
-    featured: false,
-  },
-  {
-    icon: Mic,
-    title: "Audio Only",
-    amount: "₱300",
-    desc: "Perfect for camera-shy owners. Record high-quality audio plus 3–5 photos to earn.",
-    featured: false,
-  },
-  {
-    icon: Gift,
-    title: "Referral Bonus",
-    amount: "₱1,000",
-    desc: "Invite another creator. When they complete their first paid submission, you get the bonus.",
-    featured: true,
-  },
-];
+import { CREATOR_EARNINGS, TESTIMONIALS } from "./landingData";
+import { Avatar, ArrowUpRightIcon } from "./landingPrimitives";
 
 export default function EarningsSection() {
-  const reduceMotion = useReducedMotion();
-
-  const fadeUp = reduceMotion
-    ? {}
-    : {
-      initial: { opacity: 0, y: 24 },
-      whileInView: { opacity: 1, y: 0 },
-      viewport: { once: true, margin: "-80px" },
-    };
-
-  return (
-    <section
-      id="for-creators"
-      className="w-full py-24 sm:py-32 px-6 relative z-10 scroll-mt-24 overflow-hidden"
-      style={{ background: "var(--ink)" }}
-    >
-      {/* Subtle rust glow accents */}
-      <div className="absolute top-0 -right-32 w-[500px] h-[500px] rounded-full bg-[var(--rust)]/15 blur-[140px] pointer-events-none" />
-      <div className="absolute -bottom-40 -left-32 w-[500px] h-[500px] rounded-full bg-[var(--rust-soft)]/10 blur-[140px] pointer-events-none" />
-
-      <div className="relative z-10 max-w-7xl mx-auto">
-        {/* Section marker — § 05 — FOR CREATORS */}
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-3 mb-10 sm:mb-14 justify-center"
+    return (
+        <section
+            id="for-creators"
+            style={{
+                background: "var(--neo-ink)",
+                color: "var(--neo-paper)",
+                paddingTop: 120,
+                paddingBottom: 120,
+            }}
         >
-          <span className="h-px w-10 sm:w-16 bg-[var(--rust-soft)]/50" />
-          <p
-            className="text-[10px] sm:text-[11px] uppercase tracking-[0.4em] font-medium text-[var(--rust-soft)]"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            § 05 — FOR CREATORS
-          </p>
-          <span className="h-px w-10 sm:w-16 bg-[var(--rust-soft)]/50" />
-        </motion.div>
-
-        {/* Headline */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <motion.h2
-            {...fadeUp}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            style={{
-              fontFamily: "var(--font-playfair)",
-              fontSize: "clamp(2.75rem, 7vw, 5.5rem)",
-            }}
-            className="font-bold text-[var(--khaki)] leading-[0.95] tracking-[-0.01em] mb-6"
-          >
-            Earn while bringing them{" "}
-            <span className="italic" style={{ color: "var(--rust-soft)" }}>
-              online.
-            </span>
-          </motion.h2>
-
-          <motion.p
-            {...fadeUp}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            style={{
-              fontFamily: "var(--font-playfair)",
-              fontSize: "clamp(1.05rem, 1.5vw, 1.3rem)",
-            }}
-            className="italic text-[var(--khaki)]/65"
-          >
-            No selling courses. No deposits. Real cash, direct to your Wise wallet for every business you digitize.
-          </motion.p>
-        </div>
-
-        {/* Earnings cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6 max-w-6xl mx-auto">
-          {earningRates.map((rate, idx) => {
-            const Icon = rate.icon;
-            return (
-              <motion.div
-                key={rate.title}
-                initial={reduceMotion ? {} : { opacity: 0, y: 30 }}
-                whileInView={reduceMotion ? {} : { opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-                className={`flex flex-col h-full rounded-[1.5rem] p-8 sm:p-9 relative overflow-hidden transition-all ${rate.featured
-                  ? "bg-[var(--rust)] text-[var(--khaki)] border-2 border-[var(--rust-soft)] shadow-2xl shadow-[var(--rust)]/30"
-                  : "bg-[var(--ink-soft)] border border-[var(--khaki)]/15 hover:border-[var(--rust-soft)]/50 hover:shadow-xl"
-                  }`}
-              >
-                {/* Section marker on card */}
-                <p
-                  className={`text-[10px] uppercase tracking-[0.4em] font-medium mb-5 ${rate.featured ? "text-[var(--khaki)]/70" : "text-[var(--rust-soft)]"
-                    }`}
-                  style={{ fontFamily: "var(--font-mono)" }}
-                >
-                  § 0{idx + 1}
-                </p>
-
-                <div
-                  className={`mb-6 p-3.5 rounded-2xl w-max border ${rate.featured
-                    ? "bg-[var(--khaki)]/15 border-[var(--khaki)]/30"
-                    : "bg-[var(--rust)]/15 border-[var(--rust)]/30"
-                    }`}
-                >
-                  <Icon className={`w-7 h-7 ${rate.featured ? "text-[var(--khaki)]" : "text-[var(--rust-soft)]"}`} />
+            <div className="container-wide">
+                <div className="sect-h">
+                    <div className="eyebrow" style={{ color: "var(--neo-creator)" }}>§ 05 — For creators</div>
+                    <div>
+                        <h2 className="display-2" style={{ color: "var(--neo-paper)" }}>
+                            Earn while bringing them <em style={{ fontStyle: "italic", color: "var(--neo-creator)" }}>online</em>.
+                        </h2>
+                        <p
+                            className="lede"
+                            style={{ marginTop: 12, color: "oklch(80% 0.008 85)", maxWidth: "62ch" }}
+                        >
+                            The platform pays creators for the work they ship. It also pays them for the creators and businesses they bring along. Plain numbers, no fine print.
+                        </p>
+                    </div>
                 </div>
 
-                <h3
-                  style={{ fontFamily: "var(--font-playfair)" }}
-                  className={`text-2xl sm:text-3xl font-bold mb-3 ${rate.featured ? "text-[var(--khaki)]" : "text-[var(--khaki)]"
-                    }`}
-                >
-                  {rate.title}
-                </h3>
-
+                {/* Payout rates — current marketing values */}
                 <div
-                  style={{ fontFamily: "var(--font-playfair)" }}
-                  className={`text-5xl sm:text-6xl font-bold tracking-tight mb-5 ${rate.featured ? "text-[var(--khaki)]" : "text-[var(--khaki)]"
-                    }`}
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, 1fr)",
+                        gap: 16,
+                        marginBottom: 48,
+                    }}
                 >
-                  {rate.amount}
+                    {CREATOR_EARNINGS.map((rate) => {
+                        const featured = rate.featured;
+                        return (
+                            <div
+                                key={rate.slug}
+                                style={{
+                                    padding: "32px 28px",
+                                    background: featured
+                                        ? "oklch(45% 0.12 150 / .15)"
+                                        : "oklch(20% 0.015 260)",
+                                    border: featured
+                                        ? "1px solid oklch(45% 0.12 150 / .5)"
+                                        : "1px solid oklch(40% 0.015 260)",
+                                    borderRadius: "var(--neo-r-lg)",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 14,
+                                }}
+                            >
+                                <div className="label" style={{ color: "oklch(72% 0.008 85)" }}>
+                                    {rate.title}
+                                </div>
+                                <div
+                                    className="counter-num"
+                                    style={{
+                                        fontSize: 64,
+                                        lineHeight: 1.0,
+                                        color: featured ? "var(--neo-creator)" : "var(--neo-paper)",
+                                    }}
+                                >
+                                    ₱{rate.amount.toLocaleString()}
+                                </div>
+                                <div
+                                    style={{
+                                        fontSize: 13,
+                                        color: "oklch(80% 0.008 85)",
+                                        lineHeight: 1.55,
+                                    }}
+                                >
+                                    {rate.desc}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
 
-                <p
-                  className={`text-[15px] leading-relaxed mb-8 ${rate.featured ? "text-[var(--khaki)]/85" : "text-[var(--khaki)]/65"
-                    }`}
+                {/* Earning reality */}
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, 1fr)",
+                        gap: 16,
+                        marginBottom: 64,
+                    }}
                 >
-                  {rate.desc}
-                </p>
+                    {[
+                        { label: "Per week, part-time", v: "₱1,500 – ₱3,500", n: "3–7 sites per week" },
+                        { label: "Per week, full-time", v: "₱5,000 – ₱12,000", n: "10+ sites + referral bonuses" },
+                        { label: "Top decile, month 6+", v: "₱24,000 +", n: "Active referral tree, multi-city", highlight: true },
+                    ].map((c) => (
+                        <div
+                            key={c.label}
+                            style={{
+                                padding: "32px 28px",
+                                background: c.highlight ? "var(--neo-creator)" : "transparent",
+                                border: c.highlight
+                                    ? "1px solid var(--neo-creator)"
+                                    : "1px solid oklch(40% 0.015 260)",
+                                color: c.highlight ? "white" : "var(--neo-paper)",
+                                borderRadius: "var(--neo-r-lg)",
+                            }}
+                        >
+                            <div
+                                className="label"
+                                style={{
+                                    marginBottom: 12,
+                                    color: c.highlight ? "oklch(95% 0.05 150)" : "oklch(72% 0.008 85)",
+                                }}
+                            >
+                                {c.label}
+                            </div>
+                            <div className="counter-num" style={{ fontSize: 36, marginBottom: 10, lineHeight: 1.0 }}>
+                                {c.v}
+                            </div>
+                            <div
+                                style={{
+                                    fontSize: 13,
+                                    color: c.highlight ? "oklch(95% 0.05 150)" : "oklch(70% 0.010 85)",
+                                }}
+                            >
+                                {c.n}
+                            </div>
+                        </div>
+                    ))}
+                </div>
 
-                <Link href="/login" className="mt-auto">
-                  <button
-                    className={`w-full py-4 rounded-full font-semibold text-base flex items-center justify-center gap-3 transition-all hover:gap-4 min-h-[52px] ${rate.featured
-                      ? "bg-[var(--khaki)] text-[var(--ink)] hover:bg-[var(--khaki-deep)]"
-                      : "bg-[var(--rust)] text-[var(--khaki)] hover:bg-[var(--rust-soft)]"
-                      }`}
-                  >
-                    Start Earning <ArrowRight className="w-5 h-5" />
-                  </button>
-                </Link>
-              </motion.div>
-            );
-          })}
-        </div>
+                {/* Testimonials */}
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(3, 1fr)",
+                        gap: 16,
+                        marginBottom: 48,
+                    }}
+                >
+                    {TESTIMONIALS.map((t) => (
+                        <div
+                            key={t.name}
+                            style={{
+                                padding: 28,
+                                background: "oklch(20% 0.015 260)",
+                                border: "1px solid oklch(40% 0.015 260)",
+                                borderRadius: "var(--neo-r-lg)",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 16,
+                            }}
+                        >
+                            <p
+                                className="pull-quote"
+                                style={{ fontSize: 22, lineHeight: 1.3, color: "var(--neo-paper)" }}
+                            >
+                                <em style={{ color: "var(--neo-creator)" }}>&ldquo;</em>
+                                {t.claim}
+                                <em style={{ color: "var(--neo-creator)" }}>&rdquo;</em>
+                            </p>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 12,
+                                    marginTop: "auto",
+                                    paddingTop: 16,
+                                    borderTop: "1px solid oklch(40% 0.015 260)",
+                                }}
+                            >
+                                <Avatar name={t.name} hue={t.hue} size={40} />
+                                <div>
+                                    <div style={{ fontWeight: 500, fontSize: 14 }}>{t.name}</div>
+                                    <div className="label" style={{ marginTop: 2, color: "oklch(72% 0.008 85)" }}>
+                                        {t.city} · verified
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
 
-        {/* Bottom note */}
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6"
-        >
-          <div className="flex items-center gap-2 text-[var(--khaki)]/60">
-            <Wallet className="w-4 h-4" />
-            <p
-              className="text-[10px] uppercase tracking-[0.4em] font-medium"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              Paid in PHP via Wise · usually within 24 hours
-            </p>
-          </div>
-        </motion.div>
-      </div>
-    </section>
-  );
+                {/* CTA */}
+                <div
+                    style={{
+                        paddingTop: 32,
+                        borderTop: "1px solid oklch(40% 0.015 260)",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        gap: 16,
+                    }}
+                >
+                    <div
+                        className="display-3"
+                        style={{ color: "var(--neo-paper)", maxWidth: "32ch" }}
+                    >
+                        Your referral link lives in the app. Apply today, earn this week.
+                    </div>
+                    <Link
+                        href="/for-creators"
+                        className="door door-creator"
+                        style={{
+                            padding: "20px 28px",
+                            display: "inline-flex",
+                            textDecoration: "none",
+                        }}
+                    >
+                        <span>See full creator breakdown</span>
+                        <span className="arrow">
+                            <ArrowUpRightIcon />
+                        </span>
+                    </Link>
+                </div>
+            </div>
+        </section>
+    );
 }

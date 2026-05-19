@@ -102,11 +102,37 @@ export default function OnboardingPage() {
         }
     }
 
-    if (!isLoaded) {
+    // Suppress the form UI while ANY of the following is true:
+    //   - Clerk is still hydrating (isLoaded === false)
+    //   - User is not signed in (about to redirect to /login)
+    //   - Convex query for the creator profile is still in flight (existingCreator === undefined)
+    //   - A creator profile already exists (about to redirect to /dashboard)
+    //
+    // Without this guard, returning users coming through Google OAuth see the
+    // onboarding form for ~200ms before the dashboard-redirect useEffect fires,
+    // which is the "flash of old onboarding page" we're fixing.
+    const isRedirecting =
+        !isLoaded ||
+        !isSignedIn ||
+        existingCreator === undefined ||
+        existingCreator !== null
+
+    if (isRedirecting) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center relative">
-                <Loader2 className="h-10 w-10 animate-spin text-[#00F0FF] relative z-10" />
-                <div className="absolute inset-0 bg-[#00F0FF] mix-blend-screen filter blur-[200px] opacity-10 animate-pulse pointer-events-none" />
+            <div
+                className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
+                style={{ background: "var(--khaki)", color: "var(--ink)" }}
+            >
+                <div
+                    className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-multiply"
+                    style={{
+                        backgroundImage:
+                            "radial-gradient(circle at 25% 25%, var(--ink) 0.5px, transparent 1px), radial-gradient(circle at 75% 75%, var(--ink) 0.5px, transparent 1px)",
+                        backgroundSize: "4px 4px, 6px 6px",
+                    }}
+                />
+                <div className="absolute -top-32 -right-20 w-[480px] h-[480px] bg-[var(--rust)]/8 rounded-full filter blur-[120px] pointer-events-none" />
+                <Loader2 className="h-10 w-10 animate-spin text-[var(--rust)] relative z-10" />
             </div>
         )
     }

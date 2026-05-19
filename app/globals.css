@@ -65,6 +65,456 @@ body {
   display: none !important;
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+   NEO LAB landing — editorial palette + utility classes.
+   Scoped under `.neo` so admin/auth/etc. pages keep their existing khaki theme.
+   ────────────────────────────────────────────────────────────────────────── */
+.neo {
+  /* type stacks */
+  --neo-serif: var(--font-instrument-serif), "Times New Roman", Georgia, serif;
+  --neo-sans: var(--font-onest), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --neo-mono: var(--font-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* palette — warm paper */
+  --neo-paper:        oklch(97.5% 0.012 85);
+  --neo-paper-2:      oklch(94% 0.015 80);
+  --neo-paper-3:      oklch(99% 0.005 90);
+  --neo-ink:          oklch(15% 0.018 270);
+  --neo-ink-2:        oklch(32% 0.018 270);
+  --neo-ink-3:        oklch(52% 0.015 270);
+  --neo-rule:         oklch(85% 0.012 80);
+  --neo-rule-strong:  oklch(70% 0.012 80);
+
+  /* Editorial green accent (was terracotta). Matches the rest of the app's
+     forest-green palette (--rust in light pages) and works on warm paper. */
+  --neo-creator:      oklch(45% 0.12 150);
+  --neo-creator-ink:  oklch(28% 0.08 150);
+  --neo-creator-bg:   oklch(92% 0.04 150);
+
+  --neo-business:     oklch(34% 0.10 245);
+  --neo-business-ink: oklch(22% 0.10 250);
+  --neo-business-bg:  oklch(93% 0.025 240);
+
+  --neo-live:         oklch(58% 0.18 145);
+  --neo-live-soft:    oklch(85% 0.10 145);
+
+  --neo-shadow-1: 0 1px 0 oklch(100% 0 0 / .8) inset, 0 1px 2px oklch(0% 0 0 / .04), 0 8px 24px -12px oklch(0% 0 0 / .12);
+  --neo-shadow-2: 0 1px 0 oklch(100% 0 0 / .8) inset, 0 2px 6px oklch(0% 0 0 / .06), 0 24px 48px -16px oklch(0% 0 0 / .18);
+
+  --neo-r-xs: 8px;
+  --neo-r-sm: 12px;
+  --neo-r-md: 18px;
+  --neo-r-lg: 24px;
+  --neo-r-xl: 32px;
+  --neo-r-pill: 999px;
+
+  background: var(--neo-paper);
+  color: var(--neo-ink);
+  font-family: var(--neo-sans);
+}
+
+.neo[data-theme="ink"] {
+  --neo-paper:        oklch(15% 0.012 260);
+  --neo-paper-2:      oklch(20% 0.015 260);
+  --neo-paper-3:      oklch(12% 0.010 260);
+  --neo-ink:          oklch(97% 0.008 85);
+  --neo-ink-2:        oklch(80% 0.008 85);
+  --neo-ink-3:        oklch(58% 0.010 85);
+  --neo-rule:         oklch(28% 0.015 260);
+  --neo-rule-strong:  oklch(40% 0.015 260);
+  --neo-creator-bg:   oklch(28% 0.08 150);
+  --neo-business-bg:  oklch(24% 0.08 245);
+}
+
+.neo .container       { max-width: 1440px; margin: 0 auto; padding: 0 48px; }
+.neo .container-wide  { max-width: 1680px; margin: 0 auto; padding: 0 48px; }
+.neo .container-text  { max-width: 980px; margin: 0 auto; padding: 0 48px; }
+@media (max-width: 800px) {
+  .neo .container, .neo .container-wide, .neo .container-text { padding: 0 24px; }
+}
+
+.neo .rule        { height: 1px; background: var(--neo-rule); width: 100%; }
+.neo .rule-strong { height: 1px; background: var(--neo-rule-strong); width: 100%; }
+
+.neo .mono  { font-family: var(--neo-mono); font-weight: 500; }
+.neo .serif { font-family: var(--neo-serif); font-weight: 400; }
+.neo .label,
+.neo .eyebrow {
+  font-family: var(--neo-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--neo-ink-3);
+}
+.neo .eyebrow { letter-spacing: 0.18em; }
+
+.neo h1, .neo h2, .neo h3 { margin: 0; font-weight: 400; letter-spacing: -0.02em; }
+.neo .display {
+  font-family: var(--neo-serif);
+  font-size: clamp(64px, 8vw, 144px);
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  font-weight: 400;
+}
+.neo .display em { font-style: italic; color: var(--neo-creator-ink); }
+.neo .display-2 {
+  font-family: var(--neo-serif);
+  font-size: clamp(40px, 5vw, 72px);
+  line-height: 1.0;
+  letter-spacing: -0.02em;
+}
+.neo .display-3 {
+  font-family: var(--neo-serif);
+  font-size: clamp(28px, 3vw, 40px);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+.neo .lede {
+  font-size: clamp(16px, 1.3vw, 19px);
+  line-height: 1.5;
+  color: var(--neo-ink-2);
+  max-width: 56ch;
+}
+
+/* Doors (the two CTA buttons) */
+.neo .door {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 18px 24px;
+  font-family: var(--neo-sans);
+  font-weight: 500;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  border: 1px solid var(--neo-ink);
+  background: var(--neo-ink);
+  color: var(--neo-paper);
+  transition: transform .15s ease, background .15s ease;
+  text-align: left;
+  line-height: 1.15;
+  border-radius: var(--neo-r-md);
+  cursor: pointer;
+}
+.neo .door:hover { transform: translateY(-1px); }
+.neo .door .arrow {
+  width: 20px; height: 20px; flex-shrink: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: transform .2s ease;
+}
+.neo .door:hover .arrow { transform: translate(2px, -2px); }
+.neo .door .meta {
+  font-family: var(--neo-mono); font-size: 10px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: oklch(from currentColor l c h / .55);
+  display: block; margin-bottom: 2px;
+}
+.neo .door-creator  { background: var(--neo-creator);  border-color: var(--neo-creator);  color: white; }
+.neo .door-business { background: var(--neo-business); border-color: var(--neo-business); color: white; }
+.neo .door-ghost    { background: transparent; color: var(--neo-ink); }
+.neo .door-ghost:hover { background: var(--neo-ink); color: var(--neo-paper); }
+
+/* Surfaces */
+.neo .card    { background: var(--neo-paper-3); border: 1px solid var(--neo-rule); border-radius: var(--neo-r-lg); }
+.neo .card-lg { border-radius: var(--neo-r-xl); }
+.neo .card-sm { border-radius: var(--neo-r-md); }
+.neo .surface { background: var(--neo-paper-3); border: 1px solid var(--neo-rule); border-radius: var(--neo-r-lg); overflow: hidden; }
+
+/* Live dot */
+.neo .live-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  background: var(--neo-live);
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 var(--neo-live);
+  animation: neo-live-pulse 2s infinite;
+}
+@keyframes neo-live-pulse {
+  0%   { box-shadow: 0 0 0 0 oklch(58% 0.18 145 / .6); }
+  70%  { box-shadow: 0 0 0 8px oklch(58% 0.18 145 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(58% 0.18 145 / 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .neo .live-dot { animation: none; }
+}
+
+/* Map area */
+.neo .map-frame { border-radius: var(--neo-r-xl); overflow: hidden; }
+.neo .leafmap   { width: 100%; height: 100%; background: var(--neo-paper-2); border-radius: inherit; }
+.neo .leaflet-container { background: var(--neo-paper-2); font-family: var(--neo-sans); }
+.neo[data-theme="ink"] .leaflet-tile {
+  filter: invert(.96) hue-rotate(180deg) saturate(.4) brightness(.95);
+}
+/* Hide Leaflet's logo / "Leaflet" attribution / branding chip in the corner */
+.neo .leaflet-control-attribution,
+.neo .leaflet-control-attribution a,
+.neo a.leaflet-logo,
+.neo .leaflet-attribution-flag {
+  display: none !important;
+}
+.neo .leaflet-control-zoom a {
+  background: var(--neo-paper-3) !important; color: var(--neo-ink) !important;
+  border-color: var(--neo-rule) !important;
+  font-family: var(--neo-sans) !important;
+}
+
+/* Custom pin */
+.neo .pin-wrap { position: relative; }
+.neo .pin-svg  { filter: drop-shadow(0 2px 4px oklch(0% 0 0 / .25)); }
+.neo .pin-pulse {
+  position: absolute; inset: 0; border-radius: 50%;
+  animation: neo-pin-pulse 2.4s infinite;
+}
+@keyframes neo-pin-pulse {
+  0%   { box-shadow: 0 0 0 0 oklch(58% 0.18 145 / .5); }
+  70%  { box-shadow: 0 0 0 14px oklch(58% 0.18 145 / 0); }
+  100% { box-shadow: 0 0 0 0 oklch(58% 0.18 145 / 0); }
+}
+
+/* Sheets (right-side modal).
+   Leaflet's internal panes use z-index up to 800 (marker pane 600, controls 800).
+   Anything below that gets occluded by map content, so the entire floating-UI
+   stack (topbar, sticky CTA, chatbot, sheets, modals) sits above 1000. */
+.neo .sheet-backdrop {
+  position: fixed; inset: 0;
+  background: oklch(15% 0.018 270 / .45);
+  backdrop-filter: blur(2px);
+  z-index: 1400; opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+}
+.neo .sheet-backdrop.open { opacity: 1; pointer-events: auto; }
+.neo .sheet {
+  position: fixed; z-index: 1401;
+  background: var(--neo-paper-3);
+  box-shadow: var(--neo-shadow-2);
+  transition: transform .35s cubic-bezier(.2,.8,.2,1);
+}
+.neo .sheet-desktop {
+  right: 16px; top: 16px; bottom: 16px; width: 460px;
+  transform: translateX(calc(100% + 32px));
+  border: 1px solid var(--neo-rule);
+  border-radius: var(--neo-r-xl);
+  overflow: hidden;
+}
+.neo .sheet-desktop.open { transform: translateX(0); }
+
+/* Pills */
+.neo .pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--neo-rule-strong);
+  background: var(--neo-paper-3);
+  font-family: var(--neo-sans); font-size: 12px;
+  color: var(--neo-ink-2);
+  transition: all .12s ease;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.neo .pill[aria-pressed="true"] {
+  background: var(--neo-ink); color: var(--neo-paper); border-color: var(--neo-ink);
+}
+.neo .pill:hover { border-color: var(--neo-ink); color: var(--neo-ink); }
+.neo .pill[aria-pressed="true"]:hover { color: var(--neo-paper); }
+
+/* Sticky bottom CTA */
+.neo .sticky-cta {
+  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 1200;
+  transform: translateY(calc(100% + 32px));
+  transition: transform .35s cubic-bezier(.2,.8,.2,1);
+  background: var(--neo-paper-3);
+  border: 1px solid var(--neo-rule);
+  border-radius: var(--neo-r-xl);
+  box-shadow: 0 12px 40px -12px oklch(0% 0 0 / .25);
+  overflow: hidden;
+}
+.neo .sticky-cta.visible { transform: translateY(0); }
+
+/* Counters */
+.neo .counter-num {
+  font-family: var(--neo-serif);
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+  line-height: 0.9;
+  letter-spacing: -0.025em;
+}
+
+/* Section spacing */
+.neo section { padding: 80px 0; position: relative; }
+.neo section.tight { padding: 56px 0; }
+@media (max-width: 800px) { .neo section { padding: 56px 0; } }
+
+/* Horizontal rail */
+.neo .rail {
+  display: flex; gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 4px 0 24px;
+  scrollbar-width: thin;
+}
+.neo .rail > * { scroll-snap-align: start; flex-shrink: 0; }
+
+/* Auto-scrolling marquee — used for the Creators rail.
+   Wrapper clips, track translates left infinitely. Children must be duplicated
+   in the markup so the -50% endpoint lands on the start of the second copy. */
+.neo .marquee-wrap {
+  overflow: hidden;
+  position: relative;
+  padding: 4px 0 8px;
+  /* Soft fade at both edges so cards don't pop in/out abruptly */
+  mask-image: linear-gradient(to right, transparent 0, black 80px, black calc(100% - 80px), transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 80px, black calc(100% - 80px), transparent 100%);
+}
+.neo .marquee-track {
+  display: flex;
+  gap: 16px;
+  width: max-content;
+  animation: neo-marquee 45s linear infinite;
+}
+.neo .marquee-wrap:hover .marquee-track { animation-play-state: paused; }
+@keyframes neo-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .neo .marquee-track { animation: none; }
+}
+
+/* Tag */
+.neo .tag {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px;
+  font-family: var(--neo-mono); font-size: 10px;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  border: 1px solid var(--neo-rule-strong);
+  color: var(--neo-ink-2);
+  border-radius: var(--neo-r-pill);
+  background: var(--neo-paper-3);
+}
+.neo .tag-live { color: var(--neo-live); border-color: oklch(58% 0.18 145 / .35); }
+
+/* Avatar */
+.neo .avatar {
+  border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--neo-serif);
+  color: white;
+  flex-shrink: 0;
+  background: var(--neo-ink-3);
+}
+
+/* Section header layout */
+.neo .sect-h {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) 4fr;
+  gap: 48px;
+  align-items: baseline;
+  margin-bottom: 48px;
+}
+@media (max-width: 800px) {
+  .neo .sect-h { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* Lift card */
+.neo .lift { transition: transform .18s ease, box-shadow .18s ease; border-radius: inherit; }
+.neo .lift:hover { transform: translateY(-2px); box-shadow: var(--neo-shadow-1); }
+
+/* Striped placeholder for site thumbnails */
+.neo .stripes {
+  background-image: repeating-linear-gradient(
+    135deg,
+    var(--neo-paper-2) 0 8px,
+    var(--neo-paper-3) 8px 16px
+  );
+}
+.neo .ar-16x9 { aspect-ratio: 16/9; }
+.neo .ar-4x3  { aspect-ratio: 4/3; }
+.neo .ar-1x1  { aspect-ratio: 1/1; }
+
+/* Chatbot FAB */
+.neo .chatbot-fab {
+  position: fixed; right: 24px; bottom: 24px; z-index: 1300;
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--neo-ink); color: var(--neo-paper);
+  border: 0; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px -8px oklch(0% 0 0 / .35);
+  transition: transform .2s ease, bottom .25s ease;
+}
+.neo .chatbot-fab:hover { transform: scale(1.06); }
+.neo .chatbot-window {
+  position: fixed; right: 24px; bottom: 92px; z-index: 1300;
+  width: 360px; max-height: 540px;
+  background: var(--neo-paper-3);
+  border: 1px solid var(--neo-rule);
+  border-radius: var(--neo-r-xl);
+  box-shadow: var(--neo-shadow-2);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  transform-origin: bottom right;
+  animation: neo-chatbot-in .25s cubic-bezier(.2,.8,.2,1);
+  transition: bottom .25s ease;
+}
+@keyframes neo-chatbot-in {
+  0%   { opacity: 0; transform: scale(.9) translateY(8px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.neo.sticky-cta-visible .chatbot-fab    { bottom: 96px; }
+.neo.sticky-cta-visible .chatbot-window { bottom: 168px; }
+
+/* Modal */
+.neo .modal-backdrop {
+  position: fixed; inset: 0; background: oklch(15% 0.018 270 / .55);
+  backdrop-filter: blur(4px);
+  z-index: 1500; opacity: 0; pointer-events: none;
+  transition: opacity .25s ease;
+  display: flex; align-items: center; justify-content: center;
+}
+.neo .modal-backdrop.open { opacity: 1; pointer-events: auto; }
+.neo .modal-card {
+  background: var(--neo-paper-3);
+  border-radius: var(--neo-r-xl);
+  border: 1px solid var(--neo-rule);
+  box-shadow: var(--neo-shadow-2);
+  max-width: 520px; width: calc(100% - 48px);
+  overflow: hidden;
+  transform: scale(.95);
+  transition: transform .25s cubic-bezier(.2,.8,.2,1);
+}
+.neo .modal-backdrop.open .modal-card { transform: scale(1); }
+
+/* Sticky top bar */
+.neo .topbar {
+  position: sticky; top: 0; z-index: 1100;
+  background: var(--neo-paper);
+  border-bottom: 1px solid var(--neo-rule);
+  backdrop-filter: blur(12px);
+}
+
+/* App-store style chip */
+.neo .store-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 10px 16px;
+  border: 1px solid var(--neo-ink);
+  background: var(--neo-ink);
+  color: var(--neo-paper);
+  font-size: 13px;
+  border-radius: var(--neo-r-pill);
+  font-family: var(--neo-sans);
+  cursor: pointer;
+}
+
+/* Big quote */
+.neo .pull-quote {
+  font-family: var(--neo-serif);
+  font-size: clamp(28px, 3vw, 44px);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+.neo .pull-quote em { color: var(--neo-creator); }
+
+/* Footer dark */
+.neo footer.neo-footer { background: var(--neo-ink); color: var(--neo-paper); padding: 64px 0 32px; }
+.neo footer.neo-footer .label { color: oklch(from var(--neo-paper) l c h / .55); }
+.neo footer.neo-footer a:hover { color: var(--neo-creator); }
+
 /* Slim scrollbar for sticky admin sidebar */
 .sidebar-scroll {
   scrollbar-width: thin;
