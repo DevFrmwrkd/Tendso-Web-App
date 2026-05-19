@@ -105,6 +105,49 @@ export const updatePublishingInfo = mutation({
     },
 });
 
+// Public: count of all published websites — landing page hero counter.
+export const countPublished = query({
+    args: {},
+    handler: async (ctx) => {
+        const sites = await ctx.db
+            .query('generatedWebsites')
+            .filter((q) => q.eq(q.field('status'), 'published'))
+            .collect();
+        return sites.filter((s) => !!s.publishedUrl).length;
+    },
+});
+
+// Public: list all published websites for the landing-page map.
+// Returns business name + category + city + coords + live URL.
+// Intentionally minimal — no user PII, no payout fields, no draft sites.
+export const listPublished = query({
+    args: {},
+    handler: async (ctx) => {
+        const sites = await ctx.db
+            .query('generatedWebsites')
+            .filter((q) => q.eq(q.field('status'), 'published'))
+            .collect();
+
+        const results = [];
+        for (const site of sites) {
+            if (!site.publishedUrl) continue;
+            const submission = await ctx.db.get(site.submissionId);
+            if (!submission) continue;
+            results.push({
+                id: site._id,
+                businessName: submission.businessName,
+                businessType: submission.businessType,
+                city: submission.city,
+                address: submission.address,
+                coordinates: submission.coordinates,
+                publishedUrl: site.publishedUrl,
+                publishedAt: site.publishedAt,
+            });
+        }
+        return results;
+    },
+});
+
 // Publish website (shorthand for updatePublishingInfo with status=published)
 export const publish = mutation({
     args: {

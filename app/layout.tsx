@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Plus_Jakarta_Sans, Playfair_Display, JetBrains_Mono } from "next/font/google";
+import { Fraunces, Plus_Jakarta_Sans, Playfair_Display, JetBrains_Mono, Instrument_Serif, Onest } from "next/font/google";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { ConvexClerkProvider } from "@/components/providers/ConvexClerkProvider";
@@ -37,6 +37,23 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
+// NEO LAB landing: italic-friendly magazine serif for display type
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+// NEO LAB landing: clean editorial sans (the body face)
+const onest = Onest({
+  variable: "--font-onest",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Negosyo Digital — Your business, online in 48 hours",
   description: "Real coded websites for Filipino local businesses. ₱1,000 one-time. No monthly fees. From barber shops to restaurants, salons to auto repair — live in 48 hours.",
@@ -59,7 +76,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/logo.png" />
       </head>
       <body
-        className={`${fraunces.variable} ${plusJakarta.variable} ${playfair.variable} ${jetbrainsMono.variable} antialiased`}
+        className={`${fraunces.variable} ${plusJakarta.variable} ${playfair.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} ${onest.variable} antialiased`}
       >
         <ConvexClerkProvider>
           <CustomCursor />

@@ -3,7 +3,7 @@ import { Save, RotateCcw, Eye, EyeOff, Image as ImageIcon, Upload } from 'lucide
 import { toast } from 'sonner'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { getHeroStyleFields, getAboutStyleFields, getServicesStyleFields, getGalleryStyleFields } from '@/lib/template-fields'
+import { getHeroStyleFields, getAboutStyleFields, getServicesStyleFields, getGalleryStyleFields, getContactStyleFields } from '@/lib/template-fields'
 
 interface Service {
     name: string
@@ -236,6 +236,9 @@ export default function VisualEditor({
 
     // Get which fields the current gallery style uses
     const galleryFields = useMemo(() => getGalleryStyleFields(galleryStyle), [galleryStyle])
+
+    // Get which fields the current contact (footer) style uses
+    const contactFields = useMemo(() => getContactStyleFields(contactStyle), [contactStyle])
 
     // Separate enhanced (AI-generated) images from original images
     const enhancedOnlyImages = useMemo(() => {
@@ -3702,42 +3705,48 @@ export default function VisualEditor({
                                 >
                                     <label className="text-sm font-medium text-gray-700 mb-3 block">Element Visibility</label>
                                     <div className="grid grid-cols-2 gap-3">
-                                        <label className="flex items-center gap-2 text-sm">
-                                            <input
-                                                type="checkbox"
-                                                checked={content.visibility?.footer_badge !== false}
-                                                onChange={(e) => updateField('visibility', {
-                                                    ...content.visibility,
-                                                    footer_badge: e.target.checked
-                                                })}
-                                                className="rounded text-blue-600"
-                                            />
-                                            Contact Badge
-                                        </label>
-                                        <label className="flex items-center gap-2 text-sm">
-                                            <input
-                                                type="checkbox"
-                                                checked={content.visibility?.footer_headline !== false}
-                                                onChange={(e) => updateField('visibility', {
-                                                    ...content.visibility,
-                                                    footer_headline: e.target.checked
-                                                })}
-                                                className="rounded text-blue-600"
-                                            />
-                                            Headline
-                                        </label>
-                                        <label className="flex items-center gap-2 text-sm">
-                                            <input
-                                                type="checkbox"
-                                                checked={content.visibility?.footer_description !== false}
-                                                onChange={(e) => updateField('visibility', {
-                                                    ...content.visibility,
-                                                    footer_description: e.target.checked
-                                                })}
-                                                className="rounded text-blue-600"
-                                            />
-                                            Description
-                                        </label>
+                                        {contactFields.usesBadge && (
+                                            <label className="flex items-center gap-2 text-sm">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={content.visibility?.footer_badge !== false}
+                                                    onChange={(e) => updateField('visibility', {
+                                                        ...content.visibility,
+                                                        footer_badge: e.target.checked
+                                                    })}
+                                                    className="rounded text-blue-600"
+                                                />
+                                                Contact Badge
+                                            </label>
+                                        )}
+                                        {contactFields.usesHeadline && (
+                                            <label className="flex items-center gap-2 text-sm">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={content.visibility?.footer_headline !== false}
+                                                    onChange={(e) => updateField('visibility', {
+                                                        ...content.visibility,
+                                                        footer_headline: e.target.checked
+                                                    })}
+                                                    className="rounded text-blue-600"
+                                                />
+                                                Headline
+                                            </label>
+                                        )}
+                                        {contactFields.usesDescription && (
+                                            <label className="flex items-center gap-2 text-sm">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={content.visibility?.footer_description !== false}
+                                                    onChange={(e) => updateField('visibility', {
+                                                        ...content.visibility,
+                                                        footer_description: e.target.checked
+                                                    })}
+                                                    className="rounded text-blue-600"
+                                                />
+                                                Description
+                                            </label>
+                                        )}
                                         <label className="flex items-center gap-2 text-sm">
                                             <input
                                                 type="checkbox"
@@ -3765,53 +3774,61 @@ export default function VisualEditor({
                                     </div>
                                 </div>
 
-                                {/* Style G Specific Contact Fields */}
-                                {(contactStyle === 'G' || contactStyle === '7') && (
+                                {/* Editable Contact Heading (badge + headline + days/hours).
+                                    Only shown for variants whose .astro files accept these as props —
+                                    most variants render hardcoded heading text. */}
+                                {(contactFields.editableBadge || contactFields.editableHeadline) && (
                                     <div className="p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all">
-                                        <label className="text-sm font-medium text-gray-700 mb-3 block">Premium Footer Content</label>
+                                        <label className="text-sm font-medium text-gray-700 mb-3 block">Contact Heading</label>
                                         <div className="space-y-3">
-                                            <div>
-                                                <label className="text-xs text-gray-500 mb-1 block">Badge Text</label>
-                                                <input
-                                                    type="text"
-                                                    value={content.footer_badge || ''}
-                                                    onChange={(e) => updateField('footer_badge', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                    placeholder="e.g. Reservations"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-gray-500 mb-1 block">Headline</label>
-                                                <input
-                                                    type="text"
-                                                    value={content.footer_headline || ''}
-                                                    onChange={(e) => updateField('footer_headline', e.target.value)}
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                    placeholder="e.g. Experience Excellence"
-                                                />
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-3">
+                                            {contactFields.editableBadge && (
                                                 <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">Service Days</label>
+                                                    <label className="text-xs text-gray-500 mb-1 block">Badge Text</label>
                                                     <input
                                                         type="text"
-                                                        value={content.footer_days || ''}
-                                                        onChange={(e) => updateField('footer_days', e.target.value)}
+                                                        value={content.footer_badge || ''}
+                                                        onChange={(e) => updateField('footer_badge', e.target.value)}
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                        placeholder="e.g. Mon - Sun"
+                                                        placeholder="e.g. Reservations"
                                                     />
                                                 </div>
+                                            )}
+                                            {contactFields.editableHeadline && (
                                                 <div>
-                                                    <label className="text-xs text-gray-500 mb-1 block">Service Hours</label>
+                                                    <label className="text-xs text-gray-500 mb-1 block">Headline</label>
                                                     <input
                                                         type="text"
-                                                        value={content.footer_hours || ''}
-                                                        onChange={(e) => updateField('footer_hours', e.target.value)}
+                                                        value={content.footer_headline || ''}
+                                                        onChange={(e) => updateField('footer_headline', e.target.value)}
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                                        placeholder="e.g. 11:00 AM - 11:00 PM"
+                                                        placeholder="e.g. Experience Excellence"
                                                     />
                                                 </div>
-                                            </div>
+                                            )}
+                                            {(contactStyle === 'G' || contactStyle === '7') && (
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Service Days</label>
+                                                        <input
+                                                            type="text"
+                                                            value={content.footer_days || ''}
+                                                            onChange={(e) => updateField('footer_days', e.target.value)}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                            placeholder="e.g. Mon - Sun"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="text-xs text-gray-500 mb-1 block">Service Hours</label>
+                                                        <input
+                                                            type="text"
+                                                            value={content.footer_hours || ''}
+                                                            onChange={(e) => updateField('footer_hours', e.target.value)}
+                                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                            placeholder="e.g. 11:00 AM - 11:00 PM"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -3871,28 +3888,30 @@ export default function VisualEditor({
                                     </div>
                                 </div>
 
-                                {/* Footer Description */}
-                                <div
-                                    className={`p-4 rounded-lg border transition-all ${
-                                        content.visibility?.footer_description !== false
-                                            ? 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
-                                            : 'border-gray-200 bg-gray-50 opacity-60'
-                                    }`}
-                                >
-                                    <label className="text-sm font-medium text-gray-700 mb-2 block">Footer Description</label>
-                                    <textarea
-                                        value={content.footer?.brand_blurb || ''}
-                                        onChange={(e) => updateField('footer', {
-                                            ...content.footer,
-                                            brand_blurb: e.target.value
-                                        })}
-                                        disabled={content.visibility?.footer_description === false}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                                        rows={3}
-                                        placeholder="For any inquiries or to explore your vision further, we invite you to contact our professional team..."
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">Description text shown below the headline</p>
-                                </div>
+                                {/* Footer Description — only for variants that render it */}
+                                {contactFields.usesDescription && (
+                                    <div
+                                        className={`p-4 rounded-lg border transition-all ${
+                                            content.visibility?.footer_description !== false
+                                                ? 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
+                                                : 'border-gray-200 bg-gray-50 opacity-60'
+                                        }`}
+                                    >
+                                        <label className="text-sm font-medium text-gray-700 mb-2 block">Footer Description</label>
+                                        <textarea
+                                            value={content.footer?.brand_blurb || ''}
+                                            onChange={(e) => updateField('footer', {
+                                                ...content.footer,
+                                                brand_blurb: e.target.value
+                                            })}
+                                            disabled={content.visibility?.footer_description === false}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                            rows={3}
+                                            placeholder="For any inquiries or to explore your vision further, we invite you to contact our professional team..."
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">Description text shown below the headline</p>
+                                    </div>
+                                )}
 
                                 {/* Social Links */}
                                 <div

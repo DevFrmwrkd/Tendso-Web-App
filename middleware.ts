@@ -14,6 +14,12 @@ const isPublicRoute = createRouteMatcher([
     '/terms-of-service(.*)',
     '/creators(.*)',
     '/about(.*)',
+    // New NEO LAB landing surface — fully public, no Clerk gate.
+    '/for-business(.*)',
+    '/for-creators(.*)',
+    '/knowledge(.*)',
+    '/help-faq(.*)',
+    '/contact(.*)',
     // Called server-to-server from Convex (internal.submissions.transcribeMedia)
     // using the X-Internal-Secret header for auth — no Clerk cookie present.
     // The route handler enforces either a valid Clerk session OR a matching

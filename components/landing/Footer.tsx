@@ -1,147 +1,153 @@
+"use client";
+
 import Link from "next/link";
-import Image from "next/image";
-import Logo from "@/public/logo.png";
-import { ArrowUpRight, ArrowRight } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-export default function Footer() {
-  return (
-    <footer
-      className="relative overflow-hidden py-20 sm:py-24 border-t border-[var(--khaki)]/10"
-      style={{ background: "var(--ink)", color: "var(--khaki)" }}
-    >
-      <div className="absolute top-0 inset-x-0 h-px w-full bg-gradient-to-r from-transparent via-[var(--rust-soft)]/50 to-transparent" />
-      <div className="absolute -left-[20%] -bottom-[40%] w-[60%] h-[80%] bg-[var(--rust-soft)]/12 blur-[140px] rounded-full pointer-events-none" />
+const footColStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    fontSize: 14,
+};
 
-      <div className="max-w-7xl mx-auto px-6 md:px-10 relative z-10">
-        {/* Top section marker */}
-        <div className="flex items-center gap-3 mb-12 sm:mb-14">
-          <span className="h-px w-12 bg-[var(--rust-soft)]/50" />
-          <p
-            className="text-[10px] sm:text-[11px] uppercase tracking-[0.45em] font-medium text-[var(--rust-soft)]"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            § FIN — NEGOSYO DIGITAL
-          </p>
-          <span className="h-px w-12 bg-[var(--rust-soft)]/50" />
+const footSelStyle: React.CSSProperties = {
+    appearance: "none",
+    border: "1px solid oklch(40% 0.015 260)",
+    background: "transparent",
+    color: "oklch(85% 0.008 85)",
+    padding: "10px 12px",
+    fontFamily: "var(--neo-mono)",
+    fontSize: 11,
+    letterSpacing: ".08em",
+    textTransform: "uppercase",
+    cursor: "pointer",
+    width: "100%",
+    borderRadius: 8,
+};
+
+function FootCol({ title, children }: { title: string; children: React.ReactNode }) {
+    return (
+        <div>
+            <div className="label" style={{ marginBottom: 16 }}>{title}</div>
+            <div style={footColStyle}>{children}</div>
         </div>
+    );
+}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 md:gap-8 mb-14">
-          {/* Brand + tagline + CTA */}
-          <div className="sm:col-span-2 flex flex-col items-start gap-5">
-            <Link href="/" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
-              <Image src={Logo} alt="" width={44} height={44} className="rounded-lg shadow-md shadow-[var(--rust-soft)]/30" />
-              <span
-                style={{ fontFamily: "var(--font-playfair)" }}
-                className="text-2xl font-bold tracking-tight"
-              >
-                Negosyo Digital
-              </span>
-            </Link>
-
-            <p
-              className="text-[var(--khaki)]/65 max-w-md italic leading-relaxed"
-              style={{
-                fontFamily: "var(--font-playfair)",
-                fontSize: "clamp(1.05rem, 1.4vw, 1.2rem)",
-              }}
-            >
-              Real shops. Real websites. Real fast. A website for every shop on Earth.
-            </p>
-
-            <Link
-              href="/signup"
-              className="group mt-3 inline-flex items-center gap-3 bg-[var(--rust)] hover:bg-[var(--rust-soft)] text-[var(--khaki)] px-6 py-3 rounded-full font-semibold text-sm transition-all hover:-translate-y-0.5 min-h-[44px]"
-            >
-              Get started
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-          </div>
-
-          {/* Product column */}
-          <div className="flex flex-col gap-3">
-            <h4
-              className="text-[10px] sm:text-[11px] uppercase tracking-[0.4em] font-medium text-[var(--rust-soft)] mb-1"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              § 01 — Product
-            </h4>
-            <Link
-              href="#how-it-works"
-              className="text-[var(--khaki)]/70 hover:text-[var(--khaki)] transition-colors text-base"
-              style={{ fontFamily: "var(--font-playfair)" }}
-            >
-              How it works
-            </Link>
-            <Link
-              href="#showcase"
-              className="text-[var(--khaki)]/70 hover:text-[var(--khaki)] transition-colors text-base"
-              style={{ fontFamily: "var(--font-playfair)" }}
-            >
-              Live work
-            </Link>
-            <Link
-              href="#for-business"
-              className="text-[var(--khaki)]/70 hover:text-[var(--khaki)] transition-colors text-base"
-              style={{ fontFamily: "var(--font-playfair)" }}
-            >
-              Pricing
-            </Link>
-            <Link
-              href="#for-creators"
-              className="text-[var(--khaki)]/70 hover:text-[var(--khaki)] transition-colors text-base flex items-center gap-1 group"
-              style={{ fontFamily: "var(--font-playfair)" }}
-            >
-              <span className="italic">For creators</span>
-              <ArrowUpRight className="w-3.5 h-3.5 opacity-60 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-          </div>
-
-          {/* Legal column */}
-          <div className="flex flex-col gap-3">
-            <h4
-              className="text-[10px] sm:text-[11px] uppercase tracking-[0.4em] font-medium text-[var(--rust-soft)] mb-1"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              § 02 — Legal
-            </h4>
-            <Link
-              href="/privacy-policy"
-              className="text-[var(--khaki)]/70 hover:text-[var(--khaki)] transition-colors text-base"
-              style={{ fontFamily: "var(--font-playfair)" }}
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="/terms-of-service"
-              className="text-[var(--khaki)]/70 hover:text-[var(--khaki)] transition-colors text-base"
-              style={{ fontFamily: "var(--font-playfair)" }}
-            >
-              Terms of Service
-            </Link>
-            <Link
-              href="/login"
-              className="text-[var(--khaki)]/70 hover:text-[var(--khaki)] transition-colors text-base flex items-center gap-1 group"
-              style={{ fontFamily: "var(--font-playfair)" }}
-            >
-              <span className="italic">Login to portal</span>
-              <ArrowUpRight className="w-3.5 h-3.5 opacity-60 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Bottom strip */}
-        <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-[var(--khaki)]/10 gap-3">
-          <p className="text-[var(--khaki)]/50 text-sm text-center md:text-left">
-            © {new Date().getFullYear()} Negosyo Digital. All rights reserved.
-          </p>
-          <p
-            className="text-[var(--khaki)]/40 text-[10px] tracking-[0.5em] uppercase"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            Made in the Philippines · Para sa local na negosyo
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
+export default function Footer({
+    lang = "en",
+    country = "PH",
+    onLangChange,
+    onCountryChange,
+}: {
+    lang?: string;
+    country?: string;
+    onLangChange?: (v: string) => void;
+    onCountryChange?: (v: string) => void;
+} = {}) {
+    const apkUrl = useQuery(api.settings.get, { key: "apk_download_url" }) as string | null | undefined;
+    return (
+        <footer className="neo-footer">
+            <div className="container-wide">
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "2fr 1fr 1fr 1fr",
+                        gap: 48,
+                        alignItems: "start",
+                    }}
+                >
+                    <div>
+                        <div style={{ marginBottom: 24 }}>
+                            <span
+                                style={{
+                                    fontFamily: "var(--neo-serif)",
+                                    fontStyle: "italic",
+                                    fontSize: 36,
+                                    letterSpacing: "-.02em",
+                                }}
+                            >
+                                Negosyo
+                            </span>{" "}
+                            <span
+                                className="mono"
+                                style={{
+                                    letterSpacing: ".18em",
+                                    textTransform: "uppercase",
+                                    fontSize: 13,
+                                    color: "oklch(70% 0.010 85)",
+                                }}
+                            >
+                                Digital
+                            </span>
+                        </div>
+                        <p
+                            style={{
+                                maxWidth: "44ch",
+                                color: "oklch(72% 0.010 85)",
+                                lineHeight: 1.5,
+                                fontSize: 14,
+                            }}
+                        >
+                            A platform for the people who build for everyone else. Two doors, one map, one app — and a competitive moat the size of a country.
+                        </p>
+                    </div>
+                    <FootCol title="Get the app">
+                        {apkUrl ? (
+                            <a href={apkUrl} download="negosyo-digital.apk">
+                                Android · Direct APK
+                            </a>
+                        ) : (
+                            <Link href="/signup">Android · Direct APK</Link>
+                        )}
+                        <span style={{ opacity: 0.5 }}>iOS · Coming soon</span>
+                        <Link href="/knowledge">Knowledge base</Link>
+                        <Link href="/help-faq">Help</Link>
+                    </FootCol>
+                    <FootCol title="Legal">
+                        <Link href="/privacy-policy">Privacy</Link>
+                        <Link href="/terms-of-service">Terms</Link>
+                        <Link href="/contact">Contact</Link>
+                    </FootCol>
+                    <FootCol title="Region">
+                        <select
+                            value={country}
+                            onChange={(e) => onCountryChange?.(e.target.value)}
+                            style={footSelStyle}
+                            aria-label="Country"
+                        >
+                            <option value="PH">🇵🇭 Philippines</option>
+                            <option value="ID">🇮🇩 Indonesia</option>
+                            <option value="MX">🇲🇽 Mexico</option>
+                            <option value="VN">🇻🇳 Vietnam</option>
+                        </select>
+                        <select
+                            value={lang}
+                            onChange={(e) => onLangChange?.(e.target.value)}
+                            style={footSelStyle}
+                            aria-label="Language"
+                        >
+                            <option value="en">English</option>
+                            <option value="tl">Tagalog</option>
+                        </select>
+                    </FootCol>
+                </div>
+                <div
+                    style={{
+                        marginTop: 48,
+                        paddingTop: 24,
+                        borderTop: "1px solid oklch(40% 0.015 260)",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        fontSize: 12,
+                        color: "oklch(60% 0.010 85)",
+                    }}
+                >
+                    <span className="label">© Negosyo Digital · {new Date().getFullYear()}</span>
+                    <span className="label">Map data: OpenStreetMap · CARTO</span>
+                </div>
+            </div>
+        </footer>
+    );
 }

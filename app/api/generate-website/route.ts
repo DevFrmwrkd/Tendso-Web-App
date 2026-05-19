@@ -309,12 +309,22 @@ IMPORTANT:
         // Helper: filter out expired Airtable URLs (they return 410 Gone)
         const isValidImageUrl = (url: string) => url && url.startsWith('http') && !url.includes('airtableusercontent.com')
 
+        // Helper: accept either a usable HTTP URL OR a Convex storage reference
+        // (`convex:<id>` / raw storage ID). Newly uploaded images from VisualEditor
+        // arrive as `convex:<id>` strings and must survive the user-edit filter so
+        // they can be resolved to a URL further down.
+        const isUsableImageRef = (s: string) => {
+            if (!s) return false
+            if (s.startsWith('http')) return !s.includes('airtableusercontent.com')
+            return true
+        }
+
         // Get photos priority:
         // 1. User-edited images from content editor (saved in extractedContent.images) — but filter out expired Airtable URLs
         // 2. Freshly-resolved enhanced images from Airtable (storageIds already resolved above)
         // 3. Original submission photos
         const userEditedImages = ((extractedContent as any)?.images || [])
-            .filter((img: string) => img && isValidImageUrl(img))
+            .filter((img: string) => isUsableImageRef(img))
         const hasValidUserEditedImages = userEditedImages.length > 0
 
         const photoStorageIds = hasValidUserEditedImages
@@ -369,7 +379,7 @@ IMPORTANT:
 
         // Resolve about_images: prefer user-edited, then enhanced, then extractedContent
         const userEditedAboutImages = ((extractedContent as any)?.about_images || [])
-            .filter((img: string) => img && isValidImageUrl(img))
+            .filter((img: string) => isUsableImageRef(img))
         const rawAboutImages = userEditedAboutImages.length > 0
             ? userEditedAboutImages
             : ((hasEnhancedImages && enhancedImagesByCategory.about?.length)
@@ -416,7 +426,7 @@ IMPORTANT:
 
         // Resolve services_image: prefer user-edited, then enhanced, then extractedContent
         const userEditedServicesImage = (extractedContent as any)?.services_image
-        const rawServicesImage = (userEditedServicesImage && isValidImageUrl(userEditedServicesImage))
+        const rawServicesImage = (userEditedServicesImage && isUsableImageRef(userEditedServicesImage))
             ? userEditedServicesImage
             : ((hasEnhancedImages && enhancedImagesByCategory.services?.length)
                 ? enhancedImagesByCategory.services[0]
@@ -442,7 +452,7 @@ IMPORTANT:
 
         // Resolve featured_images: prefer user-edited, then enhanced, then extractedContent
         const userEditedFeaturedImages = ((extractedContent as any)?.featured_images || [])
-            .filter((img: string) => img && isValidImageUrl(img))
+            .filter((img: string) => isUsableImageRef(img))
         const rawFeaturedImages = userEditedFeaturedImages.length > 0
             ? userEditedFeaturedImages
             : ((hasEnhancedImages && enhancedImagesByCategory.featured?.length)

@@ -5,6 +5,18 @@ import { internal } from './_generated/api';
 // ==================== QUERIES ====================
 
 /**
+ * Public: count of all creators on the platform.
+ * Used by the landing page hero counter.
+ */
+export const count = query({
+    args: {},
+    handler: async (ctx) => {
+        const creators = await ctx.db.query('creators').collect();
+        return creators.length;
+    },
+});
+
+/**
  * Get current creator by Clerk ID
  */
 export const getByClerkId = query({
