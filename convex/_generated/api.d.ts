@@ -18,6 +18,7 @@ import type * as crons from "../crons.js";
 import type * as domains from "../domains.js";
 import type * as earnings from "../earnings.js";
 import type * as files from "../files.js";
+import type * as followUp from "../followUp.js";
 import type * as generatedWebsites from "../generatedWebsites.js";
 import type * as http from "../http.js";
 import type * as leadNotes from "../leadNotes.js";
@@ -58,6 +59,7 @@ declare const fullApi: ApiFromModules<{
   domains: typeof domains;
   earnings: typeof earnings;
   files: typeof files;
+  followUp: typeof followUp;
   generatedWebsites: typeof generatedWebsites;
   http: typeof http;
   leadNotes: typeof leadNotes;
