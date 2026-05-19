@@ -89,17 +89,29 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen w-full bg-white text-neutral-900 selection:bg-emerald-500 selection:text-white overflow-hidden relative flex items-center justify-center px-6 py-12">
-            {/* Soft ambient washes */}
-            <div className="absolute -top-32 -right-20 w-[480px] h-[480px] bg-emerald-50 rounded-full filter blur-[120px] opacity-80 pointer-events-none" />
-            <div className="absolute -bottom-40 -left-32 w-[520px] h-[520px] bg-emerald-100/60 rounded-full filter blur-[140px] opacity-70 pointer-events-none" />
+        <div
+            className="min-h-screen w-full overflow-hidden relative flex items-center justify-center px-6 py-12"
+            style={{ background: "var(--khaki)", color: "var(--ink)" }}
+        >
+            {/* Paper grain */}
+            <div
+                className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-multiply"
+                style={{
+                    backgroundImage:
+                        "radial-gradient(circle at 25% 25%, var(--ink) 0.5px, transparent 1px), radial-gradient(circle at 75% 75%, var(--ink) 0.5px, transparent 1px)",
+                    backgroundSize: "4px 4px, 6px 6px",
+                }}
+            />
+            {/* Soft green halos */}
+            <div className="absolute -top-32 -right-20 w-[480px] h-[480px] bg-[var(--rust)]/8 rounded-full filter blur-[120px] pointer-events-none" />
+            <div className="absolute -bottom-40 -left-32 w-[520px] h-[520px] bg-[var(--rust-soft)]/12 rounded-full filter blur-[140px] pointer-events-none" />
 
             {/* BACK TO HOME */}
             <Link
                 href="/"
-                className="absolute top-6 left-6 md:top-10 md:left-10 flex items-center gap-2.5 text-neutral-600 hover:text-emerald-700 transition-colors group"
+                className="absolute top-6 left-6 md:top-10 md:left-10 flex items-center gap-2.5 text-[var(--ink)]/70 hover:text-[var(--rust)] transition-colors group z-20"
             >
-                <span className="w-9 h-9 rounded-full border border-neutral-200 bg-white flex items-center justify-center shadow-sm group-hover:border-emerald-300 transition-colors">
+                <span className="w-9 h-9 rounded-full border border-[var(--ink)]/15 bg-[var(--khaki-deep)] flex items-center justify-center shadow-sm group-hover:border-[var(--rust)]/50 transition-colors">
                     <ArrowLeft className="w-4 h-4" />
                 </span>
                 <span className="font-semibold tracking-wide text-sm">Back home</span>
@@ -111,27 +123,48 @@ export default function LoginPage() {
                 transition={{ duration: 0.5 }}
                 className="w-full max-w-md relative z-10"
             >
+                {/* Section marker */}
+                <div className="flex items-center gap-3 mb-8 justify-center">
+                    <span className="h-px w-10 bg-[var(--rust)]/40" />
+                    <p
+                        className="text-[10px] uppercase tracking-[0.4em] font-medium text-[var(--rust)]"
+                        style={{ fontFamily: "var(--font-mono)" }}
+                    >
+                        § ACCESS — RETURNING
+                    </p>
+                    <span className="h-px w-10 bg-[var(--rust)]/40" />
+                </div>
+
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden border border-emerald-100 bg-emerald-50 p-1 flex items-center justify-center mb-5 shadow-md shadow-emerald-500/10">
+                    <div className="w-16 h-16 rounded-2xl overflow-hidden border border-[var(--ink)]/15 bg-[var(--khaki-deep)] p-1 flex items-center justify-center mb-5 shadow-md shadow-[var(--rust)]/15">
                         <Image src={Logo} alt="" width={56} height={56} className="rounded-xl" />
                     </div>
                     <h1
-                        style={{ fontFamily: "var(--font-fraunces)" }}
-                        className="text-3xl md:text-4xl font-semibold tracking-tight text-center text-neutral-900 mb-2 leading-tight"
+                        style={{
+                            fontFamily: "var(--font-playfair)",
+                            fontSize: "clamp(2.25rem, 5vw, 3rem)",
+                        }}
+                        className="font-bold tracking-[-0.01em] text-center text-[var(--ink)] mb-2 leading-[1.05]"
                     >
-                        Welcome back, <span className="italic text-emerald-700">creator.</span>
+                        Welcome back, <span className="italic" style={{ color: "var(--rust)" }}>creator.</span>
                     </h1>
-                    <p className="text-neutral-600 text-center text-[15px] max-w-xs leading-relaxed">
+                    <p
+                        className="text-[var(--ink)]/60 text-center italic max-w-xs leading-relaxed"
+                        style={{
+                            fontFamily: "var(--font-playfair)",
+                            fontSize: "1.05rem",
+                        }}
+                    >
                         Continue your work digitizing local Filipino businesses.
                     </p>
                 </div>
 
-                <div className="bg-white border border-neutral-200 p-7 sm:p-8 rounded-3xl shadow-xl shadow-emerald-900/5">
+                <div className="bg-[var(--khaki-deep)] border border-[var(--ink)]/15 p-7 sm:p-8 rounded-3xl shadow-xl shadow-[var(--ink)]/10">
                     {error && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
-                            className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm text-center"
+                            className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm text-center"
                             role="alert"
                         >
                             {error}
@@ -140,12 +173,16 @@ export default function LoginPage() {
 
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <div className="space-y-1.5">
-                            <label htmlFor="email" className="text-xs font-semibold text-neutral-700 px-1">
+                            <label
+                                htmlFor="email"
+                                className="text-[10px] uppercase tracking-[0.3em] font-bold text-[var(--ink)]/70 px-1 block"
+                                style={{ fontFamily: "var(--font-mono)" }}
+                            >
                                 Email address
                             </label>
                             <div className="relative group">
                                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <Mail className="w-4 h-4 text-neutral-400 group-focus-within:text-emerald-600 transition-colors" />
+                                    <Mail className="w-4 h-4 text-[var(--ink)]/40 group-focus-within:text-[var(--rust)] transition-colors" />
                                 </span>
                                 <input
                                     id="email"
@@ -156,23 +193,31 @@ export default function LoginPage() {
                                     required
                                     disabled={loading}
                                     autoComplete="email"
-                                    className="w-full h-12 pl-10 pr-4 bg-white border border-neutral-200 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors text-[15px]"
+                                    className="w-full h-12 pl-10 pr-4 bg-[var(--khaki)] border border-[var(--ink)]/15 rounded-xl text-[var(--ink)] placeholder:text-[var(--ink)]/40 focus:outline-none focus:border-[var(--rust)] focus:ring-1 focus:ring-[var(--rust)] transition-colors text-[15px]"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
                             <div className="flex items-center justify-between px-1">
-                                <label htmlFor="password" className="text-xs font-semibold text-neutral-700">
+                                <label
+                                    htmlFor="password"
+                                    className="text-[10px] uppercase tracking-[0.3em] font-bold text-[var(--ink)]/70"
+                                    style={{ fontFamily: "var(--font-mono)" }}
+                                >
                                     Password
                                 </label>
-                                <Link href="/forgot-password" className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 transition-colors">
+                                <Link
+                                    href="/forgot-password"
+                                    className="text-xs italic text-[var(--rust)] hover:text-[var(--ink)] transition-colors"
+                                    style={{ fontFamily: "var(--font-playfair)" }}
+                                >
                                     Forgot password?
                                 </Link>
                             </div>
                             <div className="relative group">
                                 <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <Lock className="w-4 h-4 text-neutral-400 group-focus-within:text-emerald-600 transition-colors" />
+                                    <Lock className="w-4 h-4 text-[var(--ink)]/40 group-focus-within:text-[var(--rust)] transition-colors" />
                                 </span>
                                 <input
                                     id="password"
@@ -183,12 +228,12 @@ export default function LoginPage() {
                                     required
                                     disabled={loading}
                                     autoComplete="current-password"
-                                    className="w-full h-12 pl-10 pr-11 bg-white border border-neutral-200 rounded-xl text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors text-[15px]"
+                                    className="w-full h-12 pl-10 pr-11 bg-[var(--khaki)] border border-[var(--ink)]/15 rounded-xl text-[var(--ink)] placeholder:text-[var(--ink)]/40 focus:outline-none focus:border-[var(--rust)] focus:ring-1 focus:ring-[var(--rust)] transition-colors text-[15px]"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-neutral-400 hover:text-neutral-700 transition-colors"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-[var(--ink)]/40 hover:text-[var(--ink)] transition-colors"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -199,7 +244,7 @@ export default function LoginPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-12 bg-neutral-900 hover:bg-black disabled:opacity-60 text-white rounded-xl font-semibold text-base transition-colors flex items-center justify-center gap-2 mt-2 shadow-md shadow-neutral-900/15"
+                            className="w-full h-12 bg-[var(--ink)] hover:bg-[var(--rust)] disabled:opacity-60 text-[var(--khaki)] rounded-xl font-semibold text-base transition-colors flex items-center justify-center gap-2 mt-2 shadow-md shadow-[var(--ink)]/20"
                         >
                             {loading ? (
                                 <>
@@ -215,9 +260,12 @@ export default function LoginPage() {
 
                     <div className="mt-6 mb-5 relative flex items-center justify-center">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-neutral-200" />
+                            <div className="w-full border-t border-[var(--ink)]/15" />
                         </div>
-                        <div className="relative bg-white px-3 text-xs font-medium text-neutral-500">
+                        <div
+                            className="relative bg-[var(--khaki-deep)] px-3 text-[10px] font-medium uppercase tracking-[0.3em] text-[var(--ink)]/50"
+                            style={{ fontFamily: "var(--font-mono)" }}
+                        >
                             or
                         </div>
                     </div>
@@ -226,10 +274,10 @@ export default function LoginPage() {
                         type="button"
                         onClick={handleGoogleOAuth}
                         disabled={oauthLoading || loading}
-                        className="w-full h-12 bg-white border border-neutral-200 hover:border-emerald-300 hover:bg-neutral-50 text-neutral-900 rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2.5 disabled:opacity-60"
+                        className="w-full h-12 bg-[var(--khaki)] border border-[var(--ink)]/15 hover:border-[var(--rust)]/50 hover:bg-[var(--khaki-deep)] text-[var(--ink)] rounded-xl font-semibold text-sm transition-colors flex items-center justify-center gap-2.5 disabled:opacity-60"
                     >
                         {oauthLoading ? (
-                            <Loader2 className="animate-spin h-5 w-5 text-neutral-400" />
+                            <Loader2 className="animate-spin h-5 w-5 text-[var(--ink)]/40" />
                         ) : (
                             <>
                                 <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden>
@@ -244,9 +292,15 @@ export default function LoginPage() {
                     </button>
                 </div>
 
-                <p className="text-center mt-7 text-sm text-neutral-600">
+                <p
+                    className="text-center mt-7 text-sm text-[var(--ink)]/65"
+                    style={{ fontFamily: "var(--font-playfair)" }}
+                >
                     New here?{" "}
-                    <Link href="/signup" className="font-semibold text-emerald-700 hover:text-emerald-900 transition-colors underline decoration-emerald-200 underline-offset-4">
+                    <Link
+                        href="/signup"
+                        className="font-semibold italic text-[var(--rust)] hover:text-[var(--ink)] transition-colors underline decoration-[var(--rust)]/40 underline-offset-4"
+                    >
                         Create your creator account
                     </Link>
                 </p>

@@ -13,17 +13,25 @@ export default function ResetPasswordPage() {
     }, [router]);
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-white text-neutral-900 px-6 text-center">
-            <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mb-4 shadow-sm">
-                <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+        <div
+            className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
+            style={{ background: "var(--khaki)", color: "var(--ink)" }}
+        >
+            <div className="w-14 h-14 rounded-full bg-[var(--khaki-deep)] border border-[var(--rust)]/30 flex items-center justify-center mb-4 shadow-sm">
+                <Loader2 className="h-6 w-6 animate-spin text-[var(--rust)]" />
             </div>
             <p
-                style={{ fontFamily: "var(--font-fraunces)" }}
-                className="text-xl font-semibold text-neutral-900"
+                style={{ fontFamily: "var(--font-playfair)" }}
+                className="text-xl font-bold text-[var(--ink)]"
             >
                 Redirecting…
             </p>
-            <p className="text-sm text-neutral-600 mt-1">Taking you to the password reset page.</p>
+            <p
+                className="text-sm text-[var(--ink)]/65 mt-1 italic"
+                style={{ fontFamily: "var(--font-playfair)" }}
+            >
+                Taking you to the password reset page.
+            </p>
         </div>
     );
 }

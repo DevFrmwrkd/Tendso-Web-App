@@ -692,6 +692,33 @@ export default function SubmissionDetailPage() {
         }
     };
 
+    const [sendingFollowUp, setSendingFollowUp] = useState(false);
+    const handleSendFollowUp = async () => {
+        if (sendingFollowUp) return;
+        setSendingFollowUp(true);
+        try {
+            const res = await fetch("/api/send-payment-followup-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ submissionId, isManual: true }),
+            });
+            if (res.ok) {
+                setModalType("success");
+                setModalMessage("Follow-up email sent to the business owner.");
+                setShowModal(true);
+            } else {
+                const data = await res.json();
+                throw new Error(data.error || "Failed to send follow-up email");
+            }
+        } catch (err: any) {
+            setModalType("error");
+            setModalMessage(err.message || "Failed to send follow-up email");
+            setShowModal(true);
+        } finally {
+            setSendingFollowUp(false);
+        }
+    };
+
     const handleUpdateDesign = async (customizations: EditorCustomizations) => {
         if (JSON.stringify(customizations) === JSON.stringify(websiteCustomizations)) return;
         setWebsiteCustomizations(customizations);
@@ -737,6 +764,7 @@ export default function SubmissionDetailPage() {
                 websiteGenerated={websiteGenerated}
                 websitePublishedUrl={websitePublishedUrl}
                 hasTranscript={!!submission.transcript}
+                followUpSentAt={(submission as any).followUpEmailSentAt}
                 updating={updating}
                 generatingWebsite={generatingWebsite}
                 publishingWebsite={publishingWebsite}
@@ -746,6 +774,7 @@ export default function SubmissionDetailPage() {
                 sendingEmail={sendingEmail}
                 markingPaid={markingPaid}
                 deleting={deleting}
+                sendingFollowUp={sendingFollowUp}
                 onGenerateWebsite={() => handleGenerateWebsite()}
                 onApprove={() => handleStatusUpdate("approved")}
                 onMarkInReview={() => handleStatusUpdate("in_review")}
@@ -756,6 +785,7 @@ export default function SubmissionDetailPage() {
                 onEnhanceImages={handleTriggerEnhancedImages}
                 onMarkAsPaid={() => setShowMarkPaidModal(true)}
                 onResendPaymentEmail={handleResendPaymentEmail}
+                onSendFollowUp={handleSendFollowUp}
                 onReject={() => handleStatusUpdate("rejected")}
                 onDelete={() => setShowDeleteModal(true)}
             />
