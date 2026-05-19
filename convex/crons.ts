@@ -17,6 +17,16 @@ crons.hourly(
     internal.unpublish.checkAndUnpublish
 );
 
+// Hourly (offset by 15 min): final-day payment follow-up email
+// Targets pending_payment submissions where sentEmailAt is 48–72h old AND
+// followUpEmailSentAt is not yet set. Runs ahead of the :00 unpublish cron so
+// the business owner gets a last nudge before their site is taken offline.
+crons.hourly(
+    'payment-followup-final-day',
+    { minuteUTC: 15 },
+    internal.followUp.checkAndSendFollowUps
+);
+
 // Hourly (offset by 30 min): poll Wise for stalled withdrawals + send creator follow-up emails
 // Catches transfers that are stuck in "processing" between admin approval and final delivery
 crons.hourly(

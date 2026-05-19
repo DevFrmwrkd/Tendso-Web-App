@@ -918,3 +918,205 @@ export function getDomainRenewalReminderEmailHtml(params: {
         '</table></td></tr></table></body></html>',
     ].join('')
 }
+
+/**
+ * Final follow-up — sent on the LAST day before the website is auto-unpublished.
+ * Style mirrors getPaymentLinkEmailHtml (white card, emerald header, Wise/InstaPay
+ * details). Tone: urgent but warm — "your site goes offline tomorrow."
+ *
+ * Used by both the automated cron (24h before deadline) and the manual admin
+ * "Follow up" button on the submission detail page.
+ */
+export function getPaymentFollowUpEmailHtml(params: {
+    businessName: string
+    businessOwnerName: string
+    websiteUrl?: string
+    amount: number
+    referenceCode?: string
+    hoursLeft?: number
+    isManual?: boolean
+}): string {
+    const {
+        businessName,
+        businessOwnerName,
+        websiteUrl,
+        amount,
+        referenceCode,
+        hoursLeft = 24,
+        isManual = false,
+    } = params
+
+    const wiseEmail = paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com'
+    const headlineTone = isManual ? "We're following up on your website" : 'Final reminder — your website goes offline soon'
+    const intro = isManual
+        ? `We're checking in on <strong style="color:#059669;">${businessName}</strong>'s website. It's been live and waiting for you. Once we receive payment, your website stays live permanently — no monthly fees, no contracts.`
+        : `Your website for <strong style="color:#059669;">${businessName}</strong> will be taken offline in about <strong style="color:#dc2626;">${hoursLeft} hours</strong> if payment is not received. We don't want you to miss this — your site has been ready and live this whole time.`
+
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${isManual ? 'Following up' : 'Final reminder'} — ${businessName}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f3f4f6;">
+        <tr>
+            <td align="center" style="padding:40px 16px;">
+
+                <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;width:100%;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+                    <!-- Header (matches payment-link email) -->
+                    <tr>
+                        <td style="background-color:#10b981;padding:32px 40px;text-align:center;">
+                            <p style="margin:0 0 4px;font-size:13px;color:rgba(255,255,255,0.85);font-weight:600;letter-spacing:1px;text-transform:uppercase;">Negosyo Digital</p>
+                            <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800;line-height:1.25;">${headlineTone}</h1>
+                        </td>
+                    </tr>
+
+                    <!-- Urgency banner (auto only) -->
+                    ${!isManual ? `
+                    <tr>
+                        <td style="padding:0;">
+                            <div style="background:#fff7ed;border-bottom:1px solid #fed7aa;padding:14px 40px;text-align:center;">
+                                <p style="margin:0;font-size:14px;color:#9a3412;font-weight:700;">
+                                    ⏰ Last day before your website is taken offline
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    ` : ''}
+
+                    <!-- Greeting -->
+                    <tr>
+                        <td style="padding:32px 40px 0;">
+                            <p style="margin:0 0 16px;font-size:18px;color:#111827;line-height:1.6;">
+                                Hi <strong>${businessOwnerName}</strong>,
+                            </p>
+                            <p style="margin:0;font-size:16px;color:#374151;line-height:1.7;">
+                                ${intro}
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Amount Box -->
+                    <tr>
+                        <td style="padding:24px 40px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;">
+                                <tr>
+                                    <td style="padding:24px;text-align:center;">
+                                        <p style="margin:0 0 4px;font-size:14px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Amount Due</p>
+                                        <p style="margin:0;font-size:40px;color:#059669;font-weight:800;">₱${amount.toLocaleString('en-PH')}</p>
+                                        <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">One-time. No monthly fees. Website stays live forever.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- View website CTA (if URL present) -->
+                    ${websiteUrl ? `
+                    <tr>
+                        <td style="padding:0 40px 24px;text-align:center;">
+                            <p style="margin:0 0 12px;font-size:13px;color:#6b7280;">See what's waiting to go permanently live:</p>
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+                                <tr>
+                                    <td style="border-radius:8px;background:#ffffff;border:2px solid #10b981;">
+                                        <a href="${websiteUrl}" target="_blank" style="display:block;padding:11px 24px;color:#059669;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:0.2px;font-family:sans-serif;">
+                                            View your website &rarr;
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    ` : ''}
+
+                    <!-- Bank Account Details -->
+                    <tr>
+                        <td style="padding:0 40px 24px;">
+                            <h2 style="margin:0 0 16px;font-size:20px;color:#111827;font-weight:700;">Send Your Payment To</h2>
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#ffffff;border:2px solid #d1d5db;border-radius:12px;overflow:hidden;">
+                                <tr><td style="padding:18px 20px;border-bottom:1px solid #f3f4f6;">
+                                    <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Account Holder Name</p>
+                                    <p style="margin:0;font-size:20px;color:#111827;font-weight:700;">VONAS, OPC</p>
+                                </td></tr>
+                                <tr><td style="padding:18px 20px;border-bottom:1px solid #f3f4f6;">
+                                    <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Account Number</p>
+                                    <p style="margin:0;font-size:28px;color:#111827;font-weight:800;font-family:'Courier New',Courier,monospace;letter-spacing:3px;">2006436346</p>
+                                </td></tr>
+                                <tr><td style="padding:18px 20px;border-bottom:1px solid #f3f4f6;">
+                                    <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Bank</p>
+                                    <p style="margin:0;font-size:16px;color:#111827;font-weight:600;">Wise Pilipinas Inc. (via InstaPay)</p>
+                                </td></tr>
+                                <tr><td style="padding:18px 20px;">
+                                    <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Amount</p>
+                                    <p style="margin:0;font-size:28px;color:#059669;font-weight:800;">₱${amount.toLocaleString('en-PH')}</p>
+                                </td></tr>
+                                ${referenceCode ? `
+                                <tr><td style="padding:0 20px 18px;">
+                                    <p style="margin:0 0 4px;font-size:12px;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Reference Code</p>
+                                    <p style="margin:0;font-size:16px;color:#111827;font-weight:600;font-family:'Courier New',Courier,monospace;">${referenceCode}</p>
+                                </td></tr>
+                                ` : ''}
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Pay from any app -->
+                    <tr>
+                        <td style="padding:0 40px 24px;">
+                            <div style="padding:16px 20px;background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;">
+                                <p style="margin:0;font-size:15px;color:#1e40af;line-height:1.6;">
+                                    💡 <strong>Pay from any app:</strong> GCash, Maya, BDO, BPI, UnionBank, Metrobank, Landbank, or any bank app. Choose <strong>"Send via InstaPay"</strong> and enter the details above.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+
+                    ${!isManual ? `
+                    <!-- What happens if not paid -->
+                    <tr>
+                        <td style="padding:0 40px 24px;">
+                            <div style="padding:18px 20px;background-color:#fef2f2;border:1px solid #fecaca;border-radius:10px;">
+                                <p style="margin:0 0 6px;font-size:14px;color:#991b1b;font-weight:700;">What happens if not paid by tomorrow:</p>
+                                <p style="margin:0;font-size:13px;color:#7f1d1d;line-height:1.6;">
+                                    Your website will be taken offline and the URL will stop working. You can still restart with us anytime — just reply to this email and we'll relaunch it for you.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    ` : ''}
+
+                    <!-- Soft close -->
+                    <tr>
+                        <td style="padding:0 40px 32px;">
+                            <p style="margin:0;font-size:14px;color:#6b7280;line-height:1.7;">
+                                Already paid? Send us a quick screenshot at <a href="mailto:${wiseEmail}" style="color:#10b981;font-weight:600;text-decoration:none;">${wiseEmail}</a> and we'll mark you paid right away.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
+                            <p style="margin:0 0 8px;font-size:14px;color:#6b7280;">
+                                Questions? Reply to this email or contact us at <a href="mailto:${wiseEmail}" style="color:#10b981;font-weight:600;text-decoration:none;">${wiseEmail}</a>
+                            </p>
+                            <p style="margin:0;font-size:12px;color:#9ca3af;">
+                                &copy; ${new Date().getFullYear()} Negosyo Digital. Empowering Filipino businesses.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>
+    `
+}

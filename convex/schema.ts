@@ -93,6 +93,7 @@ export default defineSchema({
         paymentReference: v.optional(v.string()),
         paidAt: v.optional(v.number()), // Timestamp
         sentEmailAt: v.optional(v.number()), // Timestamp when payment email was sent to client
+        followUpEmailSentAt: v.optional(v.number()), // Timestamp of last payment follow-up email (auto or manual)
         unpublishedAt: v.optional(v.number()), // Timestamp when website was auto-unpublished
 
         // Creator payout

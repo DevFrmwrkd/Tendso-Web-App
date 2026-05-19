@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import { Fraunces, Plus_Jakarta_Sans, Playfair_Display, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { ConvexClerkProvider } from "@/components/providers/ConvexClerkProvider";
+import CustomCursor from "@/components/landing/CustomCursor";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -16,6 +17,23 @@ const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+// Display serif — Vision-style high-contrast editorial typeface
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "700", "800", "900"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+// Monospace for editorial section markers (§ 01 — THE VISION)
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
   display: "swap",
 });
 
@@ -41,9 +59,10 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/logo.png" />
       </head>
       <body
-        className={`${fraunces.variable} ${plusJakarta.variable} antialiased`}
+        className={`${fraunces.variable} ${plusJakarta.variable} ${playfair.variable} ${jetbrainsMono.variable} antialiased`}
       >
         <ConvexClerkProvider>
+          <CustomCursor />
           {children}
         </ConvexClerkProvider>
         <Toaster position="top-right" richColors />

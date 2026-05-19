@@ -14,6 +14,7 @@ import {
   Send,
   PowerOff,
   Mail,
+  MailWarning,
   Coins,
   ClipboardCheck,
 } from "lucide-react";
@@ -24,6 +25,8 @@ type TopActionBarProps = {
   websiteGenerated: boolean;
   websitePublishedUrl: string | null;
   hasTranscript: boolean;
+  /** Timestamp of last follow-up email sent (ms), undefined if none */
+  followUpSentAt?: number;
 
   // Loading flags
   updating: boolean;
@@ -35,6 +38,7 @@ type TopActionBarProps = {
   sendingEmail: boolean;
   markingPaid: boolean;
   deleting: boolean;
+  sendingFollowUp: boolean;
 
   // Handlers
   onGenerateWebsite: () => void;
@@ -47,9 +51,22 @@ type TopActionBarProps = {
   onEnhanceImages: () => void;
   onMarkAsPaid: () => void;
   onResendPaymentEmail: () => void;
+  onSendFollowUp: () => void;
   onReject: () => void;
   onDelete: () => void;
 };
+
+/** Format a timestamp as "2h ago" / "3d ago" / "just now" — used in the follow-up button label. */
+function relativeTime(timestamp: number): string {
+  const diffMs = Date.now() - timestamp;
+  if (diffMs < 60_000) return "just now";
+  const mins = Math.round(diffMs / 60_000);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.round(hrs / 24);
+  return `${days}d ago`;
+}
 
 export default function TopActionBar({
   businessName,
@@ -57,6 +74,7 @@ export default function TopActionBar({
   websiteGenerated,
   websitePublishedUrl,
   hasTranscript,
+  followUpSentAt,
   updating,
   generatingWebsite,
   publishingWebsite,
@@ -66,6 +84,7 @@ export default function TopActionBar({
   sendingEmail,
   markingPaid,
   deleting,
+  sendingFollowUp,
   onGenerateWebsite,
   onApprove,
   onMarkInReview,
@@ -76,6 +95,7 @@ export default function TopActionBar({
   onEnhanceImages,
   onMarkAsPaid,
   onResendPaymentEmail,
+  onSendFollowUp,
   onReject,
   onDelete,
 }: TopActionBarProps) {
@@ -93,6 +113,7 @@ export default function TopActionBar({
   const canSendToClient = status === "deployed";
   const canUnpublish = !!websitePublishedUrl;
   const canResendPaymentEmail = status === "pending_payment";
+  const canSendFollowUp = status === "pending_payment";
 
   return (
     <div className="sticky top-0 z-30 bg-white border-b border-neutral-200">
@@ -147,6 +168,20 @@ export default function TopActionBar({
               loading={false}
               icon={Mail}
               label="Re-send email"
+            />
+          )}
+
+          {/* Manual follow-up (when unpaid) */}
+          {canSendFollowUp && (
+            <SecondaryBtn
+              onClick={onSendFollowUp}
+              loading={sendingFollowUp}
+              icon={MailWarning}
+              label={
+                followUpSentAt
+                  ? `Follow up · sent ${relativeTime(followUpSentAt)}`
+                  : "Follow up"
+              }
             />
           )}
 
