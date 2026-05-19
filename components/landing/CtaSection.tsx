@@ -1,83 +1,142 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { Wallet, Phone, ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import Link from "next/link";
-
-const PHONE_DISPLAY = "0967 145 5245";
-const PHONE_TEL = "tel:+639671455245";
 
 export default function CtaSection() {
   const reduceMotion = useReducedMotion();
 
-  return (
-    <section className="w-full py-24 sm:py-28 px-6 relative overflow-hidden flex items-center justify-center bg-white">
-      {/* Black slab anchor */}
-      <div className="absolute inset-x-4 sm:inset-x-8 lg:inset-x-12 inset-y-4 sm:inset-y-6 bg-neutral-900 rounded-[2rem] sm:rounded-[3rem] z-0" />
+  const fadeUp = reduceMotion
+    ? {}
+    : {
+      initial: { opacity: 0, y: 30 },
+      whileInView: { opacity: 1, y: 0 },
+      viewport: { once: true, margin: "-100px" },
+    };
 
-      {/* Light-green dot pattern over the slab */}
+  return (
+    <section
+      className="relative w-full overflow-hidden flex items-center justify-center min-h-[90vh] py-28 sm:py-36 px-6"
+      style={{ background: "var(--ink)" }}
+    >
+      {/* Faint grain texture */}
       <div
-        className="absolute inset-x-4 sm:inset-x-8 lg:inset-x-12 inset-y-4 sm:inset-y-6 rounded-[2rem] sm:rounded-[3rem] opacity-[0.18] pointer-events-none"
+        className="absolute inset-0 opacity-[0.06] pointer-events-none mix-blend-screen"
         style={{
-          backgroundImage: "radial-gradient(circle at center, #d1fae5 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
+          backgroundImage:
+            "radial-gradient(circle at 25% 25%, var(--khaki) 0.5px, transparent 1px), radial-gradient(circle at 75% 75%, var(--khaki) 0.5px, transparent 1px)",
+          backgroundSize: "4px 4px, 6px 6px",
         }}
       />
 
-      {/* Emerald glow accent */}
-      <div className="absolute -top-20 -right-20 w-[420px] h-[420px] bg-emerald-500/30 rounded-full filter blur-[140px] opacity-50 pointer-events-none" />
+      {/* Rust glow accents */}
+      <div className="absolute top-0 -right-20 w-[500px] h-[500px] rounded-full bg-[var(--rust)]/20 blur-[140px] pointer-events-none" />
+      <div className="absolute -bottom-32 -left-20 w-[600px] h-[600px] rounded-full bg-[var(--rust-soft)]/12 blur-[160px] pointer-events-none" />
 
-      <motion.div
-        initial={reduceMotion ? {} : { opacity: 0, y: 24 }}
-        whileInView={reduceMotion ? {} : { opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.6 }}
-        className="relative z-10 text-center text-white max-w-3xl mx-auto flex flex-col items-center py-12 sm:py-16 px-2"
-      >
-        <p className="text-xs uppercase tracking-widest font-bold text-emerald-400 mb-4">
-          Ready when you are
-        </p>
-
-        <h2
-          style={{ fontFamily: "var(--font-fraunces)" }}
-          className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold leading-[1.05] mb-6"
+      <div className="relative z-10 max-w-6xl mx-auto w-full text-center">
+        {/* Section marker — § 10 — THE VISION (matches NEO LAB screenshot) */}
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.5 }}
+          className="flex items-center gap-3 mb-12 sm:mb-16 justify-center"
         >
-          Your first <span className="italic text-emerald-400">payout</span> is one interview away.
-        </h2>
+          <span className="h-px w-12 bg-[var(--rust-soft)]/50" />
+          <p
+            className="text-[11px] sm:text-xs uppercase tracking-[0.45em] font-medium text-[var(--rust-soft)]"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            § 10 — THE VISION
+          </p>
+          <span className="h-px w-12 bg-[var(--rust-soft)]/50" />
+        </motion.div>
 
-        <p className="text-white/75 text-lg sm:text-xl font-normal mb-10 max-w-xl leading-relaxed">
-          Install the app, walk into one local shop, record a short interview. We do the rest. You get paid to your Wise wallet — usually within 24 hours.
-        </p>
+        {/* Massive editorial closing statement */}
+        <motion.h2
+          {...fadeUp}
+          transition={{ duration: 0.7, delay: 0.1 }}
+          className="font-bold leading-[0.92] tracking-[-0.02em] text-[var(--khaki)] mb-10 sm:mb-14 mx-auto"
+          style={{
+            fontFamily: "var(--font-playfair)",
+            fontSize: "clamp(3.75rem, 13vw, 12rem)",
+          }}
+        >
+          No business left
+          <br />
+          <span className="italic" style={{ color: "var(--rust-soft)" }}>
+            offline.
+          </span>
+        </motion.h2>
 
-        {/* Split CTA — creator primary, business secondary */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+        {/* Subtitle */}
+        <motion.p
+          {...fadeUp}
+          transition={{ duration: 0.6, delay: 0.25 }}
+          className="italic text-[var(--khaki)]/70 max-w-xl mx-auto mb-14 sm:mb-16"
+          style={{
+            fontFamily: "var(--font-playfair)",
+            fontSize: "clamp(1.15rem, 1.8vw, 1.6rem)",
+          }}
+        >
+          Sign up in two minutes. We do the rest. You only pay ₱1,000 once your site is live.
+        </motion.p>
+
+        {/* Split CTAs */}
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.6, delay: 0.35 }}
+          className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-5"
+        >
           <Link
             href="/signup"
-            className="group flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-400 text-neutral-900 px-7 sm:px-8 py-4 sm:py-5 rounded-full font-bold text-base sm:text-lg transition-transform hover:scale-[1.02] shadow-2xl shadow-emerald-500/30 min-h-[56px]"
+            className="group flex items-center justify-center gap-3 bg-[var(--rust)] hover:bg-[var(--rust-soft)] text-[var(--khaki)] px-8 sm:px-10 py-5 rounded-full font-bold text-base sm:text-lg transition-all hover:-translate-y-0.5 shadow-2xl shadow-[var(--rust)]/30 min-h-[60px]"
           >
-            <Wallet className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-            Start earning
+            <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+            Get your website online
             <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
           </Link>
 
-          <a
+          <Link
             href="#for-business"
-            className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/15 text-white px-7 py-4 rounded-full font-semibold text-base transition-colors border border-white/20 min-h-[56px]"
+            className="flex items-center justify-center gap-2 bg-[var(--khaki)]/10 hover:bg-[var(--khaki)]/20 text-[var(--khaki)] px-7 py-5 rounded-full font-semibold text-base transition-colors border border-[var(--khaki)]/25 min-h-[60px]"
           >
-            I own a business
-          </a>
-        </div>
+            See pricing
+            <ArrowRight className="w-4 h-4" />
+          </Link>
+        </motion.div>
 
-        {/* Business owner direct line — small, below */}
-        <a
-          href={PHONE_TEL}
-          className="mt-10 inline-flex items-center gap-2 text-sm text-white/60 hover:text-emerald-300 transition-colors group"
-          aria-label={`Business owners — call us at ${PHONE_DISPLAY}`}
+        {/* Creator footnote — small text link */}
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.5, delay: 0.45 }}
+          className="mt-10"
         >
-          <Phone className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-          Business owner? Call us directly: <span className="font-semibold">{PHONE_DISPLAY}</span>
-        </a>
-      </motion.div>
+          <Link
+            href="#for-creators"
+            className="inline-flex items-center gap-1.5 text-sm text-[var(--khaki)]/55 hover:text-[var(--rust-soft)] transition-colors group italic"
+            style={{ fontFamily: "var(--font-playfair)" }}
+          >
+            Earn ₱300–₱500 as a creator instead
+            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          </Link>
+        </motion.div>
+
+        {/* Bottom signature mark */}
+        <motion.div
+          {...fadeUp}
+          transition={{ duration: 0.5, delay: 0.6 }}
+          className="mt-16 sm:mt-20 flex items-center justify-center gap-4"
+        >
+          <span className="h-px w-12 bg-[var(--khaki)]/20" />
+          <p
+            className="text-[10px] uppercase tracking-[0.5em] text-[var(--khaki)]/40"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            Negosyo Digital · Real shops. Real fast.
+          </p>
+          <span className="h-px w-12 bg-[var(--khaki)]/20" />
+        </motion.div>
+      </div>
     </section>
   );
 }

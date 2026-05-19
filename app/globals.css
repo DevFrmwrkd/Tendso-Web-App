@@ -3,18 +3,36 @@
 :root {
   --background: #ffffff;
   --foreground: #0a0a0a;
+
+  /* NEO LAB editorial palette */
+  --khaki: #f4ede1;        /* warm cream — primary surface */
+  --khaki-deep: #ebe2cf;   /* slightly deeper khaki for card surfaces */
+  --ink: #0f0e14;          /* near-black for dark sections */
+  --ink-soft: #1c1a24;     /* softer near-black for surfaces over ink */
+  /* Editorial green accent — replaces rust. Deep forest on khaki, sage on ink. */
+  --rust: #2d5a3f;         /* deep forest green — accent on light surfaces */
+  --rust-soft: #6b9678;    /* sage green — accent on dark surfaces */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-plus-jakarta), system-ui, sans-serif;
-  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-display: var(--font-playfair), Georgia, serif;
+  --font-fraunces: var(--font-fraunces), Georgia, serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+
+  --color-khaki: var(--khaki);
+  --color-khaki-deep: var(--khaki-deep);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-rust: var(--rust);
+  --color-rust-soft: var(--rust-soft);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--khaki);
+  color: var(--ink);
   font-family: var(--font-plus-jakarta), system-ui, sans-serif;
 }
 
@@ -30,11 +48,21 @@ body {
   }
 }
 
-/* Focus-visible accent (emerald) */
+/* Focus-visible accent (editorial forest green) */
 :focus-visible {
-  outline: 2px solid #10b981;
+  outline: 2px solid var(--rust);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* Hide TikTok social provider button across the app (Clerk renders these dynamically).
+   Cover the documented BEM-style modifier names plus any data-attribute Clerk may add. */
+.cl-socialButtonsBlockButton__tiktok,
+.cl-socialButtonsProviderIcon__tiktok,
+.cl-socialButtonsIconButton__tiktok,
+[data-clerk-provider="tiktok"],
+[data-provider="tiktok"] {
+  display: none !important;
 }
 
 /* Slim scrollbar for sticky admin sidebar */

@@ -12,7 +12,7 @@ const flowSteps = [
   {
     icon: Send,
     label: "Submit through the app",
-    desc: "Collect info, take 3 photos, record an audio or video interview. Submit in one tap.",
+    desc: "Collect info, take 3–5 photos, record an audio or video interview. Submit in one tap.",
   },
   {
     icon: Sparkles,

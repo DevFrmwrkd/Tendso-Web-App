@@ -85,21 +85,38 @@ export default function ShowcaseSection() {
     return (
         <section
             id="showcase"
-            className="w-full py-20 sm:py-24 px-4 sm:px-6 lg:px-10 relative z-10"
+            className="w-full py-24 sm:py-32 px-4 sm:px-6 lg:px-10 relative z-10"
+            style={{ background: "var(--khaki)" }}
         >
             {/* Header */}
-            <div className="max-w-2xl mx-auto text-center mb-12 sm:mb-14 relative z-10 px-2">
-                <p className="text-xs uppercase tracking-widest font-bold text-emerald-700 mb-3">
-                    What creators have shipped
-                </p>
+            <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16 relative z-10 px-2">
+                <div className="flex items-center gap-3 justify-center mb-8">
+                    <span className="h-px w-10 sm:w-16 bg-[var(--rust)]/40" />
+                    <p
+                        className="text-[10px] sm:text-[11px] uppercase tracking-[0.4em] font-medium text-[var(--rust)]"
+                        style={{ fontFamily: "var(--font-mono)" }}
+                    >
+                        § 03 — REAL WORK
+                    </p>
+                    <span className="h-px w-10 sm:w-16 bg-[var(--rust)]/40" />
+                </div>
                 <h2
-                    style={{ fontFamily: "var(--font-fraunces)" }}
-                    className="text-4xl sm:text-5xl md:text-6xl font-semibold text-neutral-900 leading-[1.05] mb-5"
+                    style={{
+                        fontFamily: "var(--font-playfair)",
+                        fontSize: "clamp(2.75rem, 7vw, 5.5rem)",
+                    }}
+                    className="font-bold text-[var(--ink)] leading-[0.95] tracking-[-0.01em] mb-6"
                 >
-                    Real sites. <span className="italic text-emerald-700">Real payouts.</span>
+                    Live work. <span className="italic" style={{ color: "var(--rust)" }}>No mockups.</span>
                 </h2>
-                <p className="text-base sm:text-lg text-neutral-700 leading-relaxed">
-                    Every site below started with one creator walking into a local shop. Tap any preview to see the live result.
+                <p
+                    className="italic text-[var(--ink)]/60"
+                    style={{
+                        fontFamily: "var(--font-playfair)",
+                        fontSize: "clamp(1.05rem, 1.5vw, 1.3rem)",
+                    }}
+                >
+                    Local shops already running on Negosyo Digital. Tap any preview to visit the live site.
                 </p>
             </div>
 
@@ -111,9 +128,9 @@ export default function ShowcaseSection() {
                 aria-label="Live websites we've built for local businesses"
             >
                 {/* Browser-chrome frame */}
-                <div className="relative rounded-[1.75rem] sm:rounded-[2.25rem] border border-neutral-200 bg-white p-2 sm:p-3 shadow-2xl shadow-emerald-900/10 overflow-hidden">
+                <div className="relative rounded-[1.75rem] sm:rounded-[2.25rem] border border-[var(--ink)]/15 bg-[var(--khaki-deep)] p-2 sm:p-3 shadow-2xl shadow-[var(--ink)]/15 overflow-hidden">
                     {/* Address bar */}
-                    <div className="flex items-center gap-2 px-2 sm:px-4 py-2 sm:py-2.5 border-b border-neutral-100">
+                    <div className="flex items-center gap-2 px-2 sm:px-4 py-2 sm:py-2.5 border-b border-[var(--ink)]/10">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" aria-hidden />
                         <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" aria-hidden />
                         <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" aria-hidden />
@@ -122,9 +139,9 @@ export default function ShowcaseSection() {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label={`Open ${current.name} live site (opens in a new tab)`}
-                            className="flex-1 mx-2 sm:mx-4 px-3 py-1 sm:py-1.5 rounded-full bg-neutral-50 text-[11px] sm:text-xs text-neutral-700 hover:text-neutral-900 truncate flex items-center gap-2 border border-neutral-200 hover:border-emerald-300 transition-colors min-h-[28px]"
+                            className="flex-1 mx-2 sm:mx-4 px-3 py-1 sm:py-1.5 rounded-full bg-[var(--khaki)] text-[11px] sm:text-xs text-[var(--ink)]/70 hover:text-[var(--ink)] truncate flex items-center gap-2 border border-[var(--ink)]/15 hover:border-[var(--rust)]/50 transition-colors min-h-[28px]"
                         >
-                            <span className="text-emerald-500" aria-hidden>●</span>
+                            <span className="text-[var(--rust)]" aria-hidden>●</span>
                             <span className="truncate">{displayUrl(current.url)}</span>
                             <ExternalLink className="w-3 h-3 ml-auto opacity-60 shrink-0" aria-hidden />
                         </a>
@@ -160,7 +177,7 @@ export default function ShowcaseSection() {
 
                         {/* Hover overlay (desktop only) */}
                         <div className="hidden md:flex absolute inset-0 items-center justify-center bg-black/0 group-hover/frame:bg-black/30 transition-colors duration-300 pointer-events-none z-10">
-                            <div className="opacity-0 group-hover/frame:opacity-100 translate-y-2 group-hover/frame:translate-y-0 transition-all duration-300 px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 bg-emerald-600 text-white shadow-lg">
+                            <div className="opacity-0 group-hover/frame:opacity-100 translate-y-2 group-hover/frame:translate-y-0 transition-all duration-300 px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 bg-[var(--rust)] text-[var(--khaki)] shadow-lg">
                                 Visit site <ExternalLink className="w-4 h-4" />
                             </div>
                         </div>
@@ -177,18 +194,21 @@ export default function ShowcaseSection() {
                             >
                                 <div className="flex items-end justify-between gap-3">
                                     <div className="min-w-0">
-                                        <p className="text-[10px] sm:text-xs uppercase tracking-widest font-bold text-emerald-300 mb-1">
+                                        <p
+                                            className="text-[10px] sm:text-xs uppercase tracking-[0.35em] font-medium text-[var(--rust-soft)] mb-1"
+                                            style={{ fontFamily: "var(--font-mono)" }}
+                                        >
                                             {current.category}
                                         </p>
                                         <h3
-                                            style={{ fontFamily: "var(--font-fraunces)" }}
-                                            className="text-xl sm:text-3xl md:text-4xl font-semibold text-white truncate"
+                                            style={{ fontFamily: "var(--font-playfair)" }}
+                                            className="text-xl sm:text-3xl md:text-4xl font-bold text-white truncate"
                                         >
                                             {current.name}
                                         </h3>
                                     </div>
-                                    <div className="hidden sm:flex shrink-0 items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-emerald-400/60 text-emerald-300 backdrop-blur-sm">
-                                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden />
+                                    <div className="hidden sm:flex shrink-0 items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-[var(--rust-soft)]/60 text-[var(--rust-soft)] backdrop-blur-sm">
+                                        <span className="w-2 h-2 rounded-full bg-[var(--rust-soft)] animate-pulse" aria-hidden />
                                         Live
                                         <ExternalLink className="w-3 h-3" aria-hidden />
                                     </div>
@@ -202,14 +222,14 @@ export default function ShowcaseSection() {
                 <button
                     onClick={prev}
                     aria-label="Previous business"
-                    className="hidden md:flex absolute top-1/2 -left-4 lg:-left-8 -translate-y-1/2 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 hover:scale-105 shadow-lg transition-all items-center justify-center text-neutral-900 z-20"
+                    className="hidden md:flex absolute top-1/2 -left-4 lg:-left-8 -translate-y-1/2 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-[var(--khaki)] border border-[var(--ink)]/15 hover:border-[var(--rust)] hover:bg-[var(--khaki-deep)] hover:scale-105 shadow-lg transition-all items-center justify-center text-[var(--ink)] z-20"
                 >
                     <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
                 </button>
                 <button
                     onClick={next}
                     aria-label="Next business"
-                    className="hidden md:flex absolute top-1/2 -right-4 lg:-right-8 -translate-y-1/2 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-white border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 hover:scale-105 shadow-lg transition-all items-center justify-center text-neutral-900 z-20"
+                    className="hidden md:flex absolute top-1/2 -right-4 lg:-right-8 -translate-y-1/2 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-[var(--khaki)] border border-[var(--ink)]/15 hover:border-[var(--rust)] hover:bg-[var(--khaki-deep)] hover:scale-105 shadow-lg transition-all items-center justify-center text-[var(--ink)] z-20"
                 >
                     <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
                 </button>
@@ -219,7 +239,7 @@ export default function ShowcaseSection() {
                     <button
                         onClick={prev}
                         aria-label="Previous business"
-                        className="w-11 h-11 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-neutral-900 shadow-sm"
+                        className="w-11 h-11 rounded-full bg-[var(--khaki)] border border-[var(--ink)]/15 flex items-center justify-center text-[var(--ink)] shadow-sm"
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
@@ -233,7 +253,7 @@ export default function ShowcaseSection() {
                                 className="h-2 rounded-full transition-all"
                                 style={{
                                     width: i === active ? 32 : 8,
-                                    backgroundColor: i === active ? "#10b981" : "#d4d4d4",
+                                    backgroundColor: i === active ? "var(--rust)" : "rgba(15,14,20,0.2)",
                                 }}
                             />
                         ))}
@@ -241,7 +261,7 @@ export default function ShowcaseSection() {
                     <button
                         onClick={next}
                         aria-label="Next business"
-                        className="w-11 h-11 rounded-full bg-white border border-neutral-200 flex items-center justify-center text-neutral-900 shadow-sm"
+                        className="w-11 h-11 rounded-full bg-[var(--khaki)] border border-[var(--ink)]/15 flex items-center justify-center text-[var(--ink)] shadow-sm"
                     >
                         <ChevronRight className="w-5 h-5" />
                     </button>
@@ -258,7 +278,7 @@ export default function ShowcaseSection() {
                             className="h-2 rounded-full transition-all"
                             style={{
                                 width: i === active ? 48 : 12,
-                                backgroundColor: i === active ? "#10b981" : "#d4d4d4",
+                                backgroundColor: i === active ? "var(--rust)" : "rgba(15,14,20,0.2)",
                             }}
                         />
                     ))}

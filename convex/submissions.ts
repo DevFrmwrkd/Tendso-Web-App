@@ -498,6 +498,20 @@ export const markPaid = mutation({
 });
 
 /**
+ * Record that a payment follow-up email has just been sent (auto cron OR manual
+ * admin button). The unpublish cron leaves the pipeline alone; this flag only
+ * stops the follow-up cron from re-sending the same submission.
+ */
+export const markFollowUpSent = mutation({
+    args: { id: v.id('submissions') },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.id, {
+            followUpEmailSentAt: Date.now(),
+        });
+    },
+});
+
+/**
  * Request payout
  */
 export const requestPayout = mutation({

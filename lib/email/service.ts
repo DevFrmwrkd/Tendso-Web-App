@@ -3,6 +3,7 @@ import {
     getApprovalEmailHtml,
     getPaymentConfirmationEmailHtml,
     getPaymentLinkEmailHtml,
+    getPaymentFollowUpEmailHtml,
     getDomainLiveEmailHtml,
     getDomainSetupInProgressEmailHtml,
     getDomainRenewalReminderEmailHtml,
@@ -112,6 +113,67 @@ export async function sendPaymentLinkEmail(data: PaymentLinkEmailData) {
         return { success: true, messageId: info.messageId }
     } catch (error: any) {
         console.error('Error in sendPaymentLinkEmail:', error)
+        throw error
+    }
+}
+
+interface PaymentFollowUpEmailData {
+    businessName: string
+    businessOwnerName: string
+    businessOwnerEmail: string
+    amount: number
+    websiteUrl?: string
+    referenceCode?: string
+    hoursLeft?: number
+    /** true = admin manually triggered; false = automated 24h-before-unpublish cron */
+    isManual?: boolean
+}
+
+export async function sendPaymentFollowUpEmail(data: PaymentFollowUpEmailData) {
+    const {
+        businessName,
+        businessOwnerName,
+        businessOwnerEmail,
+        amount,
+        websiteUrl,
+        referenceCode,
+        hoursLeft,
+        isManual,
+    } = data
+
+    try {
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.GMAIL_USER,
+                pass: process.env.GMAIL_APP_PASSWORD,
+            },
+        })
+
+        const emailHtml = getPaymentFollowUpEmailHtml({
+            businessName,
+            businessOwnerName,
+            websiteUrl,
+            amount,
+            referenceCode,
+            hoursLeft,
+            isManual,
+        })
+
+        const subject = isManual
+            ? `Following up on your website — ${businessName}`
+            : `⏰ Last day — ${businessName} website goes offline tomorrow`
+
+        const info = await transporter.sendMail({
+            from: `"Negosyo Digital" <${process.env.GMAIL_USER}>`,
+            to: businessOwnerEmail,
+            subject,
+            html: emailHtml,
+        })
+
+        return { success: true, messageId: info.messageId }
+    } catch (error: any) {
+        console.error('Error in sendPaymentFollowUpEmail:', error)
         throw error
     }
 }
