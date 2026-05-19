@@ -1,207 +1,227 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
-import { ArrowDown, ArrowRight } from "lucide-react";
 import Link from "next/link";
-import { useRef, useState, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useTickUp, ArrowDownIcon, ArrowUpRightIcon } from "./landingPrimitives";
+import { fmt, COUNTERS_GROWTH, HARDCODED_LIVE_SITE_COUNT } from "./landingData";
+
+// English-only strings — page-level i18n lives at the next refactor.
+const T = {
+    hero_main: ["No business", "left ", "offline", "."] as const,
+    hero_main_em: "Real shops. Real websites. Real fast.",
+    hero_lede:
+        "A trained creator visits your shop, shoots world-class photos, writes your story, and ships a fully functional website — hosting, domain, copy, everything — in 48 hours. You don't touch a keyboard once.",
+    door_business: "I own a business",
+    door_business_sub: "Find a creator near me",
+    door_creator: "I want to earn",
+    door_creator_sub: "Become a certified creator",
+    counter_creators: "creators",
+    counter_businesses: "live sites",
+    counter_cities: "cities",
+    counter_countries: "countries",
+};
+
+function CounterRow({ value, label, last }: { value: number; label: string; last?: boolean }) {
+    return (
+        <div
+            style={{
+                padding: "18px 24px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "baseline",
+                borderBottom: last ? "none" : "1px solid var(--neo-rule)",
+            }}
+        >
+            <span className="counter-num" style={{ fontSize: 40 }}>{fmt(value)}</span>
+            <span className="label">{label}</span>
+        </div>
+    );
+}
+
+function DoorButton({
+    kind,
+    href,
+    title,
+    sub,
+    note,
+}: {
+    kind: "business" | "creator";
+    href: string;
+    title: string;
+    sub: string;
+    note: string;
+}) {
+    return (
+        <Link
+            href={href}
+            className={`door door-${kind}`}
+            style={{
+                padding: "28px 28px",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                gap: 0,
+                textDecoration: "none",
+                display: "inline-flex",
+            }}
+        >
+            <span className="meta" style={{ marginBottom: 16 }}>
+                {sub} <span className="arrow"><ArrowUpRightIcon /></span>
+            </span>
+            <span
+                style={{
+                    fontFamily: "var(--neo-serif)",
+                    fontSize: 38,
+                    lineHeight: 0.96,
+                    letterSpacing: "-.02em",
+                }}
+            >
+                {title}
+            </span>
+            <span style={{ fontSize: 13, opacity: 0.85, marginTop: 14, lineHeight: 1.5 }}>{note}</span>
+        </Link>
+    );
+}
 
 export default function HeroSection() {
-  const apkUrl = useQuery(api.settings.get, { key: "apk_download_url" }) as string | null;
-  const [showIosGuide, setShowIosGuide] = useState(false);
-  const deferredPrompt = useRef<any>(null);
-  const reduceMotion = useReducedMotion();
+    // Live creator count comes from Convex; site count is hardcoded — derived
+    // from the SHOWCASE_SITES list in landingData.ts (single source of truth).
+    const liveCreators = useQuery(api.creators.count, {}) as number | undefined;
 
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      deferredPrompt.current = e;
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
+    const creators = useTickUp(liveCreators ?? COUNTERS_GROWTH.creators);
+    const businesses = useTickUp(HARDCODED_LIVE_SITE_COUNT);
+    const cities = useTickUp(COUNTERS_GROWTH.cities);
+    const countries = useTickUp(COUNTERS_GROWTH.countries);
+    const hm = T.hero_main;
 
-  const fadeUp = reduceMotion
-    ? {}
-    : {
-      initial: { opacity: 0, y: 24 },
-      animate: { opacity: 1, y: 0 },
-    };
+    return (
+        <section style={{ paddingTop: 56, paddingBottom: 48 }}>
+            <div className="container-wide">
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "minmax(0, 1.55fr) minmax(280px, 1fr)",
+                        gap: 56,
+                        alignItems: "end",
+                        marginBottom: 48,
+                    }}
+                >
+                    <div>
+                        <div
+                            className="eyebrow"
+                            style={{
+                                marginBottom: 24,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 10,
+                                padding: "6px 14px",
+                                border: "1px solid var(--neo-rule)",
+                                borderRadius: "var(--neo-r-pill)",
+                                background: "var(--neo-paper-3)",
+                            }}
+                        >
+                            <span className="live-dot"></span>
+                            Issue No. 01 · {new Date().toLocaleString("en-US", { month: "long", year: "numeric" })}
+                        </div>
+                        <h1 className="display">
+                            {hm[0]}
+                            <br />
+                            {hm[1]}<em>{hm[2]}</em>{hm[3]}
+                        </h1>
+                        <div
+                            className="serif"
+                            style={{
+                                fontSize: "clamp(20px, 1.8vw, 28px)",
+                                fontStyle: "italic",
+                                color: "var(--neo-ink-2)",
+                                marginTop: 18,
+                                letterSpacing: "-.01em",
+                            }}
+                        >
+                            {T.hero_main_em}
+                        </div>
+                        <p className="lede" style={{ marginTop: 28, fontSize: 18, maxWidth: "58ch" }}>
+                            {T.hero_lede}
+                        </p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 28 }}>
+                            {[
+                                "Real photographer",
+                                "Written copy",
+                                "Hosting + domain",
+                                "You don't lift a finger",
+                                "Live in 48 hours",
+                            ].map((p) => (
+                                <span
+                                    key={p}
+                                    className="tag"
+                                    style={{
+                                        padding: "6px 14px",
+                                        fontSize: 11,
+                                        background: "var(--neo-paper-3)",
+                                        color: "var(--neo-ink-2)",
+                                    }}
+                                >
+                                    {p}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="surface">
+                        <div
+                            style={{
+                                padding: "14px 18px",
+                                borderBottom: "1px solid var(--neo-rule)",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                            }}
+                        >
+                            <span className="label">
+                                <span className="live-dot" style={{ marginRight: 6 }}></span>
+                                Live · {new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} PHT
+                            </span>
+                            <span className="label" style={{ color: "var(--neo-live)" }}>↑ updating</span>
+                        </div>
+                        <CounterRow value={creators} label={T.counter_creators} />
+                        <CounterRow value={businesses} label={T.counter_businesses} />
+                        <CounterRow value={cities} label={T.counter_cities} />
+                        <CounterRow value={countries} label={T.counter_countries} last />
+                    </div>
+                </div>
 
-  return (
-    <section
-      className="relative w-full overflow-hidden flex items-center min-h-screen pt-28 pb-20 sm:pt-32 sm:pb-28 px-6"
-      style={{ background: "var(--khaki)" }}
-    >
-      {/* Subtle paper grain texture */}
-      <div
-        className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-multiply"
-        style={{
-          backgroundImage:
-            "radial-gradient(circle at 25% 25%, var(--ink) 0.5px, transparent 1px), radial-gradient(circle at 75% 75%, var(--ink) 0.5px, transparent 1px)",
-          backgroundSize: "4px 4px, 6px 6px",
-        }}
-      />
-
-      <div className="relative z-10 w-full max-w-7xl mx-auto text-center">
-        {/* Section marker — § 01 — THE VISION */}
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.5 }}
-          className="flex items-center gap-3 mb-10 sm:mb-14 justify-center"
-        >
-          <span className="h-px w-10 sm:w-16 bg-[var(--rust)]/40" />
-          <p
-            className="text-[10px] sm:text-[11px] uppercase tracking-[0.4em] font-medium text-[var(--rust)]"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            § 01 — THE VISION
-          </p>
-          <span className="h-px w-10 sm:w-16 bg-[var(--rust)]/40" />
-        </motion.div>
-
-        {/* Massive editorial display headline */}
-        <motion.h1
-          {...fadeUp}
-          transition={{ duration: 0.7, delay: 0.1 }}
-          className="font-bold leading-[0.92] tracking-[-0.02em] text-[var(--ink)] mb-8 sm:mb-10 mx-auto"
-          style={{
-            fontFamily: "var(--font-playfair)",
-            fontSize: "clamp(3.5rem, 11vw, 10rem)",
-          }}
-        >
-          A website
-          <br />
-          for{" "}
-          <span className="italic" style={{ color: "var(--rust)" }}>
-            every shop
-          </span>
-          <br />
-          on Earth.
-        </motion.h1>
-
-        {/* Italic subhead — editorial style */}
-        <motion.p
-          {...fadeUp}
-          transition={{ duration: 0.6, delay: 0.25 }}
-          className="italic text-[var(--ink)]/70 max-w-2xl mx-auto leading-relaxed mb-12 sm:mb-14"
-          style={{
-            fontFamily: "var(--font-playfair)",
-            fontSize: "clamp(1.25rem, 2.4vw, 1.85rem)",
-          }}
-        >
-          Real shops. Real websites. Real fast.
-        </motion.p>
-
-        {/* Three-line concrete value prop in body sans */}
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.6, delay: 0.35 }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-3 max-w-3xl mx-auto mb-14 sm:mb-16 pb-12 border-b border-[var(--ink)]/15"
-        >
-          <div className="flex items-baseline gap-2 justify-center sm:justify-start">
-            <span
-              className="text-[10px] uppercase tracking-[0.3em] text-[var(--rust)] font-semibold"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              01
-            </span>
-            <p className="text-sm text-[var(--ink)]/80">
-              Real coded website — not a template.
-            </p>
-          </div>
-          <div className="flex items-baseline gap-2 justify-center sm:justify-start">
-            <span
-              className="text-[10px] uppercase tracking-[0.3em] text-[var(--rust)] font-semibold"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              02
-            </span>
-            <p className="text-sm text-[var(--ink)]/80">
-              Live in 48 hours from the call.
-            </p>
-          </div>
-          <div className="flex items-baseline gap-2 justify-center sm:justify-start">
-            <span
-              className="text-[10px] uppercase tracking-[0.3em] text-[var(--rust)] font-semibold"
-              style={{ fontFamily: "var(--font-mono)" }}
-            >
-              03
-            </span>
-            <p className="text-sm text-[var(--ink)]/80">
-              ₱1,000 once. No monthly fees. Ever.
-            </p>
-          </div>
-        </motion.div>
-
-        {/* CTAs — editorial duo */}
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.6, delay: 0.45 }}
-          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-5 justify-center"
-        >
-          <Link
-            href="/signup"
-            className="group inline-flex items-center justify-center gap-3 bg-[var(--ink)] hover:bg-[var(--rust)] text-[var(--khaki)] px-7 sm:px-9 py-4 sm:py-5 rounded-full font-semibold text-base sm:text-lg transition-all hover:-translate-y-0.5 shadow-lg shadow-[var(--ink)]/15 min-h-[56px]"
-          >
-            <span>Get your website online</span>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-
-          <a
-            href="#for-creators"
-            className="group inline-flex items-center justify-center gap-2 text-[var(--ink)] hover:text-[var(--rust)] px-5 py-4 font-medium text-sm sm:text-base transition-colors min-h-[56px]"
-          >
-            <span className="italic" style={{ fontFamily: "var(--font-playfair)" }}>
-              Earn as a creator instead
-            </span>
-            <ArrowDown className="w-4 h-4 group-hover:translate-y-0.5 transition-transform" />
-          </a>
-        </motion.div>
-
-        {/* Bottom scroll cue */}
-        <motion.div
-          {...fadeUp}
-          transition={{ duration: 0.6, delay: 0.7 }}
-          className="hidden lg:flex absolute bottom-8 right-8 items-center gap-3 text-[var(--ink)]/40"
-        >
-          <p
-            className="text-[10px] uppercase tracking-[0.4em]"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            Scroll
-          </p>
-          <span className="h-px w-12 bg-[var(--ink)]/30" />
-          <ArrowDown className="w-4 h-4" />
-        </motion.div>
-      </div>
-
-      {/* iOS install guide — still wired so app prompt can be reused elsewhere */}
-      {apkUrl && showIosGuide && (
-        <div
-          className="fixed inset-0 bg-[var(--ink)]/70 backdrop-blur-sm z-[9999] flex items-end justify-center"
-          onClick={() => setShowIosGuide(false)}
-        >
-          <div
-            className="w-full max-w-md mx-4 mb-8 bg-[var(--khaki)] rounded-2xl p-6 text-[var(--ink)] shadow-2xl border border-[var(--ink)]/10"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p
-              className="text-2xl font-semibold mb-4"
-              style={{ fontFamily: "var(--font-playfair)" }}
-            >
-              Install Negosyo Digital
-            </p>
-            <button
-              onClick={() => setShowIosGuide(false)}
-              className="w-full py-3 bg-[var(--ink)] text-[var(--khaki)] rounded-xl font-semibold text-sm"
-            >
-              Got it
-            </button>
-          </div>
-        </div>
-      )}
-    </section>
-  );
+                <div style={{ paddingTop: 32, borderTop: "1px solid var(--neo-rule-strong)" }}>
+                    <div className="label" style={{ marginBottom: 16 }}>Pick a door</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                        <DoorButton
+                            kind="business"
+                            href="/for-business"
+                            sub={T.door_business_sub}
+                            title={T.door_business}
+                            note="See exactly what we deliver — photos, copy, domain, hosting — and find a creator within 10 km of your shop."
+                        />
+                        <DoorButton
+                            kind="creator"
+                            href="/for-creators"
+                            sub={T.door_creator_sub}
+                            title={T.door_creator}
+                            note="See how much creators actually earn, how referrals stack up, and how to get certified this week."
+                        />
+                    </div>
+                    <div
+                        style={{
+                            marginTop: 24,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            color: "var(--neo-ink-3)",
+                            fontSize: 13,
+                        }}
+                    >
+                        <ArrowDownIcon />
+                        <span>Or scroll — find creators near you on the map below.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
 }

@@ -1,289 +1,276 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import Image from "next/image";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ChevronLeft, ChevronRight, ExternalLink } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useMemo, useState } from "react";
+import { Pill } from "./landingPrimitives";
+import {
+    CATEGORIES,
+    REGIONS,
+    SHOWCASE_SITES,
+    type LiveBusiness,
+    type Creator,
+    type Region,
+} from "./landingData";
 
-type Showcase = {
-    slug: string;
-    name: string;
-    category: string;
-    src: string;
-    url: string;
-};
+const LiveMap = dynamic(() => import("./LiveMap"), {
+    ssr: false,
+    loading: () => (
+        <div
+            style={{
+                width: "100%",
+                height: "100%",
+                background: "var(--neo-paper-2)",
+                borderRadius: "inherit",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--neo-ink-3)",
+            }}
+            className="label"
+        >
+            Loading map…
+        </div>
+    ),
+});
 
-const showcase: Showcase[] = [
-    {
-        slug: "ben-joe",
-        name: "Ben Joe Tire Supply",
-        category: "Auto · Tire Supply",
-        src: "/Pages/ben-joe.png",
-        url: "https://benjoetiresupply.com/",
-    },
-    {
-        slug: "aloja",
-        name: "Aloja Carvajal",
-        category: "Beauty Studio",
-        src: "/Pages/aloja2.png",
-        url: "https://aloja-carvajal-aesthetic-and-beauty-studio.frmwrkd-media.workers.dev/",
-    },
-    {
-        slug: "hapag",
-        name: "Hapag",
-        category: "Restaurant",
-        src: "/Pages/hapag.png",
-        url: "https://hapag.pages.dev/",
-    },
-    {
-        slug: "beauty-me",
-        name: "Beauty Me",
-        category: "Salon · Massage · Spa",
-        src: "/Pages/beauty-me.png",
-        url: "https://beauty-me-salon-massage-spa.frmwrkd-media.workers.dev/",
-    },
-];
+export default function ShowcaseSection({
+    onSelectBusiness,
+    onBeFirst,
+}: {
+    /** Reserved for future use — creator pins were removed from the map UI. */
+    onSelectCreator?: (c: Creator) => void;
+    onSelectBusiness?: (b: LiveBusiness) => void;
+    onBeFirst?: (city: string) => void;
+} = {}) {
+    // Map data is fully hardcoded — sourced from SHOWCASE_SITES in landingData.ts.
+    // Add a site there and a pin appears here automatically.
+    const [category, setCategory] = useState<string>("All");
+    const [search, setSearch] = useState("");
+    const [regionId, setRegionId] = useState<string>("all");
+    const [listMode, setListMode] = useState(false);
 
-function displayUrl(url: string): string {
-    return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
-}
+    const region: Region = useMemo(
+        () => REGIONS.find((r) => r.id === regionId) ?? REGIONS[0],
+        [regionId],
+    );
 
-const AUTOPLAY_INTERVAL_MS = 6000;
+    // Project every SHOWCASE_SITES entry → LiveBusiness shape the map consumes.
+    const allBusinesses: LiveBusiness[] = useMemo(
+        () =>
+            SHOWCASE_SITES.map((s) => ({
+                id: s.slug,
+                name: s.name,
+                category: s.category,
+                city: s.city,
+                lat: s.lat,
+                lng: s.lng,
+                liveUrl: s.url ?? "#",
+                src: s.src,
+            })),
+        [],
+    );
 
-export default function ShowcaseSection() {
-    const [active, setActive] = useState(0);
-    const [paused, setPaused] = useState(false);
-    const reduceMotion = useReducedMotion();
-
-    const goTo = useCallback((idx: number) => {
-        const nextIdx = ((idx % showcase.length) + showcase.length) % showcase.length;
-        setActive(nextIdx);
-    }, []);
-
-    const next = useCallback(() => goTo(active + 1), [active, goTo]);
-    const prev = useCallback(() => goTo(active - 1), [active, goTo]);
-
-    useEffect(() => {
-        if (paused || reduceMotion) return;
-        const t = setInterval(() => {
-            setActive((p) => (p + 1) % showcase.length);
-        }, AUTOPLAY_INTERVAL_MS);
-        return () => clearInterval(t);
-    }, [paused, reduceMotion]);
-
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === "ArrowRight") next();
-            else if (e.key === "ArrowLeft") prev();
-        };
-        window.addEventListener("keydown", handler);
-        return () => window.removeEventListener("keydown", handler);
-    }, [next, prev]);
-
-    const current = showcase[active];
+    const filteredBusinesses = useMemo(() => {
+        let list = allBusinesses;
+        if (category !== "All") {
+            const cat = category.toLowerCase();
+            list = list.filter((b) => b.category?.toLowerCase().includes(cat));
+        }
+        if (search.trim()) {
+            const q = search.trim().toLowerCase();
+            list = list.filter(
+                (b) => b.name.toLowerCase().includes(q) || b.city.toLowerCase().includes(q),
+            );
+        }
+        return list;
+    }, [allBusinesses, category, search]);
 
     return (
-        <section
-            id="showcase"
-            className="w-full py-24 sm:py-32 px-4 sm:px-6 lg:px-10 relative z-10"
-            style={{ background: "var(--khaki)" }}
-        >
-            {/* Header */}
-            <div className="max-w-3xl mx-auto text-center mb-12 sm:mb-16 relative z-10 px-2">
-                <div className="flex items-center gap-3 justify-center mb-8">
-                    <span className="h-px w-10 sm:w-16 bg-[var(--rust)]/40" />
-                    <p
-                        className="text-[10px] sm:text-[11px] uppercase tracking-[0.4em] font-medium text-[var(--rust)]"
-                        style={{ fontFamily: "var(--font-mono)" }}
-                    >
-                        § 03 — REAL WORK
-                    </p>
-                    <span className="h-px w-10 sm:w-16 bg-[var(--rust)]/40" />
-                </div>
-                <h2
-                    style={{
-                        fontFamily: "var(--font-playfair)",
-                        fontSize: "clamp(2.75rem, 7vw, 5.5rem)",
-                    }}
-                    className="font-bold text-[var(--ink)] leading-[0.95] tracking-[-0.01em] mb-6"
-                >
-                    Live work. <span className="italic" style={{ color: "var(--rust)" }}>No mockups.</span>
-                </h2>
-                <p
-                    className="italic text-[var(--ink)]/60"
-                    style={{
-                        fontFamily: "var(--font-playfair)",
-                        fontSize: "clamp(1.05rem, 1.5vw, 1.3rem)",
-                    }}
-                >
-                    Local shops already running on Negosyo Digital. Tap any preview to visit the live site.
-                </p>
-            </div>
-
-            <div
-                className="relative w-full max-w-[1600px] mx-auto"
-                onMouseEnter={() => setPaused(true)}
-                onMouseLeave={() => setPaused(false)}
-                aria-roledescription="carousel"
-                aria-label="Live websites we've built for local businesses"
-            >
-                {/* Browser-chrome frame */}
-                <div className="relative rounded-[1.75rem] sm:rounded-[2.25rem] border border-[var(--ink)]/15 bg-[var(--khaki-deep)] p-2 sm:p-3 shadow-2xl shadow-[var(--ink)]/15 overflow-hidden">
-                    {/* Address bar */}
-                    <div className="flex items-center gap-2 px-2 sm:px-4 py-2 sm:py-2.5 border-b border-[var(--ink)]/10">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" aria-hidden />
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#FFBD2E]" aria-hidden />
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#28C840]" aria-hidden />
-                        <a
-                            href={current.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            aria-label={`Open ${current.name} live site (opens in a new tab)`}
-                            className="flex-1 mx-2 sm:mx-4 px-3 py-1 sm:py-1.5 rounded-full bg-[var(--khaki)] text-[11px] sm:text-xs text-[var(--ink)]/70 hover:text-[var(--ink)] truncate flex items-center gap-2 border border-[var(--ink)]/15 hover:border-[var(--rust)]/50 transition-colors min-h-[28px]"
-                        >
-                            <span className="text-[var(--rust)]" aria-hidden>●</span>
-                            <span className="truncate">{displayUrl(current.url)}</span>
-                            <ExternalLink className="w-3 h-3 ml-auto opacity-60 shrink-0" aria-hidden />
-                        </a>
+        <section id="showcase" style={{ background: "var(--neo-paper-2)" }}>
+            <div className="container-wide">
+                <div className="sect-h">
+                    <div className="eyebrow">§ 02 — Live map</div>
+                    <div>
+                        <h2 className="display-2">
+                            Live businesses, <em style={{ fontStyle: "italic" }}>right now.</em>
+                        </h2>
+                        <p className="lede" style={{ marginTop: 12 }}>
+                            Every pin is a real business with a real website. Pan, zoom, tap. The list view below is the same data — pick whichever you prefer.
+                        </p>
                     </div>
-
-                    {/* Image area */}
-                    <a
-                        href={current.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label={`Open ${current.name} live site (opens in a new tab)`}
-                        className="relative aspect-[16/10] sm:aspect-[16/9] overflow-hidden rounded-[1.25rem] sm:rounded-[1.5rem] bg-neutral-100 block group/frame cursor-pointer"
-                    >
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={current.slug}
-                                initial={reduceMotion ? {} : { opacity: 0, scale: 1.02 }}
-                                animate={reduceMotion ? {} : { opacity: 1, scale: 1 }}
-                                exit={reduceMotion ? {} : { opacity: 0, scale: 0.99 }}
-                                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-                                className="absolute inset-0"
-                            >
-                                <Image
-                                    src={current.src}
-                                    alt={`${current.name} — ${current.category}`}
-                                    fill
-                                    sizes="(max-width: 768px) 100vw, 1024px"
-                                    className="object-cover object-top"
-                                    priority={active === 0}
-                                />
-                            </motion.div>
-                        </AnimatePresence>
-
-                        {/* Hover overlay (desktop only) */}
-                        <div className="hidden md:flex absolute inset-0 items-center justify-center bg-black/0 group-hover/frame:bg-black/30 transition-colors duration-300 pointer-events-none z-10">
-                            <div className="opacity-0 group-hover/frame:opacity-100 translate-y-2 group-hover/frame:translate-y-0 transition-all duration-300 px-5 py-2.5 rounded-full font-semibold text-sm flex items-center gap-2 bg-[var(--rust)] text-[var(--khaki)] shadow-lg">
-                                Visit site <ExternalLink className="w-4 h-4" />
-                            </div>
-                        </div>
-
-                        {/* Caption overlay */}
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={`caption-${current.slug}`}
-                                initial={reduceMotion ? {} : { opacity: 0, y: 16 }}
-                                animate={reduceMotion ? {} : { opacity: 1, y: 0 }}
-                                exit={reduceMotion ? {} : { opacity: 0, y: -8 }}
-                                transition={{ duration: 0.4, delay: 0.1 }}
-                                className="absolute bottom-0 inset-x-0 p-4 sm:p-6 bg-gradient-to-t from-black/90 via-black/55 to-transparent"
-                            >
-                                <div className="flex items-end justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <p
-                                            className="text-[10px] sm:text-xs uppercase tracking-[0.35em] font-medium text-[var(--rust-soft)] mb-1"
-                                            style={{ fontFamily: "var(--font-mono)" }}
-                                        >
-                                            {current.category}
-                                        </p>
-                                        <h3
-                                            style={{ fontFamily: "var(--font-playfair)" }}
-                                            className="text-xl sm:text-3xl md:text-4xl font-bold text-white truncate"
-                                        >
-                                            {current.name}
-                                        </h3>
-                                    </div>
-                                    <div className="hidden sm:flex shrink-0 items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border border-[var(--rust-soft)]/60 text-[var(--rust-soft)] backdrop-blur-sm">
-                                        <span className="w-2 h-2 rounded-full bg-[var(--rust-soft)] animate-pulse" aria-hidden />
-                                        Live
-                                        <ExternalLink className="w-3 h-3" aria-hidden />
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </AnimatePresence>
-                    </a>
                 </div>
 
-                {/* Arrow controls (desktop) */}
-                <button
-                    onClick={prev}
-                    aria-label="Previous business"
-                    className="hidden md:flex absolute top-1/2 -left-4 lg:-left-8 -translate-y-1/2 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-[var(--khaki)] border border-[var(--ink)]/15 hover:border-[var(--rust)] hover:bg-[var(--khaki-deep)] hover:scale-105 shadow-lg transition-all items-center justify-center text-[var(--ink)] z-20"
+                <div
+                    style={{
+                        display: "flex",
+                        gap: 16,
+                        flexWrap: "wrap",
+                        marginBottom: 16,
+                        alignItems: "center",
+                    }}
                 >
-                    <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
-                </button>
-                <button
-                    onClick={next}
-                    aria-label="Next business"
-                    className="hidden md:flex absolute top-1/2 -right-4 lg:-right-8 -translate-y-1/2 w-12 h-12 lg:w-14 lg:h-14 rounded-full bg-[var(--khaki)] border border-[var(--ink)]/15 hover:border-[var(--rust)] hover:bg-[var(--khaki-deep)] hover:scale-105 shadow-lg transition-all items-center justify-center text-[var(--ink)] z-20"
-                >
-                    <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
-                </button>
-
-                {/* Mobile arrows + dots */}
-                <div className="flex md:hidden items-center justify-between mt-5">
-                    <button
-                        onClick={prev}
-                        aria-label="Previous business"
-                        className="w-11 h-11 rounded-full bg-[var(--khaki)] border border-[var(--ink)]/15 flex items-center justify-center text-[var(--ink)] shadow-sm"
-                    >
-                        <ChevronLeft className="w-5 h-5" />
-                    </button>
-                    <div className="flex gap-2">
-                        {showcase.map((s, i) => (
-                            <button
-                                key={s.slug}
-                                onClick={() => goTo(i)}
-                                aria-label={`Go to ${s.name}`}
-                                aria-current={i === active}
-                                className="h-2 rounded-full transition-all"
-                                style={{
-                                    width: i === active ? 32 : 8,
-                                    backgroundColor: i === active ? "var(--rust)" : "rgba(15,14,20,0.2)",
-                                }}
-                            />
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                        {CATEGORIES.map((c) => (
+                            <Pill key={c} active={category === c} onClick={() => setCategory(c)}>{c}</Pill>
                         ))}
                     </div>
-                    <button
-                        onClick={next}
-                        aria-label="Next business"
-                        className="w-11 h-11 rounded-full bg-[var(--khaki)] border border-[var(--ink)]/15 flex items-center justify-center text-[var(--ink)] shadow-sm"
-                    >
-                        <ChevronRight className="w-5 h-5" />
-                    </button>
-                </div>
-
-                {/* Desktop dots */}
-                <div className="hidden md:flex justify-center gap-3 mt-6">
-                    {showcase.map((s, i) => (
-                        <button
-                            key={s.slug}
-                            onClick={() => goTo(i)}
-                            aria-label={`Go to ${s.name}`}
-                            aria-current={i === active}
-                            className="h-2 rounded-full transition-all"
+                    <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+                        <input
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Search shop or city…"
                             style={{
-                                width: i === active ? 48 : 12,
-                                backgroundColor: i === active ? "var(--rust)" : "rgba(15,14,20,0.2)",
+                                padding: "8px 14px",
+                                fontFamily: "var(--neo-sans)",
+                                fontSize: 13,
+                                border: "1px solid var(--neo-rule)",
+                                background: "var(--neo-paper-3)",
+                                color: "var(--neo-ink)",
+                                borderRadius: "var(--neo-r-pill)",
+                                width: 220,
+                                outline: "none",
                             }}
                         />
-                    ))}
+                        <select
+                            value={regionId}
+                            onChange={(e) => setRegionId(e.target.value)}
+                            style={{
+                                appearance: "none",
+                                border: "1px solid var(--neo-rule)",
+                                background: "var(--neo-paper-3)",
+                                color: "var(--neo-ink)",
+                                padding: "8px 14px",
+                                fontFamily: "var(--neo-mono)",
+                                fontSize: 11,
+                                letterSpacing: ".08em",
+                                textTransform: "uppercase",
+                                borderRadius: 999,
+                                cursor: "pointer",
+                            }}
+                        >
+                            {REGIONS.map((r) => (
+                                <option key={r.id} value={r.id}>{r.label}</option>
+                            ))}
+                        </select>
+                        <Pill active={listMode} onClick={() => setListMode((v) => !v)}>
+                            {listMode ? "Map view" : "List view"}
+                        </Pill>
+                    </div>
                 </div>
 
+                {!listMode ? (
+                    <div
+                        style={{
+                            marginTop: 24,
+                            height: 560,
+                            width: "100%",
+                            borderRadius: "var(--neo-r-xl)",
+                            overflow: "hidden",
+                            border: "1px solid var(--neo-rule)",
+                        }}
+                    >
+                        <LiveMap
+                            region={region}
+                            filter="businesses"
+                            creators={[]}
+                            businesses={filteredBusinesses}
+                            onSelectBusiness={onSelectBusiness}
+                        />
+                    </div>
+                ) : (
+                    <div
+                        style={{
+                            marginTop: 24,
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                            gap: 16,
+                        }}
+                    >
+                        {filteredBusinesses.map((b) => (
+                            <a
+                                key={b.id}
+                                href={b.liveUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="lift card"
+                                style={{
+                                    padding: 20,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 8,
+                                    textDecoration: "none",
+                                    color: "var(--neo-ink)",
+                                }}
+                            >
+                                <div style={{ fontWeight: 500, fontSize: 15 }}>{b.name}</div>
+                                <div className="label">{b.category} · {b.city}</div>
+                                <div className="label tag-live" style={{ marginTop: 8 }}>
+                                    <span className="live-dot" style={{ marginRight: 6 }} />
+                                    Visit live ↗
+                                </div>
+                            </a>
+                        ))}
+                        {filteredBusinesses.length === 0 && (
+                            <div
+                                className="card"
+                                style={{
+                                    padding: 24,
+                                    color: "var(--neo-ink-3)",
+                                    fontSize: 14,
+                                    gridColumn: "1 / -1",
+                                    textAlign: "center",
+                                }}
+                            >
+                                No live sites match those filters yet.{" "}
+                                {onBeFirst && (
+                                    <button
+                                        onClick={() => onBeFirst(search || "your city")}
+                                        style={{
+                                            color: "var(--neo-creator)",
+                                            background: "transparent",
+                                            border: 0,
+                                            cursor: "pointer",
+                                            textDecoration: "underline",
+                                            fontFamily: "inherit",
+                                            fontSize: "inherit",
+                                        }}
+                                    >
+                                        Be the first.
+                                    </button>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <div
+                    style={{
+                        marginTop: 20,
+                        display: "flex",
+                        gap: 24,
+                        alignItems: "center",
+                        flexWrap: "wrap",
+                        color: "var(--neo-ink-3)",
+                        fontSize: 13,
+                    }}
+                >
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                        <span
+                            style={{
+                                display: "inline-block",
+                                width: 12,
+                                height: 12,
+                                background: "oklch(34% 0.10 245)",
+                                transform: "rotate(45deg)",
+                            }}
+                        />
+                        Business with live site
+                    </span>
+                    <span style={{ marginLeft: "auto" }} className="label tag-live">
+                        <span className="live-dot" style={{ marginRight: 6 }} />
+                        {allBusinesses.length} pinned
+                    </span>
+                </div>
             </div>
         </section>
     );

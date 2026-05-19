@@ -1,7 +1,7 @@
 {
   "layout": {
-    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
-    "tagline": "Beauty that lasts, confidence that grows",
+    "businessName": "Bonifacio Auto Shop",
+    "tagline": "Cutting Styles, Not Corners",
     "navLinks": [
       {
         "href": "#about",
@@ -21,21 +21,21 @@
       }
     ],
     "socialLinks": [],
-    "colorScheme": "red",
-    "fontPairing": "classic",
+    "colorScheme": "blue",
+    "fontPairing": "creative",
     "contact": {
-      "address": "Heritage homes, Marilao, Bulacan, Marilao",
-      "email": "josephinecarvajal110168@gmail.com",
-      "phone": "9177871293"
+      "address": "blk 11 lot 46, Cavite",
+      "email": "stevenmadali17@gmail.com",
+      "phone": "9278147733"
     },
-    "navbarStyle": "M1"
+    "navbarStyle": "L1"
   },
   "customizations": {
-    "heroStyle": "M1",
-    "aboutStyle": "E",
-    "servicesStyle": "E",
-    "galleryStyle": "E",
-    "contactStyle": "C"
+    "heroStyle": "L1",
+    "aboutStyle": "L4",
+    "servicesStyle": "L5",
+    "galleryStyle": "L4",
+    "contactStyle": "L1"
   },
   "visibility": {
     "heroSection": true,
@@ -72,26 +72,26 @@
     "contactSocial": true
   },
   "hero": {
-    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
-    "headline": "Beauty that lasts, confidence that grows",
-    "description": "Josephine Carvajal is a premier barber and salon in Marilao, Bulacan, dedicated to providing personalized beauty services that cater to each client's unique needs. With a focus on creating a welcoming and comfortable environment, our experienced team helps clients feel confident and beautiful. We offer a range of services for everyday beauty needs and special occasions.",
+    "businessName": "Bonifacio Auto Shop",
+    "headline": "Cutting Styles, Not Corners",
+    "description": "Bonifacio Auto Shop is a premier barber and salon in Cavite, dedicated to providing top-notch grooming services. Our experienced team, led by owner Steven Gabriel Madali, is committed to ensuring every client leaves feeling refreshed and revitalized. From classic cuts to modern styles, we've got you covered.",
     "photos": [
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg",
-      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
-      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
+      "https://diligent-ibex-454.convex.cloud/api/storage/9327f451-9b14-46ae-9641-2139cf65bc8c",
+      "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537",
+      "https://diligent-ibex-454.convex.cloud/api/storage/67c839f5-05f5-4e54-9466-9c5834c3016a"
     ],
     "services": [
       {
-        "description": "Customized haircuts, styling, and grooming for men and women",
-        "name": "Hair Styling"
+        "description": "Expertly crafted haircuts tailored to your style and preferences",
+        "name": "Haircut"
       },
       {
-        "description": "Professional hair coloring and highlighting services to enhance your look",
-        "name": "Hair Color"
+        "description": "Traditional hot towel shaves for the ultimate relaxation experience",
+        "name": "Shave"
       },
       {
-        "description": "Expert makeup applications for weddings, parties, and other special events",
-        "name": "Makeup Services"
+        "description": "Comprehensive packages including haircuts, shaves, and other grooming services",
+        "name": "Grooming Package"
       }
     ],
     "visibility": {
@@ -104,18 +104,18 @@
     }
   },
   "about": {
-    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
-    "description": "Josephine Carvajal is a premier barber and salon in Marilao, Bulacan, dedicated to providing personalized beauty services that cater to each client's unique needs. With a focus on creating a welcoming and comfortable environment, our experienced team helps clients feel confident and beautiful. We offer a range of services for everyday beauty needs and special occasions.",
+    "businessName": "Bonifacio Auto Shop",
+    "description": "Bonifacio Auto Shop is a premier barber and salon in Cavite, dedicated to providing top-notch grooming services. Our experienced team, led by owner Steven Gabriel Madali, is committed to ensuring every client leaves feeling refreshed and revitalized. From classic cuts to modern styles, we've got you covered.",
     "headline": "About Us",
     "usps": [
-      "Personalized care",
-      "Experienced team",
-      "Welcoming environment"
+      "Experienced Team",
+      "Personalized Service",
+      "Relaxing Atmosphere"
     ],
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
-      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg"
+      "https://diligent-ibex-454.convex.cloud/api/storage/9327f451-9b14-46ae-9641-2139cf65bc8c",
+      "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537",
+      "https://diligent-ibex-454.convex.cloud/api/storage/67c839f5-05f5-4e54-9466-9c5834c3016a"
     ],
     "visibility": {
       "aboutBadge": true,
@@ -130,20 +130,20 @@
     "headline": "Our Services",
     "services": [
       {
-        "description": "Customized haircuts, styling, and grooming for men and women",
-        "name": "Hair Styling"
+        "description": "Expertly crafted haircuts tailored to your style and preferences",
+        "name": "Haircut"
       },
       {
-        "description": "Professional hair coloring and highlighting services to enhance your look",
-        "name": "Hair Color"
+        "description": "Traditional hot towel shaves for the ultimate relaxation experience",
+        "name": "Shave"
       },
       {
-        "description": "Expert makeup applications for weddings, parties, and other special events",
-        "name": "Makeup Services"
+        "description": "Comprehensive packages including haircuts, shaves, and other grooming services",
+        "name": "Grooming Package"
       }
     ],
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf"
+      "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537"
     ],
     "visibility": {
       "servicesBadge": true,
@@ -155,58 +155,53 @@
     }
   },
   "gallery": {
-    "headline": "Our Featured Services",
-    "subheadline": "Showcasing our expertise in beauty and wellness",
+    "headline": "Featured Styles",
+    "subheadline": "Showcasing our latest and greatest work",
     "items": [
       {
-        "title": "Wedding Day Makeup",
-        "description": "Our team provided expert makeup services for a beautiful bride on her special day, ensuring she felt confident and stunning. We used high-quality products and techniques to create a flawless, long-lasting look. The result was a truly unforgettable wedding day appearance.",
-        "image": "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg",
+        "title": "The Classic Cut",
+        "description": "A timeless haircut that exudes sophistication and style. Our team of experts will work with you to create a customized look that suits your face shape and personal taste. From consultation to completion, we'll ensure you're completely satisfied with the final result.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/9327f451-9b14-46ae-9641-2139cf65bc8c",
         "tags": [
-          "Makeup",
-          "Full-day"
+          "Haircut",
+          "30 minutes"
         ],
         "testimonial": {
-          "author": "Ms. Rodriguez",
-          "quote": "I felt like a princess on my wedding day, thanks to the amazing makeup services from Josephine Carvajal. The team was professional, friendly, and truly talented. I received countless compliments on my makeup, and I couldn't be happier with the results."
+          "author": "Mark Santos",
+          "quote": "I've been going to Bonifacio Auto Shop for months now, and I've never been disappointed. The classic cut is my go-to style, and Steven always gets it just right. Highly recommended!"
         }
       },
       {
-        "title": "Men's Grooming Package",
-        "description": "Our barber and salon services cater to men's grooming needs, providing a relaxing and rejuvenating experience. From haircuts to shaving, we use only the best products and techniques to ensure our clients look and feel their best. This package includes a haircut, shave, and facial treatment.",
-        "image": "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+        "title": "The Ultimate Shave",
+        "description": "Indulge in the luxury of a traditional hot towel shave, complete with soothing scents and expert technique. Our team will guide you through the process, ensuring a comfortable and rejuvenating experience. Leave feeling refreshed, revitalized, and ready to take on the day.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537",
         "tags": [
-          "Grooming",
-          "Half-day"
+          "Shave",
+          "45 minutes"
         ],
         "testimonial": {
-          "author": "Mr. Santos",
-          "quote": "I've never felt so refreshed and revitalized after a grooming session. The team at Josephine Carvajal is exceptional, and their attention to detail is impressive. I highly recommend their men's grooming package to anyone looking for a top-notch experience."
+          "author": "Renzel Cruz",
+          "quote": "The ultimate shave at Bonifacio Auto Shop is an experience like no other. The attention to detail and care taken by the team is exceptional. I feel like a new man after every visit!"
         }
       },
       {
-        "title": "Hair Color Transformation",
-        "description": "Our experienced team can transform your hair with our professional coloring services. From subtle highlights to bold, vibrant colors, we use only the best products to achieve the desired look. This client underwent a stunning hair color transformation, and the result was a dramatic, eye-catching new look.",
-        "image": "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+        "title": "The Grooming Package",
+        "description": "Treat yourself to the full Bonifacio Auto Shop experience with our comprehensive grooming package. Including a haircut, shave, and other grooming services, this package is perfect for special occasions or simply as a way to pamper yourself. Our team will work with you to create a customized package tailored to your needs and preferences.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/67c839f5-05f5-4e54-9466-9c5834c3016a",
         "tags": [
-          "Hair Color",
-          "Full-day"
+          "Grooming Package",
+          "1 hour"
         ],
         "testimonial": {
-          "author": "Ms. Garcia",
-          "quote": "I was blown away by the hair color transformation I received at Josephine Carvajal. The team was knowledgeable, friendly, and truly skilled. My new hair color is everything I wanted and more – I've received countless compliments, and I feel like a completely new person."
+          "author": "Ryan Reyes",
+          "quote": "I opted for the grooming package at Bonifacio Auto Shop, and it was worth every penny. The team was friendly, professional, and made sure I felt comfortable throughout the entire process. I'll definitely be back for more!"
         }
       }
     ],
-    "images": [
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959902485-nou2bbkq.jpg",
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959906265-7t4pjpwa.jpg"
-    ],
     "photos": [
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg",
-      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
-      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
+      "https://diligent-ibex-454.convex.cloud/api/storage/9327f451-9b14-46ae-9641-2139cf65bc8c",
+      "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537",
+      "https://diligent-ibex-454.convex.cloud/api/storage/67c839f5-05f5-4e54-9466-9c5834c3016a"
     ],
     "visibility": {
       "galleryHeadline": true,
@@ -217,16 +212,16 @@
     }
   },
   "contact": {
-    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
-    "email": "josephinecarvajal110168@gmail.com",
-    "phone": "9177871293",
-    "address": "Heritage homes, Marilao, Bulacan, Marilao",
+    "businessName": "Bonifacio Auto Shop",
+    "email": "stevenmadali17@gmail.com",
+    "phone": "9278147733",
+    "address": "blk 11 lot 46, Cavite",
     "description": "For any inquiries or to explore your vision further, we invite you to contact our professional team using the details provided below.",
     "socialLinks": [],
     "photos": [
-      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg",
-      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
-      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
+      "https://diligent-ibex-454.convex.cloud/api/storage/9327f451-9b14-46ae-9641-2139cf65bc8c",
+      "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537",
+      "https://diligent-ibex-454.convex.cloud/api/storage/67c839f5-05f5-4e54-9466-9c5834c3016a"
     ],
     "visibility": {
       "contactBadge": true,
