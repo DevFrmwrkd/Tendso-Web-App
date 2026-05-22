@@ -248,10 +248,23 @@ const phoneText = phoneDisplay || phone || '';
                                     /* network errors silently leave the address fallback */
                                 });
                         }
+                        // Poll until Leaflet (L) is loaded, then init.
+                        // The previous DOMContentLoaded path raced the external
+                        // unpkg.com script, which on slower edges (Vercel /
+                        // Cloudflare cold start) hadn't finished parsing yet,
+                        // so `typeof L === 'undefined'` short-circuited and the
+                        // map stayed empty.
+                        var attempts = 0;
+                        function tryInit() {
+                            attempts++;
+                            if (typeof window.L !== 'undefined') { init(); return; }
+                            if (attempts > 80) return; // ~8s ceiling
+                            setTimeout(tryInit, 100);
+                        }
                         if (document.readyState === 'loading') {
-                            document.addEventListener('DOMContentLoaded', init);
+                            document.addEventListener('DOMContentLoaded', tryInit);
                         } else {
-                            init();
+                            tryInit();
                         }
                     })();
                 </script>

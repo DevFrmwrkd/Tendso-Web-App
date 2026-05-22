@@ -96,7 +96,7 @@ const showImage = visibility?.heroImage !== false;
       <div class="salon-fade-up relative mt-auto max-w-5xl mx-auto w-full" style="animation-delay: 0.4s">
         <div class="relative aspect-[16/8] overflow-hidden bg-[var(--surface)] rounded-t-[300px_120px]">
           {mainPhoto ? (
-            <img src={mainPhoto} alt={businessName} class="absolute inset-0 w-full h-full object-cover" style="filter: brightness(1.05) saturate(0.9);" />
+            <img src={mainPhoto} alt={businessName} data-field="hero.image" class="absolute inset-0 w-full h-full object-cover" style="filter: brightness(1.05) saturate(0.9);" />
           ) : (
             <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-9xl italic" style="font-family: var(--heading-font);">m</div>
           )}

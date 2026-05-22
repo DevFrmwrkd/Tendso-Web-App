@@ -46,7 +46,7 @@ const year = new Date().getFullYear();
         {/* LEFT — Concierge portrait */}
         <div class="relative aspect-[4/5] lg:aspect-auto bg-[var(--text)] overflow-hidden">
           {portrait ? (
-            <img src={portrait} alt="Concierge" class="absolute inset-0 w-full h-full object-cover" style="filter: brightness(0.9);" />
+            <img src={portrait} alt="Concierge" data-field="contact.image" class="absolute inset-0 w-full h-full object-cover" style="filter: brightness(0.9);" />
           ) : (
             <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-9xl italic" style="font-family: var(--heading-font);">m</div>
           )}

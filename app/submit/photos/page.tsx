@@ -98,10 +98,10 @@ export default function UploadPhotosPage() {
                 return
             }
 
-            // Validate: Max 5MB per file
-            const oversizedFiles = newFiles.filter(file => file.size > 5 * 1024 * 1024)
+            // Validate: Max 10MB per file
+            const oversizedFiles = newFiles.filter(file => file.size > 10 * 1024 * 1024)
             if (oversizedFiles.length > 0) {
-                setError("Some files are larger than 5MB. Please upload smaller images.")
+                setError("Some files are larger than 10MB. Please upload smaller images.")
                 return
             }
 
@@ -307,7 +307,7 @@ export default function UploadPhotosPage() {
                                     Click or drag photos here
                                 </div>
                                 <div className="text-xs text-gray-400">
-                                    JPG, JPEG, PNG only — up to 5MB each
+                                    JPG, JPEG, PNG only — up to 10MB each
                                 </div>
                             </div>
                         </div>

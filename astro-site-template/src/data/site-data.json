@@ -22,7 +22,7 @@
     ],
     "socialLinks": [],
     "colorScheme": "whitegold",
-    "fontPairing": "gourmet",
+    "fontPairing": "classic",
     "contact": {
       "address": "Heritage homes, Marilao, Bulacan, Marilao",
       "email": "josephinecarvajal110168@gmail.com",
@@ -34,7 +34,7 @@
     "heroStyle": "M1",
     "aboutStyle": "M1",
     "servicesStyle": "M1",
-    "galleryStyle": "M4",
+    "galleryStyle": "M2",
     "contactStyle": "M1",
     "trustStyle": "M1",
     "whyUsStyle": "M1",
@@ -98,7 +98,8 @@
     "photos": [
       "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
       "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
-      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/submission-photos/j971v4a6cam4shnar1np5ehyxh82h0y8/1779456468177.png"
     ],
     "services": [
       {
@@ -231,10 +232,15 @@
         }
       }
     ],
+    "images": [
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/submission-photos/j971v4a6cam4shnar1np5ehyxh82h0y8/1779456468177.png",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
+    ],
     "photos": [
       "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
       "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
-      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/submission-photos/j971v4a6cam4shnar1np5ehyxh82h0y8/1779456468177.png"
     ],
     "visibility": {
       "galleryHeadline": true,
@@ -254,7 +260,8 @@
     "photos": [
       "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
       "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
-      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/submission-photos/j971v4a6cam4shnar1np5ehyxh82h0y8/1779456468177.png"
     ],
     "visibility": {
       "contactBadge": true,
