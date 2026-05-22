@@ -44,6 +44,26 @@ const show = visibility?.locationBlock !== false;
 const hasMap = !!(lat && lng) || !!address;
 const phoneTel = phone ? phone.replace(/[^0-9+]/g, '') : '';
 const phoneText = phoneDisplay || phone || '';
+
+// ── Map query strategy ────────────────────────────────────────────────
+// Precompute everything in frontmatter (Astro evaluates this at build time;
+// keeps the template body lean and avoids JSX-IIFE quirks).
+//
+// Source priority for the embed query:
+//   1. Explicit coordinates (best — exact pin)
+//   2. Full address string (good — Google's geocoder handles it)
+//   3. Business name + city extract (last-resort fallback)
+//
+// We hit Google's `/maps/embed/v1/place?q=...` keyless endpoint via a small
+// proxy URL form: `https://maps.google.com/maps?q=...&output=embed`.
+// The latter has worked for 10+ years without an API key and is what most
+// production small-business sites use. If Google ever fully shuts it down,
+// the visible "Open in Google Maps" CTA below is the unbreakable fallback.
+const mapQuery = lat && lng
+    ? `${lat},${lng}`
+    : (address && address.length > 8 ? address : (businessName || 'Philippines'));
+const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=15&hl=en&ie=UTF8&output=embed`;
+const mapDirectionsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
 ---
 
 {show && (address || phone || email) && (
@@ -146,129 +166,41 @@ const phoneText = phoneDisplay || phone || '';
                     </div>
                 </div>
 
-                {/* Map */}
+                {/* Map — Google Maps embed iframe (no API key required).
+                    Inline width/height styles instead of Tailwind arbitrary
+                    values because Tailwind v4 occasionally fails to pick up
+                    `min-h-[420px]` etc. when rendered through the Astro build
+                    + Vite pipeline, leaving the iframe at 0px tall. */}
                 {hasMap && (
                     <div
-                        class="rounded-2xl border border-[var(--text)]/10 bg-[var(--bg)] overflow-hidden min-h-[320px] lg:min-h-[420px] relative"
+                        class="rounded-2xl border border-[var(--text)]/10 overflow-hidden relative location-map-frame"
+                        style="background: color-mix(in srgb, var(--text) 6%, var(--bg)); width: 100%; height: 420px;"
                     >
-                        <div
-                            id="loc-map"
-                            data-address={address ?? ''}
-                            data-lat={lat ?? ''}
-                            data-lng={lng ?? ''}
-                            data-business={businessName ?? ''}
-                            class="w-full h-full min-h-[320px] lg:min-h-[420px]"
-                            style="background: var(--bg);"
-                        ></div>
-                        {/* JS-off fallback — Google Maps deep link with the address */}
-                        <noscript>
-                            <div class="absolute inset-0 flex items-center justify-center p-6 text-center">
-                                <a
-                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address ?? businessName)}`}
-                                    class="text-[var(--primary)] underline"
-                                    target="_blank"
-                                    rel="noopener"
-                                >
-                                    Open in Google Maps →
-                                </a>
-                            </div>
-                        </noscript>
+                        <iframe
+                            src={mapEmbedSrc}
+                            title={`Map · ${businessName ?? 'Location'}`}
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            allowfullscreen
+                            class="border-0 location-map-iframe"
+                            style="display: block; width: 100%; height: 100%; min-height: 420px; border: 0;"
+                        ></iframe>
+
+                        {/* Always-visible affordance — works even if the iframe
+                            is blocked or hits a Google-side error page. */}
+                        <a
+                            href={mapDirectionsHref}
+                            target="_blank"
+                            rel="noopener"
+                            class="absolute bottom-4 right-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white text-[var(--text)] shadow-lg hover:shadow-xl transition-shadow"
+                            style="text-decoration: none;"
+                        >
+                            Open in Google Maps →
+                        </a>
                     </div>
                 )}
             </div>
         </div>
 
-        {hasMap && (
-            <>
-                <link
-                    rel="stylesheet"
-                    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-                    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-                    crossorigin=""
-                />
-                <script
-                    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-                    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-                    crossorigin=""
-                    is:inline
-                ></script>
-                <script is:inline>
-                    (function () {
-                        function init() {
-                            var el = document.getElementById('loc-map');
-                            if (!el || typeof L === 'undefined') return;
-                            var lat = parseFloat(el.dataset.lat);
-                            var lng = parseFloat(el.dataset.lng);
-                            var address = el.dataset.address || '';
-                            var business = el.dataset.business || 'Here';
-
-                            function render(latNum, lngNum) {
-                                var map = L.map(el, {
-                                    center: [latNum, lngNum],
-                                    zoom: 15,
-                                    scrollWheelZoom: false,
-                                    attributionControl: false,
-                                });
-                                L.tileLayer(
-                                    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-                                    { maxZoom: 19, subdomains: 'abcd' }
-                                ).addTo(map);
-                                var icon = L.divIcon({
-                                    className: 'loc-pin',
-                                    html:
-                                        '<div style="width:18px;height:18px;border-radius:50%;background:var(--primary,#0f0e14);border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.25);"></div>',
-                                    iconSize: [18, 18],
-                                    iconAnchor: [9, 9],
-                                });
-                                L.marker([latNum, lngNum], { icon: icon })
-                                    .addTo(map)
-                                    .bindPopup(business);
-                            }
-
-                            if (!isNaN(lat) && !isNaN(lng)) {
-                                render(lat, lng);
-                                return;
-                            }
-                            // Geocode the address via Nominatim (rate-limit-safe at this scale).
-                            if (!address) return;
-                            fetch(
-                                'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' +
-                                    encodeURIComponent(address),
-                                { headers: { Accept: 'application/json' } }
-                            )
-                                .then(function (r) {
-                                    return r.json();
-                                })
-                                .then(function (rows) {
-                                    if (rows && rows[0]) {
-                                        render(parseFloat(rows[0].lat), parseFloat(rows[0].lon));
-                                    }
-                                })
-                                .catch(function () {
-                                    /* network errors silently leave the address fallback */
-                                });
-                        }
-                        // Poll until Leaflet (L) is loaded, then init.
-                        // The previous DOMContentLoaded path raced the external
-                        // unpkg.com script, which on slower edges (Vercel /
-                        // Cloudflare cold start) hadn't finished parsing yet,
-                        // so `typeof L === 'undefined'` short-circuited and the
-                        // map stayed empty.
-                        var attempts = 0;
-                        function tryInit() {
-                            attempts++;
-                            if (typeof window.L !== 'undefined') { init(); return; }
-                            if (attempts > 80) return; // ~8s ceiling
-                            setTimeout(tryInit, 100);
-                        }
-                        if (document.readyState === 'loading') {
-                            document.addEventListener('DOMContentLoaded', tryInit);
-                        } else {
-                            tryInit();
-                        }
-                    })();
-                </script>
-            </>
-        )}
     </section>
 )}
