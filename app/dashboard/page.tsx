@@ -77,8 +77,11 @@ export default function DashboardPage() {
         !creator.certifiedAt
     ) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <div
+                className="min-h-screen flex items-center justify-center"
+                style={{ background: "var(--ed-paper)" }}
+            >
+                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
             </div>
         )
     }
@@ -88,29 +91,66 @@ export default function DashboardPage() {
     const initials = `${(creator.firstName || "")[0] || ""}${(creator.lastName || "")[0] || ""}`.toUpperCase()
 
     return (
-        <div className="min-h-screen bg-white font-sans pb-24 overflow-x-hidden">
+        <div
+            className="editorial min-h-screen pb-24 overflow-x-hidden"
+            style={{
+                background: "var(--ed-paper)",
+                color: "var(--ed-ink)",
+                fontFamily: "var(--ed-sans)",
+            }}
+        >
             {/* Header */}
             <header className="px-4 pt-6 pb-2">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Link href="/profile" className="w-10 h-10 bg-zinc-100 rounded-full flex items-center justify-center overflow-hidden border border-zinc-200">
+                        <Link
+                            href="/profile"
+                            className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
+                            style={{
+                                background: "var(--ed-paper-3)",
+                                border: "1px solid var(--ed-rule)",
+                            }}
+                        >
                             {creator.profileImage ? (
                                 <img src={creator.profileImage} alt="Profile" className="w-full h-full object-cover" />
                             ) : (
-                                <span className="text-sm font-bold text-zinc-500">{initials}</span>
+                                <span
+                                    className="text-sm"
+                                    style={{
+                                        fontFamily: "var(--ed-serif)",
+                                        color: "var(--ed-ink-2)",
+                                    }}
+                                >
+                                    {initials}
+                                </span>
                             )}
                         </Link>
                         <div>
-                            <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wide">Welcome back</p>
-                            <h1 className="text-lg font-bold text-zinc-900 leading-none">
-                                Mabuhay, {creator.firstName || "Creator"}!
+                            <p className="ed-label">Welcome back</p>
+                            <h1
+                                className="text-2xl leading-none mt-1"
+                                style={{
+                                    fontFamily: "var(--ed-serif)",
+                                    color: "var(--ed-ink)",
+                                    letterSpacing: "-0.015em",
+                                }}
+                            >
+                                Mabuhay,{" "}
+                                <em style={{ color: "var(--ed-accent)" }}>
+                                    {creator.firstName || "Creator"}.
+                                </em>
                             </h1>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
                         <Link
                             href="/notifications"
-                            className="relative w-10 h-10 bg-white rounded-full flex items-center justify-center border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 transition-colors"
+                            className="relative w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                            style={{
+                                background: "var(--ed-paper-3)",
+                                border: "1px solid var(--ed-rule)",
+                                color: "var(--ed-ink-2)",
+                            }}
                         >
                             <Bell className="w-5 h-5" />
                             {(unreadCount ?? 0) > 0 && (
@@ -121,7 +161,12 @@ export default function DashboardPage() {
                         </Link>
                         <Link
                             href="/profile"
-                            className="w-10 h-10 bg-white rounded-full flex items-center justify-center border border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 transition-colors"
+                            className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                            style={{
+                                background: "var(--ed-paper-3)",
+                                border: "1px solid var(--ed-rule)",
+                                color: "var(--ed-ink-2)",
+                            }}
                         >
                             <User className="w-5 h-5" />
                         </Link>
@@ -130,50 +175,138 @@ export default function DashboardPage() {
             </header>
 
             <main className="px-4 space-y-5">
-                {/* Balance Card */}
-                <div className="bg-zinc-900 text-white rounded-3xl p-5 relative overflow-hidden shadow-xl shadow-emerald-500/20 border border-emerald-500">
-                    {/* Abstract background effect */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                {/* Balance Card — ink surface with serif amount */}
+                <div
+                    className="rounded-3xl p-6 relative overflow-hidden"
+                    style={{
+                        background: "var(--ed-ink)",
+                        color: "var(--ed-paper-3)",
+                        boxShadow: "var(--ed-shadow-md)",
+                    }}
+                >
+                    <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: "rgba(16, 185, 129, 0.12)" }}></div>
 
                     <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-zinc-400 text-xs font-medium">Available Balance</span>
-                        <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-emerald-400">
+                        <span
+                            style={{
+                                fontFamily: "var(--ed-mono)",
+                                fontSize: 11,
+                                letterSpacing: "0.14em",
+                                textTransform: "uppercase",
+                                color: "rgba(252,250,245,0.55)",
+                            }}
+                        >
+                            Available Balance
+                        </span>
+                        <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center"
+                            style={{ background: "rgba(255,255,255,0.08)", color: "var(--ed-accent-solid)" }}
+                        >
                             <Wallet className="w-3.5 h-3.5" />
                         </div>
                     </div>
 
-                    <div className="mb-5 relative z-10">
-                        <span className="text-3xl font-bold tracking-tight">
-                            ₱ {creator.balance?.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                    <div className="mb-1 relative z-10 flex items-baseline gap-2">
+                        <span
+                            style={{
+                                fontFamily: "var(--ed-serif)",
+                                fontSize: 20,
+                                color: "rgba(252,250,245,0.55)",
+                            }}
+                        >
+                            ₱
+                        </span>
+                        <span
+                            style={{
+                                fontFamily: "var(--ed-serif)",
+                                fontSize: 56,
+                                lineHeight: 1.0,
+                                letterSpacing: "-0.025em",
+                                fontVariantNumeric: "tabular-nums",
+                            }}
+                        >
+                            {creator.balance?.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
                         </span>
                     </div>
                 </div>
 
-                {/* Quick Stats */}
+                {/* Quick Stats — paper-3 cards with mono labels + serif numbers */}
                 <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-white p-3 rounded-2xl border border-zinc-200 shadow-sm text-center">
-                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1">Submissions</p>
-                        <p className="text-lg font-bold text-zinc-900">{submissions?.length ?? 0}</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-2xl border border-zinc-200 shadow-sm text-center">
-                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1">In Review</p>
-                        <p className="text-lg font-bold text-yellow-600">
-                            {submissions?.filter((s: any) => s.status === 'submitted' || s.status === 'in_review').length ?? 0}
-                        </p>
-                    </div>
-                    <div className="bg-white p-3 rounded-2xl border border-zinc-200 shadow-sm text-center">
-                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider mb-1">Verified</p>
-                        <p className="text-lg font-bold text-emerald-600">
-                            {submissions?.filter((s: any) => s.status === 'approved' || s.status === 'paid' || s.status === 'deployed' || s.status === 'completed').length ?? 0}
-                        </p>
-                    </div>
+                    {[
+                        { label: "Submissions", value: submissions?.length ?? 0, tone: "ink" as const },
+                        { label: "In Review", value: submissions?.filter((s: any) => s.status === 'submitted' || s.status === 'in_review').length ?? 0, tone: "warn" as const },
+                        { label: "Verified", value: submissions?.filter((s: any) => s.status === 'approved' || s.status === 'paid' || s.status === 'deployed' || s.status === 'completed').length ?? 0, tone: "accent" as const },
+                    ].map((s) => (
+                        <div
+                            key={s.label}
+                            className="p-3 text-center"
+                            style={{
+                                background: "var(--ed-paper-3)",
+                                border: "1px solid var(--ed-rule)",
+                                borderRadius: "var(--ed-radius-md)",
+                            }}
+                        >
+                            <p
+                                className="mb-1"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    fontSize: 9,
+                                    letterSpacing: "0.14em",
+                                    textTransform: "uppercase",
+                                    color: "var(--ed-ink-3)",
+                                }}
+                            >
+                                {s.label}
+                            </p>
+                            <p
+                                style={{
+                                    fontFamily: "var(--ed-serif)",
+                                    fontSize: 28,
+                                    lineHeight: 1.0,
+                                    fontVariantNumeric: "tabular-nums",
+                                    color:
+                                        s.tone === "accent" ? "var(--ed-accent)" :
+                                        s.tone === "warn" ? "var(--ed-warn)" :
+                                        "var(--ed-ink)",
+                                }}
+                            >
+                                {s.value}
+                            </p>
+                        </div>
+                    ))}
                 </div>
 
-                {/* Submission Status */}
+                {/* Submission Status — eyebrow + serif heading */}
                 <div>
                     <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-base font-bold text-zinc-900">Recent Submissions</h2>
-                        <Link href="/submissions" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700">View All</Link>
+                        <div>
+                            <p className="ed-label">§ Recent activity</p>
+                            <h2
+                                className="mt-1"
+                                style={{
+                                    fontFamily: "var(--ed-serif)",
+                                    fontSize: 22,
+                                    lineHeight: 1.15,
+                                    letterSpacing: "-0.015em",
+                                    color: "var(--ed-ink)",
+                                }}
+                            >
+                                Recent <em style={{ color: "var(--ed-accent)" }}>submissions</em>
+                            </h2>
+                        </div>
+                        <Link
+                            href="/submissions"
+                            className="text-xs"
+                            style={{
+                                fontFamily: "var(--ed-mono)",
+                                fontSize: 11,
+                                letterSpacing: "0.12em",
+                                textTransform: "uppercase",
+                                color: "var(--ed-accent)",
+                            }}
+                        >
+                            View all →
+                        </Link>
                     </div>
                     <div className="space-y-3">
                         {recentSubmissions.map((sub: any) => {
@@ -202,15 +335,40 @@ export default function DashboardPage() {
 
                             return (
                                 <Link key={sub._id} href={`/submissions/${sub._id}`}>
-                                    <div className="bg-white rounded-2xl p-3 border border-zinc-200 shadow-sm flex items-center justify-between hover:border-zinc-300 hover:shadow-md transition-all cursor-pointer">
+                                    <div
+                                        className="p-3 flex items-center justify-between transition-all cursor-pointer hover:translate-y-[-1px]"
+                                        style={{
+                                            background: "var(--ed-paper-3)",
+                                            border: "1px solid var(--ed-rule)",
+                                            borderRadius: "var(--ed-radius-md)",
+                                        }}
+                                    >
                                         <div className="flex items-center gap-3">
                                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${getStatusBg()}`}>
                                                 {isDraft ? <Clock className="w-5 h-5" /> : <Store className="w-5 h-5" />}
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-sm text-zinc-900">{sub.businessName}</h3>
-                                                <p className="text-[10px] text-zinc-500">
-                                                    Submitted {new Date(sub._creationTime).toLocaleDateString()}
+                                                <h3
+                                                    style={{
+                                                        fontFamily: "var(--ed-serif)",
+                                                        fontSize: 17,
+                                                        lineHeight: 1.2,
+                                                        color: "var(--ed-ink)",
+                                                    }}
+                                                >
+                                                    {sub.businessName}
+                                                </h3>
+                                                <p
+                                                    className="mt-0.5"
+                                                    style={{
+                                                        fontFamily: "var(--ed-mono)",
+                                                        fontSize: 10,
+                                                        letterSpacing: "0.1em",
+                                                        textTransform: "uppercase",
+                                                        color: "var(--ed-ink-3)",
+                                                    }}
+                                                >
+                                                    {new Date(sub._creationTime).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>
@@ -222,8 +380,36 @@ export default function DashboardPage() {
                             )
                         })}
                         {recentSubmissions.length === 0 && (
-                            <div className="text-center py-6 bg-zinc-50/40 rounded-2xl border border-dashed border-zinc-200">
-                                <p className="text-zinc-500 text-xs">No submissions yet.</p>
+                            <div
+                                className="text-center py-8"
+                                style={{
+                                    background: "var(--ed-paper-2)",
+                                    border: "1px dashed var(--ed-rule-strong)",
+                                    borderRadius: "var(--ed-radius-md)",
+                                }}
+                            >
+                                <p
+                                    style={{
+                                        fontFamily: "var(--ed-serif)",
+                                        fontSize: 16,
+                                        fontStyle: "italic",
+                                        color: "var(--ed-ink-2)",
+                                    }}
+                                >
+                                    No submissions yet.
+                                </p>
+                                <p
+                                    className="mt-1"
+                                    style={{
+                                        fontFamily: "var(--ed-mono)",
+                                        fontSize: 10,
+                                        letterSpacing: "0.14em",
+                                        textTransform: "uppercase",
+                                        color: "var(--ed-ink-3)",
+                                    }}
+                                >
+                                    Start by tapping the + button below
+                                </p>
                             </div>
                         )}
                     </div>

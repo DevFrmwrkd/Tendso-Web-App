@@ -6,9 +6,10 @@ import Link from "next/link"
 import Image from "next/image"
 import { useClerk } from "@clerk/nextjs"
 import { motion, AnimatePresence } from "framer-motion"
-import { 
+import {
     LayoutDashboard,
     Users,
+    UserCheck,
     CreditCard,
     History,
     Download,
@@ -29,6 +30,11 @@ const navItems = [
         label: "Creators",
         href: "/admin/creators",
         icon: Users,
+    },
+    {
+        label: "Pending Approvals",
+        href: "/admin/pending-approvals",
+        icon: UserCheck,
     },
     {
         label: "Leads",
@@ -71,7 +77,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     return (
-        <div className="min-h-screen bg-[#fcfdfd] flex font-sans selection:bg-green-100 selection:text-green-900">
+        <div
+            className="editorial min-h-screen flex font-sans selection:bg-green-100 selection:text-green-900"
+            style={{
+                background: "var(--ed-paper)",
+                color: "var(--ed-ink)",
+                fontFamily: "var(--ed-sans)",
+            }}
+        >
             {/* Mobile sidebar overlay */}
             <AnimatePresence>
                 {sidebarOpen && (
@@ -85,12 +98,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 )}
             </AnimatePresence>
 
-            {/* Sidebar */}
-            <aside className={`
-                w-64 bg-emerald-950 border-r border-emerald-900 flex flex-col fixed inset-y-0 left-0 z-50
+            {/* Sidebar — ink surface with editorial paper accents */}
+            <aside
+                className={`
+                w-64 flex flex-col fixed inset-y-0 left-0 z-50
                 transition-all duration-300 ease-in-out shadow-[4px_0_24px_-4px_rgba(0,0,0,0.02)]
                 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0
-            `}>
+            `}
+                style={{
+                    background: "var(--ed-ink)",
+                    borderRight: "1px solid rgba(255,255,255,0.06)",
+                }}
+            >
                 <div className="px-6 py-8 flex items-center justify-between mb-2">
                     <Link href="/admin" className="flex items-center gap-3 group">
                         <div className="relative w-10 h-10 transition-transform duration-500 group-hover:scale-110">
@@ -103,16 +122,37 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-base font-black text-white tracking-tight leading-none group-hover:text-emerald-300 transition-colors">NEGOSYO</span>
-                            <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-[0.2em] mt-0.5">Digital Admin</span>
+                            <span
+                                className="text-2xl tracking-tight leading-none transition-colors italic"
+                                style={{
+                                    fontFamily: "var(--ed-serif)",
+                                    color: "var(--ed-paper-3)",
+                                }}
+                            >
+                                Negosyo
+                            </span>
+                            <span
+                                className="text-[10px] uppercase mt-1"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    letterSpacing: "0.18em",
+                                    color: "var(--ed-accent-solid)",
+                                }}
+                            >
+                                Digital · Admin
+                            </span>
                         </div>
                     </Link>
-                    <button onClick={() => setSidebarOpen(false)} className="lg:hidden p-1.5 rounded-full hover:bg-emerald-900 text-emerald-400 transition-colors">
+                    <button
+                        onClick={() => setSidebarOpen(false)}
+                        className="lg:hidden p-1.5 rounded-full transition-colors"
+                        style={{ color: "var(--ed-paper-3)" }}
+                    >
                         <X size={20} />
                     </button>
                 </div>
 
-                <nav className="flex-1 px-4 py-4 space-y-1.5 overflow-y-auto">
+                <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
                     {navItems.map((item) => {
                         const isActive = pathname === item.href
                         const Icon = item.icon
@@ -121,25 +161,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 key={item.href}
                                 href={item.href}
                                 onClick={() => setSidebarOpen(false)}
-                                className={`
-                                    flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 group
-                                    ${isActive
-                                        ? "bg-emerald-800 text-emerald-50 shadow-sm shadow-emerald-900/50"
-                                        : "text-emerald-400 hover:bg-emerald-900 hover:text-emerald-100"}
-                                `}
+                                className="flex items-center justify-between px-4 py-3 rounded-xl text-sm transition-all duration-200 group"
+                                style={{
+                                    background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
+                                    color: isActive ? "var(--ed-paper-3)" : "rgba(252,250,245,0.6)",
+                                    fontFamily: "var(--ed-sans)",
+                                    fontWeight: isActive ? 500 : 400,
+                                    letterSpacing: "-0.005em",
+                                }}
                             >
                                 <div className="flex items-center gap-3.5">
                                     <Icon
-                                        size={20}
-                                        className={`transition-colors ${isActive ? "text-emerald-200" : "text-emerald-500 group-hover:text-emerald-300"}`}
-                                        strokeWidth={isActive ? 2.5 : 2}
+                                        size={18}
+                                        strokeWidth={isActive ? 2 : 1.6}
+                                        style={{
+                                            color: isActive
+                                                ? "var(--ed-accent-solid)"
+                                                : "rgba(252,250,245,0.55)",
+                                            transition: "color .2s ease",
+                                        }}
                                     />
                                     <span>{item.label}</span>
                                 </div>
                                 {isActive && (
                                     <motion.div
                                         layoutId="active-pill"
-                                        className="w-1.5 h-1.5 rounded-full bg-emerald-400"
+                                        className="w-1.5 h-1.5 rounded-full"
+                                        style={{ background: "var(--ed-accent-solid)" }}
                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                     />
                                 )}
@@ -149,23 +197,45 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </nav>
 
                 <div className="px-4 py-6 mt-auto">
-                    <div className="p-4 rounded-2xl bg-emerald-900/50 border border-emerald-800/50 mb-4 lg:hidden">
+                    <div
+                        className="p-4 rounded-2xl mb-4 lg:hidden"
+                        style={{
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                        }}
+                    >
                         <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-emerald-800 flex items-center justify-center border border-emerald-700/50">
-                                <Users size={14} className="text-emerald-300" />
+                            <div
+                                className="w-8 h-8 rounded-full flex items-center justify-center"
+                                style={{
+                                    background: "rgba(255,255,255,0.08)",
+                                    border: "1px solid rgba(255,255,255,0.08)",
+                                }}
+                            >
+                                <Users size={14} style={{ color: "var(--ed-accent-solid)" }} />
                             </div>
-                            <span className="text-xs font-bold text-emerald-100">Quick Tools</span>
+                            <span
+                                className="text-[10px] uppercase"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    letterSpacing: "0.12em",
+                                    color: "var(--ed-paper-3)",
+                                }}
+                            >
+                                Quick Tools
+                            </span>
                         </div>
                     </div>
 
                     <button
                         onClick={handleLogout}
-                        className="
-                            flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold text-white
-                            hover:bg-red-500/10 hover:text-red-400 w-full transition-all duration-300 group
-                        "
+                        className="flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm w-full transition-all duration-200 group"
+                        style={{
+                            color: "rgba(252,250,245,0.7)",
+                            fontFamily: "var(--ed-sans)",
+                        }}
                     >
-                        <LogOut size={20} className="text-white group-hover:text-red-400 transition-colors" />
+                        <LogOut size={18} strokeWidth={1.6} className="transition-colors group-hover:text-red-400" style={{ color: "rgba(252,250,245,0.55)" }} />
                         <span>Logout</span>
                     </button>
                 </div>
@@ -174,41 +244,103 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {/* Main Content */}
             <main className="flex-1 lg:ml-64 min-w-0 min-h-screen flex flex-col relative">
                 {/* Header (Universal) */}
-                <header className={`
-                    sticky top-0 z-30 transition-all duration-300 
-                    ${scrolled ? "bg-white/80 backdrop-blur-md border-b border-gray-100 py-3" : "bg-transparent py-5"}
-                    px-4 sm:px-6 lg:px-8 flex items-center justify-between
-                `}>
+                <header
+                    className={`
+                        sticky top-0 z-30 transition-all duration-300
+                        ${scrolled ? "py-3" : "py-5"}
+                        px-4 sm:px-6 lg:px-8 flex items-center justify-between
+                    `}
+                    style={{
+                        background: scrolled ? "rgba(248,245,238,0.85)" : "transparent",
+                        borderBottom: scrolled ? "1px solid var(--ed-rule)" : "1px solid transparent",
+                        backdropFilter: scrolled ? "blur(12px)" : "none",
+                    }}
+                >
                     <div className="flex items-center gap-4">
-                        <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="lg:hidden p-2 -ml-2 rounded-lg transition-colors"
+                            style={{ color: "var(--ed-ink-3)" }}
+                        >
                             <Menu size={24} />
                         </button>
                         <div className="hidden lg:flex flex-col">
-                            <h2 className="text-sm font-bold text-gray-900">Overview</h2>
-                            <p className="text-[10px] text-gray-400 font-medium tracking-wide flex items-center gap-1.5">
-                                <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                LIVE SYSTEM MONITOR
+                            <h2
+                                className="text-sm"
+                                style={{
+                                    fontFamily: "var(--ed-serif)",
+                                    color: "var(--ed-ink)",
+                                    fontSize: 18,
+                                }}
+                            >
+                                Overview
+                            </h2>
+                            <p
+                                className="flex items-center gap-1.5 mt-0.5"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    fontSize: 10,
+                                    letterSpacing: "0.14em",
+                                    textTransform: "uppercase",
+                                    color: "var(--ed-ink-3)",
+                                }}
+                            >
+                                <span className="ed-live-dot"></span>
+                                Live system monitor
                             </p>
                         </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-4">
-                        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white rounded-full border border-gray-100 shadow-sm">
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-green-500 to-emerald-400 flex items-center justify-center text-[10px] font-bold text-white uppercase italic">
+                        <div
+                            className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full"
+                            style={{
+                                background: "var(--ed-paper-3)",
+                                border: "1px solid var(--ed-rule)",
+                                boxShadow: "var(--ed-shadow-sm)",
+                            }}
+                        >
+                            <div
+                                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] uppercase"
+                                style={{
+                                    background: "var(--ed-ink)",
+                                    color: "var(--ed-paper-3)",
+                                    fontFamily: "var(--ed-mono)",
+                                    letterSpacing: "0.08em",
+                                }}
+                            >
                                 AD
                             </div>
-                            <span className="text-xs font-bold text-gray-700">Administrator</span>
-                            <ChevronRight size={12} className="text-gray-300" />
+                            <span
+                                className="text-xs"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    fontSize: 11,
+                                    letterSpacing: "0.08em",
+                                    textTransform: "uppercase",
+                                    color: "var(--ed-ink-2)",
+                                }}
+                            >
+                                Administrator
+                            </span>
+                            <ChevronRight size={12} style={{ color: "var(--ed-ink-3)" }} />
                         </div>
                     </div>
                 </header>
 
-                <div className="px-4 py-4 sm:px-6 lg:px-8 lg:py-6 flex-1">
-                    {children}
-                </div>
-                
-                <footer className="px-8 py-6 text-[10px] font-bold text-gray-300 uppercase tracking-widest text-center">
-                    &copy; 2026 NEGOSYO DIGITAL &bull; PREMIUM ADMIN PANEL
+                <div className="px-4 py-4 sm:px-6 lg:px-8 lg:py-6 flex-1">{children}</div>
+
+                <footer
+                    className="px-8 py-6 text-center"
+                    style={{
+                        fontFamily: "var(--ed-mono)",
+                        fontSize: 10,
+                        letterSpacing: "0.18em",
+                        textTransform: "uppercase",
+                        color: "var(--ed-ink-3)",
+                    }}
+                >
+                    &copy; {new Date().getFullYear()} Negosyo Digital &bull; Admin
                 </footer>
             </main>
         </div>

@@ -85,16 +85,16 @@ export default function WalletPage() {
 
     if (!isLoaded || !isSignedIn || creator === undefined) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
+                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
             </div>
         )
     }
 
     if (!creator) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
+                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
             </div>
         )
     }
@@ -217,72 +217,158 @@ export default function WalletPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white font-sans pb-24 overflow-x-hidden">
+        <div
+            className="editorial min-h-screen pb-24 overflow-x-hidden"
+            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+        >
             <main className="px-4 py-6">
                 {/* Back Button */}
                 <div className="flex items-center justify-between mb-2">
                     <Link
                         href="/dashboard"
-                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors"
+                        className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                        style={{
+                            background: "var(--ed-paper-3)",
+                            border: "1px solid var(--ed-rule)",
+                            color: "var(--ed-ink-2)",
+                        }}
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                 </div>
 
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-zinc-900 leading-tight">
-                        My <span className="text-emerald-500">Wallet</span>
+                {/* Editorial header */}
+                <div className="mb-6 mt-2">
+                    <p className="ed-label">§ Wallet · Withdrawals</p>
+                    <h1
+                        className="mt-2"
+                        style={{
+                            fontFamily: "var(--ed-serif)",
+                            fontSize: 40,
+                            lineHeight: 1.05,
+                            letterSpacing: "-0.02em",
+                            color: "var(--ed-ink)",
+                        }}
+                    >
+                        Your <em style={{ color: "var(--ed-accent)" }}>earnings.</em>
                     </h1>
-                    <p className="text-zinc-500 text-sm mt-1">Manage your earnings and withdrawals.</p>
+                    <p
+                        className="mt-2"
+                        style={{
+                            fontFamily: "var(--ed-sans)",
+                            fontSize: 14,
+                            color: "var(--ed-ink-2)",
+                            lineHeight: 1.55,
+                            maxWidth: "44ch",
+                        }}
+                    >
+                        Track what you&apos;ve made, request a payout to Wise, see every transaction.
+                    </p>
                 </div>
 
-                {/* Balance Card */}
-                <div className="bg-zinc-900 text-white rounded-3xl p-5 relative overflow-hidden shadow-xl shadow-zinc-900/20 mb-6">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                {/* Balance hero — ink with serif amount */}
+                <div
+                    className="rounded-3xl p-6 relative overflow-hidden mb-6"
+                    style={{
+                        background: "var(--ed-ink)",
+                        color: "var(--ed-paper-3)",
+                        boxShadow: "var(--ed-shadow-md)",
+                    }}
+                >
+                    <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: "rgba(16, 185, 129, 0.12)" }}></div>
 
                     <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span className="text-zinc-400 text-xs font-medium">Available Balance</span>
-                        <div className="w-7 h-7 rounded-full bg-zinc-800 flex items-center justify-center text-emerald-400">
+                        <span
+                            style={{
+                                fontFamily: "var(--ed-mono)",
+                                fontSize: 11,
+                                letterSpacing: "0.14em",
+                                textTransform: "uppercase",
+                                color: "rgba(252,250,245,0.55)",
+                            }}
+                        >
+                            Available Balance
+                        </span>
+                        <div
+                            className="w-7 h-7 rounded-full flex items-center justify-center"
+                            style={{ background: "rgba(255,255,255,0.08)", color: "var(--ed-accent-solid)" }}
+                        >
                             <Wallet className="w-3.5 h-3.5" />
                         </div>
                     </div>
 
-                    <div className="mb-5 relative z-10">
-                        <span className="text-3xl font-bold tracking-tight">
-                            PHP {formatCurrency(balance)}
+                    <div className="mb-5 relative z-10 flex items-baseline gap-2">
+                        <span
+                            style={{
+                                fontFamily: "var(--ed-serif)",
+                                fontSize: 20,
+                                color: "rgba(252,250,245,0.55)",
+                            }}
+                        >
+                            ₱
+                        </span>
+                        <span
+                            style={{
+                                fontFamily: "var(--ed-serif)",
+                                fontSize: 56,
+                                lineHeight: 1.0,
+                                letterSpacing: "-0.025em",
+                                fontVariantNumeric: "tabular-nums",
+                            }}
+                        >
+                            {formatCurrency(balance)}
                         </span>
                     </div>
 
-                    <div className="flex gap-4 relative z-10">
-                        <div className="flex items-center gap-1.5">
-                            <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                    <div
+                        className="flex gap-6 relative z-10 pt-4"
+                        style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
+                    >
+                        <div className="flex items-center gap-2">
+                            <TrendingUp className="w-3.5 h-3.5" style={{ color: "var(--ed-accent-solid)" }} />
                             <div>
-                                <p className="text-[10px] text-zinc-500">Total Earned</p>
-                                <p className="text-xs font-semibold">PHP {formatCurrency(totalEarned)}</p>
+                                <p style={{ fontFamily: "var(--ed-mono)", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(252,250,245,0.55)" }}>
+                                    Earned
+                                </p>
+                                <p style={{ fontFamily: "var(--ed-serif)", fontSize: 16, fontVariantNumeric: "tabular-nums" }}>
+                                    ₱{formatCurrency(totalEarned)}
+                                </p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <TrendingDown className="w-3.5 h-3.5 text-orange-400" />
+                        <div className="flex items-center gap-2">
+                            <TrendingDown className="w-3.5 h-3.5" style={{ color: "#f4a261" }} />
                             <div>
-                                <p className="text-[10px] text-zinc-500">Withdrawn</p>
-                                <p className="text-xs font-semibold">PHP {formatCurrency(totalWithdrawn)}</p>
+                                <p style={{ fontFamily: "var(--ed-mono)", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(252,250,245,0.55)" }}>
+                                    Withdrawn
+                                </p>
+                                <p style={{ fontFamily: "var(--ed-serif)", fontSize: 16, fontVariantNumeric: "tabular-nums" }}>
+                                    ₱{formatCurrency(totalWithdrawn)}
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Withdraw Button */}
+                {/* Withdraw door — accent variant */}
                 <Button
                     onClick={handleStartWithdraw}
                     disabled={balance <= 0}
-                    className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl h-12 mb-2 shadow-lg shadow-emerald-500/20"
+                    className="ed-door ed-door-accent w-full mb-2"
+                    style={{ minHeight: 52, justifyContent: "center", fontSize: 15 }}
                 >
                     <ArrowDownRight className="w-5 h-5 mr-2" />
                     Withdraw Funds
                 </Button>
-                <p className="text-[11px] text-zinc-500 text-center mb-6">
+                <p
+                    className="text-center mb-6"
+                    style={{
+                        fontFamily: "var(--ed-sans)",
+                        fontSize: 11,
+                        color: "var(--ed-ink-3)",
+                    }}
+                >
                     Paid via Wise to{" "}
-                    <span className="font-semibold text-zinc-700">
+                    <span style={{ fontWeight: 600, color: "var(--ed-ink-2)" }}>
                         {creator.wiseEmail || "your Wise email"}
                     </span>
                     . You receive the full amount — Wise transfer fees are on us.
@@ -290,38 +376,99 @@ export default function WalletPage() {
 
                 {/* Recent Earnings */}
                 <div className="mb-6">
-                    <h2 className="text-base font-bold text-zinc-900 mb-3">Recent Earnings</h2>
+                    <p className="ed-label">§ History</p>
+                    <h2
+                        className="mt-1 mb-3"
+                        style={{
+                            fontFamily: "var(--ed-serif)",
+                            fontSize: 22,
+                            lineHeight: 1.15,
+                            letterSpacing: "-0.015em",
+                            color: "var(--ed-ink)",
+                        }}
+                    >
+                        Recent <em style={{ color: "var(--ed-accent)" }}>earnings</em>
+                    </h2>
                     <div className="space-y-3">
                         {earnings && earnings.length > 0 ? (
                             earnings.slice(0, 10).map((earning: any) => (
                                 <div
                                     key={earning._id}
-                                    className="bg-white rounded-xl p-3 border border-zinc-100 shadow-sm flex items-center justify-between"
+                                    className="p-3 flex items-center justify-between"
+                                    style={{
+                                        background: "var(--ed-paper-3)",
+                                        border: "1px solid var(--ed-rule)",
+                                        borderRadius: "var(--ed-radius-md)",
+                                    }}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
-                                            <TrendingUp className="w-5 h-5 text-emerald-500" />
+                                        <div
+                                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                                            style={{ background: "var(--ed-accent-bg)" }}
+                                        >
+                                            <TrendingUp className="w-5 h-5" style={{ color: "var(--ed-accent)" }} />
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-sm text-zinc-900">{earning.businessName}</h3>
-                                            <p className="text-[10px] text-zinc-500">
+                                            <h3
+                                                style={{
+                                                    fontFamily: "var(--ed-serif)",
+                                                    fontSize: 16,
+                                                    lineHeight: 1.2,
+                                                    color: "var(--ed-ink)",
+                                                }}
+                                            >
+                                                {earning.businessName}
+                                            </h3>
+                                            <p
+                                                className="mt-0.5"
+                                                style={{
+                                                    fontFamily: "var(--ed-mono)",
+                                                    fontSize: 10,
+                                                    letterSpacing: "0.1em",
+                                                    textTransform: "uppercase",
+                                                    color: "var(--ed-ink-3)",
+                                                }}
+                                            >
                                                 {earning.type === "submission_approved"
                                                     ? "Submission"
                                                     : earning.type === "referral_bonus"
-                                                      ? "Referral Bonus"
-                                                      : "Lead Bonus"}{" "}
+                                                      ? "Referral"
+                                                      : "Lead"}{" "}
                                                 · {formatDate(earning.createdAt)}
                                             </p>
                                         </div>
                                     </div>
-                                    <span className="text-sm font-bold text-emerald-600">
-                                        +PHP {formatCurrency(earning.amount)}
+                                    <span
+                                        style={{
+                                            fontFamily: "var(--ed-serif)",
+                                            fontSize: 18,
+                                            fontVariantNumeric: "tabular-nums",
+                                            color: "var(--ed-accent)",
+                                        }}
+                                    >
+                                        +₱{formatCurrency(earning.amount)}
                                     </span>
                                 </div>
                             ))
                         ) : (
-                            <div className="text-center py-6 bg-zinc-50 rounded-xl border border-dashed border-zinc-200">
-                                <p className="text-zinc-500 text-xs">No earnings yet.</p>
+                            <div
+                                className="text-center py-8"
+                                style={{
+                                    background: "var(--ed-paper-2)",
+                                    border: "1px dashed var(--ed-rule-strong)",
+                                    borderRadius: "var(--ed-radius-md)",
+                                }}
+                            >
+                                <p
+                                    style={{
+                                        fontFamily: "var(--ed-serif)",
+                                        fontSize: 16,
+                                        fontStyle: "italic",
+                                        color: "var(--ed-ink-2)",
+                                    }}
+                                >
+                                    No earnings yet.
+                                </p>
                             </div>
                         )}
                     </div>

@@ -23,7 +23,8 @@ export default defineSchema({
         status: v.optional(v.string()),  // v.string() for cross-deploy safety
         profileImage: v.optional(v.string()),
         wiseEmail: v.optional(v.string()),
-        certifiedAt: v.optional(v.number()),
+        certifiedAt: v.optional(v.number()),     // Timestamp when admin APPROVED the creator
+        quizPassedAt: v.optional(v.number()),    // Timestamp when creator passed onboarding quiz (awaiting admin approval)
         isDeleted: v.optional(v.boolean()),
         deletedAt: v.optional(v.number()),
         // Admin-only extras (kept as optional, mobile doesn't have these)
@@ -309,6 +310,13 @@ export default defineSchema({
         message: v.optional(v.string()),
         status: v.string(), // "new" | "contacted" | "qualified" | "converted" | "lost"
         createdAt: v.number(),
+        // Admin-curated social content (mobile renders FB-style card when present)
+        adminDescription: v.optional(v.string()),         // marketing copy (max 500 chars enforced in mutation)
+        previewImageUrl: v.optional(v.string()),          // R2 public URL of uploaded image
+        previewImageStorageKey: v.optional(v.string()),   // R2 storage key (for replace / delete)
+        externalPreviewUrl: v.optional(v.string()),       // external link admin wants featured
+        adminUpdatedAt: v.optional(v.number()),
+        adminUpdatedBy: v.optional(v.string()),           // Clerk ID of admin who edited
     })
         .index('by_submission', ['submissionId'])
         .index('by_creator', ['creatorId'])
