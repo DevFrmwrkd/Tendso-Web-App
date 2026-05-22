@@ -100,25 +100,18 @@ export default function ShowcaseSection({
                     </div>
                 </div>
 
-                <div
-                    style={{
-                        display: "flex",
-                        gap: 16,
-                        flexWrap: "wrap",
-                        marginBottom: 16,
-                        alignItems: "center",
-                    }}
-                >
-                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 mb-4">
+                    <div className="flex gap-2 flex-wrap">
                         {CATEGORIES.map((c) => (
                             <Pill key={c} active={category === c} onClick={() => setCategory(c)}>{c}</Pill>
                         ))}
                     </div>
-                    <div style={{ marginLeft: "auto", display: "flex", gap: 8, alignItems: "center" }}>
+                    <div className="flex flex-wrap gap-2 items-center w-full sm:w-auto sm:ml-auto">
                         <input
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search shop or city…"
+                            className="flex-1 sm:flex-none w-full sm:w-[220px]"
                             style={{
                                 padding: "8px 14px",
                                 fontFamily: "var(--neo-sans)",
@@ -127,7 +120,6 @@ export default function ShowcaseSection({
                                 background: "var(--neo-paper-3)",
                                 color: "var(--neo-ink)",
                                 borderRadius: "var(--neo-r-pill)",
-                                width: 220,
                                 outline: "none",
                             }}
                         />
@@ -160,12 +152,9 @@ export default function ShowcaseSection({
 
                 {!listMode ? (
                     <div
+                        className="mt-6 w-full h-[420px] sm:h-[500px] lg:h-[560px] overflow-hidden"
                         style={{
-                            marginTop: 24,
-                            height: 560,
-                            width: "100%",
                             borderRadius: "var(--neo-r-xl)",
-                            overflow: "hidden",
                             border: "1px solid var(--neo-rule)",
                         }}
                     >
@@ -178,14 +167,7 @@ export default function ShowcaseSection({
                         />
                     </div>
                 ) : (
-                    <div
-                        style={{
-                            marginTop: 24,
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-                            gap: 16,
-                        }}
-                    >
+                    <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredBusinesses.map((b) => (
                             <a
                                 key={b.id}

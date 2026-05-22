@@ -481,6 +481,8 @@ export const listPendingApproval = query({
                 referredByCode: c.referredByCode ?? null,
                 referredByName: c.referredByName ?? null,
             }))
-            .sort((a, b) => b.quizPassedAt - a.quizPassedAt);
+            // Oldest-pending first — admins should handle the longest-waiting
+            // creator at the top of the queue (per DIAGNOSIS-APPROVAL.md).
+            .sort((a, b) => a.quizPassedAt - b.quizPassedAt);
     },
 });

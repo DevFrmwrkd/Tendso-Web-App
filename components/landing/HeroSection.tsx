@@ -55,9 +55,8 @@ function DoorButton({
     return (
         <Link
             href={href}
-            className={`door door-${kind}`}
+            className={`door door-${kind} p-5 sm:p-7`}
             style={{
-                padding: "28px 28px",
                 flexDirection: "column",
                 alignItems: "flex-start",
                 gap: 0,
@@ -65,20 +64,20 @@ function DoorButton({
                 display: "inline-flex",
             }}
         >
-            <span className="meta" style={{ marginBottom: 16 }}>
+            <span className="meta" style={{ marginBottom: 12 }}>
                 {sub} <span className="arrow"><ArrowUpRightIcon /></span>
             </span>
             <span
+                className="text-[28px] sm:text-[34px] lg:text-[38px]"
                 style={{
                     fontFamily: "var(--neo-serif)",
-                    fontSize: 38,
-                    lineHeight: 0.96,
+                    lineHeight: 0.98,
                     letterSpacing: "-.02em",
                 }}
             >
                 {title}
             </span>
-            <span style={{ fontSize: 13, opacity: 0.85, marginTop: 14, lineHeight: 1.5 }}>{note}</span>
+            <span style={{ fontSize: 13, opacity: 0.85, marginTop: 12, lineHeight: 1.5 }}>{note}</span>
         </Link>
     );
 }
@@ -95,17 +94,9 @@ export default function HeroSection() {
     const hm = T.hero_main;
 
     return (
-        <section style={{ paddingTop: 56, paddingBottom: 48 }}>
+        <section className="pt-12 pb-12 sm:pt-14 sm:pb-12">
             <div className="container-wide">
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "minmax(0, 1.55fr) minmax(280px, 1fr)",
-                        gap: 56,
-                        alignItems: "end",
-                        marginBottom: 48,
-                    }}
-                >
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.55fr)_minmax(280px,1fr)] gap-10 lg:gap-14 lg:items-end mb-10 lg:mb-12">
                     <div>
                         <div
                             className="eyebrow"
@@ -189,9 +180,9 @@ export default function HeroSection() {
                     </div>
                 </div>
 
-                <div style={{ paddingTop: 32, borderTop: "1px solid var(--neo-rule-strong)" }}>
+                <div className="pt-8" style={{ borderTop: "1px solid var(--neo-rule-strong)" }}>
                     <div className="label" style={{ marginBottom: 16 }}>Pick a door</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                         <DoorButton
                             kind="business"
                             href="/for-business"

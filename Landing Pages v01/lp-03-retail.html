@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Maple & Iron Hardware — neighborhood hardware store in Portland, OR</title>
+<meta name="description" content="Maple & Iron is a family-owned hardware store and small workshop in Northeast Portland, OR. Tools, fasteners, paint, key cutting, knife sharpening — open six days." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: {
+    name: "Maple & Iron Hardware",
+    tagline: "Tools, paint, fasteners, advice",
+    phone: "+1 503 555 0184",
+    phoneDisplay: "(503) 555-0184",
+    email: "shop@mapleandiron.com",
+    foundedYear: 1978
+  },
+  hero: {
+    kicker: "NE Alberta · est. 1978 · since the second oil shock",
+    headline: "Three aisles, ten thousand things, one person who knows where they all are.",
+    lede: "Maple & Iron is a small hardware store on NE Alberta. We've been here since 1978 and we still cut keys, mix paint, sharpen knives, and rent out the floor sander on weekends.",
+    primaryCta: { label: "Directions", href: "#location" },
+    secondaryCta: { label: "Call the counter", href: "tel:+15035550184" },
+    image: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=1800&q=85&auto=format&fit=crop",
+    imageAlt: "Wall of hand tools — wrenches and hammers hung in size order."
+  },
+  trust: {
+    years: "Family-run on NE Alberta since 1978",
+    licenses: ["OR Reg. № 121-447", "EPA RRP-certified for lead-safe paint"],
+    memberships: ["True Value Independent", "NE Portland Business Association"]
+  },
+  about: {
+    heading: "A small store that fixes things.",
+    paragraphs: [
+      "Maple & Iron opened on NE Alberta in 1978 with a single till, a key machine, and a paint mixer Dad bought from a closing-down sale in Aloha. Two of those three are still here.",
+      "We're the second generation now — and the first generation still comes in on Saturdays, mostly to argue about how we've rearranged the screw bins. The store is one room and a workshop in the back. If we don't have it we'll tell you where to get it.",
+      "We don't carry everything. We carry the right thing. And if you bring in a broken hinge or a snapped pull cord, we'll often have a workable answer for you in five minutes."
+    ],
+    portrait: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=1400&q=85&auto=format&fit=crop",
+    portraitAlt: "Pegboard wall of hand tools, late afternoon light."
+  },
+  services: [
+    { name: "Tool & hardware floor", description: "Hand and power tools, fasteners, abrasives, adhesives. Specialty bins by the back wall." },
+    { name: "Paint mixing", description: "Benjamin Moore and Devine. Quart minimums on custom matches; we keep your formula on file." },
+    { name: "Key cutting", description: "House, mailbox, padlock, auto transponders by the day clerk." },
+    { name: "Knife & blade sharpening", description: "Drop off weekdays, pick up Friday. Kitchen, garden, plane irons, chisels." },
+    { name: "Tool rental", description: "Floor sander, tile saw, pressure washer, post-hole digger. By the day, by the weekend." },
+    { name: "Window screens & repair", description: "Re-screen any size, glass replacement up to 24×36, hinge and latch repair." }
+  ],
+  why: [
+    { title: "Years on Alberta", body: "Since 1978 — 47 of them, give or take a fire." },
+    { title: "Single-bin specialty fasteners", body: "Loose-bin sheet metal, machine, drywall, deck and roofing screws by the each." },
+    { title: "EPA RRP-certified paint advice", body: "We know what you can and can't sand on a 1925 craftsman porch." },
+    { title: "Locally owned, locally answered", body: "If you call, you get a person who has stood at that till for at least a decade." }
+  ],
+  how: [
+    { step: "01", title: "Walk in", body: "We're a one-room store. Whoever is on the floor is the person to ask." },
+    { step: "02", title: "Tell us what broke", body: "Bring the part if you can. Bring a photo if you can't. Bring the dimensions if it's neither." },
+    { step: "03", title: "We find or order", body: "If we don't carry it we'll order it. Most items in by Thursday." },
+    { step: "04", title: "Pay at the front", body: "Cards, cash, check. No, you don't need an account. Yes, we know your neighbor." }
+  ],
+  testimonials: [
+    { quote: "I've taken four broken cabinet hinges to Maple & Iron and walked out with the exact ones every time. I do not understand how they do it.", name: "Tomás L.", context: "Concordia" },
+    { quote: "They sharpened my grandmother's paring knife so well I cut myself reaching into the drawer. Worth it.", name: "Becca H.", context: "Alameda" },
+    { quote: "The advice is the product. The hardware is a freebie that comes with the advice.", name: "Yusuf A.", context: "general contractor, NE Portland" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=1200&q=85&auto=format&fit=crop", alt: "Hand-tool pegboard wall." },
+    { src: "https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=1200&q=85&auto=format&fit=crop", alt: "Bin of assorted bolts and washers." },
+    { src: "https://images.unsplash.com/photo-1503602642458-232111445657?w=1200&q=85&auto=format&fit=crop", alt: "Workshop bench with woodworking tools." },
+    { src: "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=1200&q=85&auto=format&fit=crop", alt: "Storefront on NE Alberta — painted wood sign." },
+    { src: "https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=1200&q=85&auto=format&fit=crop", alt: "Paint cans stacked on shelves." },
+    { src: "https://images.unsplash.com/photo-1597106776019-b4ecc878c202?w=1200&q=85&auto=format&fit=crop", alt: "Closeup of nails and washers in a drawer." }
+  ],
+  faq: [
+    { q: "Do you take phone orders?", a: "We'll happily pull and hold an item for you. Call the counter, give us 45 minutes, and we'll have it bagged at the till. Card on file for pickups over $50." },
+    { q: "Do you carry plumbing parts?", a: "Common residential — yes. Compression fittings, P-traps, supply lines, wax rings, drain snakes. Commercial sizes we'll order." },
+    { q: "How does tool rental work?", a: "By the day or by the weekend. Photo ID and a card on file. Pick up after 9, return by 5. Weekend rentals leave Friday at 4 and come back Monday at 10." },
+    { q: "Do you sharpen serrated knives?", a: "Yes, including offset and Wüsthof bread knives. Drop-off Monday through Wednesday, pickup Friday after 2." },
+    { q: "Do you match paint from a chip?", a: "Most of the time. Bring in a chip the size of a dime or bigger; we'll spectrometer-match and mix the smallest amount that gets you safely through your job." },
+    { q: "Do you sell propane refills?", a: "Yes — 20lb and 30lb tanks. We refill, not exchange, so you keep your tank." },
+    { q: "Are you the same family that ran the store in the 80s?", a: "Yes. Second generation now, with the first still showing up on Saturdays." }
+  ],
+  area: {
+    heading: "We serve",
+    places: ["Concordia", "Alameda", "Sabin", "Vernon", "King", "Beaumont-Wilshire", "Cully", "Irvington", "Woodlawn"]
+  },
+  credentials: [
+    { label: "Oregon Reg. №", detail: "121-447 — continuous since 1978" },
+    { label: "EPA RRP", detail: "Lead-safe renovation, repair, and painting certified" },
+    { label: "True Value Independent", detail: "Co-op member since 1981" },
+    { label: "NE Portland Business Assn.", detail: "Founding member" }
+  ],
+  location: {
+    name: "Maple & Iron Hardware",
+    addressStreet: "2914 NE Alberta St",
+    addressLocality: "Portland",
+    addressRegion: "OR",
+    addressPostcode: "97211",
+    addressCountry: "USA"
+  },
+  cta: {
+    heading: "Bring the broken thing.",
+    body: "Mon–Sat the counter is open. Sundays we sharpen.",
+    primary: { label: "Get directions", href: "#location" },
+    secondary: { label: "(503) 555-0184", href: "tel:+15035550184" }
+  },
+  messaging: {
+    whatsapp: "https://wa.me/15035550184",
+    messenger: "https://m.me/mapleandiron"
+  }
+};
+</script>
+
+<style>
+  :root {
+    --paper:    #ebe8df;
+    --paper-2:  #e1ddd1;
+    --ink:      #14181f;
+    --ink-soft: #4a525c;
+    --rule:     #c9c4b6;
+    --blueprint: #1c3a5e;
+    --safety:   #c84a14;
+    --shop:     #25303a;
+    --grid:     rgba(28,58,94,0.08);
+
+    --sans: "Space Grotesk", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+    background-position: -1px -1px;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  .wrap { width: min(1320px, 94vw); margin-inline: auto; }
+  .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blueprint); }
+  .h2 { font-family: var(--sans); font-weight: 600; font-size: clamp(32px, 4.4vw, 60px); line-height: 1.02; letter-spacing: -0.02em; margin: 0 0 0.4em; }
+  .body { font-size: 16px; line-height: 1.6; color: var(--ink-soft); }
+  section { padding: clamp(64px, 8vw, 112px) 0; }
+
+  /* Bordered section frame — blueprint-y */
+  .frame { border: 1px solid var(--rule); background: var(--paper); position: relative; }
+  .frame::before, .frame::after { content: ""; position: absolute; width: 8px; height: 8px; background: var(--ink); }
+  .frame::before { top: -4px; left: -4px; }
+  .frame::after { bottom: -4px; right: -4px; }
+  .corners { position: relative; }
+  .corners::before, .corners::after { content: ""; position: absolute; width: 12px; height: 12px; border: 1.5px solid var(--blueprint); }
+  .corners::before { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+  .corners::after { top: -1px; right: -1px; border-left: 0; border-bottom: 0; }
+
+  /* NAV */
+  .nav { background: var(--paper); border-bottom: 1px solid var(--rule); position: sticky; top: 0; z-index: 50; }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
+  .wordmark { font-family: var(--sans); font-size: 18px; font-weight: 700; letter-spacing: -0.02em; text-decoration: none; }
+  .wordmark .amp { color: var(--safety); }
+  .nav-stamp { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; padding: 4px 8px; border: 1px solid var(--ink); margin-left: 8px; }
+  .nav-links { display: flex; gap: 24px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .nav-links a { text-decoration: none; }
+  .nav-cta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; padding: 10px 14px; background: var(--ink); color: var(--paper); text-decoration: none; }
+  .nav-cta:hover { background: var(--safety); }
+  @media (max-width: 760px) { .nav-links { display: none; } }
+
+  /* HERO v5 — blueprint */
+  .hero { padding: 40px 0; }
+  .hero-frame { border: 1px solid var(--ink); background: var(--paper); padding: clamp(28px, 4vw, 56px); position: relative; }
+  .hero-tag-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); padding-bottom: 24px; border-bottom: 1px dashed var(--rule); margin-bottom: 40px; }
+  .hero-tag-row strong { color: var(--blueprint); }
+  .hero-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(28px, 4vw, 56px); align-items: end; }
+  .hero h1 { font-family: var(--sans); font-weight: 600; font-size: clamp(36px, 5.6vw, 78px); line-height: 0.96; letter-spacing: -0.025em; margin: 0 0 24px; }
+  .hero h1 mark { background: var(--safety); color: var(--paper); padding: 0 6px; }
+  .hero .lede { font-size: clamp(16px, 1.5vw, 18px); line-height: 1.55; color: var(--ink-soft); max-width: 42ch; }
+  .hero-ctas { margin-top: 28px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 18px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; text-decoration: none; border: 1px solid var(--ink); transition: 0.18s; }
+  .btn-primary { background: var(--safety); color: var(--paper); border-color: var(--safety); }
+  .btn-primary:hover { background: var(--ink); border-color: var(--ink); }
+  .btn-ghost:hover { background: var(--ink); color: var(--paper); }
+  .hero-image { aspect-ratio: 4/3; overflow: hidden; border: 1px solid var(--ink); position: relative; }
+  .hero-image img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-image .image-tag { position: absolute; top: 12px; left: 12px; background: var(--paper); border: 1px solid var(--ink); padding: 4px 8px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .hero-coords { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 36px; padding-top: 24px; border-top: 1px dashed var(--rule); font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+  @media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; } }
+
+  /* TRUST */
+  .trust { padding: 0; }
+  .trust-strip { background: var(--ink); color: var(--paper); padding: 18px 0; margin: 0; }
+  .trust-strip .row { display: flex; gap: 32px; align-items: center; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; }
+  .trust-strip .row .dot { width: 6px; height: 6px; background: var(--safety); border-radius: 0; }
+
+  /* ABOUT */
+  .about-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: clamp(32px, 5vw, 80px); }
+  .about-grid img { aspect-ratio: 4/3; object-fit: cover; width: 100%; border: 1px solid var(--ink); }
+  .about-prose p { font-size: 18px; line-height: 1.55; margin: 0 0 1em; }
+  .about-prose p:last-child { margin: 0; }
+  .about-stamp { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blueprint); border: 1px dashed var(--blueprint); padding: 8px 12px; margin-bottom: 24px; display: inline-block; }
+  @media (max-width: 880px) { .about-grid { grid-template-columns: 1fr; } }
+
+  /* SERVICES (numbered table) */
+  .services { background: transparent; }
+  .svc-head { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: end; margin-bottom: 32px; }
+  .svc-table { border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+  .svc-row { display: grid; grid-template-columns: 60px 220px 1fr 80px; gap: 20px; padding: 24px 0; align-items: baseline; border-bottom: 1px solid var(--rule); }
+  .svc-row:last-child { border-bottom: 0; }
+  .svc-row .num { font-family: var(--mono); font-size: 12px; color: var(--safety); letter-spacing: 0.14em; }
+  .svc-row .name { font-family: var(--sans); font-weight: 600; font-size: 22px; letter-spacing: -0.01em; }
+  .svc-row .desc { color: var(--ink-soft); font-size: 15px; }
+  .svc-row .ref { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--ink-soft); text-align: right; }
+  @media (max-width: 760px) { .svc-row { grid-template-columns: 50px 1fr; } .svc-row .desc, .svc-row .ref { grid-column: 1 / -1; padding-left: 70px; } .svc-row .ref { text-align: left; } }
+
+  /* WHY (spec sheet) */
+  .why-card { background: var(--shop); color: var(--paper); padding: clamp(40px, 5vw, 80px) clamp(28px, 4vw, 56px); border: 1px solid var(--ink); }
+  .why-card .h2 { color: var(--paper); }
+  .why-table { display: grid; grid-template-columns: 1fr; margin-top: 32px; border-top: 1px solid rgba(255,255,255,0.18); }
+  .why-table .row { display: grid; grid-template-columns: 60px 1fr 2fr; gap: 20px; padding: 22px 0; border-bottom: 1px solid rgba(255,255,255,0.18); align-items: baseline; }
+  .why-table .ref { font-family: var(--mono); font-size: 11px; color: var(--safety); }
+  .why-table .label { font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(235,232,223,0.7); }
+  .why-table .val { font-family: var(--sans); font-weight: 600; font-size: 22px; line-height: 1.2; }
+  @media (max-width: 760px) { .why-table .row { grid-template-columns: 1fr; gap: 4px; } }
+
+  /* HOW */
+  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 36px; border-top: 1px solid var(--ink); }
+  .how-grid > li { list-style: none; padding: 28px 24px; border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule); position: relative; }
+  .how-grid > li:last-child { border-right: 0; }
+  .how-grid .step { position: absolute; top: 12px; right: 14px; font-family: var(--mono); font-size: 11px; color: var(--safety); }
+  .how-grid h3 { font-family: var(--sans); font-weight: 600; font-size: 20px; margin: 0 0 10px; letter-spacing: -0.01em; }
+  .how-grid p { color: var(--ink-soft); margin: 0; font-size: 14px; }
+  @media (max-width: 760px) { .how-grid { grid-template-columns: 1fr 1fr; } .how-grid > li:nth-child(2n) { border-right: 0; } }
+
+  /* TESTIMONIALS — cards */
+  .quotes-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; }
+  .quote-card { background: var(--paper); padding: 28px; border: 1px solid var(--ink); position: relative; }
+  .quote-card::before { content: '"'; position: absolute; top: -4px; left: 16px; background: var(--paper); padding: 0 8px; font-family: var(--mono); font-size: 28px; color: var(--safety); line-height: 1; }
+  .quote-card blockquote { font-family: var(--sans); font-size: 18px; line-height: 1.4; margin: 0 0 18px; font-weight: 500; }
+  .quote-card .who { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--blueprint); }
+  @media (max-width: 760px) { .quotes-row { grid-template-columns: 1fr; } }
+
+  /* GALLERY — contact sheet */
+  .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--ink); border: 1px solid var(--ink); margin-top: 36px; }
+  .gallery-grid figure { background: var(--paper); margin: 0; padding: 8px; }
+  .gallery-grid img { aspect-ratio: 4/3; object-fit: cover; width: 100%; }
+  .gallery-grid figcaption { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); margin-top: 8px; padding: 0 4px 4px; display: flex; justify-content: space-between; }
+  @media (max-width: 760px) { .gallery-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* FAQ */
+  .faq-head { display: grid; grid-template-columns: 1fr 1.4fr; gap: 60px; margin-bottom: 32px; }
+  .faq-list { border-top: 2px solid var(--ink); }
+  .faq-list details { border-bottom: 1px solid var(--rule); padding: 20px 0; }
+  .faq-list summary { font-family: var(--sans); font-weight: 600; font-size: 18px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: baseline; gap: 20px; }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after { content: "[ + ]"; font-family: var(--mono); font-size: 11px; color: var(--safety); }
+  .faq-list details[open] summary::after { content: "[ − ]"; }
+  .faq-list p { margin: 14px 0 0; max-width: 64ch; color: var(--ink-soft); font-size: 15px; }
+  @media (max-width: 760px) { .faq-head { grid-template-columns: 1fr; } }
+
+  /* AREA */
+  .area-strip { display: flex; flex-wrap: wrap; gap: 0; margin-top: 32px; border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .area-strip li { list-style: none; padding: 18px 20px; border-right: 1px solid var(--rule); font-family: var(--sans); font-weight: 500; font-size: 18px; }
+  .area-strip li::before { content: "■ "; color: var(--safety); }
+
+  /* CREDENTIALS */
+  .creds { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--ink); border: 1px solid var(--ink); margin-top: 32px; }
+  .creds > div { background: var(--paper); padding: 24px; }
+  .creds .label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blueprint); margin-bottom: 8px; }
+  .creds .detail { font-family: var(--sans); font-weight: 600; font-size: 18px; line-height: 1.3; }
+
+  /* LOCATION */
+  .loc-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 32px; margin-top: 36px; }
+  .nap { padding: 28px; border: 1px solid var(--ink); background: var(--paper); }
+  .nap address { font-style: normal; font-family: var(--sans); font-weight: 500; font-size: 20px; line-height: 1.4; }
+  .hours { font-family: var(--mono); font-size: 12px; margin-top: 24px; border-top: 1px solid var(--rule); padding-top: 18px; }
+  .hours .row { display: flex; justify-content: space-between; padding: 4px 0; }
+  .hours .day { color: var(--ink-soft); letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; }
+  .hours .gbp-note { font-family: var(--sans); font-size: 12px; color: var(--ink-soft); margin-top: 16px; line-height: 1.5; letter-spacing: 0; text-transform: none; }
+  .map-frame { border: 1px solid var(--ink); min-height: 380px; background: var(--paper-2); }
+  .map-frame iframe { width: 100%; height: 100%; border: 0; min-height: 380px; }
+  @media (max-width: 880px) { .loc-grid { grid-template-columns: 1fr; } }
+
+  /* CTA BAND */
+  .cta-band { background: var(--safety); color: var(--paper); padding: 80px 0; }
+  .cta-band h2 { font-family: var(--sans); font-weight: 700; font-size: clamp(36px, 5vw, 64px); line-height: 0.98; margin: 0 0 18px; max-width: 22ch; letter-spacing: -0.02em; }
+  .cta-band p { color: rgba(255,255,255,0.85); max-width: 50ch; margin: 0 0 28px; }
+  .cta-band .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cta-band .btn-primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .cta-band .btn-ghost { color: var(--paper); border-color: var(--paper); }
+  .cta-band .btn-ghost:hover { background: var(--paper); color: var(--ink); }
+
+  /* FOOTER */
+  footer { background: var(--ink); color: var(--paper); padding: 56px 0 32px; }
+  .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px; }
+  .footer-grid h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(235,232,223,0.7); margin: 0 0 14px; font-weight: 500; }
+  .footer-grid a { text-decoration: none; display: block; padding: 4px 0; color: var(--paper); font-size: 14px; }
+  .footer-grid a:hover { color: var(--safety); }
+  .colophon { margin-top: 56px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.18); display: flex; justify-content: space-between; flex-wrap: wrap; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(235,232,223,0.6); }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr; } }
+
+  /* MSG FAB */
+  .msg-fab { position: fixed; right: 20px; bottom: 20px; z-index: 100; }
+  .msg-fab a { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--paper); padding: 12px 18px; text-decoration: none; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; border: 1px solid var(--paper); box-shadow: 0 4px 16px rgba(20,24,31,0.3); }
+  .msg-fab a:hover { background: var(--safety); border-color: var(--safety); }
+  .msg-fab svg { width: 14px; height: 14px; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Store",
+  "name": "Maple & Iron Hardware",
+  "description": "Family-owned hardware store and workshop in NE Portland, OR.",
+  "url": "https://mapleandiron.com/",
+  "telephone": "+15035550184",
+  "email": "shop@mapleandiron.com",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "2914 NE Alberta St",
+    "addressLocality": "Portland",
+    "addressRegion": "OR",
+    "postalCode": "97211",
+    "addressCountry": "US"
+  },
+  "geo": { "@type": "GeoCoordinates", "latitude": 45.5589, "longitude": -122.6363 },
+  "areaServed": ["Concordia", "Alameda", "Sabin", "Vernon"],
+  "image": ["https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=1600"],
+  "foundingDate": "1978"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Do you take phone orders?","acceptedAnswer":{"@type":"Answer","text":"Yes — call the counter and we'll pull and hold. Card on file for pickups over $50."}},
+    {"@type":"Question","name":"Do you carry plumbing parts?","acceptedAnswer":{"@type":"Answer","text":"Common residential — yes. Commercial sizes we'll order."}},
+    {"@type":"Question","name":"How does tool rental work?","acceptedAnswer":{"@type":"Answer","text":"By the day or by the weekend. Photo ID and a card on file. Weekend rentals leave Friday at 4 and come back Monday at 10."}},
+    {"@type":"Question","name":"Do you sharpen serrated knives?","acceptedAnswer":{"@type":"Answer","text":"Yes. Drop-off Monday through Wednesday, pickup Friday after 2."}},
+    {"@type":"Question","name":"Do you match paint from a chip?","aacceptedAnswer":{"@type":"Answer","text":"Most of the time. Bring a chip the size of a dime or bigger."}},
+    {"@type":"Question","name":"Do you sell propane refills?","acceptedAnswer":{"@type":"Answer","text":"Yes — 20lb and 30lb. We refill, not exchange."}},
+    {"@type":"Question","name":"Are you the same family that ran the store in the 80s?","acceptedAnswer":{"@type":"Answer","text":"Yes — second generation now, with the first showing up Saturdays."}}
+  ]
+}
+</script>
+
+<script type="application/json" id="lp-config">
+{
+  "business": "name, tagline, phone, phoneDisplay, email, foundedYear",
+  "hero": "kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt",
+  "trust": "years, licenses[], memberships[]",
+  "about": "heading, paragraphs[], portrait, portraitAlt",
+  "services": "Array<{name, description}>",
+  "why": "Array<{title, body}>",
+  "how": "Array<{step, title, body}>",
+  "testimonials": "Array<{quote, name, context}>",
+  "gallery": "Array<{src, alt}>",
+  "faq": "Array<{q, a}>",
+  "area": "{heading, places[]}",
+  "credentials": "Array<{label, detail}>",
+  "location": "PostalAddress",
+  "cta": "CTA copy",
+  "messaging": "{whatsapp, messenger}"
+}
+</script>
+</head>
+
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <div style="display:flex; align-items:center;">
+      <a class="wordmark" href="#" data-bind="business.name">MAPLE <span class="amp">&</span> IRON</a>
+      <span class="nav-stamp">EST. 1978</span>
+    </div>
+    <nav class="nav-links">
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="#location">Find us</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="nav-cta" href="tel:+15035550184">(503) 555-0184</a>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v5">
+  <div class="wrap">
+    <div class="hero-frame">
+      <div class="hero-tag-row">
+        <span><strong>DRAWING №</strong> 78-001 · NE ALBERTA ST</span>
+        <span data-bind="hero.kicker">NE ALBERTA · EST. 1978 · SINCE THE SECOND OIL SHOCK</span>
+        <span>45.5589°N / 122.6363°W</span>
+      </div>
+      <div class="hero-grid">
+        <div>
+          <h1 data-bind="hero.headline">Three aisles, ten thousand things, one person who knows <mark>where they all are.</mark></h1>
+          <p class="lede" data-bind="hero.lede">Maple & Iron is a small hardware store on NE Alberta. We've been here since 1978 and we still cut keys, mix paint, sharpen knives, and rent out the floor sander on weekends.</p>
+          <div class="hero-ctas">
+            <a class="btn btn-primary" href="#location" data-bind="hero.primaryCta.label">Get directions</a>
+            <a class="btn btn-ghost" href="tel:+15035550184" data-bind="hero.secondaryCta.label">Call the counter</a>
+          </div>
+        </div>
+        <div>
+          <div class="hero-image">
+            <span class="image-tag">FIG. 01 · INTERIOR · TOOL WALL</span>
+            <img src="https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=1800&q=85&auto=format&fit=crop"
+                 alt="Wall of hand tools — wrenches and hammers hung in size order."
+                 data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+          </div>
+        </div>
+      </div>
+      <div class="hero-coords">
+        <span>SHEET 01 / 04</span>
+        <span>SCALE — 1 : 1</span>
+        <span>REV — 2026.05</span>
+        <span>DRAWN BY — THE STORE</span>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1">
+  <div class="trust-strip">
+    <div class="wrap row">
+      <span class="dot"></span><span data-bind="trust.years">FAMILY-RUN SINCE 1978</span>
+      <span class="dot"></span><span>OR REG. № 121-447</span>
+      <span class="dot"></span><span>EPA RRP-CERTIFIED</span>
+      <span class="dot"></span><span>TRUE VALUE INDEPENDENT</span>
+      <!-- GBP-bound rating slot: do not hardcode rating/review count. -->
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v3">
+  <div class="wrap about-grid">
+    <div>
+      <div class="about-stamp">FILE 02 · ABOUT THE STORE</div>
+      <h2 class="h2" data-bind="about.heading">A small store that fixes things.</h2>
+      <div class="about-prose">
+        <p>Maple & Iron opened on NE Alberta in 1978 with a single till, a key machine, and a paint mixer Dad bought from a closing-down sale in Aloha. Two of those three are still here.</p>
+        <p>We're the second generation now — and the first generation still comes in on Saturdays, mostly to argue about how we've rearranged the screw bins. The store is one room and a workshop in the back. If we don't have it we'll tell you where to get it.</p>
+        <p>We don't carry everything. We carry the right thing. And if you bring in a broken hinge or a snapped pull cord, we'll often have a workable answer for you in five minutes.</p>
+      </div>
+    </div>
+    <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+         src="https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=1400&q=85&auto=format&fit=crop"
+         alt="Pegboard wall of hand tools, late afternoon light." />
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="services" data-component="SERVICES" data-variant="v3">
+  <div class="wrap">
+    <div class="svc-head">
+      <div>
+        <div class="kicker">FILE 03 · WHAT WE DO</div>
+        <h2 class="h2">Services & departments.</h2>
+      </div>
+      <p class="body" style="max-width: 38ch;">A short list. Everything else is what's on the floor. If you don't see it, ask the person nearest the till.</p>
+    </div>
+    <div class="svc-table">
+      <div class="svc-row"><span class="num">№ 01</span><span class="name">Tool & hardware floor</span><span class="desc">Hand and power tools, fasteners, abrasives, adhesives. Specialty bins by the back wall.</span><span class="ref">AISLE A1–A3</span></div>
+      <div class="svc-row"><span class="num">№ 02</span><span class="name">Paint mixing</span><span class="desc">Benjamin Moore and Devine. Quart minimums on custom matches; we keep your formula on file.</span><span class="ref">COUNTER L</span></div>
+      <div class="svc-row"><span class="num">№ 03</span><span class="name">Key cutting</span><span class="desc">House, mailbox, padlock, auto transponders by the day clerk.</span><span class="ref">COUNTER R</span></div>
+      <div class="svc-row"><span class="num">№ 04</span><span class="name">Knife & blade sharpening</span><span class="desc">Drop off weekdays, pick up Friday. Kitchen, garden, plane irons, chisels.</span><span class="ref">WORKSHOP</span></div>
+      <div class="svc-row"><span class="num">№ 05</span><span class="name">Tool rental</span><span class="desc">Floor sander, tile saw, pressure washer, post-hole digger. By the day, by the weekend.</span><span class="ref">BACK ROOM</span></div>
+      <div class="svc-row"><span class="num">№ 06</span><span class="name">Window screens & repair</span><span class="desc">Re-screen any size, glass replacement up to 24×36, hinge and latch repair.</span><span class="ref">WORKSHOP</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section data-component="WHY-US" data-variant="v3">
+  <div class="wrap">
+    <div class="why-card">
+      <div class="kicker" style="color: rgba(235,232,223,0.6);">FILE 04 · SPECIFICATIONS</div>
+      <h2 class="h2">Why people come back.</h2>
+      <div class="why-table">
+        <div class="row"><span class="ref">SPEC 01</span><span class="label">Years on Alberta</span><span class="val">Since 1978 — 47 of them, give or take a fire.</span></div>
+        <div class="row"><span class="ref">SPEC 02</span><span class="label">Single-bin specialty fasteners</span><span class="val">Loose-bin sheet metal, machine, drywall, deck and roofing screws by the each.</span></div>
+        <div class="row"><span class="ref">SPEC 03</span><span class="label">EPA RRP-certified paint advice</span><span class="val">We know what you can and can't sand on a 1925 craftsman porch.</span></div>
+        <div class="row"><span class="ref">SPEC 04</span><span class="label">Locally owned, locally answered</span><span class="val">If you call, you get a person who has stood at that till for at least a decade.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">FILE 05 · WORKFLOW</div>
+    <h2 class="h2">From the door to the till.</h2>
+    <ol class="how-grid">
+      <li><div class="step">STEP 01</div><h3>Walk in</h3><p>We're a one-room store. Whoever is on the floor is the person to ask.</p></li>
+      <li><div class="step">STEP 02</div><h3>Tell us what broke</h3><p>Bring the part if you can. Bring a photo if you can't. Bring the dimensions if it's neither.</p></li>
+      <li><div class="step">STEP 03</div><h3>We find or order</h3><p>If we don't carry it we'll order it. Most items in by Thursday.</p></li>
+      <li><div class="step">STEP 04</div><h3>Pay at the front</h3><p>Cards, cash, check. No, you don't need an account. Yes, we know your neighbor.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section data-component="TESTIMONIALS" data-variant="v3">
+  <div class="wrap">
+    <div class="kicker">FILE 06 · REGULARS</div>
+    <h2 class="h2">Things people have said at the counter.</h2>
+    <div class="quotes-row">
+      <article class="quote-card"><blockquote>I've taken four broken cabinet hinges to Maple & Iron and walked out with the exact ones every time. I do not understand how they do it.</blockquote><div class="who">Tomás L. · Concordia</div></article>
+      <article class="quote-card"><blockquote>They sharpened my grandmother's paring knife so well I cut myself reaching into the drawer. Worth it.</blockquote><div class="who">Becca H. · Alameda</div></article>
+      <article class="quote-card"><blockquote>The advice is the product. The hardware is a freebie that comes with the advice.</blockquote><div class="who">Yusuf A. · contractor, NE Portland</div></article>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker">FILE 07 · PLATES</div>
+    <h2 class="h2">The store, in six frames.</h2>
+    <div class="gallery-grid">
+      <figure><img src="https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=1200&q=85&auto=format&fit=crop" alt="Hand-tool pegboard wall." /><figcaption><span>PLATE 01</span><span>INTERIOR / TOOL WALL</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1530124566582-a618bc2615dc?w=1200&q=85&auto=format&fit=crop" alt="Bin of assorted bolts and washers." /><figcaption><span>PLATE 02</span><span>BIN / FASTENERS</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1503602642458-232111445657?w=1200&q=85&auto=format&fit=crop" alt="Workshop bench with woodworking tools." /><figcaption><span>PLATE 03</span><span>WORKSHOP / BENCH</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=1200&q=85&auto=format&fit=crop" alt="Storefront on NE Alberta." /><figcaption><span>PLATE 04</span><span>EXTERIOR / SIGN</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=1200&q=85&auto=format&fit=crop" alt="Paint cans on shelves." /><figcaption><span>PLATE 05</span><span>PAINT / SHELF</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1597106776019-b4ecc878c202?w=1200&q=85&auto=format&fit=crop" alt="Closeup of nails and washers in a drawer." /><figcaption><span>PLATE 06</span><span>DETAIL / NAILS</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section id="faq" data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="faq-head">
+      <div>
+        <div class="kicker">FILE 08 · FAQ</div>
+        <h2 class="h2">Things people ask at the door.</h2>
+      </div>
+      <p class="body">If your question isn't here, call the counter on <a href="tel:+15035550184">(503) 555-0184</a> or stop in. Someone is always at the till during open hours.</p>
+    </div>
+    <div class="faq-list">
+      <details><summary>Do you take phone orders?</summary><p>We'll happily pull and hold an item for you. Call the counter, give us 45 minutes, and we'll have it bagged at the till. Card on file for pickups over $50.</p></details>
+      <details><summary>Do you carry plumbing parts?</summary><p>Common residential — yes. Compression fittings, P-traps, supply lines, wax rings, drain snakes. Commercial sizes we'll order.</p></details>
+      <details><summary>How does tool rental work?</summary><p>By the day or by the weekend. Photo ID and a card on file. Pick up after 9, return by 5. Weekend rentals leave Friday at 4 and come back Monday at 10.</p></details>
+      <details><summary>Do you sharpen serrated knives?</summary><p>Yes, including offset and Wüsthof bread knives. Drop-off Monday through Wednesday, pickup Friday after 2.</p></details>
+      <details><summary>Do you match paint from a chip?</summary><p>Most of the time. Bring in a chip the size of a dime or bigger; we'll spectrometer-match and mix the smallest amount that gets you safely through your job.</p></details>
+      <details><summary>Do you sell propane refills?</summary><p>Yes — 20lb and 30lb tanks. We refill, not exchange, so you keep your tank.</p></details>
+      <details><summary>Are you the same family that ran the store in the 80s?</summary><p>Yes. Second generation now, with the first still showing up on Saturdays.</p></details>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">FILE 09 · NEIGHBORHOODS</div>
+    <h2 class="h2">We see customers from across NE.</h2>
+    <ul class="area-strip">
+      <li>Concordia</li><li>Alameda</li><li>Sabin</li>
+      <li>Vernon</li><li>King</li><li>Beaumont-Wilshire</li>
+      <li>Cully</li><li>Irvington</li><li>Woodlawn</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">FILE 10 · CREDENTIALS</div>
+    <h2 class="h2">Licenses and memberships.</h2>
+    <div class="creds">
+      <div><div class="label">OREGON REG. №</div><div class="detail">121-447 — continuous since 1978</div></div>
+      <div><div class="label">EPA RRP</div><div class="detail">Lead-safe renovation, repair, and painting certified</div></div>
+      <div><div class="label">TRUE VALUE INDEPENDENT</div><div class="detail">Co-op member since 1981</div></div>
+      <div><div class="label">NE PORTLAND BUSINESS ASSN.</div><div class="detail">Founding member</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">FILE 11 · LOCATION</div>
+    <h2 class="h2">2914 NE Alberta St.</h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Maple & Iron Hardware</strong><br />
+          2914 NE Alberta St<br />
+          Portland, OR 97211<br /><br />
+          <a href="tel:+15035550184" data-bind="business.phoneDisplay">(503) 555-0184</a><br />
+          <a href="mailto:shop@mapleandiron.com" data-bind="business.email">shop@mapleandiron.com</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound. -->
+          <div class="row"><span class="day">Mon – Fri</span><span>—</span></div>
+          <div class="row"><span class="day">Saturday</span><span>—</span></div>
+          <div class="row"><span class="day">Sunday</span><span>—</span></div>
+          <p class="gbp-note">Hours are kept current on our Google Business Profile. Holiday hours posted on the window.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Maple & Iron, NE Alberta, Portland" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-122.6420%2C45.5560%2C-122.6310%2C45.5620&layer=mapnik&marker=45.5589%2C-122.6363"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section class="cta-band" data-component="CTA-BAND" data-variant="v3">
+  <div class="wrap">
+    <div class="kicker" style="color: rgba(255,255,255,0.7);">FILE 12 · COME IN</div>
+    <h2 data-bind="cta.heading">Bring the broken thing.</h2>
+    <p data-bind="cta.body">Mon–Sat the counter is open. Sundays we sharpen.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#location" data-bind="cta.primary.label">Get directions</a>
+      <a class="btn btn-ghost" href="tel:+15035550184" data-bind="cta.secondary.label">(503) 555-0184</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/15035550184" data-bind="messaging.whatsapp" aria-label="Message us">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wordmark" style="font-size: 26px; color: var(--paper);">MAPLE <span style="color: var(--safety);">&</span> IRON</div>
+        <p class="body" style="margin-top: 12px; max-width: 36ch; color: rgba(235,232,223,0.7);">A small hardware store on NE Alberta. Since 1978.</p>
+      </div>
+      <div>
+        <h4>Find us</h4>
+        <address style="font-style: normal; font-size: 14px; line-height: 1.6;">
+          2914 NE Alberta St<br />
+          Portland, OR 97211<br />
+          <a href="tel:+15035550184">(503) 555-0184</a><br />
+          <a href="mailto:shop@mapleandiron.com">shop@mapleandiron.com</a>
+        </address>
+      </div>
+      <div>
+        <h4>Sections</h4>
+        <a href="#services">Services</a>
+        <a href="#about">About</a>
+        <a href="#location">Find us</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> MAPLE & IRON HARDWARE INC. · ESTABLISHED 1978</span>
+      <span>NE ALBERTA / PORTLAND OR</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (obj, path) => path.split('.').reduce((a, k) => {
+      if (a == null) return null;
+      const m = k.match(/^(.+)\[(\d+)\]$/);
+      if (m) return a[m[1]]?.[+m[2]];
+      return a[k];
+    }, obj);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

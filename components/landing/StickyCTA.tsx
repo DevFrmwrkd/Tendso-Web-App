@@ -16,18 +16,9 @@ export default function StickyCTA({ door = null }: { door?: "business" | "creato
 
     return (
         <div className={`sticky-cta ${visible ? "visible" : ""}`}>
-            <div
-                className="container-wide"
-                style={{
-                    padding: "14px 28px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 16,
-                    flexWrap: "wrap",
-                }}
-            >
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div className="container-wide flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-3 sm:py-3.5">
+                {/* Logo + door badge — hide logo on phones to save room for the CTA buttons */}
+                <div className="hidden sm:flex items-center gap-3">
                     <Logo />
                     {door && (
                         <span className="label" style={{ color: "var(--neo-ink-3)" }}>
@@ -43,30 +34,36 @@ export default function StickyCTA({ door = null }: { door?: "business" | "creato
                         </span>
                     )}
                 </div>
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
                     <Link
                         href="/for-business"
-                        className="door door-business"
+                        className="door door-business justify-center sm:justify-start"
                         style={{
-                            padding: "12px 18px",
-                            fontSize: 14,
+                            padding: "10px 14px",
+                            fontSize: 13,
                             textDecoration: "none",
                             display: "inline-flex",
+                            whiteSpace: "nowrap",
                         }}
                     >
-                        I own a business <span className="arrow"><ArrowUpRightIcon /></span>
+                        <span className="hidden md:inline">I own a business</span>
+                        <span className="md:hidden">Business</span>
+                        <span className="arrow"><ArrowUpRightIcon /></span>
                     </Link>
                     <Link
                         href="/for-creators"
-                        className="door door-creator"
+                        className="door door-creator justify-center sm:justify-start"
                         style={{
-                            padding: "12px 18px",
-                            fontSize: 14,
+                            padding: "10px 14px",
+                            fontSize: 13,
                             textDecoration: "none",
                             display: "inline-flex",
+                            whiteSpace: "nowrap",
                         }}
                     >
-                        I want to earn <span className="arrow"><ArrowUpRightIcon /></span>
+                        <span className="hidden md:inline">I want to earn</span>
+                        <span className="md:hidden">Earn</span>
+                        <span className="arrow"><ArrowUpRightIcon /></span>
                     </Link>
                 </div>
             </div>

@@ -12,9 +12,9 @@ function Beat({ label, big, sub }: { label: string; big: string; sub: string }) 
 
 export default function ManifestoSection() {
     return (
-        <section style={{ background: "var(--neo-paper-2)", padding: "120px 0" }}>
+        <section style={{ background: "var(--neo-paper-2)" }} className="py-16 sm:py-20 lg:py-[120px]">
             <div className="container-wide">
-                <div style={{ display: "grid", gridTemplateColumns: "minmax(160px, 1fr) 4fr", gap: 48 }}>
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(160px,1fr)_4fr] gap-6 lg:gap-12">
                     <div className="eyebrow">Manifesto</div>
                     <div>
                         <p
@@ -31,14 +31,8 @@ export default function ManifestoSection() {
                             <span style={{ color: "var(--neo-creator)" }}>We&apos;re building it for the other ninety-nine.</span>
                         </p>
                         <div
-                            style={{
-                                marginTop: 48,
-                                display: "grid",
-                                gridTemplateColumns: "repeat(3, 1fr)",
-                                gap: 32,
-                                paddingTop: 32,
-                                borderTop: "1px solid var(--neo-rule)",
-                            }}
+                            className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pt-8"
+                            style={{ borderTop: "1px solid var(--neo-rule)" }}
                         >
                             <Beat
                                 label="Who we serve"

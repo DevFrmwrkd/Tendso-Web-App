@@ -48,10 +48,8 @@ export default function CtaSection() {
                     </p>
                 </div>
                 <div
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
                     style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 16,
                         maxWidth: 1080,
                         margin: "0 auto",
                     }}
@@ -60,7 +58,7 @@ export default function CtaSection() {
                         href="/for-business"
                         className="door door-business"
                         style={{
-                            padding: "40px 32px",
+                            padding: "28px 24px",
                             flexDirection: "column",
                             alignItems: "flex-start",
                             gap: 0,
@@ -72,10 +70,10 @@ export default function CtaSection() {
                             For business owners <ArrowUpRightIcon />
                         </span>
                         <span
+                            className="text-[32px] sm:text-[40px] lg:text-[48px]"
                             style={{
                                 fontFamily: "var(--neo-serif)",
-                                fontSize: 48,
-                                lineHeight: 0.95,
+                                lineHeight: 0.98,
                                 letterSpacing: "-.02em",
                             }}
                         >
@@ -89,7 +87,7 @@ export default function CtaSection() {
                         href="/for-creators"
                         className="door door-creator"
                         style={{
-                            padding: "40px 32px",
+                            padding: "28px 24px",
                             flexDirection: "column",
                             alignItems: "flex-start",
                             gap: 0,
@@ -101,10 +99,10 @@ export default function CtaSection() {
                             For creators <ArrowUpRightIcon />
                         </span>
                         <span
+                            className="text-[32px] sm:text-[40px] lg:text-[48px]"
                             style={{
                                 fontFamily: "var(--neo-serif)",
-                                fontSize: 48,
-                                lineHeight: 0.95,
+                                lineHeight: 0.98,
                                 letterSpacing: "-.02em",
                             }}
                         >

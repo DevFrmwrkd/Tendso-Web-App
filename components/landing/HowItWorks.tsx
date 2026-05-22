@@ -98,7 +98,7 @@ export default function HowItWorks({ door = null }: { door?: "business" | "creat
                     </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Track
                         label={businessFirst ? "For business owners" : "For creators"}
                         steps={businessFirst ? business : creator}

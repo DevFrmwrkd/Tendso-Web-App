@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brightwater Dental Practice — family dentistry in Bath</title>
+<meta name="description" content="Brightwater Dental Practice is a family and cosmetic dental clinic in central Bath. NHS and private care, transparent treatment planning, and clinicians with a combined 38 years of experience." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital,wght@0,400;1,400&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: {
+    name: "Brightwater Dental Practice",
+    tagline: "Family and cosmetic dentistry, Bath",
+    phone: "+44 1225 309 244",
+    phoneDisplay: "01225 309 244",
+    email: "reception@brightwaterdental.co.uk",
+    foundedYear: 2008
+  },
+  hero: {
+    kicker: "A family practice in central Bath",
+    headline: "Careful dentistry, explained in plain words, on a schedule that respects your day.",
+    lede: "Brightwater Dental is a four-clinician practice on Charlotte Street. We see families, anxious patients, and a steady cohort of professionals who like a 7am appointment. NHS and private patients welcome.",
+    primaryCta: { label: "Book an appointment", href: "#book" },
+    secondaryCta: { label: "Meet the clinicians", href: "#about" },
+    image: "https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=1400&q=85&auto=format&fit=crop",
+    imageAlt: "Dentist explaining an x-ray to a smiling patient."
+  },
+  trust: {
+    years: "Caring for Bath since 2008",
+    licenses: ["GDC-registered clinicians", "CQC-regulated practice", "BDA member"],
+    memberships: ["British Dental Association", "British Society of Periodontology", "Faculty of General Dental Practice"]
+  },
+  about: {
+    heading: "A small practice that takes its time.",
+    paragraphs: [
+      "Brightwater opened on Charlotte Street in 2008 and has grown to four clinicians and two hygienists. We share three things — a refusal to upsell cosmetic work nobody asked for, a commitment to long appointments for nervous patients, and an early-morning list for people who'd rather see us at seven than at noon.",
+      "Our principal dentist trained at King's College London and holds an MJDF and a postgraduate diploma in implantology. Our hygiene team is led by a clinician with twenty-two years in periodontal care. We're CQC-rated 'Good' on every domain in our most recent inspection.",
+      "We treat children from the age of one. We treat patients with dental phobia using a stepped-exposure programme written with a clinical psychologist. We don't sell whitening at the front desk."
+    ],
+    portrait: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1400&q=85&auto=format&fit=crop",
+    portraitAlt: "Treatment room — calm, light-filled, modern."
+  },
+  services: [
+    { name: "Family & general dentistry", description: "Routine examinations, scale and polish, fillings, root canals, extractions. NHS and private patients." },
+    { name: "Hygienist care", description: "Periodontal assessment, full prophylaxis, smoking cessation support, oral cancer screening." },
+    { name: "Cosmetic dentistry", description: "Composite bonding, internal bleaching, professional whitening, smile design consultations." },
+    { name: "Implants", description: "Single-tooth and multi-unit implants placed in-house. Full treatment plan and CBCT scan before any consent." },
+    { name: "Orthodontics", description: "Adult clear-aligner therapy and limited orthodontics. We refer complex paediatric cases to a specialist colleague." },
+    { name: "Emergency appointments", description: "Same-day slots held back daily for genuine emergencies. Phone the practice before 10am." }
+  ],
+  why: [
+    { title: "Long appointments, by default.", body: "Routine exams are 30 minutes, not 10. We won't rush you and we won't run late on you." },
+    { title: "Treatment plans before treatment.", body: "Every recommendation comes with a written plan, the alternatives, and what we'd choose for our own family." },
+    { title: "A real anxious-patient pathway.", body: "Stepped exposure, sedation referrals, longer slots, and a quieter waiting room. Tell us when you book." }
+  ],
+  how: [
+    { step: "01", title: "Register with the practice", body: "Five minutes online or by phone. We send the new-patient forms before you arrive." },
+    { step: "02", title: "Come in for a new-patient exam", body: "45 minutes. Full mouth assessment, periodontal charting, two x-rays, and a written summary." },
+    { step: "03", title: "Discuss the plan", body: "We talk through what we found, what's urgent, what isn't, and what every option costs." },
+    { step: "04", title: "Book the work", body: "When and if you choose to proceed. No pressure, ever." }
+  ],
+  testimonials: [
+    { quote: "I avoided the dentist for fifteen years. They took three appointments to do what would have taken anyone else one. I left every visit calmer than I arrived.", name: "Sarah B.", context: "anxious patient, two years registered" },
+    { quote: "Honest about what didn't need doing. Wrote me a treatment plan that saved me considerably on a referral elsewhere. Excellent hygienist.", name: "Dr Marcus W.", context: "GP, Larkhall" },
+    { quote: "Our boys are eight and eleven and they actively look forward to going. That's the only review I can give a dentist that matters.", name: "Priya N.", context: "Combe Down" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1400&q=85&auto=format&fit=crop", alt: "Treatment room, sunlit." },
+    { src: "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=1400&q=85&auto=format&fit=crop", alt: "Reception area — calm, modern." },
+    { src: "https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=1400&q=85&auto=format&fit=crop", alt: "Patient consultation with x-ray." },
+    { src: "https://images.unsplash.com/photo-1597764690523-15bea4c581c9?w=1400&q=85&auto=format&fit=crop", alt: "Clinical instruments on a tray." },
+    { src: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=1400&q=85&auto=format&fit=crop", alt: "Hygienist mid-appointment." },
+    { src: "https://images.unsplash.com/photo-1581585098852-f7e9c6a76b76?w=1400&q=85&auto=format&fit=crop", alt: "Quiet waiting room with natural light." }
+  ],
+  faq: [
+    { q: "Are you taking new NHS patients?", a: "Adult NHS lists open and close depending on capacity. NHS children remain open at all times. Phone reception or check our website's banner — we update both as soon as anything changes." },
+    { q: "What does a new-patient exam cost?", a: "Private new-patient exams are charged at a flat fee, listed on our published price list. NHS exams are charged at the standard NHS band 1 charge set by central government. Both are explained before you book." },
+    { q: "Do you sedate anxious patients?", a: "We offer non-sedative anxiety pathways in-house and refer to a partner clinic for IV sedation when it's clinically appropriate. We never push sedation as a first step." },
+    { q: "How urgent is urgent?", a: "Same-day if you call before 10am with significant pain, swelling or trauma. Out of hours, NHS 111 is our triage; for registered private patients there is a dedicated emergency phone number." },
+    { q: "Do you treat children?", a: "Yes — from the age of one for familiarisation visits and from two for full examinations. NHS children's care is available throughout." },
+    { q: "Are you wheelchair accessible?", a: "Yes — step-free entry, an accessible WC on the ground floor, and one treatment room large enough for a wheelchair transfer with hoist." },
+    { q: "Do you offer interest-free finance?", a: "We work with a regulated finance partner for treatments over £500. Subject to status; full information at consultation." }
+  ],
+  area: {
+    heading: "Patients travel from",
+    places: ["Bath city centre", "Larkhall", "Combe Down", "Widcombe", "Bathampton", "Twerton", "Saltford", "Keynsham", "Bradford-on-Avon"]
+  },
+  credentials: [
+    { label: "General Dental Council", detail: "All clinicians registered & DCP-licensed" },
+    { label: "Care Quality Commission", detail: "CQC-regulated, rated Good across all five domains" },
+    { label: "British Dental Association", detail: "Good Practice scheme member" },
+    { label: "British Soc. of Periodontology", detail: "Lead hygienist, full member" }
+  ],
+  location: {
+    name: "Brightwater Dental Practice",
+    addressStreet: "14 Charlotte Street",
+    addressLocality: "Bath",
+    addressRegion: "Somerset",
+    addressPostcode: "BA1 2NE",
+    addressCountry: "United Kingdom"
+  },
+  cta: {
+    heading: "Take your time. We do.",
+    body: "New patients are welcome. NHS and private appointments available — phone or register online.",
+    primary: { label: "Register as a patient", href: "#book" },
+    secondary: { label: "01225 309 244", href: "tel:+441225309244" }
+  },
+  messaging: {
+    whatsapp: "https://wa.me/441225309244",
+    messenger: "https://m.me/brightwaterdental"
+  }
+};
+</script>
+
+<style>
+  :root {
+    --paper:    #f5f7f8;
+    --paper-2:  #e7ecef;
+    --cloud:    #d6e3ea;
+    --sky:      #b9d2de;
+    --ink:      #18313e;
+    --ink-soft: #4d6470;
+    --sage:     #6c8c7a;
+    --rose:     #c97962;
+    --rule:     rgba(24,49,62,0.12);
+
+    --serif: "Instrument Serif", "Source Serif Pro", Georgia, serif;
+    --sans:  "Manrope", system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  .wrap { width: min(1240px, 92vw); margin-inline: auto; }
+  .kicker { font-family: var(--sans); font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sage); }
+  .h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(34px, 4.6vw, 64px); line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 0.4em; }
+  .h2 em { color: var(--sage); font-style: italic; }
+  .body { font-size: 17px; line-height: 1.65; color: var(--ink-soft); }
+  section { padding: clamp(72px, 9vw, 128px) 0; }
+
+  /* NAV */
+  .nav { background: rgba(245,247,248,0.86); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--rule); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+  .wordmark { font-family: var(--serif); font-size: 22px; letter-spacing: -0.01em; text-decoration: none; }
+  .wordmark .mark { color: var(--sage); }
+  .nav-links { display: flex; gap: 28px; font-size: 14px; color: var(--ink-soft); }
+  .nav-links a { text-decoration: none; }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta { padding: 10px 18px; background: var(--ink); color: var(--paper); text-decoration: none; border-radius: 999px; font-size: 13px; font-weight: 500; }
+  .nav-cta:hover { background: var(--sage); }
+  @media (max-width: 760px) { .nav-links { display: none; } }
+
+  /* HERO v4 — clinical card */
+  .hero { padding-top: clamp(40px, 6vw, 80px); padding-bottom: clamp(64px, 7vw, 112px); }
+  .hero-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(36px, 5vw, 80px); align-items: center; }
+  .hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 5.6vw, 78px); line-height: 1.0; letter-spacing: -0.015em; margin: 24px 0 28px; }
+  .hero h1 em { color: var(--sage); font-style: italic; }
+  .hero .lede { font-size: clamp(17px, 1.6vw, 20px); line-height: 1.55; color: var(--ink-soft); max-width: 44ch; }
+  .hero-ctas { margin-top: 36px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 24px; border-radius: 999px; font-size: 14px; font-weight: 500; text-decoration: none; transition: 0.18s; }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--sage); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+  .btn-ghost:hover { border-color: var(--ink); background: white; }
+  .hero-card { background: var(--cloud); border-radius: 28px; padding: 24px; position: relative; }
+  .hero-card img { border-radius: 18px; aspect-ratio: 5/6; object-fit: cover; width: 100%; }
+  .hero-card .badge { position: absolute; top: -16px; left: 24px; background: var(--ink); color: var(--paper); padding: 10px 16px; border-radius: 999px; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500; }
+  .hero-card .stat-row { display: flex; gap: 12px; margin-top: 16px; }
+  .hero-card .stat { flex: 1; background: var(--paper); border-radius: 14px; padding: 14px; }
+  .hero-card .stat .n { font-family: var(--serif); font-size: 30px; line-height: 1; color: var(--ink); }
+  .hero-card .stat .l { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); margin-top: 6px; }
+  @media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; } }
+
+  /* TRUST */
+  .trust { padding: 24px 0; background: var(--paper-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .trust .row { display: flex; gap: 28px; flex-wrap: wrap; justify-content: space-between; align-items: center; font-size: 13px; letter-spacing: 0.06em; color: var(--ink-soft); }
+  .trust .row .item { display: flex; align-items: center; gap: 8px; }
+  .trust .row .item::before { content: "●"; color: var(--sage); font-size: 8px; }
+
+  /* ABOUT */
+  .about { background: var(--paper); }
+  .about-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(36px, 5vw, 96px); }
+  .about-grid img { border-radius: 24px; aspect-ratio: 4/5; object-fit: cover; width: 100%; }
+  .about-prose p { font-size: 18px; line-height: 1.65; margin: 0 0 1em; }
+  @media (max-width: 880px) { .about-grid { grid-template-columns: 1fr; } }
+
+  /* SERVICES */
+  .services { background: var(--paper-2); }
+  .svc-head { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: end; margin-bottom: 56px; }
+  .svc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .svc-card { background: var(--paper); border-radius: 20px; padding: 32px; display: grid; grid-template-columns: 60px 1fr; gap: 20px; align-items: start; }
+  .svc-card .ic { width: 48px; height: 48px; border-radius: 14px; background: var(--cloud); display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 20px; color: var(--ink); }
+  .svc-card h3 { font-family: var(--serif); font-weight: 400; font-size: 26px; margin: 0 0 10px; line-height: 1.15; }
+  .svc-card p { margin: 0; color: var(--ink-soft); font-size: 15px; line-height: 1.55; }
+  @media (max-width: 760px) { .svc-grid { grid-template-columns: 1fr; } .svc-head { grid-template-columns: 1fr; } }
+
+  /* WHY (three pillars) */
+  .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; }
+  .why-grid > div { padding: 36px; border: 1px solid var(--rule); border-radius: 20px; background: var(--paper); }
+  .why-grid .num { font-family: var(--serif); font-size: 48px; line-height: 1; color: var(--sage); display: block; margin-bottom: 20px; }
+  .why-grid h3 { font-family: var(--serif); font-weight: 400; font-size: 26px; line-height: 1.2; margin: 0 0 12px; }
+  .why-grid p { margin: 0; color: var(--ink-soft); }
+  @media (max-width: 760px) { .why-grid { grid-template-columns: 1fr; } }
+
+  /* HOW */
+  .how { background: var(--ink); color: var(--paper); border-radius: 32px; margin: 80px auto; padding: clamp(48px, 6vw, 96px) 0; width: min(1160px, 90vw); }
+  .how .h2 { color: var(--paper); }
+  .how .kicker { color: var(--sky); }
+  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-top: 48px; }
+  .how-grid > li { list-style: none; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.2); }
+  .how-grid .step { font-family: var(--serif); font-size: 14px; color: var(--sky); letter-spacing: 0.18em; text-transform: uppercase; }
+  .how-grid h3 { font-family: var(--serif); font-weight: 400; font-size: 24px; margin: 12px 0 10px; line-height: 1.15; }
+  .how-grid p { color: rgba(255,255,255,0.7); margin: 0; font-size: 14px; }
+  @media (max-width: 760px) { .how-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* TESTIMONIALS */
+  .quotes-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; margin-top: 48px; }
+  .quote-card { padding: 36px; background: var(--paper); border-radius: 20px; border: 1px solid var(--rule); }
+  .quote-card blockquote { font-family: var(--serif); font-style: italic; font-size: 22px; line-height: 1.35; margin: 0 0 20px; }
+  .quote-card .who { font-size: 13px; color: var(--ink-soft); }
+  .quote-card .who strong { color: var(--ink); }
+  @media (max-width: 760px) { .quotes-row { grid-template-columns: 1fr; } }
+
+  /* GALLERY */
+  .gallery { background: var(--paper-2); }
+  .gallery-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-top: 48px; }
+  .gallery-grid figure { margin: 0; border-radius: 16px; overflow: hidden; }
+  .gallery-grid img { width: 100%; height: 100%; object-fit: cover; }
+  .gallery-grid figure:nth-child(1) { grid-column: span 3; aspect-ratio: 4/3; }
+  .gallery-grid figure:nth-child(2) { grid-column: span 3; aspect-ratio: 4/3; }
+  .gallery-grid figure:nth-child(3) { grid-column: span 2; aspect-ratio: 1/1; }
+  .gallery-grid figure:nth-child(4) { grid-column: span 2; aspect-ratio: 1/1; }
+  .gallery-grid figure:nth-child(5) { grid-column: span 2; aspect-ratio: 1/1; }
+  .gallery-grid figure:nth-child(6) { grid-column: span 6; aspect-ratio: 24/9; }
+  @media (max-width: 760px) { .gallery-grid figure { grid-column: span 6 !important; aspect-ratio: 4/3 !important; } }
+
+  /* FAQ */
+  .faq-grid { display: grid; grid-template-columns: 1fr 1.6fr; gap: 60px; }
+  .faq-list details { border-bottom: 1px solid var(--rule); padding: 24px 0; }
+  .faq-list summary { font-family: var(--serif); font-size: 24px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: baseline; gap: 20px; line-height: 1.2; }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after { content: "+"; color: var(--sage); font-size: 20px; }
+  .faq-list details[open] summary::after { content: "−"; }
+  .faq-list p { margin: 14px 0 0; max-width: 64ch; color: var(--ink-soft); }
+  @media (max-width: 760px) { .faq-grid { grid-template-columns: 1fr; } .faq-list summary { font-size: 20px; } }
+
+  /* AREA */
+  .area { background: var(--cloud); }
+  .area-cols { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: clamp(36px, 5vw, 96px); }
+  .area-list { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px 32px; padding: 0; margin: 0; }
+  .area-list li { list-style: none; font-family: var(--serif); font-size: 22px; padding: 16px 0; border-bottom: 1px solid rgba(24,49,62,0.18); }
+  .area-list li::before { content: "○"; color: var(--sage); margin-right: 8px; font-size: 12px; vertical-align: middle; }
+  @media (max-width: 760px) { .area-cols { grid-template-columns: 1fr; } .area-list { grid-template-columns: 1fr 1fr; } }
+
+  /* CREDENTIALS */
+  .creds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 48px; }
+  .creds > div { background: var(--paper); border: 1px solid var(--rule); border-radius: 16px; padding: 28px; }
+  .creds .label { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--sage); font-weight: 500; }
+  .creds .detail { font-family: var(--serif); font-size: 20px; line-height: 1.25; margin-top: 14px; }
+  @media (max-width: 760px) { .creds { grid-template-columns: 1fr 1fr; } }
+
+  /* LOCATION */
+  .loc-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 32px; margin-top: 48px; }
+  .nap { background: var(--paper); border: 1px solid var(--rule); border-radius: 20px; padding: 36px; }
+  .nap address { font-style: normal; font-family: var(--serif); font-size: 24px; line-height: 1.35; }
+  .nap a { text-decoration: none; }
+  .hours { font-size: 14px; margin-top: 32px; border-top: 1px solid var(--rule); padding-top: 24px; }
+  .hours .row { display: flex; justify-content: space-between; padding: 6px 0; }
+  .hours .day { color: var(--ink-soft); font-size: 13px; }
+  .hours .gbp-note { font-size: 13px; color: var(--ink-soft); margin-top: 18px; line-height: 1.5; }
+  .map-frame { border-radius: 20px; overflow: hidden; min-height: 420px; }
+  .map-frame iframe { width: 100%; height: 100%; border: 0; min-height: 420px; }
+  @media (max-width: 880px) { .loc-grid { grid-template-columns: 1fr; } }
+
+  /* CTA BAND */
+  .cta-band { background: var(--sky); color: var(--ink); padding: clamp(72px, 9vw, 128px) 0; }
+  .cta-band h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 5.4vw, 76px); line-height: 1.0; margin: 0 0 20px; max-width: 18ch; }
+  .cta-band p { max-width: 50ch; color: var(--ink-soft); margin: 0 0 32px; font-size: 18px; }
+  .cta-band .ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+  .cta-band .btn-primary { background: var(--ink); color: var(--paper); }
+  .cta-band .btn-ghost { background: white; }
+
+  /* FOOTER */
+  footer { background: var(--ink); color: rgba(245,247,248,0.85); padding: 72px 0 32px; }
+  .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px; }
+  .footer-grid h4 { font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--sky); margin: 0 0 16px; font-weight: 500; }
+  .footer-grid a { text-decoration: none; display: block; padding: 4px 0; color: var(--paper); font-size: 14px; }
+  .footer-grid a:hover { color: var(--sky); }
+  .colophon { margin-top: 56px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.18); display: flex; justify-content: space-between; flex-wrap: wrap; font-size: 12px; color: rgba(255,255,255,0.55); }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr; } }
+
+  /* MSG FAB */
+  .msg-fab { position: fixed; right: 20px; bottom: 20px; z-index: 100; }
+  .msg-fab a { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--paper); padding: 14px 18px; text-decoration: none; font-size: 13px; font-weight: 500; border-radius: 999px; box-shadow: 0 8px 22px rgba(24,49,62,0.25); }
+  .msg-fab a:hover { background: var(--sage); }
+  .msg-fab svg { width: 14px; height: 14px; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Dentist",
+  "name": "Brightwater Dental Practice",
+  "description": "Family and cosmetic dental practice in central Bath, UK. NHS and private patients welcome.",
+  "url": "https://brightwaterdental.co.uk/",
+  "telephone": "+441225309244",
+  "email": "reception@brightwaterdental.co.uk",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "14 Charlotte Street",
+    "addressLocality": "Bath",
+    "addressRegion": "Somerset",
+    "postalCode": "BA1 2NE",
+    "addressCountry": "GB"
+  },
+  "geo": { "@type": "GeoCoordinates", "latitude": 51.3838, "longitude": -2.3611 },
+  "areaServed": ["Bath", "Combe Down", "Larkhall", "Saltford", "Keynsham"],
+  "image": ["https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1600"],
+  "medicalSpecialty": ["Dentistry"],
+  "foundingDate": "2008"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Are you taking new NHS patients?","acceptedAnswer":{"@type":"Answer","text":"Adult NHS lists open and close depending on capacity. NHS children remain open at all times."}},
+    {"@type":"Question","name":"What does a new-patient exam cost?","acceptedAnswer":{"@type":"Answer","text":"Private new-patient exams have a flat fee on our published price list; NHS exams are the standard NHS band 1 charge."}},
+    {"@type":"Question","name":"Do you sedate anxious patients?","acceptedAnswer":{"@type":"Answer","text":"Non-sedative anxiety pathways in-house; IV sedation referred to a partner clinic when clinically appropriate."}},
+    {"@type":"Question","name":"How urgent is urgent?","acceptedAnswer":{"@type":"Answer","text":"Same-day if you call before 10am with pain, swelling or trauma. Out of hours, NHS 111 triages."}},
+    {"@type":"Question","name":"Do you treat children?","acceptedAnswer":{"@type":"Answer","text":"From age one for familiarisation visits, age two for full examinations. NHS children's care available."}},
+    {"@type":"Question","name":"Are you wheelchair accessible?","acceptedAnswer":{"@type":"Answer","text":"Step-free entry, accessible WC, one treatment room large enough for wheelchair transfer with hoist."}},
+    {"@type":"Question","name":"Do you offer interest-free finance?","acceptedAnswer":{"@type":"Answer","text":"We work with a regulated finance partner for treatments over £500. Subject to status."}}
+  ]
+}
+</script>
+
+<script type="application/json" id="lp-config">
+{
+  "business": "name, tagline, phone, phoneDisplay, email, foundedYear",
+  "hero": "kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt",
+  "trust": "years, licenses[], memberships[]",
+  "about": "heading, paragraphs[], portrait, portraitAlt",
+  "services": "Array<{name, description}>",
+  "why": "Array<{title, body}>",
+  "how": "Array<{step, title, body}>",
+  "testimonials": "Array<{quote, name, context}>",
+  "gallery": "Array<{src, alt}>",
+  "faq": "Array<{q, a}>",
+  "area": "{heading, places[]}",
+  "credentials": "Array<{label, detail}>",
+  "location": "PostalAddress",
+  "cta": "CTA copy",
+  "messaging": "{whatsapp, messenger}"
+}
+</script>
+</head>
+
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wordmark" href="#" data-bind="business.name">Brightwater <span class="mark">·</span> Dental</a>
+    <nav class="nav-links">
+      <a href="#about">About</a>
+      <a href="#services">Services</a>
+      <a href="#faq">FAQs</a>
+      <a href="#location">Find us</a>
+    </nav>
+    <a class="nav-cta" href="#book">Book</a>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v4">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker" data-bind="hero.kicker">A family practice in central Bath</div>
+      <h1 data-bind="hero.headline">Careful dentistry, explained in plain words, on a schedule that <em>respects your day.</em></h1>
+      <p class="lede" data-bind="hero.lede">Brightwater Dental is a four-clinician practice on Charlotte Street. We see families, anxious patients, and a steady cohort of professionals who like a 7am appointment.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book an appointment</a>
+        <a class="btn btn-ghost" href="#about" data-bind="hero.secondaryCta.label">Meet the clinicians</a>
+      </div>
+    </div>
+    <div class="hero-card">
+      <span class="badge">NHS &amp; private · CQC Good</span>
+      <img src="https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=1400&q=85&auto=format&fit=crop"
+           alt="Dentist explaining an x-ray to a smiling patient."
+           data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="stat-row">
+        <div class="stat"><div class="n">18 yrs</div><div class="l">On Charlotte St</div></div>
+        <div class="stat"><div class="n">4</div><div class="l">Clinicians</div></div>
+        <div class="stat"><div class="n">7am</div><div class="l">Earliest slot</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding: 24px 0;">
+  <div class="wrap row">
+    <span class="item" data-bind="trust.years">Caring for Bath since 2008</span>
+    <span class="item">GDC-registered clinicians</span>
+    <span class="item">CQC-regulated practice</span>
+    <span class="item">BDA Good Practice member</span>
+    <!-- GBP-bound rating slot: source from Google Business Profile, do not hardcode. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap about-grid">
+    <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+         src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1400&q=85&auto=format&fit=crop"
+         alt="Treatment room — calm, light-filled, modern." />
+    <div>
+      <div class="kicker">About the practice</div>
+      <h2 class="h2" data-bind="about.heading">A small practice that <em>takes its time.</em></h2>
+      <div>
+        <p style="font-size: 18px; line-height: 1.65;">Brightwater opened on Charlotte Street in 2008 and has grown to four clinicians and two hygienists. We share three things — a refusal to upsell cosmetic work nobody asked for, a commitment to long appointments for nervous patients, and an early-morning list for people who'd rather see us at seven than at noon.</p>
+        <p style="font-size: 18px; line-height: 1.65; margin-top: 16px;">Our principal dentist trained at King's College London and holds an MJDF and a postgraduate diploma in implantology. Our hygiene team is led by a clinician with twenty-two years in periodontal care. We're CQC-rated 'Good' on every domain in our most recent inspection.</p>
+        <p style="font-size: 18px; line-height: 1.65; margin-top: 16px;">We treat children from the age of one. We treat patients with dental phobia using a stepped-exposure programme written with a clinical psychologist. We don't sell whitening at the front desk.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="services" data-component="SERVICES" data-variant="v2">
+  <div class="wrap">
+    <div class="svc-head">
+      <div>
+        <div class="kicker">What we offer</div>
+        <h2 class="h2">Treatments, briefly.</h2>
+      </div>
+      <p class="body" style="max-width: 38ch;">Detailed treatment information and written quotes are provided at every consultation. Nothing on this page is an offer.</p>
+    </div>
+    <div class="svc-grid">
+      <article class="svc-card"><div class="ic">01</div><div><h3>Family &amp; general dentistry</h3><p>Routine examinations, scale and polish, fillings, root canals, extractions. NHS and private patients.</p></div></article>
+      <article class="svc-card"><div class="ic">02</div><div><h3>Hygienist care</h3><p>Periodontal assessment, full prophylaxis, smoking cessation support, oral cancer screening.</p></div></article>
+      <article class="svc-card"><div class="ic">03</div><div><h3>Cosmetic dentistry</h3><p>Composite bonding, internal bleaching, professional whitening, smile design consultations.</p></div></article>
+      <article class="svc-card"><div class="ic">04</div><div><h3>Implants</h3><p>Single-tooth and multi-unit implants placed in-house. Full treatment plan and CBCT scan before any consent.</p></div></article>
+      <article class="svc-card"><div class="ic">05</div><div><h3>Orthodontics</h3><p>Adult clear-aligner therapy and limited orthodontics. Complex paediatric cases referred to a specialist colleague.</p></div></article>
+      <article class="svc-card"><div class="ic">06</div><div><h3>Emergency appointments</h3><p>Same-day slots held back daily for genuine emergencies. Phone the practice before 10am.</p></div></article>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Why patients stay</div>
+    <h2 class="h2">Three things we believe.</h2>
+    <div class="why-grid">
+      <div><span class="num">01.</span><h3>Long appointments, by default.</h3><p>Routine exams are 30 minutes, not 10. We won't rush you and we won't run late on you.</p></div>
+      <div><span class="num">02.</span><h3>Treatment plans before treatment.</h3><p>Every recommendation comes with a written plan, the alternatives, and what we'd choose for our own family.</p></div>
+      <div><span class="num">03.</span><h3>A real anxious-patient pathway.</h3><p>Stepped exposure, sedation referrals, longer slots, and a quieter waiting room. Tell us when you book.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1" style="padding: 0;">
+  <div class="how">
+    <div class="wrap">
+      <div class="kicker">How registration works</div>
+      <h2 class="h2">From first call to first appointment.</h2>
+      <ol class="how-grid">
+        <li><div class="step">Step 01</div><h3>Register</h3><p>Five minutes online or by phone. We send the new-patient forms before you arrive.</p></li>
+        <li><div class="step">Step 02</div><h3>New-patient exam</h3><p>45 minutes. Full mouth assessment, periodontal charting, two x-rays, and a written summary.</p></li>
+        <li><div class="step">Step 03</div><h3>Discuss the plan</h3><p>We talk through what we found, what's urgent, what isn't, and what every option costs.</p></li>
+        <li><div class="step">Step 04</div><h3>Book the work</h3><p>When and if you choose to proceed. No pressure, ever.</p></li>
+      </ol>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section data-component="TESTIMONIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">From patients</div>
+    <h2 class="h2">A few words<br/>from the chair.</h2>
+    <div class="quotes-row">
+      <article class="quote-card"><blockquote>“I avoided the dentist for fifteen years. They took three appointments to do what would have taken anyone else one. I left every visit calmer than I arrived.”</blockquote><div class="who"><strong>Sarah B.</strong> · anxious patient, two years registered</div></article>
+      <article class="quote-card"><blockquote>“Honest about what didn't need doing. Wrote me a treatment plan that saved me considerably on a referral elsewhere. Excellent hygienist.”</blockquote><div class="who"><strong>Dr Marcus W.</strong> · GP, Larkhall</div></article>
+      <article class="quote-card"><blockquote>“Our boys are eight and eleven and they actively look forward to going. That's the only review I can give a dentist that matters.”</blockquote><div class="who"><strong>Priya N.</strong> · Combe Down</div></article>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section class="gallery" data-component="GALLERY" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">The practice</div>
+    <h2 class="h2">Inside Charlotte Street.</h2>
+    <div class="gallery-grid">
+      <figure><img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1400&q=85&auto=format&fit=crop" alt="Treatment room, sunlit." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=1400&q=85&auto=format&fit=crop" alt="Reception area — calm, modern." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1606811971618-4486d14f3f99?w=1400&q=85&auto=format&fit=crop" alt="Patient consultation with x-ray." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1597764690523-15bea4c581c9?w=1400&q=85&auto=format&fit=crop" alt="Clinical instruments on a tray." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=1400&q=85&auto=format&fit=crop" alt="Hygienist mid-appointment." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1581585098852-f7e9c6a76b76?w=1400&q=85&auto=format&fit=crop" alt="Quiet waiting room with natural light." /></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section id="faq" data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="faq-grid">
+      <div>
+        <div class="kicker">Questions</div>
+        <h2 class="h2">Things we're asked at the front desk.</h2>
+        <p class="body">If yours isn't here, phone reception on <a href="tel:+441225309244" style="color: var(--sage);">01225 309 244</a> or email us.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Are you taking new NHS patients?</summary><p>Adult NHS lists open and close depending on capacity. NHS children remain open at all times. Phone reception or check our website's banner — we update both as soon as anything changes.</p></details>
+        <details><summary>What does a new-patient exam cost?</summary><p>Private new-patient exams are charged at a flat fee, listed on our published price list. NHS exams are charged at the standard NHS band 1 charge set by central government. Both are explained before you book.</p></details>
+        <details><summary>Do you sedate anxious patients?</summary><p>We offer non-sedative anxiety pathways in-house and refer to a partner clinic for IV sedation when it's clinically appropriate. We never push sedation as a first step.</p></details>
+        <details><summary>How urgent is urgent?</summary><p>Same-day if you call before 10am with significant pain, swelling or trauma. Out of hours, NHS 111 is our triage; for registered private patients there is a dedicated emergency phone number.</p></details>
+        <details><summary>Do you treat children?</summary><p>Yes — from the age of one for familiarisation visits and from two for full examinations. NHS children's care is available throughout.</p></details>
+        <details><summary>Are you wheelchair accessible?</summary><p>Yes — step-free entry, an accessible WC on the ground floor, and one treatment room large enough for a wheelchair transfer with hoist.</p></details>
+        <details><summary>Do you offer interest-free finance?</summary><p>We work with a regulated finance partner for treatments over £500. Subject to status; full information at consultation.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section class="area" data-component="SERVICE-AREA" data-variant="v1">
+  <div class="wrap">
+    <div class="area-cols">
+      <div>
+        <div class="kicker">Service area</div>
+        <h2 class="h2">Patients travel<br/>from across BANES.</h2>
+        <p class="body" style="max-width: 36ch;">A short list of where most patients live. We are five minutes from Bath Spa station and across from Charlotte Street car park.</p>
+      </div>
+      <ul class="area-list">
+        <li>Bath city centre</li>
+        <li>Larkhall</li>
+        <li>Combe Down</li>
+        <li>Widcombe</li>
+        <li>Bathampton</li>
+        <li>Twerton</li>
+        <li>Saltford</li>
+        <li>Keynsham</li>
+        <li>Bradford-on-Avon</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Credentials</div>
+    <h2 class="h2">Registrations &amp;<br/>memberships.</h2>
+    <div class="creds">
+      <div><div class="label">General Dental Council</div><div class="detail">All clinicians registered &amp; DCP-licensed</div></div>
+      <div><div class="label">Care Quality Commission</div><div class="detail">CQC-regulated, rated Good across all five domains</div></div>
+      <div><div class="label">British Dental Association</div><div class="detail">Good Practice scheme member</div></div>
+      <div><div class="label">British Soc. of Periodontology</div><div class="detail">Lead hygienist, full member</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Find us</div>
+    <h2 class="h2">14 Charlotte Street,<br/>Bath BA1.</h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Brightwater Dental Practice</strong><br />
+          14 Charlotte Street<br />
+          Bath BA1 2NE<br /><br />
+          <a href="tel:+441225309244" data-bind="business.phoneDisplay">01225 309 244</a><br />
+          <a href="mailto:reception@brightwaterdental.co.uk" data-bind="business.email">reception@brightwaterdental.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound. -->
+          <div class="row"><span class="day">Mon – Thu</span><span>—</span></div>
+          <div class="row"><span class="day">Friday</span><span>—</span></div>
+          <div class="row"><span class="day">Sat (one in three)</span><span>—</span></div>
+          <div class="row"><span class="day">Sunday</span><span>closed</span></div>
+          <p class="gbp-note">Hours kept current on our Google Business Profile.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Brightwater Dental, Charlotte Street, Bath" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.3680%2C51.3810%2C-2.3540%2C51.3870&layer=mapnik&marker=51.3838%2C-2.3611"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Booking</div>
+    <h2 data-bind="cta.heading">Take your time. We do.</h2>
+    <p data-bind="cta.body">New patients are welcome. NHS and private appointments available — phone or register online.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Register as a patient</a>
+      <a class="btn btn-ghost" href="tel:+441225309244" data-bind="cta.secondary.label">01225 309 244</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441225309244" data-bind="messaging.whatsapp" aria-label="Message reception">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wordmark" style="color: var(--paper); font-size: 26px;">Brightwater <span style="color: var(--sky);">·</span> Dental</div>
+        <p style="margin-top: 12px; max-width: 36ch; color: rgba(255,255,255,0.65);">A family and cosmetic dental practice in central Bath. NHS and private patients welcome since 2008.</p>
+      </div>
+      <div>
+        <h4>The practice</h4>
+        <address style="font-style: normal; font-size: 14px; line-height: 1.6;">
+          14 Charlotte Street<br />
+          Bath BA1 2NE<br />
+          <a href="tel:+441225309244">01225 309 244</a><br />
+          <a href="mailto:reception@brightwaterdental.co.uk">reception@brightwaterdental.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Pages</h4>
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#book">Register</a>
+        <a href="#faq">FAQ</a>
+        <a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> Brightwater Dental Ltd · Co. № 06517822 · GDC 71920</span>
+      <span>Regulated by the Care Quality Commission</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (obj, path) => path.split('.').reduce((a, k) => {
+      if (a == null) return null;
+      const m = k.match(/^(.+)\[(\d+)\]$/);
+      if (m) return a[m[1]]?.[+m[2]];
+      return a[k];
+    }, obj);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>
