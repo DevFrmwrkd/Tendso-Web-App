@@ -44,6 +44,26 @@ const show = visibility?.locationBlock !== false;
 const hasMap = !!(lat && lng) || !!address;
 const phoneTel = phone ? phone.replace(/[^0-9+]/g, '') : '';
 const phoneText = phoneDisplay || phone || '';
+
+// ── Map query strategy ────────────────────────────────────────────────
+// Precompute everything in frontmatter (Astro evaluates this at build time;
+// keeps the template body lean and avoids JSX-IIFE quirks).
+//
+// Source priority for the embed query:
+//   1. Explicit coordinates (best — exact pin)
+//   2. Full address string (good — Google's geocoder handles it)
+//   3. Business name + city extract (last-resort fallback)
+//
+// We hit Google's `/maps/embed/v1/place?q=...` keyless endpoint via a small
+// proxy URL form: `https://maps.google.com/maps?q=...&output=embed`.
+// The latter has worked for 10+ years without an API key and is what most
+// production small-business sites use. If Google ever fully shuts it down,
+// the visible "Open in Google Maps" CTA below is the unbreakable fallback.
+const mapQuery = lat && lng
+    ? `${lat},${lng}`
+    : (address && address.length > 8 ? address : (businessName || 'Philippines'));
+const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=15&hl=en&ie=UTF8&output=embed`;
+const mapDirectionsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
 ---
 
 {show && (address || phone || email) && (
@@ -146,44 +166,39 @@ const phoneText = phoneDisplay || phone || '';
                     </div>
                 </div>
 
-                {/* Map — Google Maps embed iframe.
-                    Previous Leaflet + Nominatim approach was unreliable in
-                    production: Nominatim couldn't geocode informal Philippine
-                    addresses (returned 0 hits → empty map), and the external
-                    leaflet.js with integrity hash occasionally failed to load
-                    on edge networks. Google's no-key embed handles raw
-                    address strings natively and never blanks out. */}
-                {hasMap && (() => {
-                    const mapQuery = lat && lng
-                        ? `${lat},${lng}`
-                        : (address || businessName || '');
-                    const mapSrc = `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=15&output=embed`;
-                    const directionsHref = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
-                    return (
-                        <div
-                            class="rounded-2xl border border-[var(--text)]/10 bg-[var(--bg)] overflow-hidden min-h-[320px] lg:min-h-[420px] relative"
+                {/* Map — Google Maps embed iframe (no API key required).
+                    Inline width/height styles instead of Tailwind arbitrary
+                    values because Tailwind v4 occasionally fails to pick up
+                    `min-h-[420px]` etc. when rendered through the Astro build
+                    + Vite pipeline, leaving the iframe at 0px tall. */}
+                {hasMap && (
+                    <div
+                        class="rounded-2xl border border-[var(--text)]/10 overflow-hidden relative location-map-frame"
+                        style="background: color-mix(in srgb, var(--text) 6%, var(--bg)); width: 100%; height: 420px;"
+                    >
+                        <iframe
+                            src={mapEmbedSrc}
+                            title={`Map · ${businessName ?? 'Location'}`}
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            allowfullscreen
+                            class="border-0 location-map-iframe"
+                            style="display: block; width: 100%; height: 100%; min-height: 420px; border: 0;"
+                        ></iframe>
+
+                        {/* Always-visible affordance — works even if the iframe
+                            is blocked or hits a Google-side error page. */}
+                        <a
+                            href={mapDirectionsHref}
+                            target="_blank"
+                            rel="noopener"
+                            class="absolute bottom-4 right-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-white text-[var(--text)] shadow-lg hover:shadow-xl transition-shadow"
+                            style="text-decoration: none;"
                         >
-                            <iframe
-                                src={mapSrc}
-                                title={`Map · ${businessName ?? 'Location'}`}
-                                loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"
-                                allowfullscreen
-                                class="w-full h-full min-h-[320px] lg:min-h-[420px] border-0"
-                                style="background: var(--bg); display: block;"
-                            ></iframe>
-                            {/* Directions overlay — always-visible deeplink */}
-                            <a
-                                href={directionsHref}
-                                target="_blank"
-                                rel="noopener"
-                                class="absolute bottom-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-white text-[var(--text)] shadow-md hover:shadow-lg transition-shadow"
-                            >
-                                Directions →
-                            </a>
-                        </div>
-                    );
-                })()}
+                            Open in Google Maps →
+                        </a>
+                    </div>
+                )}
             </div>
         </div>
 

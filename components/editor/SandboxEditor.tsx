@@ -115,7 +115,7 @@ const ALL_BLOCKS: Array<{ name: string; tag: "required" | "recommended"; visKey:
     { name: "FAQ",              tag: "recommended", visKey: "faq_block" },
     { name: "SERVICE-AREA",     tag: "recommended", visKey: "service_area_block" },
     { name: "CREDENTIALS",      tag: "recommended", visKey: "credentials_block" },
-    { name: "LOCATION",         tag: "required",    visKey: "location_block" },
+    { name: "LOCATION",         tag: "recommended", visKey: "location_block" },
     { name: "CTA-BAND",         tag: "recommended", visKey: "cta_band_block" },
     { name: "CLICK-TO-MESSAGE", tag: "recommended", visKey: "click_to_message" },
     { name: "FOOTER",           tag: "required",    visKey: "footer_section" },
