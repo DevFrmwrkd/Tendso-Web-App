@@ -22,20 +22,29 @@ import { motion, AnimatePresence } from 'framer-motion'
  *
  * Style key format: `${categoryLetter}${variantNumber}` (e.g., "K1", "K2", ... "K5")
  */
-type SectionId = 'hero' | 'about' | 'services' | 'gallery' | 'contact'
+// Core 5 sections (hero/about/services/gallery/contact) plus the v01 extras
+// blocks. Extras only get variant entries inside specific categories — they
+// won't appear in the legacy Default Styles A-J picker.
+export type SectionId =
+    | 'hero' | 'about' | 'services' | 'gallery' | 'contact'
+    | 'trust' | 'whyUs' | 'howItWorks' | 'testimonials' | 'faq'
+    | 'serviceArea' | 'credentials' | 'ctaBand' | 'clickToMessage'
 
-type Variant = { key: string; label: string; description: string; status?: 'available' | 'coming-soon' }
+export type Variant = { key: string; label: string; description: string; status?: 'available' | 'coming-soon' }
 
-type Category = {
+export type Category = {
     key: string // K, L, M, N, O
     emoji: string
     label: string
     tagline: string
     palette: { bg: string; primary: string; accent: string; text: string }
-    sections: Record<SectionId, Variant[]>
+    // Sections are partial so each category can opt-in to extras blocks
+    // independently (Salon ships with v01 extras variants first; others
+    // can be filled in later).
+    sections: Partial<Record<SectionId, Variant[]>>
 }
 
-const CATEGORY_STYLES: Category[] = [
+export const CATEGORY_STYLES: Category[] = [
     {
         key: 'K',
         emoji: '💈',
@@ -166,6 +175,44 @@ const CATEGORY_STYLES: Category[] = [
                 { key: 'M4', label: 'Walk-In Welcome', description: 'Day-pill hours with today highlighted', status: 'available' },
                 { key: 'M5', label: 'Concierge', description: 'Dark luxe panel with portrait + direct line', status: 'available' },
             ],
+            // v01 EXTRAS — each block ships two visual variants (M1 + M2).
+            // Salon-first per the spec; other categories will follow.
+            trust: [
+                { key: 'M1', label: 'Ribbon Row', description: 'Inline credential ribbon with sage divider', status: 'available' },
+                { key: 'M2', label: 'Stacked Badges', description: 'Vertical badges with rounded paper backing', status: 'available' },
+            ],
+            whyUs: [
+                { key: 'M1', label: 'Three Pillars', description: 'Editorial 3-column with italic accents', status: 'available' },
+                { key: 'M2', label: 'Numbered Cards', description: 'Big 01/02/03 numbers + reasoning cards', status: 'available' },
+            ],
+            howItWorks: [
+                { key: 'M1', label: 'Step Ribbon', description: 'Inline 4-step ribbon with connector arrows', status: 'available' },
+                { key: 'M2', label: 'Vertical Path', description: 'Vertical timeline with leaf accents', status: 'available' },
+            ],
+            testimonials: [
+                { key: 'M1', label: 'Quote Cards', description: 'Three soft quote cards with sage frames', status: 'available' },
+                { key: 'M2', label: 'Editorial Pull', description: 'Magazine-style hero pull-quote with byline', status: 'available' },
+            ],
+            faq: [
+                { key: 'M1', label: 'Accordion', description: 'Stacked details/summary with petal markers', status: 'available' },
+                { key: 'M2', label: 'Two Column', description: 'Side-by-side FAQ grid with separator rules', status: 'available' },
+            ],
+            serviceArea: [
+                { key: 'M1', label: 'Chip Cluster', description: 'Inline pill list of neighborhoods served', status: 'available' },
+                { key: 'M2', label: 'Map-Adjacent', description: 'Two-column place list beside map placeholder', status: 'available' },
+            ],
+            credentials: [
+                { key: 'M1', label: 'Dotted DL', description: 'Definition-list with dotted-leader credentials', status: 'available' },
+                { key: 'M2', label: 'Marks Grid', description: 'Logo-style mark tiles for awards & partners', status: 'available' },
+            ],
+            ctaBand: [
+                { key: 'M1', label: 'Soft Banner', description: 'Cream banner with primary + ghost door', status: 'available' },
+                { key: 'M2', label: 'Dark Band', description: 'Ink-inverted band with serif headline', status: 'available' },
+            ],
+            clickToMessage: [
+                { key: 'M1', label: 'FAB Pair', description: 'Floating WhatsApp + Messenger pair bottom-right', status: 'available' },
+                { key: 'M2', label: 'Inline Strip', description: 'Sticky bottom strip with chat options', status: 'available' },
+            ],
         },
     },
     {
@@ -259,20 +306,39 @@ const CATEGORY_STYLES: Category[] = [
 ]
 
 // Section ID → editor field name on EditorCustomizations
-const SECTION_FIELD_MAP: Record<SectionId, keyof EditorCustomizations> = {
+export const SECTION_FIELD_MAP: Record<SectionId, string> = {
     hero: 'heroStyle',
     about: 'aboutStyle',
     services: 'servicesStyle',
     gallery: 'galleryStyle',
     contact: 'contactStyle',
+    // v01 extras — picked per category, defaults handled in lib/block-defaults.ts
+    trust: 'trustStyle',
+    whyUs: 'whyUsStyle',
+    howItWorks: 'howItWorksStyle',
+    testimonials: 'testimonialsStyle',
+    faq: 'faqStyle',
+    serviceArea: 'serviceAreaStyle',
+    credentials: 'credentialsStyle',
+    ctaBand: 'ctaBandStyle',
+    clickToMessage: 'clickToMessageStyle',
 }
 
-const SECTION_LABELS: Record<SectionId, { label: string; sub: string }> = {
+export const SECTION_LABELS: Record<SectionId, { label: string; sub: string }> = {
     hero: { label: 'Hero Section', sub: 'Top Banner' },
     about: { label: 'About Section', sub: 'Story & Mission' },
     services: { label: 'Services Section', sub: 'What We Do' },
     gallery: { label: 'Gallery Section', sub: 'Visual Portfolio' },
     contact: { label: 'Contact Section', sub: 'Conversion Point' },
+    trust: { label: 'Trust Ribbon', sub: 'Credibility' },
+    whyUs: { label: 'Why-Us', sub: 'Differentiators' },
+    howItWorks: { label: 'How It Works', sub: 'Process Steps' },
+    testimonials: { label: 'Testimonials', sub: 'Social Proof' },
+    faq: { label: 'FAQ', sub: 'Frequently Asked' },
+    serviceArea: { label: 'Service Area', sub: 'Locations Served' },
+    credentials: { label: 'Credentials', sub: 'Awards & Marks' },
+    ctaBand: { label: 'CTA Band', sub: 'Closing Call' },
+    clickToMessage: { label: 'Click to Message', sub: 'Floating FAB' },
 }
 
 /**
@@ -280,7 +346,7 @@ const SECTION_LABELS: Record<SectionId, { label: string; sub: string }> = {
  * Renders a small layout suggestion using the category's palette so users
  * can visually identify the variant. ~80px tall, full-width.
  */
-function VariantPreview({ sectionId, variantKey, palette }: {
+export function VariantPreview({ sectionId, variantKey, palette }: {
     sectionId: SectionId
     variantKey: string
     palette: { bg: string; primary: string; accent: string; text: string }
@@ -715,6 +781,246 @@ function VariantPreview({ sectionId, variantKey, palette }: {
         )
     }
 
+    // v01 EXTRAS — schematic thumbnails for the per-category variant cards.
+    // Each new section gets two visual hints (M1 vs M2) so admin can tell
+    // them apart in the picker grid.
+    const accent = palette.accent;
+    const primary = palette.primary;
+    const ink = palette.text;
+
+    if (sectionId === 'trust') {
+        if (variantNum === 1) {
+            // Ribbon Row — horizontal pill row
+            return (
+                <div className="relative w-full h-20 flex items-center justify-center gap-1.5 px-3" style={bgStyle}>
+                    <div className="h-3 w-12 rounded-full" style={{ backgroundColor: accent, opacity: 0.7 }} />
+                    <div className="h-3 w-10 rounded-full" style={{ backgroundColor: primary, opacity: 0.8 }} />
+                    <div className="h-3 w-14 rounded-full" style={{ backgroundColor: ink, opacity: 0.55 }} />
+                </div>
+            )
+        }
+        // Stacked Badges — vertical
+        return (
+            <div className="relative w-full h-20 flex flex-col items-center justify-center gap-1.5" style={bgStyle}>
+                <div className="h-2.5 w-1/2 rounded-md" style={{ backgroundColor: primary, opacity: 0.8 }} />
+                <div className="h-2.5 w-2/5 rounded-md" style={{ backgroundColor: accent, opacity: 0.7 }} />
+                <div className="h-2.5 w-1/3 rounded-md" style={{ backgroundColor: ink, opacity: 0.55 }} />
+            </div>
+        )
+    }
+
+    if (sectionId === 'whyUs') {
+        if (variantNum === 1) {
+            // Three Pillars
+            return (
+                <div className="relative w-full h-20 grid grid-cols-3 gap-1 px-2 py-2" style={bgStyle}>
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex flex-col gap-0.5 justify-center items-start p-1 rounded" style={{ background: 'rgba(255,255,255,0.5)' }}>
+                            <div className="h-1 w-2/3 rounded-full" style={{ backgroundColor: accent }} />
+                            <div className="h-0.5 w-full rounded-full opacity-50" style={{ backgroundColor: ink }} />
+                            <div className="h-0.5 w-3/4 rounded-full opacity-40" style={{ backgroundColor: ink }} />
+                        </div>
+                    ))}
+                </div>
+            )
+        }
+        // Numbered Cards
+        return (
+            <div className="relative w-full h-20 grid grid-cols-3 gap-1 px-2 py-2" style={bgStyle}>
+                {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex flex-col items-center justify-center p-1 rounded" style={{ background: 'rgba(255,255,255,0.45)' }}>
+                        <div className="text-[10px] font-bold" style={{ color: primary, fontFamily: 'serif' }}>{`0${i}`}</div>
+                        <div className="h-0.5 w-3/4 rounded-full mt-0.5 opacity-50" style={{ backgroundColor: ink }} />
+                    </div>
+                ))}
+            </div>
+        )
+    }
+
+    if (sectionId === 'howItWorks') {
+        if (variantNum === 1) {
+            // Step Ribbon — inline horizontal steps with arrows
+            return (
+                <div className="relative w-full h-20 flex items-center justify-center gap-1 px-2" style={bgStyle}>
+                    {[1, 2, 3, 4].map((i, idx) => (
+                        <span key={i} className="flex items-center gap-1">
+                            <span className="w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-bold" style={{ background: accent, color: '#fff' }}>{i}</span>
+                            {idx < 3 && <span className="text-[9px] opacity-50" style={{ color: ink }}>›</span>}
+                        </span>
+                    ))}
+                </div>
+            )
+        }
+        // Vertical Path
+        return (
+            <div className="relative w-full h-20 flex flex-col items-start gap-1 px-3 py-1.5" style={bgStyle}>
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex items-center gap-1.5 w-full">
+                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: i === 1 ? primary : accent }} />
+                        <div className="h-0.5 flex-1 rounded-full opacity-40" style={{ backgroundColor: ink }} />
+                    </div>
+                ))}
+            </div>
+        )
+    }
+
+    if (sectionId === 'testimonials') {
+        if (variantNum === 1) {
+            // Three quote cards
+            return (
+                <div className="relative w-full h-20 grid grid-cols-3 gap-1 px-2 py-2" style={bgStyle}>
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex flex-col gap-0.5 p-1 rounded" style={{ background: 'rgba(255,255,255,0.55)', border: `1px solid ${accent}30` }}>
+                            <div className="text-[10px] leading-none" style={{ color: primary, fontFamily: 'serif' }}>&ldquo;</div>
+                            <div className="h-0.5 w-full rounded-full opacity-40" style={{ backgroundColor: ink }} />
+                            <div className="h-0.5 w-2/3 rounded-full opacity-30" style={{ backgroundColor: ink }} />
+                        </div>
+                    ))}
+                </div>
+            )
+        }
+        // Editorial pull-quote
+        return (
+            <div className="relative w-full h-20 flex flex-col items-center justify-center px-4" style={bgStyle}>
+                <div className="text-[18px] leading-none" style={{ color: primary, fontFamily: 'serif', fontStyle: 'italic' }}>&ldquo;</div>
+                <div className="h-1 w-3/4 rounded-full mt-0.5" style={{ backgroundColor: ink, opacity: 0.5 }} />
+                <div className="h-1 w-2/3 rounded-full mt-0.5" style={{ backgroundColor: ink, opacity: 0.45 }} />
+                <div className="h-0.5 w-1/4 rounded-full mt-1" style={{ backgroundColor: accent }} />
+            </div>
+        )
+    }
+
+    if (sectionId === 'faq') {
+        if (variantNum === 1) {
+            // Accordion stack
+            return (
+                <div className="relative w-full h-20 flex flex-col gap-1 px-2 py-1.5" style={bgStyle}>
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center justify-between rounded px-1.5 py-1" style={{ background: 'rgba(255,255,255,0.55)' }}>
+                            <div className="h-0.5 w-3/4 rounded-full opacity-50" style={{ backgroundColor: ink }} />
+                            <span className="text-[8px]" style={{ color: accent }}>{i === 1 ? '−' : '+'}</span>
+                        </div>
+                    ))}
+                </div>
+            )
+        }
+        // Two-column FAQ
+        return (
+            <div className="relative w-full h-20 grid grid-cols-2 gap-1 px-2 py-1.5" style={bgStyle}>
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex flex-col gap-0.5 rounded p-1" style={{ background: 'rgba(255,255,255,0.5)' }}>
+                        <div className="h-0.5 w-full rounded-full opacity-55" style={{ backgroundColor: ink }} />
+                        <div className="h-0.5 w-2/3 rounded-full opacity-35" style={{ backgroundColor: ink }} />
+                    </div>
+                ))}
+            </div>
+        )
+    }
+
+    if (sectionId === 'serviceArea') {
+        if (variantNum === 1) {
+            // Chip cluster
+            return (
+                <div className="relative w-full h-20 flex flex-wrap items-center content-center gap-1 px-2 py-2" style={bgStyle}>
+                    {[12, 18, 14, 20, 16, 22, 14].map((w, i) => (
+                        <span key={i} className="rounded-full h-3" style={{ width: `${w}px`, background: i % 2 ? accent : primary, opacity: i % 3 ? 0.7 : 1 }} />
+                    ))}
+                </div>
+            )
+        }
+        // Map-adjacent
+        return (
+            <div className="relative w-full h-20 grid grid-cols-[1fr_1.2fr] gap-1.5 px-2 py-1.5" style={bgStyle}>
+                <div className="flex flex-col gap-0.5 justify-center">
+                    {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="h-0.5 w-full rounded-full opacity-40" style={{ backgroundColor: ink }} />
+                    ))}
+                </div>
+                <div className="rounded relative overflow-hidden" style={{ background: `${accent}40` }}>
+                    <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ background: primary }} />
+                </div>
+            </div>
+        )
+    }
+
+    if (sectionId === 'credentials') {
+        if (variantNum === 1) {
+            // Dotted DL
+            return (
+                <div className="relative w-full h-20 flex flex-col gap-1 px-2 py-1.5 justify-center" style={bgStyle}>
+                    {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center gap-1">
+                            <div className="h-0.5 w-1/4 rounded-full" style={{ backgroundColor: ink, opacity: 0.55 }} />
+                            <div className="h-px flex-1 border-t border-dotted" style={{ borderColor: ink, opacity: 0.4 }} />
+                            <div className="h-0.5 w-1/3 rounded-full" style={{ backgroundColor: accent }} />
+                        </div>
+                    ))}
+                </div>
+            )
+        }
+        // Marks grid
+        return (
+            <div className="relative w-full h-20 grid grid-cols-4 gap-1 px-2 py-1.5" style={bgStyle}>
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="rounded flex items-center justify-center" style={{ background: 'rgba(255,255,255,0.6)' }}>
+                        <span className="text-[9px] font-bold" style={{ color: ink, opacity: 0.55, fontFamily: 'serif' }}>{['A', 'M', 'L', 'X'][i - 1]}</span>
+                    </div>
+                ))}
+            </div>
+        )
+    }
+
+    if (sectionId === 'ctaBand') {
+        if (variantNum === 1) {
+            // Soft banner
+            return (
+                <div className="relative w-full h-20 flex items-center justify-between gap-2 px-3" style={bgStyle}>
+                    <div className="flex flex-col gap-0.5">
+                        <div className="h-1.5 w-16 rounded-full" style={{ background: ink, opacity: 0.7 }} />
+                        <div className="h-0.5 w-12 rounded-full opacity-40" style={{ backgroundColor: ink }} />
+                    </div>
+                    <div className="flex gap-1">
+                        <div className="h-3 w-8 rounded-sm" style={{ background: primary }} />
+                        <div className="h-3 w-8 rounded-sm border" style={{ borderColor: ink, opacity: 0.6 }} />
+                    </div>
+                </div>
+            )
+        }
+        // Dark band — inverted
+        return (
+            <div className="relative w-full h-20 flex items-center justify-center gap-2 px-3" style={{ background: ink }}>
+                <div className="flex flex-col gap-0.5">
+                    <div className="h-1.5 w-20 rounded-full" style={{ background: palette.bg, opacity: 0.9 }} />
+                    <div className="h-0.5 w-14 rounded-full opacity-50" style={{ backgroundColor: palette.bg }} />
+                </div>
+                <div className="h-3 w-9 rounded-sm" style={{ background: accent }} />
+            </div>
+        )
+    }
+
+    if (sectionId === 'clickToMessage') {
+        if (variantNum === 1) {
+            // FAB pair bottom-right
+            return (
+                <div className="relative w-full h-20" style={bgStyle}>
+                    <div className="absolute bottom-1.5 right-1.5 flex flex-col gap-1">
+                        <div className="w-4 h-4 rounded-full" style={{ background: '#25D366' }} />
+                        <div className="w-4 h-4 rounded-full" style={{ background: '#0084FF' }} />
+                    </div>
+                </div>
+            )
+        }
+        // Sticky bottom strip
+        return (
+            <div className="relative w-full h-20" style={bgStyle}>
+                <div className="absolute bottom-0 left-0 right-0 flex items-center justify-around py-1" style={{ background: ink }}>
+                    <div className="h-2 w-1/3 rounded-full" style={{ background: '#25D366' }} />
+                    <div className="h-2 w-1/3 rounded-full" style={{ background: '#0084FF' }} />
+                </div>
+            </div>
+        )
+    }
+
     // Fallback
     return <div className="w-full h-20" style={bgStyle} />
 }
@@ -729,13 +1035,23 @@ export interface EditorCustomizations {
     colorSchemeId: string
     fontPairing: string
     fontPairingId: string
+    // v01 extras — variant style per block, picked from Template tab
+    trustStyle?: string
+    whyUsStyle?: string
+    howItWorksStyle?: string
+    testimonialsStyle?: string
+    faqStyle?: string
+    serviceAreaStyle?: string
+    credentialsStyle?: string
+    ctaBandStyle?: string
+    clickToMessageStyle?: string
     // Legacy fields kept for backward compat
     navbarStyle?: string
     featuredStyle?: string
     footerStyle?: string
 }
 
-const STYLE_METADATA: Record<string, Record<string, { label: string, description: string, previewUrl?: string }>> = {
+export const STYLE_METADATA: Record<string, Record<string, { label: string, description: string, previewUrl?: string }>> = {
     heroStyle: {
         'A': { label: 'Split Modern', description: 'Dynamic split with text left and visual focus right.' },
         'B': { label: 'Fullscreen', description: 'Immersive background with elegant centered typography.' },
@@ -798,7 +1114,7 @@ const STYLE_METADATA: Record<string, Record<string, { label: string, description
     }
 }
 
-const StylePreviewBadge = ({ style, type, colorScheme = 'blue' }: { style: string, type: string, colorScheme?: string }) => {
+export const StylePreviewBadge = ({ style, type, colorScheme = 'blue' }: { style: string, type: string, colorScheme?: string }) => {
     // Dynamic colors based on scheme
     const themeColors: Record<string, string> = {
         'blue': 'bg-blue-600',
@@ -972,7 +1288,10 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
      */
     const setSectionVariant = (sectionId: SectionId, variantKey: string) => {
         const field = SECTION_FIELD_MAP[sectionId]
-        updateField(field, variantKey)
+        // SECTION_FIELD_MAP returns strings (extras blocks use field names that
+        // are also typed as optional on EditorCustomizations); cast to satisfy
+        // updateField's narrower keyof EditorCustomizations parameter.
+        updateField(field as keyof EditorCustomizations, variantKey)
     }
 
     /**
@@ -1078,7 +1397,8 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
                                 <div className="p-4 bg-white space-y-6">
                                     {(Object.keys(cat.sections) as SectionId[]).map((sectionId) => {
                                         const variants = cat.sections[sectionId]
-                                        const currentValue = customizations[SECTION_FIELD_MAP[sectionId]]
+                                        if (!variants) return null
+                                        const currentValue = (customizations as any)[SECTION_FIELD_MAP[sectionId]]
                                         const sectionMeta = SECTION_LABELS[sectionId]
                                         return (
                                             <div key={sectionId} className="space-y-3">
@@ -1283,7 +1603,8 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
                                     <option value="yellow">Yellow Bright</option>
                                     <option value="maroon">Maroon Rich</option>
                                     <option value="black">Black Monochrome</option>
-                                    <option value="gold">Gold Premium</option>
+                                    <option value="gold">Gold Premium (cream)</option>
+                                    <option value="whitegold">White & Gold Luxe</option>
                                 </select>
                             </div>
 

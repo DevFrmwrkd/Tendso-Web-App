@@ -25,6 +25,9 @@ export default defineSchema({
         wiseEmail: v.optional(v.string()),
         certifiedAt: v.optional(v.number()),     // Timestamp when admin APPROVED the creator
         quizPassedAt: v.optional(v.number()),    // Timestamp when creator passed onboarding quiz (awaiting admin approval)
+        rejectedAt: v.optional(v.number()),      // Timestamp when admin REJECTED the creator (mutex with certifiedAt)
+        rejectionReason: v.optional(v.string()), // Optional reason shown to creator on /verification-rejected (max 500 chars enforced in mutation)
+        rejectedBy: v.optional(v.string()),      // Clerk ID of admin who rejected
         isDeleted: v.optional(v.boolean()),
         deletedAt: v.optional(v.number()),
         // Admin-only extras (kept as optional, mobile doesn't have these)

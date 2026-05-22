@@ -1856,3 +1856,70 @@ Tick each one off as you go. Don't skip any. The order matters because later ste
   - [ ] Admin approving from web auto-releases the gate
   - [ ] CRM lead list shows ALL leads with `submittedBy` attribution
   - [ ] Admin-curated content renders as a social card on mobile
+
+---
+
+## Step 12 — Public-facing Web Creators platform: Leads page (NEW)
+
+> **New work item, added 2026-05-22.** Until now this doc only covered the **admin** web surfaces. Mobile creators have a fully-featured Leads tab; web creators have nothing equivalent. Step 12 closes that gap.
+>
+> **Full design + UX + implementation spec lives in [WEB-LEAD-CRM-CREATORS-PAGE.md](./WEB-LEAD-CRM-CREATORS-PAGE.md)** — that is the source of truth for this work. The summary here exists so the web team knows the work exists when reading this sync doc; do not duplicate the spec.
+
+### Scope
+
+Add two new routes to the **public-facing** (non-admin) web Creators platform:
+
+- `/creators/leads` — team-wide social feed of leads, mirroring `app/(app)/leads/index.tsx`
+- `/creators/leads/[leadId]` — single lead detail with interviewers + notes, mirroring `app/(app)/leads/[leadId].tsx`
+
+Both routes consume the **same** Convex functions that mobile uses — no new backend work:
+
+- `api.leads.listForMobileCRM` (already deployed)
+- `api.leads.getDetailForMobileCRM` (already deployed)
+- `api.leadNotes.add` (already deployed)
+- `api.leads.updateStatus` (already deployed; gate to `isMine` or admin client-side)
+
+### Design system
+
+Apply the **same** Editorial Paper tokens already documented in Step 10.5 (mobile-safe RGB palette, Instrument Serif + Onest + JetBrains Mono). **Critical:** the user has been explicit — greens + khaki only, NO orange / NO terracotta anywhere on this page. The "Hot" badge uses `--color-danger` (earthy red) not brand orange.
+
+### Why this is separate from Step 10
+
+- **Step 10 surfaces are admin-only**: Pending Approval queue + Lead Content editor. They call admin-gated functions (`listPendingApproval`, `approveCreator`, `updateAdminContent`, `generatePreviewImageUploadUrl`, `getDetailForAdmin`).
+- **Step 12 surfaces are creator-only**: list + detail of leads from a creator's perspective. They call the mobile-facing functions (`listForMobileCRM`, `getDetailForMobileCRM`).
+- Different consumers → different routes → different access gates. Same design system.
+
+### Mobile parity checklist
+
+The web Leads page must match mobile feature-by-feature:
+
+- [ ] Team-wide social feed (ALL leads visible, not just own)
+- [ ] `submittedBy` strip prominent on each card (avatar + display name)
+- [ ] Status filter pills (All / New / Contacted / Qualified / Converted / Lost) with live stat counts
+- [ ] "Only mine" toggle
+- [ ] Search across business name, owner, phone, submitter display name (debounced)
+- [ ] FB-style social card render when `hasEnrichedContent === true`
+- [ ] Hot-lead badge when `interviewerCount >= 3`
+- [ ] Detail page: business card, interviewers list, notes feed (post note inline)
+- [ ] Status update gated to `isMine` or admin
+
+### Web deliverables checklist
+
+- [ ] Web design-system primitives ported to `components/editorial/` (Display, Body, Label, Door, Pill, Card, LiveDot, Avatar, EditorialField, Rule)
+- [ ] Google Fonts loaded via `next/font` (or equivalent) in the root layout
+- [ ] CSS variables for the Editorial Paper palette declared in `globals.css` or design-tokens module
+- [ ] `/creators/leads` route built; renders both card modes (standard + social-card)
+- [ ] URL state syncing for filters (`?status=&search=&onlyMine=`)
+- [ ] `/creators/leads/[leadId]` route built with submitter strip, business card, interviewers, notes
+- [ ] `leadNotes.add` wired with optimistic UI
+- [ ] `leads.updateStatus` wired with `isMine`/admin gate
+- [ ] Mobile-responsive: 1280 / 768 / 480 breakpoints, tap targets ≥44pt
+- [ ] A11y: keyboard nav, focus rings, `aria-live` on stats strip, hot-badge has text + aria-label
+- [ ] No orange anywhere in the rendered page (grep `f59e0b`, `ea580c`, `fb923c`, `terracotta` in computed styles to confirm)
+
+### Coordination
+
+- [ ] Web team has read [WEB-LEAD-CRM-CREATORS-PAGE.md](./WEB-LEAD-CRM-CREATORS-PAGE.md) in full
+- [ ] Web team flagged any open questions back to mobile/product (route slug, dark mode, feature flag, empty-state CTA)
+- [ ] Feature flag chosen (suggested: `FF_WEB_LEADS_CRM`); roll out to internal users first
+- [ ] Mobile team notified before public launch — mobile screenshots in marketing/onboarding may need updating to mention "Now on web too"

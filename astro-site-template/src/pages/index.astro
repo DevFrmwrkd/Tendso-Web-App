@@ -28,6 +28,7 @@ import HeroM2 from '../components/heroes/HeroM2.astro';
 import HeroM3 from '../components/heroes/HeroM3.astro';
 import HeroM4 from '../components/heroes/HeroM4.astro';
 import HeroM5 from '../components/heroes/HeroM5.astro';
+import HeroM6 from '../components/heroes/HeroM6.astro';
 import HeroN1 from '../components/heroes/HeroN1.astro';
 import HeroN2 from '../components/heroes/HeroN2.astro';
 import HeroN3 from '../components/heroes/HeroN3.astro';
@@ -187,11 +188,23 @@ import ContactO3 from '../components/contact/ContactO3.astro';
 import ContactO4 from '../components/contact/ContactO4.astro';
 import ContactO5 from '../components/contact/ContactO5.astro';
 
+// ── New v01-spec blocks (render on every variant via this page) ──
+import LocationBlock from '../components/extras/LocationBlock.astro';
+import ServiceAreaBlock from '../components/extras/ServiceAreaBlock.astro';
+import ClickToMessage from '../components/extras/ClickToMessage.astro';
+import TrustBlock from '../components/extras/TrustBlock.astro';
+import WhyUsBlock from '../components/extras/WhyUsBlock.astro';
+import HowItWorksBlock from '../components/extras/HowItWorksBlock.astro';
+import TestimonialsBlock from '../components/extras/TestimonialsBlock.astro';
+import FaqBlock from '../components/extras/FaqBlock.astro';
+import CredentialsBlock from '../components/extras/CredentialsBlock.astro';
+import CtaBandBlock from '../components/extras/CtaBandBlock.astro';
+
 // Import site data
 import siteData from '../data/site-data.json';
 
 // Component maps
-const heroComponents: Record<string, any> = { A: HeroA, B: HeroB, C: HeroC, D: HeroD, E: HeroE, F: HeroF, G: HeroG, H: HeroH, I: HeroI, J: HeroJ, K1: HeroK1, K2: HeroK2, K3: HeroK3, K4: HeroK4, K5: HeroK5, L1: HeroL1, L2: HeroL2, L3: HeroL3, L4: HeroL4, L5: HeroL5, M1: HeroM1, M2: HeroM2, M3: HeroM3, M4: HeroM4, M5: HeroM5, N1: HeroN1, N2: HeroN2, N3: HeroN3, N4: HeroN4, N5: HeroN5, O1: HeroO1, O2: HeroO2, O3: HeroO3, O4: HeroO4, O5: HeroO5 };
+const heroComponents: Record<string, any> = { A: HeroA, B: HeroB, C: HeroC, D: HeroD, E: HeroE, F: HeroF, G: HeroG, H: HeroH, I: HeroI, J: HeroJ, K1: HeroK1, K2: HeroK2, K3: HeroK3, K4: HeroK4, K5: HeroK5, L1: HeroL1, L2: HeroL2, L3: HeroL3, L4: HeroL4, L5: HeroL5, M1: HeroM1, M2: HeroM2, M3: HeroM3, M4: HeroM4, M5: HeroM5, M6: HeroM6, N1: HeroN1, N2: HeroN2, N3: HeroN3, N4: HeroN4, N5: HeroN5, O1: HeroO1, O2: HeroO2, O3: HeroO3, O4: HeroO4, O5: HeroO5 };
 const aboutComponents: Record<string, any> = { A: AboutA, B: AboutB, C: AboutC, D: AboutD, E: AboutE, F: AboutF, G: AboutG, H: AboutH, I: AboutI, J: AboutJ, K1: AboutK1, K2: AboutK2, K3: AboutK3, K4: AboutK4, K5: AboutK5, L1: AboutL1, L2: AboutL2, L3: AboutL3, L4: AboutL4, L5: AboutL5, M1: AboutM1, M2: AboutM2, M3: AboutM3, M4: AboutM4, M5: AboutM5, N1: AboutN1, N2: AboutN2, N3: AboutN3, N4: AboutN4, N5: AboutN5, O1: AboutO1, O2: AboutO2, O3: AboutO3, O4: AboutO4, O5: AboutO5 };
 const servicesComponents: Record<string, any> = { A: ServicesA, B: ServicesB, C: ServicesC, D: ServicesD, E: ServicesE, F: ServicesF, G: ServicesG, H: ServicesH, I: ServicesI, J: ServicesJ, K1: ServicesK1, K2: ServicesK2, K3: ServicesK3, K4: ServicesK4, K5: ServicesK5, L1: ServicesL1, L2: ServicesL2, L3: ServicesL3, L4: ServicesL4, L5: ServicesL5, M1: ServicesM1, M2: ServicesM2, M3: ServicesM3, M4: ServicesM4, M5: ServicesM5, N1: ServicesN1, N2: ServicesN2, N3: ServicesN3, N4: ServicesN4, N5: ServicesN5, O1: ServicesO1, O2: ServicesO2, O3: ServicesO3, O4: ServicesO4, O5: ServicesO5 };
 const galleryComponents: Record<string, any> = { A: GalleryA, B: GalleryB, C: GalleryC, D: GalleryD, E: GalleryE, F: GalleryF, G: GalleryG, H: GalleryH, I: GalleryI, J: GalleryJ, K1: GalleryK1, K2: GalleryK2, K3: GalleryK3, K4: GalleryK4, K5: GalleryK5, L1: GalleryL1, L2: GalleryL2, L3: GalleryL3, L4: GalleryL4, L5: GalleryL5, M1: GalleryM1, M2: GalleryM2, M3: GalleryM3, M4: GalleryM4, M5: GalleryM5, N1: GalleryN1, N2: GalleryN2, N3: GalleryN3, N4: GalleryN4, N5: GalleryN5, O1: GalleryO1, O2: GalleryO2, O3: GalleryO3, O4: GalleryO4, O5: GalleryO5 };
@@ -217,10 +230,20 @@ const vis = siteData.visibility;
   fontPairing={siteData.layout.fontPairing}
   contact={siteData.layout.contact}
   navbarStyle={siteData.customizations.heroStyle}
+  showScrollTop={vis.scrollTopButton !== false}
 >
   {vis.heroSection !== false && (
     <HeroComponent {...siteData.hero} />
   )}
+
+  {/* Trust ribbon — credibility before they spend attention */}
+  <TrustBlock
+    years={(siteData as any).trust?.years}
+    licenses={(siteData as any).trust?.licenses}
+    memberships={(siteData as any).trust?.memberships}
+    variantStyle={(siteData.customizations as any)?.trustStyle}
+    visibility={vis}
+  />
 
   {vis.aboutSection !== false && (
     <AboutComponent {...siteData.about} />
@@ -230,11 +253,88 @@ const vis = siteData.visibility;
     <ServicesComponent {...siteData.services} />
   )}
 
+  {/* Why-us — answers "why you over a competitor?" */}
+  <WhyUsBlock
+    items={(siteData as any).why}
+    variantStyle={(siteData.customizations as any)?.whyUsStyle}
+    visibility={vis}
+  />
+
+  {/* How-it-works — kills "what happens if I contact them?" friction */}
+  <HowItWorksBlock
+    items={(siteData as any).how}
+    variantStyle={(siteData.customizations as any)?.howItWorksStyle}
+    visibility={vis}
+  />
+
+  {/* Testimonials — social proof */}
+  <TestimonialsBlock
+    items={(siteData as any).testimonials}
+    variantStyle={(siteData.customizations as any)?.testimonialsStyle}
+    visibility={vis}
+  />
+
   {vis.gallerySection !== false && (
     <GalleryComponent {...siteData.gallery} />
   )}
 
+  {/* FAQ — kills last objections + wins Google "People also ask" */}
+  <FaqBlock
+    items={(siteData as any).faq}
+    variantStyle={(siteData.customizations as any)?.faqStyle}
+    visibility={vis}
+  />
+
+  {/* ServiceArea — long-tail "[service] in [town]" SEO */}
+  {(siteData as any).serviceArea && (
+    <ServiceAreaBlock
+      heading={(siteData as any).serviceArea?.heading}
+      places={(siteData as any).serviceArea?.places ?? []}
+      variantStyle={(siteData.customizations as any)?.serviceAreaStyle}
+      visibility={vis}
+    />
+  )}
+
+  {/* Credentials — hard trust (licenced/insured); decisive for medical & trades */}
+  <CredentialsBlock
+    items={(siteData as any).credentials}
+    variantStyle={(siteData.customizations as any)?.credentialsStyle}
+    visibility={vis}
+  />
+
+  {/* Location (NAP + Leaflet pin) — local-SEO backbone */}
+  <LocationBlock
+    businessName={siteData.layout.businessName}
+    address={siteData.layout.contact?.address}
+    phone={siteData.layout.contact?.phone}
+    email={siteData.layout.contact?.email}
+    lat={(siteData as any).location?.lat}
+    lng={(siteData as any).location?.lng}
+    googleMapsUrl={(siteData as any).location?.googleMapsUrl}
+    visibility={vis}
+  />
+
+  {/* CTA band — re-offers the action so they don't scroll back up */}
+  <CtaBandBlock
+    heading={(siteData as any).ctaBand?.heading}
+    body={(siteData as any).ctaBand?.body}
+    primaryLabel={(siteData as any).ctaBand?.primaryLabel}
+    primaryLink={(siteData as any).ctaBand?.primaryLink}
+    secondaryLabel={(siteData as any).ctaBand?.secondaryLabel}
+    secondaryLink={(siteData as any).ctaBand?.secondaryLink}
+    variantStyle={(siteData.customizations as any)?.ctaBandStyle}
+    visibility={vis}
+  />
+
   {vis.contactSection !== false && (
     <ContactComponent {...siteData.contact} />
   )}
+
+  {/* Floating click-to-message FAB */}
+  <ClickToMessage
+    whatsapp={(siteData as any).messaging?.whatsapp}
+    messenger={(siteData as any).messaging?.messenger}
+    variantStyle={(siteData.customizations as any)?.clickToMessageStyle}
+    visibility={vis}
+  />
 </BaseLayout>

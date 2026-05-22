@@ -1,8 +1,13 @@
 ---
 /**
- * HeroM2 - Salon/Spa / Bridal Promise
- * Bridal/event-focused: invitation card aesthetic with seal/script, lace divider,
- * "save the date" feel. Cream paper texture, blush + sage palette.
+ * HeroM2 — Salon · Maison Élite (gold luxe centered)
+ *
+ * Full-bleed cinematic hero with the hero image as a dim backdrop, a centered
+ * serif headline + ornate "Salon & Spa" rule, body copy, and a single primary
+ * CTA pill. Aspirational, premium, magazine-cover feel.
+ *
+ * All colors + fonts route through global theme vars so the picker + inline
+ * edits take effect. Local --mae-* derive from globals.
  */
 interface Props {
   businessName: string;
@@ -15,6 +20,7 @@ interface Props {
   ctaSecondaryLabel?: string;
   ctaSecondaryLink?: string;
   photos: string[];
+  services?: Array<{ name: string; description: string }>;
   visibility?: Record<string, boolean>;
 }
 
@@ -22,121 +28,171 @@ const {
   businessName,
   headline,
   description,
-  badgeText = 'Bridal & special events',
-  testimonial,
-  ctaLabel = 'Reserve a fitting',
-  ctaLink = '#contact',
-  ctaSecondaryLabel = 'View packages',
-  ctaSecondaryLink = '#services',
+  badgeText = "Luxury Beauty Destination",
+  ctaLabel = "Book a Consultation",
+  ctaLink = "#contact",
   photos = [],
   visibility,
 } = Astro.props;
 
-const mainPhoto = photos[0] || '';
+const mainPhoto = photos[0] || "";
 
 const showHeadline = visibility?.heroHeadline !== false;
 const showTagline = visibility?.heroTagline !== false && !!badgeText;
 const showDescription = visibility?.heroDescription !== false;
-const showTestimonial = visibility?.heroTestimonial !== false && !!testimonial;
 const showButton = visibility?.heroButton !== false;
-const showImage = visibility?.heroImage !== false;
+const showImage = visibility?.heroImage !== false && !!mainPhoto;
 ---
 
-<section id="hero" class="relative w-full min-h-screen overflow-hidden bg-[var(--bg)] flex items-center" style="font-family: var(--body-font);">
-  {/* Paper texture grain */}
-  <div class="absolute inset-0 z-0 opacity-[0.07] pointer-events-none" style="background-image: radial-gradient(circle at 30% 30%, var(--primary) 0.5px, transparent 1px), radial-gradient(circle at 70% 70%, var(--accent) 0.5px, transparent 1px); background-size: 5px 5px, 7px 7px;"></div>
-
-  {/* Soft corner washes */}
-  <div class="absolute -top-32 -right-20 w-[420px] h-[420px] rounded-full opacity-30 blur-[80px] pointer-events-none" style="background: var(--primary);"></div>
-  <div class="absolute -bottom-32 -left-20 w-[420px] h-[420px] rounded-full opacity-25 blur-[100px] pointer-events-none" style="background: var(--accent);"></div>
-
-  <div class="relative z-10 mx-auto max-w-6xl w-full px-6 lg:px-12 py-20">
-
-    {/* Invitation card */}
-    <div class="bg-[var(--surface)]/80 backdrop-blur-sm border-2 border-[var(--primary)]/30 p-10 sm:p-14 lg:p-20 relative">
-      {/* Inner ornament border */}
-      <div class="absolute inset-3 border border-[var(--primary)]/20 pointer-events-none"></div>
-
-      {/* Top wax seal */}
-      <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-12 h-12 rounded-full bg-[var(--primary)] flex items-center justify-center shadow-lg salon-seal">
-        <span class="text-[var(--bg)] text-xl italic" style="font-family: var(--heading-font);">m</span>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-10 lg:gap-14 items-center">
-        {/* LEFT — Image in oval frame */}
-        {showImage && (
-          <div class="salon-fade-up relative">
-            <div class="relative aspect-[4/5] overflow-hidden bg-[var(--bg)]" style="border-radius: 50% / 30%;">
-              {mainPhoto ? (
-                <img src={mainPhoto} alt={businessName} class="absolute inset-0 w-full h-full object-cover" style="filter: sepia(0.1) brightness(1.02);" />
-              ) : (
-                <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-9xl italic" style="font-family: var(--heading-font);">m</div>
-              )}
-            </div>
-            {/* Floating ring */}
-            <div class="absolute -bottom-4 -right-4 w-24 h-24 rounded-full border-2 border-dashed border-[var(--accent)] salon-spin"></div>
-          </div>
-        )}
-
-        {/* RIGHT — Text */}
-        <div class="text-center lg:text-left">
-          {showTagline && (
-            <div class="salon-fade-up flex items-center gap-3 justify-center lg:justify-start mb-6">
-              <span class="h-px w-10 bg-[var(--primary)]/50"></span>
-              <span class="text-[10px] uppercase tracking-[0.5em] text-[var(--primary)] italic">— {badgeText} —</span>
-              <span class="h-px w-10 bg-[var(--primary)]/50"></span>
-            </div>
-          )}
-
-          {showHeadline && (
-            <h1 class="salon-fade-up font-light italic leading-[1.05] text-[var(--text)] mb-6" style="font-family: var(--heading-font); font-size: clamp(2.5rem, 6vw, 4.75rem); animation-delay: 0.1s;">
-              {headline}
-            </h1>
-          )}
-
-          {/* Lace divider */}
-          <div class="salon-fade-up flex items-center gap-3 mb-8 justify-center lg:justify-start" style="animation-delay: 0.2s">
-            <span class="text-[var(--primary)] text-xl">❀</span>
-            <span class="h-px flex-1 bg-gradient-to-r from-[var(--primary)]/40 via-[var(--accent)]/30 to-transparent"></span>
-          </div>
-
-          {showDescription && (
-            <p class="salon-fade-up text-[var(--text-muted)] italic leading-[1.8] mb-10 max-w-md mx-auto lg:mx-0" style="font-size: clamp(1rem, 1.25vw, 1.15rem); animation-delay: 0.3s;">
-              {description}
-            </p>
-          )}
-
-          {showButton && (
-            <div class="salon-fade-up flex flex-col sm:flex-row gap-3 justify-center lg:justify-start" style="animation-delay: 0.4s">
-              <a href={ctaLink} class="group inline-flex items-center justify-center gap-2 bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] px-8 py-3.5 text-[11px] uppercase tracking-[0.4em] transition-all hover:-translate-y-0.5 rounded-full">
-                {ctaLabel} <span class="group-hover:translate-x-1 transition-transform">→</span>
-              </a>
-              <a href={ctaSecondaryLink} class="inline-flex items-center justify-center gap-2 border border-[var(--primary)]/50 hover:border-[var(--primary)] text-[var(--primary)] px-8 py-3.5 text-[11px] uppercase tracking-[0.4em] transition-all rounded-full">
-                {ctaSecondaryLabel}
-              </a>
-            </div>
-          )}
-
-          {showTestimonial && (
-            <p class="salon-fade-up mt-10 italic text-sm text-[var(--text-muted)] max-w-md mx-auto lg:mx-0" style="animation-delay: 0.5s">"{testimonial}"</p>
-          )}
-        </div>
-      </div>
-
-      {/* Bottom signature */}
-      <div class="salon-fade-up mt-12 pt-6 border-t border-dashed border-[var(--primary)]/30 text-center" style="animation-delay: 0.6s">
-        <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--primary)] italic">— With love · {businessName} —</p>
-      </div>
+<section
+  id="hero"
+  class="mae-hero"
+  data-component="HERO"
+>
+  {showImage && (
+    <div class="mae-bg" aria-hidden="true">
+      <img src={mainPhoto} alt="" data-field="hero.image" />
+      <div class="mae-bg-overlay"></div>
     </div>
+  )}
+
+  <div class="mae-container">
+    {showTagline && (
+      <p class="mae-eyebrow" data-field="hero.badge_text" set:html={badgeText}></p>
+    )}
+
+    {showHeadline && (
+      <h1 class="mae-display" data-field="hero.headline" set:html={headline}></h1>
+    )}
+
+    <div class="mae-rule">
+      <span class="mae-rule-line"></span>
+      <span class="mae-rule-label" data-field="business.name" set:html={businessName}></span>
+      <span class="mae-rule-line"></span>
+    </div>
+    <p class="mae-rule-sub">Salon & Spa</p>
+
+    {showDescription && (
+      <p class="mae-lede" data-field="hero.description" set:html={description}></p>
+    )}
+
+    {showButton && (
+      <a class="mae-btn" href={ctaLink} data-field="hero.cta_label">
+        {ctaLabel}
+      </a>
+    )}
   </div>
 </section>
 
 <style>
-  .salon-fade-up { opacity: 0; transform: translateY(20px); animation: salonFadeUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-  @keyframes salonFadeUp { to { opacity: 1; transform: translateY(0); } }
-  .salon-seal { animation: salonPulse 4s ease-in-out infinite; }
-  @keyframes salonPulse { 50% { transform: translateX(-50%) scale(1.05); } }
-  .salon-spin { animation: salonSpin 30s linear infinite; }
-  @keyframes salonSpin { to { transform: rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce) { .salon-fade-up, .salon-seal, .salon-spin { animation: none; opacity: 1; transform: none; } }
+  .mae-hero {
+    --mae-ink:     var(--text);
+    --mae-ink-inv: color-mix(in srgb, var(--text) 4%, var(--bg));
+    --mae-accent:  var(--primary);
+    --mae-rule:    color-mix(in srgb, var(--mae-ink-inv) 35%, transparent);
+    --mae-serif:   var(--heading-font, "Cormorant Garamond", Georgia, serif);
+    --mae-sans:    var(--body-font, "Inter", system-ui, sans-serif);
+
+    position: relative;
+    min-height: clamp(560px, 80vh, 760px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--mae-ink);
+    color: var(--mae-ink-inv);
+    font-family: var(--mae-sans);
+    text-align: center;
+  }
+
+  .mae-bg { position: absolute; inset: 0; z-index: 0; }
+  .mae-bg img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    filter: brightness(0.55) saturate(1.1);
+  }
+  .mae-bg-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--mae-ink) 65%, transparent),
+      color-mix(in srgb, var(--mae-ink) 80%, transparent)
+    );
+  }
+
+  .mae-container {
+    position: relative; z-index: 1;
+    max-width: 880px;
+    padding: clamp(80px, 12vw, 140px) clamp(20px, 5vw, 60px);
+    display: flex; flex-direction: column; align-items: center;
+  }
+
+  .mae-eyebrow {
+    font-family: var(--mae-sans);
+    font-size: 11px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--mae-accent);
+    margin: 0 0 28px;
+    font-weight: 500;
+  }
+
+  .mae-display {
+    font-family: var(--mae-serif);
+    font-size: clamp(48px, 8vw, 96px);
+    line-height: 1.0;
+    letter-spacing: -0.01em;
+    color: var(--mae-ink-inv);
+    margin: 0 0 32px;
+    font-weight: 400;
+  }
+
+  .mae-rule {
+    display: flex; align-items: center; gap: 14px;
+    width: clamp(220px, 30vw, 340px);
+    margin: 0 auto;
+  }
+  .mae-rule-line { flex: 1; height: 1px; background: var(--mae-rule); }
+  .mae-rule-label {
+    font-family: var(--mae-sans);
+    font-size: 11px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--mae-accent);
+  }
+  .mae-rule-sub {
+    margin: 8px 0 0;
+    font-family: var(--mae-sans);
+    font-size: 10px;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--mae-ink-inv) 65%, transparent);
+  }
+
+  .mae-lede {
+    margin: 32px auto 0;
+    font-size: 16px;
+    line-height: 1.65;
+    color: color-mix(in srgb, var(--mae-ink-inv) 82%, transparent);
+    max-width: 56ch;
+  }
+
+  .mae-btn {
+    margin-top: 36px;
+    display: inline-flex; align-items: center;
+    padding: 16px 36px;
+    background: var(--mae-accent);
+    color: var(--mae-ink);
+    border-radius: 0;
+    text-decoration: none;
+    font-family: var(--mae-sans);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 600;
+    transition: 0.18s;
+  }
+  .mae-btn:hover {
+    background: var(--mae-ink-inv);
+    color: var(--mae-ink);
+  }
 </style>
