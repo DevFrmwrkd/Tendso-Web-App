@@ -1,9 +1,9 @@
 ---
 /**
- * ContactM - Salon/Spa / Booking Sanctuary
- * Soft cream with sage flourishes, booking-focused.
- * Hours displayed as elegant cards, Instagram + phone prominent.
- * Vibe: a personal invitation to visit.
+ * ContactM1 — Salon · Lumière footer ("Become the most-yourself you.")
+ *
+ * Big serif closing line + two CTAs on a deep pink ground, then a tight
+ * footer row with brand + nav + social links. Doubles as the contact section.
  */
 interface Props {
   businessName: string;
@@ -29,195 +29,200 @@ const {
 } = Astro.props;
 
 const showHeadline = visibility?.contactHeadline !== false;
-const showDescription = visibility?.contactDescription !== false && !!description;
 const showInfo = visibility?.contactInfo !== false;
 const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
 
 const year = new Date().getFullYear();
-
-const hours = [
-  { day: 'Monday', time: 'By appointment' },
-  { day: 'Tuesday – Friday', time: '10:00 – 19:00' },
-  { day: 'Saturday', time: '09:00 – 18:00' },
-  { day: 'Sunday', time: '10:00 – 16:00' },
-];
 ---
 
-<section
-  id="contact"
-  class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden"
-  style="font-family: var(--body-font);"
->
-  {/* Soft watercolor blobs */}
-  <div class="absolute -top-40 -left-32 w-[600px] h-[600px] rounded-full bg-[#f4d9d0] opacity-40 blur-[120px] pointer-events-none"></div>
-  <div class="absolute -bottom-40 -right-32 w-[500px] h-[500px] rounded-full bg-[#dde5d3] opacity-40 blur-[120px] pointer-events-none"></div>
-
-  {/* Floating petals — fewer than hero, subtle */}
-  <div class="absolute inset-0 pointer-events-none overflow-hidden">
-    {Array.from({ length: 4 }).map((_, i) => {
-      const left = (i * 27 + 12) % 100;
-      const delay = i * 4;
-      const size = 16 + (i % 2) * 8;
-      const rot = i * 60;
-      return (
-        <span
-          class="petal-c absolute opacity-30"
-          style={`left: ${left}%; animation-delay: ${delay}s; --rot: ${rot}deg;`}
-        >
-          <svg width={size} height={size} viewBox="0 0 24 24">
-            <ellipse cx="12" cy="12" rx="6" ry="11" fill="#d4a8a0" transform="rotate(45 12 12)" opacity="0.6"/>
-          </svg>
-        </span>
-      );
-    })}
-  </div>
-
-  <div class="relative z-10 mx-auto max-w-5xl px-6 lg:px-12">
-
-    {/* Header */}
-    <div class="text-center mb-16">
-      <div class="salon-fade-up inline-flex items-center gap-3 mb-6">
-        <span class="h-px w-16 bg-[var(--primary)]/40"></span>
-        <span class="text-[var(--accent)]">❀</span>
-        <span class="text-[11px] uppercase tracking-[0.45em] text-[var(--primary)] italic">— Visit us —</span>
-        <span class="text-[var(--accent)]">❀</span>
-        <span class="h-px w-16 bg-[var(--primary)]/40"></span>
-      </div>
-
-      {showHeadline && (
-        <h2
-          class="salon-fade-up font-normal leading-[1.05] tracking-tight text-[var(--text)] mb-6"
-          style="font-size: clamp(3rem, 6vw, 5.5rem); animation-delay: 0.1s;"
-        >
-          Reserve your<br/>
-          <span class="italic text-[var(--primary)]">moment</span>
-        </h2>
-      )}
-
-      {showDescription && (
-        <p
-          class="salon-fade-up max-w-xl mx-auto text-[var(--text-muted)] italic font-light leading-relaxed"
-          style="font-size: 1.15rem; animation-delay: 0.2s;"
-        >
-          {description}
-        </p>
+<section id="contact" class="lum-contact" data-component="CONTACT">
+  <div class="lum-contact-hero">
+    <p class="lum-contact-eyebrow">— Ready when you are —</p>
+    {showHeadline && (
+      <h2 class="lum-contact-headline" data-field="contact.headline">
+        Become the most-yourself <em>you</em>.
+      </h2>
+    )}
+    {description && (
+      <p class="lum-contact-sub" data-field="contact.description" set:html={description}></p>
+    )}
+    <div class="lum-contact-ctas">
+      <a class="lum-cta-primary" href={phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '#'}>Book Now</a>
+      {phone && (
+        <a class="lum-cta-ghost" href={`tel:${phone.replace(/[^0-9+]/g, '')}`}>
+          Call <span data-field="contact.phone" set:html={phone}></span>
+        </a>
       )}
     </div>
+  </div>
 
-    {/* Booking card */}
-    <div class="salon-fade-up bg-[var(--surface)] rounded-[3rem] p-8 md:p-12 lg:p-16 border border-[var(--primary)]/15 shadow-[0_40px_80px_-25px_rgba(184,123,108,0.25)] mb-12" style="animation-delay: 0.3s">
-
-      {/* Top phone CTA */}
-      <div class="text-center pb-8 border-b border-[var(--primary)]/15 mb-8">
-        <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--primary)] italic mb-3">— Call or message to book —</p>
-        <a
-          href={`tel:${phone}`}
-          class="inline-block text-3xl md:text-4xl lg:text-5xl font-normal text-[var(--text)] hover:text-[var(--primary)] transition-colors tracking-wide"
-        >
-          {phone}
-        </a>
-        {email && (
-          <a
-            href={`mailto:${email}`}
-            class="block mt-3 text-sm italic text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors break-all"
-          >
-            {email}
-          </a>
-        )}
-      </div>
-
-      {/* Hours grid */}
-      {showInfo && (
-        <>
-          <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--primary)] italic text-center mb-6">— Hours —</p>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-            {hours.map((h) => (
-              <div class="flex items-center justify-between py-3 px-4 rounded-full bg-[var(--bg)]/70 border border-[var(--primary)]/10">
-                <span class="text-sm font-medium text-[var(--text)] italic">{h.day}</span>
-                <span class="text-sm text-[var(--primary)]">{h.time}</span>
-              </div>
+  <footer class="lum-contact-footer">
+    <div class="lum-contact-footer-grid">
+      <div>
+        <h3 class="lum-contact-brand" data-field="business.name" set:html={businessName}></h3>
+        <p class="lum-contact-tagline">Where elegance begins.</p>
+        {showSocial && (
+          <div class="lum-contact-socials">
+            {socialLinks.map((s) => (
+              <a href={s.url} target="_blank" rel="noopener noreferrer" class="lum-social">{s.platform}</a>
             ))}
           </div>
-
-          {/* Address */}
-          {address && (
-            <div class="text-center pt-6 border-t border-[var(--primary)]/15">
-              <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--primary)] italic mb-3">— Find us —</p>
-              <p class="text-base text-[var(--text)] italic">{address}</p>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-
-    {/* Primary CTA button */}
-    <div class="text-center mb-12">
-      <a
-        href={`tel:${phone}`}
-        class="salon-fade-up inline-flex items-center justify-center gap-3 bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] rounded-full px-12 py-5 text-xs font-medium uppercase tracking-[0.4em] transition-all hover:-translate-y-1 hover:shadow-[0_20px_40px_-12px_rgba(184,123,108,0.6)]"
-        style="animation-delay: 0.5s;"
-      >
-        <span>❀</span> Reserve a treatment <span>❀</span>
-      </a>
-    </div>
-
-    {/* Social row */}
-    {showSocial && (
-      <div class="salon-fade-up flex justify-center gap-3 mb-12" style="animation-delay: 0.6s">
-        {socialLinks.map((link) => (
-          <a
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="w-12 h-12 rounded-full border border-[var(--primary)]/30 flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-all hover:-translate-y-1"
-            aria-label={link.platform}
-          >
-            <span class="text-xs font-medium uppercase italic">{link.platform.charAt(0)}</span>
-          </a>
-        ))}
+        )}
       </div>
-    )}
-
-    {/* Signature flourish */}
-    <div class="salon-fade-up flex flex-col items-center gap-3 pt-8 border-t border-[var(--primary)]/15" style="animation-delay: 0.7s">
-      <span class="text-[var(--accent)] text-2xl salon-flourish-pulse">❀</span>
-      <p class="text-base italic text-[var(--text)]" style="font-size: 1.25rem;">— {businessName} —</p>
-      <p class="text-[10px] uppercase tracking-[0.5em] text-[var(--text-muted)]/60 italic">est. © {year}</p>
+      <div class="lum-contact-col">
+        <h4 class="lum-contact-col-head">Visit</h4>
+        {address && <p data-field="contact.address" set:html={address}></p>}
+      </div>
+      <div class="lum-contact-col">
+        <h4 class="lum-contact-col-head">Reach Us</h4>
+        {showInfo && phone && <p><a href={`tel:${phone.replace(/[^0-9+]/g, '')}`} data-field="contact.phone" set:html={phone}></a></p>}
+        {showInfo && email && <p><a href={`mailto:${email}`} data-field="contact.email" set:html={email}></a></p>}
+      </div>
     </div>
-  </div>
+    <div class="lum-contact-baseline">
+      <span>© {year} <span set:html={businessName}></span>. All rights reserved.</span>
+      <span>Made with care.</span>
+    </div>
+  </footer>
 </section>
 
 <style>
-  .petal-c {
-    top: -50px;
-    animation: petalDriftC 22s linear infinite;
+  .lum-contact {
+    --lc-bg: var(--primary);
+    --lc-ink: #fff;
+    --lc-ink-2: color-mix(in srgb, #fff 85%, transparent);
+    --lc-ink-3: color-mix(in srgb, #fff 60%, transparent);
+    --lc-rule: color-mix(in srgb, #fff 18%, transparent);
+    --lc-serif: var(--heading-font, "Cormorant Garamond", Georgia, serif);
+    --lc-sans: var(--body-font, "Inter", system-ui, sans-serif);
+    background: var(--lc-bg);
+    color: var(--lc-ink);
+    font-family: var(--lc-sans);
   }
-  @keyframes petalDriftC {
-    0% { transform: translateY(-50px) translateX(0) rotate(var(--rot, 0deg)); opacity: 0; }
-    10% { opacity: 0.4; }
-    50% { transform: translateY(50vh) translateX(30px) rotate(calc(var(--rot, 0deg) + 180deg)); }
-    90% { opacity: 0.3; }
-    100% { transform: translateY(110vh) translateX(-30px) rotate(calc(var(--rot, 0deg) + 360deg)); opacity: 0; }
+  .lum-contact-hero {
+    text-align: center;
+    padding: clamp(72px, 10vw, 120px) clamp(20px, 4vw, 56px) clamp(48px, 6vw, 72px);
+    max-width: 880px;
+    margin: 0 auto;
   }
-
-  .salon-fade-up {
-    opacity: 0;
-    transform: translateY(20px);
-    animation: salonFadeUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  .lum-contact-eyebrow {
+    font-family: var(--lc-serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--lc-ink-2);
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    margin: 0 0 22px;
   }
-  @keyframes salonFadeUp { to { opacity: 1; transform: translateY(0); } }
-
-  .salon-flourish-pulse {
-    display: inline-block;
-    animation: salonFlourish 4s ease-in-out infinite;
+  .lum-contact-headline {
+    font-family: var(--lc-serif);
+    font-size: clamp(40px, 7vw, 84px);
+    line-height: 1;
+    color: var(--lc-ink);
+    margin: 0;
+    font-weight: 500;
   }
-  @keyframes salonFlourish {
-    0%, 100% { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(60deg) scale(1.15); }
+  .lum-contact-headline em { font-style: italic; }
+  .lum-contact-sub {
+    margin: 22px auto 0;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--lc-ink-2);
+    max-width: 56ch;
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    .petal-c, .salon-flourish-pulse { animation: none; }
-    .salon-fade-up { animation-duration: 0.01ms; opacity: 1; transform: none; }
+  .lum-contact-ctas {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+  .lum-cta-primary {
+    background: #fff;
+    color: var(--primary);
+    padding: 14px 30px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .lum-cta-ghost {
+    background: transparent;
+    color: #fff;
+    padding: 14px 26px;
+    border-radius: 999px;
+    border: 1px solid var(--lc-rule);
+    font-size: 14px;
+    text-decoration: none;
+  }
+  .lum-contact-footer {
+    border-top: 1px solid var(--lc-rule);
+    padding: clamp(36px, 5vw, 48px) clamp(20px, 4vw, 56px);
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .lum-contact-footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--lc-rule);
+  }
+  @media (max-width: 768px) { .lum-contact-footer-grid { grid-template-columns: 1fr; } }
+  .lum-contact-brand {
+    font-family: var(--lc-serif);
+    font-size: 28px;
+    margin: 0 0 6px;
+    font-weight: 500;
+  }
+  .lum-contact-tagline {
+    margin: 0;
+    color: var(--lc-ink-3);
+    font-style: italic;
+    font-family: var(--lc-serif);
+    font-size: 15px;
+  }
+  .lum-contact-socials {
+    display: flex;
+    gap: 14px;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .lum-social {
+    color: var(--lc-ink-2);
+    text-decoration: none;
+    font-size: 12px;
+    border-bottom: 1px solid var(--lc-rule);
+    padding-bottom: 1px;
+  }
+  .lum-contact-col p {
+    margin: 0 0 6px;
+    font-size: 13.5px;
+    color: var(--lc-ink-2);
+    line-height: 1.6;
+  }
+  .lum-contact-col a {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px dotted var(--lc-rule);
+  }
+  .lum-contact-col-head {
+    font-family: var(--lc-sans);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--lc-ink-3);
+    margin: 0 0 12px;
+    font-weight: 600;
+  }
+  .lum-contact-baseline {
+    margin-top: 22px;
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 11px;
+    color: var(--lc-ink-3);
+    font-family: var(--lc-sans);
+    flex-wrap: wrap;
   }
 </style>

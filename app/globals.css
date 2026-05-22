@@ -207,6 +207,23 @@ body {
   background: var(--ed-ink);
   color: var(--ed-paper-3);
 }
+/* Danger variant — earthy red (NOT SaaS orange). Reserved for destructive
+   actions: Reject creator, future Unapprove. Per the design brief, the
+   only red token allowed is --ed-danger / --ed-danger-bg. */
+.ed-door-danger {
+  background: var(--ed-danger);
+  border-color: var(--ed-danger);
+  color: #fff;
+}
+.ed-door-danger-ghost {
+  background: transparent;
+  color: var(--ed-danger);
+  border-color: var(--ed-danger);
+}
+.ed-door-danger-ghost:hover:not(:disabled) {
+  background: var(--ed-danger);
+  color: #fff;
+}
 .ed-door-caption {
   display: block;
   font-family: var(--ed-mono);

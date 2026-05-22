@@ -1,0 +1,105 @@
+---
+/**
+ * FaqBlock — expandable list, 5-8 questions.
+ *
+ * Per v01 spec FAQ.v1: <details>/<summary> mirroring FAQPage JSON-LD.
+ * Wins Google "People also ask" snippets + kills last objections.
+ *
+ * Renders FAQPage JSON-LD inline so Google can parse the schema.
+ */
+interface Props {
+    items?: { q: string; a: string }[];
+    visibility?: Record<string, boolean>;
+    /** M1: Accordion (default) · M2: Two Column */
+    variantStyle?: string;
+}
+
+const { items = [], visibility, variantStyle = 'M1' } = Astro.props;
+const show = visibility?.faqBlock !== false && items.length > 0;
+const isM2 = String(variantStyle).toUpperCase() === 'M2';
+
+const jsonLd = show
+    ? JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: items.map((it) => ({
+              '@type': 'Question',
+              name: it.q,
+              acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: it.a,
+              },
+          })),
+      })
+    : null;
+---
+
+{show && (
+    <section
+        id="faq"
+        class:list={["bg-[var(--bg)] py-20 md:py-28 faq-block", isM2 && "is-m2"]}
+        data-variant={variantStyle}
+        data-component="FAQ"
+    >
+        <div class={isM2 ? "mx-auto max-w-6xl px-6 faq-container" : "mx-auto max-w-3xl px-6 faq-container"}>
+            <div class="mb-12">
+                <p
+                    class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-3"
+                    style="font-family: var(--body-font, inherit);"
+                >
+                    Questions
+                </p>
+                <h2
+                    class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-[var(--text)]"
+                    style="font-family: var(--heading-font, inherit);"
+                    data-field="faq.heading"
+                >
+                    Quick answers.
+                </h2>
+            </div>
+            <div class="faq-list border-t border-[var(--text)]/10">
+                {items.map((it, i) => (
+                    <details class="faq-item group border-b border-[var(--text)]/10 py-5">
+                        <summary
+                            class="flex items-start justify-between gap-4 cursor-pointer list-none text-[var(--text)] text-lg font-semibold leading-snug"
+                            style="font-family: var(--heading-font, inherit);"
+                            data-field={`faq.item.${i}.q`}
+                        >
+                            <span set:html={it.q}></span>
+                            <span
+                                class="text-[var(--primary)] text-2xl transition-transform duration-200 group-open:rotate-45 select-none"
+                                aria-hidden="true"
+                            >
+                                +
+                            </span>
+                        </summary>
+                        <div
+                            class="text-[var(--text-muted)] text-base leading-relaxed mt-3 pr-10"
+                            style="font-family: var(--body-font, inherit);"
+                            data-field={`faq.item.${i}.a`}
+                            set:html={it.a}
+                        ></div>
+                    </details>
+                ))}
+            </div>
+        </div>
+        <script type="application/ld+json" set:html={jsonLd}></script>
+    </section>
+)}
+
+<style>
+    /* M2 — Two Column: FAQ list becomes a 2-column responsive grid with
+       hairline separators between cells. Each details still toggles inline. */
+    @media (min-width: 768px) {
+        .faq-block.is-m2 .faq-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 32px;
+            border-top: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+        }
+        .faq-block.is-m2 .faq-item {
+            padding: 24px 0;
+            border-bottom: 1px solid color-mix(in srgb, var(--text) 10%, transparent);
+        }
+    }
+</style>

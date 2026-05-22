@@ -1,14 +1,17 @@
 ---
 /**
- * ContactM2 - Salon/Spa / Reservation Note
- * A handwritten reservation card aesthetic. Letter-style with delicate borders,
- * "kindly RSVP" feel, signature lines. Calm, intimate.
+ * ContactM2 — Salon · Maison Élite ("We'd Love to Hear from You")
+ *
+ * Two-column dark luxe footer: warm headline + CTA WhatsApp-style button on
+ * the left, NAP block + hours on the right. Followed by a footer row with
+ * brand + nav + social + legal.
  */
 interface Props {
   businessName: string;
   email: string;
   phone: string;
   address?: string;
+  whatsapp?: string;
   description?: string;
   socialLinks?: Array<{ platform: string; url: string }>;
   photos: string[];
@@ -20,94 +23,209 @@ const {
   email,
   phone,
   address,
+  description,
   socialLinks = [],
   visibility,
 } = Astro.props;
 
 const showInfo = visibility?.contactInfo !== false;
-const showSocial = visibility?.contactSocial !== false && socialLinks.length > 0;
 const year = new Date().getFullYear();
+const waDigits = (phone || "").replace(/[^0-9]/g, "");
 ---
 
-<section id="contact" class="relative w-full bg-[var(--bg)] py-24 md:py-32 overflow-hidden" style="font-family: var(--body-font);">
-  <div class="absolute inset-0 z-0 opacity-[0.06] pointer-events-none" style="background-image: radial-gradient(circle at 30% 30%, var(--primary) 0.5px, transparent 1px), radial-gradient(circle at 70% 70%, var(--accent) 0.5px, transparent 1px); background-size: 5px 5px, 7px 7px;"></div>
-
-  <div class="absolute top-1/4 -left-32 w-[400px] h-[400px] rounded-full opacity-20 blur-[100px]" style="background: var(--primary);"></div>
-  <div class="absolute bottom-1/4 -right-32 w-[400px] h-[400px] rounded-full opacity-20 blur-[100px]" style="background: var(--accent);"></div>
-
-  <div class="relative z-10 mx-auto max-w-3xl px-6 lg:px-12">
-
-    {/* Reservation card */}
-    <div class="salon-fade-up bg-[var(--surface)]/85 backdrop-blur-sm p-10 sm:p-14 relative" style="box-shadow: 0 40px 80px -20px rgba(61,46,42,0.2);">
-      {/* Decorative inner border */}
-      <div class="absolute inset-3 border border-[var(--primary)]/20 pointer-events-none"></div>
-
-      {/* Top floral motif */}
-      <div class="flex items-center justify-center gap-3 mb-6">
-        <span class="h-px w-16 bg-[var(--primary)]/40"></span>
-        <span class="text-[var(--primary)] text-2xl">❀</span>
-        <span class="h-px w-16 bg-[var(--primary)]/40"></span>
+<section id="contact" class="mae-contact" data-component="CONTACT">
+  <div class="mae-contact-hero">
+    <div class="mae-contact-grid">
+      <div class="mae-contact-text">
+        <p class="mae-contact-eyebrow">— Get In Touch —</p>
+        <h2 class="mae-contact-headline" data-field="contact.headline">
+          We'd Love to<br/>
+          Hear <em>from You</em>
+        </h2>
+        {description && (
+          <p class="mae-contact-sub" data-field="contact.description" set:html={description}></p>
+        )}
+        {waDigits && (
+          <a class="mae-contact-wa" href={`https://wa.me/${waDigits}`} target="_blank" rel="noopener">
+            <span class="mae-wa-icon" aria-hidden="true">●</span>
+            Message Us on WhatsApp
+          </a>
+        )}
       </div>
-
-      <div class="text-center mb-8">
-        <p class="text-[10px] uppercase tracking-[0.55em] text-[var(--accent)] italic mb-3">— Kindly reserve —</p>
-        <h2 class="font-light italic leading-[1.1] text-[var(--text)] mb-3" style="font-family: var(--heading-font); font-size: clamp(2rem, 5vw, 3.5rem);">A note for your visit</h2>
-        <p class="text-[var(--text-muted)] italic leading-[1.7] max-w-md mx-auto" style="font-size: 1rem;">We hold space for each guest with care. A short note in advance lets us prepare your room just so.</p>
-      </div>
-
-      {/* Reservation field lines */}
-      {showInfo && (
-        <div class="space-y-6 mb-10">
-          <div class="text-center">
-            <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic mb-2">— Reach us at —</p>
-            <a href={`tel:${phone}`} class="text-3xl italic text-[var(--primary)] hover:text-[var(--text)] transition-colors block mb-1" style="font-family: var(--heading-font);">{phone}</a>
-            <p class="text-[10px] uppercase tracking-[0.4em] text-[var(--text-muted)] italic">Available during opening hours</p>
+      <div class="mae-contact-info">
+        {showInfo && phone && (
+          <div class="mae-contact-row">
+            <div class="mae-contact-label">Phone</div>
+            <a href={`tel:${phone.replace(/[^0-9+]/g, '')}`} class="mae-contact-value"><span data-field="contact.phone" set:html={phone}></span></a>
           </div>
-
-          {email && (
-            <div class="pt-5 border-t border-dashed border-[var(--primary)]/30 text-center">
-              <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic mb-2">— Or write to —</p>
-              <a href={`mailto:${email}?subject=Reservation`} class="text-base italic text-[var(--primary)] hover:text-[var(--text)] transition-colors break-all">{email}</a>
-            </div>
-          )}
-
-          {address && (
-            <div class="pt-5 border-t border-dashed border-[var(--primary)]/30 text-center">
-              <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic mb-2">— Find us at —</p>
-              <p class="text-base italic text-[var(--text)] leading-relaxed">{address}</p>
-            </div>
-          )}
+        )}
+        {showInfo && email && (
+          <div class="mae-contact-row">
+            <div class="mae-contact-label">Email</div>
+            <a href={`mailto:${email}`} class="mae-contact-value"><span data-field="contact.email" set:html={email}></span></a>
+          </div>
+        )}
+        {showInfo && address && (
+          <div class="mae-contact-row">
+            <div class="mae-contact-label">Address</div>
+            <p class="mae-contact-value" data-field="contact.address" set:html={address}></p>
+          </div>
+        )}
+        <div class="mae-contact-row">
+          <div class="mae-contact-label">Hours</div>
+          <p class="mae-contact-value">Mon-Fri · 9AM-8PM<br/>Sat-Sun · 10AM-6PM</p>
         </div>
-      )}
-
-      {/* CTA */}
-      <a href={`tel:${phone}`} class="block bg-[var(--primary)] hover:bg-[var(--primary)] text-[var(--bg)] py-4 text-center text-[11px] uppercase tracking-[0.45em] italic rounded-full hover:-translate-y-0.5 transition-all">
-        ❀ Reserve your visit
-      </a>
-
-      {/* Signature */}
-      <div class="mt-10 pt-6 border-t border-dashed border-[var(--primary)]/30 text-center">
-        <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--accent)] italic mb-1">— With care —</p>
-        <p class="text-3xl italic text-[var(--primary)]" style="font-family: var(--heading-font);">{businessName}</p>
       </div>
+    </div>
+  </div>
 
-      {showSocial && (
-        <div class="flex justify-center gap-2 mt-6">
-          {socialLinks.map((l) => (
-            <a href={l.url} target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-full border border-[var(--primary)]/40 hover:border-[var(--primary)] flex items-center justify-center text-[var(--primary)] hover:bg-[var(--primary)] hover:text-[var(--bg)] transition-colors" aria-label={l.platform}>
-              <span class="text-xs italic">{l.platform.charAt(0)}</span>
-            </a>
+  <footer class="mae-footer">
+    <div class="mae-footer-row">
+      <h3 class="mae-footer-brand" data-field="business.name" set:html={businessName}></h3>
+      {socialLinks.length > 0 && (
+        <div class="mae-footer-socials">
+          {socialLinks.map((s) => (
+            <a href={s.url} target="_blank" rel="noopener" class="mae-footer-social">{s.platform}</a>
           ))}
         </div>
       )}
     </div>
-
-    <p class="text-center text-[10px] uppercase tracking-[0.5em] text-[var(--accent)] italic mt-10">— © {year} · {businessName} —</p>
-  </div>
+    <div class="mae-footer-baseline">
+      © {year} <span set:html={businessName}></span>. All rights reserved.
+    </div>
+  </footer>
 </section>
 
 <style>
-  .salon-fade-up { opacity: 0; transform: translateY(20px); animation: salonFadeUp 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-  @keyframes salonFadeUp { to { opacity: 1; transform: translateY(0); } }
-  @media (prefers-reduced-motion: reduce) { .salon-fade-up { animation: none; opacity: 1; transform: none; } }
+  .mae-contact {
+    --mc-bg: var(--text);
+    --mc-ink: color-mix(in srgb, var(--text) 0%, var(--bg));
+    --mc-ink-2: color-mix(in srgb, var(--mc-ink) 80%, transparent);
+    --mc-ink-3: color-mix(in srgb, var(--mc-ink) 60%, transparent);
+    --mc-accent: var(--primary);
+    --mc-rule: color-mix(in srgb, var(--mc-ink) 18%, transparent);
+    --mc-serif: var(--heading-font, "Cormorant Garamond", Georgia, serif);
+    --mc-sans: var(--body-font, "Inter", system-ui, sans-serif);
+    background: var(--mc-bg);
+    color: var(--mc-ink);
+    font-family: var(--mc-sans);
+  }
+  .mae-contact-hero {
+    padding: clamp(72px, 10vw, 120px) clamp(20px, 4vw, 56px);
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .mae-contact-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: clamp(40px, 6vw, 80px);
+    align-items: start;
+  }
+  @media (max-width: 900px) { .mae-contact-grid { grid-template-columns: 1fr; } }
+  .mae-contact-eyebrow {
+    font-family: var(--mc-sans);
+    font-size: 11px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--mc-accent);
+    margin: 0 0 22px;
+  }
+  .mae-contact-headline {
+    font-family: var(--mc-serif);
+    font-size: clamp(40px, 6vw, 72px);
+    line-height: 1.05;
+    margin: 0;
+    color: var(--mc-ink);
+    font-weight: 400;
+  }
+  .mae-contact-headline em { font-style: italic; color: var(--mc-accent); }
+  .mae-contact-sub {
+    margin: 22px 0 0;
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--mc-ink-2);
+    max-width: 48ch;
+  }
+  .mae-contact-wa {
+    margin-top: 28px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    background: #25D366;
+    color: #fff;
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .mae-wa-icon {
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .mae-contact-info {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding: 28px;
+    border: 1px solid var(--mc-rule);
+  }
+  .mae-contact-row {
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+  .mae-contact-label {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--mc-ink-3);
+    padding-top: 2px;
+  }
+  .mae-contact-value {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--mc-ink);
+    text-decoration: none;
+  }
+  .mae-contact-value:hover { color: var(--mc-accent); }
+  .mae-footer {
+    border-top: 1px solid var(--mc-rule);
+    padding: 28px clamp(20px, 4vw, 56px);
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .mae-footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  .mae-footer-brand {
+    font-family: var(--mc-serif);
+    font-size: 22px;
+    margin: 0;
+    color: var(--mc-ink);
+    font-weight: 500;
+  }
+  .mae-footer-socials { display: flex; gap: 18px; flex-wrap: wrap; }
+  .mae-footer-social {
+    color: var(--mc-ink-2);
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .mae-footer-baseline {
+    margin-top: 18px;
+    font-size: 11px;
+    color: var(--mc-ink-3);
+  }
 </style>

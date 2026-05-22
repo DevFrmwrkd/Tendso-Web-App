@@ -1,10 +1,49 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useTickUp, ArrowDownIcon, ArrowUpRightIcon } from "./landingPrimitives";
 import { fmt, COUNTERS_GROWTH, HARDCODED_LIVE_SITE_COUNT } from "./landingData";
+
+// Live clock that only renders post-mount to avoid SSR/CSR hydration mismatch.
+// The server has no way to know the client's "now" within the same minute, so
+// rendering the string on the server is guaranteed to differ from the client.
+function LiveClockTime() {
+    const [time, setTime] = useState<string | null>(null);
+    useEffect(() => {
+        const tick = () =>
+            setTime(
+                new Date().toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }),
+            );
+        tick();
+        const id = setInterval(tick, 30_000);
+        return () => clearInterval(id);
+    }, []);
+    // Render a non-breaking space placeholder until mount so the surrounding
+    // layout doesn't reflow when the clock pops in.
+    return <>{time ?? "——:——"} PHT</>;
+}
+
+// Same defer-to-mount treatment for the magazine-style issue line. The page
+// can be cached at build time and served weeks later, so server-rendered
+// month/year may legitimately disagree with the client.
+function IssueDate() {
+    const [label, setLabel] = useState<string | null>(null);
+    useEffect(() => {
+        setLabel(
+            new Date().toLocaleString("en-US", {
+                month: "long",
+                year: "numeric",
+            }),
+        );
+    }, []);
+    return <>{label ?? " "}</>;
+}
 
 // English-only strings — page-level i18n lives at the next refactor.
 const T = {
@@ -112,7 +151,7 @@ export default function HeroSection() {
                             }}
                         >
                             <span className="live-dot"></span>
-                            Issue No. 01 · {new Date().toLocaleString("en-US", { month: "long", year: "numeric" })}
+                            Issue No. 01 · <IssueDate />
                         </div>
                         <h1 className="display">
                             {hm[0]}
@@ -169,7 +208,7 @@ export default function HeroSection() {
                         >
                             <span className="label">
                                 <span className="live-dot" style={{ marginRight: 6 }}></span>
-                                Live · {new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} PHT
+                                Live · <LiveClockTime />
                             </span>
                             <span className="label" style={{ color: "var(--neo-live)" }}>↑ updating</span>
                         </div>

@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { getHeroStyleFields, getAboutStyleFields, getServicesStyleFields, getGalleryStyleFields, getContactStyleFields } from '@/lib/template-fields'
+import { injectEditorBridge } from './editorBridge'
 
 interface Service {
     name: string
@@ -31,6 +32,38 @@ interface WebsiteContent {
         phone?: string
         email?: string
         address?: string
+    }
+    // ── v01-spec extras (Location/ServiceArea/ClickToMessage blocks) ──
+    location?: {
+        lat?: number
+        lng?: number
+    }
+    serviceArea?: {
+        heading?: string
+        places?: string[]
+    }
+    messaging?: {
+        whatsapp?: string
+        messenger?: string
+    }
+    // ── Conversion-cluster overrides (else per-business-type defaults apply) ──
+    trust?: {
+        years?: string
+        licenses?: string[]
+        memberships?: string[]
+    }
+    why?: { title: string; body: string }[]
+    how?: { step: string; title: string; body: string }[]
+    testimonials?: { quote: string; name: string; context?: string }[]
+    faq?: { q: string; a: string }[]
+    credentials?: { label: string; detail: string }[]
+    ctaBand?: {
+        heading?: string
+        body?: string
+        primaryLabel?: string
+        primaryLink?: string
+        secondaryLabel?: string
+        secondaryLink?: string
     }
     // New fields
     methodology?: {
@@ -259,6 +292,202 @@ export default function VisualEditor({
             }))
         }
     }, [initialContent.images, hasChanges])
+
+    // ── Sandbox-style editor bridge ────────────────────────────────────────
+    // The static preview HTML gets an editor-bridge <script> appended so the
+    // iframe can talk to this React tree:
+    //   • iframe → parent  : click on [data-field] → focus matching <input>
+    //   • parent → iframe  : input change → live DOM patch (no rebuild)
+    const previewHtml = useMemo(() => injectEditorBridge(htmlContent || ''), [htmlContent])
+
+    const iframeRef = useRef<HTMLIFrameElement | null>(null)
+
+    // Bumped on every iframe load → re-emits all field values so the static
+    // markup reflects the latest `content` state even if the iframe loaded
+    // AFTER the live-update useEffect already fired.
+    const [iframeLoadKey, setIframeLoadKey] = useState(0)
+
+    // Listen for iframe clicks → scroll matching input into view + focus it.
+    // Legacy field names (snake_case, bare props) that exist in older .astro
+    // variants map to the new dot-based input tags here. Add new aliases as
+    // new templates are tagged.
+    useEffect(() => {
+        const FIELD_ALIASES: Record<string, string> = {
+            // Hero
+            tagline: 'hero.headline',
+            about: 'hero.description',
+            hero_badge_text: 'hero.badge_text',
+            hero_testimonial: 'hero.testimonial',
+            'hero_cta.label': 'hero.button.text',
+            'hero_cta_secondary.label': 'hero.button.secondary',
+            // About
+            about_headline: 'about.headline',
+            about_description: 'about.description',
+            about_tagline: 'about.tagline',
+            about_signature_name: 'about.signature_name',
+            about_signature_role: 'about.signature_role',
+            // Services
+            services_headline: 'services.headline',
+            services_subheadline: 'services.subheadline',
+            // Featured / Gallery
+            featured_headline: 'featured.headline',
+            featured_subheadline: 'featured.subheadline',
+            // Footer
+            footer_badge: 'footer.badge',
+            footer_headline: 'footer.headline',
+            footer_days: 'footer.days',
+            footer_hours: 'footer.hours',
+            // Business
+            business_name: 'business.name',
+        }
+        const onMessage = (e: MessageEvent) => {
+            const msg = e.data as { type?: string; field?: string } | undefined
+            if (!msg || typeof msg !== 'object' || msg.type !== 'ed:click' || !msg.field) return
+            const candidates = [msg.field, FIELD_ALIASES[msg.field]].filter(Boolean) as string[]
+            let target: HTMLElement | null = null
+            for (const name of candidates) {
+                target = document.querySelector(
+                    `[data-field-input="${CSS.escape(name)}"]`,
+                ) as HTMLElement | null
+                if (target) break
+            }
+            if (!target) return
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            setTimeout(() => {
+                if (typeof (target as HTMLInputElement).focus === 'function') {
+                    ;(target as HTMLInputElement).focus({ preventScroll: true } as FocusOptions)
+                }
+            }, 200)
+        }
+        window.addEventListener('message', onMessage)
+        return () => window.removeEventListener('message', onMessage)
+    }, [])
+
+    // Push live IMAGE updates to the iframe when any resolved image URL
+    // changes. Matches Astro variants that tag image elements with
+    // data-field="hero.image", "about.image", "services.image",
+    // "featured.image.N" — the bridge will swap <img src> live.
+    useEffect(() => {
+        const win = iframeRef.current?.contentWindow
+        if (!win) return
+        const sendImage = (field: string, src: string | null | undefined) => {
+            if (!src) return
+            try {
+                win.postMessage({ type: 'ed:image', field, src }, '*')
+            } catch {}
+        }
+        // Hero — first carousel slot + the dedicated single-image slot
+        sendImage('hero.image', resolvedHeroImage ?? resolvedImages[0] ?? undefined)
+        resolvedImages.forEach((src, i) => sendImage(`hero.image.${i}`, src))
+        // About — array
+        resolvedAboutImages.forEach((src, i) => {
+            sendImage(`about.image.${i}`, src)
+            if (i === 0) sendImage('about.image', src)
+        })
+        // Services — single image slot
+        sendImage('services.image', resolvedServicesImage)
+        // Featured / Gallery — array
+        resolvedFeaturedImages.forEach((src, i) => {
+            sendImage(`featured.image.${i}`, src)
+            if (i === 0) sendImage('featured.image', src)
+        })
+    }, [
+        resolvedHeroImage,
+        resolvedImages,
+        resolvedAboutImages,
+        resolvedServicesImage,
+        resolvedFeaturedImages,
+        iframeLoadKey,
+    ])
+
+    // Push live updates to the iframe whenever a known content field changes.
+    // This patches the DOM directly — no Astro rebuild, no save round-trip.
+    // Persisted changes still flow through handleSave → /api/save-content.
+    useEffect(() => {
+        const win = iframeRef.current?.contentWindow
+        if (!win) return
+        const send = (field: string, value: unknown) => {
+            try {
+                win.postMessage({ type: 'ed:update', field, value }, '*')
+            } catch {}
+        }
+        // Each value is broadcast under BOTH the new dot convention and the
+        // legacy underscore/bare names that already exist in some .astro
+        // variants (HeroA, AboutA, ContactA etc.). The bridge silently
+        // no-ops if no element matches a given path, so over-broadcasting
+        // is safe and lets new + old templates both work without conditional logic.
+        const sendBoth = (paths: string[], value: unknown) => {
+            for (const p of paths) send(p, value)
+        }
+        sendBoth(['business.name', 'business_name'], content.business_name)
+        sendBoth(['hero.headline', 'hero.tagline', 'tagline'], content.tagline)
+        sendBoth(['hero.description', 'about'], content.about)
+        sendBoth(['hero.badge_text', 'hero_badge_text'], content.hero_badge_text)
+        sendBoth(['hero.testimonial', 'hero_testimonial'], content.hero_testimonial)
+        sendBoth(['hero.button.text', 'hero_cta.label'], content.hero_cta?.label)
+        sendBoth(['hero.button.secondary', 'hero_cta_secondary.label'], content.hero_cta_secondary?.label)
+        sendBoth(['about.headline', 'about_headline'], content.about_headline)
+        sendBoth(['about.description', 'about_description'], content.about_description ?? content.about)
+        sendBoth(['about.tagline', 'about_tagline'], content.about_tagline)
+        sendBoth(['about.signature_name', 'about_signature_name'], content.about_signature_name)
+        sendBoth(['about.signature_role', 'about_signature_role'], content.about_signature_role)
+        sendBoth(['services.headline', 'services_headline'], content.services_headline)
+        sendBoth(['services.subheadline', 'services_subheadline'], content.services_subheadline)
+        sendBoth(['featured.headline', 'featured_headline'], content.featured_headline)
+        sendBoth(['featured.subheadline', 'featured_subheadline'], content.featured_subheadline)
+        sendBoth(['footer.brand_blurb'], content.footer?.brand_blurb)
+        sendBoth(['footer.badge', 'footer_badge'], content.footer_badge)
+        sendBoth(['footer.headline', 'footer_headline'], content.footer_headline)
+        sendBoth(['footer.days', 'footer_days'], content.footer_days)
+        sendBoth(['footer.hours', 'footer_hours'], content.footer_hours)
+        sendBoth(['contact.phone'], content.contact?.phone)
+        sendBoth(['contact.email'], content.contact?.email)
+        sendBoth(['contact.address'], content.contact?.address)
+        // Per-item service names + descriptions (mapped variants tag these
+        // with template literals: data-field={`services.item.${i}.name`}).
+        ;(content.services ?? []).forEach((s, i) => {
+            send(`services.item.${i}.name`, s.name)
+            send(`services.item.${i}.description`, s.description)
+        })
+        // Per-item featured product titles + descriptions
+        ;(content.featured_products ?? []).forEach((p, i) => {
+            send(`featured.product.${i}.title`, p.title)
+            send(`featured.product.${i}.description`, p.description)
+        })
+        // ── New v01 blocks: serviceArea + Location heading ──
+        sendBoth(['serviceArea.heading'], content.serviceArea?.heading)
+        ;(content.serviceArea?.places ?? []).forEach((place, i) => {
+            send(`serviceArea.places.${i}`, place)
+        })
+        // ── Conversion cluster live updates ──
+        ;(content.trust?.licenses ?? []).forEach((l, i) => send(`trust.item.${i}`, l))
+        ;(content.why ?? []).forEach((it, i) => {
+            send(`whyUs.item.${i}.title`, it.title)
+            send(`whyUs.item.${i}.body`, it.body)
+        })
+        ;(content.how ?? []).forEach((it, i) => {
+            send(`howItWorks.item.${i}.step`, it.step)
+            send(`howItWorks.item.${i}.title`, it.title)
+            send(`howItWorks.item.${i}.body`, it.body)
+        })
+        ;(content.testimonials ?? []).forEach((it, i) => {
+            send(`testimonials.item.${i}.quote`, `“${it.quote}”`)
+            send(`testimonials.item.${i}.name`, it.name)
+            send(`testimonials.item.${i}.context`, it.context)
+        })
+        ;(content.faq ?? []).forEach((it, i) => {
+            send(`faq.item.${i}.q`, it.q)
+            send(`faq.item.${i}.a`, it.a)
+        })
+        ;(content.credentials ?? []).forEach((it, i) => {
+            send(`credentials.item.${i}.label`, it.label)
+            send(`credentials.item.${i}.detail`, it.detail)
+        })
+        send('ctaBand.heading', content.ctaBand?.heading)
+        send('ctaBand.body', content.ctaBand?.body)
+        send('ctaBand.primary', content.ctaBand?.primaryLabel)
+        send('ctaBand.secondary', content.ctaBand?.secondaryLabel)
+    }, [content, iframeLoadKey])
 
     // Convex mutation for file upload
     const generateUploadUrl = useMutation(api.files.generateUploadUrl)
@@ -874,18 +1103,25 @@ export default function VisualEditor({
     }
 
     return (
-        <div className="flex flex-col lg:flex-row gap-4 min-h-[600px] lg:h-[800px]">
-            {/* Left Panel - Editor */}
-            <div className="w-full lg:w-1/2 bg-white rounded-lg border border-gray-200 overflow-y-auto">
+        <div className="flex flex-col lg:flex-row gap-3 min-h-[600px] lg:h-[calc(100vh-180px)] lg:max-h-[900px]">
+            {/* Left Panel — sandbox-style narrow editor sidebar */}
+            <div className="w-full lg:w-[380px] lg:flex-shrink-0 bg-white rounded-lg border border-gray-200 overflow-y-auto">
                 <div className="sticky top-0 bg-white border-b border-gray-200 p-4 z-10">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                        <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Content Editor</h3>
-                            <p className="text-sm text-gray-500">Edit content and see changes highlighted</p>
+                    <div className="flex flex-col gap-2">
+                        <div className="flex items-center justify-between gap-2">
+                            <div>
+                                <p
+                                    className="text-[10px] uppercase tracking-[0.16em] font-semibold text-amber-600"
+                                    style={{ fontFamily: "var(--ed-mono, ui-monospace, monospace)" }}
+                                >
+                                    Sandbox · Builder
+                                </p>
+                                <h3 className="text-base font-semibold text-gray-900 mt-0.5">Content Editor</h3>
+                            </div>
                         </div>
-                        <div className="flex gap-2">
-                            {/* Buttons removed as per request */}
-                        </div>
+                        <p className="text-[11px] text-gray-500 leading-snug">
+                            Click any text in the preview to jump to its input. Changes preview live; press Save to publish.
+                        </p>
                     </div>
                 </div>
 
@@ -1039,6 +1275,7 @@ export default function VisualEditor({
                                     </label>
                                     <input
                                         type="text"
+                                        data-field-input="business.name"
                                         value={content.business_name}
                                         onChange={(e) => updateField('business_name', e.target.value)}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1083,6 +1320,7 @@ export default function VisualEditor({
                             </div>
                             <input
                                 type="text"
+                                data-field-input="hero.headline"
                                 value={content.tagline}
                                 onChange={(e) => updateField('tagline', e.target.value)}
                                 disabled={content.visibility?.hero_headline === false}
@@ -1130,6 +1368,7 @@ export default function VisualEditor({
                             </div>
                             <input
                                 type="text"
+                                data-field-input="hero.badge_text"
                                 value={content.hero_badge_text ?? ''}
                                 onChange={(e) => updateField('hero_badge_text', e.target.value)}
                                 disabled={content.visibility?.hero_tagline === false}
@@ -1177,6 +1416,7 @@ export default function VisualEditor({
                                 </button>
                             </div>
                             <textarea
+                                data-field-input="hero.description"
                                 value={content.about}
                                 onChange={(e) => updateField('about', e.target.value)}
                                 disabled={content.visibility?.hero_description === false}
@@ -1225,6 +1465,7 @@ export default function VisualEditor({
                                 </button>
                             </div>
                             <textarea
+                                data-field-input="hero.testimonial"
                                 value={content.hero_testimonial || ''}
                                 onChange={(e) => updateField('hero_testimonial', e.target.value)}
                                 disabled={content.visibility?.hero_testimonial === false}
@@ -1917,6 +2158,7 @@ export default function VisualEditor({
                                     </div>
                                     <input
                                         type="text"
+                                        data-field-input="about.headline"
                                         value={content.about_headline ?? (content.unique_selling_points?.slice(0, 3).join(' ') || `${content.business_name} specialists`)}
                                         onChange={(e) => updateField('about_headline', e.target.value)}
                                         disabled={content.visibility?.about_headline === false}
@@ -1992,6 +2234,7 @@ export default function VisualEditor({
                                         </button>
                                     </div>
                                     <textarea
+                                        data-field-input="about.description"
                                         value={content.about_description ?? content.about}
                                         onChange={(e) => updateField('about_description', e.target.value)}
                                         disabled={content.visibility?.about_description === false}
@@ -2525,6 +2768,7 @@ export default function VisualEditor({
                                     </div>
                                     <input
                                         type="text"
+                                        data-field-input="services.headline"
                                         value={content.services_headline ?? 'What we do'}
                                         onChange={(e) => updateField('services_headline', e.target.value)}
                                         disabled={content.visibility?.services_headline === false}
@@ -2571,6 +2815,7 @@ export default function VisualEditor({
                                         </button>
                                     </div>
                                     <textarea
+                                        data-field-input="services.subheadline"
                                         value={content.services_subheadline ?? 'Find out which one of our services fit the needs of your project'}
                                         onChange={(e) => updateField('services_subheadline', e.target.value)}
                                         disabled={content.visibility?.services_subheadline === false}
@@ -3036,6 +3281,7 @@ export default function VisualEditor({
                                     </div>
                                     <input
                                         type="text"
+                                        data-field-input="featured.headline"
                                         value={content.featured_headline ?? 'Featured Products'}
                                         onChange={(e) => updateField('featured_headline', e.target.value)}
                                         disabled={content.visibility?.featured_headline === false}
@@ -3081,6 +3327,7 @@ export default function VisualEditor({
                                         </button>
                                     </div>
                                     <textarea
+                                        data-field-input="featured.subheadline"
                                         value={content.featured_subheadline ?? 'Take a look at some of our recent work'}
                                         onChange={(e) => updateField('featured_subheadline', e.target.value)}
                                         disabled={content.visibility?.featured_subheadline === false}
@@ -3786,6 +4033,7 @@ export default function VisualEditor({
                                                     <label className="text-xs text-gray-500 mb-1 block">Badge Text</label>
                                                     <input
                                                         type="text"
+                                                        data-field-input="footer.badge"
                                                         value={content.footer_badge || ''}
                                                         onChange={(e) => updateField('footer_badge', e.target.value)}
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -3798,6 +4046,7 @@ export default function VisualEditor({
                                                     <label className="text-xs text-gray-500 mb-1 block">Headline</label>
                                                     <input
                                                         type="text"
+                                                        data-field-input="footer.headline"
                                                         value={content.footer_headline || ''}
                                                         onChange={(e) => updateField('footer_headline', e.target.value)}
                                                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -3847,6 +4096,7 @@ export default function VisualEditor({
                                             <label className="text-xs text-gray-500 mb-1 block">Email</label>
                                             <input
                                                 type="email"
+                                                data-field-input="contact.email"
                                                 value={content.contact?.email || ''}
                                                 onChange={(e) => updateField('contact', {
                                                     ...content.contact,
@@ -3861,6 +4111,7 @@ export default function VisualEditor({
                                             <label className="text-xs text-gray-500 mb-1 block">Phone</label>
                                             <input
                                                 type="tel"
+                                                data-field-input="contact.phone"
                                                 value={content.contact?.phone || ''}
                                                 onChange={(e) => updateField('contact', {
                                                     ...content.contact,
@@ -3875,6 +4126,7 @@ export default function VisualEditor({
                                             <label className="text-xs text-gray-500 mb-1 block">Address</label>
                                             <input
                                                 type="text"
+                                                data-field-input="contact.address"
                                                 value={content.contact?.address || ''}
                                                 onChange={(e) => updateField('contact', {
                                                     ...content.contact,
@@ -3999,6 +4251,483 @@ export default function VisualEditor({
                         )}
                     </div>
 
+                    {/* ── v01-spec EXTRA BLOCKS (Location/ServiceArea/ClickToMessage) ── */}
+                    <div className="space-y-4 pt-4 mt-4 border-t border-gray-200">
+                        <div className="flex items-baseline justify-between">
+                            <div>
+                                <h4 className="font-medium text-lg text-gray-900">Extra Blocks</h4>
+                                <p className="text-xs text-gray-500">Auto-filled from business info. Edit to override.</p>
+                            </div>
+                            <span className="text-[10px] uppercase tracking-wider text-amber-600 font-mono">v01 · global</span>
+                        </div>
+
+                        {/* WhatsApp deeplink */}
+                        <div className="p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all">
+                            <label className="text-sm font-medium text-gray-700 mb-2 block">WhatsApp number</label>
+                            <input
+                                type="tel"
+                                data-field-input="messaging.whatsapp"
+                                value={content.messaging?.whatsapp ?? ''}
+                                onChange={(e) =>
+                                    updateField('messaging', {
+                                        ...content.messaging,
+                                        whatsapp: e.target.value,
+                                    })
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                placeholder="+63 917 234 5678 (leave blank to auto-derive from phone)"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Floating button bottom-right of the site. Auto-derived from your phone if blank.</p>
+                        </div>
+
+                        {/* Messenger URL */}
+                        <div className="p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all">
+                            <label className="text-sm font-medium text-gray-700 mb-2 block">Messenger link</label>
+                            <input
+                                type="url"
+                                data-field-input="messaging.messenger"
+                                value={content.messaging?.messenger ?? ''}
+                                onChange={(e) =>
+                                    updateField('messaging', {
+                                        ...content.messaging,
+                                        messenger: e.target.value,
+                                    })
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                placeholder="https://m.me/yourpage"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Optional. Hidden if blank.</p>
+                        </div>
+
+                        {/* Service area heading */}
+                        <div className="p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all">
+                            <label className="text-sm font-medium text-gray-700 mb-2 block">Service area heading</label>
+                            <input
+                                type="text"
+                                data-field-input="serviceArea.heading"
+                                value={content.serviceArea?.heading ?? ''}
+                                onChange={(e) =>
+                                    updateField('serviceArea', {
+                                        ...content.serviceArea,
+                                        heading: e.target.value,
+                                    })
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                placeholder="Service area"
+                            />
+                        </div>
+
+                        {/* Service area places — comma-separated */}
+                        <div className="p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all">
+                            <label className="text-sm font-medium text-gray-700 mb-2 block">Nearby places served</label>
+                            <textarea
+                                data-field-input="serviceArea.places"
+                                value={(content.serviceArea?.places ?? []).join(', ')}
+                                onChange={(e) =>
+                                    updateField('serviceArea', {
+                                        ...content.serviceArea,
+                                        places: e.target.value
+                                            .split(',')
+                                            .map((s) => s.trim())
+                                            .filter(Boolean),
+                                    })
+                                }
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm resize-none"
+                                rows={3}
+                                placeholder="Auto-filled from your city. Comma-separated, e.g. Cubao, Diliman, Project 4, Novaliches"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                                One pin per line OR comma-separated. Drives the "Service area" block + long-tail "{'{service} in {town}'}" SEO.
+                            </p>
+                        </div>
+
+                        {/* Location lat/lng — manual override */}
+                        <div className="p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all">
+                            <label className="text-sm font-medium text-gray-700 mb-2 block">Map coordinates (optional)</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs text-gray-500 mb-1 block">Latitude</label>
+                                    <input
+                                        type="number"
+                                        step="0.000001"
+                                        data-field-input="location.lat"
+                                        value={content.location?.lat ?? ''}
+                                        onChange={(e) =>
+                                            updateField('location', {
+                                                ...content.location,
+                                                lat: e.target.value === '' ? undefined : Number(e.target.value),
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        placeholder="14.5995"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 mb-1 block">Longitude</label>
+                                    <input
+                                        type="number"
+                                        step="0.000001"
+                                        data-field-input="location.lng"
+                                        value={content.location?.lng ?? ''}
+                                        onChange={(e) =>
+                                            updateField('location', {
+                                                ...content.location,
+                                                lng: e.target.value === '' ? undefined : Number(e.target.value),
+                                            })
+                                        }
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                        placeholder="120.9842"
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                                Leave blank — the map auto-geocodes from the address. Set explicitly to override.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* ── CONVERSION CLUSTER (Trust/WhyUs/HowItWorks/Testimonials/FAQ/Credentials/CtaBand) ── */}
+                    {/* Every block here ships per-business-type defaults; the inputs below
+                        OVERRIDE those defaults. Leave blank to inherit. */}
+                    <div className="space-y-3 pt-4 mt-4 border-t border-gray-200">
+                        <div className="flex items-baseline justify-between">
+                            <div>
+                                <h4 className="font-medium text-lg text-gray-900">Conversion blocks</h4>
+                                <p className="text-xs text-gray-500">Trust · Why-us · How-it-works · Testimonials · FAQ · Credentials · CTA. Inherits per-category defaults if blank.</p>
+                            </div>
+                            <span className="text-[10px] uppercase tracking-wider text-amber-600 font-mono">v01 · global</span>
+                        </div>
+
+                        {/* TRUST */}
+                        <details className="group rounded-lg border border-gray-200 overflow-hidden">
+                            <summary className="cursor-pointer px-4 py-3 flex items-center justify-between text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">
+                                <span>Trust ribbon <span className="text-xs text-gray-400 font-normal ml-1">years · licences · memberships</span></span>
+                                <span className="text-gray-400 group-open:rotate-45 transition-transform">+</span>
+                            </summary>
+                            <div className="p-4 space-y-3">
+                                <div>
+                                    <label className="text-xs text-gray-500 mb-1 block">Years in business (display string)</label>
+                                    <input
+                                        type="text"
+                                        data-field-input="trust.years"
+                                        value={content.trust?.years ?? ''}
+                                        onChange={(e) => updateField('trust', { ...content.trust, years: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                        placeholder="e.g. Serving Manila since 2018"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 mb-1 block">Licences (one per line)</label>
+                                    <textarea
+                                        data-field-input="trust.licenses"
+                                        value={(content.trust?.licenses ?? []).join('\n')}
+                                        onChange={(e) => updateField('trust', { ...content.trust, licenses: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
+                                        rows={3}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                        placeholder="DTI Reg No. ABC-12345&#10;BIR Permit current"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 mb-1 block">Memberships (one per line)</label>
+                                    <textarea
+                                        data-field-input="trust.memberships"
+                                        value={(content.trust?.memberships ?? []).join('\n')}
+                                        onChange={(e) => updateField('trust', { ...content.trust, memberships: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })}
+                                        rows={2}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                        placeholder="Chamber of Commerce member"
+                                    />
+                                </div>
+                            </div>
+                        </details>
+
+                        {/* WHY-US */}
+                        <details className="group rounded-lg border border-gray-200 overflow-hidden">
+                            <summary className="cursor-pointer px-4 py-3 flex items-center justify-between text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">
+                                <span>Why-us <span className="text-xs text-gray-400 font-normal ml-1">3 reasons</span></span>
+                                <span className="text-gray-400 group-open:rotate-45 transition-transform">+</span>
+                            </summary>
+                            <div className="p-4 space-y-3">
+                                {[0, 1, 2].map((i) => (
+                                    <div key={i} className="border border-gray-200 rounded p-3 space-y-2">
+                                        <input
+                                            type="text"
+                                            data-field-input={`whyUs.item.${i}.title`}
+                                            value={content.why?.[i]?.title ?? ''}
+                                            onChange={(e) => {
+                                                const next = [...(content.why ?? [{title:'',body:''},{title:'',body:''},{title:'',body:''}])]
+                                                next[i] = { ...next[i], title: e.target.value }
+                                                updateField('why', next)
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                            placeholder={`Reason ${i + 1} title`}
+                                        />
+                                        <textarea
+                                            data-field-input={`whyUs.item.${i}.body`}
+                                            value={content.why?.[i]?.body ?? ''}
+                                            onChange={(e) => {
+                                                const next = [...(content.why ?? [{title:'',body:''},{title:'',body:''},{title:'',body:''}])]
+                                                next[i] = { ...next[i], body: e.target.value }
+                                                updateField('why', next)
+                                            }}
+                                            rows={2}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                            placeholder={`Reason ${i + 1} body`}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </details>
+
+                        {/* HOW-IT-WORKS */}
+                        <details className="group rounded-lg border border-gray-200 overflow-hidden">
+                            <summary className="cursor-pointer px-4 py-3 flex items-center justify-between text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">
+                                <span>How it works <span className="text-xs text-gray-400 font-normal ml-1">4 steps</span></span>
+                                <span className="text-gray-400 group-open:rotate-45 transition-transform">+</span>
+                            </summary>
+                            <div className="p-4 space-y-3">
+                                {[0, 1, 2, 3].map((i) => (
+                                    <div key={i} className="border border-gray-200 rounded p-3 space-y-2">
+                                        <div className="grid grid-cols-[80px_1fr] gap-2">
+                                            <input
+                                                type="text"
+                                                data-field-input={`howItWorks.item.${i}.step`}
+                                                value={content.how?.[i]?.step ?? `0${i + 1}`}
+                                                onChange={(e) => {
+                                                    const base = content.how ?? [{step:'01',title:'',body:''},{step:'02',title:'',body:''},{step:'03',title:'',body:''},{step:'04',title:'',body:''}]
+                                                    const next = [...base]
+                                                    next[i] = { ...next[i], step: e.target.value }
+                                                    updateField('how', next)
+                                                }}
+                                                className="w-full px-2 py-2 border border-gray-300 rounded-md text-sm font-mono focus:ring-2 focus:ring-blue-500"
+                                                placeholder="01"
+                                            />
+                                            <input
+                                                type="text"
+                                                data-field-input={`howItWorks.item.${i}.title`}
+                                                value={content.how?.[i]?.title ?? ''}
+                                                onChange={(e) => {
+                                                    const base = content.how ?? [{step:'01',title:'',body:''},{step:'02',title:'',body:''},{step:'03',title:'',body:''},{step:'04',title:'',body:''}]
+                                                    const next = [...base]
+                                                    next[i] = { ...next[i], title: e.target.value }
+                                                    updateField('how', next)
+                                                }}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                                placeholder={`Step ${i + 1} title`}
+                                            />
+                                        </div>
+                                        <textarea
+                                            data-field-input={`howItWorks.item.${i}.body`}
+                                            value={content.how?.[i]?.body ?? ''}
+                                            onChange={(e) => {
+                                                const base = content.how ?? [{step:'01',title:'',body:''},{step:'02',title:'',body:''},{step:'03',title:'',body:''},{step:'04',title:'',body:''}]
+                                                const next = [...base]
+                                                next[i] = { ...next[i], body: e.target.value }
+                                                updateField('how', next)
+                                            }}
+                                            rows={2}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                            placeholder={`Step ${i + 1} body`}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </details>
+
+                        {/* TESTIMONIALS */}
+                        <details className="group rounded-lg border border-gray-200 overflow-hidden">
+                            <summary className="cursor-pointer px-4 py-3 flex items-center justify-between text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">
+                                <span>Testimonials <span className="text-xs text-gray-400 font-normal ml-1">3 quotes</span></span>
+                                <span className="text-gray-400 group-open:rotate-45 transition-transform">+</span>
+                            </summary>
+                            <div className="p-4 space-y-3">
+                                {[0, 1, 2].map((i) => (
+                                    <div key={i} className="border border-gray-200 rounded p-3 space-y-2">
+                                        <textarea
+                                            data-field-input={`testimonials.item.${i}.quote`}
+                                            value={content.testimonials?.[i]?.quote ?? ''}
+                                            onChange={(e) => {
+                                                const base = content.testimonials ?? [{quote:'',name:'',context:''},{quote:'',name:'',context:''},{quote:'',name:'',context:''}]
+                                                const next = [...base]
+                                                next[i] = { ...next[i], quote: e.target.value }
+                                                updateField('testimonials', next)
+                                            }}
+                                            rows={3}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                            placeholder={`Quote ${i + 1}`}
+                                        />
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <input
+                                                type="text"
+                                                data-field-input={`testimonials.item.${i}.name`}
+                                                value={content.testimonials?.[i]?.name ?? ''}
+                                                onChange={(e) => {
+                                                    const base = content.testimonials ?? [{quote:'',name:'',context:''},{quote:'',name:'',context:''},{quote:'',name:'',context:''}]
+                                                    const next = [...base]
+                                                    next[i] = { ...next[i], name: e.target.value }
+                                                    updateField('testimonials', next)
+                                                }}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Name"
+                                            />
+                                            <input
+                                                type="text"
+                                                data-field-input={`testimonials.item.${i}.context`}
+                                                value={content.testimonials?.[i]?.context ?? ''}
+                                                onChange={(e) => {
+                                                    const base = content.testimonials ?? [{quote:'',name:'',context:''},{quote:'',name:'',context:''},{quote:'',name:'',context:''}]
+                                                    const next = [...base]
+                                                    next[i] = { ...next[i], context: e.target.value }
+                                                    updateField('testimonials', next)
+                                                }}
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                                placeholder="Context (e.g. monthly client)"
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </details>
+
+                        {/* FAQ */}
+                        <details className="group rounded-lg border border-gray-200 overflow-hidden">
+                            <summary className="cursor-pointer px-4 py-3 flex items-center justify-between text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">
+                                <span>FAQ <span className="text-xs text-gray-400 font-normal ml-1">5 questions · feeds Google snippets</span></span>
+                                <span className="text-gray-400 group-open:rotate-45 transition-transform">+</span>
+                            </summary>
+                            <div className="p-4 space-y-3">
+                                {[0, 1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="border border-gray-200 rounded p-3 space-y-2">
+                                        <input
+                                            type="text"
+                                            data-field-input={`faq.item.${i}.q`}
+                                            value={content.faq?.[i]?.q ?? ''}
+                                            onChange={(e) => {
+                                                const base = content.faq ?? Array(5).fill({q:'',a:''})
+                                                const next = [...base]
+                                                next[i] = { ...next[i], q: e.target.value }
+                                                updateField('faq', next)
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-medium focus:ring-2 focus:ring-blue-500"
+                                            placeholder={`Question ${i + 1}`}
+                                        />
+                                        <textarea
+                                            data-field-input={`faq.item.${i}.a`}
+                                            value={content.faq?.[i]?.a ?? ''}
+                                            onChange={(e) => {
+                                                const base = content.faq ?? Array(5).fill({q:'',a:''})
+                                                const next = [...base]
+                                                next[i] = { ...next[i], a: e.target.value }
+                                                updateField('faq', next)
+                                            }}
+                                            rows={2}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                            placeholder={`Answer ${i + 1}`}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </details>
+
+                        {/* CREDENTIALS */}
+                        <details className="group rounded-lg border border-gray-200 overflow-hidden">
+                            <summary className="cursor-pointer px-4 py-3 flex items-center justify-between text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">
+                                <span>Credentials <span className="text-xs text-gray-400 font-normal ml-1">licences · insurance</span></span>
+                                <span className="text-gray-400 group-open:rotate-45 transition-transform">+</span>
+                            </summary>
+                            <div className="p-4 space-y-3">
+                                {[0, 1, 2].map((i) => (
+                                    <div key={i} className="grid grid-cols-[120px_1fr] gap-2">
+                                        <input
+                                            type="text"
+                                            data-field-input={`credentials.item.${i}.label`}
+                                            value={content.credentials?.[i]?.label ?? ''}
+                                            onChange={(e) => {
+                                                const base = content.credentials ?? [{label:'',detail:''},{label:'',detail:''},{label:'',detail:''}]
+                                                const next = [...base]
+                                                next[i] = { ...next[i], label: e.target.value }
+                                                updateField('credentials', next)
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Label (e.g. Licensed)"
+                                        />
+                                        <input
+                                            type="text"
+                                            data-field-input={`credentials.item.${i}.detail`}
+                                            value={content.credentials?.[i]?.detail ?? ''}
+                                            onChange={(e) => {
+                                                const base = content.credentials ?? [{label:'',detail:''},{label:'',detail:''},{label:'',detail:''}]
+                                                const next = [...base]
+                                                next[i] = { ...next[i], detail: e.target.value }
+                                                updateField('credentials', next)
+                                            }}
+                                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                            placeholder="Detail (e.g. DTI Reg No. 12345)"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </details>
+
+                        {/* CTA BAND */}
+                        <details className="group rounded-lg border border-gray-200 overflow-hidden">
+                            <summary className="cursor-pointer px-4 py-3 flex items-center justify-between text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100">
+                                <span>CTA band <span className="text-xs text-gray-400 font-normal ml-1">closing call-to-action strip</span></span>
+                                <span className="text-gray-400 group-open:rotate-45 transition-transform">+</span>
+                            </summary>
+                            <div className="p-4 space-y-3">
+                                <input
+                                    type="text"
+                                    data-field-input="ctaBand.heading"
+                                    value={content.ctaBand?.heading ?? ''}
+                                    onChange={(e) => updateField('ctaBand', { ...content.ctaBand, heading: e.target.value })}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm font-medium focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Heading (e.g. Ready when you are.)"
+                                />
+                                <textarea
+                                    data-field-input="ctaBand.body"
+                                    value={content.ctaBand?.body ?? ''}
+                                    onChange={(e) => updateField('ctaBand', { ...content.ctaBand, body: e.target.value })}
+                                    rows={2}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 resize-none"
+                                    placeholder="Body"
+                                />
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input
+                                        type="text"
+                                        data-field-input="ctaBand.primary"
+                                        value={content.ctaBand?.primaryLabel ?? ''}
+                                        onChange={(e) => updateField('ctaBand', { ...content.ctaBand, primaryLabel: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Primary button"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={content.ctaBand?.primaryLink ?? ''}
+                                        onChange={(e) => updateField('ctaBand', { ...content.ctaBand, primaryLink: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Primary link (#location)"
+                                    />
+                                    <input
+                                        type="text"
+                                        data-field-input="ctaBand.secondary"
+                                        value={content.ctaBand?.secondaryLabel ?? ''}
+                                        onChange={(e) => updateField('ctaBand', { ...content.ctaBand, secondaryLabel: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Secondary button"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={content.ctaBand?.secondaryLink ?? ''}
+                                        onChange={(e) => updateField('ctaBand', { ...content.ctaBand, secondaryLink: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Secondary link (#contact)"
+                                    />
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+
                     {/* Save Indicator & Actions (Moved to Bottom) */}
                     <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 z-10 flex justify-between items-center shadow-lg">
                         <div className="text-sm">
@@ -4037,19 +4766,32 @@ export default function VisualEditor({
                 </div>
             </div>
 
-            {/* Right Panel - Live Preview */}
-            <div className="w-full lg:w-1/2 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden relative">
-                <div className="bg-white border-b border-gray-200 p-3">
-                    <h3 className="text-sm font-semibold text-gray-900">Live Preview</h3>
-                    <p className="text-xs text-gray-500">Select text in preview to format. Hover over fields to see where they appear.</p>
+            {/* Right Panel — sandbox-style wide live preview */}
+            <div className="w-full lg:flex-1 lg:min-w-0 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden relative flex flex-col">
+                <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between gap-3 flex-shrink-0">
+                    <div>
+                        <h3 className="text-sm font-semibold text-gray-900">Live Preview</h3>
+                        <p className="text-[11px] text-gray-500 leading-tight">
+                            Click any element to focus its input · changes apply instantly
+                        </p>
+                    </div>
+                    <span
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] uppercase tracking-wider font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        style={{ fontFamily: "ui-monospace, monospace" }}
+                    >
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Live
+                    </span>
                 </div>
-                <div ref={previewContainerRef} className="h-[400px] lg:h-full overflow-auto relative">
+                <div ref={previewContainerRef} className="h-[480px] lg:h-auto lg:flex-1 lg:min-h-0 overflow-auto relative">
                     <iframe
+                        ref={iframeRef}
                         id="visual-preview"
-                        srcDoc={htmlContent}
+                        srcDoc={previewHtml}
                         className="w-full h-full border-0"
                         title="Website Preview"
                         sandbox="allow-same-origin allow-scripts"
+                        onLoad={() => setIframeLoadKey((k) => k + 1)}
                     />
 
                     {/* Text Format Toolbar - Vertical sidebar on the right */}

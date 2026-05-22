@@ -312,6 +312,125 @@ Return ONLY the complete HTML code, starting with <!DOCTYPE html>`
             throw new Error('Failed to generate website')
         }
     },
+
+    /**
+     * Generate the v01 conversion-cluster content blocks from the
+     * interview transcript + business info. Returns null on any failure
+     * so the caller falls back to the per-business-type defaults in
+     * lib/block-defaults.ts.
+     *
+     * Hard constraints enforced via prompt (matches the brief):
+     *   • No prices, promos, staff names, year/date references
+     *   • No hours (Google-bound)
+     *   • Real opinionated copy, not generic SaaS slogans
+     *   • No "we offer X" — concrete claims only
+     */
+    async generateConversionBlocks(
+        transcript: string,
+        businessInfo: BusinessInfo,
+    ): Promise<ConversionBlocks | null> {
+        try {
+            const prompt = `You are a senior copywriter for local-business websites. Read this interview transcript and write the conversion content for a small local-business landing page.
+
+INTERVIEW TRANSCRIPT:
+${transcript}
+
+BUSINESS:
+Name: ${businessInfo.name}
+Type: ${businessInfo.type}
+Location: ${businessInfo.location}
+Owner: ${businessInfo.owner}
+
+OUTPUT — return ONLY a JSON object with these exact keys:
+
+For beauty/salon/spa businesses specifically, MAXIMIZE the trust block — those
+buyers vet credentials hard. Aim for 3+ licenses and 3+ memberships if even
+remotely plausible from the transcript (PRC cosmetology, DOH facility permit,
+brand-trained colourist, professional association membership, training school
+affiliation, awards). Same for credentials: 3-4 entries (Licensed · Trained
+· Insured · Awarded). Other categories can be sparser.
+
+{
+  "trust": {
+    "years": "string or null (e.g. 'A house of beauty since 2018'; only if a founding year is mentioned)",
+    "licenses": ["short claim 1", "short claim 2", "short claim 3"] or [],
+    "memberships": ["short claim 1", "short claim 2"] or []
+  },
+  "why": [
+    { "title": "5-7 word concrete claim", "body": "2 sentence proof, specific" },
+    { "title": "...", "body": "..." },
+    { "title": "...", "body": "..." }
+  ],
+  "how": [
+    { "step": "01", "title": "2-4 word step name", "body": "1-2 sentence specifics" },
+    { "step": "02", "title": "...", "body": "..." },
+    { "step": "03", "title": "...", "body": "..." },
+    { "step": "04", "title": "...", "body": "..." }
+  ],
+  "testimonials": [
+    { "quote": "1 sentence customer quote in their voice", "name": "First-name Last-initial", "context": "1-3 word context (e.g. 'monthly client')" },
+    { "quote": "...", "name": "...", "context": "..." },
+    { "quote": "...", "name": "...", "context": "..." }
+  ],
+  "faq": [
+    { "q": "real customer question, 5-9 words", "a": "1-3 sentence direct answer" },
+    { "q": "...", "a": "..." },
+    { "q": "...", "a": "..." },
+    { "q": "...", "a": "..." },
+    { "q": "...", "a": "..." }
+  ],
+  "credentials": [
+    { "label": "1-3 word category", "detail": "specific credential" }
+  ],
+  "ctaBand": {
+    "heading": "5-9 word closing call",
+    "body": "1 sentence reinforcement",
+    "primaryLabel": "2-3 word button",
+    "primaryLink": "#location",
+    "secondaryLabel": "2-3 word button or empty",
+    "secondaryLink": "#contact"
+  }
+}
+
+HARD RULES (the page is one of hundreds — must stay maintenance-free):
+- NEVER include prices, promos, discounts, or sale amounts.
+- NEVER mention specific dates, years (other than 'since YYYY' in trust.years), or 'this month'.
+- NEVER name individual staff members.
+- NEVER reference hours of operation — Google handles those.
+- Testimonials use realistic first-name + last-initial; don't invent real-sounding full names.
+- Every claim must be supportable from the transcript — if the transcript doesn't mention licenses, return an empty array.
+- No "we offer X service" filler. Concrete, opinionated, founder-voiced.
+- Avoid emoji and exclamation marks.
+
+Return ONLY the JSON object, no markdown fence, no commentary.`
+
+            const groq = getGroqClient()
+            const completion = await groq.chat.completions.create({
+                messages: [{ role: 'user', content: prompt }],
+                model: 'llama-3.3-70b-versatile',
+                temperature: 0.6,
+                max_tokens: 3000,
+                response_format: { type: 'json_object' },
+            })
+
+            const content = completion.choices[0]?.message?.content || '{}'
+            const parsed = JSON.parse(content)
+            // Light shape validation — anything missing is silently dropped
+            // so the caller's defaults kick in for that block only.
+            const out: ConversionBlocks = {}
+            if (parsed.trust && typeof parsed.trust === 'object') out.trust = parsed.trust
+            if (Array.isArray(parsed.why) && parsed.why.length > 0) out.why = parsed.why
+            if (Array.isArray(parsed.how) && parsed.how.length > 0) out.how = parsed.how
+            if (Array.isArray(parsed.testimonials) && parsed.testimonials.length > 0) out.testimonials = parsed.testimonials
+            if (Array.isArray(parsed.faq) && parsed.faq.length > 0) out.faq = parsed.faq
+            if (Array.isArray(parsed.credentials) && parsed.credentials.length > 0) out.credentials = parsed.credentials
+            if (parsed.ctaBand && typeof parsed.ctaBand === 'object') out.ctaBand = parsed.ctaBand
+            return Object.keys(out).length > 0 ? out : null
+        } catch (error) {
+            console.error('Groq conversion-block generation error:', error)
+            return null  // graceful fall-through to per-business-type defaults
+        }
+    },
 }
 
 // Types
@@ -325,6 +444,26 @@ export interface BusinessContent {
         address?: string
     }
     highlights: string[]
+}
+
+// v01 conversion-cluster blocks generated from interview transcript.
+// All fields optional — missing ones fall back to per-business-type
+// defaults in lib/block-defaults.ts at build time.
+export interface ConversionBlocks {
+    trust?: { years?: string; licenses?: string[]; memberships?: string[] }
+    why?: { title: string; body: string }[]
+    how?: { step: string; title: string; body: string }[]
+    testimonials?: { quote: string; name: string; context?: string }[]
+    faq?: { q: string; a: string }[]
+    credentials?: { label: string; detail: string }[]
+    ctaBand?: {
+        heading?: string
+        body?: string
+        primaryLabel?: string
+        primaryLink?: string
+        secondaryLabel?: string
+        secondaryLink?: string
+    }
 }
 
 export interface BusinessInfo {

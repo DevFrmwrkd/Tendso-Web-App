@@ -1,0 +1,101 @@
+---
+/**
+ * ServiceAreaBlock — named list of nearby places served.
+ *
+ * Per v01 spec AREA.v1: "typographic list of places served" — drives
+ * "[service] in [nearby town]" long-tail rankings without extra pages.
+ *
+ * Constraint from the brief:
+ *   "Service area as a real map or list of named places, not a vague
+ *    'we serve the area' line."
+ *
+ * Content is auto-seeded from the business city + a few nearby places
+ * (build pipeline fills `places[]` in transformToAstroData). Admin can
+ * edit or delete the block entirely.
+ */
+interface Props {
+    heading?: string;
+    places?: string[];
+    visibility?: Record<string, boolean>;
+    /** M1: Map-adjacent two-column · M2: Chip Cluster */
+    variantStyle?: string;
+}
+
+const {
+    heading = 'Service area',
+    places = [],
+    visibility,
+    variantStyle = 'M1',
+} = Astro.props;
+
+const show = visibility?.serviceAreaBlock !== false && places.length > 0;
+const isM2 = String(variantStyle).toUpperCase() === 'M2';
+---
+
+{show && (
+    <section
+        id="service-area"
+        class:list={["bg-[var(--bg)] py-20 md:py-28 sarea-block", isM2 && "is-m2"]}
+        data-variant={variantStyle}
+        data-component="SERVICE-AREA"
+    >
+        <div class="mx-auto max-w-7xl px-6 lg:px-10">
+            <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_2fr] gap-10 items-start">
+                <div>
+                    <p
+                        class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-3"
+                        style="font-family: var(--body-font, inherit);"
+                    >
+                        Service Area
+                    </p>
+                    <h2
+                        class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-[var(--text)]"
+                        style="font-family: var(--heading-font, inherit);"
+                        data-field="serviceArea.heading"
+                        set:html={heading}
+                    ></h2>
+                    <p
+                        class="mt-4 text-[var(--text-muted)] text-base leading-relaxed max-w-md"
+                        style="font-family: var(--body-font, inherit);"
+                    >
+                        {places.length} place{places.length === 1 ? '' : 's'} we regularly serve — list pulled from the latest dispatch data.
+                    </p>
+                </div>
+
+                <ul class="sarea-list grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3 m-0 p-0 list-none">
+                    {places.map((place, i) => (
+                        <li
+                            class="sarea-item text-[var(--text)] text-base flex items-center gap-3 border-b border-[var(--text)]/10 py-2"
+                            data-field={`serviceArea.places.${i}`}
+                        >
+                            <span
+                                class="sarea-num text-[10px] font-bold text-[var(--text-muted)] tabular-nums"
+                                style="font-family: var(--body-font, inherit);"
+                            >
+                                {String(i + 1).padStart(2, '0')}
+                            </span>
+                            <span set:html={place}></span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    </section>
+)}
+
+<style>
+    /* M2 — Chip Cluster: collapse the numbered list into pill chips wrapping
+       in a single row block, no borders, no numbering. */
+    .sarea-block.is-m2 .sarea-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .sarea-block.is-m2 .sarea-item {
+        border: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+        background: color-mix(in srgb, var(--primary) 8%, var(--bg));
+        border-radius: 999px;
+        padding: 7px 16px;
+    }
+    .sarea-block.is-m2 .sarea-num { display: none; }
+</style>
