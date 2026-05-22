@@ -144,6 +144,43 @@ export default function CreatorsPage() {
         )
     }
 
+    // Certification state — derived from quizPassedAt + certifiedAt + isDeleted.
+    // Per DIAGNOSIS-APPROVAL.md "nice-to-have" §1.
+    const getCertificationBadge = (creator: { quizPassedAt?: number; certifiedAt?: number; isDeleted?: boolean }) => {
+        if (creator.isDeleted) {
+            return (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-600">
+                    Deleted
+                </span>
+            )
+        }
+        if (creator.certifiedAt) {
+            return (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
+                    Certified
+                </span>
+            )
+        }
+        if (creator.quizPassedAt) {
+            return (
+                <Link
+                    href="/admin/pending-approvals"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 transition-colors"
+                    title="Open the Pending Approval queue"
+                >
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                    Pending approval
+                </Link>
+            )
+        }
+        return (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-50 text-gray-500">
+                Not started
+            </span>
+        )
+    }
+
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -367,6 +404,7 @@ export default function CreatorsPage() {
                                 <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Creator</th>
                                 <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Contact</th>
                                 <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Certification</th>
                                 <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Submissions</th>
                                 <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Earnings</th>
                                 <th className="px-6 py-3.5 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Balance</th>
@@ -376,7 +414,7 @@ export default function CreatorsPage() {
                         <tbody>
                             {filteredCreators.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-16 text-center text-sm text-gray-400">
+                                    <td colSpan={8} className="px-6 py-16 text-center text-sm text-gray-400">
                                         {searchQuery || statusFilter !== 'all' || roleFilter !== 'all'
                                             ? 'No creators match your filters'
                                             : 'No creators found'}
@@ -412,6 +450,9 @@ export default function CreatorsPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             {getStatusBadge(creator.status)}
+                                        </td>
+                                        <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                                            {getCertificationBadge(creator)}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-blue-50 text-blue-700">

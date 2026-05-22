@@ -50,14 +50,7 @@ export default function Footer({
     return (
         <footer className="neo-footer">
             <div className="container-wide">
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "2fr 1fr 1fr 1fr",
-                        gap: 48,
-                        alignItems: "start",
-                    }}
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-8 sm:gap-10 lg:gap-12 items-start">
                     <div>
                         <div style={{ marginBottom: 24 }}>
                             <span

@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Solferino Music School — music lessons in Dublin 8</title>
+<meta name="description" content="Solferino Music School is an independent music school in Dublin 8 offering piano, strings, guitar, voice and theory lessons for children from age 5 and adults of every age. Enrolment open across the term." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Solferino Music School", phone: "+353 1 554 3082", phoneDisplay: "+353 1 554 3082", email: "office@solferinomusic.ie", foundedYear: 2003 },
+  hero: {
+    kicker: "Independent music school · Dublin 8",
+    headline: "Music, taught slowly and patiently, in a building that has been a school for twenty-three years.",
+    lede: "Solferino is a small music school in the Liberties. Piano, strings, guitar, voice, and theory — for children from age five and for adults of every age. Enrolment is open throughout the term.",
+    primaryCta: { label: "Enrol or inquire", href: "#enrol" },
+    secondaryCta: { label: "Meet the teachers", href: "#about" },
+    image: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1600&q=85&auto=format&fit=crop",
+    imageAlt: "A grand piano in a sunlit teaching room."
+  },
+  trust: { years: "Teaching in Dublin since 2003" },
+  about: {
+    heading: "A small school that has been here a long time.",
+    paragraphs: [
+      "Solferino opened on Cork Street in 2003, in a Georgian house that had previously been a piano-restoration workshop and, before that, a sweet factory. It still smells faintly of resin and barley sugar.",
+      "Six teachers, three pianos, a small concert room, and a slightly bigger waiting room. We teach individual lessons, small theory groups, and an open chamber session on Wednesday evenings that any pupil can drop in on once they're past Grade 3.",
+      "We're examiner-affiliated with the RIAM and the ABRSM — but we are not a grade factory. Pupils who want to follow the grade path can; pupils who want to learn songs by their grandmother can too."
+    ]
+  },
+  services: [
+    { name: "Piano", description: "Classical, jazz, and contemporary. Children from age 5, adults from age forever." },
+    { name: "Strings", description: "Violin, viola, cello, double bass. Suzuki-trained early-years teacher available." },
+    { name: "Guitar", description: "Classical, acoustic, electric. Bass guitar by referral to our partner studio." },
+    { name: "Voice", description: "Classical and contemporary. Speech-pathology-aware teachers for vocally-fragile beginners." },
+    { name: "Theory & musicianship", description: "Group classes, Grades 1–5. Aural training, sight-reading, composition." },
+    { name: "Wednesday chamber", description: "Open chamber session for pupils Grade 3 and above. Free with any individual subscription." }
+  ],
+  why: [
+    { title: "Lessons that respect the pupil's life.", body: "Thirty- or forty-five-minute slots; weekly or fortnightly; pause for exam season without losing your time." },
+    { title: "Teachers with examiner experience.", body: "Five of our six teachers examine for the RIAM, ABRSM, or LCM. We know what grade panels are looking for." },
+    { title: "A real adult-beginners pathway.", body: "Slow start, no homework guilt, no recitals if you don't want to. Three quarters of our adult pupils never had lessons as children." }
+  ],
+  how: [
+    { step: "01", title: "Inquire", body: "Tell us age, instrument, and any prior learning through the form or by phone." },
+    { step: "02", title: "Free intro session", body: "30-minute meet-the-teacher session, no commitment. We match pupils to teachers carefully." },
+    { step: "03", title: "Choose a schedule", body: "Weekly or fortnightly. We hold the same slot for the term." },
+    { step: "04", title: "Lessons begin", body: "Termly billing. Pause for school holidays. End-of-term recital optional." }
+  ],
+  testimonials: [
+    { quote: "My daughter is ten and looks forward to her piano lesson every week. She did not look forward to her last music school. That's all I need to say.", name: "Aoife N.", context: "parent, two pupils" },
+    { quote: "I started at 47 having never touched a piano. Three years later I played a Bach prelude at the term recital, badly and proudly.", name: "Declan M.", context: "adult beginner" },
+    { quote: "Beautiful old building, serious teaching, kind teachers. Worth every euro.", name: "Maeve C.", context: "parent of a Grade 6 cellist" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1400&q=85&auto=format&fit=crop", alt: "Grand piano in a teaching room." },
+    { src: "https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=1400&q=85&auto=format&fit=crop", alt: "Sheet music on a stand." },
+    { src: "https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=1400&q=85&auto=format&fit=crop", alt: "Hands on piano keys." },
+    { src: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1400&q=85&auto=format&fit=crop", alt: "Cellist mid-lesson." },
+    { src: "https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=1400&q=85&auto=format&fit=crop", alt: "Guitar in a teaching room." },
+    { src: "https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=1400&q=85&auto=format&fit=crop", alt: "Music stand and chair." }
+  ],
+  faq: [
+    { q: "How young can children start?", a: "Suzuki-method violin from age four; piano from age five; voice from age seven. We meet every prospective pupil for a free intro session before we begin." },
+    { q: "Do you only teach classical music?", a: "Not at all. Half of our piano pupils are learning contemporary, jazz or song accompaniment. We follow the pupil, not the curriculum." },
+    { q: "Do we have to do exam grades?", a: "Only if you want to. Around 60% of pupils take grade exams; the rest learn for the pleasure of it and play in our term recitals." },
+    { q: "What instruments do you have on site?", a: "Three pianos, two violins (loan), two cellos (loan), three classical guitars (loan). Anything else, you bring your own." },
+    { q: "Can adults enrol?", a: "Yes — about a third of our pupils are adults, half of whom are absolute beginners. We have a dedicated adult-beginners pathway." },
+    { q: "How does the term work?", a: "Three terms a year, matching school terms. Each term is 11 lessons. We bill at the start of each term." },
+    { q: "What's the cancellation policy?", a: "We need a term's notice to stop. Inside a term, missed lessons are reimbursed if we can fit a make-up; otherwise they're forfeit." },
+    { q: "Is the building accessible?", a: "We're in a Georgian house — one step at the front door, ramp available on request. One ground-floor teaching room. We'll always accommodate." }
+  ],
+  area: { places: ["The Liberties","Portobello","Rathmines","Stoneybatter","Phibsborough","Inchicore","Drimnagh","Crumlin","Kilmainham"] },
+  credentials: [
+    { label: "RIAM", detail: "Affiliated centre, examination partner" },
+    { label: "ABRSM", detail: "Registered examination venue" },
+    { label: "Music Network", detail: "Bursary partner" },
+    { label: "Tusla", detail: "Children-first compliant, all teachers Garda-vetted" }
+  ],
+  location: { name: "Solferino Music School", addressStreet: "12 Cork Street", addressLocality: "Dublin", addressRegion: "Dublin 8", addressPostcode: "D08 V6Y2", addressCountry: "Ireland" },
+  cta: { heading: "Come for a free intro lesson.", body: "Enrolment is open across the term. Inquire any time.", primary: { label: "Enrol or inquire", href: "#enrol" }, secondary: { label: "+353 1 554 3082", href: "tel:+35315543082" } },
+  messaging: { whatsapp: "https://wa.me/35315543082", messenger: "https://m.me/solferinomusic" }
+};
+</script>
+
+<style>
+  :root {
+    --cream:#f4ebd6; --paper:#faf3df; --paper2:#ebdfc1;
+    --ink:#1d2317; --ink-soft:#52584b;
+    --forest:#1f4631; --leaf:#345e44; --mustard:#c69612; --rose:#a44a3a;
+    --rule:rgba(29,35,23,0.14);
+    --serif:"DM Serif Display",Georgia,serif;
+    --sans:"DM Sans",system-ui,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kicker{font-family:var(--sans);font-weight:500;font-size:12px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mustard);}
+  .h2{font-family:var(--serif);font-weight:400;font-size:clamp(36px,5vw,72px);line-height:1.05;letter-spacing:-0.01em;margin:0 0 0.4em;}
+  .h2 em{font-style:italic;color:var(--forest);}
+  .body{font-size:17px;line-height:1.65;color:var(--ink-soft);}
+  section{padding:clamp(72px,9vw,128px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:15px 24px;font-size:14px;text-decoration:none;font-weight:500;transition:0.18s;border-radius:999px;}
+  .btn-primary{background:var(--forest);color:var(--cream);}
+  .btn-primary:hover{background:var(--ink);}
+  .btn-ghost{border:1px solid var(--ink);background:transparent;}
+  .btn-ghost:hover{background:var(--ink);color:var(--cream);}
+
+  /* NAV */
+  .nav{background:rgba(250,243,223,0.9);backdrop-filter:blur(10px);position:sticky;top:0;z-index:50;border-bottom:1px solid var(--rule);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:18px 0;}
+  .wm{font-family:var(--serif);font-size:24px;text-decoration:none;letter-spacing:-0.005em;}
+  .wm em{color:var(--mustard);font-style:italic;}
+  .nav-links{display:flex;gap:28px;font-size:14px;color:var(--ink-soft);}
+  .nav-links a{text-decoration:none;}
+  .nav-cta{padding:10px 18px;background:var(--forest);color:var(--cream);text-decoration:none;font-size:13px;border-radius:999px;font-weight:500;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — type-first w/ image card aside */
+  .hero{padding-top:clamp(48px,7vw,96px);padding-bottom:clamp(48px,7vw,96px);background:radial-gradient(60% 60% at 70% 20%, var(--paper2), transparent);}
+  .hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(44px,6.4vw,96px);line-height:0.98;letter-spacing:-0.012em;margin:24px 0 28px;max-width:22ch;}
+  .hero h1 em{font-style:italic;color:var(--forest);}
+  .hero-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:clamp(36px,5vw,80px);align-items:end;}
+  .hero .lede{font-size:clamp(18px,1.7vw,22px);line-height:1.5;color:var(--ink-soft);max-width:42ch;}
+  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-image{position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:8px;}
+  .hero-image img{width:100%;height:100%;object-fit:cover;}
+  .hero-image .stamp{position:absolute;left:-12px;bottom:24px;background:var(--mustard);color:var(--ink);font-family:var(--serif);font-style:italic;font-size:24px;padding:14px 22px;transform:rotate(-2deg);box-shadow:0 6px 18px rgba(0,0,0,0.18);}
+  @media(max-width:880px){.hero-grid{grid-template-columns:1fr;}}
+
+  /* TRUST */
+  .trust{padding:22px 0;background:var(--forest);color:var(--cream);}
+  .trust .row{display:flex;gap:32px;flex-wrap:wrap;justify-content:space-between;align-items:center;font-size:13px;color:rgba(244,235,214,0.85);}
+  .trust .row .x{color:var(--mustard);}
+
+  /* ABOUT */
+  .about{background:var(--paper);}
+  .about-grid{display:grid;grid-template-columns:0.8fr 1.2fr;gap:clamp(40px,5vw,96px);}
+  .about-prose p{font-size:19px;line-height:1.65;margin:0 0 1em;}
+  .about-prose p:first-of-type::first-letter{font-family:var(--serif);font-style:italic;font-size:5em;line-height:0.85;float:left;padding:6px 14px 0 0;color:var(--mustard);}
+  @media(max-width:880px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES */
+  .services{background:var(--cream);}
+  .svc-list{margin-top:48px;display:grid;grid-template-columns:1fr;gap:0;border-top:1px solid var(--ink);}
+  .svc-row{display:grid;grid-template-columns:80px 1fr 2fr;gap:28px;padding:32px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.2s;}
+  .svc-row:hover{padding-left:8px;}
+  .svc-row .num{font-family:var(--serif);font-style:italic;font-size:32px;color:var(--mustard);line-height:1;}
+  .svc-row .name{font-family:var(--serif);font-size:32px;line-height:1.1;}
+  .svc-row .desc{color:var(--ink-soft);font-size:16px;}
+  @media(max-width:760px){.svc-row{grid-template-columns:60px 1fr;} .svc-row .desc{grid-column:1/-1;padding-left:88px;}}
+
+  /* WHY */
+  .why{background:var(--forest);color:var(--cream);}
+  .why .h2{color:var(--cream);}
+  .why .h2 em{color:var(--mustard);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:48px;}
+  .why-grid > div{padding:36px;background:rgba(255,255,255,0.04);border-radius:14px;}
+  .why-grid .num{font-family:var(--serif);font-style:italic;font-size:56px;color:var(--mustard);line-height:1;display:block;margin-bottom:14px;}
+  .why-grid h3{font-family:var(--serif);font-weight:400;font-size:26px;line-height:1.2;margin:0 0 12px;}
+  .why-grid p{color:rgba(244,235,214,0.75);margin:0;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  /* HOW */
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;margin-top:48px;}
+  .how-grid > li{list-style:none;padding-top:24px;border-top:2px solid var(--mustard);}
+  .how-grid .step{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--mustard);letter-spacing:0.04em;}
+  .how-grid h3{font-family:var(--serif);font-weight:400;font-size:24px;margin:10px 0 10px;line-height:1.15;}
+  .how-grid p{color:var(--ink-soft);margin:0;font-size:15px;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  /* TESTIMONIALS */
+  .testimonials{background:var(--paper);}
+  .quotes{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;margin-top:48px;}
+  .quote-card{background:var(--cream);padding:32px;border-radius:18px;}
+  .quote-card blockquote{font-family:var(--serif);font-style:italic;font-size:22px;line-height:1.3;margin:0 0 18px;}
+  .quote-card .who{font-size:13px;color:var(--ink-soft);}
+  .quote-card .who strong{color:var(--ink);font-weight:500;}
+  @media(max-width:760px){.quotes{grid-template-columns:1fr;}}
+
+  /* GALLERY — strip */
+  .gallery{background:var(--cream);}
+  .gallery-strip{margin-top:48px;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+  .gallery-strip img{aspect-ratio:3/4;object-fit:cover;width:100%;border-radius:4px;}
+  @media(max-width:760px){.gallery-strip{grid-template-columns:repeat(3,1fr);}}
+
+  /* FAQ */
+  .faq-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:60px;}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:24px 0;}
+  .faq-list summary{font-family:var(--serif);font-size:26px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;line-height:1.2;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"♪";color:var(--mustard);font-size:22px;transition:transform 0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(180deg);}
+  .faq-list p{margin:14px 0 0;max-width:64ch;color:var(--ink-soft);}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;} .faq-list summary{font-size:20px;}}
+
+  /* AREA */
+  .area{background:var(--paper2);}
+  .area-list{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:36px;border-top:1px solid var(--ink);}
+  .area-list li{list-style:none;padding:18px 0;border-bottom:1px solid var(--rule);font-family:var(--serif);font-size:24px;}
+  .area-list li::before{content:"♪ ";color:var(--mustard);font-family:var(--sans);}
+  @media(max-width:760px){.area-list{grid-template-columns:1fr 1fr;}}
+
+  /* CREDS */
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-top:36px;}
+  .creds > div{padding:26px;background:var(--cream);border-radius:14px;}
+  .creds .label{font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mustard);margin-bottom:12px;font-weight:500;}
+  .creds .detail{font-family:var(--serif);font-size:20px;line-height:1.25;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  /* LOCATION */
+  .loc-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:32px;margin-top:48px;}
+  .nap{padding:32px;background:var(--forest);color:var(--cream);border-radius:18px;}
+  .nap address{font-style:normal;font-family:var(--serif);font-size:24px;line-height:1.35;}
+  .nap a{color:var(--cream);text-decoration:none;}
+  .hours{font-size:13px;margin-top:28px;border-top:1px solid rgba(244,235,214,0.18);padding-top:20px;}
+  .hours .row{display:flex;justify-content:space-between;padding:5px 0;color:rgba(244,235,214,0.85);}
+  .hours .gbp-note{font-size:13px;color:rgba(244,235,214,0.6);margin-top:18px;line-height:1.5;}
+  .map-frame{border-radius:18px;overflow:hidden;min-height:420px;background:var(--paper2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:420px;}
+  @media(max-width:880px){.loc-grid{grid-template-columns:1fr;}}
+
+  /* CTA */
+  .cta-band{background:var(--mustard);color:var(--ink);padding:clamp(72px,9vw,128px) 0;}
+  .cta-band h2{font-family:var(--serif);font-weight:400;font-size:clamp(40px,5.6vw,80px);line-height:1;margin:0 0 18px;max-width:20ch;}
+  .cta-band h2 em{font-style:italic;color:var(--forest);}
+  .cta-band p{max-width:50ch;margin:0 0 32px;font-size:18px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--ink);color:var(--cream);}
+  .cta-band .btn-ghost{border:1px solid var(--ink);}
+
+  /* FOOTER */
+  footer{background:var(--ink);color:rgba(244,235,214,0.85);padding:64px 0 32px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mustard);margin:0 0 14px;font-weight:500;}
+  .footer-grid a{text-decoration:none;display:block;padding:4px 0;font-size:14px;color:var(--cream);}
+  .colophon{margin-top:56px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.18);display:flex;justify-content:space-between;flex-wrap:wrap;font-size:12px;color:rgba(244,235,214,0.5);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  /* MSG FAB */
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--forest);color:var(--cream);padding:14px 18px;text-decoration:none;font-size:13px;border-radius:999px;font-weight:500;box-shadow:0 8px 22px rgba(31,70,49,0.3);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"EducationalOrganization","name":"Solferino Music School","description":"Independent music school in Dublin 8 offering piano, strings, guitar, voice and theory lessons.","url":"https://solferinomusic.ie/","telephone":"+35315543082","email":"office@solferinomusic.ie","address":{"@type":"PostalAddress","streetAddress":"12 Cork Street","addressLocality":"Dublin","addressRegion":"Dublin 8","postalCode":"D08 V6Y2","addressCountry":"IE"},"geo":{"@type":"GeoCoordinates","latitude":53.3387,"longitude":-6.2796},"areaServed":["The Liberties","Portobello","Rathmines"],"image":["https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1600"],"foundingDate":"2003"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How young can children start?","acceptedAnswer":{"@type":"Answer","text":"Suzuki violin from age four; piano from age five; voice from age seven."}},
+{"@type":"Question","name":"Do you only teach classical music?","acceptedAnswer":{"@type":"Answer","text":"No — half our piano pupils are learning contemporary, jazz or song accompaniment."}},
+{"@type":"Question","name":"Do we have to do exam grades?","acceptedAnswer":{"@type":"Answer","text":"Only if you want to. About 60% of pupils take grade exams."}},
+{"@type":"Question","name":"What instruments do you have on site?","acceptedAnswer":{"@type":"Answer","text":"Three pianos, two violins, two cellos, three classical guitars (all loanable)."}},
+{"@type":"Question","name":"Can adults enrol?","acceptedAnswer":{"@type":"Answer","text":"Yes — about a third of our pupils are adults, half absolute beginners."}},
+{"@type":"Question","name":"How does the term work?","acceptedAnswer":{"@type":"Answer","text":"Three terms a year, 11 lessons each, billed at term start."}},
+{"@type":"Question","name":"What's the cancellation policy?","acceptedAnswer":{"@type":"Answer","text":"A term's notice to stop. Inside a term, missed lessons reimbursed if a make-up can be fit."}},
+{"@type":"Question","name":"Is the building accessible?","acceptedAnswer":{"@type":"Answer","text":"One step at the front door, ramp on request. One ground-floor teaching room."}}]}
+</script>
+
+<script type="application/json" id="lp-config">{"business":"...","hero":"...","about":"...","services":"...","why":"...","how":"...","testimonials":"...","gallery":"...","faq":"...","area":"...","credentials":"...","location":"...","cta":"...","messaging":"..."}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Solferino <em>Music</em></a>
+    <nav class="nav-links">
+      <a href="#about">School</a>
+      <a href="#services">Lessons</a>
+      <a href="#location">Find us</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="nav-cta" href="#enrol">Enrol</a>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v3">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="kicker" data-bind="hero.kicker">Independent music school · Dublin 8</div>
+        <h1 data-bind="hero.headline">Music, taught <em>slowly and patiently,</em> in a building that has been a school for twenty-three years.</h1>
+        <p class="lede" data-bind="hero.lede">Solferino is a small music school in the Liberties. Piano, strings, guitar, voice, and theory — for children from age five and for adults of every age.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#enrol" data-bind="hero.primaryCta.label">Enrol or inquire</a>
+          <a class="btn btn-ghost" href="#about" data-bind="hero.secondaryCta.label">Meet the teachers</a>
+        </div>
+      </div>
+      <div>
+        <div class="hero-image">
+          <img src="https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1600&q=85&auto=format&fit=crop"
+               alt="A grand piano in a sunlit teaching room."
+               data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+          <div class="stamp">est. 2003</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:22px 0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Teaching in Dublin since 2003</span>
+    <span class="x">·</span><span>RIAM-affiliated centre</span>
+    <span class="x">·</span><span>ABRSM examination venue</span>
+    <span class="x">·</span><span>All teachers Garda-vetted</span>
+    <!-- GBP-bound rating slot — do not hardcode. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap about-grid">
+    <div>
+      <div class="kicker">About the school</div>
+      <h2 class="h2">A small school that has been here <em>a long time.</em></h2>
+    </div>
+    <div class="about-prose">
+      <p>Solferino opened on Cork Street in 2003, in a Georgian house that had previously been a piano-restoration workshop and, before that, a sweet factory. It still smells faintly of resin and barley sugar.</p>
+      <p>Six teachers, three pianos, a small concert room, and a slightly bigger waiting room. We teach individual lessons, small theory groups, and an open chamber session on Wednesday evenings that any pupil can drop in on once they're past Grade 3.</p>
+      <p>We're examiner-affiliated with the RIAM and the ABRSM — but we are not a grade factory. Pupils who want to follow the grade path can; pupils who want to learn songs by their grandmother can too.</p>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="services" data-component="SERVICES" data-variant="v4">
+  <div class="wrap">
+    <div class="kicker">What we teach</div>
+    <h2 class="h2">Lessons, <em>by instrument.</em></h2>
+    <div class="svc-list">
+      <div class="svc-row"><span class="num">i.</span><span class="name">Piano</span><span class="desc">Classical, jazz, and contemporary. Children from age 5, adults from age forever.</span></div>
+      <div class="svc-row"><span class="num">ii.</span><span class="name">Strings</span><span class="desc">Violin, viola, cello, double bass. Suzuki-trained early-years teacher available.</span></div>
+      <div class="svc-row"><span class="num">iii.</span><span class="name">Guitar</span><span class="desc">Classical, acoustic, electric. Bass guitar by referral to our partner studio.</span></div>
+      <div class="svc-row"><span class="num">iv.</span><span class="name">Voice</span><span class="desc">Classical and contemporary. Speech-pathology-aware teachers for vocally-fragile beginners.</span></div>
+      <div class="svc-row"><span class="num">v.</span><span class="name">Theory &amp; musicianship</span><span class="desc">Group classes, Grades 1–5. Aural training, sight-reading, composition.</span></div>
+      <div class="svc-row"><span class="num">vi.</span><span class="name">Wednesday chamber</span><span class="desc">Open chamber session for pupils Grade 3 and above. Free with any individual subscription.</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--mustard);">Why families stay</div>
+    <h2 class="h2">Three quiet <em>commitments.</em></h2>
+    <div class="why-grid">
+      <div><span class="num">01.</span><h3>Lessons that respect the pupil's life.</h3><p>Thirty- or forty-five-minute slots; weekly or fortnightly; pause for exam season without losing your time.</p></div>
+      <div><span class="num">02.</span><h3>Teachers with examiner experience.</h3><p>Five of our six teachers examine for the RIAM, ABRSM, or LCM. We know what grade panels are looking for.</p></div>
+      <div><span class="num">03.</span><h3>A real adult-beginners pathway.</h3><p>Slow start, no homework guilt, no recitals if you don't want to. Three quarters of our adult pupils never had lessons as children.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">How enrolment works</div>
+    <h2 class="h2">From inquiry<br/>to first lesson.</h2>
+    <ol class="how-grid">
+      <li><div class="step">step one</div><h3>Inquire</h3><p>Tell us age, instrument, and any prior learning through the form or by phone.</p></li>
+      <li><div class="step">step two</div><h3>Free intro session</h3><p>30-minute meet-the-teacher session, no commitment. We match pupils to teachers carefully.</p></li>
+      <li><div class="step">step three</div><h3>Choose a schedule</h3><p>Weekly or fortnightly. We hold the same slot for the term.</p></li>
+      <li><div class="step">step four</div><h3>Lessons begin</h3><p>Termly billing. Pause for school holidays. End-of-term recital optional.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">From parents and pupils</div>
+    <h2 class="h2">A few <em>words</em> from the waiting room.</h2>
+    <div class="quotes">
+      <article class="quote-card"><blockquote>“My daughter is ten and looks forward to her piano lesson every week. She did not look forward to her last music school. That's all I need to say.”</blockquote><div class="who"><strong>Aoife N.</strong> · parent, two pupils</div></article>
+      <article class="quote-card"><blockquote>“I started at 47 having never touched a piano. Three years later I played a Bach prelude at the term recital, badly and proudly.”</blockquote><div class="who"><strong>Declan M.</strong> · adult beginner</div></article>
+      <article class="quote-card"><blockquote>“Beautiful old building, serious teaching, kind teachers. Worth every euro.”</blockquote><div class="who"><strong>Maeve C.</strong> · parent of a Grade 6 cellist</div></article>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section class="gallery" data-component="GALLERY" data-variant="v3">
+  <div class="wrap">
+    <div class="kicker">The school</div>
+    <h2 class="h2">Inside Cork Street.</h2>
+    <div class="gallery-strip">
+      <img src="https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1000&q=80&auto=format&fit=crop" alt="Grand piano in a teaching room." />
+      <img src="https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=1000&q=80&auto=format&fit=crop" alt="Sheet music on a stand." />
+      <img src="https://images.unsplash.com/photo-1514320291840-2e0a9bf2a9ae?w=1000&q=80&auto=format&fit=crop" alt="Hands on piano keys." />
+      <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1000&q=80&auto=format&fit=crop" alt="Cellist mid-lesson." />
+      <img src="https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=1000&q=80&auto=format&fit=crop" alt="Guitar in a teaching room." />
+      <img src="https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=1000&q=80&auto=format&fit=crop" alt="Music stand and chair." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section id="faq" data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="faq-grid">
+      <div>
+        <div class="kicker">Questions</div>
+        <h2 class="h2">Before you<br/>enrol.</h2>
+        <p class="body">If yours isn't here, ring the office on <a href="tel:+35315543082" style="color:var(--forest);">+353 1 554 3082</a>.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How young can children start?</summary><p>Suzuki-method violin from age four; piano from age five; voice from age seven. We meet every prospective pupil for a free intro session before we begin.</p></details>
+        <details><summary>Do you only teach classical music?</summary><p>Not at all. Half of our piano pupils are learning contemporary, jazz or song accompaniment. We follow the pupil, not the curriculum.</p></details>
+        <details><summary>Do we have to do exam grades?</summary><p>Only if you want to. Around 60% of pupils take grade exams; the rest learn for the pleasure of it and play in our term recitals.</p></details>
+        <details><summary>What instruments do you have on site?</summary><p>Three pianos, two violins (loan), two cellos (loan), three classical guitars (loan). Anything else, you bring your own.</p></details>
+        <details><summary>Can adults enrol?</summary><p>Yes — about a third of our pupils are adults, half of whom are absolute beginners. We have a dedicated adult-beginners pathway.</p></details>
+        <details><summary>How does the term work?</summary><p>Three terms a year, matching school terms. Each term is 11 lessons. We bill at the start of each term.</p></details>
+        <details><summary>What's the cancellation policy?</summary><p>We need a term's notice to stop. Inside a term, missed lessons are reimbursed if we can fit a make-up; otherwise they're forfeit.</p></details>
+        <details><summary>Is the building accessible?</summary><p>We're in a Georgian house — one step at the front door, ramp available on request. One ground-floor teaching room.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section class="area" data-component="SERVICE-AREA" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Pupils come from</div>
+    <h2 class="h2">Across <em>Dublin south.</em></h2>
+    <ul class="area-list">
+      <li>The Liberties</li><li>Portobello</li><li>Rathmines</li>
+      <li>Stoneybatter</li><li>Phibsborough</li><li>Inchicore</li>
+      <li>Drimnagh</li><li>Crumlin</li><li>Kilmainham</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">For the record</div>
+    <h2 class="h2">Affiliations &amp; <em>safeguarding.</em></h2>
+    <div class="creds">
+      <div><div class="label">RIAM</div><div class="detail">Affiliated centre, examination partner</div></div>
+      <div><div class="label">ABRSM</div><div class="detail">Registered examination venue</div></div>
+      <div><div class="label">Music Network</div><div class="detail">Bursary partner</div></div>
+      <div><div class="label">Tusla</div><div class="detail">Children-first compliant, all teachers Garda-vetted</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Find the door</div>
+    <h2 class="h2">12 Cork Street,<br/>Dublin 8.</h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Solferino Music School</strong><br/>
+          12 Cork Street<br/>
+          Dublin 8, D08 V6Y2<br/><br/>
+          <a href="tel:+35315543082" data-bind="business.phoneDisplay">+353 1 554 3082</a><br/>
+          <a href="mailto:office@solferinomusic.ie" data-bind="business.email">office@solferinomusic.ie</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound. -->
+          <div class="row"><span>Mon – Fri</span><span>—</span></div>
+          <div class="row"><span>Saturday</span><span>—</span></div>
+          <div class="row"><span>Sunday</span><span>closed</span></div>
+          <p class="gbp-note">Hours kept current on our Google Business Profile.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Solferino Music School, Cork St, Dublin" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-6.2870%2C53.3360%2C-6.2730%2C53.3420&layer=mapnik&marker=53.3387%2C-6.2796"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="enrol" class="cta-band" data-component="CTA-BAND" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Enrolment</div>
+    <h2 data-bind="cta.heading">Come for a <em>free intro lesson.</em></h2>
+    <p data-bind="cta.body">Enrolment is open across the term. Inquire any time.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#enrol" data-bind="cta.primary.label">Enrol or inquire</a>
+      <a class="btn btn-ghost" href="tel:+35315543082" data-bind="cta.secondary.label">+353 1 554 3082</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/35315543082" data-bind="messaging.whatsapp" aria-label="Message office">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message office
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:28px;color:var(--cream);">Solferino <em style="color:var(--mustard);">Music</em></div>
+        <p class="body" style="margin-top:12px;max-width:36ch;color:rgba(244,235,214,0.65);">An independent music school in Dublin 8 since 2003.</p>
+      </div>
+      <div>
+        <h4>The school</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.6;">
+          12 Cork Street<br/>Dublin 8, D08 V6Y2<br/>
+          <a href="tel:+35315543082">+353 1 554 3082</a><br/>
+          <a href="mailto:office@solferinomusic.ie">office@solferinomusic.ie</a>
+        </address>
+      </div>
+      <div>
+        <h4>Pages</h4>
+        <a href="#services">Lessons</a>
+        <a href="#enrol">Enrol</a>
+        <a href="#location">Find us</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> Solferino Music School CLG · Reg. № 384192</span>
+      <span>Children-first compliant · Garda-vetted teachers</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

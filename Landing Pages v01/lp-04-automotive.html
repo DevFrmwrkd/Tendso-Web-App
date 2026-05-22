@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cedar Auto Works — independent garage in Sheffield</title>
+<meta name="description" content="Cedar Auto Works is an independent garage in Sheffield S2 — MOT, service, diagnostics and brake work, run by three mechanics in a converted railway arch. Quote by phone or message." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: {
+    name: "Cedar Auto Works",
+    tagline: "Service, MOT, diagnostics — Sheffield S2",
+    phone: "+44 114 305 8821",
+    phoneDisplay: "0114 305 8821",
+    email: "workshop@cedarautoworks.co.uk",
+    foundedYear: 2009
+  },
+  hero: {
+    kicker: "Unit 6 · Cedar Yard · Sheffield S2",
+    headline: "Honest diagnostics, named mechanics, parts on the bench when you collect.",
+    lede: "An independent garage in a railway arch off Queens Road. Three mechanics. One MOT bay. We quote before we touch a thing and we phone before we change it.",
+    primaryCta: { label: "Get a quote", href: "#quote" },
+    secondaryCta: { label: "Call the workshop", href: "tel:+441143058821" },
+    image: "https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Mechanic working under a raised car in a daylit workshop."
+  },
+  trust: {
+    years: "Independent since 2009",
+    licenses: ["DVSA MOT Class IV & VII", "ATA-accredited technicians", "Trading Standards Approved Code"],
+    memberships: ["Good Garage Scheme", "IMI member"]
+  },
+  about: {
+    heading: "Three mechanics, one yard, no upsells.",
+    paragraphs: [
+      "Cedar Auto Works was started in 2009 in a leaking arch under the Sheaf Valley railway line. The roof's been fixed twice since. The same two mechanics who opened it are still under your bonnet — and we added a third when we got our second MOT bay in 2018.",
+      "We work on everything petrol and diesel, hybrids included, most light commercials, and any classic that you can get up our ramp. We don't do bodywork — we'll send you to someone who does it properly.",
+      "We're paid by the hour, not by the part. That's the most important sentence on this page."
+    ],
+    portrait: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1400&q=85&auto=format&fit=crop",
+    portraitAlt: "Engine bay open, hands working at the manifold."
+  },
+  services: [
+    { name: "Full service", description: "Manufacturer-schedule oils, filters, full inspection, written report." },
+    { name: "Interim service", description: "Six-month check — oil, brakes, tyres, fluids, lights." },
+    { name: "MOT", description: "Class IV and VII. Pre-MOT inspection free if booked together with a service." },
+    { name: "Diagnostics", description: "Engine, ABS, airbag, EGR, DPF. Fixed first-hour fee; we tell you the cost before any work." },
+    { name: "Brakes & clutches", description: "Discs, pads, callipers, complete clutch replacement, master cylinders." },
+    { name: "Tyres & alignment", description: "Tyres at trade cost + fitting. Four-wheel laser alignment to manufacturer spec." },
+    { name: "Air-con regas", description: "R134a and R1234yf. Pressure-tested before refill." },
+    { name: "Recovery & collection", description: "Free local collection inside S1–S11. Out-of-hours recovery via partner." }
+  ],
+  why: [
+    { title: "We quote before we touch.", body: "Every job starts with an inspection and a written quote. We don't add hours after." },
+    { title: "Parts on the bench at handover.", body: "Old part, new part, side by side. You see what came out before you pay." },
+    { title: "DVSA-registered, ATA-accredited.", body: "Two of our three technicians are ATA-accredited; the third finishes his board in November." },
+    { title: "12-month parts & labour warranty.", body: "On everything we replace, every time, regardless of mileage." }
+  ],
+  how: [
+    { step: "01", title: "Tell us the problem", body: "Through the form, by phone, or message. Photos help. Make and model first." },
+    { step: "02", title: "Bring it in for inspection", body: "Free 30-minute look-over. We write you a quote on the spot." },
+    { step: "03", title: "We confirm before we work", body: "Nothing happens until you say yes. If we find something extra during the job, we call." },
+    { step: "04", title: "Collect with the parts", body: "Old parts come back in a bag unless you tell us to bin them. Card, cash, transfer." }
+  ],
+  testimonials: [
+    { quote: "A main dealer quoted £1,800. Cedar said £640 and fixed it in a day. Old turbo on the bench when I collected. Has driven beautifully for two years.", name: "Imran K.", context: "Volvo XC60" },
+    { quote: "First place I've left a car that didn't try to add £200 of made-up work to the bill.", name: "Annette T.", context: "Sharrow" },
+    { quote: "They told me my MOT advisory wasn't worth fixing yet and to come back in six months. That kind of honesty is the whole reason I switched garages.", name: "Geoff P.", context: "Heeley, customer since 2014" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=1200&q=85&auto=format&fit=crop", alt: "Mechanic at work under a raised car." },
+    { src: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&q=85&auto=format&fit=crop", alt: "Engine bay open." },
+    { src: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=85&auto=format&fit=crop", alt: "Garage interior, two ramps." },
+    { src: "https://images.unsplash.com/photo-1567361294145-c1c7f8b7e69d?w=1200&q=85&auto=format&fit=crop", alt: "Brake disc on a workbench." },
+    { src: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=1200&q=85&auto=format&fit=crop", alt: "Diagnostic computer plugged into OBD port." },
+    { src: "https://images.unsplash.com/photo-1632823471565-1ecdf2c19abd?w=1200&q=85&auto=format&fit=crop", alt: "Tool wall above a workbench." }
+  ],
+  faq: [
+    { q: "Do you take walk-ins?", a: "For tyre and battery work and visual checks, yes. For service, MOT, and diagnostics please book — we run a tight schedule and don't want you waiting in the yard." },
+    { q: "How long does an MOT take?", a: "Around 45 minutes if booked. If you wait, we put the kettle on; if you'd rather come back, we'll text you when it's done." },
+    { q: "Will my warranty be affected?", a: "No — under the Block Exemption Regulation, independent garages can service new vehicles without voiding the manufacturer warranty, provided we stamp the book and use approved parts. We do both." },
+    { q: "Can you collect my car?", a: "Yes, free inside S1–S11. We'll bring it back the same evening or the next morning, whichever suits." },
+    { q: "Do you work on EVs?", a: "Standard service work, brakes, suspension, tyres, 12V battery, cabin systems — yes. High-voltage battery diagnostics — we send out to a partner who has the certification and the safe cell." },
+    { q: "Will you give me a courtesy car?", a: "We have two, free for any job over four hours. Booked first-come — let us know when you book." },
+    { q: "Do you accept fleet / company accounts?", a: "Yes. Monthly invoicing for accounts over six months. Drop us a line." },
+    { q: "What if something goes wrong after I collect?", a: "Phone us. Bring it back. Twelve-month parts and labour warranty on everything we fit, no exceptions and no small print." }
+  ],
+  area: {
+    heading: "Where we collect",
+    places: ["Sheffield city centre", "Sharrow", "Heeley", "Nether Edge", "Crookes", "Hillsborough", "Walkley", "Meadowhall", "Mosborough", "Dronfield"]
+  },
+  credentials: [
+    { label: "DVSA MOT", detail: "Class IV & VII — VTS № 22-184" },
+    { label: "ATA Accreditation", detail: "Two technicians, currently active" },
+    { label: "Good Garage Scheme", detail: "Member since 2011" },
+    { label: "Trading Standards", detail: "Approved Code — Buy With Confidence" }
+  ],
+  location: {
+    name: "Cedar Auto Works",
+    addressStreet: "Unit 6, Cedar Yard, Queens Road",
+    addressLocality: "Sheffield",
+    addressRegion: "South Yorkshire",
+    addressPostcode: "S2 4DG",
+    addressCountry: "United Kingdom"
+  },
+  cta: {
+    heading: "Bring it in. We'll quote before we touch.",
+    body: "Workshop open Monday to Saturday. Free local collection inside S1–S11.",
+    primary: { label: "Get a quote", href: "#quote" },
+    secondary: { label: "0114 305 8821", href: "tel:+441143058821" }
+  },
+  messaging: {
+    whatsapp: "https://wa.me/441143058821",
+    messenger: "https://m.me/cedarautoworks"
+  }
+};
+</script>
+
+<style>
+  :root {
+    --steel:    #181a1e;
+    --steel-2:  #25282d;
+    --steel-3:  #3a3e44;
+    --paper:    #e8e6e1;
+    --paper-2:  #d3cfc6;
+    --ink:      #0e1014;
+    --ink-soft: #7d8088;
+    --signal:   #d42a1a;
+    --warn:     #f0b400;
+    --rule:     rgba(232,230,225,0.14);
+    --rule-2:   rgba(14,16,20,0.16);
+
+    --sans:    "Archivo", system-ui, sans-serif;
+    --body:    "Inter Tight", system-ui, sans-serif;
+    --mono:    "JetBrains Mono", ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  .wrap { width: min(1340px, 94vw); margin-inline: auto; }
+  .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal); font-weight: 500; }
+  .h2 { font-family: var(--sans); font-weight: 700; font-size: clamp(34px, 4.6vw, 68px); line-height: 0.98; letter-spacing: -0.025em; margin: 0 0 0.4em; text-transform: uppercase; }
+  .body { font-size: 16px; line-height: 1.6; color: var(--ink-soft); }
+  section { padding: clamp(72px, 8vw, 120px) 0; }
+
+  /* NAV */
+  .nav { background: var(--steel); color: var(--paper); position: sticky; top: 0; z-index: 50; border-bottom: 2px solid var(--signal); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
+  .wordmark { font-family: var(--sans); font-weight: 800; font-size: 18px; letter-spacing: 0.04em; text-transform: uppercase; text-decoration: none; }
+  .wordmark::before { content: "/"; color: var(--signal); margin-right: 8px; }
+  .nav-links { display: flex; gap: 28px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(232,230,225,0.85); }
+  .nav-links a { text-decoration: none; }
+  .nav-cta { display: inline-flex; gap: 10px; align-items: center; font-family: var(--mono); font-weight: 500; font-size: 12px; letter-spacing: 0.1em; padding: 10px 16px; background: var(--signal); color: var(--paper); text-decoration: none; }
+  .nav-cta::before { content: "●"; color: var(--paper); font-size: 8px; }
+  @media (max-width: 760px) { .nav-links { display: none; } }
+
+  /* HERO */
+  .hero { position: relative; background: var(--steel); color: var(--paper); padding: 0; min-height: 86vh; overflow: hidden; }
+  .hero img.cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.4; }
+  .hero::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(24,26,30,0.55) 0%, rgba(24,26,30,0.85) 100%); }
+  .hero-inner { position: relative; padding: clamp(48px, 8vw, 96px) 0; min-height: 86vh; display: grid; grid-template-rows: auto 1fr auto; }
+  .hero-tag-row { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(232,230,225,0.7); }
+  .hero-tag-row .pill { padding: 4px 10px; border: 1px solid rgba(232,230,225,0.3); }
+  .hero h1 { font-family: var(--sans); font-weight: 800; font-size: clamp(40px, 7vw, 100px); line-height: 0.95; letter-spacing: -0.03em; text-transform: uppercase; margin: 48px 0 24px; max-width: 18ch; }
+  .hero h1 .signal { color: var(--signal); }
+  .hero .lede { font-family: var(--body); font-size: clamp(17px, 1.5vw, 20px); line-height: 1.5; color: rgba(232,230,225,0.78); max-width: 50ch; margin-bottom: 36px; }
+  .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 16px 22px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; transition: 0.15s; font-weight: 500; }
+  .btn-primary { background: var(--signal); color: var(--paper); }
+  .btn-primary:hover { background: var(--paper); color: var(--ink); }
+  .btn-ghost { border: 1px solid rgba(232,230,225,0.4); color: var(--paper); }
+  .btn-ghost:hover { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .hero-foot { display: flex; justify-content: space-between; gap: 16px; padding-top: 36px; border-top: 1px solid rgba(232,230,225,0.18); margin-top: 56px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(232,230,225,0.6); flex-wrap: wrap; }
+
+  /* TRUST */
+  .trust { padding: 0; }
+  .trust-strip { background: var(--paper); border-bottom: 1px solid var(--rule-2); padding: 18px 0; }
+  .trust-strip .row { display: flex; gap: 28px; flex-wrap: wrap; align-items: center; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); }
+  .trust-strip .row .sep { color: var(--signal); }
+
+  /* ABOUT */
+  .about { background: var(--paper); }
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(36px, 5vw, 80px); align-items: end; }
+  .about-grid img { aspect-ratio: 4/3; object-fit: cover; width: 100%; }
+  .about-prose p { font-size: 18px; line-height: 1.55; margin: 0 0 1em; }
+  @media (max-width: 880px) { .about-grid { grid-template-columns: 1fr; } }
+
+  /* SERVICES */
+  .services { background: var(--steel); color: var(--paper); }
+  .services .h2 { color: var(--paper); }
+  .services .svc-head { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: end; margin-bottom: 48px; }
+  .services .svc-head .body { color: rgba(232,230,225,0.7); }
+  .svc-table { border-top: 1px solid var(--rule); }
+  .svc-row { display: grid; grid-template-columns: 80px 280px 1fr 90px; gap: 24px; padding: 24px 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
+  .svc-row .num { font-family: var(--mono); font-size: 12px; color: var(--signal); letter-spacing: 0.14em; }
+  .svc-row .name { font-family: var(--sans); font-weight: 700; font-size: 22px; text-transform: uppercase; letter-spacing: -0.01em; }
+  .svc-row .desc { color: rgba(232,230,225,0.7); font-size: 15px; }
+  .svc-row .tag { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; color: var(--warn); text-align: right; }
+  @media (max-width: 760px) { .svc-row { grid-template-columns: 60px 1fr; } .svc-row .desc, .svc-row .tag { grid-column: 1 / -1; padding-left: 84px; } .svc-row .tag { text-align: left; } }
+
+  /* WHY */
+  .why-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 36px; border-top: 1px solid var(--ink); }
+  .why-grid > div { padding: 32px 24px; border-right: 1px solid var(--rule-2); border-bottom: 1px solid var(--ink); }
+  .why-grid > div:last-child { border-right: 0; }
+  .why-grid .num { font-family: var(--mono); font-size: 11px; color: var(--signal); letter-spacing: 0.16em; margin-bottom: 16px; display: block; }
+  .why-grid h3 { font-family: var(--sans); font-weight: 700; font-size: 22px; text-transform: uppercase; letter-spacing: -0.01em; margin: 0 0 12px; line-height: 1.1; }
+  .why-grid p { margin: 0; color: var(--ink-soft); font-size: 14px; }
+  @media (max-width: 760px) { .why-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* HOW */
+  .how { background: var(--paper-2); }
+  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 40px; }
+  .how-grid > li { list-style: none; }
+  .how-grid .step { font-family: var(--sans); font-weight: 800; font-size: 80px; line-height: 0.9; color: var(--signal); margin-bottom: 16px; letter-spacing: -0.03em; }
+  .how-grid h3 { font-family: var(--sans); font-weight: 700; font-size: 22px; text-transform: uppercase; margin: 0 0 10px; letter-spacing: -0.01em; }
+  .how-grid p { color: var(--ink-soft); margin: 0; font-size: 14px; }
+  @media (max-width: 760px) { .how-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* TESTIMONIALS */
+  .quotes-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 40px; }
+  .quote-card { background: var(--paper); padding: 32px; border-top: 3px solid var(--signal); }
+  .quote-card blockquote { font-family: var(--sans); font-weight: 500; font-size: 19px; line-height: 1.35; margin: 0 0 20px; letter-spacing: -0.005em; }
+  .quote-card .who { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+  @media (max-width: 760px) { .quotes-row { grid-template-columns: 1fr; } }
+
+  /* GALLERY */
+  .gallery { background: var(--paper); }
+  .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 36px; }
+  .gallery-grid figure { margin: 0; position: relative; overflow: hidden; background: var(--steel); }
+  .gallery-grid img { width: 100%; aspect-ratio: 4/3; object-fit: cover; }
+  .gallery-grid figcaption { position: absolute; bottom: 12px; left: 12px; right: 12px; color: var(--paper); font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; display: flex; justify-content: space-between; gap: 12px; background: rgba(24,26,30,0.7); padding: 6px 10px; }
+  @media (max-width: 760px) { .gallery-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* FAQ */
+  .faq { background: var(--paper); }
+  .faq-head { display: grid; grid-template-columns: 1fr 1.4fr; gap: 60px; margin-bottom: 32px; }
+  .faq-list { border-top: 2px solid var(--ink); }
+  .faq-list details { border-bottom: 1px solid var(--rule-2); padding: 22px 0; }
+  .faq-list summary { font-family: var(--sans); font-weight: 600; font-size: 19px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: baseline; gap: 20px; text-transform: uppercase; letter-spacing: -0.005em; }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after { content: "▼"; font-size: 10px; color: var(--signal); transition: transform 0.2s; }
+  .faq-list details[open] summary::after { transform: rotate(180deg); }
+  .faq-list p { margin: 14px 0 0; max-width: 64ch; color: var(--ink-soft); }
+  @media (max-width: 760px) { .faq-head { grid-template-columns: 1fr; } }
+
+  /* AREA */
+  .area { background: var(--steel); color: var(--paper); }
+  .area .h2 { color: var(--paper); }
+  .area-list { display: flex; flex-wrap: wrap; gap: 0; margin-top: 32px; border-top: 1px solid var(--rule); }
+  .area-list li { list-style: none; padding: 18px 24px 18px 0; margin-right: 24px; font-family: var(--sans); font-weight: 600; font-size: 20px; text-transform: uppercase; letter-spacing: -0.005em; }
+  .area-list li::before { content: "▶"; color: var(--signal); margin-right: 10px; font-size: 12px; }
+
+  /* CREDENTIALS */
+  .creds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 32px; }
+  .creds > div { background: var(--paper-2); padding: 26px; border-left: 3px solid var(--signal); }
+  .creds .label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--signal); margin-bottom: 10px; }
+  .creds .detail { font-family: var(--sans); font-weight: 600; font-size: 18px; line-height: 1.3; text-transform: uppercase; letter-spacing: -0.005em; }
+  @media (max-width: 760px) { .creds { grid-template-columns: 1fr 1fr; } }
+
+  /* LOCATION */
+  .location { background: var(--paper); }
+  .loc-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: 32px; margin-top: 36px; }
+  .nap { padding: 30px; background: var(--steel); color: var(--paper); }
+  .nap address { font-style: normal; font-family: var(--sans); font-weight: 500; font-size: 22px; line-height: 1.35; }
+  .nap a { color: var(--paper); }
+  .hours { font-family: var(--mono); font-size: 12px; margin-top: 28px; border-top: 1px solid var(--rule); padding-top: 20px; }
+  .hours .row { display: flex; justify-content: space-between; padding: 4px 0; color: rgba(232,230,225,0.85); }
+  .hours .day { letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; color: rgba(232,230,225,0.6); }
+  .hours .gbp-note { font-family: var(--body); font-size: 12px; color: rgba(232,230,225,0.55); margin-top: 16px; line-height: 1.5; letter-spacing: 0; text-transform: none; }
+  .map-frame { background: var(--steel-3); min-height: 400px; }
+  .map-frame iframe { width: 100%; height: 100%; border: 0; min-height: 400px; }
+  @media (max-width: 880px) { .loc-grid { grid-template-columns: 1fr; } }
+
+  /* CTA BAND */
+  .cta-band { background: var(--signal); color: var(--paper); padding: clamp(60px, 8vw, 100px) 0; }
+  .cta-band h2 { font-family: var(--sans); font-weight: 800; font-size: clamp(36px, 5vw, 64px); line-height: 0.96; margin: 0 0 16px; max-width: 24ch; text-transform: uppercase; letter-spacing: -0.025em; }
+  .cta-band p { color: rgba(255,255,255,0.88); max-width: 50ch; margin: 0 0 28px; }
+  .cta-band .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cta-band .btn-primary { background: var(--steel); color: var(--paper); }
+  .cta-band .btn-primary:hover { background: var(--paper); color: var(--steel); }
+  .cta-band .btn-ghost { border-color: rgba(255,255,255,0.5); color: var(--paper); }
+
+  /* FOOTER */
+  footer { background: var(--steel); color: rgba(232,230,225,0.8); padding: 60px 0 32px; border-top: 2px solid var(--signal); }
+  .footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 40px; }
+  .footer-grid h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(232,230,225,0.6); margin: 0 0 14px; font-weight: 500; }
+  .footer-grid a { text-decoration: none; display: block; padding: 4px 0; color: var(--paper); font-size: 14px; }
+  .colophon { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; flex-wrap: wrap; font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(232,230,225,0.5); }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr; } }
+
+  /* MSG FAB */
+  .msg-fab { position: fixed; right: 20px; bottom: 20px; z-index: 100; }
+  .msg-fab a { display: inline-flex; align-items: center; gap: 8px; background: var(--signal); color: var(--paper); padding: 14px 18px; text-decoration: none; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; box-shadow: 0 4px 20px rgba(212,42,26,0.35); }
+  .msg-fab a:hover { background: var(--steel); }
+  .msg-fab svg { width: 14px; height: 14px; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AutoRepair",
+  "name": "Cedar Auto Works",
+  "description": "Independent garage in Sheffield S2 — MOT, service, diagnostics, brakes and clutch work.",
+  "url": "https://cedarautoworks.co.uk/",
+  "telephone": "+441143058821",
+  "email": "workshop@cedarautoworks.co.uk",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Unit 6, Cedar Yard, Queens Road",
+    "addressLocality": "Sheffield",
+    "addressRegion": "South Yorkshire",
+    "postalCode": "S2 4DG",
+    "addressCountry": "GB"
+  },
+  "geo": { "@type": "GeoCoordinates", "latitude": 53.3704, "longitude": -1.4621 },
+  "areaServed": ["Sheffield", "Sharrow", "Heeley", "Nether Edge", "Crookes"],
+  "image": ["https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=1600"],
+  "foundingDate": "2009"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Do you take walk-ins?","acceptedAnswer":{"@type":"Answer","text":"For tyre/battery work and visual checks, yes. For service, MOT, and diagnostics please book."}},
+    {"@type":"Question","name":"How long does an MOT take?","acceptedAnswer":{"@type":"Answer","text":"Around 45 minutes if booked."}},
+    {"@type":"Question","name":"Will my warranty be affected?","acceptedAnswer":{"@type":"Answer","text":"No — under the Block Exemption Regulation, independent garages can service new vehicles without voiding the manufacturer warranty."}},
+    {"@type":"Question","name":"Can you collect my car?","acceptedAnswer":{"@type":"Answer","text":"Yes, free inside S1–S11."}},
+    {"@type":"Question","name":"Do you work on EVs?","acceptedAnswer":{"@type":"Answer","text":"Standard service work yes; high-voltage battery diagnostics we send to a certified partner."}},
+    {"@type":"Question","name":"Will you give me a courtesy car?","acceptedAnswer":{"@type":"Answer","text":"Two courtesy cars, free for any job over four hours."}},
+    {"@type":"Question","name":"Do you accept fleet accounts?","acceptedAnswer":{"@type":"Answer","text":"Yes. Monthly invoicing for accounts over six months."}},
+    {"@type":"Question","name":"What if something goes wrong after I collect?","acceptedAnswer":{"@type":"Answer","text":"Twelve-month parts and labour warranty on everything we fit."}}
+  ]
+}
+</script>
+
+<script type="application/json" id="lp-config">
+{
+  "business": "name, tagline, phone, phoneDisplay, email, foundedYear",
+  "hero": "kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt",
+  "trust": "years, licenses[], memberships[]",
+  "about": "heading, paragraphs[], portrait, portraitAlt",
+  "services": "Array<{name, description}>",
+  "why": "Array<{title, body}>",
+  "how": "Array<{step, title, body}>",
+  "testimonials": "Array<{quote, name, context}>",
+  "gallery": "Array<{src, alt}>",
+  "faq": "Array<{q, a}>",
+  "area": "{heading, places[]}",
+  "credentials": "Array<{label, detail}>",
+  "location": "PostalAddress",
+  "cta": "CTA copy",
+  "messaging": "{whatsapp, messenger}"
+}
+</script>
+</head>
+
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wordmark" href="#" data-bind="business.name">CEDAR AUTO WORKS</a>
+    <nav class="nav-links">
+      <a href="#about">Workshop</a>
+      <a href="#services">Services</a>
+      <a href="#location">Find us</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="nav-cta" href="tel:+441143058821">0114 305 8821</a>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v2">
+  <img class="cover" src="https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=2000&q=85&auto=format&fit=crop"
+       alt="Mechanic working under a raised car in a daylit workshop."
+       data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+  <div class="wrap hero-inner">
+    <div class="hero-tag-row">
+      <span class="pill" data-bind="hero.kicker">UNIT 6 · CEDAR YARD · SHEFFIELD S2</span>
+      <span>VTS № 22-184</span>
+      <span>EST. 2009</span>
+    </div>
+    <div style="display: flex; flex-direction: column; justify-content: center;">
+      <h1 data-bind="hero.headline">Honest diagnostics, named mechanics, <span class="signal">parts on the bench</span> when you collect.</h1>
+      <p class="lede" data-bind="hero.lede">An independent garage in a railway arch off Queens Road. Three mechanics. One MOT bay. We quote before we touch a thing and we phone before we change it.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#quote" data-bind="hero.primaryCta.label">Get a quote</a>
+        <a class="btn btn-ghost" href="tel:+441143058821" data-bind="hero.secondaryCta.label">Call the workshop</a>
+      </div>
+    </div>
+    <div class="hero-foot">
+      <span>NO. 04 / SERVICE + MOT + DIAGNOSTICS</span>
+      <span>SHEFFIELD / S2 4DG</span>
+      <span>53.3704°N · 1.4621°W</span>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1">
+  <div class="trust-strip">
+    <div class="wrap row">
+      <span data-bind="trust.years">INDEPENDENT SINCE 2009</span>
+      <span class="sep">/</span><span>DVSA MOT CLASS IV & VII</span>
+      <span class="sep">/</span><span>ATA-ACCREDITED TECHNICIANS</span>
+      <span class="sep">/</span><span>GOOD GARAGE SCHEME</span>
+      <span class="sep">/</span><span>BUY WITH CONFIDENCE</span>
+      <!-- GBP-bound rating slot: do not hardcode. -->
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v3">
+  <div class="wrap about-grid">
+    <div>
+      <div class="kicker">FILE / ABOUT</div>
+      <h2 class="h2" data-bind="about.heading">Three mechanics, one yard, no upsells.</h2>
+      <div class="about-prose">
+        <p>Cedar Auto Works was started in 2009 in a leaking arch under the Sheaf Valley railway line. The roof's been fixed twice since. The same two mechanics who opened it are still under your bonnet — and we added a third when we got our second MOT bay in 2018.</p>
+        <p>We work on everything petrol and diesel, hybrids included, most light commercials, and any classic that you can get up our ramp. We don't do bodywork — we'll send you to someone who does it properly.</p>
+        <p><strong style="color: var(--ink);">We're paid by the hour, not by the part. That's the most important sentence on this page.</strong></p>
+      </div>
+    </div>
+    <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+         src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1400&q=85&auto=format&fit=crop"
+         alt="Engine bay open, hands working at the manifold." />
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="services" data-component="SERVICES" data-variant="v3">
+  <div class="wrap">
+    <div class="svc-head">
+      <div>
+        <div class="kicker" style="color: var(--signal);">FILE / SERVICES</div>
+        <h2 class="h2">What we do<br/>under the bonnet.</h2>
+      </div>
+      <p class="body" style="max-width: 38ch;">Quotes are always given in writing before any work begins. Prices change with the part; the labour rate is on the wall.</p>
+    </div>
+    <div class="svc-table">
+      <div class="svc-row"><span class="num">№ 01</span><span class="name">Full service</span><span class="desc">Manufacturer-schedule oils, filters, full inspection, written report.</span><span class="tag">SCHEDULED</span></div>
+      <div class="svc-row"><span class="num">№ 02</span><span class="name">Interim service</span><span class="desc">Six-month check — oil, brakes, tyres, fluids, lights.</span><span class="tag">SCHEDULED</span></div>
+      <div class="svc-row"><span class="num">№ 03</span><span class="name">MOT</span><span class="desc">Class IV and VII. Pre-MOT inspection free if booked together with a service.</span><span class="tag">DVSA</span></div>
+      <div class="svc-row"><span class="num">№ 04</span><span class="name">Diagnostics</span><span class="desc">Engine, ABS, airbag, EGR, DPF. Fixed first-hour fee; we tell you the cost before any work.</span><span class="tag">FIXED FEE</span></div>
+      <div class="svc-row"><span class="num">№ 05</span><span class="name">Brakes & clutches</span><span class="desc">Discs, pads, callipers, complete clutch replacement, master cylinders.</span><span class="tag">REPAIR</span></div>
+      <div class="svc-row"><span class="num">№ 06</span><span class="name">Tyres & alignment</span><span class="desc">Tyres at trade cost + fitting. Four-wheel laser alignment to manufacturer spec.</span><span class="tag">FITTING</span></div>
+      <div class="svc-row"><span class="num">№ 07</span><span class="name">Air-con regas</span><span class="desc">R134a and R1234yf. Pressure-tested before refill.</span><span class="tag">REPAIR</span></div>
+      <div class="svc-row"><span class="num">№ 08</span><span class="name">Recovery & collection</span><span class="desc">Free local collection inside S1–S11. Out-of-hours recovery via partner.</span><span class="tag">FREE LOCAL</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker">FILE / WHY US</div>
+    <h2 class="h2">Four commitments,<br/>printed on the wall.</h2>
+    <div class="why-grid">
+      <div><span class="num">№ 01</span><h3>We quote before we touch.</h3><p>Every job starts with an inspection and a written quote. We don't add hours after.</p></div>
+      <div><span class="num">№ 02</span><h3>Parts on the bench.</h3><p>Old part, new part, side by side. You see what came out before you pay.</p></div>
+      <div><span class="num">№ 03</span><h3>DVSA & ATA accredited.</h3><p>Two of our three technicians are ATA-accredited; the third finishes his board in November.</p></div>
+      <div><span class="num">№ 04</span><h3>12-month warranty.</h3><p>On everything we replace, every time, regardless of mileage.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section class="how" data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">FILE / WORKFLOW</div>
+    <h2 class="h2">Four steps,<br/>no surprises.</h2>
+    <ol class="how-grid">
+      <li><div class="step">01</div><h3>Tell us the problem</h3><p>Through the form, by phone, or message. Photos help. Make and model first.</p></li>
+      <li><div class="step">02</div><h3>Bring it in</h3><p>Free 30-minute look-over. We write you a quote on the spot.</p></li>
+      <li><div class="step">03</div><h3>We confirm</h3><p>Nothing happens until you say yes. If we find something extra during the job, we call.</p></li>
+      <li><div class="step">04</div><h3>Collect with parts</h3><p>Old parts come back in a bag unless you tell us to bin them. Card, cash, transfer.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section data-component="TESTIMONIALS" data-variant="v3">
+  <div class="wrap">
+    <div class="kicker">FILE / CUSTOMERS</div>
+    <h2 class="h2">What people say<br/>after they collect.</h2>
+    <div class="quotes-row">
+      <article class="quote-card"><blockquote>A main dealer quoted £1,800. Cedar said £640 and fixed it in a day. Old turbo on the bench when I collected. Has driven beautifully for two years.</blockquote><div class="who">Imran K. · Volvo XC60</div></article>
+      <article class="quote-card"><blockquote>First place I've left a car that didn't try to add £200 of made-up work to the bill.</blockquote><div class="who">Annette T. · Sharrow</div></article>
+      <article class="quote-card"><blockquote>They told me my MOT advisory wasn't worth fixing yet and to come back in six months. That kind of honesty is the whole reason I switched garages.</blockquote><div class="who">Geoff P. · Heeley, since 2014</div></article>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section class="gallery" data-component="GALLERY" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker">FILE / WORKSHOP</div>
+    <h2 class="h2">Inside the arch.</h2>
+    <div class="gallery-grid">
+      <figure><img src="https://images.unsplash.com/photo-1486006920555-c77dcf18193c?w=1200&q=85&auto=format&fit=crop" alt="Mechanic at work under a raised car." /><figcaption><span>FRAME 01</span><span>BAY 1 / RAMP</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&q=85&auto=format&fit=crop" alt="Engine bay open." /><figcaption><span>FRAME 02</span><span>ENGINE / OPEN</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=85&auto=format&fit=crop" alt="Garage interior, two ramps." /><figcaption><span>FRAME 03</span><span>WORKSHOP</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1567361294145-c1c7f8b7e69d?w=1200&q=85&auto=format&fit=crop" alt="Brake disc on a workbench." /><figcaption><span>FRAME 04</span><span>BRAKES</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=1200&q=85&auto=format&fit=crop" alt="Diagnostic computer plugged into OBD port." /><figcaption><span>FRAME 05</span><span>DIAG</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1632823471565-1ecdf2c19abd?w=1200&q=85&auto=format&fit=crop" alt="Tool wall above a workbench." /><figcaption><span>FRAME 06</span><span>BENCH</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section id="faq" class="faq" data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="faq-head">
+      <div>
+        <div class="kicker">FILE / FAQ</div>
+        <h2 class="h2">Questions we hear<br/>at the workshop door.</h2>
+      </div>
+      <p class="body">If yours isn't here, phone the workshop on <a href="tel:+441143058821">0114 305 8821</a> or send a message. We try to reply within an hour during open time.</p>
+    </div>
+    <div class="faq-list">
+      <details><summary>Do you take walk-ins?</summary><p>For tyre and battery work and visual checks, yes. For service, MOT, and diagnostics please book — we run a tight schedule and don't want you waiting in the yard.</p></details>
+      <details><summary>How long does an MOT take?</summary><p>Around 45 minutes if booked. If you wait, we put the kettle on; if you'd rather come back, we'll text you when it's done.</p></details>
+      <details><summary>Will my manufacturer warranty be affected?</summary><p>No — under the Block Exemption Regulation, independent garages can service new vehicles without voiding the manufacturer warranty, provided we stamp the book and use approved parts. We do both.</p></details>
+      <details><summary>Can you collect my car?</summary><p>Yes, free inside S1–S11. We'll bring it back the same evening or the next morning, whichever suits.</p></details>
+      <details><summary>Do you work on EVs?</summary><p>Standard service work, brakes, suspension, tyres, 12V battery, cabin systems — yes. High-voltage battery diagnostics — we send out to a partner who has the certification.</p></details>
+      <details><summary>Will you give me a courtesy car?</summary><p>We have two, free for any job over four hours. Booked first-come — let us know when you book.</p></details>
+      <details><summary>Do you accept fleet / company accounts?</summary><p>Yes. Monthly invoicing for accounts over six months. Drop us a line.</p></details>
+      <details><summary>What if something goes wrong after I collect?</summary><p>Phone us. Bring it back. Twelve-month parts and labour warranty on everything we fit, no exceptions and no small print.</p></details>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section class="area" data-component="SERVICE-AREA" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker" style="color: var(--signal);">FILE / COVERAGE</div>
+    <h2 class="h2">Free collection<br/>inside the city.</h2>
+    <ul class="area-list">
+      <li>Sheffield centre</li><li>Sharrow</li><li>Heeley</li><li>Nether Edge</li>
+      <li>Crookes</li><li>Hillsborough</li><li>Walkley</li><li>Meadowhall</li>
+      <li>Mosborough</li><li>Dronfield</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">FILE / ACCREDITATION</div>
+    <h2 class="h2">Licences and<br/>memberships.</h2>
+    <div class="creds">
+      <div><div class="label">DVSA MOT</div><div class="detail">Class IV & VII — VTS № 22-184</div></div>
+      <div><div class="label">ATA Accreditation</div><div class="detail">Two technicians, active</div></div>
+      <div><div class="label">Good Garage Scheme</div><div class="detail">Member since 2011</div></div>
+      <div><div class="label">Trading Standards</div><div class="detail">Buy With Confidence</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" class="location" data-component="LOCATION" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">FILE / LOCATION</div>
+    <h2 class="h2">Unit 6, Cedar Yard.</h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Cedar Auto Works</strong><br />
+          Unit 6, Cedar Yard<br />
+          Queens Road, Sheffield<br />
+          S2 4DG<br /><br />
+          <a href="tel:+441143058821" data-bind="business.phoneDisplay">0114 305 8821</a><br />
+          <a href="mailto:workshop@cedarautoworks.co.uk" data-bind="business.email">workshop@cedarautoworks.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound. -->
+          <div class="row"><span class="day">Mon – Fri</span><span>—</span></div>
+          <div class="row"><span class="day">Saturday</span><span>—</span></div>
+          <div class="row"><span class="day">Sunday</span><span>closed</span></div>
+          <p class="gbp-note">Hours are kept current on our Google Business Profile.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Cedar Auto Works, Sheffield" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.4680%2C53.3680%2C-1.4570%2C53.3730&layer=mapnik&marker=53.3704%2C-1.4621"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="quote" class="cta-band" data-component="CTA-BAND" data-variant="v3">
+  <div class="wrap">
+    <div class="kicker" style="color: rgba(255,255,255,0.8);">FILE / NEXT</div>
+    <h2 data-bind="cta.heading">Bring it in. We'll quote before we touch.</h2>
+    <p data-bind="cta.body">Workshop open Monday to Saturday. Free local collection inside S1–S11.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#quote" data-bind="cta.primary.label">Get a quote</a>
+      <a class="btn btn-ghost" href="tel:+441143058821" data-bind="cta.secondary.label">0114 305 8821</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441143058821" data-bind="messaging.whatsapp" aria-label="Message">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Quote me
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wordmark" style="font-size: 22px; color: var(--paper);">/ CEDAR AUTO WORKS</div>
+        <p class="body" style="margin-top: 12px; max-width: 36ch; color: rgba(232,230,225,0.6);">An independent garage in a Sheffield railway arch. Open since 2009.</p>
+      </div>
+      <div>
+        <h4>Workshop</h4>
+        <address style="font-style: normal; font-size: 14px; line-height: 1.6;">
+          Unit 6, Cedar Yard<br />
+          Queens Road, Sheffield S2 4DG<br />
+          <a href="tel:+441143058821">0114 305 8821</a><br />
+          <a href="mailto:workshop@cedarautoworks.co.uk">workshop@cedarautoworks.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Sections</h4>
+        <a href="#services">Services</a>
+        <a href="#about">Workshop</a>
+        <a href="#location">Find us</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> CEDAR AUTO WORKS LTD · CO. № 06782199</span>
+      <span>SHEFFIELD / S2 4DG</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (obj, path) => path.split('.').reduce((a, k) => {
+      if (a == null) return null;
+      const m = k.match(/^(.+)\[(\d+)\]$/);
+      if (m) return a[m[1]]?.[+m[2]];
+      return a[k];
+    }, obj);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

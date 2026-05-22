@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pico & Olive — Mediterranean café in Brighton</title>
+<meta name="description" content="Pico & Olive is a small Mediterranean café and bakery in Kemptown, Brighton — wood-oven flatbreads, mezze and slow coffee, served all day." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+<script>
+/* ──────────────────────────────────────────────────────────────────
+   CONFIG — every editable value lives here. Edit & re-save.
+   ────────────────────────────────────────────────────────────────── */
+const CONFIG = {
+  business: {
+    name: "Pico & Olive",
+    tagline: "Mediterranean café & wood-oven bakery",
+    phone: "+44 1273 224 901",
+    phoneDisplay: "01273 224 901",
+    email: "hello@picoandolive.co.uk",
+    foundedYear: 2014
+  },
+  hero: {
+    kicker: "Kemptown, Brighton · open from 8",
+    headline: "Slow mornings, smoke from the oven, the same olive jar on every table.",
+    lede: "A small Mediterranean kitchen run by two cooks and a baker. Flatbreads from the wood oven, mezze plates, long coffees, and a short wine list when the day softens.",
+    primaryCta: { label: "Reserve a table", href: "#reserve" },
+    secondaryCta: { label: "Directions", href: "#location" },
+    image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80&auto=format&fit=crop",
+    imageAlt: "A wood-fired oven glowing behind a marble pass at Pico & Olive."
+  },
+  trust: {
+    years: "Serving Brighton since 2014",
+    licenses: ["Food Hygiene Rating 5", "Sustainable Restaurant Association member"],
+    memberships: ["Brighton Independents"]
+    /* GBP-bound rating: see <!-- BLOCK: TRUST --> for slot */
+  },
+  about: {
+    heading: "A kitchen, not a concept.",
+    paragraphs: [
+      "Pico & Olive started as a small bakery counter on St James's Street, run out of a converted laundry by two cooks who'd worked together on a tiny island in the Aegean. The wood oven came first; the dining room grew around it.",
+      "The food is what we feed ourselves: a handful of mezze, a flatbread we change with the season, lamb when it's good, a fish when it's better. We bake bread every morning at five and put the leftovers in the soup.",
+      "It's a kitchen, not a concept. We aren't trying to be anywhere else. We're trying to be honest about Tuesday."
+    ],
+    portrait: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=80&auto=format&fit=crop",
+    portraitAlt: "Two cooks plating mezze at the marble pass."
+  },
+  services: [
+    { name: "Breakfast", description: "From 8. Yoghurt, honey, hot flatbread, soft eggs, long coffees." },
+    { name: "All-day mezze", description: "A dozen small plates, written on the wall in chalk and changed when the chalk runs out." },
+    { name: "Wood-oven flatbreads", description: "Stretched to order. Lamb, halloumi, wild greens, smoked aubergine, plain." },
+    { name: "Bakery counter", description: "Loaves, koulouri, semolina cake, almond biscuits — until they go." },
+    { name: "Evening kitchen", description: "Tuesday to Saturday from 6. A shorter menu, a longer wine list." },
+    { name: "Private suppers", description: "The whole room, twelve to twenty-two people, one long table. Bring your wine." }
+  ],
+  why: [
+    { title: "We bake every loaf on site.", body: "Sourdough starter from 2014, mixed by hand, baked in the same oven we cook on. Nothing arrives in a bag." },
+    { title: "Short menu, slow turnover.", body: "We cook six mezze and three flatbreads a day. When something runs out we write something new on the wall." },
+    { title: "Suppliers we can name.", body: "Sussex flour from Stoneham Bakehouse, olive oil from a co-op in Mani, fish from Newhaven that morning." }
+  ],
+  how: [
+    { step: "01", title: "Walk in", body: "Counter seating is always first-come. Breakfast and lunch don't take bookings." },
+    { step: "02", title: "Or reserve dinner", body: "Evening tables only. Reserve through the form, by phone, or by message." },
+    { step: "03", title: "Order at the table", body: "We bring everything when it's ready, not in courses. The bread comes first." },
+    { step: "04", title: "Pay at the counter", body: "Card or cash. Service is included; tips go to the kitchen." }
+  ],
+  testimonials: [
+    { quote: "The flatbread alone is worth crossing the city for. The room is warm in a way most new restaurants are not.", name: "Hattie L.", context: "regular since 2018" },
+    { quote: "I have eaten here on every birthday for six years. They remember the wine and they remember the dog.", name: "Andreas P.", context: "Kemptown" },
+    { quote: "Honest, careful cooking. Nothing oversold and nothing under-loved.", name: "Marian S.", context: "first visit, came back next week" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80&auto=format&fit=crop", alt: "Charred flatbread with whipped feta on a stoneware plate." },
+    { src: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200&q=80&auto=format&fit=crop", alt: "A flat white on the marble counter, morning light." },
+    { src: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1200&q=80&auto=format&fit=crop", alt: "Wood oven mid-bake, a row of pita puffing up." },
+    { src: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=80&auto=format&fit=crop", alt: "A small plate of grilled aubergine with tahini and pomegranate." },
+    { src: "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1200&q=80&auto=format&fit=crop", alt: "Dough being shaped at the counter." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1200&q=80&auto=format&fit=crop", alt: "The dining room at dusk, candles lit." }
+  ],
+  faq: [
+    { q: "Do you take bookings?", a: "Evening tables only, Tuesday to Saturday. Breakfast and lunch are walk-in. Reserve below, by phone, or by message." },
+    { q: "Are you vegetarian-friendly?", a: "Most of the menu is vegetarian. Vegan flatbreads and mezze are clearly marked. We can adapt almost anything." },
+    { q: "Do you have gluten-free bread?", a: "We can swap our flatbread for a buckwheat seed cracker. We bake in a flour-heavy kitchen, so it isn't a coeliac-safe environment." },
+    { q: "Is the room accessible?", a: "Step-free entry from the side door on Madeira Place. The accessible WC is on the ground floor. Please ring ahead so we can hold a table near the door." },
+    { q: "Can we bring children?", a: "Yes — until 7pm. We have two highchairs and a quieter corner table. Ask when you book." },
+    { q: "Do you do private events?", a: "We can take the whole room from Sunday lunch onwards. Twelve to twenty-two guests, one set menu, one long table." },
+    { q: "Is there parking?", a: "Pay-and-display on Madeira Place; the Royal Sussex Hospital car park is two minutes' walk." }
+  ],
+  area: {
+    heading: "Where we sit and where we deliver bread",
+    places: ["Kemptown", "St James's Street", "Whitehawk", "Queen's Park", "Hanover", "Brighton Marina", "Rottingdean", "Roedean"]
+  },
+  credentials: [
+    { label: "Food Hygiene Rating", detail: "Score 5 (Brighton & Hove City Council)" },
+    { label: "Sustainable Restaurant Association", detail: "Member, two-star rating" },
+    { label: "Brighton Independents", detail: "Founding member" },
+    { label: "Living Wage Employer", detail: "Accredited" }
+  ],
+  location: {
+    name: "Pico & Olive",
+    addressStreet: "47 Madeira Place",
+    addressLocality: "Kemptown",
+    addressRegion: "Brighton",
+    addressPostcode: "BN2 1TN",
+    addressCountry: "United Kingdom"
+  },
+  map: {
+    embed: "https://www.openstreetmap.org/export/embed.html?bbox=-0.1310%2C50.8175%2C-0.1180%2C50.8240&layer=mapnik"
+  },
+  cta: {
+    heading: "We hold the door for the dog and the regulars.",
+    body: "Tuesday to Saturday, 8 till late. Sunday lunch only. Closed Monday.",
+    primary: { label: "Reserve dinner", href: "#reserve" },
+    secondary: { label: "Call the kitchen", href: "tel:+441273224901" }
+  },
+  messaging: {
+    whatsapp: "https://wa.me/441273224901",
+    messenger: "https://m.me/picoandolive"
+  },
+  footer: {
+    links: [
+      { label: "Menu", href: "#services" },
+      { label: "Reserve", href: "#reserve" },
+      { label: "Find us", href: "#location" },
+      { label: "Allergens", href: "#faq" },
+      { label: "Press", href: "mailto:press@picoandolive.co.uk" }
+    ]
+  }
+};
+</script>
+
+<style>
+  :root {
+    --ink:        #1c1612;
+    --ink-soft:   #4a3f37;
+    --paper:      #f5efe4;
+    --paper-warm: #ebe2d1;
+    --olive:      #5b6444;
+    --ember:      #b6452b;
+    --rule:       rgba(28,22,18,0.12);
+
+    --serif: "Newsreader", Georgia, serif;
+    --sans:  "Manrope", system-ui, sans-serif;
+    --mono:  "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+
+  .wrap { width: min(1240px, 92vw); margin-inline: auto; }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .display { font-family: var(--serif); font-weight: 400; line-height: 1.02; letter-spacing: -0.01em; }
+  .h2     { font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 3.5vw, 48px); line-height: 1.08; letter-spacing: -0.01em; margin: 0 0 0.5em; }
+  .body   { font-size: 17px; line-height: 1.6; color: var(--ink-soft); }
+  .rule   { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+  section { padding: clamp(56px, 8vw, 112px) 0; }
+
+  /* ── NAV ─────────────────────────────────────────────── */
+  .nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(10px); background: color-mix(in oklab, var(--paper) 86%, transparent);
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; }
+  .wordmark { font-family: var(--serif); font-size: 22px; letter-spacing: -0.01em; text-decoration: none; }
+  .wordmark em { font-style: italic; color: var(--ember); }
+  .nav-links { display: flex; gap: 28px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; }
+  .nav-links a { text-decoration: none; }
+  .nav-links a:hover { color: var(--ember); }
+  @media (max-width: 720px) { .nav-links { display: none; } }
+
+  /* ── HERO (editorial split) ──────────────────────────── */
+  .hero { padding-top: clamp(40px, 6vw, 72px); padding-bottom: clamp(40px, 6vw, 80px); }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(28px, 4vw, 56px); align-items: end; }
+  .hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 6.5vw, 88px); line-height: 0.98; letter-spacing: -0.018em; margin: 18px 0 24px; }
+  .hero h1 em { font-style: italic; color: var(--ember); }
+  .hero .lede { font-size: clamp(17px, 1.6vw, 21px); line-height: 1.45; color: var(--ink-soft); max-width: 38ch; }
+  .hero-ctas { margin-top: 32px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; text-decoration: none; border: 1px solid var(--ink); transition: 0.18s; }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { background: var(--ember); border-color: var(--ember); }
+  .btn-ghost:hover { background: var(--ink); color: var(--paper); }
+  .hero-image { aspect-ratio: 4/5; overflow: hidden; background: var(--paper-warm); position: relative; }
+  .hero-image img { width: 100%; height: 100%; object-fit: cover; }
+  .hero-meta { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); margin-top: 12px; display: flex; justify-content: space-between; }
+  @media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; } .hero-image { aspect-ratio: 5/4; } }
+
+  /* ── TRUST ───────────────────────────────────────────── */
+  .trust { border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); padding: 22px 0; background: var(--paper-warm); }
+  .trust-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+  .trust-row span.sep { color: var(--rule); }
+
+  /* ── ABOUT ───────────────────────────────────────────── */
+  .about-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: clamp(28px, 5vw, 80px); align-items: start; }
+  .about-grid img { aspect-ratio: 3/4; object-fit: cover; width: 100%; }
+  .about-prose p { font-size: 19px; line-height: 1.55; color: var(--ink); margin: 0 0 1em; }
+  .about-prose p:first-of-type::first-letter { font-family: var(--serif); font-size: 4.2em; line-height: 0.85; float: left; padding: 6px 12px 0 0; color: var(--ember); }
+  @media (max-width: 880px) { .about-grid { grid-template-columns: 1fr; } }
+
+  /* ── SERVICES (menu list) ────────────────────────────── */
+  .services-head { display: flex; justify-content: space-between; align-items: end; flex-wrap: wrap; gap: 20px; margin-bottom: 40px; }
+  .menu-list { border-top: 1px solid var(--ink); }
+  .menu-list .row { display: grid; grid-template-columns: 80px 1fr 2fr; gap: 24px; padding: 22px 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
+  .menu-list .num { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--ink-soft); }
+  .menu-list .name { font-family: var(--serif); font-size: 26px; line-height: 1.1; }
+  .menu-list .desc { color: var(--ink-soft); font-size: 16px; line-height: 1.5; }
+  @media (max-width: 720px) { .menu-list .row { grid-template-columns: 60px 1fr; } .menu-list .desc { grid-column: 1 / -1; padding-left: 84px; } }
+
+  /* ── WHY ─────────────────────────────────────────────── */
+  .why { background: var(--ink); color: var(--paper); }
+  .why .wrap > h2 { color: var(--paper); }
+  .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 40px; }
+  .why-grid li { list-style: none; }
+  .why-grid h3 { font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 1.15; margin: 0 0 12px; }
+  .why-grid p { color: color-mix(in oklab, var(--paper) 75%, transparent); margin: 0; }
+  .why-grid .num { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; color: var(--ember); }
+  @media (max-width: 880px) { .why-grid { grid-template-columns: 1fr; } }
+
+  /* ── HOW ─────────────────────────────────────────────── */
+  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; margin-top: 36px; }
+  .how-grid > li { list-style: none; border-top: 2px solid var(--ink); padding-top: 18px; }
+  .how-grid .step { font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; color: var(--ember); }
+  .how-grid h3 { font-family: var(--serif); font-size: 22px; margin: 8px 0 10px; font-weight: 400; }
+  .how-grid p { color: var(--ink-soft); margin: 0; font-size: 15px; }
+  @media (max-width: 880px) { .how-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .how-grid { grid-template-columns: 1fr; } }
+
+  /* ── TESTIMONIALS ────────────────────────────────────── */
+  .testimonials { background: var(--paper-warm); }
+  .quotes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 36px; margin-top: 40px; }
+  .quote blockquote { font-family: var(--serif); font-style: italic; font-size: 21px; line-height: 1.35; margin: 0 0 18px; }
+  .quote .who { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+  @media (max-width: 880px) { .quotes { grid-template-columns: 1fr; } }
+
+  /* ── GALLERY ─────────────────────────────────────────── */
+  .gallery-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-auto-rows: 140px; gap: 8px; margin-top: 40px; }
+  .gallery-grid figure { margin: 0; overflow: hidden; }
+  .gallery-grid img { width: 100%; height: 100%; object-fit: cover; }
+  .gallery-grid figure:nth-child(1) { grid-column: span 3; grid-row: span 3; }
+  .gallery-grid figure:nth-child(2) { grid-column: span 3; grid-row: span 2; }
+  .gallery-grid figure:nth-child(3) { grid-column: span 2; grid-row: span 2; }
+  .gallery-grid figure:nth-child(4) { grid-column: span 2; grid-row: span 2; }
+  .gallery-grid figure:nth-child(5) { grid-column: span 2; grid-row: span 1; }
+  .gallery-grid figure:nth-child(6) { grid-column: span 3; grid-row: span 1; }
+  @media (max-width: 880px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 160px; } .gallery-grid figure { grid-column: span 1 !important; grid-row: span 1 !important; } }
+
+  /* ── FAQ ─────────────────────────────────────────────── */
+  .faq-grid { display: grid; grid-template-columns: 1fr 2fr; gap: clamp(32px, 5vw, 80px); }
+  .faq-list details { border-top: 1px solid var(--rule); padding: 22px 0; }
+  .faq-list details:last-child { border-bottom: 1px solid var(--rule); }
+  .faq-list summary { font-family: var(--serif); font-size: 22px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: baseline; gap: 20px; }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after { content: "+"; font-family: var(--mono); font-size: 20px; color: var(--ember); }
+  .faq-list details[open] summary::after { content: "−"; }
+  .faq-list details p { color: var(--ink-soft); margin: 14px 0 0; max-width: 60ch; }
+  @media (max-width: 720px) { .faq-grid { grid-template-columns: 1fr; } }
+
+  /* ── AREA ────────────────────────────────────────────── */
+  .area-list { display: flex; flex-wrap: wrap; gap: 12px 0; margin-top: 28px; border-top: 1px solid var(--ink); }
+  .area-list li { list-style: none; flex: 0 0 33.33%; padding: 16px 0; border-bottom: 1px solid var(--rule); font-family: var(--serif); font-size: 22px; }
+  .area-list li::before { content: "→ "; font-family: var(--mono); color: var(--ember); font-size: 14px; }
+  @media (max-width: 720px) { .area-list li { flex: 0 0 100%; } }
+
+  /* ── CREDENTIALS ─────────────────────────────────────── */
+  .creds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: 32px; }
+  .creds > div { background: var(--paper); padding: 22px; }
+  .creds .label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ember); margin-bottom: 8px; }
+  .creds .detail { font-family: var(--serif); font-size: 18px; line-height: 1.3; }
+  @media (max-width: 720px) { .creds { grid-template-columns: 1fr 1fr; } }
+
+  /* ── LOCATION ────────────────────────────────────────── */
+  .location-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: clamp(28px, 4vw, 56px); margin-top: 40px; align-items: stretch; }
+  .nap address { font-style: normal; font-family: var(--serif); font-size: 22px; line-height: 1.35; }
+  .nap a { text-decoration: none; }
+  .hours { font-family: var(--mono); font-size: 13px; letter-spacing: 0.06em; margin-top: 28px; border-top: 1px solid var(--rule); padding-top: 20px; }
+  .hours .row { display: flex; justify-content: space-between; padding: 4px 0; }
+  .hours .day { color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.14em; font-size: 11px; }
+  .hours .gbp-note { font-size: 10px; color: var(--ink-soft); margin-top: 14px; line-height: 1.5; font-family: var(--sans); letter-spacing: 0; text-transform: none; }
+  .map-frame { background: var(--paper-warm); border: 1px solid var(--rule); min-height: 360px; }
+  .map-frame iframe { width: 100%; height: 100%; border: 0; min-height: 360px; }
+  @media (max-width: 880px) { .location-grid { grid-template-columns: 1fr; } }
+
+  /* ── CTA BAND ────────────────────────────────────────── */
+  .cta-band { background: var(--ember); color: var(--paper); padding: clamp(64px, 8vw, 112px) 0; }
+  .cta-band h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(32px, 4vw, 56px); line-height: 1.05; max-width: 22ch; margin: 0 0 16px; }
+  .cta-band p { max-width: 50ch; color: color-mix(in oklab, var(--paper) 85%, transparent); }
+  .cta-band .ctas { margin-top: 32px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .cta-band .btn { border-color: var(--paper); color: var(--paper); }
+  .cta-band .btn-primary { background: var(--paper); color: var(--ember); }
+
+  /* ── FOOTER ──────────────────────────────────────────── */
+  footer { padding: 64px 0 32px; border-top: 1px solid var(--rule); }
+  .footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 40px; }
+  .footer-grid h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 14px; font-weight: 500; }
+  .footer-grid a { text-decoration: none; display: block; padding: 4px 0; }
+  .footer-grid a:hover { color: var(--ember); }
+  .colophon { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+  @media (max-width: 720px) { .footer-grid { grid-template-columns: 1fr; } }
+
+  /* ── FLOATING MSG ────────────────────────────────────── */
+  .msg-fab { position: fixed; right: 20px; bottom: 20px; z-index: 100; display: flex; flex-direction: column; gap: 10px; }
+  .msg-fab a { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--paper); padding: 12px 16px; text-decoration: none; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; border-radius: 999px; box-shadow: 0 4px 16px rgba(28,22,18,0.18); }
+  .msg-fab a:hover { background: var(--ember); }
+  .msg-fab svg { width: 14px; height: 14px; }
+</style>
+
+<!-- LocalBusiness JSON-LD -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  "name": "Pico & Olive",
+  "description": "Mediterranean café, bakery and wood-oven kitchen in Kemptown, Brighton.",
+  "url": "https://picoandolive.co.uk/",
+  "telephone": "+441273224901",
+  "email": "hello@picoandolive.co.uk",
+  "servesCuisine": ["Mediterranean", "Greek", "Levantine"],
+  "priceRange": "££",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "47 Madeira Place",
+    "addressLocality": "Brighton",
+    "addressRegion": "East Sussex",
+    "postalCode": "BN2 1TN",
+    "addressCountry": "GB"
+  },
+  "geo": { "@type": "GeoCoordinates", "latitude": 50.8203, "longitude": -0.1247 },
+  "areaServed": ["Kemptown", "Brighton", "Hove", "Rottingdean"],
+  "image": ["https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600"],
+  "foundingDate": "2014"
+}
+</script>
+
+<!-- FAQPage JSON-LD (mirrors visible FAQ) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Do you take bookings?","acceptedAnswer":{"@type":"Answer","text":"Evening tables only, Tuesday to Saturday. Breakfast and lunch are walk-in."}},
+    {"@type":"Question","name":"Are you vegetarian-friendly?","acceptedAnswer":{"@type":"Answer","text":"Most of the menu is vegetarian. Vegan flatbreads and mezze are clearly marked."}},
+    {"@type":"Question","name":"Do you have gluten-free bread?","acceptedAnswer":{"@type":"Answer","text":"We can swap our flatbread for a buckwheat seed cracker. We bake in a flour-heavy kitchen."}},
+    {"@type":"Question","name":"Is the room accessible?","acceptedAnswer":{"@type":"Answer","text":"Step-free entry from the side door on Madeira Place. The accessible WC is on the ground floor."}},
+    {"@type":"Question","name":"Can we bring children?","acceptedAnswer":{"@type":"Answer","text":"Yes — until 7pm. We have two highchairs and a quieter corner table."}},
+    {"@type":"Question","name":"Do you do private events?","acceptedAnswer":{"@type":"Answer","text":"We can take the whole room from Sunday lunch onwards. Twelve to twenty-two guests."}},
+    {"@type":"Question","name":"Is there parking?","acceptedAnswer":{"@type":"Answer","text":"Pay-and-display on Madeira Place; the Royal Sussex Hospital car park is two minutes' walk."}}
+  ]
+}
+</script>
+
+<!-- CONFIG documentation (for editors) -->
+<script type="application/json" id="lp-config">
+{
+  "business": { "name": "string", "tagline": "string", "phone": "E.164 phone", "phoneDisplay": "string", "email": "string", "foundedYear": "number" },
+  "hero": { "kicker": "string", "headline": "string (the hero h1)", "lede": "string", "primaryCta": { "label": "string", "href": "string" }, "secondaryCta": { "label": "string", "href": "string" }, "image": "url", "imageAlt": "string" },
+  "trust": { "years": "string", "licenses": "string[]", "memberships": "string[]" },
+  "about": { "heading": "string", "paragraphs": "string[]", "portrait": "url", "portraitAlt": "string" },
+  "services": "Array<{name, description}>",
+  "why": "Array<{title, body}>",
+  "how": "Array<{step, title, body}>",
+  "testimonials": "Array<{quote, name, context}>",
+  "gallery": "Array<{src, alt}>",
+  "faq": "Array<{q, a}>",
+  "area": { "heading": "string", "places": "string[]" },
+  "credentials": "Array<{label, detail}>",
+  "location": "PostalAddress",
+  "map": { "embed": "url" },
+  "cta": "CTA band copy",
+  "messaging": { "whatsapp": "url", "messenger": "url" },
+  "footer": { "links": "Array<{label, href}>" }
+}
+</script>
+</head>
+
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wordmark" href="#" data-bind="business.name">Pico <em>&</em> Olive</a>
+    <nav class="nav-links" aria-label="Primary">
+      <a href="#about">About</a>
+      <a href="#services">Menu</a>
+      <a href="#location">Find us</a>
+      <a href="#reserve">Reserve</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v1">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker" data-bind="hero.kicker">Kemptown, Brighton · open from 8</div>
+      <h1 data-bind="hero.headline">Slow mornings, smoke from the oven, the same <em>olive jar</em> on every table.</h1>
+      <p class="lede" data-bind="hero.lede">A small Mediterranean kitchen run by two cooks and a baker. Flatbreads from the wood oven, mezze plates, long coffees, and a short wine list when the day softens.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#reserve" data-bind="hero.primaryCta.label">Reserve a table</a>
+        <a class="btn btn-ghost" href="#location" data-bind="hero.secondaryCta.label">Directions</a>
+      </div>
+    </div>
+    <div>
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80&auto=format&fit=crop"
+             alt="A wood-fired oven glowing behind a marble pass at Pico & Olive."
+             data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-meta">
+        <span>№ 47 Madeira Place</span>
+        <span>Est. 2014</span>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap trust-row">
+    <span data-bind="trust.years">Serving Brighton since 2014</span>
+    <span class="sep">/</span>
+    <span>Food Hygiene Rating 5</span>
+    <span class="sep">/</span>
+    <span>Sustainable Restaurant Association</span>
+    <span class="sep">/</span>
+    <span>Brighton Independents member</span>
+    <!-- GBP-bound rating slot: populated by your Google Business Profile, never hardcoded.
+         <span data-gbp="rating">{{rating}}</span> · <span data-gbp="reviewCount">{{n}}</span> reviews -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap about-grid">
+    <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+         src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=80&auto=format&fit=crop"
+         alt="Two cooks plating mezze at the marble pass." />
+    <div>
+      <div class="kicker">About the kitchen</div>
+      <h2 class="h2" data-bind="about.heading">A kitchen, not a concept.</h2>
+      <div class="about-prose">
+        <p>Pico & Olive started as a small bakery counter on St James's Street, run out of a converted laundry by two cooks who'd worked together on a tiny island in the Aegean. The wood oven came first; the dining room grew around it.</p>
+        <p>The food is what we feed ourselves: a handful of mezze, a flatbread we change with the season, lamb when it's good, a fish when it's better. We bake bread every morning at five and put the leftovers in the soup.</p>
+        <p>It's a kitchen, not a concept. We aren't trying to be anywhere else. We're trying to be honest about Tuesday.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v1">
+  <div class="wrap">
+    <div class="services-head">
+      <div>
+        <div class="kicker">The menu, abridged</div>
+        <h2 class="h2">What we cook, when we cook it.</h2>
+      </div>
+      <p class="body" style="max-width: 36ch; margin:0;">We change the wall most days. The kitchen runs Tuesday through Sunday. Prices on the chalkboard.</p>
+    </div>
+    <ol class="menu-list">
+      <li class="row"><span class="num">01</span><span class="name">Breakfast</span><span class="desc">From 8. Yoghurt, honey, hot flatbread, soft eggs, long coffees.</span></li>
+      <li class="row"><span class="num">02</span><span class="name">All-day mezze</span><span class="desc">A dozen small plates, written on the wall in chalk and changed when the chalk runs out.</span></li>
+      <li class="row"><span class="num">03</span><span class="name">Wood-oven flatbreads</span><span class="desc">Stretched to order. Lamb, halloumi, wild greens, smoked aubergine, plain.</span></li>
+      <li class="row"><span class="num">04</span><span class="name">Bakery counter</span><span class="desc">Loaves, koulouri, semolina cake, almond biscuits — until they go.</span></li>
+      <li class="row"><span class="num">05</span><span class="name">Evening kitchen</span><span class="desc">Tuesday to Saturday from 6. A shorter menu, a longer wine list.</span></li>
+      <li class="row"><span class="num">06</span><span class="name">Private suppers</span><span class="desc">The whole room, twelve to twenty-two people, one long table. Bring your wine.</span></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker" style="color: rgba(245,239,228,0.55);">Why come back</div>
+    <h2 class="h2">Three things we never compromise.</h2>
+    <ol class="why-grid">
+      <li><div class="num">01</div><h3>We bake every loaf on site.</h3><p>Sourdough starter from 2014, mixed by hand, baked in the same oven we cook on. Nothing arrives in a bag.</p></li>
+      <li><div class="num">02</div><h3>Short menu, slow turnover.</h3><p>We cook six mezze and three flatbreads a day. When something runs out we write something new on the wall.</p></li>
+      <li><div class="num">03</div><h3>Suppliers we can name.</h3><p>Sussex flour from Stoneham Bakehouse, olive oil from a co-op in Mani, fish from Newhaven that morning.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">How a meal works here</div>
+    <h2 class="h2">Walk in, or write us first.</h2>
+    <ol class="how-grid">
+      <li><div class="step">STEP 01</div><h3>Walk in</h3><p>Counter seating is always first-come. Breakfast and lunch don't take bookings.</p></li>
+      <li><div class="step">STEP 02</div><h3>Or reserve dinner</h3><p>Evening tables only. Reserve through the form, by phone, or by message.</p></li>
+      <li><div class="step">STEP 03</div><h3>Order at the table</h3><p>We bring everything when it's ready, not in courses. The bread comes first.</p></li>
+      <li><div class="step">STEP 04</div><h3>Pay at the counter</h3><p>Card or cash. Service is included; tips go to the kitchen.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">In their words</div>
+    <h2 class="h2">A handful of regulars, talking.</h2>
+    <div class="quotes">
+      <figure class="quote"><blockquote>“The flatbread alone is worth crossing the city for. The room is warm in a way most new restaurants are not.”</blockquote><figcaption class="who">Hattie L. · regular since 2018</figcaption></figure>
+      <figure class="quote"><blockquote>“I have eaten here on every birthday for six years. They remember the wine and they remember the dog.”</blockquote><figcaption class="who">Andreas P. · Kemptown</figcaption></figure>
+      <figure class="quote"><blockquote>“Honest, careful cooking. Nothing oversold and nothing under-loved.”</blockquote><figcaption class="who">Marian S. · first visit, came back next week</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v1">
+  <div class="wrap">
+    <div class="services-head">
+      <div>
+        <div class="kicker">The room, the oven, the plates</div>
+        <h2 class="h2">A few pictures.</h2>
+      </div>
+      <p class="body" style="max-width: 32ch; margin:0;">Photos by friends and a regular who turned out to be a photographer.</p>
+    </div>
+    <div class="gallery-grid">
+      <figure><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80&auto=format&fit=crop" alt="Charred flatbread with whipped feta on a stoneware plate." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200&q=80&auto=format&fit=crop" alt="A flat white on the marble counter, morning light." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1200&q=80&auto=format&fit=crop" alt="Wood oven mid-bake, a row of pita puffing up." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=80&auto=format&fit=crop" alt="A small plate of grilled aubergine with tahini and pomegranate." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1200&q=80&auto=format&fit=crop" alt="Dough being shaped at the counter." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1200&q=80&auto=format&fit=crop" alt="The dining room at dusk, candles lit." /></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section id="faq" data-component="FAQ" data-variant="v1">
+  <div class="wrap faq-grid">
+    <div>
+      <div class="kicker">Frequently asked</div>
+      <h2 class="h2">Before you walk in.</h2>
+      <p class="body">If we haven't answered it here, ring the kitchen on <a href="tel:+441273224901">01273 224 901</a> or drop us a line.</p>
+    </div>
+    <div class="faq-list">
+      <details><summary>Do you take bookings?</summary><p>Evening tables only, Tuesday to Saturday. Breakfast and lunch are walk-in. Reserve below, by phone, or by message.</p></details>
+      <details><summary>Are you vegetarian-friendly?</summary><p>Most of the menu is vegetarian. Vegan flatbreads and mezze are clearly marked. We can adapt almost anything.</p></details>
+      <details><summary>Do you have gluten-free bread?</summary><p>We can swap our flatbread for a buckwheat seed cracker. We bake in a flour-heavy kitchen, so it isn't a coeliac-safe environment.</p></details>
+      <details><summary>Is the room accessible?</summary><p>Step-free entry from the side door on Madeira Place. The accessible WC is on the ground floor. Please ring ahead so we can hold a table near the door.</p></details>
+      <details><summary>Can we bring children?</summary><p>Yes — until 7pm. We have two highchairs and a quieter corner table. Ask when you book.</p></details>
+      <details><summary>Do you do private events?</summary><p>We can take the whole room from Sunday lunch onwards. Twelve to twenty-two guests, one set menu, one long table.</p></details>
+      <details><summary>Is there parking?</summary><p>Pay-and-display on Madeira Place; the Royal Sussex Hospital car park is two minutes' walk.</p></details>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Where we sit and where we deliver bread</div>
+    <h2 class="h2">Neighbourhoods.</h2>
+    <ul class="area-list">
+      <li>Kemptown</li><li>St James's Street</li><li>Whitehawk</li>
+      <li>Queen's Park</li><li>Hanover</li><li>Brighton Marina</li>
+      <li>Rottingdean</li><li>Roedean</li><li>Saltdean</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">For the record</div>
+    <h2 class="h2">Credentials and accreditations.</h2>
+    <div class="creds">
+      <div><div class="label">Food Hygiene Rating</div><div class="detail">Score 5 (Brighton & Hove City Council)</div></div>
+      <div><div class="label">Sustainable Restaurant Assn.</div><div class="detail">Member, two-star rating</div></div>
+      <div><div class="label">Brighton Independents</div><div class="detail">Founding member</div></div>
+      <div><div class="label">Living Wage Employer</div><div class="detail">Accredited since 2018</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Find the door</div>
+    <h2 class="h2">47 Madeira Place, Kemptown.</h2>
+    <div class="location-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Pico & Olive</strong><br />
+          47 Madeira Place<br />
+          Kemptown, Brighton<br />
+          BN2 1TN<br /><br />
+          <a href="tel:+441273224901" data-bind="business.phoneDisplay">01273 224 901</a><br />
+          <a href="mailto:hello@picoandolive.co.uk" data-bind="business.email">hello@picoandolive.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- BLOCK: HOURS — leave empty; populated by Google Business Profile.
+               Do NOT hardcode opening hours here; GBP is the single source. -->
+          <div class="row"><span class="day">Tue – Fri</span><span>—</span></div>
+          <div class="row"><span class="day">Saturday</span><span>—</span></div>
+          <div class="row"><span class="day">Sunday</span><span>—</span></div>
+          <div class="row"><span class="day">Mon</span><span>closed</span></div>
+          <p class="gbp-note">Hours are kept up to date on our Google Business Profile — check there for bank holidays and the occasional Tuesday off.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Pico & Olive, 47 Madeira Place, Brighton" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.1310%2C50.8175%2C-0.1180%2C50.8240&layer=mapnik&marker=50.8203%2C-0.1247"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="reserve" class="cta-band" data-component="CTA-BAND" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker" style="color: rgba(245,239,228,0.7);">A small request</div>
+    <h2 data-bind="cta.heading">We hold the door for the dog and the regulars.</h2>
+    <p data-bind="cta.body">Tuesday to Saturday, 8 till late. Sunday lunch only. Closed Monday.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#reserve" data-bind="cta.primary.label">Reserve dinner</a>
+      <a class="btn" href="tel:+441273224901" data-bind="cta.secondary.label">Call the kitchen</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441273224901" data-bind="messaging.whatsapp" aria-label="Message us on WhatsApp">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Zm-8 18.2a9.2 9.2 0 0 1-4.7-1.3l-.3-.2-2.4.9.8-2.3-.2-.3a9.2 9.2 0 1 1 6.8 3.2Zm5-6.8c-.3-.1-1.6-.8-1.8-.9s-.4-.1-.6.1-.7.9-.8 1c-.2.2-.3.2-.6 0a7.4 7.4 0 0 1-3.7-3.3c-.3-.5.3-.5.8-1.5a.5.5 0 0 0 0-.5l-.8-2c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3 5.4 5.4 0 0 0 1.1 2.8 11.6 11.6 0 0 0 4.5 4c.6.3 1.1.4 1.5.5a3.4 3.4 0 0 0 1.5.1 2.5 2.5 0 0 0 1.6-1.1 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.5-.3Z"/></svg>
+    Message us
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a class="wordmark" href="#" style="font-size: 28px;">Pico <em>&</em> Olive</a>
+        <p class="body" style="margin-top: 16px; max-width: 32ch;">A Mediterranean kitchen on Madeira Place. Bread baked here every morning since 2014.</p>
+      </div>
+      <div>
+        <h4>Find us</h4>
+        <address style="font-style: normal;">
+          47 Madeira Place<br />
+          Kemptown, Brighton BN2 1TN<br />
+          <a href="tel:+441273224901">01273 224 901</a><br />
+          <a href="mailto:hello@picoandolive.co.uk">hello@picoandolive.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Pages</h4>
+        <a href="#services">Menu</a>
+        <a href="#reserve">Reserve</a>
+        <a href="#location">Find us</a>
+        <a href="#faq">Allergens & FAQ</a>
+        <a href="mailto:press@picoandolive.co.uk">Press</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> Pico & Olive Ltd · Co. № 09124423</span>
+      <span>Site by the house</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  /* Bind CONFIG → DOM. Markup already has the static fallback for JS-off. */
+  (function () {
+    const get = (obj, path) => path.split('.').reduce((a, k) => {
+      if (a == null) return null;
+      const m = k.match(/^(.+)\[(\d+)\]$/);
+      if (m) return a[m[1]]?.[+m[2]];
+      return a[k];
+    }, obj);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') {
+        el.src = v;
+        const altKey = el.getAttribute('data-bind-alt');
+        if (altKey) el.alt = get(CONFIG, altKey) || el.alt;
+      } else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) {
+        el.href = v;
+      } else {
+        el.textContent = v;
+      }
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

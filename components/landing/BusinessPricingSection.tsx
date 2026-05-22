@@ -21,10 +21,8 @@ export default function BusinessPricingSection() {
                 </div>
 
                 <div
+                    className="grid grid-cols-1 md:grid-cols-2 gap-4"
                     style={{
-                        display: "grid",
-                        gridTemplateColumns: "1fr 1fr",
-                        gap: 16,
                         maxWidth: 1080,
                         margin: "0 auto",
                     }}

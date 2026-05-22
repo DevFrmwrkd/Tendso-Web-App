@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Truelock Plumbing & Heating — Cardiff & Vale plumber</title>
+<meta name="description" content="Truelock Plumbing & Heating is a Gas Safe-registered plumber and heating engineer covering Cardiff and the Vale of Glamorgan. 24-hour emergency cover, fixed-price quotes, no call-out fee on quotes." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Truelock Plumbing & Heating", phone: "+44 29 2055 8740", phoneDisplay: "029 2055 8740", emergency: "+44 7700 900 121", emergencyDisplay: "07700 900 121", email: "dispatch@truelockheating.co.uk", foundedYear: 2012 },
+  hero: {
+    badge: "24/7 EMERGENCY · CARDIFF & VALE",
+    kicker: "Gas Safe № 561284 · Service area only — no storefront",
+    headline: "We pick up the phone. We turn up when we say. We don't add to the bill after.",
+    lede: "Truelock Plumbing & Heating is a small Gas Safe team covering Cardiff and the Vale of Glamorgan. Boilers, leaks, bathrooms, central heating — emergencies any hour, scheduled work seven days.",
+    primaryCta: { label: "Get a quote", href: "#quote" },
+    secondaryCta: { label: "029 2055 8740", href: "tel:+442920558740" },
+    image: "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=1600&q=85&auto=format&fit=crop",
+    imageAlt: "Plumber working on copper pipework in a domestic boiler cupboard."
+  },
+  trust: { years: "Working in Cardiff since 2012" },
+  about: {
+    heading: "A three-van team, on call every day of the year.",
+    paragraphs: [
+      "Truelock started as one van in Roath in 2012 and has grown to three engineers and a part-time dispatcher who happens to also be the founder's mum. We cover the whole of Cardiff and the Vale, every domestic system from a leaking radiator to a complete plant-room.",
+      "Two of us are Gas Safe Level 3, both with unvented hot-water tickets and ACS commercial gas. The newest engineer finishes her commercial board in February. We're WaterSafe-approved and Worcester-Bosch-accredited.",
+      "We don't have a shop. We have a workshop in Caerphilly where we stock parts, a dispatcher who knows what's on each van, and a habit of texting you on the way."
+    ]
+  },
+  services: [
+    { name: "Emergency call-out", description: "Burst pipes, no heat, no hot water, gas smell, blocked drains. 24-hour cover across the patch." },
+    { name: "Boiler service & repair", description: "Worcester-Bosch, Vaillant, Ideal, Baxi, Glow-worm. Annual service plans available." },
+    { name: "Boiler replacement", description: "Like-for-like, system swap, or full upgrade. Fixed-price quotes, manufacturer warranties up to 12 years." },
+    { name: "Central heating", description: "Radiator install, system flush (chemical and power), thermostatic valves, smart-controls." },
+    { name: "Bathrooms & en-suites", description: "Full-room refits — design, supply, fit, certify. We sub-contract tiling and electrics to two trusted partners." },
+    { name: "Leaks & drainage", description: "Acoustic leak detection, slab leaks, blocked drains. CCTV survey available." },
+    { name: "Landlord gas safety (CP12)", description: "Annual CP12 certificates for landlords and agents. Block rates for portfolios of 5+." },
+    { name: "Water mains & supply pipe", description: "MDPE replacement, stop-tap install, water meter relocation, lead-pipe replacement." }
+  ],
+  why: [
+    { title: "We don't charge to quote.", body: "Free written quote inside the patch, before any work begins. No call-out fee unless we fix it on the spot." },
+    { title: "Gas Safe + WaterSafe + Worcester accredited.", body: "Every engineer fully registered. Certificates and registration numbers shared on request." },
+    { title: "Fixed-price work where possible.", body: "Boilers, bathrooms, mains — fixed. Diagnostics — capped first hour, you decide after." },
+    { title: "Two-year workmanship warranty.", body: "On everything we install. Manufacturer warranties run alongside and don't replace ours." }
+  ],
+  how: [
+    { step: "01", title: "Call or message", body: "Phone, WhatsApp, or web form. Emergencies — call. Quotes — anything works." },
+    { step: "02", title: "We give you a slot", body: "Same-day for emergencies; next two days for most jobs; longer for full bathrooms." },
+    { step: "03", title: "On the way text", body: "We text you 30 minutes out with the engineer's name, photo, and reg number." },
+    { step: "04", title: "Fix, certify, invoice", body: "Job done, certificates handed over digitally, invoice sent that evening." }
+  ],
+  testimonials: [
+    { quote: "Our boiler failed on Christmas Eve. Truelock got us hot water back inside two hours and the part shipped that same day. They didn't gouge us on the price either.", name: "Liam J.", context: "Roath" },
+    { quote: "Quoted three plumbers for a new bathroom. Truelock was the only one to put it in writing line-by-line and to honour the number exactly when the job was done.", name: "Sian C.", context: "Penarth" },
+    { quote: "Honest, fast, tidy. Showed me the old part before fitting the new one. Will use them for everything from now on.", name: "Dr Owen B.", context: "Llandaff" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=1400&q=85&auto=format&fit=crop", alt: "Engineer at copper pipework." },
+    { src: "https://images.unsplash.com/photo-1503602642458-232111445657?w=1400&q=85&auto=format&fit=crop", alt: "Workshop bench with tools." },
+    { src: "https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=1400&q=85&auto=format&fit=crop", alt: "Branded van at a job." },
+    { src: "https://images.unsplash.com/photo-1597762470488-3877b1f538c6?w=1400&q=85&auto=format&fit=crop", alt: "Tools on a workbench." },
+    { src: "https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=1400&q=85&auto=format&fit=crop", alt: "Newly-installed radiator." },
+    { src: "https://images.unsplash.com/photo-1620626011761-996317b8d101?w=1400&q=85&auto=format&fit=crop", alt: "Bathroom mid-refit." }
+  ],
+  faq: [
+    { q: "What counts as an emergency?", a: "Burst pipes, no heat or hot water in winter, leaks coming through ceilings, smell of gas, or a blocked drain backing up. Anything you'd ring 999 for plumbing-side is what we pick up at 3am." },
+    { q: "Do you charge a call-out fee?", a: "No call-out fee if we're providing a quote. For diagnostic work the first hour is fixed; you decide whether to proceed after that." },
+    { q: "How quickly can you come out?", a: "Same day across Cardiff and the Vale for genuine emergencies. Most non-emergency jobs are scheduled within 48 hours." },
+    { q: "Do you work for letting agents and landlords?", a: "Yes — block rates for portfolios of five-plus properties, monthly invoicing, digital CP12 certificates delivered to the agent and the tenant." },
+    { q: "Are you VAT-registered?", a: "Yes — VAT № GB 213 7421 09. All invoices include the VAT number; we can issue zero-VAT invoices on qualifying disabled-facility works." },
+    { q: "What manufacturers do you fit?", a: "Worcester-Bosch (accredited), Vaillant, Ideal, Baxi, Glow-worm. We'll fit what suits the house, not what makes us the biggest commission." },
+    { q: "Will you give a like-for-like quote?", a: "For boiler swaps yes — we'll match a competitor quote on identical specification with the same warranty terms. We won't match a lower spec to win the job." },
+    { q: "Are you insured?", a: "£5m public liability, £10m employers' liability. Certificates of insurance available on request before any work." }
+  ],
+  area: { heading: "Coverage zone", places: ["Cardiff city centre","Roath","Cathays","Pontcanna","Cyncoed","Llandaff","Whitchurch","Penarth","Barry","Cowbridge","Sully","Dinas Powys","Caerphilly","Llanishen"] },
+  credentials: [
+    { label: "Gas Safe", detail: "Registered № 561284 — domestic & commercial" },
+    { label: "WaterSafe", detail: "Approved plumber, audited annually" },
+    { label: "Worcester Bosch", detail: "Accredited Installer with extended warranties" },
+    { label: "Insurance", detail: "£5m public liability · £10m employers' liability" },
+    { label: "CIPHE", detail: "Chartered Institute member" },
+    { label: "TrustMark", detail: "Government-endorsed quality scheme" }
+  ],
+  location: { name: "Truelock Plumbing & Heating", workshopArea: "Workshop in Caerphilly (no public access)", phone: "029 2055 8740", emergency: "07700 900 121", email: "dispatch@truelockheating.co.uk" },
+  cta: { heading: "If it's leaking, call. If it's planned, message.", body: "Service area: Cardiff and the Vale of Glamorgan. Dispatcher answers 7am–8pm; emergency line picks up 24/7.", primary: { label: "Call now · 029 2055 8740", href: "tel:+442920558740" }, secondary: { label: "Quote me", href: "#quote" } },
+  messaging: { whatsapp: "https://wa.me/447700900121", messenger: "https://m.me/truelockheating" }
+};
+</script>
+
+<style>
+  :root {
+    --navy:#0f1c2e; --navy-2:#162a44; --steel:#23344e; --paper:#f4f5f7; --paper-2:#e1e5eb;
+    --ink:#0a1422; --ink-soft:#536174; --safety:#ffce00; --signal:#e02b1d; --rule:rgba(244,245,247,0.14); --rule-2:rgba(10,20,34,0.14);
+    --sans:"Archivo",system-ui,sans-serif; --body:"Inter Tight",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1340px,94vw);margin-inline:auto;}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--safety);font-weight:500;}
+  .h2{font-family:var(--sans);font-weight:800;font-size:clamp(36px,4.6vw,68px);line-height:0.98;letter-spacing:-0.025em;margin:0 0 0.4em;text-transform:uppercase;}
+  .body{font-size:16px;line-height:1.6;color:var(--ink-soft);}
+  section{padding:clamp(72px,8vw,120px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:16px 22px;font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;font-weight:500;transition:0.15s;}
+  .btn-primary{background:var(--safety);color:var(--navy);}
+  .btn-primary:hover{background:var(--paper);}
+  .btn-ghost{border:1px solid var(--paper);color:var(--paper);}
+  .btn-ghost:hover{background:var(--paper);color:var(--navy);}
+
+  /* EMERGENCY STRIP */
+  .emerg{background:var(--signal);color:white;padding:10px 0;font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;}
+  .emerg .row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+  .emerg a{color:white;text-decoration:none;font-weight:600;}
+  .emerg .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:white;margin-right:8px;vertical-align:middle;animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+
+  /* NAV */
+  .nav{background:var(--navy);color:var(--paper);position:sticky;top:42px;z-index:50;border-bottom:1px solid var(--rule);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--sans);font-weight:800;font-size:18px;letter-spacing:0.02em;text-transform:uppercase;text-decoration:none;display:flex;align-items:center;gap:10px;}
+  .wm::before{content:"";width:18px;height:18px;background:var(--safety);clip-path:polygon(50% 0,100% 100%,0 100%);}
+  .nav-links{display:flex;gap:28px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,245,247,0.78);}
+  .nav-links a{text-decoration:none;}
+  .nav-cta{padding:10px 16px;background:var(--safety);color:var(--navy);font-family:var(--mono);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;font-weight:600;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO v6 */
+  .hero{position:relative;background:var(--navy);color:var(--paper);padding:0;overflow:hidden;}
+  .hero::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(135deg,transparent 0 28px,rgba(255,206,0,0.04) 28px 30px);}
+  .hero-inner{position:relative;padding:clamp(48px,7vw,96px) 0;display:grid;grid-template-columns:1.3fr 1fr;gap:clamp(36px,5vw,80px);align-items:end;}
+  .hero-badge{display:inline-flex;align-items:center;gap:10px;background:var(--safety);color:var(--navy);padding:8px 14px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;margin-bottom:24px;}
+  .hero-badge::before{content:"●";color:var(--signal);}
+  .hero h1{font-family:var(--sans);font-weight:800;font-size:clamp(40px,6.2vw,92px);line-height:0.96;letter-spacing:-0.03em;text-transform:uppercase;margin:0 0 24px;max-width:18ch;}
+  .hero h1 .y{color:var(--safety);}
+  .hero .lede{font-family:var(--body);font-size:clamp(17px,1.5vw,20px);line-height:1.5;color:rgba(244,245,247,0.82);max-width:46ch;margin-bottom:32px;}
+  .hero-meta{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,245,247,0.6);margin-bottom:16px;}
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-side{position:relative;}
+  .hero-image{aspect-ratio:4/5;overflow:hidden;border:4px solid var(--safety);position:relative;}
+  .hero-image img{width:100%;height:100%;object-fit:cover;}
+  .hero-image .tag{position:absolute;bottom:12px;left:12px;right:12px;background:rgba(15,28,46,0.85);color:var(--paper);padding:8px 12px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;display:flex;justify-content:space-between;}
+  .hero-stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--rule);margin-top:48px;padding-top:32px;}
+  .hero-stat{padding-right:20px;}
+  .hero-stat .n{font-family:var(--sans);font-weight:800;font-size:48px;line-height:1;color:var(--safety);letter-spacing:-0.025em;}
+  .hero-stat .l{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,245,247,0.6);margin-top:8px;}
+  @media(max-width:880px){.hero-inner{grid-template-columns:1fr;}}
+
+  /* TRUST */
+  .trust{padding:18px 0;background:var(--navy-2);color:var(--paper);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+  .trust .row{display:flex;gap:32px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,245,247,0.85);}
+  .trust .row .sep{color:var(--safety);}
+
+  /* ABOUT */
+  .about{background:var(--paper);}
+  .about-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(36px,5vw,80px);align-items:end;}
+  .about-grid img{aspect-ratio:4/3;object-fit:cover;width:100%;}
+  .about-prose p{font-size:18px;line-height:1.6;margin:0 0 1em;}
+  @media(max-width:880px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES */
+  .services{background:var(--navy);color:var(--paper);}
+  .services .h2{color:var(--paper);}
+  .svc-head{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:end;margin-bottom:48px;}
+  .svc-head .body{color:rgba(244,245,247,0.7);}
+  .svc-table{border-top:1px solid var(--rule);}
+  .svc-row{display:grid;grid-template-columns:80px 280px 1fr 90px;gap:24px;padding:24px 0;border-bottom:1px solid var(--rule);align-items:baseline;}
+  .svc-row .num{font-family:var(--mono);font-size:12px;color:var(--safety);letter-spacing:0.14em;}
+  .svc-row .name{font-family:var(--sans);font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:-0.01em;}
+  .svc-row .desc{color:rgba(244,245,247,0.7);font-size:15px;}
+  .svc-row .tag{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--safety);text-align:right;}
+  @media(max-width:760px){.svc-row{grid-template-columns:60px 1fr;} .svc-row .desc,.svc-row .tag{grid-column:1/-1;padding-left:84px;} .svc-row .tag{text-align:left;}}
+
+  /* WHY */
+  .why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:36px;border-top:1px solid var(--ink);}
+  .why-grid > div{padding:32px 24px;border-right:1px solid var(--rule-2);border-bottom:1px solid var(--ink);}
+  .why-grid > div:last-child{border-right:0;}
+  .why-grid .num{font-family:var(--sans);font-weight:800;font-size:48px;color:var(--signal);line-height:1;display:block;margin-bottom:14px;letter-spacing:-0.03em;}
+  .why-grid h3{font-family:var(--sans);font-weight:700;font-size:21px;text-transform:uppercase;letter-spacing:-0.01em;margin:0 0 12px;line-height:1.1;}
+  .why-grid p{margin:0;color:var(--ink-soft);font-size:14px;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr 1fr;}}
+
+  /* HOW */
+  .how{background:var(--paper-2);}
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:40px;}
+  .how-grid > li{list-style:none;}
+  .how-grid .step{font-family:var(--sans);font-weight:800;font-size:68px;line-height:0.9;color:var(--safety);margin-bottom:12px;letter-spacing:-0.03em;-webkit-text-stroke:1.5px var(--ink);}
+  .how-grid h3{font-family:var(--sans);font-weight:700;font-size:22px;text-transform:uppercase;margin:0 0 10px;letter-spacing:-0.01em;}
+  .how-grid p{color:var(--ink-soft);margin:0;font-size:14px;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  /* TESTIMONIALS */
+  .testimonials{background:var(--paper);}
+  .quotes-row{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:40px;}
+  .quote-card{background:var(--navy);color:var(--paper);padding:32px;border-top:3px solid var(--safety);}
+  .quote-card blockquote{font-family:var(--sans);font-weight:500;font-size:18px;line-height:1.4;margin:0 0 20px;letter-spacing:-0.005em;}
+  .quote-card .who{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--safety);}
+  @media(max-width:760px){.quotes-row{grid-template-columns:1fr;}}
+
+  /* GALLERY */
+  .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:36px;}
+  .gallery-grid figure{margin:0;position:relative;}
+  .gallery-grid img{aspect-ratio:4/3;object-fit:cover;width:100%;}
+  .gallery-grid figcaption{position:absolute;bottom:8px;left:8px;background:var(--navy);color:var(--safety);font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:4px 8px;}
+  @media(max-width:760px){.gallery-grid{grid-template-columns:1fr 1fr;}}
+
+  /* FAQ */
+  .faq{background:var(--paper);}
+  .faq-head{display:grid;grid-template-columns:1fr 1.4fr;gap:60px;margin-bottom:32px;}
+  .faq-list{border-top:2px solid var(--ink);}
+  .faq-list details{border-bottom:1px solid var(--rule-2);padding:22px 0;}
+  .faq-list summary{font-family:var(--sans);font-weight:600;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:baseline;gap:20px;text-transform:uppercase;letter-spacing:-0.005em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"▼";font-size:10px;color:var(--safety);transition:transform 0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(180deg);}
+  .faq-list p{margin:14px 0 0;max-width:64ch;color:var(--ink-soft);}
+  @media(max-width:760px){.faq-head{grid-template-columns:1fr;}}
+
+  /* AREA — coverage zone */
+  .area{background:var(--navy);color:var(--paper);}
+  .area .h2{color:var(--paper);}
+  .area-head{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;margin-bottom:48px;}
+  .area-head .body{color:rgba(244,245,247,0.75);}
+  .area-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+  .area-grid li{list-style:none;padding:18px 12px;border-right:1px solid var(--rule);font-family:var(--sans);font-weight:600;font-size:16px;text-transform:uppercase;letter-spacing:-0.005em;text-align:center;}
+  .area-grid li:last-child{border-right:0;}
+  .area-grid li.head{background:var(--safety);color:var(--navy);font-weight:800;}
+  @media(max-width:880px){.area-grid{grid-template-columns:repeat(3,1fr);} .area-grid li{border-bottom:1px solid var(--rule);}}
+  .no-storefront{margin-top:32px;display:inline-block;background:var(--safety);color:var(--navy);padding:14px 22px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;}
+
+  /* CREDS */
+  .creds{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:36px;}
+  .creds > div{padding:24px;background:var(--paper-2);border-left:4px solid var(--safety);}
+  .creds .label{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--signal);margin-bottom:10px;font-weight:600;}
+  .creds .detail{font-family:var(--sans);font-weight:600;font-size:17px;line-height:1.3;text-transform:uppercase;letter-spacing:-0.005em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  /* LOCATION (v2 — service area, no storefront) */
+  .location{background:var(--paper);}
+  .loc-card{background:var(--navy);color:var(--paper);padding:48px;margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:48px;border:4px solid var(--safety);}
+  .loc-card .stamp{display:inline-block;background:var(--safety);color:var(--navy);padding:6px 12px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;margin-bottom:24px;}
+  .loc-card h3{font-family:var(--sans);font-weight:800;font-size:32px;text-transform:uppercase;letter-spacing:-0.02em;margin:0 0 18px;}
+  .loc-card .lines{font-family:var(--sans);font-weight:600;font-size:22px;line-height:1.5;text-transform:uppercase;letter-spacing:-0.005em;}
+  .loc-card .lines a{color:var(--safety);text-decoration:none;}
+  .loc-card .lines small{display:block;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;font-weight:500;color:rgba(244,245,247,0.6);text-transform:uppercase;margin-top:2px;}
+  .loc-card .hours{font-family:var(--mono);font-size:13px;border-top:1px solid var(--rule);padding-top:18px;margin-top:24px;}
+  .loc-card .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(244,245,247,0.85);}
+  .loc-card .hours .day{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--safety);}
+  .loc-card .hours .gbp-note{font-family:var(--body);font-size:12px;color:rgba(244,245,247,0.55);margin-top:14px;line-height:1.5;letter-spacing:0;text-transform:none;}
+  @media(max-width:760px){.loc-card{grid-template-columns:1fr;padding:32px;}}
+
+  /* CTA */
+  .cta-band{background:var(--safety);color:var(--navy);padding:clamp(64px,8vw,108px) 0;}
+  .cta-band h2{font-family:var(--sans);font-weight:800;font-size:clamp(36px,5vw,68px);line-height:0.96;margin:0 0 18px;max-width:22ch;text-transform:uppercase;letter-spacing:-0.025em;}
+  .cta-band p{color:rgba(15,28,46,0.78);max-width:54ch;margin:0 0 28px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--navy);color:var(--safety);}
+  .cta-band .btn-primary:hover{background:var(--ink);}
+  .cta-band .btn-ghost{border:1px solid var(--navy);color:var(--navy);}
+  .cta-band .btn-ghost:hover{background:var(--navy);color:var(--safety);}
+
+  /* FOOTER */
+  footer{background:var(--navy);color:rgba(244,245,247,0.85);padding:60px 0 32px;border-top:4px solid var(--safety);}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--safety);margin:0 0 14px;font-weight:500;}
+  .footer-grid a{text-decoration:none;display:block;padding:4px 0;font-size:14px;color:var(--paper);}
+  .colophon{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,245,247,0.5);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  /* MSG FAB */
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--safety);color:var(--navy);padding:14px 18px;text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;box-shadow:0 6px 22px rgba(255,206,0,0.35);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"HomeAndConstructionBusiness","name":"Truelock Plumbing & Heating","description":"Gas Safe-registered plumber and heating engineer covering Cardiff and the Vale of Glamorgan.","url":"https://truelockheating.co.uk/","telephone":"+442920558740","email":"dispatch@truelockheating.co.uk","areaServed":[{"@type":"City","name":"Cardiff"},{"@type":"AdministrativeArea","name":"Vale of Glamorgan"},{"@type":"City","name":"Penarth"},{"@type":"City","name":"Barry"}],"address":{"@type":"PostalAddress","addressLocality":"Cardiff","addressRegion":"South Glamorgan","addressCountry":"GB"},"image":["https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=1600"],"foundingDate":"2012","openingHours":["Mo-Su 00:00-23:59"]}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What counts as an emergency?","acceptedAnswer":{"@type":"Answer","text":"Burst pipes, no heat or hot water in winter, leaks through ceilings, smell of gas, blocked drains backing up."}},
+{"@type":"Question","name":"Do you charge a call-out fee?","acceptedAnswer":{"@type":"Answer","text":"No call-out fee for quotes. Diagnostic work has a fixed first hour."}},
+{"@type":"Question","name":"How quickly can you come out?","acceptedAnswer":{"@type":"Answer","text":"Same day for emergencies across Cardiff and the Vale. Most non-emergencies within 48 hours."}},
+{"@type":"Question","name":"Do you work for letting agents and landlords?","acceptedAnswer":{"@type":"Answer","text":"Yes — block rates for portfolios of 5+, digital CP12 certificates."}},
+{"@type":"Question","name":"Are you VAT-registered?","acceptedAnswer":{"@type":"Answer","text":"Yes — VAT № GB 213 7421 09."}},
+{"@type":"Question","name":"What manufacturers do you fit?","acceptedAnswer":{"@type":"Answer","text":"Worcester-Bosch (accredited), Vaillant, Ideal, Baxi, Glow-worm."}},
+{"@type":"Question","name":"Will you give a like-for-like quote?","acceptedAnswer":{"@type":"Answer","text":"Yes — for boiler swaps on identical specification with the same warranty terms."}},
+{"@type":"Question","name":"Are you insured?","acceptedAnswer":{"@type":"Answer","text":"£5m public liability, £10m employers' liability."}}]}
+</script>
+
+<script type="application/json" id="lp-config">{"business":"...","hero":"...","about":"...","services":"...","why":"...","how":"...","testimonials":"...","gallery":"...","faq":"...","area":"...","credentials":"...","location":"...","cta":"...","messaging":"..."}</script>
+</head>
+
+<body>
+
+<div class="emerg">
+  <div class="wrap row">
+    <span><span class="dot"></span>24-HOUR EMERGENCY · CARDIFF &amp; VALE</span>
+    <a href="tel:+447700900121">CALL 07700 900 121 NOW →</a>
+  </div>
+</div>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">TRUELOCK</a>
+    <nav class="nav-links">
+      <a href="#services">Services</a>
+      <a href="#area">Coverage</a>
+      <a href="#about">About</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="nav-cta" href="#quote">Get a quote</a>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v6">
+  <div class="wrap hero-inner">
+    <div>
+      <div class="hero-badge" data-bind="hero.badge">24/7 EMERGENCY · CARDIFF &amp; VALE</div>
+      <div class="hero-meta" data-bind="hero.kicker">GAS SAFE № 561284 · SERVICE AREA ONLY — NO STOREFRONT</div>
+      <h1 data-bind="hero.headline">We <span class="y">pick up the phone.</span> We turn up when we say. We don't add to the bill after.</h1>
+      <p class="lede" data-bind="hero.lede">Truelock Plumbing &amp; Heating is a small Gas Safe team covering Cardiff and the Vale of Glamorgan. Boilers, leaks, bathrooms, central heating — emergencies any hour, scheduled work seven days.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#quote" data-bind="hero.primaryCta.label">Get a quote</a>
+        <a class="btn btn-ghost" href="tel:+442920558740" data-bind="hero.secondaryCta.label">029 2055 8740</a>
+      </div>
+      <div class="hero-stat-row">
+        <div class="hero-stat"><div class="n">24/7</div><div class="l">Emergency cover</div></div>
+        <div class="hero-stat"><div class="n">£0</div><div class="l">Quote call-out</div></div>
+        <div class="hero-stat"><div class="n">2 yr</div><div class="l">Workmanship warranty</div></div>
+      </div>
+    </div>
+    <div class="hero-side">
+      <div class="hero-image">
+        <img src="https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=1600&q=85&auto=format&fit=crop"
+             alt="Plumber working on copper pipework in a domestic boiler cupboard."
+             data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+        <div class="tag"><span>ON-SITE / ROATH</span><span>JOB 4421</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:18px 0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">WORKING IN CARDIFF SINCE 2012</span>
+    <span class="sep">//</span><span>GAS SAFE № 561284</span>
+    <span class="sep">//</span><span>WATERSAFE APPROVED</span>
+    <span class="sep">//</span><span>WORCESTER-BOSCH ACCREDITED</span>
+    <span class="sep">//</span><span>TRUSTMARK</span>
+    <!-- GBP-bound rating slot: never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v3">
+  <div class="wrap about-grid">
+    <div>
+      <div class="kicker" style="color:var(--signal);">FILE / ABOUT</div>
+      <h2 class="h2" data-bind="about.heading">A three-van team, on call every day of the year.</h2>
+      <div class="about-prose">
+        <p>Truelock started as one van in Roath in 2012 and has grown to three engineers and a part-time dispatcher who happens to also be the founder's mum. We cover the whole of Cardiff and the Vale, every domestic system from a leaking radiator to a complete plant-room.</p>
+        <p>Two of us are Gas Safe Level 3, both with unvented hot-water tickets and ACS commercial gas. The newest engineer finishes her commercial board in February. We're WaterSafe-approved and Worcester-Bosch-accredited.</p>
+        <p><strong style="color:var(--ink);">We don't have a shop.</strong> We have a workshop in Caerphilly where we stock parts, a dispatcher who knows what's on each van, and a habit of texting you on the way.</p>
+      </div>
+    </div>
+    <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+         src="https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=1400&q=85&auto=format&fit=crop"
+         alt="Branded service van at a job." />
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="services" data-component="SERVICES" data-variant="v3">
+  <div class="wrap">
+    <div class="svc-head">
+      <div>
+        <div class="kicker">FILE / SERVICES</div>
+        <h2 class="h2">What we cover<br/>across the patch.</h2>
+      </div>
+      <p class="body" style="max-width:38ch;">Quotes are written, fixed-price where possible, and free across the coverage zone. Emergency rates apply outside dispatch hours.</p>
+    </div>
+    <div class="svc-table">
+      <div class="svc-row"><span class="num">№ 01</span><span class="name">Emergency call-out</span><span class="desc">Burst pipes, no heat, no hot water, gas smell, blocked drains. 24-hour cover across the patch.</span><span class="tag">24/7</span></div>
+      <div class="svc-row"><span class="num">№ 02</span><span class="name">Boiler service &amp; repair</span><span class="desc">Worcester-Bosch, Vaillant, Ideal, Baxi, Glow-worm. Annual service plans available.</span><span class="tag">SCHEDULED</span></div>
+      <div class="svc-row"><span class="num">№ 03</span><span class="name">Boiler replacement</span><span class="desc">Like-for-like, system swap, or full upgrade. Fixed-price quotes, warranties up to 12 years.</span><span class="tag">FIXED PRICE</span></div>
+      <div class="svc-row"><span class="num">№ 04</span><span class="name">Central heating</span><span class="desc">Radiator install, system flush (chemical and power), TRVs, smart-controls.</span><span class="tag">SCHEDULED</span></div>
+      <div class="svc-row"><span class="num">№ 05</span><span class="name">Bathrooms &amp; en-suites</span><span class="desc">Full-room refits — design, supply, fit, certify. Tiling and electrics sub-contracted to trusted partners.</span><span class="tag">PROJECT</span></div>
+      <div class="svc-row"><span class="num">№ 06</span><span class="name">Leaks &amp; drainage</span><span class="desc">Acoustic leak detection, slab leaks, blocked drains. CCTV survey available.</span><span class="tag">DIAGNOSTIC</span></div>
+      <div class="svc-row"><span class="num">№ 07</span><span class="name">Landlord gas safety (CP12)</span><span class="desc">Annual CP12 certificates for landlords and agents. Block rates for portfolios of 5+.</span><span class="tag">COMPLIANCE</span></div>
+      <div class="svc-row"><span class="num">№ 08</span><span class="name">Water mains &amp; supply pipe</span><span class="desc">MDPE replacement, stop-tap install, water meter relocation, lead-pipe replacement.</span><span class="tag">PROJECT</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--signal);">FILE / COMMITMENTS</div>
+    <h2 class="h2">Four commitments,<br/>on every job.</h2>
+    <div class="why-grid">
+      <div><div class="num">01</div><h3>We don't charge to quote.</h3><p>Free written quote inside the patch, before any work begins. No call-out fee unless we fix on the spot.</p></div>
+      <div><div class="num">02</div><h3>Gas Safe + WaterSafe.</h3><p>Every engineer fully registered. Certificates and registration numbers shared on request.</p></div>
+      <div><div class="num">03</div><h3>Fixed-price where possible.</h3><p>Boilers, bathrooms, mains — fixed. Diagnostics — capped first hour, you decide after.</p></div>
+      <div><div class="num">04</div><h3>2-year workmanship warranty.</h3><p>On everything we install. Manufacturer warranties run alongside and don't replace ours.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section class="how" data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--signal);">FILE / WORKFLOW</div>
+    <h2 class="h2">Four steps,<br/>start to invoice.</h2>
+    <ol class="how-grid">
+      <li><div class="step">01</div><h3>Call or message</h3><p>Phone, WhatsApp, or web form. Emergencies — call. Quotes — anything works.</p></li>
+      <li><div class="step">02</div><h3>We give you a slot</h3><p>Same-day for emergencies; next two days for most jobs; longer for full bathrooms.</p></li>
+      <li><div class="step">03</div><h3>On the way text</h3><p>We text you 30 minutes out with the engineer's name, photo, and reg number.</p></li>
+      <li><div class="step">04</div><h3>Fix, certify, invoice</h3><p>Job done, certificates handed over digitally, invoice sent that evening.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v3">
+  <div class="wrap">
+    <div class="kicker">FILE / CUSTOMERS</div>
+    <h2 class="h2">What people say<br/>after the engineer leaves.</h2>
+    <div class="quotes-row">
+      <article class="quote-card"><blockquote>Our boiler failed on Christmas Eve. Truelock got us hot water back inside two hours and the part shipped that same day. They didn't gouge us on the price either.</blockquote><div class="who">Liam J. · Roath</div></article>
+      <article class="quote-card"><blockquote>Quoted three plumbers for a new bathroom. Truelock was the only one to put it in writing line-by-line and to honour the number exactly when the job was done.</blockquote><div class="who">Sian C. · Penarth</div></article>
+      <article class="quote-card"><blockquote>Honest, fast, tidy. Showed me the old part before fitting the new one. Will use them for everything from now on.</blockquote><div class="who">Dr Owen B. · Llandaff</div></article>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--signal);">FILE / RECENT WORK</div>
+    <h2 class="h2">Recent jobs.</h2>
+    <div class="gallery-grid">
+      <figure><img src="https://images.unsplash.com/photo-1581094288338-2314dddb7ece?w=1200&q=85&auto=format&fit=crop" alt="Engineer at copper pipework." /><figcaption>JOB 4421 / ROATH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1503602642458-232111445657?w=1200&q=85&auto=format&fit=crop" alt="Workshop bench with tools." /><figcaption>JOB 4408 / CYNCOED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1621905251918-48416bd8575a?w=1200&q=85&auto=format&fit=crop" alt="Service van at a job." /><figcaption>FLEET / VAN 02</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1597762470488-3877b1f538c6?w=1200&q=85&auto=format&fit=crop" alt="Tools on a workbench." /><figcaption>WORKSHOP</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1581244277943-fe4a9c777189?w=1200&q=85&auto=format&fit=crop" alt="Newly-installed radiator." /><figcaption>JOB 4395 / PENARTH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1620626011761-996317b8d101?w=1200&q=85&auto=format&fit=crop" alt="Bathroom mid-refit." /><figcaption>JOB 4376 / LLANDAFF</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section class="faq" data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="faq-head">
+      <div>
+        <div class="kicker" style="color:var(--signal);">FILE / FAQ</div>
+        <h2 class="h2">Questions<br/>before you call.</h2>
+      </div>
+      <p class="body">If yours isn't here, ring the dispatcher on <a href="tel:+442920558740">029 2055 8740</a> or message any time. Emergencies always to the 24-hour line.</p>
+    </div>
+    <div class="faq-list">
+      <details><summary>What counts as an emergency?</summary><p>Burst pipes, no heat or hot water in winter, leaks coming through ceilings, smell of gas, or a blocked drain backing up. Anything you'd ring 999 for plumbing-side is what we pick up at 3am.</p></details>
+      <details><summary>Do you charge a call-out fee?</summary><p>No call-out fee if we're providing a quote. For diagnostic work the first hour is fixed; you decide whether to proceed after that.</p></details>
+      <details><summary>How quickly can you come out?</summary><p>Same day across Cardiff and the Vale for genuine emergencies. Most non-emergency jobs are scheduled within 48 hours.</p></details>
+      <details><summary>Do you work for letting agents and landlords?</summary><p>Yes — block rates for portfolios of five-plus properties, monthly invoicing, digital CP12 certificates delivered to the agent and the tenant.</p></details>
+      <details><summary>Are you VAT-registered?</summary><p>Yes — VAT № GB 213 7421 09. All invoices include the VAT number; we can issue zero-VAT invoices on qualifying disabled-facility works.</p></details>
+      <details><summary>What manufacturers do you fit?</summary><p>Worcester-Bosch (accredited), Vaillant, Ideal, Baxi, Glow-worm. We'll fit what suits the house, not what makes us the biggest commission.</p></details>
+      <details><summary>Will you give a like-for-like quote?</summary><p>For boiler swaps yes — we'll match a competitor quote on identical specification with the same warranty terms. We won't match a lower spec to win the job.</p></details>
+      <details><summary>Are you insured?</summary><p>£5m public liability, £10m employers' liability. Certificates of insurance available on request before any work.</p></details>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section id="area" class="area" data-component="SERVICE-AREA" data-variant="v3">
+  <div class="wrap">
+    <div class="area-head">
+      <div>
+        <div class="kicker">FILE / COVERAGE ZONE</div>
+        <h2 class="h2">Where the vans go.</h2>
+      </div>
+      <p class="body">We cover Cardiff city and the Vale of Glamorgan. If your postcode is CF, ring the dispatcher and we'll confirm before we book you in.</p>
+    </div>
+    <ul class="area-grid">
+      <li class="head">Cardiff</li>
+      <li>Roath</li><li>Cathays</li><li>Pontcanna</li><li>Cyncoed</li><li>Llandaff</li><li>Whitchurch</li>
+      <li class="head">Vale</li>
+      <li>Penarth</li><li>Barry</li><li>Cowbridge</li><li>Sully</li><li>Dinas Powys</li><li>Llanishen</li>
+    </ul>
+    <div class="no-storefront">⚠ Service area only — no public storefront. Workshop in Caerphilly (parts pickup by arrangement).</div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--signal);">FILE / CREDENTIALS</div>
+    <h2 class="h2">Registrations<br/>&amp; insurance.</h2>
+    <div class="creds">
+      <div><div class="label">Gas Safe</div><div class="detail">Registered № 561284 — domestic &amp; commercial</div></div>
+      <div><div class="label">WaterSafe</div><div class="detail">Approved plumber, audited annually</div></div>
+      <div><div class="label">Worcester Bosch</div><div class="detail">Accredited installer, extended warranties</div></div>
+      <div><div class="label">Insurance</div><div class="detail">£5m public · £10m employers' liability</div></div>
+      <div><div class="label">CIPHE</div><div class="detail">Chartered Institute member</div></div>
+      <div><div class="label">TrustMark</div><div class="detail">Government-endorsed quality scheme</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] (v2 — service-area, no storefront) -->
+<section id="location" class="location" data-component="LOCATION" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--signal);">FILE / CONTACT</div>
+    <h2 class="h2">Dispatch &amp;<br/>emergency lines.</h2>
+    <div class="loc-card">
+      <div>
+        <div class="stamp">DISPATCH · 7am – 8pm</div>
+        <h3>Booked work &amp; quotes</h3>
+        <div class="lines">
+          <a href="tel:+442920558740" data-bind="business.phoneDisplay">029 2055 8740</a>
+          <small>Mon–Sun · 7am – 8pm · dispatcher answers</small><br/><br/>
+          <a href="mailto:dispatch@truelockheating.co.uk" data-bind="business.email">dispatch@truelockheating.co.uk</a>
+          <small>Replied within one working day</small>
+        </div>
+        <div class="hours">
+          <!-- HOURS — GBP-bound. -->
+          <div class="row"><span class="day">Dispatcher</span><span>—</span></div>
+          <div class="row"><span class="day">Emergency line</span><span>24/7</span></div>
+          <p class="gbp-note">Dispatch hours kept current on our Google Business Profile.</p>
+        </div>
+      </div>
+      <div>
+        <div class="stamp" style="background:var(--signal);color:white;">EMERGENCY · 24 / 7</div>
+        <h3>Burst pipe, no heat, gas smell</h3>
+        <div class="lines">
+          <a href="tel:+447700900121" data-bind="business.emergencyDisplay" style="font-size:32px;line-height:1.2;">07700 900 121</a>
+          <small>Any hour · always a person · never a recording</small><br/><br/>
+          <a href="https://wa.me/447700900121">WhatsApp the same number</a>
+          <small>Send a photo or short video if you can</small>
+        </div>
+        <div class="hours" style="margin-top:32px;">
+          <div class="row"><span class="day">Workshop</span><span>Caerphilly (no public access)</span></div>
+          <p class="gbp-note">We are a mobile service. The workshop holds parts only; it is not a customer-facing location.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="quote" class="cta-band" data-component="CTA-BAND" data-variant="v3">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--signal);">FILE / NEXT</div>
+    <h2 data-bind="cta.heading">If it's leaking, call. If it's planned, message.</h2>
+    <p data-bind="cta.body">Service area: Cardiff and the Vale of Glamorgan. Dispatcher answers 7am–8pm; emergency line picks up 24/7.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="tel:+442920558740" data-bind="cta.primary.label">Call now · 029 2055 8740</a>
+      <a class="btn btn-ghost" href="#quote" data-bind="cta.secondary.label">Quote me</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/447700900121" data-bind="messaging.whatsapp" aria-label="Message the team">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    WhatsApp
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;color:var(--paper);">▲ TRUELOCK</div>
+        <p class="body" style="margin-top:12px;max-width:36ch;color:rgba(244,245,247,0.6);">Gas Safe-registered plumbing &amp; heating across Cardiff and the Vale. Mobile service — no storefront.</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.6;">
+          Dispatch: <a href="tel:+442920558740">029 2055 8740</a><br/>
+          24/7: <a href="tel:+447700900121">07700 900 121</a><br/>
+          <a href="mailto:dispatch@truelockheating.co.uk">dispatch@truelockheating.co.uk</a><br/>
+          Workshop: Caerphilly (no public access)
+        </address>
+      </div>
+      <div>
+        <h4>Sections</h4>
+        <a href="#services">Services</a>
+        <a href="#area">Coverage</a>
+        <a href="#quote">Get a quote</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> TRUELOCK PLUMBING &amp; HEATING LTD · CO. № 08174621 · VAT GB 213 7421 09</span>
+      <span>GAS SAFE 561284 / WATERSAFE / TRUSTMARK</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

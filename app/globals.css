@@ -350,6 +350,9 @@ body {
 @media (max-width: 800px) {
   .neo .container, .neo .container-wide, .neo .container-text { padding: 0 24px; }
 }
+@media (max-width: 480px) {
+  .neo .container, .neo .container-wide, .neo .container-text { padding: 0 16px; }
+}
 
 .neo .rule        { height: 1px; background: var(--neo-rule); width: 100%; }
 .neo .rule-strong { height: 1px; background: var(--neo-rule-strong); width: 100%; }
@@ -369,16 +372,16 @@ body {
 .neo h1, .neo h2, .neo h3 { margin: 0; font-weight: 400; letter-spacing: -0.02em; }
 .neo .display {
   font-family: var(--neo-serif);
-  font-size: clamp(64px, 8vw, 144px);
-  line-height: 0.92;
+  font-size: clamp(44px, 9vw, 144px);
+  line-height: 0.95;
   letter-spacing: -0.025em;
   font-weight: 400;
 }
 .neo .display em { font-style: italic; color: var(--neo-creator-ink); }
 .neo .display-2 {
   font-family: var(--neo-serif);
-  font-size: clamp(40px, 5vw, 72px);
-  line-height: 1.0;
+  font-size: clamp(32px, 5.5vw, 72px);
+  line-height: 1.05;
   letter-spacing: -0.02em;
 }
 .neo .display-3 {

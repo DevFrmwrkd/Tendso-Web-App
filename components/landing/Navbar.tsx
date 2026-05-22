@@ -38,29 +38,29 @@ export default function Navbar({
     return (
         <div className="topbar">
             <div
-                className="container-wide"
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "14px 48px",
-                }}
+                className="container-wide flex items-center justify-between gap-3"
+                style={{ paddingTop: 12, paddingBottom: 12 }}
             >
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <Link href="/" style={{ textDecoration: "none" }}>
+                {/* Left cluster — logo + live status (status hides on phones) */}
+                <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+                    <Link href="/" style={{ textDecoration: "none" }} className="flex-shrink-0">
                         <Logo />
                     </Link>
-                    <div className="label" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    {/* "Live in Philippines · expanding" — hide on <md to avoid wrap/overflow */}
+                    <div className="label items-center gap-2 hidden md:flex">
                         <span className="live-dot"></span>
                         Live in Philippines · expanding
                     </div>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+
+                {/* Right cluster — selects hide on phones, Get-the-app always visible */}
+                <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     <select
                         value={lang}
                         onChange={(e) => onLangChange?.(e.target.value)}
                         style={selectStyle}
                         aria-label="Language"
+                        className="hidden sm:inline-block"
                     >
                         <option value="en">EN</option>
                         <option value="tl">Tagalog</option>
@@ -70,6 +70,7 @@ export default function Navbar({
                         onChange={(e) => onCountryChange?.(e.target.value)}
                         style={selectStyle}
                         aria-label="Country"
+                        className="hidden md:inline-block"
                     >
                         <option value="PH">🇵🇭 Philippines</option>
                         <option value="ID">🇮🇩 Indonesia</option>
@@ -81,10 +82,10 @@ export default function Navbar({
                         {...(isApk
                             ? { download: "negosyo-digital.apk" }
                             : {})}
-                        className="store-btn"
-                        style={{ textDecoration: "none" }}
+                        className="store-btn whitespace-nowrap"
+                        style={{ textDecoration: "none", padding: "10px 14px" }}
                     >
-                        Get the app
+                        <span>Get the app</span>
                         <span style={{ opacity: 0.6 }}>
                             <ArrowUpRightIcon />
                         </span>
