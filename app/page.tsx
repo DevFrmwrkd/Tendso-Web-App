@@ -48,12 +48,6 @@ export default function Home() {
                 {/* § Process — Online Kit pipeline */}
                 <ProcessSection />
 
-                {/* § 04 — Pricing (₱1,000 / ₱1,500) */}
-                <BusinessPricingSection />
-
-                {/* § 05 — For creators (dark slab — ₱500 / ₱300 / ₱1,000) */}
-                <EarningsSection />
-
                 {/* § Manifesto — the 99% statement */}
                 <ManifestoSection />
 

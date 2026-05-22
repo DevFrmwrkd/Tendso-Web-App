@@ -1,6 +1,13 @@
 import { v } from 'convex/values';
-import { query, mutation } from './_generated/server';
+import { query, mutation, action, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { normalizePhone } from './lib/phone';
+
+// Admin-curated lead-content image upload constraints
+const PREVIEW_IMAGE_MAX_BYTES = 2_000_000; // 2MB cap
+const ALLOWED_PREVIEW_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 // ==================== MUTATIONS ====================
 
@@ -229,6 +236,504 @@ export const getCountBySubmission = query({
             qualified: leads.filter((l) => l.status === 'qualified').length,
             converted: leads.filter((l) => l.status === 'converted').length,
             lost: leads.filter((l) => l.status === 'lost').length,
+        };
+    },
+});
+
+// ============================================================================
+// Inline auth helpers — web repo doesn't have a shared `lib/auth.ts`, so we
+// inline the same pattern the spec assumes (`requireAuth` / `requireAdmin`).
+// Typed as `any` so the helper accepts both QueryCtx and MutationCtx — every
+// Convex generated type uses different TableNamesInDataModel generics, and
+// hand-writing a union is more friction than the type signal is worth here.
+// ============================================================================
+async function requireIdentity(ctx: any) {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error('Not authenticated');
+    return identity;
+}
+
+async function requireAdminIdentity(ctx: any) {
+    const identity = await requireIdentity(ctx);
+    const me = await ctx.db
+        .query('creators')
+        .withIndex('by_clerk_id', (q: any) => q.eq('clerkId', identity.subject))
+        .first();
+    if (!me || me.role !== 'admin') throw new Error('Forbidden: admin access required');
+    return identity;
+}
+
+// ----------------------------------------------------------------------------
+// MOBILE CRM VIEW QUERIES (team-wide social feed)
+//
+// Per product spec: every signed-in creator sees ALL leads in the database
+// (not just their own) and the original submitter is prominently surfaced on
+// each card. Admin-curated content (description / image / link) appears when
+// present and triggers the social-card render on mobile.
+//
+// These queries do NOT modify any existing data or behavior. They are
+// consumed only by the mobile CRM screens at app/(app)/leads/*.
+// ----------------------------------------------------------------------------
+
+/**
+ * Pure-function helper for rendering creator display names consistently.
+ * Exported so unit tests can exercise it without spinning up Convex.
+ * Format: "Firstname L." (e.g., "Maria S."). If only first name, returns it as-is.
+ * If both missing, returns "Unknown creator".
+ */
+export function formatCreatorDisplayName(
+    firstName: string | undefined | null,
+    lastName: string | undefined | null,
+): string {
+    const first = (firstName ?? '').trim();
+    const last = (lastName ?? '').trim();
+    if (!first && !last) return 'Unknown creator';
+    if (!last) return first;
+    return `${first} ${last[0]}.`;
+}
+
+export const listForMobileCRM = query({
+    args: {
+        search: v.optional(v.string()),
+        statusFilter: v.optional(
+            v.union(
+                v.literal('all'),
+                v.literal('new'),
+                v.literal('contacted'),
+                v.literal('qualified'),
+                v.literal('converted'),
+                v.literal('lost'),
+            ),
+        ),
+        onlyMine: v.optional(v.boolean()),
+    },
+    handler: async (ctx, args) => {
+        const identity = await requireIdentity(ctx);
+
+        const currentCreator = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+            .first();
+        if (!currentCreator) {
+            return {
+                leads: [],
+                stats: { total: 0, new: 0, contacted: 0, qualified: 0, converted: 0, lost: 0, mine: 0 },
+            };
+        }
+
+        // Show ALL leads in the database so the CRM feed reflects team output.
+        const allLeads = await ctx.db.query('leads').order('desc').collect();
+
+        // Stat rollup over the unfiltered set so badge counts remain accurate.
+        const stats = {
+            total: allLeads.length,
+            new: allLeads.filter((l) => l.status === 'new').length,
+            contacted: allLeads.filter((l) => l.status === 'contacted').length,
+            qualified: allLeads.filter((l) => l.status === 'qualified').length,
+            converted: allLeads.filter((l) => l.status === 'converted').length,
+            lost: allLeads.filter((l) => l.status === 'lost').length,
+            mine: allLeads.filter((l) => String(l.creatorId) === String(currentCreator._id)).length,
+        };
+
+        let filtered = allLeads;
+        if (args.onlyMine) {
+            filtered = filtered.filter((l) => String(l.creatorId) === String(currentCreator._id));
+        }
+
+        const statusFilter = args.statusFilter ?? 'all';
+        if (statusFilter !== 'all') {
+            filtered = filtered.filter((l) => l.status === statusFilter);
+        }
+
+        const search = args.search?.trim().toLowerCase();
+
+        // Cache submissions/creators to avoid repeated DB hits when the same id
+        // appears across many leads.
+        const submissionCache = new Map<string, any>();
+        const creatorCache = new Map<string, any>();
+        const allSubmissions = await ctx.db.query('submissions').collect();
+        for (const sub of allSubmissions) submissionCache.set(String(sub._id), sub);
+
+        const enriched = await Promise.all(
+            filtered.map(async (lead) => {
+                const submission = lead.submissionId
+                    ? (submissionCache.get(String(lead.submissionId)) ?? null)
+                    : null;
+
+                let creatorRecord: any = null;
+                if (lead.creatorId) {
+                    creatorRecord = creatorCache.get(String(lead.creatorId));
+                    if (!creatorRecord) {
+                        creatorRecord = await ctx.db.get(lead.creatorId);
+                        if (creatorRecord) creatorCache.set(String(lead.creatorId), creatorRecord);
+                    }
+                }
+
+                // Count distinct creators who interviewed the same business by normalized phone.
+                let interviewerCount = 0;
+                if (submission) {
+                    const targetPhone = normalizePhone(submission.ownerPhone);
+                    if (targetPhone) {
+                        const matches = allSubmissions.filter(
+                            (s) => normalizePhone(s.ownerPhone) === targetPhone,
+                        );
+                        const creatorIds = new Set(matches.map((s) => String(s.creatorId)));
+                        interviewerCount = creatorIds.size;
+                    }
+                }
+
+                const isMine = lead.creatorId
+                    ? String(lead.creatorId) === String(currentCreator._id)
+                    : false;
+
+                return {
+                    _id: lead._id,
+                    _creationTime: lead._creationTime,
+                    name: lead.name,
+                    phone: lead.phone,
+                    email: lead.email ?? null,
+                    source: lead.source,
+                    status: lead.status,
+                    createdAt: lead.createdAt,
+                    businessName: submission?.businessName ?? '(business unavailable)',
+                    businessType: submission?.businessType ?? null,
+                    businessCity: submission?.city ?? null,
+                    businessAddress: submission?.address ?? null,
+                    ownerName: submission?.ownerName ?? null,
+                    ownerPhone: submission?.ownerPhone ?? null,
+                    interviewerCount,
+                    websiteUrl: (submission as any)?.websiteUrl ?? null,
+                    submissionStatus: submission?.status ?? null,
+                    isHot: interviewerCount >= 3,
+                    submittedBy: creatorRecord
+                        ? {
+                              creatorId: String(creatorRecord._id),
+                              displayName: formatCreatorDisplayName(
+                                  creatorRecord.firstName,
+                                  creatorRecord.lastName,
+                              ),
+                              profileImage: creatorRecord.profileImage ?? null,
+                          }
+                        : null,
+                    isMine,
+                    // Admin-curated content (mobile renders social card when present)
+                    adminDescription: (lead as any).adminDescription ?? null,
+                    previewImageUrl: (lead as any).previewImageUrl ?? null,
+                    externalPreviewUrl: (lead as any).externalPreviewUrl ?? null,
+                    hasEnrichedContent: !!(
+                        (lead as any).adminDescription ||
+                        (lead as any).previewImageUrl ||
+                        (lead as any).externalPreviewUrl
+                    ),
+                };
+            }),
+        );
+
+        let result = enriched;
+        if (search) {
+            result = enriched.filter(
+                (row) =>
+                    row.name.toLowerCase().includes(search) ||
+                    row.phone.toLowerCase().includes(search) ||
+                    (row.email?.toLowerCase().includes(search) ?? false) ||
+                    row.businessName.toLowerCase().includes(search) ||
+                    (row.submittedBy?.displayName.toLowerCase().includes(search) ?? false),
+            );
+        }
+
+        return { leads: result, stats };
+    },
+});
+
+export const getDetailForMobileCRM = query({
+    args: { id: v.id('leads') },
+    handler: async (ctx, args) => {
+        const identity = await requireIdentity(ctx);
+
+        const currentCreator = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+            .first();
+        if (!currentCreator) return null;
+
+        const lead = await ctx.db.get(args.id);
+        if (!lead) return null;
+
+        const submitterCreator = lead.creatorId ? await ctx.db.get(lead.creatorId) : null;
+        const submission = lead.submissionId ? await ctx.db.get(lead.submissionId) : null;
+
+        let interviewers: Array<{
+            creatorId: string;
+            creatorName: string;
+            creatorProfileImage: string | null;
+            interviewedAt: number;
+            submissionId: string;
+            submissionStatus: string;
+            isMine: boolean;
+        }> = [];
+
+        if (submission) {
+            const targetPhone = normalizePhone(submission.ownerPhone);
+            if (targetPhone) {
+                const allSubs = await ctx.db.query('submissions').collect();
+                const matches = allSubs.filter(
+                    (s) => normalizePhone(s.ownerPhone) === targetPhone,
+                );
+                interviewers = await Promise.all(
+                    matches.map(async (s) => {
+                        const interviewerCreator = await ctx.db.get(s.creatorId);
+                        return {
+                            creatorId: String(s.creatorId),
+                            creatorName: formatCreatorDisplayName(
+                                interviewerCreator?.firstName,
+                                interviewerCreator?.lastName,
+                            ),
+                            creatorProfileImage: interviewerCreator?.profileImage ?? null,
+                            interviewedAt: s._creationTime,
+                            submissionId: String(s._id),
+                            submissionStatus: s.status,
+                            isMine: String(s.creatorId) === String(currentCreator._id),
+                        };
+                    }),
+                );
+                interviewers.sort((a, b) => b.interviewedAt - a.interviewedAt);
+            }
+        }
+
+        const notes = await ctx.db
+            .query('leadNotes')
+            .withIndex('by_lead', (q) => q.eq('leadId', args.id))
+            .order('desc')
+            .collect();
+
+        return {
+            lead: {
+                _id: lead._id,
+                _creationTime: lead._creationTime,
+                name: lead.name,
+                phone: lead.phone,
+                email: lead.email ?? null,
+                source: lead.source,
+                status: lead.status,
+                createdAt: lead.createdAt,
+            },
+            submittedBy: submitterCreator
+                ? {
+                      creatorId: String(submitterCreator._id),
+                      displayName: formatCreatorDisplayName(
+                          submitterCreator.firstName,
+                          submitterCreator.lastName,
+                      ),
+                      profileImage: submitterCreator.profileImage ?? null,
+                  }
+                : null,
+            isMine: lead.creatorId
+                ? String(lead.creatorId) === String(currentCreator._id)
+                : false,
+            business: submission
+                ? {
+                      submissionId: String(submission._id),
+                      businessName: submission.businessName,
+                      businessType: submission.businessType,
+                      ownerName: submission.ownerName,
+                      ownerPhone: submission.ownerPhone,
+                      ownerEmail: submission.ownerEmail ?? null,
+                      address: submission.address,
+                      city: submission.city,
+                      province: (submission as any).province ?? null,
+                      barangay: (submission as any).barangay ?? null,
+                      websiteUrl: (submission as any).websiteUrl ?? null,
+                      businessDescription: (submission as any).businessDescription ?? null,
+                      photos: (submission as any).photos ?? [],
+                      status: submission.status,
+                  }
+                : null,
+            adminContent: {
+                description: (lead as any).adminDescription ?? null,
+                previewImageUrl: (lead as any).previewImageUrl ?? null,
+                externalPreviewUrl: (lead as any).externalPreviewUrl ?? null,
+                updatedAt: (lead as any).adminUpdatedAt ?? null,
+                hasEnrichedContent: !!(
+                    (lead as any).adminDescription ||
+                    (lead as any).previewImageUrl ||
+                    (lead as any).externalPreviewUrl
+                ),
+            },
+            interviewers,
+            interviewerCount: interviewers.length,
+            notes: notes.map((n) => ({
+                _id: n._id,
+                content: n.content,
+                createdAt: n.createdAt,
+                creatorId: String(n.creatorId),
+            })),
+        };
+    },
+});
+
+// ----------------------------------------------------------------------------
+// ADMIN-CURATED LEAD CONTENT (Facebook-style social card data + image upload)
+// ----------------------------------------------------------------------------
+
+export const updateAdminContent = mutation({
+    args: {
+        id: v.id('leads'),
+        description: v.optional(v.string()),
+        externalPreviewUrl: v.optional(v.string()),
+        previewImageUrl: v.optional(v.string()),
+        previewImageStorageKey: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const identity = await requireAdminIdentity(ctx);
+        const lead = await ctx.db.get(args.id);
+        if (!lead) throw new Error('Lead not found');
+
+        const patch: Record<string, unknown> = {
+            adminUpdatedAt: Date.now(),
+            adminUpdatedBy: identity.subject,
+        };
+
+        if (args.description !== undefined) {
+            const trimmed = args.description.trim();
+            if (trimmed.length > 500) {
+                throw new Error('Description too long (max 500 characters)');
+            }
+            patch.adminDescription = trimmed === '' ? undefined : trimmed;
+        }
+
+        if (args.externalPreviewUrl !== undefined) {
+            const trimmed = args.externalPreviewUrl.trim();
+            if (trimmed && !/^https?:\/\//i.test(trimmed)) {
+                throw new Error('External preview URL must start with http:// or https://');
+            }
+            patch.externalPreviewUrl = trimmed === '' ? undefined : trimmed;
+        }
+
+        if (args.previewImageUrl !== undefined) {
+            patch.previewImageUrl = args.previewImageUrl === '' ? undefined : args.previewImageUrl;
+        }
+
+        if (args.previewImageStorageKey !== undefined) {
+            patch.previewImageStorageKey =
+                args.previewImageStorageKey === '' ? undefined : args.previewImageStorageKey;
+        }
+
+        await ctx.db.patch(args.id, patch);
+    },
+});
+
+// Pure helpers — exported so unit tests can exercise them without Convex.
+export function validatePreviewImageUploadArgs(args: {
+    mimeType: string;
+    sizeBytes: number;
+}): { ok: true } | { ok: false; reason: string } {
+    if (!ALLOWED_PREVIEW_IMAGE_TYPES.includes(args.mimeType)) {
+        return {
+            ok: false,
+            reason: `Unsupported image type ${args.mimeType}. Allowed: ${ALLOWED_PREVIEW_IMAGE_TYPES.join(', ')}`,
+        };
+    }
+    if (args.sizeBytes <= 0) return { ok: false, reason: 'Image size must be positive' };
+    if (args.sizeBytes > PREVIEW_IMAGE_MAX_BYTES) {
+        return {
+            ok: false,
+            reason: `Image too large (${args.sizeBytes} bytes > ${PREVIEW_IMAGE_MAX_BYTES} byte limit)`,
+        };
+    }
+    return { ok: true };
+}
+
+export function buildPreviewImageStorageKey(
+    leadId: string,
+    mimeType: string,
+    now: number,
+): string {
+    const ext = mimeType.split('/')[1] ?? 'bin';
+    return `lead-previews/${leadId}/${now}.${ext}`;
+}
+
+export const generatePreviewImageUploadUrl = action({
+    args: {
+        leadId: v.id('leads'),
+        mimeType: v.string(),
+        sizeBytes: v.number(),
+    },
+    handler: async (ctx, args): Promise<{ uploadUrl: string; publicUrl: string; storageKey: string }> => {
+        // Action-context auth: query the admin role via internal query is overkill,
+        // so we resolve the calling identity + look it up directly.
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error('Not authenticated');
+        const me = await ctx.runQuery(internal.leads.getCreatorRoleByClerkIdInternal, {
+            clerkId: identity.subject,
+        });
+        if (!me || me.role !== 'admin') throw new Error('Forbidden: admin access required');
+
+        const validation = validatePreviewImageUploadArgs({
+            mimeType: args.mimeType,
+            sizeBytes: args.sizeBytes,
+        });
+        if (!validation.ok) throw new Error(validation.reason);
+
+        const accountId = process.env.R2_ACCOUNT_ID;
+        const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+        const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+        const bucketName = process.env.R2_BUCKET_NAME;
+        const publicBase = process.env.R2_PUBLIC_URL;
+        if (!accountId || !accessKeyId || !secretAccessKey || !bucketName) {
+            throw new Error('R2 credentials not configured on this Convex deployment');
+        }
+        if (!publicBase) throw new Error('R2_PUBLIC_URL is not configured on this Convex deployment');
+
+        const storageKey = buildPreviewImageStorageKey(args.leadId, args.mimeType, Date.now());
+
+        const client = new S3Client({
+            region: 'auto',
+            endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+            credentials: { accessKeyId, secretAccessKey },
+        });
+        const command = new PutObjectCommand({
+            Bucket: bucketName,
+            Key: storageKey,
+            ContentType: args.mimeType,
+        });
+        const uploadUrl = await getSignedUrl(client, command, { expiresIn: 3600 });
+        const publicUrl = `${publicBase.replace(/\/$/, '')}/${storageKey}`;
+        return { uploadUrl, publicUrl, storageKey };
+    },
+});
+
+// Internal helper used by the action above (actions can't read the DB directly).
+export const getCreatorRoleByClerkIdInternal = internalQuery({
+    args: { clerkId: v.string() },
+    handler: async (ctx, args) => {
+        const me = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.clerkId))
+            .first();
+        return me ? { role: me.role ?? null } : null;
+    },
+});
+
+export const getDetailForAdmin = query({
+    args: { id: v.id('leads') },
+    handler: async (ctx, args) => {
+        await requireAdminIdentity(ctx);
+        const lead = await ctx.db.get(args.id);
+        if (!lead) return null;
+        const submission = lead.submissionId ? await ctx.db.get(lead.submissionId) : null;
+        const creator = lead.creatorId ? await ctx.db.get(lead.creatorId) : null;
+        return {
+            lead,
+            submission,
+            creator: creator
+                ? {
+                      _id: creator._id,
+                      firstName: creator.firstName ?? null,
+                      lastName: creator.lastName ?? null,
+                      email: creator.email,
+                      profileImage: creator.profileImage ?? null,
+                  }
+                : null,
         };
     },
 });

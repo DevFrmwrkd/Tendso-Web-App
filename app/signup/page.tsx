@@ -88,8 +88,9 @@ export default function SignupPage() {
                                     card: "bg-transparent shadow-none p-0",
                                     headerTitle: "hidden",
                                     headerSubtitle: "hidden",
+                                    socialButtons: "w-full",
                                     socialButtonsBlockButton:
-                                        "border border-[#0f0e14]/15 bg-[#f4ede1] text-[#0f0e14] hover:bg-[#ebe2cf] hover:border-[#2d5a3f]/50 transition-colors rounded-xl",
+                                        "w-full border border-[#0f0e14]/15 bg-[#f4ede1] text-[#0f0e14] hover:bg-[#ebe2cf] hover:border-[#2d5a3f]/50 transition-colors rounded-xl",
                                     // Hide TikTok specifically — keep Google + others
                                     socialButtonsBlockButton__tiktok: "!hidden",
                                     socialButtonsProviderIcon__tiktok: "!hidden",

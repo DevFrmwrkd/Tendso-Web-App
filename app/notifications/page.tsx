@@ -112,8 +112,8 @@ export default function NotificationsPage() {
 
     if (!isLoaded || creator === undefined || notifications === undefined) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
+                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
             </div>
         )
     }
@@ -149,7 +149,10 @@ export default function NotificationsPage() {
     const hasUnread = notifications?.some((n: any) => !n.read)
 
     return (
-        <div className="min-h-screen bg-white font-sans pb-12">
+        <div
+            className="editorial min-h-screen pb-12"
+            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+        >
             <header className="px-4 pt-6 pb-4">
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">

@@ -30,8 +30,8 @@ export default function SubmissionsPage() {
 
     if (!isLoaded || !isSignedIn || creator === undefined || submissions === undefined) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
+                <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
             </div>
         )
     }
@@ -90,7 +90,10 @@ export default function SubmissionsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 font-sans pb-24 relative">
+        <div
+            className="editorial min-h-screen pb-24 relative"
+            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+        >
             <main className="px-4 py-6">
                 <div className="flex items-center justify-between mb-2">
                     <Link href="/dashboard" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-200 text-zinc-600 hover:text-zinc-900 transition-colors">

@@ -521,7 +521,14 @@ export default function InterviewUploadPage() {
     const hasRecordedPreview = recordedPreviewUrl !== null
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+        <div
+            className="editorial min-h-screen"
+            style={{
+                background: "linear-gradient(to bottom right, var(--ed-paper), var(--ed-paper-2))",
+                color: "var(--ed-ink)",
+                fontFamily: "var(--ed-sans)",
+            }}
+        >
             {/* Header */}
             <div className="bg-white/80 backdrop-blur-md border-b border-gray-200/50 px-4 py-3 sticky top-0 z-50">
                 <div className="flex items-center max-w-2xl mx-auto">

@@ -372,10 +372,18 @@ export default function AdminDashboard() {
                 </div>
             )}
 
-            {/* Page Title */}
-            <div className="mb-6 lg:mb-8">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Submissions Dashboard</h1>
-                <p className="text-sm text-gray-500 mt-1">Manage and review business applications across the platform.</p>
+            {/* Page Title — editorial */}
+            <div className="mb-8 lg:mb-10">
+                <div className="ed-eyebrow mb-3">Dashboard · Submissions Overview</div>
+                <h1 className="ed-display-md" style={{ color: "var(--ed-ink)" }}>
+                    Manage <em style={{ color: "var(--ed-accent)" }}>business applications</em>.
+                </h1>
+                <p
+                    className="ed-body mt-3"
+                    style={{ color: "var(--ed-ink-2)", maxWidth: "60ch" }}
+                >
+                    Review submissions, watch revenue, and approve creators across the platform.
+                </p>
             </div>
 
             {/* Stats Cards (3 widgets, read-only) */}

@@ -4,14 +4,17 @@
   --background: #ffffff;
   --foreground: #0a0a0a;
 
-  /* NEO LAB editorial palette */
-  --khaki: #f4ede1;        /* warm cream — primary surface */
-  --khaki-deep: #ebe2cf;   /* slightly deeper khaki for card surfaces */
-  --ink: #0f0e14;          /* near-black for dark sections */
-  --ink-soft: #1c1a24;     /* softer near-black for surfaces over ink */
-  /* Editorial green accent — replaces rust. Deep forest on khaki, sage on ink. */
-  --rust: #2d5a3f;         /* deep forest green — accent on light surfaces */
-  --rust-soft: #6b9678;    /* sage green — accent on dark surfaces */
+  /* Editorial Paper palette — aligned with the mobile design system
+     (see docs/changes/WEB-SYNC-CRM-CREATOR-APPROVAL-UI-REDESIGNED.md §10.5).
+     Legacy var names (--khaki, --ink, --rust, --khaki-deep, --rust-soft) are
+     KEPT so pages that already reference them keep working — they just now
+     resolve to the new editorial values. New code should use --ed-* directly. */
+  --khaki: #F8F5EE;        /* warm off-white — page bg (was #f4ede1) */
+  --khaki-deep: #EFEBE0;   /* card surface (was #ebe2cf) */
+  --ink: #1B1C24;          /* near-black (was #0f0e14) */
+  --ink-soft: #3C3F4A;     /* softer ink for body emphasis (was #1c1a24) */
+  --rust: #047857;         /* emerald accent — primary CTA / italic display */
+  --rust-soft: #10B981;    /* emerald-solid — door-accent fills */
 }
 
 @theme inline {
@@ -63,6 +66,221 @@ body {
 [data-clerk-provider="tiktok"],
 [data-provider="tiktok"] {
   display: none !important;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   EDITORIAL PAPER design system (mobile-spec — separate from .neo landing).
+   Tokens are GLOBAL (no scope) so any page can opt into them by using the
+   `.editorial` wrapper class on a root element OR by referencing the CSS
+   variables directly. Utility classes (.ed-display, .ed-label, .ed-door,
+   .ed-card, .ed-pill, .ed-rule) are also global.
+
+   Color values match the mobile-side palette (RGB, not oklch) so admin and
+   mobile feel coherent. See docs/changes/WEB-SYNC-CRM-CREATOR-APPROVAL-UI-REDESIGNED.md
+   §10.5 for the full token reference.
+   ────────────────────────────────────────────────────────────────────────── */
+:root {
+  /* Paper (surfaces) */
+  --ed-paper:   #F8F5EE;
+  --ed-paper-2: #EFEBE0;
+  --ed-paper-3: #FCFAF5;
+
+  /* Ink (text + primary dark surfaces) */
+  --ed-ink:   #1B1C24;
+  --ed-ink-2: #3C3F4A;
+  --ed-ink-3: #7A7E8A;
+
+  /* Emerald accent — primary CTA / italic display emphasis */
+  --ed-accent:        #047857;
+  --ed-accent-ink:    #064E3B;
+  --ed-accent-bg:     #D1FAE5;
+  --ed-accent-solid:  #10B981;
+
+  /* Business / system accent */
+  --ed-business:    #1F3654;
+  --ed-business-bg: #E4E9F0;
+  --ed-business-ink:#11203A;
+
+  /* Live (real-time markers — distinct from brand green) */
+  --ed-live:      #3FA86A;
+  --ed-live-soft: #D4EFDE;
+
+  /* Rules / dividers */
+  --ed-rule:        #E0D8C9;
+  --ed-rule-strong: #B7AC95;
+
+  /* Status */
+  --ed-warn:      #C68A12;
+  --ed-warn-bg:   #FBE9C4;
+  --ed-danger:    #B43A1F;
+  --ed-danger-bg: #F3D7CF;
+
+  /* Type stacks (re-use the variables loaded by next/font in layout.tsx) */
+  --ed-serif: var(--font-instrument-serif), "Instrument Serif", Georgia, serif;
+  --ed-sans:  var(--font-onest), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --ed-mono:  var(--font-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Radius scale */
+  --ed-radius-xs: 8px;
+  --ed-radius-sm: 12px;
+  --ed-radius-md: 18px;
+  --ed-radius-lg: 24px;
+  --ed-radius-xl: 32px;
+  --ed-radius-pill: 999px;
+
+  /* Subtle warm shadow (no harsh elevation against paper bg) */
+  --ed-shadow-sm: 0 1px 2px rgba(27, 28, 36, .04), 0 4px 12px -6px rgba(27, 28, 36, .08);
+  --ed-shadow-md: 0 2px 6px rgba(27, 28, 36, .06), 0 12px 24px -10px rgba(27, 28, 36, .12);
+}
+
+/* Wrapper class — apply to a top-level element of a page/layout to opt into
+   paper background + ink text + Onest body font.
+   Use `.editorial` on the OUTER container, not on individual buttons. */
+.editorial {
+  background: var(--ed-paper);
+  color: var(--ed-ink);
+  font-family: var(--ed-sans);
+}
+
+/* Headlines (Instrument Serif). Use the size you need. */
+.ed-display    { font-family: var(--ed-serif); font-weight: 400; letter-spacing: -0.02em; }
+.ed-display-sm { font-family: var(--ed-serif); font-size: clamp(24px, 3vw, 28px);   line-height: 1.1;  letter-spacing: -0.015em; font-weight: 400; }
+.ed-display-md { font-family: var(--ed-serif); font-size: clamp(32px, 4vw, 40px);   line-height: 1.05; letter-spacing: -0.02em;  font-weight: 400; }
+.ed-display-lg { font-family: var(--ed-serif); font-size: clamp(40px, 5.5vw, 56px); line-height: 1.0;  letter-spacing: -0.025em; font-weight: 400; }
+.ed-display-xl { font-family: var(--ed-serif); font-size: clamp(56px, 8vw, 72px);   line-height: 0.95; letter-spacing: -0.025em; font-weight: 400; }
+.ed-display em, .ed-display-sm em, .ed-display-md em, .ed-display-lg em, .ed-display-xl em {
+  font-style: italic;
+  color: var(--ed-accent);
+}
+
+/* Body */
+.ed-body    { font-family: var(--ed-sans); font-size: 15px; line-height: 1.55; color: var(--ed-ink-2); }
+.ed-body-sm { font-family: var(--ed-sans); font-size: 13px; line-height: 1.5;  color: var(--ed-ink-2); }
+.ed-body-lg { font-family: var(--ed-sans); font-size: 17px; line-height: 1.55; color: var(--ed-ink-2); }
+
+/* Mono uppercase eyebrow label — the editorial signature */
+.ed-label,
+.ed-eyebrow {
+  font-family: var(--ed-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ed-ink-3);
+}
+.ed-eyebrow { letter-spacing: 0.18em; }
+
+/* Doors — large primary CTAs (NEO LAB door pattern) */
+.ed-door {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-radius: var(--ed-radius-md);
+  border: 1px solid var(--ed-ink);
+  font-family: var(--ed-sans);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  text-align: left;
+  line-height: 1.15;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease, color .15s ease;
+  min-height: 48px;
+  background: var(--ed-ink);
+  color: var(--ed-paper-3);
+}
+.ed-door:hover:not(:disabled) { transform: translateY(-1px); }
+.ed-door:disabled { opacity: 0.5; cursor: not-allowed; }
+.ed-door-accent {
+  background: var(--ed-accent-solid);
+  border-color: var(--ed-accent-solid);
+  color: #fff;
+}
+.ed-door-ghost {
+  background: transparent;
+  color: var(--ed-ink);
+  border-color: var(--ed-ink);
+}
+.ed-door-ghost:hover:not(:disabled) {
+  background: var(--ed-ink);
+  color: var(--ed-paper-3);
+}
+.ed-door-caption {
+  display: block;
+  font-family: var(--ed-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 2px;
+}
+
+/* Card — paper-3 surface with warm rule border */
+.ed-card {
+  background: var(--ed-paper-3);
+  border: 1px solid var(--ed-rule);
+  border-radius: var(--ed-radius-md);
+  padding: 16px;
+}
+.ed-card-lg { border-radius: var(--ed-radius-lg); padding: 24px; }
+.ed-card-xl { border-radius: var(--ed-radius-xl); padding: 32px; }
+
+/* Pill — mono-labeled chip */
+.ed-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--ed-rule-strong);
+  background: var(--ed-paper-3);
+  border-radius: var(--ed-radius-pill);
+  font-family: var(--ed-mono);
+  font-weight: 500;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ed-ink-2);
+  cursor: pointer;
+  transition: all .12s ease;
+}
+.ed-pill[aria-pressed="true"] {
+  background: var(--ed-ink);
+  color: var(--ed-paper-3);
+  border-color: var(--ed-ink);
+}
+.ed-pill:hover { border-color: var(--ed-ink); color: var(--ed-ink); }
+.ed-pill[aria-pressed="true"]:hover { color: var(--ed-paper-3); }
+
+/* Warm divider rule */
+.ed-rule        { height: 1px; background: var(--ed-rule);        width: 100%; border: 0; margin: 0; }
+.ed-rule-strong { height: 1px; background: var(--ed-rule-strong); width: 100%; border: 0; margin: 0; }
+
+/* LiveDot — pulsing real-time indicator */
+.ed-live-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  background: var(--ed-live);
+  border-radius: 50%;
+  box-shadow: 0 0 0 0 var(--ed-live);
+  animation: ed-live-pulse 2s infinite;
+  flex-shrink: 0;
+}
+@keyframes ed-live-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(63, 168, 106, 0.6); }
+  70%  { box-shadow: 0 0 0 8px rgba(63, 168, 106, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(63, 168, 106, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ed-live-dot { animation: none; }
+}
+
+/* Mobile responsive — display sizes drop one notch on small viewports */
+@media (max-width: 768px) {
+  .ed-display-xl { font-size: 48px; line-height: 1.0; }
+  .ed-display-lg { font-size: 40px; line-height: 1.05; }
+  .ed-display-md { font-size: 28px; line-height: 1.1; }
 }
 
 /* ──────────────────────────────────────────────────────────────────────────
