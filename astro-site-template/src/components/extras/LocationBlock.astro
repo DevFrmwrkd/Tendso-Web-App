@@ -1,0 +1,261 @@
+---
+/**
+ * LocationBlock — NAP (Name/Address/Phone) + Leaflet map pin.
+ *
+ * Renders on EVERY variant via index.astro. Visibility-toggle controlled.
+ * Designed per docs/Landing Pages v01/COMPONENTS.md LOC.v1:
+ *   "NAP + hours + map block — name/address/phone + GBP hours slot + map placeholder."
+ *
+ * Why this exists:
+ * - Local-SEO backbone — the NAP triple is the single biggest ranking signal
+ *   for "near me" searches when consistent across the site, GBP, and citations.
+ * - Static fallback: the address renders as plain text whether the Leaflet
+ *   script runs or not (JS-off readable per the brief's static-file principle).
+ *
+ * Coordinates come from `submissions.coordinates` (if present) or get
+ * geocoded client-side from the address via Nominatim. Static markup never
+ * blocks on geocoding — the map appears once the JS resolves coords.
+ */
+interface Props {
+    businessName: string;
+    address?: string;
+    phone?: string;
+    phoneDisplay?: string;
+    email?: string;
+    lat?: number;
+    lng?: number;
+    googleMapsUrl?: string;
+    visibility?: Record<string, boolean>;
+}
+
+const {
+    businessName,
+    address,
+    phone,
+    phoneDisplay,
+    email,
+    lat,
+    lng,
+    googleMapsUrl,
+    visibility,
+} = Astro.props;
+
+const show = visibility?.locationBlock !== false;
+const hasMap = !!(lat && lng) || !!address;
+const phoneTel = phone ? phone.replace(/[^0-9+]/g, '') : '';
+const phoneText = phoneDisplay || phone || '';
+---
+
+{show && (address || phone || email) && (
+    <section id="location" class="bg-[var(--surface)] py-20 md:py-28">
+        <div class="mx-auto max-w-7xl px-6 lg:px-10">
+            <div class="mb-10 flex items-end justify-between gap-6 flex-wrap">
+                <div>
+                    <p
+                        class="text-[11px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-3"
+                        style="font-family: var(--body-font, inherit);"
+                    >
+                        Visit / Contact
+                    </p>
+                    <h2
+                        class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight text-[var(--text)]"
+                        style="font-family: var(--heading-font, inherit);"
+                        data-field="location.heading"
+                    >
+                        Find <span data-field="business.name" set:html={businessName}></span>
+                    </h2>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_1.4fr] gap-6 lg:gap-10">
+                {/* NAP card */}
+                <div class="rounded-2xl border border-[var(--text)]/10 bg-[var(--bg)] p-6 lg:p-8 flex flex-col gap-5">
+                    {address && (
+                        <div>
+                            <p
+                                class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1.5"
+                                style="font-family: var(--body-font, inherit);"
+                            >
+                                Address
+                            </p>
+                            <p
+                                class="text-[var(--text)] text-base leading-relaxed"
+                                data-field="contact.address"
+                                set:html={address}
+                            ></p>
+                        </div>
+                    )}
+                    {phoneText && (
+                        <div>
+                            <p
+                                class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1.5"
+                                style="font-family: var(--body-font, inherit);"
+                            >
+                                Phone
+                            </p>
+                            <a
+                                href={`tel:${phoneTel}`}
+                                class="text-[var(--text)] text-base font-medium hover:text-[var(--primary)] transition-colors"
+                            >
+                                <span data-field="contact.phone" set:html={phoneText}></span>
+                            </a>
+                        </div>
+                    )}
+                    {email && (
+                        <div>
+                            <p
+                                class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1.5"
+                                style="font-family: var(--body-font, inherit);"
+                            >
+                                Email
+                            </p>
+                            <a
+                                href={`mailto:${email}`}
+                                class="text-[var(--text)] text-base font-medium hover:text-[var(--primary)] transition-colors break-all"
+                            >
+                                <span data-field="contact.email" set:html={email}></span>
+                            </a>
+                        </div>
+                    )}
+                    {/* Hours slot — owner edits in Google. We surface a deeplink
+                        so visitors see the live Google-maintained hours instead
+                        of a stale typed-in schedule. Per the brief: "Hours /
+                        rating pulled from Google, not typed in". */}
+                    <div class="pt-2 border-t border-[var(--text)]/10">
+                        <p
+                            class="text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--text-muted)] mb-1.5"
+                            style="font-family: var(--body-font, inherit);"
+                        >
+                            Hours
+                        </p>
+                        {googleMapsUrl ? (
+                            <a
+                                href={googleMapsUrl}
+                                target="_blank"
+                                rel="noopener"
+                                class="inline-flex items-center gap-2 text-[var(--text)] text-sm font-medium hover:text-[var(--primary)] transition-colors"
+                            >
+                                <span data-field="location.hours_label">See latest hours on Google</span>
+                                <span aria-hidden="true">→</span>
+                            </a>
+                        ) : (
+                            <p class="text-[var(--text-muted)] text-sm italic">
+                                See latest hours on Google
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Map */}
+                {hasMap && (
+                    <div
+                        class="rounded-2xl border border-[var(--text)]/10 bg-[var(--bg)] overflow-hidden min-h-[320px] lg:min-h-[420px] relative"
+                    >
+                        <div
+                            id="loc-map"
+                            data-address={address ?? ''}
+                            data-lat={lat ?? ''}
+                            data-lng={lng ?? ''}
+                            data-business={businessName ?? ''}
+                            class="w-full h-full min-h-[320px] lg:min-h-[420px]"
+                            style="background: var(--bg);"
+                        ></div>
+                        {/* JS-off fallback — Google Maps deep link with the address */}
+                        <noscript>
+                            <div class="absolute inset-0 flex items-center justify-center p-6 text-center">
+                                <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address ?? businessName)}`}
+                                    class="text-[var(--primary)] underline"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    Open in Google Maps →
+                                </a>
+                            </div>
+                        </noscript>
+                    </div>
+                )}
+            </div>
+        </div>
+
+        {hasMap && (
+            <>
+                <link
+                    rel="stylesheet"
+                    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+                    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+                    crossorigin=""
+                />
+                <script
+                    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+                    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+                    crossorigin=""
+                    is:inline
+                ></script>
+                <script is:inline>
+                    (function () {
+                        function init() {
+                            var el = document.getElementById('loc-map');
+                            if (!el || typeof L === 'undefined') return;
+                            var lat = parseFloat(el.dataset.lat);
+                            var lng = parseFloat(el.dataset.lng);
+                            var address = el.dataset.address || '';
+                            var business = el.dataset.business || 'Here';
+
+                            function render(latNum, lngNum) {
+                                var map = L.map(el, {
+                                    center: [latNum, lngNum],
+                                    zoom: 15,
+                                    scrollWheelZoom: false,
+                                    attributionControl: false,
+                                });
+                                L.tileLayer(
+                                    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+                                    { maxZoom: 19, subdomains: 'abcd' }
+                                ).addTo(map);
+                                var icon = L.divIcon({
+                                    className: 'loc-pin',
+                                    html:
+                                        '<div style="width:18px;height:18px;border-radius:50%;background:var(--primary,#0f0e14);border:3px solid #fff;box-shadow:0 4px 12px rgba(0,0,0,0.25);"></div>',
+                                    iconSize: [18, 18],
+                                    iconAnchor: [9, 9],
+                                });
+                                L.marker([latNum, lngNum], { icon: icon })
+                                    .addTo(map)
+                                    .bindPopup(business);
+                            }
+
+                            if (!isNaN(lat) && !isNaN(lng)) {
+                                render(lat, lng);
+                                return;
+                            }
+                            // Geocode the address via Nominatim (rate-limit-safe at this scale).
+                            if (!address) return;
+                            fetch(
+                                'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' +
+                                    encodeURIComponent(address),
+                                { headers: { Accept: 'application/json' } }
+                            )
+                                .then(function (r) {
+                                    return r.json();
+                                })
+                                .then(function (rows) {
+                                    if (rows && rows[0]) {
+                                        render(parseFloat(rows[0].lat), parseFloat(rows[0].lon));
+                                    }
+                                })
+                                .catch(function () {
+                                    /* network errors silently leave the address fallback */
+                                });
+                        }
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', init);
+                        } else {
+                            init();
+                        }
+                    })();
+                </script>
+            </>
+        )}
+    </section>
+)}

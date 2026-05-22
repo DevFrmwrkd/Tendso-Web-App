@@ -1,23 +1,74 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, Suspense } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { Input } from "@/components/ui/input"
 import AdminLayout from "../components/AdminLayout"
+import PendingApprovalsView from "./_views/PendingApprovalsView"
+import RejectedCreatorsView from "./_views/RejectedCreatorsView"
 
 type CreatorStatus = 'pending' | 'active' | 'suspended' | 'deleted'
+
+// Top-level view switcher inside the Creators page. The Pending + Rejected
+// admin queues used to live at /admin/pending-approvals and
+// /admin/rejected-creators — they're now folded in here as tabs so admins
+// don't context-switch between three different routes. The standalone
+// routes still redirect here for any external bookmarks.
+type CreatorView = 'all' | 'pending' | 'rejected'
 
 function getInitials(first: string, last: string) {
     return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase()
 }
 
+// Wrap the page so the useSearchParams() call inside is allowed in the
+// Next.js static export pass. Without Suspense, Next bails out of the
+// pre-render and errors at build time.
 export default function CreatorsPage() {
+    return (
+        <Suspense fallback={null}>
+            <CreatorsPageInner />
+        </Suspense>
+    )
+}
+
+function CreatorsPageInner() {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const { user, isLoaded } = useUser()
+
+    // View tabs sync with ?view= so the queues are deep-linkable and the
+    // existing standalone routes can redirect here without losing context.
+    const initialView = (() => {
+        const v = searchParams.get('view')
+        return v === 'pending' || v === 'rejected' ? (v as CreatorView) : ('all' as CreatorView)
+    })()
+    const [view, setView] = useState<CreatorView>(initialView)
+    useEffect(() => {
+        const v = searchParams.get('view')
+        const next: CreatorView = v === 'pending' || v === 'rejected' ? (v as CreatorView) : 'all'
+        if (next !== view) setView(next)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams])
+
+    function changeView(next: CreatorView) {
+        setView(next)
+        const sp = new URLSearchParams(searchParams?.toString() ?? '')
+        if (next === 'all') sp.delete('view')
+        else sp.set('view', next)
+        const q = sp.toString()
+        router.replace(q ? `/admin/creators?${q}` : '/admin/creators')
+    }
+
+    // Reactive badge counts for the view tabs — same queries used by the
+    // standalone pages, just rendered as a small superscript next to the tab.
+    const pendingForCount = useQuery(api.creators.listPendingApproval, {}) as { _id: string }[] | undefined
+    const rejectedForCount = useQuery(api.creators.listRejected, {}) as { _id: string }[] | undefined
+    const pendingCount = pendingForCount?.length ?? 0
+    const rejectedCount = rejectedForCount?.length ?? 0
 
     const currentCreator = useQuery(
         api.creators.getByClerkId,
@@ -267,6 +318,48 @@ export default function CreatorsPage() {
                 <p className="text-sm text-gray-500 mt-1">Manage platform creators and their accounts.</p>
             </div>
 
+            {/* View Tabs — All / Pending / Rejected */}
+            <div className="mb-6 lg:mb-8 flex items-center gap-1 border-b border-gray-200">
+                {([
+                    { key: 'all', label: 'All creators', count: null as number | null },
+                    { key: 'pending', label: 'Pending approval', count: pendingCount },
+                    { key: 'rejected', label: 'Rejected', count: rejectedCount },
+                ] as const).map((t) => {
+                    const active = view === t.key
+                    return (
+                        <button
+                            key={t.key}
+                            type="button"
+                            onClick={() => changeView(t.key as CreatorView)}
+                            className={`relative px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap inline-flex items-center gap-2 ${
+                                active ? 'text-emerald-700' : 'text-gray-600 hover:text-gray-900'
+                            }`}
+                        >
+                            {t.label}
+                            {t.count !== null && t.count > 0 && (
+                                <span
+                                    className={`inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold ${
+                                        t.key === 'rejected'
+                                            ? 'bg-red-50 text-red-700'
+                                            : 'bg-amber-50 text-amber-700'
+                                    }`}
+                                >
+                                    {t.count}
+                                </span>
+                            )}
+                            {active && (
+                                <span className="absolute -bottom-px left-3 right-3 h-0.5 bg-emerald-600 rounded-full" />
+                            )}
+                        </button>
+                    )
+                })}
+            </div>
+
+            {view === 'pending' && <PendingApprovalsView isAdmin={isAdmin} />}
+            {view === 'rejected' && <RejectedCreatorsView isAdmin={isAdmin} />}
+
+            {view === 'all' && (
+            <>
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 lg:mb-8">
                 <button
@@ -506,6 +599,8 @@ export default function CreatorsPage() {
                     </p>
                 </div>
             </div>
+            </>
+            )}
         </AdminLayout>
     )
 }

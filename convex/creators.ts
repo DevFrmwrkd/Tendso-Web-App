@@ -466,7 +466,9 @@ export const listPendingApproval = query({
 
         const all = await ctx.db.query('creators').collect();
         return all
-            .filter((c) => c.quizPassedAt && !c.certifiedAt && !c.isDeleted)
+            // Exclude rejected creators from the pending queue — they live in
+            // the separate "Rejected creators" view.
+            .filter((c) => c.quizPassedAt && !c.certifiedAt && !c.rejectedAt && !c.isDeleted)
             .map((c) => ({
                 _id: c._id,
                 clerkId: c.clerkId,
@@ -484,5 +486,138 @@ export const listPendingApproval = query({
             // Oldest-pending first — admins should handle the longest-waiting
             // creator at the top of the queue (per DIAGNOSIS-APPROVAL.md).
             .sort((a, b) => a.quizPassedAt - b.quizPassedAt);
+    },
+});
+
+// ============================================================================
+// CREATOR REJECTION FLOW (admin-gated)
+//
+// Counterpart to approveCreator. Admin can choose Reject (with optional reason)
+// when reviewing a pending creator. Mobile detects rejectedAt and routes the
+// creator to /verification-rejected, where they can either request a retry
+// (clears rejectedAt + quizPassedAt → bounces back to /training) or contact
+// support.
+//
+// Invariant: certifiedAt and rejectedAt are mutually exclusive. The rejection
+// mutation throws if the creator is already certified — explicit "unapprove"
+// is out of scope.
+// ============================================================================
+
+/**
+ * Admin-only: reject a creator that has passed the quiz.
+ * Sets rejectedAt + optional reason and notifies the creator.
+ * Idempotent: returns silently if already rejected.
+ * Throws if the creator is already certified.
+ */
+export const rejectCreator = mutation({
+    args: {
+        id: v.id('creators'),
+        reason: v.optional(v.string()),
+    },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error('Not authenticated');
+        const me = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+            .first();
+        if (!me || me.role !== 'admin') throw new Error('Forbidden: admin access required');
+
+        const creator = await ctx.db.get(args.id);
+        if (!creator) throw new Error('Creator not found');
+        if (creator.rejectedAt) return; // idempotent
+        if (creator.certifiedAt) {
+            throw new Error('Cannot reject a creator who has already been approved');
+        }
+
+        const trimmed = args.reason?.trim();
+        if (trimmed && trimmed.length > 500) {
+            throw new Error('Rejection reason too long (max 500 characters)');
+        }
+
+        await ctx.db.patch(args.id, {
+            rejectedAt: Date.now(),
+            rejectionReason: trimmed && trimmed.length > 0 ? trimmed : undefined,
+            rejectedBy: identity.subject,
+            lastActiveAt: Date.now(),
+        });
+
+        await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
+            creatorId: args.id,
+            type: 'certification' as const,
+            title: 'Verification update',
+            body: trimmed && trimmed.length > 0
+                ? `Your application wasn't approved this time. Reason: ${trimmed}`
+                : "Your application wasn't approved this time. You can retake the quiz or contact support.",
+            data: { rejectedByAdmin: true },
+        });
+    },
+});
+
+/**
+ * Creator-self-only: request a retry after being rejected.
+ * Clears rejectedAt + quizPassedAt so the mobile app routes the creator back
+ * to /training. Errors if the creator was never rejected (defensive — the
+ * mobile UI should only surface this when rejectedAt is set).
+ */
+export const requestRecertification = mutation({
+    args: { id: v.id('creators') },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error('Not authenticated');
+        const creator = await ctx.db.get(args.id);
+        if (!creator || creator.clerkId !== identity.subject) {
+            throw new Error('Forbidden: you can only update your own account');
+        }
+        if (!creator.rejectedAt) {
+            throw new Error('Only rejected creators can request recertification');
+        }
+        if (creator.certifiedAt) {
+            throw new Error('Already certified');
+        }
+        await ctx.db.patch(args.id, {
+            rejectedAt: undefined,
+            rejectionReason: undefined,
+            rejectedBy: undefined,
+            quizPassedAt: undefined,
+            lastActiveAt: Date.now(),
+        });
+    },
+});
+
+/**
+ * Admin-only: list creators that were rejected and haven't yet retaken the quiz.
+ * Newest-first so admins see the most recent rejections on top.
+ */
+export const listRejected = query({
+    args: {},
+    handler: async (ctx) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error('Not authenticated');
+        const me = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+            .first();
+        if (!me || me.role !== 'admin') throw new Error('Forbidden: admin access required');
+
+        const all = await ctx.db.query('creators').collect();
+        return all
+            .filter((c) => c.rejectedAt && !c.certifiedAt && !c.isDeleted)
+            .map((c) => ({
+                _id: c._id,
+                clerkId: c.clerkId,
+                email: c.email,
+                firstName: c.firstName ?? null,
+                middleName: c.middleName ?? null,
+                lastName: c.lastName ?? null,
+                phone: c.phone ?? null,
+                profileImage: c.profileImage ?? null,
+                quizPassedAt: c.quizPassedAt ?? null,
+                rejectedAt: c.rejectedAt!,
+                rejectionReason: c.rejectionReason ?? null,
+                rejectedBy: c.rejectedBy ?? null,
+                createdAt: c.createdAt ?? null,
+            }))
+            .sort((a, b) => b.rejectedAt - a.rejectedAt);
     },
 });

@@ -14,6 +14,11 @@ interface Props {
     address?: string;
   };
   navbarStyle?: string;
+  /**
+   * Scroll-to-top button visibility. Default true. Toggle from the
+   * Blocks tab in the sandbox editor. Button color matches --primary.
+   */
+  showScrollTop?: boolean;
 }
 
 const {
@@ -25,6 +30,7 @@ const {
   fontPairing = 'modern',
   contact = {},
   navbarStyle = 'A',
+  showScrollTop = true,
 } = Astro.props;
 
 // Font pairings
@@ -129,6 +135,12 @@ const colorSchemes: Record<string, {
   gold: {
     primary: '#c5a059', secondary: '#1a1a1a', accent: '#e5c07b', background: '#f8f5f0', surface: '#ffffff',
     text: '#1a1a1a', textMuted: '#4a4a4a', inverseText: '#f8f5f0', isDark: false
+  },
+  // White + Gold — clean pure-white surfaces with a rich antique-gold accent.
+  // Editorial luxe (Maison Élite feel) without the cream tint of the `gold` scheme.
+  whitegold: {
+    primary: '#B8860B', secondary: '#2A2620', accent: '#D4AF37', background: '#FFFFFF', surface: '#FAF8F3',
+    text: '#1A1716', textMuted: '#5A524A', inverseText: '#FFFFFF', isDark: false
   },
 };
 
@@ -334,6 +346,77 @@ const year = new Date().getFullYear();
     );
 
     document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+  </script>
+
+  {showScrollTop && (
+    <!--
+      Scroll-to-top button. Appears after the user scrolls past ~600px
+      and gently lifts them back to the top with smooth-scroll. Themed via
+      --primary / --text so it picks up the color scheme. Toggle off in the
+      Blocks tab of the sandbox editor.
+    -->
+    <button
+      type="button"
+      id="scroll-top-btn"
+      class="scroll-top-btn"
+      aria-label="Scroll to top"
+      title="Scroll to top"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <line x1="12" y1="19" x2="12" y2="5"></line>
+        <polyline points="5 12 12 5 19 12"></polyline>
+      </svg>
+    </button>
+  )}
+
+  <style>
+    .scroll-top-btn {
+      position: fixed;
+      right: clamp(16px, 3vw, 28px);
+      bottom: clamp(16px, 3vw, 28px);
+      z-index: 9000;
+      width: 44px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary);
+      color: #fff;
+      border: 0;
+      border-radius: 999px;
+      box-shadow: 0 12px 30px color-mix(in srgb, var(--text) 22%, transparent);
+      cursor: pointer;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 0.22s ease, transform 0.22s ease, filter 0.18s ease;
+    }
+    .scroll-top-btn.is-visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .scroll-top-btn:hover { filter: brightness(1.08); transform: translateY(-2px); }
+    .scroll-top-btn:focus-visible {
+      outline: 2px solid var(--accent, var(--primary));
+      outline-offset: 3px;
+    }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var btn = document.getElementById('scroll-top-btn');
+      if (!btn) return;
+      function update() {
+        if (window.scrollY > 600) btn.classList.add('is-visible');
+        else btn.classList.remove('is-visible');
+      }
+      btn.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      window.addEventListener('scroll', update, { passive: true });
+      update();
+    })();
   </script>
 </body>
 </html>

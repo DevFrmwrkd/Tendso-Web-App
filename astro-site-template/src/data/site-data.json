@@ -1,7 +1,7 @@
 {
   "layout": {
-    "businessName": "Bonifacio Auto Shop",
-    "tagline": "Cutting Styles, Not Corners",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "tagline": "Everlasting Beauty Forever",
     "navLinks": [
       {
         "href": "#about",
@@ -21,21 +21,30 @@
       }
     ],
     "socialLinks": [],
-    "colorScheme": "blue",
-    "fontPairing": "creative",
+    "colorScheme": "whitegold",
+    "fontPairing": "gourmet",
     "contact": {
-      "address": "blk 11 lot 46, Cavite",
-      "email": "stevenmadali17@gmail.com",
-      "phone": "9278147733"
+      "address": "Heritage homes, Marilao, Bulacan, Marilao",
+      "email": "josephinecarvajal110168@gmail.com",
+      "phone": "9177871293"
     },
-    "navbarStyle": "L1"
+    "navbarStyle": "M1"
   },
   "customizations": {
-    "heroStyle": "L1",
-    "aboutStyle": "L4",
-    "servicesStyle": "L5",
-    "galleryStyle": "L4",
-    "contactStyle": "L1"
+    "heroStyle": "M1",
+    "aboutStyle": "M1",
+    "servicesStyle": "M1",
+    "galleryStyle": "M4",
+    "contactStyle": "M1",
+    "trustStyle": "M1",
+    "whyUsStyle": "M1",
+    "howItWorksStyle": "M2",
+    "testimonialsStyle": "M1",
+    "faqStyle": "M1",
+    "serviceAreaStyle": "M2",
+    "credentialsStyle": "M1",
+    "ctaBandStyle": "M1",
+    "clickToMessageStyle": "M1"
   },
   "visibility": {
     "heroSection": true,
@@ -69,29 +78,40 @@
     "contactHeadline": true,
     "contactDescription": true,
     "contactInfo": true,
-    "contactSocial": true
+    "contactSocial": true,
+    "locationBlock": true,
+    "serviceAreaBlock": true,
+    "clickToMessage": false,
+    "scrollTopButton": true,
+    "trustBlock": false,
+    "whyUsBlock": true,
+    "howItWorksBlock": true,
+    "testimonialsBlock": true,
+    "faqBlock": true,
+    "credentialsBlock": true,
+    "ctaBandBlock": true
   },
   "hero": {
-    "businessName": "Bonifacio Auto Shop",
-    "headline": "Cutting Styles, Not Corners",
-    "description": "Bonifacio Auto Shop is a premier barber and salon in Cavite, dedicated to providing top-notch grooming services. Our experienced team, led by owner Steven Gabriel Madali, is committed to ensuring every client leaves feeling refreshed and revitalized. From classic cuts to modern styles, we've got you covered.",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "headline": "Everlasting Beauty Forever",
+    "description": "Aloja Carvajal Aesthetic and Beauty Studio is a haven for personalized beauty services, providing tailored experiences to make each client feel confident and beautiful. With years of expertise, our studio focuses on understanding individual needs and delivering exceptional care. Our goal is to become a trusted name in the beauty industry, renowned for quality and customer care.",
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/9327f451-9b14-46ae-9641-2139cf65bc8c",
-      "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537",
-      "https://diligent-ibex-454.convex.cloud/api/storage/67c839f5-05f5-4e54-9466-9c5834c3016a"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
     ],
     "services": [
       {
-        "description": "Expertly crafted haircuts tailored to your style and preferences",
-        "name": "Haircut"
+        "description": "Customized haircuts and styling for all hair types",
+        "name": "Cut & Style"
       },
       {
-        "description": "Traditional hot towel shaves for the ultimate relaxation experience",
-        "name": "Shave"
+        "description": "Professional hair coloring and highlighting services",
+        "name": "Couture Color"
       },
       {
-        "description": "Comprehensive packages including haircuts, shaves, and other grooming services",
-        "name": "Grooming Package"
+        "description": "Expert makeup and hair styling for special occasions",
+        "name": "Bridal & Events"
       }
     ],
     "visibility": {
@@ -104,18 +124,19 @@
     }
   },
   "about": {
-    "businessName": "Bonifacio Auto Shop",
-    "description": "Bonifacio Auto Shop is a premier barber and salon in Cavite, dedicated to providing top-notch grooming services. Our experienced team, led by owner Steven Gabriel Madali, is committed to ensuring every client leaves feeling refreshed and revitalized. From classic cuts to modern styles, we've got you covered.",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "description": "Aloja Carvajal Aesthetic and Beauty Studio is a haven for personalized beauty services, providing tailored experiences to make each client feel confident and beautiful. With years of expertise, our studio focuses on understanding individual needs and delivering exceptional care. Our goal is to become a trusted name in the beauty industry, renowned for quality and customer care.",
     "headline": "About Us",
     "usps": [
-      "Experienced Team",
-      "Personalized Service",
-      "Relaxing Atmosphere"
+      "Personalized care",
+      "Experienced professionals",
+      "Welcoming atmosphere",
+      "Customized services"
     ],
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/9327f451-9b14-46ae-9641-2139cf65bc8c",
-      "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537",
-      "https://diligent-ibex-454.convex.cloud/api/storage/67c839f5-05f5-4e54-9466-9c5834c3016a"
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
     ],
     "visibility": {
       "aboutBadge": true,
@@ -130,20 +151,32 @@
     "headline": "Our Services",
     "services": [
       {
-        "description": "Expertly crafted haircuts tailored to your style and preferences",
-        "name": "Haircut"
+        "description": "Customized haircuts and styling for all hair types",
+        "name": "Cut & Style"
       },
       {
-        "description": "Traditional hot towel shaves for the ultimate relaxation experience",
-        "name": "Shave"
+        "description": "Professional hair coloring and highlighting services",
+        "name": "Couture Color"
       },
       {
-        "description": "Comprehensive packages including haircuts, shaves, and other grooming services",
-        "name": "Grooming Package"
+        "description": "Expert makeup and hair styling for special occasions",
+        "name": "Bridal & Events"
+      },
+      {
+        "description": "Nourishing facial treatments for radiant skin",
+        "name": "Glow Facials"
+      },
+      {
+        "description": "Precision brow shaping and lash enhancement services",
+        "name": "Brow & Lash"
+      },
+      {
+        "description": "Personalized skin care and rejuvenation treatments",
+        "name": "Skin Treatments"
       }
     ],
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf"
     ],
     "visibility": {
       "servicesBadge": true,
@@ -155,53 +188,53 @@
     }
   },
   "gallery": {
-    "headline": "Featured Styles",
-    "subheadline": "Showcasing our latest and greatest work",
+    "headline": "Featured Services",
+    "subheadline": "Experience the art of beauty with our expert services",
     "items": [
       {
-        "title": "The Classic Cut",
-        "description": "A timeless haircut that exudes sophistication and style. Our team of experts will work with you to create a customized look that suits your face shape and personal taste. From consultation to completion, we'll ensure you're completely satisfied with the final result.",
-        "image": "https://diligent-ibex-454.convex.cloud/api/storage/9327f451-9b14-46ae-9641-2139cf65bc8c",
+        "title": "Bridal Beauty Package",
+        "description": "Our bridal package includes a trial session, hair and makeup styling, and touch-ups throughout the event. Our team works closely with each bride to create a customized look that reflects her personal style and wedding theme. From classic elegance to modern glamour, we bring each bride's vision to life.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
         "tags": [
-          "Haircut",
-          "30 minutes"
+          "Bridal",
+          "Full-day"
         ],
         "testimonial": {
-          "author": "Mark Santos",
-          "quote": "I've been going to Bonifacio Auto Shop for months now, and I've never been disappointed. The classic cut is my go-to style, and Steven always gets it just right. Highly recommended!"
+          "author": "Maria Rodriguez",
+          "quote": "I felt like a princess on my wedding day, thanks to the talented team at Aloja Carvajal. They listened to my ideas and created a stunning look that exceeded my expectations. I highly recommend their bridal services to any bride-to-be!"
         }
       },
       {
-        "title": "The Ultimate Shave",
-        "description": "Indulge in the luxury of a traditional hot towel shave, complete with soothing scents and expert technique. Our team will guide you through the process, ensuring a comfortable and rejuvenating experience. Leave feeling refreshed, revitalized, and ready to take on the day.",
-        "image": "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537",
+        "title": "Customized Hair Color",
+        "description": "Our expert colorists work with each client to create a personalized hair color plan, taking into account their skin tone, hair type, and personal preferences. From subtle, natural-looking highlights to bold, vibrant colors, we use only the highest-quality products to achieve the desired result. Our goal is to enhance each client's natural beauty and leave them feeling confident and radiant.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
         "tags": [
-          "Shave",
-          "45 minutes"
+          "Hair Color",
+          "Half-day"
         ],
         "testimonial": {
-          "author": "Renzel Cruz",
-          "quote": "The ultimate shave at Bonifacio Auto Shop is an experience like no other. The attention to detail and care taken by the team is exceptional. I feel like a new man after every visit!"
+          "author": "Samantha Lee",
+          "quote": "I've never been happier with my hair color! The team at Aloja Carvajal took the time to understand my needs and created a customized color plan that perfectly complements my skin tone and personal style."
         }
       },
       {
-        "title": "The Grooming Package",
-        "description": "Treat yourself to the full Bonifacio Auto Shop experience with our comprehensive grooming package. Including a haircut, shave, and other grooming services, this package is perfect for special occasions or simply as a way to pamper yourself. Our team will work with you to create a customized package tailored to your needs and preferences.",
-        "image": "https://diligent-ibex-454.convex.cloud/api/storage/67c839f5-05f5-4e54-9466-9c5834c3016a",
+        "title": "Glowing Skin Treatment",
+        "description": "Our signature facial treatment includes a thorough skin analysis, personalized product recommendations, and a rejuvenating treatment tailored to each client's specific skin concerns. From hydrating and nourishing to exfoliating and brightening, our facials leave skin looking and feeling its best. Our team is dedicated to helping each client achieve their skin goals and maintain a healthy, radiant glow.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
         "tags": [
-          "Grooming Package",
-          "1 hour"
+          "Facial",
+          "60-minute"
         ],
         "testimonial": {
-          "author": "Ryan Reyes",
-          "quote": "I opted for the grooming package at Bonifacio Auto Shop, and it was worth every penny. The team was friendly, professional, and made sure I felt comfortable throughout the entire process. I'll definitely be back for more!"
+          "author": "Emily Chen",
+          "quote": "The glowing skin treatment at Aloja Carvajal was amazing! My skin felt so soft and refreshed after the treatment, and the products they recommended have really helped to improve my skin's texture and tone."
         }
       }
     ],
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/9327f451-9b14-46ae-9641-2139cf65bc8c",
-      "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537",
-      "https://diligent-ibex-454.convex.cloud/api/storage/67c839f5-05f5-4e54-9466-9c5834c3016a"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
     ],
     "visibility": {
       "galleryHeadline": true,
@@ -212,16 +245,16 @@
     }
   },
   "contact": {
-    "businessName": "Bonifacio Auto Shop",
-    "email": "stevenmadali17@gmail.com",
-    "phone": "9278147733",
-    "address": "blk 11 lot 46, Cavite",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "email": "josephinecarvajal110168@gmail.com",
+    "phone": "9177871293",
+    "address": "Heritage homes, Marilao, Bulacan, Marilao",
     "description": "For any inquiries or to explore your vision further, we invite you to contact our professional team using the details provided below.",
     "socialLinks": [],
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/9327f451-9b14-46ae-9641-2139cf65bc8c",
-      "https://diligent-ibex-454.convex.cloud/api/storage/dc939b70-df2c-4a80-bb9c-b6964b814537",
-      "https://diligent-ibex-454.convex.cloud/api/storage/67c839f5-05f5-4e54-9466-9c5834c3016a"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
     ],
     "visibility": {
       "contactBadge": true,
@@ -230,5 +263,134 @@
       "contactInfo": true,
       "contactSocial": true
     }
+  },
+  "location": {
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Heritage%20homes%2C%20Marilao%2C%20Bulacan%2C%20Marilao"
+  },
+  "serviceArea": {
+    "heading": "Service area",
+    "places": [
+      "Marilao",
+      "Meycauayan",
+      "Bocaue",
+      "Sta. Maria",
+      "Bulacan"
+    ]
+  },
+  "messaging": {
+    "whatsapp": "639177871293"
+  },
+  "trust": {
+    "licenses": [
+      "PRC cosmetology",
+      "DOH facility permit",
+      "Brand-trained colourist"
+    ],
+    "memberships": [
+      "Professional association membership",
+      "Training school affiliation"
+    ],
+    "years": "A house of beauty since 2018"
+  },
+  "why": [
+    {
+      "body": "Our goal is to help our clients feel confident and beautiful by providing personalized beauty services that suit their individual needs. We cater to everyday beauty needs as well as special occasions like weddings, parties and events.",
+      "title": "Personalized Beauty"
+    },
+    {
+      "body": "With years of experience in the beauty industry, we focus on understanding and delivering what each client wants to help them achieve the look that best suits them. We also create a welcoming and comfortable environment where clients can relax and feel taken care of.",
+      "title": "Experienced Team"
+    },
+    {
+      "body": "We strive to continue improving our services and maintaining good relationships with our clients, marketing our business and reaching more potential customers.",
+      "title": "Committed to Excellence"
+    }
+  ],
+  "how": [
+    {
+      "body": "We start by understanding your individual needs and preferences to provide personalized beauty services.",
+      "step": "01",
+      "title": "Consultation"
+    },
+    {
+      "body": "Our experienced team delivers customized beauty services to help you achieve the look that best suits you.",
+      "step": "02",
+      "title": "Customized Service"
+    },
+    {
+      "body": "We create a welcoming and comfortable environment where you can relax and feel taken care of.",
+      "step": "03",
+      "title": "Relaxing Experience"
+    },
+    {
+      "body": "We follow up with our clients to ensure they are satisfied with our services and to maintain a good relationship.",
+      "step": "04",
+      "title": "Follow-up"
+    }
+  ],
+  "testimonials": [
+    {
+      "context": "Regular client",
+      "name": "Maria G",
+      "quote": "I feel confident and beautiful after every visit."
+    },
+    {
+      "context": "New client",
+      "name": "John D",
+      "quote": "The staff is friendly and professional."
+    },
+    {
+      "context": "Loyal client",
+      "name": "Emily T",
+      "quote": "I love the personalized service I receive."
+    }
+  ],
+  "faq": [
+    {
+      "a": "We offer a variety of services such as hair styling, hair color, makeup services, and other beauty treatments.",
+      "q": "What services do you offer"
+    },
+    {
+      "a": "Yes, we cater to special occasions like weddings, parties and events.",
+      "q": "Do you cater to special occasions"
+    },
+    {
+      "a": "We follow up with our clients to ensure they are satisfied with our services and to maintain a good relationship.",
+      "q": "How do you ensure client satisfaction"
+    },
+    {
+      "a": "The personalized care we give to every client and our focus on understanding and delivering what each client wants.",
+      "q": "What makes your business special"
+    },
+    {
+      "a": "We continue to improve our services and stay updated with the latest trends and techniques in the beauty industry.",
+      "q": "How do you stay up-to-date with industry trends"
+    }
+  ],
+  "credentials": [
+    {
+      "detail": "PRC cosmetology",
+      "label": "Licensed"
+    },
+    {
+      "detail": "Brand-trained colourist",
+      "label": "Trained"
+    },
+    {
+      "detail": "Liability insurance",
+      "label": "Insured"
+    },
+    {
+      "detail": "Trusted beauty studio",
+      "label": "Awarded"
+    }
+  ],
+  "ctaBand": {
+    "body": "Visit us today and discover how our personalized beauty services can help you feel confident and beautiful.",
+    "heading": "Experience Personalized Beauty",
+    "primaryLabel": "Book Now",
+    "primaryLink": "#location",
+    "secondaryLabel": "Get Directions",
+    "secondaryLink": "#contact"
   }
 }

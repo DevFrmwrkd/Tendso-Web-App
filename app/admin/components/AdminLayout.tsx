@@ -11,7 +11,6 @@ import { api } from "@/convex/_generated/api"
 import {
     LayoutDashboard,
     Users,
-    UserCheck,
     CreditCard,
     History,
     Download,
@@ -32,11 +31,6 @@ const navItems = [
         label: "Creators",
         href: "/admin/creators",
         icon: Users,
-    },
-    {
-        label: "Pending Approvals",
-        href: "/admin/pending-approvals",
-        icon: UserCheck,
     },
     {
         label: "Leads",
@@ -194,8 +188,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     <span>{item.label}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    {/* Pending Approval count badge — reactive via listPendingApproval query */}
-                                    {item.href === "/admin/pending-approvals" && pendingCount > 0 && (
+                                    {/* Pending Approval count badge — now attached to Creators
+                                        since the Pending queue lives inside that page as a tab. */}
+                                    {item.href === "/admin/creators" && pendingCount > 0 && (
                                         <span
                                             className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold"
                                             style={{

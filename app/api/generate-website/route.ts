@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { fetchQuery } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 import { buildAstroSite } from '@/lib/astro-builder'
+import { groqService } from '@/lib/services/groq.service'
 
 export async function POST(request: NextRequest) {
     try {
@@ -92,7 +93,23 @@ export async function POST(request: NextRequest) {
             extractedContent.tagline &&
             extractedContent.about
 
-        if (!extractedContent || !hasRequiredFields) {
+        // For beauty/salon businesses, the new design grids need 5-6 services.
+        // If a previous extraction only produced 3 (the old prompt's target),
+        // re-extract so the page fills out properly. Same for sparse 1-2.
+        const businessTypeLowerCheck = (submission.business_type || '').toLowerCase()
+        const isBeautyCheck = /salon|spa|beauty|barber|nail|hair|lash|brow|aesthetic/.test(businessTypeLowerCheck)
+        const servicesCount = Array.isArray((extractedContent as any)?.services)
+            ? (extractedContent as any).services.length
+            : 0
+        const servicesAreSparse =
+            (isBeautyCheck && servicesCount < 5) || servicesCount < 3
+
+        // Force re-extraction when content exists but doesn't meet the
+        // current grid requirements. Preserves admin-edited contact info
+        // (already merged above) by saving it as override before re-extraction.
+        const preservedContact = (extractedContent as any)?.contact
+
+        if (!extractedContent || !hasRequiredFields || (servicesAreSparse && submission.transcript)) {
 
             // Build context from submission data
             const context = `
@@ -113,11 +130,20 @@ ${submission.transcript ? `Business Interview Transcript:\n${submission.transcri
             // Count photos for featured projects generation
             const photoCount = submission.photos?.length || 0
 
+            // Salon-aware service count — the Lumière + Maison Élite designs
+            // both feature 6-service grids, so we ask for more depth when the
+            // business type is in the beauty cluster.
+            const businessTypeLower = (submission.business_type || '').toLowerCase()
+            const isBeauty = /salon|spa|beauty|barber|nail|hair|lash|brow|aesthetic/.test(businessTypeLower)
+            const isYmyl = /clinic|dental|medical|doctor|aesthetic/.test(businessTypeLower)
+            const targetServices = isBeauty ? 6 : 4
+
             const prompt = `You are a professional website content writer. Based on the following business information, create compelling website content.
 
 ${context}
 
 Number of photos available: ${photoCount}
+Business category cues: ${isBeauty ? 'BEAUTY/SALON — high-touch personal service. Write to women + men who care about how they are treated, not just the result. Aspirational, intimate, never gimmicky.' : 'GENERAL — concrete, founder-voiced, no SaaS clichés.'}
 
 Generate a JSON response with the following structure:
 {
@@ -125,12 +151,12 @@ Generate a JSON response with the following structure:
   "tagline": "A catchy, memorable tagline (max 10 words)",
   "about": "A compelling 2-3 sentence description of the business that highlights what makes it special",
   "services": [
-    {"name": "Service Name 1", "description": "Brief description of this service"},
-    {"name": "Service Name 2", "description": "Brief description of this service"},
-    {"name": "Service Name 3", "description": "Brief description of this service"}
+    ${Array.from({ length: targetServices }, (_, i) =>
+      `{"name": "2-3 WORDS MAX", "description": "ONE single sentence, 12-20 words, no clauses, no semicolons"}`
+    ).join(',\n    ')}
   ],
-  "unique_selling_points": ["USP 1", "USP 2", "USP 3"],
-  "tone": "professional-friendly",
+  "unique_selling_points": ["USP 1", "USP 2", "USP 3", "USP 4"],
+  "tone": "${isBeauty ? 'warm, refined, aspirational' : 'professional-friendly'}",
   "featured_headline": "Featured Products",
   "featured_subheadline": "A brief description of what makes these projects special",
   "featured_products": [
@@ -147,14 +173,18 @@ Generate a JSON response with the following structure:
 }
 
 IMPORTANT:
-- Make the tagline creative and memorable
-- Services should be specific to this business type
+- Make the tagline creative and memorable. For beauty: short, italic-ready, ends without a period.
+- Services MUST have exactly ${targetServices} items, specific to this business type. ${isBeauty ? 'Cover: cuts/styling · color · treatments · bridal/event · nails or lash · facials/skin (pick whichever fits this business).' : ''}
+- SERVICE NAMES: 2-3 words MAX. Editorial titles like "Cut & Style", "Couture Color", "Bridal & Events", "Glow Facials", "Brow & Lash Studio". NEVER full sentences or descriptions in the name.
+- SERVICE DESCRIPTIONS: ONE sentence only, 12-20 words. No clauses joined by semicolons. No "we offer" / "we provide" filler. Concrete and specific.
 - USPs should highlight what makes this business unique
 - Keep descriptions concise and compelling
 - Generate ${Math.min(photoCount, 3) || 3} featured_products (one for each photo if available, max 3)
 - Each featured project should have a unique title, description, tags, and testimonial
 - Make testimonials sound realistic and specific to each project
 - Tags should include project type and estimated duration
+${isBeauty ? '- For beauty businesses, lean into ritual + intimacy + the "regular client" relationship. Avoid generic "we offer..." phrasing.' : ''}
+${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no medical claims; no specific outcomes promised.' : ''}
 - Return ONLY valid JSON, no markdown or additional text`
 
             try {
@@ -169,15 +199,51 @@ IMPORTANT:
 
                 // Clean up markdown code blocks if present
                 const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
-                extractedContent = JSON.parse(cleanContent)
+                const freshExtraction = JSON.parse(cleanContent)
 
-                // Note: Content will be saved to generated_websites table below
+                // Restore admin-edited contact info that was merged above so
+                // a re-extraction doesn't clobber owner phone/email/address.
+                if (preservedContact) {
+                    freshExtraction.contact = {
+                        ...(freshExtraction.contact || {}),
+                        ...preservedContact,
+                    }
+                }
+                extractedContent = freshExtraction
 
             } catch (error) {
                 console.error('Groq extraction error:', error)
                 return NextResponse.json({
                     error: 'Failed to extract website content. Please try again.'
                 }, { status: 500 })
+            }
+        }
+
+        // Conversion-block AI generation — runs once per submission, then cached
+        // into extractedContent so subsequent regenerations skip the LLM call.
+        // If transcript is missing or generation fails, per-business-type
+        // defaults from lib/block-defaults.ts kick in at build time.
+        const ec = extractedContent as any
+        const hasAnyConversionBlock = !!(
+            ec?.trust || ec?.why || ec?.how ||
+            ec?.testimonials || ec?.faq || ec?.credentials || ec?.ctaBand
+        )
+        if (!hasAnyConversionBlock && submission.transcript) {
+            try {
+                const blocks = await groqService.generateConversionBlocks(
+                    submission.transcript,
+                    {
+                        name: submission.business_name,
+                        type: submission.business_type,
+                        owner: submission.owner_name,
+                        location: `${submission.address || ''}${submission.address ? ', ' : ''}${submission.city || ''}`.trim(),
+                    }
+                )
+                if (blocks) {
+                    extractedContent = { ...extractedContent, ...blocks }
+                }
+            } catch (err) {
+                console.error('Conversion-block generation failed (using defaults):', err)
             }
         }
 
@@ -643,7 +709,43 @@ IMPORTANT:
             footer: (extractedContent as any)?.footer || {
                 brand_blurb: `For any inquiries or to explore your vision further, we invite you to contact our professional team using the details provided below.`,
                 social_links: []
-            }
+            },
+            // ── New v01-spec block content (feeds Location/ServiceArea/ClickToMessage) ──
+            // Coordinates: submitter-set wins; else falls back to whatever the
+            // editor may have stored under extractedContent.location.
+            location: (extractedContent as any)?.location ?? ((submission as any).coordinates ? {
+                lat: (submission as any).coordinates.lat,
+                lng: (submission as any).coordinates.lng,
+            } : undefined),
+            // Google Business Profile link — owner edits hours in Google, the
+            // LocationBlock renders this as the "See latest hours on Google"
+            // deeplink. Builder auto-falls-back to a Maps search-by-address
+            // query when this is unset, so the button always works.
+            googleMapsUrl:
+                (extractedContent as any)?.googleMapsUrl ??
+                (submissionData as any).googleMapsUrl ??
+                (submissionData as any).googleBusinessUrl ??
+                undefined,
+            // Service area: editor-set wins; else build pipeline auto-seeds from
+            // the city name via SERVICE_AREA_SEEDS adjacency table.
+            serviceArea: (extractedContent as any)?.serviceArea,
+            // Click-to-message: editor-set wins; else build pipeline auto-derives
+            // whatsapp from contact.phone (PH 0917... → 63917...).
+            messaging: (extractedContent as any)?.messaging,
+            // Hint for the build pipeline's serviceArea seeder.
+            business_city: submission.city,
+            // Hint for the build pipeline's per-business-type defaults
+            // (Trust/WhyUs/HowItWorks/Testimonials/FAQ/Credentials/CtaBand).
+            business_type: submission.business_type,
+            // Conversion-cluster overrides — admin edits in /admin/submissions
+            // override the per-category defaults from lib/block-defaults.ts.
+            trust: (extractedContent as any)?.trust,
+            why: (extractedContent as any)?.why,
+            how: (extractedContent as any)?.how,
+            testimonials: (extractedContent as any)?.testimonials,
+            faq: (extractedContent as any)?.faq,
+            credentials: (extractedContent as any)?.credentials,
+            ctaBand: (extractedContent as any)?.ctaBand,
         }
 
         const generatedHtml = await buildAstroSite(contentWithContact, finalCustomizations, photos)

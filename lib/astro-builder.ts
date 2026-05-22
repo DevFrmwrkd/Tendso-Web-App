@@ -2,6 +2,7 @@ import { promises as fs } from 'fs'
 import path from 'path'
 import os from 'os'
 import { execSync } from 'child_process'
+import { defaultsFor, type WhyItem, type HowStep, type Testimonial, type FaqItem, type CredItem, type TrustData, type CtaBand } from './block-defaults'
 
 interface ExtractedContent {
     business_name: string
@@ -59,6 +60,30 @@ interface ExtractedContent {
         social_links?: Array<{ platform: string; url: string }>
     }
     images?: string[]
+    // ── New v01-spec block content (all optional; auto-seeded by build pipeline) ──
+    location?: {
+        lat?: number
+        lng?: number
+    }
+    serviceArea?: {
+        heading?: string
+        places?: string[]
+    }
+    messaging?: {
+        whatsapp?: string  // raw phone-like string; sanitized into wa.me URL at render
+        messenger?: string // full messenger.com / m.me URL
+    }
+    business_city?: string  // used to seed serviceArea.places
+    business_type?: string  // used to pick per-category content defaults
+    googleMapsUrl?: string  // GBP / google.com/maps link — renders "Hours on Google" deeplink
+    // ── Conversion-cluster blocks (admin overrides; else per-business-type defaults) ──
+    trust?: TrustData
+    why?: WhyItem[]
+    how?: HowStep[]
+    testimonials?: Testimonial[]
+    faq?: FaqItem[]
+    credentials?: CredItem[]
+    ctaBand?: CtaBand
 }
 
 interface Customizations {
@@ -83,6 +108,58 @@ function mapStyleToLetter(numericStyle: string | undefined, fallback: string = '
     if (!numericStyle) return fallback
     const map: Record<string, string> = { '1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E', '6': 'F', '7': 'G', '8': 'H', '9': 'I', '10': 'J' }
     return map[numericStyle] || numericStyle // Pass through if already a letter
+}
+
+// Variant-code → category override for conversion-block defaults.
+// Letters A-J are the legacy generic variants (use submission.business_type).
+// K-O are category-specific variants — they force a category regardless of
+// what was typed into business_type, so a barber selecting variant K still
+// gets barber-specific Why/How/Testimonial copy.
+const VARIANT_CODE_OVERRIDES: Record<string, string> = {
+    K: 'barber',
+    L: 'auto',
+    M: 'salon',
+    N: 'restaurant',
+    O: 'clinic',
+}
+
+function effectiveBusinessType(heroStyleLetter: string, businessType: string | undefined): string | undefined {
+    const code = (heroStyleLetter || '').charAt(0).toUpperCase()
+    return VARIANT_CODE_OVERRIDES[code] ?? businessType
+}
+
+// Minimal PH city-adjacency seed for the ServiceArea block (3-4 places per
+// known business city). The brief: "service area as a real map or list of
+// named places, not a vague 'we serve the area'". We seed concrete neighbors
+// so the block reads finished cold; admin can edit any of them.
+const SERVICE_AREA_SEEDS: Record<string, string[]> = {
+    'manila': ['Sampaloc', 'Binondo', 'Ermita', 'Malate'],
+    'quezon city': ['Cubao', 'Diliman', 'Project 4', 'Novaliches'],
+    'makati': ['Poblacion', 'Salcedo Village', 'Legazpi Village', 'San Antonio'],
+    'pasig': ['Ortigas', 'Kapitolyo', 'Maybunga', 'San Miguel'],
+    'taguig': ['BGC', 'Western Bicutan', 'Lower Bicutan', 'Pinagsama'],
+    'pasay': ['Bangkal', 'San Roque', 'Manila Bay area', 'Buendia'],
+    'cebu city': ['Mandaue', 'Lapu-Lapu', 'Talisay', 'Banawa'],
+    'davao city': ['Toril', 'Bunawan', 'Calinan', 'Buhangin'],
+    'iloilo city': ['Jaro', 'La Paz', 'Mandurriao', 'Molo'],
+    'bacolod': ['Talisay', 'Silay', 'Bago', 'Murcia'],
+    'cagayan de oro': ['Lapasan', 'Carmen', 'Macasandig', 'Bulua'],
+    'baguio': ['La Trinidad', 'Itogon', 'Tuba', 'Sablan'],
+    'meycauayan': ['Marilao', 'Bocaue', 'Obando', 'Valenzuela'],
+    'marilao': ['Meycauayan', 'Bocaue', 'Sta. Maria', 'Bulacan'],
+    'bulacan': ['Malolos', 'Plaridel', 'Pulilan', 'Hagonoy'],
+}
+
+// Auto-derive a WhatsApp deeplink-safe phone string from a typed phone.
+// Strips non-digits. If the result starts with "0" and looks like a PH local
+// number, prepend "63". Empty string when input is unusable.
+function derivePhoneDigits(phone: string | undefined | null): string {
+    if (!phone) return ''
+    const digits = phone.replace(/[^0-9]/g, '')
+    if (!digits) return ''
+    if (digits.startsWith('0') && digits.length === 11) return '63' + digits.slice(1)
+    if (digits.startsWith('9') && digits.length === 10) return '63' + digits
+    return digits
 }
 
 /**
@@ -124,6 +201,18 @@ function transformToAstroData(
             servicesStyle,
             galleryStyle,
             contactStyle,
+            // v01 extras — each block picks its own variant from the
+            // Template tab. Pass through verbatim so the .astro block can
+            // read variantStyle and switch between M1 / M2 layouts.
+            trustStyle: (customizations as any).trustStyle ?? 'M1',
+            whyUsStyle: (customizations as any).whyUsStyle ?? 'M1',
+            howItWorksStyle: (customizations as any).howItWorksStyle ?? 'M1',
+            testimonialsStyle: (customizations as any).testimonialsStyle ?? 'M1',
+            faqStyle: (customizations as any).faqStyle ?? 'M1',
+            serviceAreaStyle: (customizations as any).serviceAreaStyle ?? 'M1',
+            credentialsStyle: (customizations as any).credentialsStyle ?? 'M1',
+            ctaBandStyle: (customizations as any).ctaBandStyle ?? 'M1',
+            clickToMessageStyle: (customizations as any).clickToMessageStyle ?? 'M1',
         },
         visibility: {
             heroSection: vis.hero_section !== false,
@@ -158,6 +247,23 @@ function transformToAstroData(
             contactDescription: vis.footer_description !== false,
             contactInfo: vis.footer_contact !== false,
             contactSocial: vis.footer_social !== false,
+            // New v01-spec blocks — render on every variant unless explicitly hidden.
+            locationBlock: vis.location_block !== false,
+            serviceAreaBlock: vis.service_area_block !== false,
+            // Default off — floating WhatsApp/Messenger FAB is opt-in.
+            // Admins can flip it on from the Blocks tab if the business
+            // actually wants chat. Most don't, and the FAB clutters layout.
+            clickToMessage: vis.click_to_message === true,
+            // Scroll-to-top button — default ON. Themed via --primary so it
+            // picks up the admin's color scheme automatically.
+            scrollTopButton: vis.scroll_top_button !== false,
+            trustBlock: vis.trust_block !== false,
+            whyUsBlock: vis.why_us_block !== false,
+            howItWorksBlock: vis.how_it_works_block !== false,
+            testimonialsBlock: vis.testimonials_block !== false,
+            faqBlock: vis.faq_block !== false,
+            credentialsBlock: vis.credentials_block !== false,
+            ctaBandBlock: vis.cta_band_block !== false,
         },
         hero: {
             businessName: content.business_name,
@@ -263,6 +369,61 @@ function transformToAstroData(
                 contactSocial: vis.footer_social !== false,
             },
         },
+        // ── New v01-spec block payloads (auto-derived when admin hasn't set them) ──
+        location: {
+            lat: content.location?.lat,
+            lng: content.location?.lng,
+            // Owner edits hours in Google. If we have a GBP / maps link, we
+            // surface it as the "Hours on Google" button. If not present,
+            // fall back to a search-by-address Maps query so the button still
+            // takes visitors to a Google surface that has live hours.
+            googleMapsUrl:
+                content.googleMapsUrl ||
+                (content.contact?.address
+                    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(content.contact.address)}`
+                    : undefined),
+        },
+        serviceArea: (() => {
+            const explicit = content.serviceArea?.places ?? []
+            if (explicit.length > 0) {
+                return {
+                    heading: content.serviceArea?.heading ?? 'Service area',
+                    places: explicit,
+                }
+            }
+            // Seed from business city — try lowercased exact match against the
+            // adjacency table. Falls back to silence (block renders nothing).
+            const cityKey = (content.business_city ?? '').trim().toLowerCase()
+            const seeds = SERVICE_AREA_SEEDS[cityKey]
+            if (!seeds) return undefined
+            return {
+                heading: content.serviceArea?.heading ?? 'Service area',
+                places: [content.business_city as string, ...seeds].filter(Boolean) as string[],
+            }
+        })(),
+        messaging: {
+            // Admin-typed value wins; otherwise derive from contact.phone so
+            // the WhatsApp FAB just-works for any business that gave us a phone.
+            whatsapp:
+                content.messaging?.whatsapp ||
+                derivePhoneDigits(content.contact?.phone) ||
+                undefined,
+            messenger: content.messaging?.messenger,
+        },
+        // ── Conversion-cluster blocks (with per-business-type defaults) ──
+        // Resolution order: admin-typed → variant-code-override → per-business-type → generic
+        ...(() => {
+            const d = defaultsFor(effectiveBusinessType(heroStyle, content.business_type))
+            return {
+                trust: content.trust ?? d.trust,
+                why: content.why ?? d.why,
+                how: content.how ?? d.how,
+                testimonials: content.testimonials ?? d.testimonials,
+                faq: content.faq ?? d.faq,
+                credentials: content.credentials ?? d.credentials,
+                ctaBand: content.ctaBand ?? d.ctaBand,
+            }
+        })(),
     }
 }
 

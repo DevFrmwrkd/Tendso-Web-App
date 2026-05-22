@@ -6,15 +6,19 @@ import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Loader2, Eye, Palette, FileEdit, Check, X, AlertTriangle, Trash2, ExternalLink, PanelRightClose, PanelRightOpen, Globe } from "lucide-react";
+import { Loader2, Palette, FileEdit, Check, X, AlertTriangle, Trash2, ExternalLink, PanelRightClose, PanelRightOpen, Globe } from "lucide-react";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import WebsitePreview from "@/components/WebsitePreview";
 import VisualEditor from "@/components/editor/VisualEditor";
 import ContentEditor, { EditorCustomizations } from "@/components/ContentEditor";
+import SandboxEditor from "@/components/editor/SandboxEditor";
 import TopActionBar from "./_components/TopActionBar";
 import DetailsSidebar from "./_components/DetailsSidebar";
 
-type TabKey = "preview" | "styles" | "content";
+// The "preview" tab was redundant — VisualEditor already shows the live
+// iframe preview alongside the sandbox sidebar. We default to the sandbox
+// editor and surface design-system controls under "styles".
+type TabKey = "editor" | "styles";
 
 export default function SubmissionDetailPage() {
     const params = useParams();
@@ -186,9 +190,13 @@ export default function SubmissionDetailPage() {
     const authLoading = !isLoaded || (user && currentCreator === undefined);
     const dataLoading = isAdmin && submissionData === undefined;
 
-    // Tab + state
-    const [activeTab, setActiveTab] = useState<TabKey>("preview");
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    // Tab + state — default to the sandbox-style editor so the admin lands
+    // directly on the click-to-edit experience that matches Landing Pages v01.
+    const [activeTab, setActiveTab] = useState<TabKey>("editor");
+    // Default the right details panel CLOSED so the page lands on the
+    // 2-column sandbox layout (editor sidebar + iframe) that matches
+    // Landing Pages v01 / sandbox.html. Admin can re-open with "Details".
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [updating, setUpdating] = useState(false);
     const [transcribing, setTranscribing] = useState(false);
@@ -725,16 +733,21 @@ export default function SubmissionDetailPage() {
         await handleGenerateWebsite(customizations);
     };
 
-    const handleSaveContent = async (content: any) => {
+    const handleSaveContent = async (content: any, customizationsOverride?: any) => {
+        // Optional customizations override lets the SandboxEditor commit a
+        // batched template+theme change atomically alongside content edits,
+        // so a single regen applies everything at once.
+        const customizations = customizationsOverride ?? websiteCustomizations;
         const response = await fetch("/api/save-content", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ submissionId, content, customizations: websiteCustomizations }),
+            body: JSON.stringify({ submissionId, content, customizations }),
         });
         if (!response.ok) throw new Error("Failed to save");
         const data = await response.json();
         if (data.htmlContent) setWebsiteHtmlContent(data.htmlContent);
         setWebsiteContent(content);
+        if (customizationsOverride) setWebsiteCustomizations(customizationsOverride);
         await refresh();
     };
 
@@ -751,9 +764,8 @@ export default function SubmissionDetailPage() {
     if (!isAdmin || !submission) return null;
 
     const tabs: Array<{ key: TabKey; label: string; icon: any }> = [
-        { key: "preview", label: "Live Preview", icon: Eye },
+        { key: "editor", label: "Editor", icon: FileEdit },
         { key: "styles", label: "Styles", icon: Palette },
-        { key: "content", label: "Content", icon: FileEdit },
     ];
 
     return (
@@ -797,43 +809,47 @@ export default function SubmissionDetailPage() {
             >
                 {/* Main content (editor + preview) */}
                 <div className="min-w-0">
-                    {/* Tab bar */}
-                    <div className="bg-white rounded-2xl border border-neutral-200 px-4 py-2 mb-4 flex items-center gap-1 overflow-x-auto">
-                        {tabs.map((tab) => {
-                            const Icon = tab.icon;
-                            const active = activeTab === tab.key;
-                            return (
-                                <button
-                                    key={tab.key}
-                                    onClick={() => setActiveTab(tab.key)}
-                                    className={`relative flex items-center gap-1.5 px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap ${
-                                        active ? "text-emerald-700" : "text-neutral-600 hover:text-neutral-900"
-                                    }`}
-                                >
-                                    <Icon className="w-4 h-4" />
-                                    {tab.label}
-                                    {active && (
-                                        <span className="absolute -bottom-2 left-3 right-3 h-0.5 bg-emerald-600 rounded-full" />
-                                    )}
-                                </button>
-                            );
-                        })}
+                    {/* Sandbox-style slim toolbar — only shown when the admin is
+                        viewing the legacy Styles panel. In sandbox/editor mode
+                        the SandboxEditor's own preview-bar has all the actions,
+                        so this strip stays hidden to avoid double chrome. */}
+                    {websiteGenerated && activeTab !== "editor" && (
+                        <div className="bg-white rounded-2xl border border-neutral-200 px-3 py-2 mb-4 flex items-center gap-2 overflow-x-auto">
+                            <div className="inline-flex items-center bg-neutral-100 rounded-lg p-0.5">
+                                {tabs.map((tab) => {
+                                    const Icon = tab.icon;
+                                    const active = activeTab === tab.key;
+                                    return (
+                                        <button
+                                            key={tab.key}
+                                            type="button"
+                                            onClick={() => setActiveTab(tab.key)}
+                                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap ${
+                                                active
+                                                    ? "bg-white text-emerald-700 shadow-sm"
+                                                    : "text-neutral-500 hover:text-neutral-900"
+                                            }`}
+                                        >
+                                            <Icon className="w-3.5 h-3.5" />
+                                            {tab.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
 
-                        {/* Right-side extras inside tab bar */}
-                        <div className="ml-auto flex items-center gap-2">
-                            {websitePublishedUrl && (
-                                <a
-                                    href={websitePublishedUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    title={websitePublishedUrl}
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1.5 rounded-lg border border-emerald-600 hover:border-emerald-700 transition-colors whitespace-nowrap shadow-sm"
-                                >
-                                    <Globe className="w-3.5 h-3.5" />
-                                    View Deployed
-                                </a>
-                            )}
-                            {websiteGenerated && (
+                            <div className="ml-auto flex items-center gap-2">
+                                {websitePublishedUrl && (
+                                    <a
+                                        href={websitePublishedUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        title={websitePublishedUrl}
+                                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1.5 rounded-lg border border-emerald-600 hover:border-emerald-700 transition-colors whitespace-nowrap shadow-sm"
+                                    >
+                                        <Globe className="w-3.5 h-3.5" />
+                                        View Deployed
+                                    </a>
+                                )}
                                 <a
                                     href={`/api/preview/${submissionId}`}
                                     target="_blank"
@@ -843,25 +859,23 @@ export default function SubmissionDetailPage() {
                                     <ExternalLink className="w-3.5 h-3.5" />
                                     Open in New Tab
                                 </a>
-                            )}
-
-                            {/* Sidebar toggle — desktop only */}
-                            <button
-                                onClick={() => setSidebarOpen(!sidebarOpen)}
-                                className="hidden xl:inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-emerald-700 px-2.5 py-1.5 rounded-lg border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors whitespace-nowrap"
-                                title={sidebarOpen ? "Hide details panel" : "Show details panel"}
-                                aria-label={sidebarOpen ? "Hide details panel" : "Show details panel"}
-                                aria-pressed={sidebarOpen}
-                            >
-                                {sidebarOpen ? (
-                                    <PanelRightClose className="w-3.5 h-3.5" />
-                                ) : (
-                                    <PanelRightOpen className="w-3.5 h-3.5" />
-                                )}
-                                {sidebarOpen ? "Hide details" : "Details"}
-                            </button>
+                                <button
+                                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                                    className="hidden xl:inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-emerald-700 px-2.5 py-1.5 rounded-lg border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+                                    title={sidebarOpen ? "Hide details panel" : "Show details panel"}
+                                    aria-label={sidebarOpen ? "Hide details panel" : "Show details panel"}
+                                    aria-pressed={sidebarOpen}
+                                >
+                                    {sidebarOpen ? (
+                                        <PanelRightClose className="w-3.5 h-3.5" />
+                                    ) : (
+                                        <PanelRightOpen className="w-3.5 h-3.5" />
+                                    )}
+                                    {sidebarOpen ? "Hide details" : "Details"}
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {websiteError && (
                         <div className="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-sm mb-4">
@@ -902,15 +916,6 @@ export default function SubmissionDetailPage() {
                     {/* Tab content (only when website exists) */}
                     {websiteGenerated && !generatingWebsite && (
                         <>
-                            {activeTab === "preview" && (
-                                <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden">
-                                    <WebsitePreview
-                                        htmlContent={websiteHtmlContent || ""}
-                                        isRegenerating={generatingWebsite}
-                                    />
-                                </div>
-                            )}
-
                             {activeTab === "styles" && (
                                 <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4">
                                     <div className="h-[calc(100vh-220px)] sticky top-[88px] overflow-hidden">
@@ -929,66 +934,44 @@ export default function SubmissionDetailPage() {
                                 </div>
                             )}
 
-                            {activeTab === "content" && (
-                                <div className="bg-white rounded-2xl border border-neutral-200 p-1">
-                                    <VisualEditor
-                                        initialContent={{
-                                            ...(websiteContent || {
-                                                business_name: submission.business_name || "",
-                                                tagline: "",
-                                                about: "",
-                                                services: [],
-                                                contact: {},
-                                            }),
-                                            // Prefer saved websiteContent images (user's last edit) over enhanced
-                                                // defaults — otherwise a fresh upload disappears on reload as soon as
-                                                // any enhanced image is available.
-                                            images:
-                                                websiteContent?.images?.length
-                                                    ? websiteContent.images
-                                                    : (hasEnhancedImages && enhancedImagesByCategory?.categories.hero?.length
-                                                        ? enhancedImagesByCategory.categories.hero
-                                                        : submission.photos || []),
-                                            about_images:
-                                                websiteContent?.about_images?.length
-                                                    ? websiteContent.about_images
-                                                    : (hasEnhancedImages && enhancedImagesByCategory?.categories.about?.length
-                                                        ? enhancedImagesByCategory.categories.about
-                                                        : undefined),
-                                            services_image:
-                                                websiteContent?.services_image
-                                                    ? websiteContent.services_image
-                                                    : (hasEnhancedImages && enhancedImagesByCategory?.categories.services?.length
-                                                        ? enhancedImagesByCategory.categories.services[0]
-                                                        : undefined),
-                                            featured_images:
-                                                websiteContent?.featured_images?.length
-                                                    ? websiteContent.featured_images
-                                                    : (hasEnhancedImages && enhancedImagesByCategory?.categories.featured?.length
-                                                        ? enhancedImagesByCategory.categories.featured
-                                                        : undefined),
-                                        }}
-                                        htmlContent={websiteHtmlContent || ""}
-                                        submissionId={submissionId}
-                                        heroStyle={websiteCustomizations?.heroStyle || "A"}
-                                        aboutStyle={websiteCustomizations?.aboutStyle || "A"}
-                                        servicesStyle={websiteCustomizations?.servicesStyle || "A"}
-                                        galleryStyle={websiteCustomizations?.galleryStyle || websiteCustomizations?.featuredStyle || "A"}
-                                        contactStyle={websiteCustomizations?.contactStyle || websiteCustomizations?.footerStyle || "A"}
-                                        availableImages={[
-                                            ...((enhancedImagesByCategory?.allUrls || [])
-                                                .map((u) => resolveEnhancedUrl(u))
-                                                .filter((url): url is string => url !== null)),
-                                            ...(photoUrls || []),
-                                            ...((heroImageUrls || []).filter((u): u is string => u !== null)),
-                                        ].filter((url, index, self) => self.indexOf(url) === index)}
-                                        originalImages={[
-                                            ...(photoUrls || []),
-                                            ...((heroImageUrls || []).filter((u): u is string => u !== null)),
-                                        ].filter((url, index, self) => self.indexOf(url) === index)}
-                                        onSave={handleSaveContent}
-                                    />
-                                </div>
+                            {activeTab === "editor" && (
+                                <SandboxEditor
+                                    submissionId={submissionId}
+                                    businessName={submission.business_name}
+                                    businessType={submission.business_type}
+                                    htmlContent={websiteHtmlContent || ""}
+                                    content={websiteContent ?? {
+                                        business_name: submission.business_name || "",
+                                        tagline: "",
+                                        about: "",
+                                        services: [],
+                                        contact: {},
+                                    }}
+                                    customizations={websiteCustomizations}
+                                    photos={[
+                                        ...(photoUrls || []),
+                                        ...((heroImageUrls || []).filter((u): u is string => u !== null)),
+                                    ].filter((url, index, self) => self.indexOf(url) === index)}
+                                    onSaveContent={handleSaveContent}
+                                    onUpdateDesign={handleUpdateDesign}
+                                    websitePublishedUrl={websitePublishedUrl ?? undefined}
+                                    websiteGenerated={websiteGenerated}
+                                    generatingWebsite={generatingWebsite}
+                                    publishingWebsite={publishingWebsite}
+                                    republishingWebsite={republishingWebsite}
+                                    unpublishingWebsite={unpublishingWebsite}
+                                    enhancing={enhancing}
+                                    sendingEmail={sendingEmail}
+                                    onSendToClient={handleSendWebsiteEmail}
+                                    onEnhanceImages={handleTriggerEnhancedImages}
+                                    onRegenerate={() => handleGenerateWebsite()}
+                                    onPublish={handlePublishWebsite}
+                                    onRepublish={handleRepublishWebsite}
+                                    onUnpublish={handleUnpublishWebsite}
+                                    onDelete={() => setShowDeleteModal(true)}
+                                    onToggleDetails={() => setSidebarOpen(!sidebarOpen)}
+                                    detailsOpen={sidebarOpen}
+                                />
                             )}
                         </>
                     )}
