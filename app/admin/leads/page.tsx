@@ -18,7 +18,9 @@ import {
     Pencil,
     Trash2,
     MoreVertical,
+    Image as ImageIcon,
 } from "lucide-react"
+import LeadContentModal, { type LeadContentModalLead } from "./LeadContentModal"
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     new: { label: "New", color: "bg-blue-100 text-blue-700" },
@@ -63,6 +65,9 @@ export default function AdminLeadsPage() {
     // Delete confirmation state
     const [deletingLead, setDeletingLead] = useState<any>(null)
     const [deleting, setDeleting] = useState(false)
+
+    // Lead Content editor (mobile-CRM social card data)
+    const [contentLead, setContentLead] = useState<LeadContentModalLead | null>(null)
 
     // Action dropdown state
     const [activeActionId, setActiveActionId] = useState<string | null>(null)
@@ -366,12 +371,28 @@ export default function AdminLeadsPage() {
                                                             <MoreVertical size={16} />
                                                         </button>
                                                         {activeActionId === lead._id && (
-                                                            <div className="absolute right-0 mt-1 w-36 bg-white border border-gray-200 rounded-xl shadow-lg z-20 overflow-hidden">
+                                                            <div className="absolute right-0 mt-1 w-40 bg-white border border-gray-200 rounded-xl shadow-lg z-20 overflow-hidden">
                                                                 <button
                                                                     onClick={() => openEdit(lead)}
                                                                     className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                                                                 >
                                                                     <Pencil size={14} /> Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setContentLead({
+                                                                            _id: lead._id,
+                                                                            name: lead.name,
+                                                                            adminDescription: lead.adminDescription ?? null,
+                                                                            externalPreviewUrl: lead.externalPreviewUrl ?? null,
+                                                                            previewImageUrl: lead.previewImageUrl ?? null,
+                                                                            previewImageStorageKey: lead.previewImageStorageKey ?? null,
+                                                                        })
+                                                                        setActiveActionId(null)
+                                                                    }}
+                                                                    className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                                                >
+                                                                    <ImageIcon size={14} /> Content
                                                                 </button>
                                                                 <button
                                                                     onClick={() => openDelete(lead)}
@@ -619,6 +640,14 @@ export default function AdminLeadsPage() {
                             </div>
                         </div>
                     </div>
+                )}
+
+                {/* Lead Content editor (mobile-CRM social card) */}
+                {contentLead && (
+                    <LeadContentModal
+                        lead={contentLead}
+                        onClose={() => setContentLead(null)}
+                    />
                 )}
             </div>
         </AdminLayout>

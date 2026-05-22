@@ -237,8 +237,8 @@ export default function UploadPhotosPage() {
     // Loading state
     if (!isLoaded || !isSignedIn || creator === undefined) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
+                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
             </div>
         )
     }
@@ -246,7 +246,10 @@ export default function UploadPhotosPage() {
     const totalCount = files.length + existingPhotos.length
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div
+            className="editorial min-h-screen flex flex-col"
+            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+        >
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
                 <button

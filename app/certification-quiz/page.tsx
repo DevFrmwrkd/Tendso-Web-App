@@ -137,8 +137,8 @@ export default function CertificationQuizPage() {
 
     if (!isLoaded || creator === undefined) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
+                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
             </div>
         )
     }
@@ -189,7 +189,10 @@ export default function CertificationQuizPage() {
     // ==================== PASS SCREEN ====================
     if (phase === "pass") {
         return (
-            <div className="min-h-screen bg-zinc-50 font-sans py-8 px-4 overflow-y-auto">
+            <div
+                className="editorial min-h-screen py-8 px-4 overflow-y-auto"
+                style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+            >
                 {/* Success header */}
                 <div
                     className={`text-center mb-8 transition-all duration-700 ease-out ${passAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
@@ -228,7 +231,10 @@ export default function CertificationQuizPage() {
     // ==================== FAIL SCREEN ====================
     if (phase === "fail") {
         return (
-            <div className="min-h-screen bg-white font-sans flex flex-col items-center justify-center px-4 text-center">
+            <div
+                className="editorial min-h-screen flex flex-col items-center justify-center px-4 text-center"
+                style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+            >
                 <div className="w-20 h-20 bg-zinc-100 rounded-full flex items-center justify-center mb-6">
                     <RotateCcw className="w-10 h-10 text-zinc-400" />
                 </div>
@@ -247,7 +253,10 @@ export default function CertificationQuizPage() {
 
     // ==================== QUIZ SCREEN ====================
     return (
-        <div className="min-h-screen bg-white font-sans pb-12">
+        <div
+            className="editorial min-h-screen pb-12"
+            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+        >
             <header className="px-4 pt-6 pb-4">
                 <div className="flex items-center gap-3 mb-4">
                     <Link href="/training-lessons" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors">

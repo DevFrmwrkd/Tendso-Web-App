@@ -69,7 +69,10 @@ export default function TrainingLessonsPage() {
     const [openIndex, setOpenIndex] = useState(0)
 
     return (
-        <div className="min-h-screen bg-white font-sans pb-12">
+        <div
+            className="editorial min-h-screen pb-12"
+            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+        >
             <header className="px-4 pt-6 pb-4">
                 <div className="flex items-center gap-3 mb-4">
                     <Link href="/training" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors">

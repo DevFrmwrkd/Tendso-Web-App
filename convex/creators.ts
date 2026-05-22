@@ -381,3 +381,106 @@ export const updateLastActive = mutation({
         }
     },
 });
+
+// ============================================================================
+// CREATOR VERIFICATION FLOW (admin-gated)
+//
+// Flow:
+//   1. Creator passes onboarding quiz → markQuizPassed sets quizPassedAt
+//   2. Mobile routes the creator to /pending-review (locked screen)
+//   3. Admin reviews on web admin panel and clicks "Approve"
+//   4. approveCreator sets certifiedAt → mobile gate releases automatically
+// ============================================================================
+
+/**
+ * Mobile-called when a creator finishes the onboarding quiz.
+ * Self-only — the calling Clerk identity must own the creator record.
+ * Idempotent: returns silently if already quiz-passed or already certified.
+ */
+export const markQuizPassed = mutation({
+    args: { id: v.id('creators') },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error('Not authenticated');
+        const creator = await ctx.db.get(args.id);
+        if (!creator || creator.clerkId !== identity.subject) {
+            throw new Error('Forbidden: you can only update your own account');
+        }
+        if (creator.certifiedAt) return;
+        if (creator.quizPassedAt) return;
+        await ctx.db.patch(args.id, {
+            quizPassedAt: Date.now(),
+            lastActiveAt: Date.now(),
+        });
+    },
+});
+
+/**
+ * Admin-only: approve a creator that has passed the quiz.
+ * Sets certifiedAt and schedules a "certification" notification.
+ * Idempotent: returns silently if the creator is already certified.
+ */
+export const approveCreator = mutation({
+    args: { id: v.id('creators') },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error('Not authenticated');
+        const me = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+            .first();
+        if (!me || me.role !== 'admin') throw new Error('Forbidden: admin access required');
+
+        const creator = await ctx.db.get(args.id);
+        if (!creator) throw new Error('Creator not found');
+        if (creator.certifiedAt) return;
+
+        await ctx.db.patch(args.id, {
+            certifiedAt: Date.now(),
+            lastActiveAt: Date.now(),
+        });
+        await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
+            creatorId: args.id,
+            type: 'certification' as const,
+            title: "You're approved!",
+            body: 'Welcome aboard. You can now submit businesses and earn from your interviews.',
+            data: { approvedByAdmin: true },
+        });
+    },
+});
+
+/**
+ * Admin-only: list creators awaiting approval (quiz passed, not yet certified).
+ * Sorted newest-pending-first so admins see the longest-waiting creators on top.
+ */
+export const listPendingApproval = query({
+    args: {},
+    handler: async (ctx) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error('Not authenticated');
+        const me = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+            .first();
+        if (!me || me.role !== 'admin') throw new Error('Forbidden: admin access required');
+
+        const all = await ctx.db.query('creators').collect();
+        return all
+            .filter((c) => c.quizPassedAt && !c.certifiedAt && !c.isDeleted)
+            .map((c) => ({
+                _id: c._id,
+                clerkId: c.clerkId,
+                email: c.email,
+                firstName: c.firstName ?? null,
+                middleName: c.middleName ?? null,
+                lastName: c.lastName ?? null,
+                phone: c.phone ?? null,
+                profileImage: c.profileImage ?? null,
+                quizPassedAt: c.quizPassedAt!,
+                createdAt: c.createdAt ?? null,
+                referredByCode: c.referredByCode ?? null,
+                referredByName: c.referredByName ?? null,
+            }))
+            .sort((a, b) => b.quizPassedAt - a.quizPassedAt);
+    },
+});

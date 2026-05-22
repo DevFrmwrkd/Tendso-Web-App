@@ -128,8 +128,8 @@ export default function ProfilePage() {
 
     if (!isLoaded || !isSignedIn || creator === undefined || !creator) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
+                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
             </div>
         )
     }
@@ -226,94 +226,217 @@ export default function ProfilePage() {
     ]
 
     return (
-        <div className="min-h-screen bg-white font-sans pb-24 overflow-x-hidden">
+        <div
+            className="editorial min-h-screen pb-24 overflow-x-hidden"
+            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+        >
             <main className="px-4 py-6">
                 {/* Back Button */}
                 <div className="flex items-center justify-between mb-2">
                     <Link
                         href="/dashboard"
-                        className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-zinc-200 text-zinc-600 hover:text-zinc-900 transition-colors"
+                        className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
+                        style={{
+                            background: "var(--ed-paper-3)",
+                            border: "1px solid var(--ed-rule)",
+                            color: "var(--ed-ink-2)",
+                        }}
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                 </div>
 
-                {/* Profile Header */}
-                <div className="flex flex-col items-center mt-2 mb-6">
+                {/* Editorial eyebrow */}
+                <p className="ed-label mt-2">§ Your Profile</p>
+
+                {/* Profile Header — avatar + serif name */}
+                <div className="flex flex-col items-center mt-4 mb-8">
                     {creator.profileImage ? (
-                        <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-lg mb-3">
+                        <div
+                            className="w-28 h-28 rounded-full overflow-hidden mb-4"
+                            style={{
+                                border: "4px solid var(--ed-paper-3)",
+                                boxShadow: "var(--ed-shadow-md)",
+                            }}
+                        >
                             <img src={creator.profileImage} alt={fullName} className="w-full h-full object-cover" />
                         </div>
                     ) : (
-                        <div className="w-24 h-24 rounded-full bg-zinc-900 flex items-center justify-center text-white text-2xl font-bold border-4 border-white shadow-lg mb-3">
+                        <div
+                            className="w-28 h-28 rounded-full flex items-center justify-center mb-4"
+                            style={{
+                                background: "var(--ed-ink)",
+                                color: "var(--ed-paper-3)",
+                                border: "4px solid var(--ed-paper-3)",
+                                boxShadow: "var(--ed-shadow-md)",
+                                fontFamily: "var(--ed-serif)",
+                                fontSize: 36,
+                                lineHeight: 1.0,
+                            }}
+                        >
                             {initials}
                         </div>
                     )}
 
                     <div className="flex items-center gap-2">
-                        <h1 className="text-xl font-bold text-zinc-900">{fullName}</h1>
-                        {creator.certifiedAt && <BadgeCheck className="w-5 h-5 text-emerald-500" />}
+                        <h1
+                            style={{
+                                fontFamily: "var(--ed-serif)",
+                                fontSize: 30,
+                                lineHeight: 1.1,
+                                letterSpacing: "-0.02em",
+                                color: "var(--ed-ink)",
+                            }}
+                        >
+                            {fullName}
+                        </h1>
+                        {creator.certifiedAt && <BadgeCheck className="w-5 h-5" style={{ color: "var(--ed-accent)" }} />}
                     </div>
 
-                    <p className="text-sm text-zinc-500 mt-0.5">{creator.email || user?.primaryEmailAddress?.emailAddress}</p>
+                    <p
+                        className="mt-1"
+                        style={{
+                            fontFamily: "var(--ed-sans)",
+                            fontSize: 14,
+                            color: "var(--ed-ink-3)",
+                        }}
+                    >
+                        {creator.email || user?.primaryEmailAddress?.emailAddress}
+                    </p>
 
-                    {creator.referralCode && (
-                        <div className="mt-2 px-3 py-1 bg-zinc-100 rounded-full flex items-center gap-1.5">
-                            <Gift className="w-3 h-3 text-zinc-400" />
-                            <span className="text-xs font-bold text-zinc-900 font-mono tracking-wider">
-                                {creator.referralCode}
-                            </span>
-                        </div>
-                    )}
+                    <div className="flex flex-wrap items-center gap-2 mt-3">
+                        {creator.referralCode && (
+                            <div
+                                className="px-3 py-1 rounded-full flex items-center gap-1.5"
+                                style={{
+                                    background: "var(--ed-paper-3)",
+                                    border: "1px solid var(--ed-rule)",
+                                }}
+                            >
+                                <Gift className="w-3 h-3" style={{ color: "var(--ed-ink-3)" }} />
+                                <span
+                                    style={{
+                                        fontFamily: "var(--ed-mono)",
+                                        fontSize: 11,
+                                        letterSpacing: "0.14em",
+                                        color: "var(--ed-ink-2)",
+                                    }}
+                                >
+                                    {creator.referralCode}
+                                </span>
+                            </div>
+                        )}
 
-                    {creator.certifiedAt && (
-                        <div className="mt-2 px-3 py-1 bg-emerald-50 rounded-full flex items-center gap-1.5">
-                            <BadgeCheck className="w-3.5 h-3.5 text-emerald-600" />
-                            <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">
-                                Certified Creator
-                            </span>
-                        </div>
-                    )}
+                        {creator.certifiedAt && (
+                            <div
+                                className="px-3 py-1 rounded-full flex items-center gap-1.5"
+                                style={{ background: "var(--ed-accent-bg)" }}
+                            >
+                                <BadgeCheck className="w-3.5 h-3.5" style={{ color: "var(--ed-accent)" }} />
+                                <span
+                                    style={{
+                                        fontFamily: "var(--ed-mono)",
+                                        fontSize: 10,
+                                        letterSpacing: "0.14em",
+                                        textTransform: "uppercase",
+                                        color: "var(--ed-accent-ink)",
+                                    }}
+                                >
+                                    Certified Creator
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* Stats Strip */}
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                    <div className="bg-white p-3 rounded-xl shadow-sm border border-zinc-100 text-center">
-                        <p className="text-lg font-bold text-zinc-900">{submissionCount}</p>
-                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">Submissions</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl shadow-sm border border-zinc-100 text-center">
-                        <p className="text-lg font-bold text-zinc-900">₱{formatCurrency(balance)}</p>
-                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">Balance</p>
-                    </div>
-                    <div className="bg-white p-3 rounded-xl shadow-sm border border-zinc-100 text-center">
-                        <p className="text-lg font-bold text-zinc-900">₱{formatCurrency(totalEarned)}</p>
-                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">Earned</p>
-                    </div>
+                {/* Stats Strip — serif numbers + mono labels */}
+                <div className="grid grid-cols-3 gap-3 mb-8">
+                    {[
+                        { value: submissionCount, label: "Submissions" },
+                        { value: `₱${formatCurrency(balance)}`, label: "Balance" },
+                        { value: `₱${formatCurrency(totalEarned)}`, label: "Earned" },
+                    ].map((s, i) => (
+                        <div
+                            key={i}
+                            className="p-4 text-center"
+                            style={{
+                                background: "var(--ed-paper-3)",
+                                border: "1px solid var(--ed-rule)",
+                                borderRadius: "var(--ed-radius-md)",
+                            }}
+                        >
+                            <p
+                                style={{
+                                    fontFamily: "var(--ed-serif)",
+                                    fontSize: 22,
+                                    lineHeight: 1.0,
+                                    fontVariantNumeric: "tabular-nums",
+                                    color: "var(--ed-ink)",
+                                }}
+                            >
+                                {s.value}
+                            </p>
+                            <p className="ed-label mt-1">{s.label}</p>
+                        </div>
+                    ))}
                 </div>
 
-                {/* Menu Sections */}
-                <div className="space-y-5">
+                {/* Menu Sections — paper cards with warm rule dividers */}
+                <div className="space-y-6">
                     {menuSections.map((section) => (
                         <div key={section.title}>
-                            <h2 className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider mb-2 px-1">
-                                {section.title}
-                            </h2>
-                            <div className="bg-white rounded-xl border border-zinc-100 shadow-sm overflow-hidden divide-y divide-zinc-100">
+                            <p className="ed-label mb-2 px-1">{section.title}</p>
+                            <div
+                                className="overflow-hidden"
+                                style={{
+                                    background: "var(--ed-paper-3)",
+                                    border: "1px solid var(--ed-rule)",
+                                    borderRadius: "var(--ed-radius-md)",
+                                }}
+                            >
                                 {section.items.map((item: any, i: number) => {
                                     const Icon = item.icon
                                     const content = (
-                                        <div className="flex items-center justify-between px-4 py-3 hover:bg-zinc-50 transition-colors cursor-pointer">
+                                        <div
+                                            className="flex items-center justify-between px-4 py-3.5 transition-colors cursor-pointer"
+                                            style={{
+                                                borderTop: i === 0 ? "none" : "1px solid var(--ed-rule)",
+                                            }}
+                                        >
                                             <div className="flex items-center gap-3">
-                                                <Icon className={`w-5 h-5 ${item.iconColor || "text-zinc-400"}`} />
+                                                <Icon
+                                                    className={`w-5 h-5`}
+                                                    style={{
+                                                        color: item.iconColor ? undefined : "var(--ed-ink-3)",
+                                                    }}
+                                                />
                                                 <div>
-                                                    <span className="text-sm font-medium text-zinc-900 block">{item.label}</span>
+                                                    <span
+                                                        className="block"
+                                                        style={{
+                                                            fontFamily: "var(--ed-sans)",
+                                                            fontSize: 14,
+                                                            color: "var(--ed-ink)",
+                                                            fontWeight: 500,
+                                                        }}
+                                                    >
+                                                        {item.label}
+                                                    </span>
                                                     {item.sublabel && (
-                                                        <span className="text-[11px] text-zinc-400">{item.sublabel}</span>
+                                                        <span
+                                                            style={{
+                                                                fontFamily: "var(--ed-mono)",
+                                                                fontSize: 10,
+                                                                letterSpacing: "0.1em",
+                                                                color: "var(--ed-ink-3)",
+                                                            }}
+                                                        >
+                                                            {item.sublabel}
+                                                        </span>
                                                     )}
                                                 </div>
                                             </div>
-                                            <ChevronRight className="w-4 h-4 text-zinc-300" />
+                                            <ChevronRight className="w-4 h-4" style={{ color: "var(--ed-ink-3)" }} />
                                         </div>
                                     )
 
@@ -337,17 +460,38 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Sign Out */}
-                <div className="mt-6">
+                <div className="mt-8">
                     <SignOutButton redirectUrl="/login">
-                        <button className="w-full flex items-center justify-center gap-2 h-12 rounded-xl border border-red-200 bg-white text-red-500 hover:bg-red-50 font-semibold transition-colors">
+                        <button
+                            className="w-full flex items-center justify-center gap-2 h-12 transition-colors"
+                            style={{
+                                background: "var(--ed-paper-3)",
+                                border: "1px solid var(--ed-danger)",
+                                borderRadius: "var(--ed-radius-md)",
+                                color: "var(--ed-danger)",
+                                fontFamily: "var(--ed-sans)",
+                                fontWeight: 500,
+                                fontSize: 15,
+                            }}
+                        >
                             <LogOut className="w-5 h-5" />
                             Sign Out
                         </button>
                     </SignOutButton>
                 </div>
 
-                {/* Version */}
-                <p className="text-center text-[11px] text-zinc-300 mt-6">Negosyo Digital v1.0.0</p>
+                <p
+                    className="text-center mt-8"
+                    style={{
+                        fontFamily: "var(--ed-mono)",
+                        fontSize: 10,
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                        color: "var(--ed-ink-3)",
+                    }}
+                >
+                    Negosyo Digital · v1.0.0
+                </p>
             </main>
 
             {/* ==================== REFERRAL CODE MODAL ==================== */}

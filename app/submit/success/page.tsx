@@ -111,14 +111,17 @@ export default function SubmissionSuccessPage() {
     // Loading state - wait for submission to load too
     if (!isLoaded || !isSignedIn || creator === undefined || (submissionId && submission === undefined)) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
+                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6">
+        <div
+            className="editorial min-h-screen flex flex-col items-center justify-center p-6"
+            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+        >
             <div className="max-w-md w-full text-center space-y-8">
                 {/* Success Animation/Icon */}
                 <div className="relative">
