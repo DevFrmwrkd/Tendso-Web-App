@@ -9,7 +9,7 @@
 interface Props {
   headline?: string;
   subheadline?: string;
-  services: Array<{ name: string; description: string; price?: string; duration?: string; icon?: string }>;
+  services: Array<{ name: string; description: string; price?: string; duration?: string; icon?: string; image?: string }>;
   photos: string[];
   visibility?: Record<string, boolean>;
 }
@@ -37,11 +37,15 @@ const showSub = visibility?.servicesSubheadline !== false;
     )}
 
     <div class="mae-services-grid">
-      {services.map((svc, i) => (
+      {services.map((svc, i) => {
+        // Prefer per-service image; fall back to cycling photos so the layout
+        // still renders before admin assigns specific images per card.
+        const svcImage = svc.image || photos[i % Math.max(1, photos.length)] || "";
+        return (
         <article class="mae-svc-card">
-          {photos[i % Math.max(1, photos.length)] && (
-            <div class="mae-svc-thumb">
-              <img src={photos[i % photos.length]} alt={svc.name} />
+          {svcImage && (
+            <div class="mae-svc-thumb" data-field={`services.list.${i}.image`}>
+              <img src={svcImage} alt={svc.name} />
             </div>
           )}
           <div class="mae-svc-body">
@@ -50,7 +54,8 @@ const showSub = visibility?.servicesSubheadline !== false;
             <a class="mae-svc-link" href="#contact">Read more →</a>
           </div>
         </article>
-      ))}
+        );
+      })}
     </div>
   </div>
 </section>

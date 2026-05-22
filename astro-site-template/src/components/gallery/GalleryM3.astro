@@ -76,7 +76,7 @@ while (rooms.length < 3) {
             <div class="salon-fade-up group" style={`animation-delay: ${0.25 + i * 0.1}s`}>
               <div class={`relative aspect-[4/3] overflow-hidden bg-[var(--surface)] ${shapes[i]} mb-5 transition-shadow duration-700 hover:shadow-[0_30px_60px_-15px_rgba(184,123,108,0.3)]`}>
                 {r.image ? (
-                  <img src={r.image} alt={r.name} class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
+                  <img src={r.image} alt={r.name} data-field={`gallery.tile.${i}`} class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" />
                 ) : (
                   <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-9xl italic" style="font-family: var(--heading-font);">{i + 1}</div>
                 )}

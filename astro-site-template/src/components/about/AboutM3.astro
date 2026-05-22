@@ -90,7 +90,7 @@ const restOfText = description ? description.slice(1) : '';
         <div class="space-y-4">
           <div class="salon-fade-up relative aspect-[4/5] overflow-hidden bg-[var(--surface)] rounded-tl-[120px] rounded-br-[120px]" style="animation-delay: 0.35s">
             {photo1 ? (
-              <img src={photo1} alt={businessName} class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+              <img src={photo1} alt={businessName} data-field="about.image" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
             ) : (
               <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-6xl italic" style="font-family: var(--heading-font);">m</div>
             )}
@@ -99,14 +99,14 @@ const restOfText = description ? description.slice(1) : '';
           <div class="grid grid-cols-2 gap-3">
             <div class="salon-fade-up relative aspect-square overflow-hidden bg-[var(--surface)] rounded-full" style="animation-delay: 0.45s">
               {photo2 ? (
-                <img src={photo2} alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                <img src={photo2} alt="" data-field="about.image.1" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
               ) : (
                 <div class="absolute inset-0 flex items-center justify-center text-[var(--primary)] text-3xl">❀</div>
               )}
             </div>
             <div class="salon-fade-up relative aspect-square overflow-hidden bg-[var(--surface)] rounded-tr-[80px] rounded-bl-[80px]" style="animation-delay: 0.55s">
               {photo3 ? (
-                <img src={photo3} alt="" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+                <img src={photo3} alt="" data-field="about.image.2" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
               ) : (
                 <div class="absolute inset-0 flex items-center justify-center text-[var(--accent)] text-3xl">❦</div>
               )}

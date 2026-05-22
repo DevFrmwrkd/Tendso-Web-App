@@ -33,9 +33,11 @@ export default function EditableImage({
             return
         }
 
-        // Validate file size (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error('Image size must be less than 5MB')
+        // Validate file size (max 10MB) — matches server-side cap in
+        // /api/upload-image so the client never optimistically rejects a
+        // file the server would accept.
+        if (file.size > 10 * 1024 * 1024) {
+            toast.error('Image size must be less than 10MB')
             return
         }
 
