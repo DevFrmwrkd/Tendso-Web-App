@@ -64,7 +64,7 @@ const items = services.length > 0
       {sidePhoto && (
         <div class="salon-fade-up lg:sticky lg:top-24" style="animation-delay: 0.3s">
           <div class="relative aspect-[3/4] overflow-hidden bg-[var(--surface)] rounded-tl-[140px] rounded-br-[140px]">
-            <img src={sidePhoto} alt="Spa itinerary" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+            <img src={sidePhoto} alt="Spa itinerary" data-field="services.image" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
             <div class="absolute inset-0 bg-gradient-to-tr from-[var(--primary)]/15 to-transparent"></div>
             <div class="absolute bottom-6 left-6 right-6 bg-[var(--bg)]/85 backdrop-blur-sm rounded-2xl px-4 py-3 text-center">
               <p class="text-[10px] uppercase tracking-[0.45em] text-[var(--primary)] italic">— Four hours · all yours —</p>

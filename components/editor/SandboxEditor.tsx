@@ -523,6 +523,14 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                 next.about_images = about;
             } else if (slot === "services.image") {
                 next.services_image = url;
+            } else if (slot.startsWith("services.list.") && slot.endsWith(".image")) {
+                // services.list.N.image → write per-service image so the
+                // card thumb persists independent of the rotating photos pool.
+                const idx = parseInt(slot.split(".")[2] || "0", 10);
+                const list = ((next.services as any[]) ?? []).slice();
+                while (list.length <= idx) list.push({ name: "", description: "" });
+                list[idx] = { ...(list[idx] || {}), image: url };
+                next.services = list;
             } else if (slot.startsWith("gallery.tile.")) {
                 const idx = parseInt(slot.split(".")[2] || "0", 10);
                 const featured = ((next.featured_images as string[]) ?? []).slice();
@@ -550,8 +558,8 @@ export default function SandboxEditor(props: SandboxEditorProps) {
             setUploadError("Please choose an image file.");
             return;
         }
-        if (f.size > 5 * 1024 * 1024) {
-            setUploadError("Image must be under 5MB.");
+        if (f.size > 10 * 1024 * 1024) {
+            setUploadError("Image must be under 10MB.");
             return;
         }
         setUploadError(null);
@@ -1246,7 +1254,7 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                                         </div>
                                         <div style={{ fontSize: 14, fontWeight: 600 }}>Click to upload an image</div>
                                         <div style={{ fontSize: 11, color: "var(--sx-ink-mute)", fontFamily: "var(--sx-mono)", letterSpacing: "0.06em" }}>
-                                            JPG / PNG / WEBP · max 5MB
+                                            JPG / PNG / WEBP · max 10MB
                                         </div>
                                     </>
                                 )}

@@ -63,7 +63,7 @@ const showImage = visibility?.heroImage !== false;
     {showImage && mainPhoto && (
       <div class="salon-fade-up relative mx-auto mb-10 max-w-md">
         <div class="relative aspect-[3/4] overflow-hidden border-4 border-[var(--primary)]/40 rounded-t-full bg-[var(--surface)]">
-          <img src={mainPhoto} alt={businessName} class="absolute inset-0 w-full h-full object-cover" style="filter: brightness(1.05) contrast(1.05);" />
+          <img src={mainPhoto} alt={businessName} data-field="hero.image" class="absolute inset-0 w-full h-full object-cover" style="filter: brightness(1.05) contrast(1.05);" />
           <div class="absolute inset-0 bg-gradient-to-t from-[var(--bg)]/50 via-transparent to-transparent"></div>
         </div>
         {/* Top tassel */}
