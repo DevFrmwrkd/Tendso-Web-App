@@ -6,6 +6,8 @@ import Link from "next/link"
 import Image from "next/image"
 import { useClerk } from "@clerk/nextjs"
 import { motion, AnimatePresence } from "framer-motion"
+import { useQuery } from "convex/react"
+import { api } from "@/convex/_generated/api"
 import {
     LayoutDashboard,
     Users,
@@ -64,6 +66,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const { signOut } = useClerk()
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
+
+    // Pending Approval badge count — reactive. Returns undefined until the
+    // admin auth check resolves on the Convex side; we render the badge only
+    // when count > 0 so non-admins and the initial loading state stay silent.
+    const pendingApprovals = useQuery(api.creators.listPendingApproval, {}) as
+        | { _id: string }[]
+        | undefined
+    const pendingCount = pendingApprovals?.length ?? 0
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -183,14 +193,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                     />
                                     <span>{item.label}</span>
                                 </div>
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="active-pill"
-                                        className="w-1.5 h-1.5 rounded-full"
-                                        style={{ background: "var(--ed-accent-solid)" }}
-                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                    />
-                                )}
+                                <div className="flex items-center gap-2">
+                                    {/* Pending Approval count badge — reactive via listPendingApproval query */}
+                                    {item.href === "/admin/pending-approvals" && pendingCount > 0 && (
+                                        <span
+                                            className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold"
+                                            style={{
+                                                background: "var(--ed-accent-solid)",
+                                                color: "var(--ed-ink)",
+                                                fontFamily: "var(--ed-mono)",
+                                            }}
+                                            title={`${pendingCount} creator${pendingCount === 1 ? "" : "s"} waiting for approval`}
+                                        >
+                                            {pendingCount > 99 ? "99+" : pendingCount}
+                                        </span>
+                                    )}
+                                    {isActive && (
+                                        <motion.div
+                                            layoutId="active-pill"
+                                            className="w-1.5 h-1.5 rounded-full"
+                                            style={{ background: "var(--ed-accent-solid)" }}
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                        />
+                                    )}
+                                </div>
                             </Link>
                         )
                     })}

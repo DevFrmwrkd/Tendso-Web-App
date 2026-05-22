@@ -33,12 +33,8 @@ export default function EarningsSection() {
 
                 {/* Payout rates — current marketing values */}
                 <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(3, 1fr)",
-                        gap: 16,
-                        marginBottom: 48,
-                    }}
+                    className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12"
+                    style={{}}
                 >
                     {CREATOR_EARNINGS.map((rate) => {
                         const featured = rate.featured;
@@ -87,14 +83,7 @@ export default function EarningsSection() {
                 </div>
 
                 {/* Earning reality */}
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(3, 1fr)",
-                        gap: 16,
-                        marginBottom: 64,
-                    }}
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-16">
                     {[
                         { label: "Per week, part-time", v: "₱1,500 – ₱3,500", n: "3–7 sites per week" },
                         { label: "Per week, full-time", v: "₱5,000 – ₱12,000", n: "10+ sites + referral bonuses" },
@@ -137,14 +126,7 @@ export default function EarningsSection() {
                 </div>
 
                 {/* Testimonials */}
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(3, 1fr)",
-                        gap: 16,
-                        marginBottom: 48,
-                    }}
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
                     {TESTIMONIALS.map((t) => (
                         <div
                             key={t.name}

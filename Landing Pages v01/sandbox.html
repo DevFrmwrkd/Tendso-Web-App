@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sandbox · Local-business landing-page editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #161922;
+    --panel-2: #1d2230;
+    --rule: #2a3142;
+    --rule-2: #3a4358;
+    --ink: #e9ecf2;
+    --ink-soft: #8a93a8;
+    --ink-mute: #5d667a;
+    --accent: #ffd24a;
+    --good: #4ade80;
+    --bad: #f87171;
+    --sans: "Inter Tight", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root { height: 100%; }
+
+  .app { display: grid; grid-template-columns: 360px 1fr; height: 100%; }
+
+  /* ── LEFT PANEL ───────────────────────────────────── */
+  .panel { background: var(--panel); border-right: 1px solid var(--rule); display: flex; flex-direction: column; min-height: 0; }
+  .panel-head { padding: 18px 20px 14px; border-bottom: 1px solid var(--rule); }
+  .panel-head .brand { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .panel-head h1 { font-size: 18px; margin: 6px 0 0; letter-spacing: -0.01em; }
+  .panel-head .sub { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--rule); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+  .tab { flex: 1; padding: 12px 8px; background: none; border: 0; color: var(--ink-soft); font-family: var(--sans); font-size: 11px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.15s; }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--panel-2); }
+
+  .panel-body { flex: 1; overflow-y: auto; padding: 18px 20px 80px; }
+  .section { margin-bottom: 24px; }
+  .section-head { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-mute); margin: 0 0 10px; font-weight: 500; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 6px; font-weight: 500; }
+  .field input[type="text"], .field input[type="url"], .field textarea, .field select { width: 100%; background: var(--panel-2); border: 1px solid var(--rule); color: var(--ink); padding: 10px 12px; border-radius: 6px; font-family: var(--sans); font-size: 13px; line-height: 1.4; }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: var(--accent); }
+  .field textarea { min-height: 70px; resize: vertical; }
+  .field .hint { font-size: 11px; color: var(--ink-mute); margin-top: 4px; line-height: 1.4; }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* IMAGES */
+  .image-item { background: var(--panel-2); border: 1px solid var(--rule); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+  .image-item .head { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+  .image-item .thumb { width: 56px; height: 56px; background: var(--panel); border-radius: 4px; overflow: hidden; flex-shrink: 0; border: 1px solid var(--rule); }
+  .image-item .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .image-item .label { flex: 1; min-width: 0; }
+  .image-item .label .name { font-size: 12px; font-weight: 600; color: var(--ink); }
+  .image-item .label .alt { font-size: 11px; color: var(--ink-soft); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .image-item input[type="url"] { width: 100%; background: var(--panel); border: 1px solid var(--rule); color: var(--ink); padding: 6px 8px; border-radius: 4px; font-family: var(--mono); font-size: 11px; }
+  .image-item .file-btn { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 6px 10px; background: var(--rule); color: var(--ink); border: 0; border-radius: 4px; font-size: 11px; font-family: var(--sans); cursor: pointer; font-weight: 500; }
+  .image-item .file-btn:hover { background: var(--rule-2); }
+  .image-item input[type="file"] { display: none; }
+
+  /* BLOCKS */
+  .block-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: var(--panel-2); border: 1px solid var(--rule); border-radius: 6px; margin-bottom: 6px; }
+  .block-item .left { display: flex; gap: 12px; align-items: center; flex: 1; min-width: 0; }
+  .block-item .name { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; }
+  .block-item .meta { font-size: 10px; color: var(--ink-mute); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.1em; }
+  .block-item.locked { opacity: 0.55; }
+  .toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+  .toggle input { display: none; }
+  .toggle .slider { position: absolute; inset: 0; background: var(--rule); border-radius: 999px; cursor: pointer; transition: 0.18s; }
+  .toggle .slider::after { content: ""; position: absolute; width: 14px; height: 14px; background: var(--ink); border-radius: 50%; top: 3px; left: 3px; transition: 0.18s; }
+  .toggle input:checked + .slider { background: var(--accent); }
+  .toggle input:checked + .slider::after { left: 19px; background: var(--panel); }
+  .toggle.locked .slider { cursor: not-allowed; }
+
+  /* THEME */
+  .color-item { display: flex; align-items: center; gap: 12px; padding: 8px 10px; background: var(--panel-2); border: 1px solid var(--rule); border-radius: 6px; margin-bottom: 6px; }
+  .color-item input[type="color"] { width: 32px; height: 32px; border: 0; background: none; cursor: pointer; padding: 0; border-radius: 4px; flex-shrink: 0; }
+  .color-item .name { font-family: var(--mono); font-size: 11px; flex: 1; }
+  .color-item .val { font-family: var(--mono); font-size: 10px; color: var(--ink-mute); }
+  .color-item .reset { padding: 4px 8px; background: var(--rule); color: var(--ink-soft); border: 0; border-radius: 4px; font-size: 10px; cursor: pointer; }
+  .color-item .reset:hover { background: var(--rule-2); color: var(--ink); }
+
+  /* ── RIGHT PANEL ──────────────────────────────────── */
+  .preview { display: flex; flex-direction: column; min-height: 0; background: #0a0c10; }
+  .preview-bar { padding: 14px 20px; border-bottom: 1px solid var(--rule); display: flex; align-items: center; justify-content: space-between; gap: 16px; background: var(--panel); }
+  .preview-bar .info { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; color: var(--ink-soft); }
+  .preview-bar .info strong { color: var(--ink); }
+  .vp-toggle { display: flex; background: var(--bg); border-radius: 6px; padding: 3px; }
+  .vp-toggle button { padding: 6px 14px; background: none; border: 0; color: var(--ink-soft); font-size: 11px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border-radius: 4px; }
+  .vp-toggle button.active { background: var(--accent); color: var(--bg); font-weight: 600; }
+
+  .btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; background: var(--accent); color: var(--bg); border: 0; border-radius: 6px; font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: 0.04em; cursor: pointer; text-decoration: none; }
+  .btn:hover { background: white; }
+  .btn-ghost { background: var(--rule); color: var(--ink); }
+  .btn-ghost:hover { background: var(--rule-2); }
+
+  .stage { flex: 1; overflow: auto; padding: 24px; display: flex; align-items: flex-start; justify-content: center; }
+  .frame-wrap { background: white; box-shadow: 0 24px 60px rgba(0,0,0,0.45); transition: width 0.25s ease; }
+  .frame-wrap.desktop { width: 100%; max-width: 1440px; height: calc(100vh - 110px); }
+  .frame-wrap.mobile { width: 390px; height: 844px; max-width: 100%; border-radius: 24px; overflow: hidden; }
+  .frame-wrap iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+  .empty { padding: 40px 20px; color: var(--ink-mute); text-align: center; font-size: 13px; }
+
+  .loading { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--rule); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .template-card { padding: 14px; background: var(--panel-2); border: 1px solid var(--rule); border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: 0.15s; }
+  .template-card:hover { border-color: var(--rule-2); }
+  .template-card.active { border-color: var(--accent); background: rgba(255,210,74,0.06); }
+  .template-card .idx { font-family: var(--mono); font-size: 10px; color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase; }
+  .template-card .name { font-size: 14px; font-weight: 600; margin: 4px 0 2px; }
+  .template-card .desc { font-size: 11px; color: var(--ink-soft); }
+
+  .badge { display: inline-block; padding: 2px 6px; background: var(--rule); color: var(--ink-soft); border-radius: 3px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; margin-left: 6px; }
+  .badge.req { background: rgba(255,210,74,0.15); color: var(--accent); }
+
+  .scrollable::-webkit-scrollbar { width: 8px; }
+  .scrollable::-webkit-scrollbar-track { background: var(--bg); }
+  .scrollable::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 4px; }
+  .scrollable::-webkit-scrollbar-thumb:hover { background: var(--rule-2); }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+// ── TEMPLATES REGISTRY ────────────────────────────────────────────
+const TEMPLATES = [
+  { id: "lp-01-food",       label: "Food",       business: "Pico & Olive",            file: "lp-01-food.html",       desc: "Mediterranean café · editorial warm" },
+  { id: "lp-02-beauty",     label: "Beauty",     business: "Atelier Noir",            file: "lp-02-beauty.html",     desc: "Hair salon · fashion editorial" },
+  { id: "lp-03-retail",     label: "Retail",     business: "Maple & Iron Hardware",   file: "lp-03-retail.html",     desc: "Hardware store · blueprint" },
+  { id: "lp-04-automotive", label: "Automotive", business: "Cedar Auto Works",        file: "lp-04-automotive.html", desc: "Garage · industrial signal-red" },
+  { id: "lp-05-medical",    label: "Medical",    business: "Brightwater Dental",      file: "lp-05-medical.html",    desc: "Dental practice · calm clinical" },
+  { id: "lp-06-fitness",    label: "Fitness",    business: "Forge Strength Co",       file: "lp-06-fitness.html",    desc: "Strength gym · kinetic bold" },
+  { id: "lp-07-services",   label: "Services",   business: "Northline Tailors",       file: "lp-07-services.html",   desc: "Tailor · refined classic" },
+  { id: "lp-08-education",  label: "Education",  business: "Solferino Music School",  file: "lp-08-education.html",  desc: "Music school · warm inviting" },
+  { id: "lp-09-trades",     label: "Trades",     business: "Truelock Plumbing",       file: "lp-09-trades.html",     desc: "Plumber · service-area, utility" },
+];
+
+const REQUIRED_BLOCKS = new Set(["HERO", "SERVICES", "LOCATION", "FOOTER"]);
+
+const ALL_BLOCKS = [
+  ["HERO",            "required"],
+  ["TRUST",           "recommended"],
+  ["ABOUT",           "recommended"],
+  ["SERVICES",        "required"],
+  ["WHY-US",          "recommended"],
+  ["HOW-IT-WORKS",    "recommended"],
+  ["TESTIMONIALS",    "recommended"],
+  ["GALLERY",         "recommended"],
+  ["FAQ",             "recommended"],
+  ["SERVICE-AREA",    "recommended"],
+  ["CREDENTIALS",     "recommended"],
+  ["LOCATION",        "required"],
+  ["CTA-BAND",        "recommended"],
+  ["CLICK-TO-MESSAGE","recommended"],
+  ["FOOTER",          "required"],
+];
+
+// ── UTILITIES ─────────────────────────────────────────────────────
+function parseConfig(html) {
+  // Find the const CONFIG = { ... }; block in the first <script>.
+  const m = html.match(/const CONFIG\s*=\s*(\{[\s\S]*?\})\s*;\s*<\/script>/);
+  if (!m) return null;
+  try {
+    // The CONFIG is JS, not JSON — evaluate it in a safe-ish Function context.
+    return Function('"use strict"; return ' + m[1])();
+  } catch (e) {
+    console.warn("CONFIG parse failed:", e);
+    return null;
+  }
+}
+
+function extractThemeVars(html) {
+  // Pull `--name: #hex` declarations from the first `:root { ... }` block.
+  const root = html.match(/:root\s*\{([\s\S]*?)\}/);
+  if (!root) return [];
+  const decls = root[1].match(/(--[\w-]+):\s*([^;\n]+);/g) || [];
+  const vars = [];
+  for (const d of decls) {
+    const m = d.match(/(--[\w-]+):\s*([^;]+);/);
+    if (!m) continue;
+    const name = m[1];
+    const val = m[2].trim();
+    // Only expose hex / rgb colors (skip font vars and gradients)
+    if (/^#[0-9a-f]{3,8}$/i.test(val) || /^rgb/i.test(val)) {
+      vars.push({ name, val });
+    }
+  }
+  return vars;
+}
+
+// Build the patched HTML to render in the iframe / export.
+function buildHTML(originalHTML, patches) {
+  const { configOverrides, galleryOverrides, themeOverrides, disabledBlocks } = patches;
+
+  const lines = [];
+
+  // CONFIG overrides — assign each path on CONFIG before binding runs.
+  if (Object.keys(configOverrides).length || Object.keys(galleryOverrides).length) {
+    lines.push("<script>(function(){ try {");
+    for (const [path, val] of Object.entries(configOverrides)) {
+      lines.push(`  ${path} = ${JSON.stringify(val)};`);
+    }
+    for (const [idx, src] of Object.entries(galleryOverrides)) {
+      lines.push(`  if (CONFIG.gallery && CONFIG.gallery[${idx}]) CONFIG.gallery[${idx}].src = ${JSON.stringify(src)};`);
+    }
+    lines.push("} catch(e) { console.warn('sandbox patch:', e); } })();<\/script>");
+  }
+
+  // Theme variable overrides + block hiding (CSS).
+  const cssRules = [];
+  if (Object.keys(themeOverrides).length) {
+    const decls = Object.entries(themeOverrides).map(([k, v]) => `${k}: ${v};`).join(" ");
+    cssRules.push(`:root { ${decls} }`);
+  }
+  if (disabledBlocks.size) {
+    for (const name of disabledBlocks) {
+      cssRules.push(`[data-component="${name}"] { display: none !important; }`);
+    }
+  }
+  if (cssRules.length) {
+    lines.push(`<style id="__sandbox_overrides">${cssRules.join("\n")}</style>`);
+  }
+
+  // Gallery sync: after CONFIG binding runs, sync .gallery img srcs by index.
+  lines.push(`<script>
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    try {
+      const sel = '[data-component="GALLERY"] img';
+      const imgs = document.querySelectorAll(sel);
+      if (CONFIG && CONFIG.gallery) {
+        CONFIG.gallery.forEach((g, i) => { if (imgs[i] && g && g.src) { imgs[i].src = g.src; if (g.alt) imgs[i].alt = g.alt; }});
+      }
+    } catch (e) { console.warn(e); }
+  }, 0);
+});
+<\/script>`);
+
+  const patch = lines.join("\n");
+  // Inject before </head> if present, else before </body>.
+  if (originalHTML.includes("</head>")) {
+    return originalHTML.replace("</head>", patch + "\n</head>");
+  }
+  return originalHTML.replace("</body>", patch + "\n</body>");
+}
+
+// ── MAIN APP ──────────────────────────────────────────────────────
+function App() {
+  const [templateId, setTemplateId] = useState(TEMPLATES[0].id);
+  const [originalHTML, setOriginalHTML] = useState("");
+  const [parsedConfig, setParsedConfig] = useState(null);
+  const [themeVars, setThemeVars] = useState([]);
+  const [tab, setTab] = useState("template");
+  const [viewport, setViewport] = useState("desktop");
+  const [loading, setLoading] = useState(true);
+
+  // Edits keyed by templateId so swapping templates doesn't lose state.
+  const [editsByTemplate, setEditsByTemplate] = useState({});
+
+  const currentEdits = editsByTemplate[templateId] || {
+    configOverrides: {},
+    galleryOverrides: {},
+    themeOverrides: {},
+    disabledBlocks: new Set(),
+  };
+
+  const setCurrentEdits = useCallback((updater) => {
+    setEditsByTemplate(prev => {
+      const cur = prev[templateId] || { configOverrides: {}, galleryOverrides: {}, themeOverrides: {}, disabledBlocks: new Set() };
+      const next = typeof updater === "function" ? updater(cur) : updater;
+      return { ...prev, [templateId]: next };
+    });
+  }, [templateId]);
+
+  // Load the selected template.
+  useEffect(() => {
+    setLoading(true);
+    fetch(TEMPLATES.find(t => t.id === templateId).file)
+      .then(r => r.text())
+      .then(html => {
+        setOriginalHTML(html);
+        setParsedConfig(parseConfig(html));
+        setThemeVars(extractThemeVars(html));
+        setLoading(false);
+      })
+      .catch(err => { console.error(err); setLoading(false); });
+  }, [templateId]);
+
+  const finalHTML = useMemo(() => {
+    if (!originalHTML) return "";
+    return buildHTML(originalHTML, currentEdits);
+  }, [originalHTML, currentEdits]);
+
+  const exportFile = () => {
+    const blob = new Blob([finalHTML], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const tpl = TEMPLATES.find(t => t.id === templateId);
+    const safeName = (currentEdits.configOverrides["CONFIG.business.name"] || tpl.business)
+      .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${safeName || tpl.id}.html`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+  };
+
+  const setConfig = (path, value) => setCurrentEdits(c => ({
+    ...c,
+    configOverrides: { ...c.configOverrides, [path]: value }
+  }));
+
+  const setGallery = (idx, src) => setCurrentEdits(c => ({
+    ...c,
+    galleryOverrides: { ...c.galleryOverrides, [idx]: src }
+  }));
+
+  const setTheme = (name, val) => setCurrentEdits(c => ({
+    ...c,
+    themeOverrides: { ...c.themeOverrides, [name]: val }
+  }));
+
+  const resetTheme = (name) => setCurrentEdits(c => {
+    const o = { ...c.themeOverrides };
+    delete o[name];
+    return { ...c, themeOverrides: o };
+  });
+
+  const toggleBlock = (name) => {
+    if (REQUIRED_BLOCKS.has(name)) return;
+    setCurrentEdits(c => {
+      const ns = new Set(c.disabledBlocks);
+      if (ns.has(name)) ns.delete(name); else ns.add(name);
+      return { ...c, disabledBlocks: ns };
+    });
+  };
+
+  const resetAll = () => setCurrentEdits({
+    configOverrides: {},
+    galleryOverrides: {},
+    themeOverrides: {},
+    disabledBlocks: new Set(),
+  });
+
+  // Read current effective value (override or original) for a config path.
+  const eff = (path) => {
+    if (path in currentEdits.configOverrides) return currentEdits.configOverrides[path];
+    if (!parsedConfig) return "";
+    // path like "CONFIG.hero.headline" — drop leading CONFIG.
+    const parts = path.replace(/^CONFIG\./, "").split(".");
+    let cur = parsedConfig;
+    for (const p of parts) { if (cur == null) return ""; cur = cur[p]; }
+    return cur ?? "";
+  };
+
+  const effGallery = (i, field = "src") => {
+    if (field === "src" && i in currentEdits.galleryOverrides) return currentEdits.galleryOverrides[i];
+    if (!parsedConfig?.gallery?.[i]) return "";
+    return parsedConfig.gallery[i][field] || "";
+  };
+
+  return (
+    <div className="app">
+      {/* LEFT — controls */}
+      <aside className="panel">
+        <div className="panel-head">
+          <div className="brand">SANDBOX · LP/9</div>
+          <h1>Local-business landing pages</h1>
+          <div className="sub">Edit, swap, toggle, export.</div>
+        </div>
+
+        <div className="tabs">
+          <button className={"tab " + (tab === "template" ? "active" : "")} onClick={() => setTab("template")}>Template</button>
+          <button className={"tab " + (tab === "content" ? "active" : "")} onClick={() => setTab("content")}>Content</button>
+          <button className={"tab " + (tab === "images" ? "active" : "")} onClick={() => setTab("images")}>Images</button>
+          <button className={"tab " + (tab === "blocks" ? "active" : "")} onClick={() => setTab("blocks")}>Blocks</button>
+          <button className={"tab " + (tab === "theme" ? "active" : "")} onClick={() => setTab("theme")}>Theme</button>
+        </div>
+
+        <div className="panel-body scrollable">
+          {tab === "template" && (
+            <div className="section">
+              <div className="section-head">9 BUCKETS · PICK ONE</div>
+              {TEMPLATES.map((t, i) => (
+                <div key={t.id} className={"template-card " + (templateId === t.id ? "active" : "")} onClick={() => setTemplateId(t.id)}>
+                  <div className="idx">{String(i + 1).padStart(2, "0")} · {t.label}</div>
+                  <div className="name">{t.business}</div>
+                  <div className="desc">{t.desc}</div>
+                </div>
+              ))}
+              <button className="btn btn-ghost" onClick={resetAll} style={{ marginTop: 16, width: "100%", justifyContent: "center" }}>Reset edits for this template</button>
+            </div>
+          )}
+
+          {tab === "content" && (
+            <>
+              <div className="section">
+                <div className="section-head">BUSINESS</div>
+                <div className="field">
+                  <label>Name</label>
+                  <input type="text" value={eff("CONFIG.business.name")} onChange={e => setConfig("CONFIG.business.name", e.target.value)} />
+                </div>
+                <div className="row">
+                  <div className="field">
+                    <label>Phone (E.164)</label>
+                    <input type="text" value={eff("CONFIG.business.phone")} onChange={e => setConfig("CONFIG.business.phone", e.target.value)} />
+                  </div>
+                  <div className="field">
+                    <label>Phone (display)</label>
+                    <input type="text" value={eff("CONFIG.business.phoneDisplay")} onChange={e => setConfig("CONFIG.business.phoneDisplay", e.target.value)} />
+                  </div>
+                </div>
+                <div className="field">
+                  <label>Email</label>
+                  <input type="text" value={eff("CONFIG.business.email")} onChange={e => setConfig("CONFIG.business.email", e.target.value)} />
+                </div>
+              </div>
+
+              <div className="section">
+                <div className="section-head">HERO</div>
+                <div className="field">
+                  <label>Kicker</label>
+                  <input type="text" value={eff("CONFIG.hero.kicker")} onChange={e => setConfig("CONFIG.hero.kicker", e.target.value)} />
+                </div>
+                <div className="field">
+                  <label>Headline (the H1)</label>
+                  <textarea value={eff("CONFIG.hero.headline")} onChange={e => setConfig("CONFIG.hero.headline", e.target.value)} />
+                  <div className="hint">A real, crafted, short headline. Never <code>Name: long description in City</code>.</div>
+                </div>
+                <div className="field">
+                  <label>Lede</label>
+                  <textarea value={eff("CONFIG.hero.lede")} onChange={e => setConfig("CONFIG.hero.lede", e.target.value)} />
+                </div>
+                <div className="row">
+                  <div className="field">
+                    <label>Primary CTA label</label>
+                    <input type="text" value={eff("CONFIG.hero.primaryCta.label")} onChange={e => setConfig("CONFIG.hero.primaryCta.label", e.target.value)} />
+                  </div>
+                  <div className="field">
+                    <label>Secondary CTA</label>
+                    <input type="text" value={eff("CONFIG.hero.secondaryCta.label")} onChange={e => setConfig("CONFIG.hero.secondaryCta.label", e.target.value)} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="section">
+                <div className="section-head">ABOUT</div>
+                <div className="field">
+                  <label>About heading</label>
+                  <input type="text" value={eff("CONFIG.about.heading")} onChange={e => setConfig("CONFIG.about.heading", e.target.value)} />
+                </div>
+              </div>
+
+              <div className="section">
+                <div className="section-head">CTA BAND</div>
+                <div className="field">
+                  <label>CTA heading</label>
+                  <input type="text" value={eff("CONFIG.cta.heading")} onChange={e => setConfig("CONFIG.cta.heading", e.target.value)} />
+                </div>
+                <div className="field">
+                  <label>CTA body</label>
+                  <textarea value={eff("CONFIG.cta.body")} onChange={e => setConfig("CONFIG.cta.body", e.target.value)} />
+                </div>
+              </div>
+
+              <div className="section">
+                <div className="section-head">CONTACT</div>
+                {parsedConfig?.location && Object.keys(parsedConfig.location).map(k => (
+                  <div className="field" key={k}>
+                    <label>{k.replace(/([A-Z])/g, " $1")}</label>
+                    <input type="text" value={eff(`CONFIG.location.${k}`)} onChange={e => setConfig(`CONFIG.location.${k}`, e.target.value)} />
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {tab === "images" && (
+            <div className="section">
+              <div className="section-head">SWAP IMAGES · URL OR UPLOAD</div>
+              <div className="hint" style={{ marginBottom: 16, color: "var(--ink-soft)" }}>
+                Drop a URL or upload a file — replaced live in the preview. Uploaded files are kept as data-URLs for the session and embedded in the export.
+              </div>
+
+              {parsedConfig?.hero?.image && (
+                <ImageRow
+                  name="Hero image"
+                  alt={parsedConfig.hero.imageAlt}
+                  value={eff("CONFIG.hero.image")}
+                  onChange={v => setConfig("CONFIG.hero.image", v)}
+                />
+              )}
+              {parsedConfig?.about?.portrait && (
+                <ImageRow
+                  name="About portrait"
+                  alt={parsedConfig.about.portraitAlt}
+                  value={eff("CONFIG.about.portrait")}
+                  onChange={v => setConfig("CONFIG.about.portrait", v)}
+                />
+              )}
+              {(parsedConfig?.gallery || []).map((g, i) => (
+                <ImageRow
+                  key={i}
+                  name={`Gallery ${String(i + 1).padStart(2, "0")}`}
+                  alt={g.alt}
+                  value={effGallery(i)}
+                  onChange={v => setGallery(i, v)}
+                />
+              ))}
+            </div>
+          )}
+
+          {tab === "blocks" && (
+            <div className="section">
+              <div className="section-head">BLOCKS · TOGGLE OFF TO DELETE</div>
+              <div className="hint" style={{ marginBottom: 16, color: "var(--ink-soft)" }}>
+                Required blocks are locked. Toggle the rest off to remove them from the page.
+              </div>
+              {ALL_BLOCKS.map(([name, tag]) => {
+                const isReq = REQUIRED_BLOCKS.has(name);
+                const enabled = !currentEdits.disabledBlocks.has(name);
+                return (
+                  <div key={name} className={"block-item " + (isReq ? "locked" : "")}>
+                    <div className="left">
+                      <div>
+                        <div className="name">{name}<span className={"badge " + (isReq ? "req" : "")}>{tag}</span></div>
+                      </div>
+                    </div>
+                    <label className={"toggle " + (isReq ? "locked" : "")}>
+                      <input type="checkbox" checked={enabled} disabled={isReq} onChange={() => toggleBlock(name)} />
+                      <span className="slider"></span>
+                    </label>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {tab === "theme" && (
+            <div className="section">
+              <div className="section-head">CSS VARIABLES · CORE THEME</div>
+              <div className="hint" style={{ marginBottom: 16, color: "var(--ink-soft)" }}>
+                Edit any color variable from the template's <code>:root</code>. Hit reset to revert to the original.
+              </div>
+              {themeVars.length === 0 && <div className="empty">No color variables detected.</div>}
+              {themeVars.map(v => {
+                const override = currentEdits.themeOverrides[v.name];
+                const current = override || v.val;
+                return (
+                  <div key={v.name} className="color-item">
+                    <input type="color" value={normalizeHex(current)} onChange={e => setTheme(v.name, e.target.value)} />
+                    <div className="name">{v.name}</div>
+                    <div className="val">{current}</div>
+                    {override && <button className="reset" onClick={() => resetTheme(v.name)}>reset</button>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* RIGHT — preview */}
+      <section className="preview">
+        <div className="preview-bar">
+          <div className="info">
+            <strong>{TEMPLATES.find(t => t.id === templateId)?.business}</strong>
+            <span style={{ marginLeft: 12 }}>· {TEMPLATES.find(t => t.id === templateId)?.label}</span>
+            {loading && <span className="loading" style={{ marginLeft: 12, verticalAlign: "middle" }}></span>}
+          </div>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <div className="vp-toggle">
+              <button className={viewport === "desktop" ? "active" : ""} onClick={() => setViewport("desktop")}>Desktop</button>
+              <button className={viewport === "mobile" ? "active" : ""} onClick={() => setViewport("mobile")}>Mobile</button>
+            </div>
+            <button className="btn" onClick={exportFile} disabled={!finalHTML}>↓ Export HTML</button>
+          </div>
+        </div>
+        <div className="stage scrollable">
+          <div className={"frame-wrap " + viewport}>
+            {finalHTML
+              ? <iframe srcDoc={finalHTML} title="preview" sandbox="allow-same-origin allow-scripts allow-popups" />
+              : <div className="empty">Loading template…</div>}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function ImageRow({ name, alt, value, onChange }) {
+  const fileRef = useRef(null);
+  const onFile = (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => onChange(reader.result);
+    reader.readAsDataURL(f);
+  };
+  return (
+    <div className="image-item">
+      <div className="head">
+        <div className="thumb">{value && <img src={value} alt="" onError={e => { e.target.style.display = "none"; }} />}</div>
+        <div className="label">
+          <div className="name">{name}</div>
+          <div className="alt" title={alt}>{alt}</div>
+        </div>
+      </div>
+      <input type="url" value={value?.startsWith("data:") ? "(uploaded file)" : (value || "")} onChange={e => onChange(e.target.value)} placeholder="Image URL" readOnly={value?.startsWith("data:")} />
+      <input type="file" accept="image/*" ref={fileRef} onChange={onFile} />
+      <button className="file-btn" onClick={() => fileRef.current?.click()}>↑ Upload file</button>
+    </div>
+  );
+}
+
+function normalizeHex(c) {
+  if (!c) return "#000000";
+  if (/^#[0-9a-f]{6}$/i.test(c)) return c;
+  if (/^#[0-9a-f]{3}$/i.test(c)) return "#" + c.slice(1).split("").map(x => x + x).join("");
+  if (/^#[0-9a-f]{8}$/i.test(c)) return c.slice(0, 7); // strip alpha
+  // crude rgb → hex fallback
+  const m = c.match(/rgba?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+  if (m) {
+    const h = n => parseInt(n).toString(16).padStart(2, "0");
+    return "#" + h(m[1]) + h(m[2]) + h(m[3]);
+  }
+  return "#000000";
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+
+</body>
+</html>

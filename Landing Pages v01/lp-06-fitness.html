@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Forge Strength Co — strength gym in Leeds</title>
+<meta name="description" content="Forge Strength Co is a strength-and-conditioning gym in Leeds LS1. Small-group barbell coaching, open-gym membership, two-week free trial — coached by ASCC-accredited staff." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Forge Strength Co", phone: "+44 113 220 8801", phoneDisplay: "0113 220 8801", email: "front@forgestrength.co", foundedYear: 2016 },
+  hero: {
+    kicker: "LEEDS · LS1 · STRENGTH-FIRST",
+    headline: "Pick up something heavy. Put it down. Come back Tuesday.",
+    lede: "A barbell gym above a print shop in Leeds. Coached lifting, open-gym membership, no mirrors. Two-week free trial for anyone who can climb the stairs.",
+    primaryCta: { label: "Start your trial", href: "#trial" },
+    secondaryCta: { label: "How it works", href: "#how" },
+    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1800&q=85&auto=format&fit=crop",
+    imageAlt: "Barbell loaded with bumper plates on a wooden platform."
+  },
+  trust: { years: "Open since 2016 · LS1" },
+  about: {
+    heading: "A gym, not a fitness brand.",
+    paragraphs: [
+      "Forge opened above the Marston Print Works in 2016 with three platforms, two squat racks, and a kettle that has since been replaced by a slightly nicer kettle. Five thousand square feet, no televisions, no mirrors, and a sound system loud enough to know we mean it.",
+      "We coach the powerlifts, the Olympic lifts, and the everyday strength work that holds your back together at 50. Our coaches are ASCC-accredited and have lifted what they coach. Programmes are written by a person, for a person, and reviewed every six weeks.",
+      "Members range from 19 to 71. We're a gym, not a fitness brand. We don't do challenges, we don't take photos at the door, and we don't sell supplements."
+    ]
+  },
+  services: [
+    { name: "Open-gym membership", description: "Self-led training, full equipment access, ~70 hours a week." },
+    { name: "Strength Foundations", description: "Six-week beginner programme. Two coached sessions a week, max 6 people." },
+    { name: "Small-group barbell", description: "Ongoing coached groups, four to a coach. Squat, bench, deadlift, press." },
+    { name: "1-to-1 coaching", description: "Bespoke programme, monthly check-ins. For competitive lifters or coming back from injury." },
+    { name: "Olympic lifting", description: "Two coached sessions a week. Snatch, clean & jerk. Booked separately." },
+    { name: "Online programming", description: "If you train elsewhere — a tailored programme, video feedback, monthly call." }
+  ],
+  why: [
+    { title: "Coached, not class'd.", body: "Every coached session has a max of six people. The coach knows your name, your numbers, and your back." },
+    { title: "ASCC-accredited staff.", body: "Every coach holds the UK Strength & Conditioning Association's accreditation. Two are S&C registrants with the BASES." },
+    { title: "Equipment that lasts.", body: "Eleighty Eleiko bars, Sorinex racks, two Hatfield safety racks, calibrated competition plates from 0.5 to 25 kg." },
+    { title: "Two-week free trial.", body: "Use everything. Take a coached session. Come back if it suits, walk away if it doesn't." }
+  ],
+  how: [
+    { step: "01", title: "Drop in", body: "Come for a tour during open hours. No appointment needed." },
+    { step: "02", title: "Free trial", body: "Two weeks of full access. Includes one coached intro session." },
+    { step: "03", title: "Pick a track", body: "Open gym, small group, or 1-to-1 — switch any month." },
+    { step: "04", title: "Train", body: "We see you in. We see you out. We text you if we don't." }
+  ],
+  testimonials: [
+    { quote: "I came back to lifting at 53. Forge wrote me a programme that put 30kg on my squat in six months and didn't break me doing it.", name: "Hannah F.", context: "member since 2022" },
+    { quote: "The first gym in this city I've walked into where nobody filmed themselves once.", name: "Ade O.", context: "Hyde Park" },
+    { quote: "Coached, considered, no nonsense. Worth every penny.", name: "Tim R.", context: "national-level lifter" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1400&q=85&auto=format&fit=crop", alt: "Loaded barbell on platform." },
+    { src: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1400&q=85&auto=format&fit=crop", alt: "Athlete mid-deadlift." },
+    { src: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1400&q=85&auto=format&fit=crop", alt: "Gym floor with squat racks." },
+    { src: "https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=1400&q=85&auto=format&fit=crop", alt: "Chalk-dusted bar." },
+    { src: "https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=1400&q=85&auto=format&fit=crop", alt: "Plates stacked." },
+    { src: "https://images.unsplash.com/photo-1605296867424-35fc25c9212a?w=1400&q=85&auto=format&fit=crop", alt: "Coach spotting a lift." }
+  ],
+  faq: [
+    { q: "Do I need to be strong already?", a: "No. Half of new members have never picked up a barbell. The six-week Foundations programme is built for that exact starting point." },
+    { q: "What does the free trial include?", a: "Two weeks of full open-gym access plus one coached intro session. No card needed to start — we'll ask after if you choose to stay." },
+    { q: "Is there parking?", a: "Two reserved bays at the back; pay-and-display on Wellington Street. We're a four-minute walk from Leeds station." },
+    { q: "Can I bring my partner / a friend?", a: "Members get one free guest pass a month. Otherwise, drop-ins are welcome at the standard day rate." },
+    { q: "Do you have showers / changing?", a: "Two changing rooms, three showers, and lockers (bring your own padlock). Towels for hire if you forget." },
+    { q: "Is it busy?", a: "Mornings 6–9 and evenings 5:30–8 are the peaks. Off-peak is genuinely off-peak — sometimes empty." },
+    { q: "Do you do contracts?", a: "Monthly rolling membership. Cancel any time, give us one calendar month's notice." }
+  ],
+  area: { places: ["Leeds city centre","Hyde Park","Burley","Headingley","Kirkstall","Holbeck","Beeston","Roundhay","Chapel Allerton","Horsforth"] },
+  credentials: [
+    { label: "UKSCA", detail: "All coaches ASCC-accredited" },
+    { label: "BASES", detail: "Two S&C registrants" },
+    { label: "REPs", detail: "Level 4 in S&C, where applicable" },
+    { label: "First aid", detail: "Full first-aider on every shift" }
+  ],
+  location: { name: "Forge Strength Co", addressStreet: "Floor 2, 41 Wellington St", addressLocality: "Leeds", addressRegion: "West Yorkshire", addressPostcode: "LS1 4DG", addressCountry: "United Kingdom" },
+  cta: { heading: "Two weeks. No card.", body: "Trial includes one coached session. Walk away if it isn't for you.", primary: { label: "Start your trial", href: "#trial" }, secondary: { label: "0113 220 8801", href: "tel:+441132208801" } },
+  messaging: { whatsapp: "https://wa.me/441132208801", messenger: "https://m.me/forgestrength" }
+};
+</script>
+
+<style>
+  :root {
+    --bg:#0a0a0a; --bg2:#141414; --paper:#f4f1ea; --paper2:#e3dfd4;
+    --ink:#0a0a0a; --soft:#7a7770; --accent:#e3ff00; --rule:rgba(244,241,234,0.14);
+    --sans:"Archivo",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg);color:var(--paper);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1360px,94vw);margin-inline:auto;}
+  .kicker{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);}
+  .h2{font-family:var(--sans);font-weight:900;font-size:clamp(40px,6vw,96px);line-height:0.9;letter-spacing:-0.035em;text-transform:uppercase;margin:0 0 0.3em;}
+  .body{font-size:16px;line-height:1.6;color:rgba(244,241,234,0.7);}
+  section{padding:clamp(72px,9vw,128px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:18px 28px;font-family:var(--mono);font-size:12px;letter-spacing:0.16em;text-transform:uppercase;text-decoration:none;font-weight:500;transition:0.15s;}
+  .btn-primary{background:var(--accent);color:var(--ink);}
+  .btn-primary:hover{background:var(--paper);}
+  .btn-ghost{border:1px solid var(--paper);color:var(--paper);}
+  .btn-ghost:hover{background:var(--paper);color:var(--ink);}
+
+  /* NAV */
+  .nav{position:sticky;top:0;z-index:50;background:rgba(10,10,10,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:18px 0;}
+  .wm{font-family:var(--sans);font-weight:900;font-size:18px;letter-spacing:-0.02em;text-transform:uppercase;text-decoration:none;}
+  .wm::after{content:"●";color:var(--accent);font-size:8px;margin-left:6px;vertical-align:super;}
+  .nav-links{display:flex;gap:28px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,241,234,0.7);}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--accent);}
+  .nav-cta{padding:10px 16px;background:var(--accent);color:var(--ink);font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;font-weight:500;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO v3 — type-first */
+  .hero{padding:clamp(48px,8vw,96px) 0 0;overflow:hidden;}
+  .hero h1{font-family:var(--sans);font-weight:900;font-size:clamp(56px,11vw,184px);line-height:0.86;letter-spacing:-0.04em;text-transform:uppercase;margin:36px 0 28px;}
+  .hero h1 .stroke{-webkit-text-stroke:1.5px var(--paper);color:transparent;}
+  .hero h1 .acc{color:var(--accent);}
+  .hero-top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(244,241,234,0.6);}
+  .hero-bottom{display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:end;padding-top:36px;border-top:1px solid var(--rule);}
+  .hero-bottom .lede{font-size:clamp(17px,1.6vw,21px);line-height:1.4;max-width:42ch;color:rgba(244,241,234,0.8);}
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-strip{margin-top:64px;display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
+  .hero-strip img{aspect-ratio:1/1;object-fit:cover;width:100%;filter:grayscale(0.3) contrast(1.05);}
+  @media(max-width:880px){.hero-bottom{grid-template-columns:1fr;} .hero-strip{grid-template-columns:repeat(3,1fr);} .hero-strip img:nth-child(n+4){display:none;}}
+
+  /* TRUST */
+  .trust{padding:24px 0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:var(--bg);}
+  .trust .row{display:flex;gap:36px;flex-wrap:wrap;align-items:center;font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(244,241,234,0.7);}
+  .trust .row .x{color:var(--accent);}
+
+  /* ABOUT — manifesto */
+  .about{background:var(--paper);color:var(--ink);}
+  .about .h2 em{color:var(--ink);font-style:normal;background:var(--accent);padding:0 12px;}
+  .about-prose p{font-family:var(--sans);font-weight:600;font-size:clamp(22px,2.6vw,36px);line-height:1.2;margin:0 0 0.6em;letter-spacing:-0.015em;}
+  .about-prose p:not(:last-child){padding-bottom:0.6em;border-bottom:1px solid rgba(10,10,10,0.18);}
+
+  /* SERVICES */
+  .services{background:var(--bg2);}
+  .svc-list{margin-top:48px;border-top:1px solid var(--rule);}
+  .svc-row{display:grid;grid-template-columns:80px 280px 1fr;gap:24px;padding:32px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.2s;cursor:default;}
+  .svc-row:hover{background:rgba(227,255,0,0.04);}
+  .svc-row .num{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:0.16em;}
+  .svc-row .name{font-family:var(--sans);font-weight:800;font-size:28px;text-transform:uppercase;letter-spacing:-0.02em;}
+  .svc-row .desc{color:rgba(244,241,234,0.7);font-size:15px;}
+  @media(max-width:760px){.svc-row{grid-template-columns:60px 1fr;} .svc-row .desc{grid-column:1/-1;padding-left:84px;}}
+
+  /* WHY */
+  .why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:36px;border-top:1px solid var(--rule);}
+  .why-grid > div{padding:32px 24px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+  .why-grid > div:last-child{border-right:0;}
+  .why-grid .num{font-family:var(--sans);font-weight:900;font-size:64px;line-height:0.9;color:var(--accent);letter-spacing:-0.03em;}
+  .why-grid h3{font-family:var(--sans);font-weight:800;font-size:22px;text-transform:uppercase;margin:18px 0 10px;letter-spacing:-0.015em;line-height:1.1;}
+  .why-grid p{color:rgba(244,241,234,0.65);margin:0;font-size:14px;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr 1fr;}}
+
+  /* HOW */
+  .how{background:var(--paper);color:var(--ink);}
+  .how .h2 em{color:var(--ink);font-style:normal;background:var(--accent);padding:0 12px;}
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:32px;margin-top:48px;}
+  .how-grid > li{list-style:none;padding-top:24px;border-top:2px solid var(--ink);}
+  .how-grid .step{font-family:var(--mono);font-size:11px;color:var(--ink);letter-spacing:0.16em;}
+  .how-grid h3{font-family:var(--sans);font-weight:800;font-size:22px;margin:12px 0 10px;text-transform:uppercase;letter-spacing:-0.015em;}
+  .how-grid p{color:var(--soft);margin:0;font-size:14px;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  /* TESTIMONIALS — pull quote */
+  .testimonials{background:var(--bg);}
+  .pull{font-family:var(--sans);font-weight:800;font-size:clamp(36px,5.6vw,84px);line-height:0.95;letter-spacing:-0.03em;text-transform:uppercase;margin:0 0 24px;max-width:22ch;}
+  .pull span{color:var(--accent);}
+  .pull-attr{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(244,241,234,0.6);margin-bottom:80px;}
+  .sub-row{display:grid;grid-template-columns:1fr 1fr;gap:60px;border-top:1px solid var(--rule);padding-top:40px;}
+  .sub-row blockquote{font-family:var(--sans);font-weight:500;font-size:22px;line-height:1.3;margin:0 0 14px;}
+  .sub-row figcaption{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(244,241,234,0.55);}
+  @media(max-width:760px){.sub-row{grid-template-columns:1fr;}}
+
+  /* GALLERY — full bleed */
+  .gallery{padding:80px 0;background:var(--bg2);}
+  .gallery-strip{margin-top:48px;display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
+  .gallery-strip img{aspect-ratio:3/4;object-fit:cover;width:100%;}
+  @media(max-width:760px){.gallery-strip{grid-template-columns:repeat(3,1fr);}}
+
+  /* FAQ */
+  .faq-grid{display:grid;grid-template-columns:1fr 1.6fr;gap:60px;}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list summary{font-family:var(--sans);font-weight:700;font-size:20px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;text-transform:uppercase;letter-spacing:-0.01em;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--accent);font-family:var(--mono);}
+  .faq-list details[open] summary::after{content:"−";}
+  .faq-list p{margin:14px 0 0;max-width:64ch;color:rgba(244,241,234,0.7);}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  /* AREA */
+  .area-list{display:flex;flex-wrap:wrap;gap:0;margin-top:36px;border-top:1px solid var(--rule);}
+  .area-list li{list-style:none;padding:18px 0;margin-right:32px;font-family:var(--sans);font-weight:800;font-size:24px;text-transform:uppercase;letter-spacing:-0.02em;}
+  .area-list li::before{content:"//";color:var(--accent);margin-right:10px;font-family:var(--mono);font-size:14px;}
+
+  /* CREDS */
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:36px;border-top:1px solid var(--rule);}
+  .creds > div{padding:28px 24px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+  .creds > div:last-child{border-right:0;}
+  .creds .label{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:0.16em;text-transform:uppercase;margin-bottom:12px;}
+  .creds .detail{font-family:var(--sans);font-weight:700;font-size:18px;text-transform:uppercase;letter-spacing:-0.01em;line-height:1.2;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  /* LOCATION */
+  .loc-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:32px;margin-top:36px;}
+  .nap{background:var(--bg2);border:1px solid var(--rule);padding:32px;}
+  .nap address{font-style:normal;font-family:var(--sans);font-weight:700;font-size:22px;line-height:1.35;text-transform:uppercase;letter-spacing:-0.015em;}
+  .nap a{color:var(--paper);text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:12px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(244,241,234,0.7);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12px;color:rgba(244,241,234,0.5);margin-top:14px;letter-spacing:0;text-transform:none;line-height:1.5;}
+  .map-frame{background:var(--bg2);min-height:380px;}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.7) invert(0.92);}
+  @media(max-width:880px){.loc-grid{grid-template-columns:1fr;}}
+
+  /* CTA BAND */
+  .cta-band{background:var(--accent);color:var(--ink);padding:clamp(80px,10vw,140px) 0;}
+  .cta-band h2{font-family:var(--sans);font-weight:900;font-size:clamp(48px,8vw,144px);line-height:0.88;margin:0 0 18px;text-transform:uppercase;letter-spacing:-0.035em;max-width:14ch;}
+  .cta-band p{max-width:50ch;margin:0 0 32px;color:rgba(10,10,10,0.7);font-size:18px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--ink);color:var(--accent);}
+  .cta-band .btn-ghost{border-color:var(--ink);color:var(--ink);}
+  .cta-band .btn-ghost:hover{background:var(--ink);color:var(--accent);}
+
+  /* FOOTER */
+  footer{background:var(--bg2);padding:60px 0 32px;border-top:1px solid var(--rule);}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(244,241,234,0.5);margin:0 0 14px;font-weight:500;}
+  .footer-grid a{text-decoration:none;display:block;padding:4px 0;font-size:14px;color:var(--paper);}
+  .colophon{margin-top:56px;padding-top:20px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(244,241,234,0.4);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  /* MSG FAB */
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--ink);padding:14px 18px;text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;font-weight:500;box-shadow:0 8px 24px rgba(227,255,0,0.3);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ExerciseGym","name":"Forge Strength Co","description":"Strength-and-conditioning gym in Leeds LS1.","url":"https://forgestrength.co/","telephone":"+441132208801","email":"front@forgestrength.co","address":{"@type":"PostalAddress","streetAddress":"Floor 2, 41 Wellington St","addressLocality":"Leeds","addressRegion":"West Yorkshire","postalCode":"LS1 4DG","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.7969,"longitude":-1.5466},"areaServed":["Leeds","Hyde Park","Headingley"],"image":["https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1600"],"foundingDate":"2016"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Do I need to be strong already?","acceptedAnswer":{"@type":"Answer","text":"No. The six-week Foundations programme is built for total beginners."}},
+{"@type":"Question","name":"What does the free trial include?","acceptedAnswer":{"@type":"Answer","text":"Two weeks open-gym plus one coached intro session. No card needed to start."}},
+{"@type":"Question","name":"Is there parking?","acceptedAnswer":{"@type":"Answer","text":"Two reserved bays at the back; pay-and-display on Wellington Street."}},
+{"@type":"Question","name":"Can I bring a guest?","acceptedAnswer":{"@type":"Answer","text":"Members get one free guest pass a month. Drop-ins welcome at the standard day rate."}},
+{"@type":"Question","name":"Do you have showers?","acceptedAnswer":{"@type":"Answer","text":"Two changing rooms, three showers, lockers."}},
+{"@type":"Question","name":"Is it busy?","acceptedAnswer":{"@type":"Answer","text":"Peaks 6–9 and 5:30–8. Off-peak is genuinely off-peak."}},
+{"@type":"Question","name":"Do you do contracts?","acceptedAnswer":{"@type":"Answer","text":"Monthly rolling, one calendar month notice."}}]}
+</script>
+
+<script type="application/json" id="lp-config">{"business":"...","hero":"...","trust":"...","about":"...","services":"...","why":"...","how":"...","testimonials":"...","gallery":"...","faq":"...","area":"...","credentials":"...","location":"...","cta":"...","messaging":"..."}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">FORGE STRENGTH CO</a>
+    <nav class="nav-links">
+      <a href="#about">Gym</a>
+      <a href="#services">Membership</a>
+      <a href="#how">How it works</a>
+      <a href="#location">Find us</a>
+    </nav>
+    <a class="nav-cta" href="#trial">Free trial</a>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v3">
+  <div class="wrap">
+    <div class="hero-top">
+      <span data-bind="hero.kicker">LEEDS · LS1 · STRENGTH-FIRST</span>
+      <span>EST. 2016</span>
+      <span>5,000 SQ FT · NO MIRRORS</span>
+    </div>
+    <h1><span data-bind="hero.headline">Pick up something <span class="acc">heavy.</span><br/>Put it down. Come back <span class="stroke">Tuesday.</span></span></h1>
+    <div class="hero-bottom">
+      <p class="lede" data-bind="hero.lede">A barbell gym above a print shop in Leeds. Coached lifting, open-gym membership, no mirrors. Two-week free trial for anyone who can climb the stairs.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#trial" data-bind="hero.primaryCta.label">Start your trial</a>
+        <a class="btn btn-ghost" href="#how" data-bind="hero.secondaryCta.label">How it works</a>
+      </div>
+    </div>
+    <div class="hero-strip">
+      <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80&auto=format&fit=crop" alt="Loaded barbell." />
+      <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=800&q=80&auto=format&fit=crop" alt="Deadlift." />
+      <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80&auto=format&fit=crop" alt="Gym floor." />
+      <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&q=80&auto=format&fit=crop" alt="Chalk bar." />
+      <img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=800&q=80&auto=format&fit=crop" alt="Plates." />
+      <img src="https://images.unsplash.com/photo-1605296867424-35fc25c9212a?w=800&q=80&auto=format&fit=crop" alt="Coaching." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:24px 0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">OPEN SINCE 2016 · LS1</span>
+    <span class="x">//</span><span>UKSCA-ACCREDITED COACHES</span>
+    <span class="x">//</span><span>ELEIKO &amp; SORINEX EQUIPMENT</span>
+    <span class="x">//</span><span>BASES-REGISTERED S&amp;C STAFF</span>
+    <!-- GBP-bound rating slot: never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--ink);">FILE / ABOUT</div>
+    <h2 class="h2" data-bind="about.heading">A gym, <em>not a fitness brand.</em></h2>
+    <div class="about-prose" style="margin-top:36px;">
+      <p>Forge opened above the Marston Print Works in 2016 with three platforms, two squat racks, and a kettle that has since been replaced by a slightly nicer kettle.</p>
+      <p>Five thousand square feet, no televisions, no mirrors, and a sound system loud enough to know we mean it.</p>
+      <p>We coach the powerlifts, the Olympic lifts, and the everyday strength work that holds your back together at 50. Programmes are written by a person, for a person.</p>
+      <p>Members range from 19 to 71. We don't do challenges. We don't take photos at the door. We don't sell supplements.</p>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="services" data-component="SERVICES" data-variant="v4">
+  <div class="wrap">
+    <div class="kicker">FILE / MEMBERSHIP</div>
+    <h2 class="h2">Six ways to train here.</h2>
+    <div class="svc-list">
+      <div class="svc-row"><span class="num">01.</span><span class="name">OPEN-GYM</span><span class="desc">Self-led training, full equipment access, ~70 hours a week.</span></div>
+      <div class="svc-row"><span class="num">02.</span><span class="name">FOUNDATIONS</span><span class="desc">Six-week beginner programme. Two coached sessions a week, max 6 people.</span></div>
+      <div class="svc-row"><span class="num">03.</span><span class="name">SMALL-GROUP BARBELL</span><span class="desc">Ongoing coached groups, four to a coach. Squat, bench, deadlift, press.</span></div>
+      <div class="svc-row"><span class="num">04.</span><span class="name">1-TO-1 COACHING</span><span class="desc">Bespoke programme, monthly check-ins. Competitive lifters or returning from injury.</span></div>
+      <div class="svc-row"><span class="num">05.</span><span class="name">OLYMPIC LIFTING</span><span class="desc">Two coached sessions a week. Snatch, clean &amp; jerk. Booked separately.</span></div>
+      <div class="svc-row"><span class="num">06.</span><span class="name">ONLINE PROGRAMMING</span><span class="desc">If you train elsewhere — tailored programme, video feedback, monthly call.</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker">FILE / WHY</div>
+    <h2 class="h2">Four things we don't move on.</h2>
+    <div class="why-grid">
+      <div><div class="num">01</div><h3>Coached, not class'd.</h3><p>Every coached session has a max of six people. The coach knows your name, your numbers, and your back.</p></div>
+      <div><div class="num">02</div><h3>ASCC-accredited staff.</h3><p>Every coach holds the UKSCA's accreditation. Two are BASES S&amp;C registrants.</p></div>
+      <div><div class="num">03</div><h3>Equipment that lasts.</h3><p>Eleiko bars, Sorinex racks, calibrated competition plates from 0.5 to 25 kg.</p></div>
+      <div><div class="num">04</div><h3>Two-week free trial.</h3><p>Use everything. Take a coached session. Walk away if it doesn't suit.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section id="how" class="how" data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--ink);">FILE / HOW IT GOES</div>
+    <h2 class="h2">From <em>the door</em> to the platform.</h2>
+    <ol class="how-grid">
+      <li><div class="step">STEP 01</div><h3>Drop in</h3><p>Come for a tour during open hours. No appointment needed.</p></li>
+      <li><div class="step">STEP 02</div><h3>Free trial</h3><p>Two weeks of full access. Includes one coached intro session.</p></li>
+      <li><div class="step">STEP 03</div><h3>Pick a track</h3><p>Open gym, small group, or 1-to-1 — switch any month.</p></li>
+      <li><div class="step">STEP 04</div><h3>Train</h3><p>We see you in. We see you out. We text you if we don't.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker">FILE / VOICES</div>
+    <blockquote class="pull">“I came back to lifting at 53. Forge put <span>30kg on my squat</span> in six months and didn't break me doing it.”</blockquote>
+    <div class="pull-attr">— HANNAH F. · MEMBER SINCE 2022</div>
+    <div class="sub-row">
+      <figure><blockquote>“The first gym in this city I've walked into where nobody filmed themselves once.”</blockquote><figcaption>Ade O. · Hyde Park</figcaption></figure>
+      <figure><blockquote>“Coached, considered, no nonsense. Worth every penny.”</blockquote><figcaption>Tim R. · national-level lifter</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section class="gallery" data-component="GALLERY" data-variant="v3">
+  <div class="wrap">
+    <div class="kicker">FILE / FLOOR</div>
+    <h2 class="h2">Inside the room.</h2>
+    <div class="gallery-strip">
+      <img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1000&q=80&auto=format&fit=crop" alt="Loaded barbell." />
+      <img src="https://images.unsplash.com/photo-1571902943202-507ec2618e8f?w=1000&q=80&auto=format&fit=crop" alt="Athlete mid-deadlift." />
+      <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1000&q=80&auto=format&fit=crop" alt="Gym floor with squat racks." />
+      <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=1000&q=80&auto=format&fit=crop" alt="Chalk-dusted bar." />
+      <img src="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=1000&q=80&auto=format&fit=crop" alt="Stacked plates." />
+      <img src="https://images.unsplash.com/photo-1605296867424-35fc25c9212a?w=1000&q=80&auto=format&fit=crop" alt="Coach spotting a lift." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="faq-grid">
+      <div>
+        <div class="kicker">FILE / FAQ</div>
+        <h2 class="h2">Before<br/>you sign up.</h2>
+        <p class="body">If yours isn't here, ring <a href="tel:+441132208801" style="color:var(--accent);text-decoration:none;">0113 220 8801</a>.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Do I need to be strong already?</summary><p>No. Half of new members have never picked up a barbell. The six-week Foundations programme is built for that exact starting point.</p></details>
+        <details><summary>What does the free trial include?</summary><p>Two weeks of full open-gym access plus one coached intro session. No card needed to start.</p></details>
+        <details><summary>Is there parking?</summary><p>Two reserved bays at the back; pay-and-display on Wellington Street. Four-minute walk from Leeds station.</p></details>
+        <details><summary>Can I bring a guest?</summary><p>Members get one free guest pass a month. Drop-ins welcome at the standard day rate.</p></details>
+        <details><summary>Do you have showers?</summary><p>Two changing rooms, three showers, lockers. Towels for hire if you forget.</p></details>
+        <details><summary>Is it busy?</summary><p>Peaks 6–9 and 5:30–8. Off-peak is genuinely off-peak — sometimes empty.</p></details>
+        <details><summary>Do you do contracts?</summary><p>Monthly rolling membership. Cancel any time with one calendar month's notice.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker">FILE / WHO TRAINS HERE</div>
+    <h2 class="h2">Where members travel from.</h2>
+    <ul class="area-list">
+      <li>Leeds centre</li><li>Hyde Park</li><li>Burley</li>
+      <li>Headingley</li><li>Kirkstall</li><li>Holbeck</li>
+      <li>Beeston</li><li>Roundhay</li><li>Chapel Allerton</li><li>Horsforth</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">FILE / CREDENTIALS</div>
+    <h2 class="h2">Coaching standards.</h2>
+    <div class="creds">
+      <div><div class="label">UKSCA</div><div class="detail">All coaches ASCC-accredited</div></div>
+      <div><div class="label">BASES</div><div class="detail">Two S&amp;C registrants</div></div>
+      <div><div class="label">REPs</div><div class="detail">Level 4 S&amp;C, where applicable</div></div>
+      <div><div class="label">First aid</div><div class="detail">Full first-aider on every shift</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">FILE / LOCATION</div>
+    <h2 class="h2">Floor 2, 41 Wellington.</h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">FORGE STRENGTH CO</strong><br/>
+          FLOOR 2, 41 WELLINGTON ST<br/>
+          LEEDS LS1 4DG<br/><br/>
+          <a href="tel:+441132208801" data-bind="business.phoneDisplay">0113 220 8801</a><br/>
+          <a href="mailto:front@forgestrength.co" data-bind="business.email">front@forgestrength.co</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound. -->
+          <div class="row"><span>MON–FRI</span><span>—</span></div>
+          <div class="row"><span>SATURDAY</span><span>—</span></div>
+          <div class="row"><span>SUNDAY</span><span>—</span></div>
+          <p class="gbp-note">Hours kept current on our Google Business Profile.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Forge Strength Co, Wellington St, Leeds" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.5530%2C53.7940%2C-1.5400%2C53.7990&layer=mapnik&marker=53.7969%2C-1.5466"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="trial" class="cta-band" data-component="CTA-BAND" data-variant="v3">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--ink);">FILE / TRIAL</div>
+    <h2 data-bind="cta.heading">Two weeks. No card.</h2>
+    <p data-bind="cta.body">Trial includes one coached session. Walk away if it isn't for you.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#trial" data-bind="cta.primary.label">Start your trial</a>
+      <a class="btn btn-ghost" href="tel:+441132208801" data-bind="cta.secondary.label">0113 220 8801</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441132208801" data-bind="messaging.whatsapp" aria-label="Message">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    MESSAGE
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;">FORGE STRENGTH CO</div>
+        <p class="body" style="margin-top:12px;max-width:36ch;">A barbell gym above a print shop in Leeds. Open since 2016.</p>
+      </div>
+      <div>
+        <h4>Find us</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.6;color:var(--paper);">
+          Floor 2, 41 Wellington St<br/>Leeds LS1 4DG<br/>
+          <a href="tel:+441132208801" style="color:var(--paper);text-decoration:none;">0113 220 8801</a><br/>
+          <a href="mailto:front@forgestrength.co" style="color:var(--paper);text-decoration:none;">front@forgestrength.co</a>
+        </address>
+      </div>
+      <div>
+        <h4>Sections</h4>
+        <a href="#about">Gym</a>
+        <a href="#services">Membership</a>
+        <a href="#how">How it works</a>
+        <a href="#trial">Free trial</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> FORGE STRENGTH CO LTD · LEEDS LS1</span>
+      <span>RUN BY HUMANS · NOT AN ALGORITHM</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

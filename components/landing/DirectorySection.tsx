@@ -124,12 +124,7 @@ export default function DirectorySection({
                 </div>
 
                 <div
-                    className="surface"
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: `repeat(${counterCells.length}, 1fr)`,
-                        marginBottom: 48,
-                    }}
+                    className="surface grid grid-cols-2 sm:grid-cols-4 mb-12"
                 >
                     {counterCells.map((c, i) => (
                         <BigCounter

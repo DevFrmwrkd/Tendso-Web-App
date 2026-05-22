@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Atelier Noir — hair salon in Manchester's Northern Quarter</title>
+<meta name="description" content="Atelier Noir is a small hair salon in Manchester's Northern Quarter — colour, cut, and quiet appointments by a four-stylist team. Book online or by phone." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,700;1,6..96,400&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: {
+    name: "Atelier Noir",
+    tagline: "Colour, cut, slow appointments",
+    phone: "+44 161 482 7330",
+    phoneDisplay: "0161 482 7330",
+    email: "studio@ateliernoir.salon",
+    foundedYear: 2017
+  },
+  hero: {
+    kicker: "№ 12 — Tib Street · Northern Quarter",
+    headline: "A small room. Four chairs. Two hours per guest.",
+    lede: "We are an independent colour and cutting studio. We see fewer clients than we could so we can take longer with the ones we do.",
+    primaryCta: { label: "Book a consultation", href: "#book" },
+    secondaryCta: { label: "Meet the team", href: "#about" },
+    image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Backlit salon interior with brass fittings and a long mirror."
+  },
+  about: {
+    heading: "Slow hair, by appointment.",
+    paragraphs: [
+      "Atelier Noir opened on Tib Street in 2017 with one chair, one kettle, and a colour shelf that fit on a single trolley. We've grown to four stylists and a colour technician, but the kettle is the same.",
+      "Every guest is booked into a two-hour window. That isn't because every visit takes two hours — it's because we don't want to ever rush you out. The room is quiet on purpose. The music is whatever the stylist wants it to be.",
+      "Our work is published in Vogue Italia, British Vogue, Dazed, and a stack of pamphlets the photographer's mother prints every Christmas."
+    ],
+    portrait: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=1400&q=85&auto=format&fit=crop",
+    portraitAlt: "A stylist mid-cut, working with hand-held shears."
+  },
+  trust: {
+    years: "Cutting hair on Tib Street since 2017",
+    licenses: ["L'Oréal Professionnel salon", "Wella Master Colourist"],
+    memberships: ["Fellowship for British Hairdressing", "British Beauty Council"]
+  },
+  services: [
+    { name: "Cut", description: "Wash, consultation, cut, finish. Two hours." },
+    { name: "Colour", description: "Single process, gloss, root retouch. Patch tests 48h prior." },
+    { name: "Dimensional colour", description: "Balayage, full highlights, painted lights. 3–5 hours." },
+    { name: "Colour correction", description: "Booked as a consultation first. Day appointments only." },
+    { name: "Blowout", description: "For a wedding, an opening, a Tuesday — we don't ask." },
+    { name: "Bridal & editorial", description: "On-location styling for editorial, runway and weddings. Brief us." }
+  ],
+  why: [
+    { title: "Two-hour appointments, always.", body: "Time is the whole point. We charge for it; we don't sell it back at a discount." },
+    { title: "Four stylists, one room.", body: "You see the same person each visit. No floor managers, no upsells, no commission targets." },
+    { title: "Trade-credentialed colourists.", body: "Wella Master Colourists and L'Oréal Professionnel-trained, ongoing education every quarter." }
+  ],
+  how: [
+    { step: "01", title: "Tell us what you want", body: "Send a few reference photos and tell us your hair history through the form, or come in for a free consult." },
+    { step: "02", title: "Patch test if colouring", body: "We do an in-person patch test 48 hours before any colour service. New clients always." },
+    { step: "03", title: "Two-hour appointment", body: "Wash, consultation, the work itself, and a finish you can replicate at home." },
+    { step: "04", title: "Re-book at the desk", body: "We hold the same chair, same stylist, same time. Cancel up to 24h before, no charge." }
+  ],
+  testimonials: [
+    { quote: "The only place in the city that has ever quoted me a colour and stuck to it. I've been going for four years.", name: "Helena W.", context: "client since 2021" },
+    { quote: "I cried after a bad cut elsewhere; they fixed it in one visit and didn't make me feel small about it.", name: "Maya O.", context: "Ancoats" },
+    { quote: "Felt more like a private studio than a salon. Quiet. No small talk if you don't want it.", name: "Ruth A.", context: "first appointment" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1400&q=85&auto=format&fit=crop", alt: "Sharp blunt cut on dark hair, profile view." },
+    { src: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1400&q=85&auto=format&fit=crop", alt: "Foiled highlights mid-process." },
+    { src: "https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?w=1400&q=85&auto=format&fit=crop", alt: "Editorial portrait, copper hair against ivory." },
+    { src: "https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=1400&q=85&auto=format&fit=crop", alt: "Salon mirror with brass detail." },
+    { src: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1400&q=85&auto=format&fit=crop", alt: "Wet hair being combed before a cut." },
+    { src: "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=1400&q=85&auto=format&fit=crop", alt: "Finished blowout, soft waves." }
+  ],
+  faq: [
+    { q: "Do I need a patch test?", a: "Yes, for any colour service if you haven't visited us before, or if it's been over six months. Patch tests are done in person, 48 hours before your appointment." },
+    { q: "How far in advance do you book?", a: "Cuts are usually two to three weeks out. Colour and correction work is four to six weeks. We hold a small number of last-minute slots — call to ask." },
+    { q: "Do you cut all hair types?", a: "Yes — every stylist trains across textures, including coily and Type 4 hair. Tell us your texture when you enquire and we'll match you to the right person." },
+    { q: "What's your cancellation policy?", a: "Free up to 24 hours before your appointment. Inside 24 hours we charge 50% of the booked service to the card on file." },
+    { q: "Is the studio accessible?", a: "Step-free entry, accessible WC on the ground floor, two chairs with adjustable height. Please mention specific needs when you book." },
+    { q: "Do you sell products?", a: "A small, curated shelf — only what we use on guests. We don't take retail commissions." },
+    { q: "Can I bring my child / dog?", a: "Children under 12 only if they're being seen. Dogs welcome at the front of the studio." }
+  ],
+  area: {
+    heading: "Where our clients come from",
+    places: ["Northern Quarter", "Ancoats", "Castlefield", "Salford", "Chorlton", "Didsbury", "Stockport", "Sale"]
+  },
+  credentials: [
+    { label: "Wella Master Colourist", detail: "All colour staff, recertified annually" },
+    { label: "L'Oréal Professionnel", detail: "Authorised salon partner" },
+    { label: "Fellowship for British Hairdressing", detail: "Member salon" },
+    { label: "British Beauty Council", detail: "Listed independent" }
+  ],
+  location: {
+    name: "Atelier Noir",
+    addressStreet: "12 Tib Street",
+    addressLocality: "Northern Quarter, Manchester",
+    addressRegion: "Greater Manchester",
+    addressPostcode: "M4 1LR",
+    addressCountry: "United Kingdom"
+  },
+  cta: {
+    heading: "Hair takes time. We have it.",
+    body: "Send a brief through the form below, or call the studio between 10 and 6.",
+    primary: { label: "Book online", href: "#book" },
+    secondary: { label: "0161 482 7330", href: "tel:+441614827330" }
+  },
+  messaging: {
+    whatsapp: "https://wa.me/441614827330",
+    messenger: "https://m.me/ateliernoirsalon"
+  },
+  footer: {
+    links: [
+      { label: "Services", href: "#services" },
+      { label: "Book", href: "#book" },
+      { label: "Find us", href: "#location" },
+      { label: "FAQ", href: "#faq" },
+      { label: "Press", href: "mailto:press@ateliernoir.salon" }
+    ]
+  }
+};
+</script>
+
+<style>
+  :root {
+    --ink:        #0c0c0d;
+    --ink-soft:   #5b5654;
+    --paper:      #ece6dc;
+    --paper-2:    #ddd5c7;
+    --cream:      #faf6ee;
+    --silver:     #b6b1a8;
+    --accent:     #b8330c;
+    --rule:       rgba(12,12,13,0.14);
+
+    --serif: "Bodoni Moda", "Didot", "Times New Roman", serif;
+    --sans:  "Inter Tight", system-ui, sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--cream); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  .wrap { width: min(1360px, 94vw); margin-inline: auto; }
+  .kicker { font-family: var(--sans); font-size: 11px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; }
+  .h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(36px, 5vw, 76px); line-height: 0.98; letter-spacing: -0.02em; margin: 0 0 0.4em; }
+  .body { font-size: 17px; line-height: 1.6; color: var(--ink-soft); }
+  section { padding: clamp(80px, 10vw, 140px) 0; }
+
+  /* NAV */
+  .nav { position: sticky; top: 0; z-index: 50; background: rgba(250,246,238,0.86); backdrop-filter: blur(12px); border-bottom: 1px solid var(--rule); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 18px 0; }
+  .wordmark { font-family: var(--serif); font-size: 22px; letter-spacing: 0.04em; text-decoration: none; font-style: italic; }
+  .nav-links { display: flex; gap: 32px; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500; }
+  .nav-links a { text-decoration: none; }
+  .nav-cta { font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500; padding: 10px 18px; border: 1px solid var(--ink); text-decoration: none; }
+  .nav-cta:hover { background: var(--ink); color: var(--cream); }
+  @media (max-width: 760px) { .nav-links { display: none; } }
+
+  /* HERO v2 — full-bleed cover */
+  .hero { position: relative; height: 92vh; min-height: 640px; overflow: hidden; padding: 0; background: var(--ink); }
+  .hero img.cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(0.62) contrast(1.05); }
+  .hero-content { position: relative; height: 100%; display: grid; grid-template-rows: 1fr auto; padding: 40px 0 56px; color: var(--cream); }
+  .hero .wordmark-huge { font-family: var(--serif); font-size: clamp(80px, 16vw, 220px); line-height: 0.85; font-style: italic; letter-spacing: -0.02em; align-self: end; mix-blend-mode: difference; color: white; }
+  .hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(28px, 3.4vw, 52px); line-height: 1.05; letter-spacing: -0.01em; margin: 0; max-width: 22ch; }
+  .hero-bottom { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: end; }
+  .hero-bottom .lede { max-width: 38ch; color: rgba(250,246,238,0.84); font-size: clamp(15px, 1.4vw, 18px); margin: 16px 0 24px; }
+  .hero-meta-row { display: flex; gap: 28px; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(250,246,238,0.72); margin-bottom: 28px; }
+  .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+  .btn { display: inline-flex; padding: 16px 24px; font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; font-weight: 500; transition: 0.18s; }
+  .btn-primary { background: var(--cream); color: var(--ink); }
+  .btn-primary:hover { background: var(--accent); color: var(--cream); }
+  .btn-ghost { border: 1px solid var(--cream); color: var(--cream); }
+  .btn-ghost:hover { background: var(--cream); color: var(--ink); }
+  @media (max-width: 760px) { .hero { height: auto; min-height: 0; } .hero-content { padding: 64px 0 40px; gap: 60px; } .hero-bottom { grid-template-columns: 1fr; } }
+
+  /* TRUST */
+  .trust { padding: 26px 0; border-bottom: 1px solid var(--rule); background: var(--cream); }
+  .trust-row { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; align-items: center; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); }
+
+  /* ABOUT — manifesto */
+  .about { background: var(--cream); }
+  .about-inner { display: grid; grid-template-columns: 0.6fr 1.4fr; gap: clamp(40px, 6vw, 100px); align-items: start; }
+  .about-inner img { aspect-ratio: 3/4; object-fit: cover; width: 100%; }
+  .about-prose p { font-size: clamp(22px, 2.4vw, 32px); line-height: 1.25; font-family: var(--serif); font-weight: 400; margin: 0 0 0.7em; }
+  .about-prose p:not(:last-child) { padding-bottom: 0.7em; border-bottom: 1px solid var(--rule); }
+  @media (max-width: 880px) { .about-inner { grid-template-columns: 1fr; } }
+
+  /* SERVICES */
+  .services { background: var(--paper); }
+  .svc-head { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 64px; align-items: end; }
+  .svc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .svc-grid article { background: var(--paper); padding: 36px 28px; }
+  .svc-grid h3 { font-family: var(--serif); font-weight: 400; font-size: 28px; margin: 0 0 14px; }
+  .svc-grid p { color: var(--ink-soft); margin: 0; }
+  .svc-grid .num { font-size: 11px; letter-spacing: 0.22em; color: var(--accent); margin-bottom: 22px; display: block; font-weight: 500; }
+  @media (max-width: 880px) { .svc-grid { grid-template-columns: 1fr; } .svc-head { grid-template-columns: 1fr; } }
+
+  /* WHY */
+  .why { background: var(--ink); color: var(--cream); }
+  .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: rgba(255,255,255,0.12); margin-top: 56px; border: 1px solid rgba(255,255,255,0.12); }
+  .why-grid > div { background: var(--ink); padding: 40px 32px; }
+  .why-grid h3 { font-family: var(--serif); font-weight: 400; font-size: 32px; line-height: 1.1; margin: 16px 0 14px; }
+  .why-grid p { color: rgba(250,246,238,0.7); margin: 0; }
+  .why-grid .num { font-size: 11px; letter-spacing: 0.22em; color: var(--silver); }
+  @media (max-width: 880px) { .why-grid { grid-template-columns: 1fr; } }
+
+  /* HOW */
+  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-top: 48px; }
+  .how-grid > li { list-style: none; }
+  .how-grid .step { font-family: var(--serif); font-style: italic; font-size: 56px; line-height: 1; color: var(--accent); margin-bottom: 14px; }
+  .how-grid h3 { font-family: var(--serif); font-weight: 400; font-size: 24px; margin: 0 0 10px; }
+  .how-grid p { color: var(--ink-soft); margin: 0; font-size: 15px; }
+  @media (max-width: 760px) { .how-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* TESTIMONIALS — pull quote */
+  .testimonials { background: var(--paper-2); }
+  .pull-quote { font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(36px, 5vw, 76px); line-height: 1.05; margin: 0 0 24px; max-width: 18ch; }
+  .pull-attr { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 80px; }
+  .sub-quotes { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; border-top: 1px solid var(--ink); padding-top: 40px; }
+  .sub-quotes blockquote { font-family: var(--serif); font-style: italic; font-size: 22px; line-height: 1.3; margin: 0 0 16px; }
+  .sub-quotes figcaption { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); }
+  @media (max-width: 760px) { .sub-quotes { grid-template-columns: 1fr; } }
+
+  /* GALLERY — masonry */
+  .gallery { background: var(--cream); }
+  .gallery-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; margin-top: 48px; }
+  .gallery-grid figure { margin: 0; overflow: hidden; }
+  .gallery-grid img { width: 100%; height: 100%; object-fit: cover; aspect-ratio: var(--ar, 4/5); }
+  .gallery-grid figure:nth-child(1) { grid-column: span 5; --ar: 4/5; }
+  .gallery-grid figure:nth-child(2) { grid-column: span 3; --ar: 3/4; }
+  .gallery-grid figure:nth-child(3) { grid-column: span 4; --ar: 1/1; }
+  .gallery-grid figure:nth-child(4) { grid-column: span 4; --ar: 1/1; }
+  .gallery-grid figure:nth-child(5) { grid-column: span 4; --ar: 1/1; }
+  .gallery-grid figure:nth-child(6) { grid-column: span 4; --ar: 4/5; }
+  @media (max-width: 760px) { .gallery-grid figure { grid-column: span 6 !important; --ar: 1/1; } }
+
+  /* FAQ */
+  .faq-head { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; margin-bottom: 48px; align-items: end; }
+  .faq-list details { border-top: 1px solid var(--rule); padding: 26px 0; }
+  .faq-list details:last-child { border-bottom: 1px solid var(--rule); }
+  .faq-list summary { font-family: var(--serif); font-size: 28px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 20px; }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after { content: "→"; font-family: var(--serif); transition: transform 0.2s; }
+  .faq-list details[open] summary::after { transform: rotate(90deg); }
+  .faq-list p { margin: 16px 0 0; max-width: 64ch; color: var(--ink-soft); }
+  @media (max-width: 760px) { .faq-head { grid-template-columns: 1fr; } .faq-list summary { font-size: 22px; } }
+
+  /* AREA */
+  .area { background: var(--paper); }
+  .area-cols { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: clamp(40px, 6vw, 100px); margin-top: 56px; }
+  .area-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 0; padding: 0; border-top: 1px solid var(--ink); }
+  .area-list li { list-style: none; padding: 22px 0; border-bottom: 1px solid var(--rule); font-family: var(--serif); font-size: 28px; }
+  @media (max-width: 760px) { .area-cols { grid-template-columns: 1fr; } .area-list { grid-template-columns: 1fr; } .area-list li { font-size: 22px; padding: 16px 0; } }
+
+  /* CREDENTIALS */
+  .creds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 48px; }
+  .creds > div { background: var(--paper); padding: 28px; border: 1px solid var(--rule); }
+  .creds .label { font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+  .creds .detail { font-family: var(--serif); font-size: 22px; margin-top: 14px; line-height: 1.2; }
+  @media (max-width: 760px) { .creds { grid-template-columns: 1fr 1fr; } }
+
+  /* LOCATION */
+  .location { background: var(--cream); }
+  .loc-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: clamp(40px, 6vw, 80px); margin-top: 48px; }
+  .nap address { font-style: normal; font-family: var(--serif); font-size: 28px; line-height: 1.3; }
+  .hours { font-size: 13px; letter-spacing: 0.04em; margin-top: 36px; border-top: 1px solid var(--rule); padding-top: 24px; }
+  .hours .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
+  .hours .gbp-note { font-size: 12px; margin-top: 18px; letter-spacing: 0; text-transform: none; color: var(--ink-soft); line-height: 1.5; }
+  .map-frame { background: var(--paper-2); min-height: 420px; }
+  .map-frame iframe { width: 100%; height: 100%; border: 0; min-height: 420px; }
+  @media (max-width: 880px) { .loc-grid { grid-template-columns: 1fr; } }
+
+  /* CTA BAND */
+  .cta-band { background: var(--ink); color: var(--cream); padding: clamp(80px, 10vw, 140px) 0; }
+  .cta-band h2 { font-family: var(--serif); font-weight: 400; font-style: italic; font-size: clamp(40px, 6vw, 96px); line-height: 0.98; margin: 0 0 24px; max-width: 16ch; }
+  .cta-band p { color: rgba(250,246,238,0.7); max-width: 50ch; margin: 0 0 36px; }
+  .cta-band .ctas { display: flex; gap: 14px; flex-wrap: wrap; }
+  .cta-band .btn-primary { background: var(--cream); color: var(--ink); }
+  .cta-band .btn-ghost { border: 1px solid var(--cream); color: var(--cream); }
+
+  /* FOOTER */
+  footer { background: var(--cream); padding: 72px 0 36px; border-top: 1px solid var(--rule); }
+  .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 48px; }
+  .footer-grid h4 { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 16px; font-weight: 500; }
+  .footer-grid a { text-decoration: none; display: block; padding: 4px 0; font-size: 14px; }
+  .colophon { margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; flex-wrap: wrap; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr; } }
+
+  /* MSG FAB */
+  .msg-fab { position: fixed; right: 20px; bottom: 20px; z-index: 100; }
+  .msg-fab a { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--cream); padding: 14px 18px; text-decoration: none; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; box-shadow: 0 8px 24px rgba(12,12,13,0.18); font-weight: 500; }
+  .msg-fab a:hover { background: var(--accent); }
+  .msg-fab svg { width: 14px; height: 14px; }
+</style>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "HairSalon",
+  "name": "Atelier Noir",
+  "description": "Independent colour and cutting studio in Manchester's Northern Quarter.",
+  "url": "https://ateliernoir.salon/",
+  "telephone": "+441614827330",
+  "email": "studio@ateliernoir.salon",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "12 Tib Street",
+    "addressLocality": "Manchester",
+    "addressRegion": "Greater Manchester",
+    "postalCode": "M4 1LR",
+    "addressCountry": "GB"
+  },
+  "geo": { "@type": "GeoCoordinates", "latitude": 53.4839, "longitude": -2.2363 },
+  "areaServed": ["Manchester", "Salford", "Stockport"],
+  "image": ["https://images.unsplash.com/photo-1560066984-138dadb4c035?w=1600"],
+  "priceRange": "£££",
+  "foundingDate": "2017"
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {"@type":"Question","name":"Do I need a patch test?","acceptedAnswer":{"@type":"Answer","text":"Yes, for any colour service if you haven't visited us before, or if it's been over six months. Done in person, 48 hours before."}},
+    {"@type":"Question","name":"How far in advance do you book?","acceptedAnswer":{"@type":"Answer","text":"Cuts are usually two to three weeks out. Colour and correction work is four to six weeks."}},
+    {"@type":"Question","name":"Do you cut all hair types?","acceptedAnswer":{"@type":"Answer","text":"Yes — every stylist trains across textures, including coily and Type 4 hair."}},
+    {"@type":"Question","name":"What's your cancellation policy?","acceptedAnswer":{"@type":"Answer","text":"Free up to 24 hours before. Inside 24 hours we charge 50% to the card on file."}},
+    {"@type":"Question","name":"Is the studio accessible?","acceptedAnswer":{"@type":"Answer","text":"Step-free entry, accessible WC, height-adjustable chairs."}},
+    {"@type":"Question","name":"Do you sell products?","acceptedAnswer":{"@type":"Answer","text":"A small curated shelf — only what we use on guests."}},
+    {"@type":"Question","name":"Can I bring my child / dog?","acceptedAnswer":{"@type":"Answer","text":"Children under 12 only if being seen. Dogs welcome at the front."}}
+  ]
+}
+</script>
+
+<script type="application/json" id="lp-config">
+{
+  "business": "name, tagline, phone, phoneDisplay, email, foundedYear",
+  "hero": "kicker, headline, lede, primaryCta {label,href}, secondaryCta, image, imageAlt",
+  "about": "heading, paragraphs[], portrait, portraitAlt",
+  "trust": "years, licenses[], memberships[]",
+  "services": "Array<{name, description}>",
+  "why": "Array<{title, body}>",
+  "how": "Array<{step, title, body}>",
+  "testimonials": "Array<{quote, name, context}>",
+  "gallery": "Array<{src, alt}>",
+  "faq": "Array<{q, a}>",
+  "area": "heading, places[]",
+  "credentials": "Array<{label, detail}>",
+  "location": "PostalAddress",
+  "cta": "{heading, body, primary, secondary}",
+  "messaging": "{whatsapp, messenger}",
+  "footer": "{links[]}"
+}
+</script>
+</head>
+
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wordmark" href="#" data-bind="business.name">Atelier Noir</a>
+    <nav class="nav-links">
+      <a href="#about">Studio</a>
+      <a href="#services">Services</a>
+      <a href="#location">Visit</a>
+    </nav>
+    <a class="nav-cta" href="#book">Book</a>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v2">
+  <img class="cover" src="https://images.unsplash.com/photo-1560066984-138dadb4c035?w=2000&q=85&auto=format&fit=crop"
+       alt="Backlit salon interior with brass fittings and a long mirror."
+       data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+  <div class="hero-content wrap">
+    <div class="wordmark-huge">Atelier<br/>Noir.</div>
+    <div>
+      <div class="hero-meta-row">
+        <span data-bind="hero.kicker">№ 12 — Tib Street · Northern Quarter</span>
+        <span>Est. 2017</span>
+      </div>
+      <div class="hero-bottom">
+        <div>
+          <h1 data-bind="hero.headline">A small room. Four chairs. Two hours per guest.</h1>
+          <p class="lede" data-bind="hero.lede">We are an independent colour and cutting studio. We see fewer clients than we could so we can take longer with the ones we do.</p>
+        </div>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a consultation</a>
+          <a class="btn btn-ghost" href="#about" data-bind="hero.secondaryCta.label">Meet the team</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:26px 0;">
+  <div class="wrap trust-row">
+    <span data-bind="trust.years">Cutting hair on Tib Street since 2017</span>
+    <span>·</span>
+    <span>Wella Master Colourists</span>
+    <span>·</span>
+    <span>L'Oréal Professionnel partner salon</span>
+    <span>·</span>
+    <span>Fellowship for British Hairdressing</span>
+    <!-- GBP-bound rating slot: source from Google Business Profile, do not hardcode. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v2">
+  <div class="wrap about-inner">
+    <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+         src="https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=1400&q=85&auto=format&fit=crop"
+         alt="A stylist mid-cut, working with hand-held shears." />
+    <div>
+      <div class="kicker">The studio</div>
+      <h2 class="h2" data-bind="about.heading">Slow hair, by appointment.</h2>
+      <div class="about-prose">
+        <p>Atelier Noir opened on Tib Street in 2017 with one chair, one kettle, and a colour shelf that fit on a single trolley. We've grown to four stylists and a colour technician, but the kettle is the same.</p>
+        <p>Every guest is booked into a two-hour window. That isn't because every visit takes two hours — it's because we don't want to ever rush you out. The room is quiet on purpose.</p>
+        <p>Our work is published in Vogue Italia, British Vogue, Dazed, and a stack of pamphlets the photographer's mother prints every Christmas.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="services" data-component="SERVICES" data-variant="v2">
+  <div class="wrap">
+    <div class="svc-head">
+      <div>
+        <div class="kicker">Services</div>
+        <h2 class="h2">Six things,<br/>done carefully.</h2>
+      </div>
+      <p class="body" style="max-width: 38ch;">Every appointment starts with a wash and a conversation. Quotes are confirmed before any colour goes on.</p>
+    </div>
+    <div class="svc-grid">
+      <article><span class="num">01</span><h3>Cut</h3><p>Wash, consultation, cut, finish. Two hours.</p></article>
+      <article><span class="num">02</span><h3>Colour</h3><p>Single process, gloss, root retouch. Patch tests 48h prior.</p></article>
+      <article><span class="num">03</span><h3>Dimensional colour</h3><p>Balayage, full highlights, painted lights. 3–5 hours.</p></article>
+      <article><span class="num">04</span><h3>Colour correction</h3><p>Booked as a consultation first. Day appointments only.</p></article>
+      <article><span class="num">05</span><h3>Blowout</h3><p>For a wedding, an opening, a Tuesday — we don't ask.</p></article>
+      <article><span class="num">06</span><h3>Bridal & editorial</h3><p>On-location styling for editorial, runway and weddings. Brief us.</p></article>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker" style="color: rgba(236,230,220,0.6);">Why us</div>
+    <h2 class="h2">Three commitments we don't move on.</h2>
+    <div class="why-grid">
+      <div><div class="num">№ 01</div><h3>Two-hour appointments, always.</h3><p>Time is the whole point. We charge for it; we don't sell it back at a discount.</p></div>
+      <div><div class="num">№ 02</div><h3>Four stylists, one room.</h3><p>You see the same person each visit. No floor managers, no upsells, no commission targets.</p></div>
+      <div><div class="num">№ 03</div><h3>Trade-credentialed colourists.</h3><p>Wella Master Colourists and L'Oréal-trained, ongoing education every quarter.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">How an appointment goes</div>
+    <h2 class="h2">From enquiry to chair.</h2>
+    <ol class="how-grid">
+      <li><div class="step">01</div><h3>Tell us what you want</h3><p>Send a few reference photos and tell us your hair history through the form, or come in for a free consult.</p></li>
+      <li><div class="step">02</div><h3>Patch test if colouring</h3><p>We do an in-person patch test 48 hours before any colour service. New clients always.</p></li>
+      <li><div class="step">03</div><h3>Two-hour appointment</h3><p>Wash, consultation, the work itself, and a finish you can replicate at home.</p></li>
+      <li><div class="step">04</div><h3>Re-book at the desk</h3><p>We hold the same chair, same stylist, same time. Cancel up to 24h before, no charge.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker">In their words</div>
+    <blockquote class="pull-quote">“The only place in the city that has ever quoted me a colour and stuck to it.”</blockquote>
+    <div class="pull-attr">Helena W. — client since 2021</div>
+    <div class="sub-quotes">
+      <figure><blockquote>“I cried after a bad cut elsewhere; they fixed it in one visit and didn't make me feel small about it.”</blockquote><figcaption>Maya O. — Ancoats</figcaption></figure>
+      <figure><blockquote>“Felt more like a private studio than a salon. Quiet. No small talk if you don't want it.”</blockquote><figcaption>Ruth A. — first appointment</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section class="gallery" data-component="GALLERY" data-variant="v1">
+  <div class="wrap">
+    <div class="svc-head">
+      <div>
+        <div class="kicker">Recent work</div>
+        <h2 class="h2">A few cuts,<br/>a few colours.</h2>
+      </div>
+      <p class="body" style="max-width: 36ch;">Selected from the last twelve months. Every shoot photographed in the studio with available light.</p>
+    </div>
+    <div class="gallery-grid">
+      <figure><img src="https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=1400&q=85&auto=format&fit=crop" alt="Sharp blunt cut on dark hair, profile view." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1400&q=85&auto=format&fit=crop" alt="Foiled highlights mid-process." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1492106087820-71f1a00d2b11?w=1400&q=85&auto=format&fit=crop" alt="Editorial portrait, copper hair against ivory." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1605497788044-5a32c7078486?w=1400&q=85&auto=format&fit=crop" alt="Salon mirror with brass detail." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1400&q=85&auto=format&fit=crop" alt="Wet hair being combed before a cut." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1580618672591-eb180b1a973f?w=1400&q=85&auto=format&fit=crop" alt="Finished blowout, soft waves." /></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section id="faq" data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="faq-head">
+      <div>
+        <div class="kicker">Questions</div>
+        <h2 class="h2">Before you book.</h2>
+      </div>
+      <p class="body">We've answered the ones we hear most. If yours isn't here, ring the studio on <a href="tel:+441614827330">0161 482 7330</a>.</p>
+    </div>
+    <div class="faq-list">
+      <details><summary>Do I need a patch test?</summary><p>Yes, for any colour service if you haven't visited us before, or if it's been over six months. Patch tests are done in person, 48 hours before your appointment.</p></details>
+      <details><summary>How far in advance do you book?</summary><p>Cuts are usually two to three weeks out. Colour and correction work is four to six weeks. We hold a small number of last-minute slots — call to ask.</p></details>
+      <details><summary>Do you cut all hair types?</summary><p>Yes — every stylist trains across textures, including coily and Type 4 hair. Tell us your texture when you enquire and we'll match you to the right person.</p></details>
+      <details><summary>What's your cancellation policy?</summary><p>Free up to 24 hours before your appointment. Inside 24 hours we charge 50% of the booked service to the card on file.</p></details>
+      <details><summary>Is the studio accessible?</summary><p>Step-free entry, accessible WC on the ground floor, two chairs with adjustable height. Please mention specific needs when you book.</p></details>
+      <details><summary>Do you sell products?</summary><p>A small, curated shelf — only what we use on guests. We don't take retail commissions.</p></details>
+      <details><summary>Can I bring my child / dog?</summary><p>Children under 12 only if they're being seen. Dogs welcome at the front of the studio.</p></details>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section class="area" data-component="SERVICE-AREA" data-variant="v1">
+  <div class="wrap">
+    <div class="area-cols">
+      <div>
+        <div class="kicker">Service area</div>
+        <h2 class="h2">Where our clients come from.</h2>
+        <p class="body" style="max-width: 36ch;">Most guests live within 30 minutes of the studio. We're a five-minute walk from Piccadilly Gardens.</p>
+      </div>
+      <ul class="area-list">
+        <li>Northern Quarter</li><li>Ancoats</li>
+        <li>Castlefield</li><li>Salford</li>
+        <li>Chorlton</li><li>Didsbury</li>
+        <li>Stockport</li><li>Sale</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Credentials</div>
+    <h2 class="h2">For the record.</h2>
+    <div class="creds">
+      <div><div class="label">Wella Master Colourist</div><div class="detail">All colour staff, recertified annually</div></div>
+      <div><div class="label">L'Oréal Professionnel</div><div class="detail">Authorised salon partner</div></div>
+      <div><div class="label">Fellowship for British Hairdressing</div><div class="detail">Member salon</div></div>
+      <div><div class="label">British Beauty Council</div><div class="detail">Listed independent</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" class="location" data-component="LOCATION" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Visit</div>
+    <h2 class="h2">12 Tib Street, M4.</h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Atelier Noir</strong><br />
+          12 Tib Street<br />
+          Northern Quarter<br />
+          Manchester M4 1LR<br /><br />
+          <a href="tel:+441614827330" data-bind="business.phoneDisplay">0161 482 7330</a><br />
+          <a href="mailto:studio@ateliernoir.salon" data-bind="business.email">studio@ateliernoir.salon</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>Tue – Fri</span><span>—</span></div>
+          <div class="row"><span>Saturday</span><span>—</span></div>
+          <div class="row"><span>Sunday & Monday</span><span>closed</span></div>
+          <p class="gbp-note">Hours kept current on our Google Business Profile.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Atelier Noir, Tib Street, Manchester" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.2410%2C53.4810%2C-2.2300%2C53.4870&layer=mapnik&marker=53.4839%2C-2.2363"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker" style="color: rgba(250,246,238,0.6);">Booking</div>
+    <h2 data-bind="cta.heading">Hair takes time. We have it.</h2>
+    <p data-bind="cta.body">Send a brief through the form below, or call the studio between 10 and 6.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book online</a>
+      <a class="btn btn-ghost" href="tel:+441614827330" data-bind="cta.secondary.label">0161 482 7330</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441614827330" data-bind="messaging.whatsapp" aria-label="Message us on WhatsApp">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Zm-3 11.4c-.3-.1-1.6-.8-1.8-.9s-.4-.1-.6.1-.7.9-.8 1c-.2.2-.3.2-.6 0a7.4 7.4 0 0 1-3.7-3.3c-.3-.5.3-.5.8-1.5a.5.5 0 0 0 0-.5l-.8-2c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-1 2.3 5.4 5.4 0 0 0 1.1 2.8 11.6 11.6 0 0 0 4.5 4c.6.3 1.1.4 1.5.5a3.4 3.4 0 0 0 1.5.1 2.5 2.5 0 0 0 1.6-1.1 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.5-.3Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a class="wordmark" href="#" style="font-size: 32px;">Atelier Noir.</a>
+        <p class="body" style="margin-top: 16px; max-width: 36ch;">An independent colour and cutting studio in Manchester. Two-hour appointments since 2017.</p>
+      </div>
+      <div>
+        <h4>Studio</h4>
+        <address style="font-style: normal; font-size: 14px;">
+          12 Tib Street<br />
+          Northern Quarter<br />
+          Manchester M4 1LR<br />
+          <a href="tel:+441614827330">0161 482 7330</a><br />
+          <a href="mailto:studio@ateliernoir.salon">studio@ateliernoir.salon</a>
+        </address>
+      </div>
+      <div>
+        <h4>Pages</h4>
+        <a href="#services">Services</a>
+        <a href="#book">Book</a>
+        <a href="#location">Find us</a>
+        <a href="#faq">FAQ</a>
+        <a href="mailto:press@ateliernoir.salon">Press</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> Atelier Noir Ltd · Co. № 10987112</span>
+      <span>An independent studio.</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (obj, path) => path.split('.').reduce((a, k) => {
+      if (a == null) return null;
+      const m = k.match(/^(.+)\[(\d+)\]$/);
+      if (m) return a[m[1]]?.[+m[2]];
+      return a[k];
+    }, obj);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>
