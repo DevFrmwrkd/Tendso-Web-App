@@ -99,10 +99,13 @@ export default function AdminLeadsPage() {
     }
 
     const filteredLeads = (leads || []).filter((lead) => {
+        // name + phone became optional when Outscraper leads were added;
+        // guard the .toLowerCase() / .includes() calls so a prospect lead
+        // without a customer name doesn't crash the search filter.
         const matchesSearch =
             !search ||
-            lead.name.toLowerCase().includes(search.toLowerCase()) ||
-            lead.phone.includes(search) ||
+            (lead.name ?? "").toLowerCase().includes(search.toLowerCase()) ||
+            (lead.phone ?? "").includes(search) ||
             (lead.email || "").toLowerCase().includes(search.toLowerCase()) ||
             (lead.businessName || "").toLowerCase().includes(search.toLowerCase())
         const matchesStatus = statusFilter === "all" || lead.status === statusFilter
@@ -210,7 +213,7 @@ export default function AdminLeadsPage() {
     }
 
     const openEdit = (lead: any) => {
-        setEditForm({ name: lead.name, phone: lead.phone, email: lead.email || "", message: lead.message || "" })
+        setEditForm({ name: lead.name ?? "", phone: lead.phone ?? "", email: lead.email || "", message: lead.message || "" })
         setEditingLead(lead)
         setActiveActionId(null)
     }
@@ -382,7 +385,7 @@ export default function AdminLeadsPage() {
                                                                     onClick={() => {
                                                                         setContentLead({
                                                                             _id: lead._id,
-                                                                            name: lead.name,
+                                                                            name: lead.name ?? lead.businessName ?? "(unnamed)",
                                                                             adminDescription: lead.adminDescription ?? null,
                                                                             externalPreviewUrl: lead.externalPreviewUrl ?? null,
                                                                             previewImageUrl: lead.previewImageUrl ?? null,

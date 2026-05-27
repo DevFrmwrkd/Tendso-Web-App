@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
-import { Loader2, Palette, FileEdit, Check, X, AlertTriangle, Trash2, ExternalLink, PanelRightClose, PanelRightOpen, Globe } from "lucide-react";
+import { Loader2, Palette, FileEdit, Check, X, AlertTriangle, Trash2, ExternalLink, PanelRightClose, PanelRightOpen, Globe, ChevronLeft } from "lucide-react";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import WebsitePreview from "@/components/WebsitePreview";
 import VisualEditor from "@/components/editor/VisualEditor";
@@ -14,6 +14,7 @@ import ContentEditor, { EditorCustomizations } from "@/components/ContentEditor"
 import SandboxEditor from "@/components/editor/SandboxEditor";
 import TopActionBar from "./_components/TopActionBar";
 import DetailsSidebar from "./_components/DetailsSidebar";
+import DriveSection from "./_components/DriveSection";
 
 // The "preview" tab was redundant — VisualEditor already shows the live
 // iframe preview alongside the sandbox sidebar. We default to the sandbox
@@ -22,6 +23,7 @@ type TabKey = "editor" | "styles";
 
 export default function SubmissionDetailPage() {
     const params = useParams();
+    const router = useRouter();
     const submissionId = params.id as string;
     const { user, isLoaded } = useUser();
 
@@ -770,37 +772,66 @@ export default function SubmissionDetailPage() {
 
     return (
         <div className="min-h-screen bg-neutral-50 text-neutral-900">
-            <TopActionBar
-                businessName={submission.business_name}
-                status={submission.status}
-                websiteGenerated={websiteGenerated}
-                websitePublishedUrl={websitePublishedUrl}
-                hasTranscript={!!submission.transcript}
-                followUpSentAt={(submission as any).followUpEmailSentAt}
-                updating={updating}
-                generatingWebsite={generatingWebsite}
-                publishingWebsite={publishingWebsite}
-                republishingWebsite={republishingWebsite}
-                unpublishingWebsite={unpublishingWebsite}
-                enhancing={enhancing}
-                sendingEmail={sendingEmail}
-                markingPaid={markingPaid}
-                deleting={deleting}
-                sendingFollowUp={sendingFollowUp}
-                onGenerateWebsite={() => handleGenerateWebsite()}
-                onApprove={() => handleStatusUpdate("approved")}
-                onMarkInReview={() => handleStatusUpdate("in_review")}
-                onPublish={handlePublishWebsite}
-                onRepublish={handleRepublishWebsite}
-                onUnpublish={handleUnpublishWebsite}
-                onSendToClient={handleSendWebsiteEmail}
-                onEnhanceImages={handleTriggerEnhancedImages}
-                onMarkAsPaid={() => setShowMarkPaidModal(true)}
-                onResendPaymentEmail={handleResendPaymentEmail}
-                onSendFollowUp={handleSendFollowUp}
-                onReject={() => handleStatusUpdate("rejected")}
-                onDelete={() => setShowDeleteModal(true)}
-            />
+            {/* Minimal back+title strip — always visible so admin can
+                navigate away from the editor without scrolling through the
+                sandbox. The full TopActionBar still mounts on Styles tab. */}
+            {activeTab === "editor" && (
+                <div className="border-b border-neutral-200 bg-white px-4 sm:px-6 py-3 flex items-center gap-4">
+                    <button
+                        type="button"
+                        onClick={() => router.back()}
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-700 hover:text-emerald-700 transition-colors"
+                    >
+                        <ChevronLeft className="w-4 h-4" /> Back
+                    </button>
+                    <div className="min-w-0">
+                        <h1 className="text-base sm:text-lg font-bold text-neutral-900 truncate">
+                            {submission.business_name}
+                        </h1>
+                        <p className="text-xs text-neutral-500 truncate">Submission details</p>
+                    </div>
+                </div>
+            )}
+
+            {/* TopActionBar is hidden in the editor tab — the SandboxEditor
+                preview-bar owns Enhance / Regen / Publish / Republish /
+                Unpublish / Send to client / Approve / Reject / Delete.
+                Kept mounted for the legacy Styles tab so the payment +
+                follow-up flows (Mark in Review, Mark as Paid, Resend, etc.)
+                remain reachable when admin needs them. */}
+            {activeTab !== "editor" && (
+                <TopActionBar
+                    businessName={submission.business_name}
+                    status={submission.status}
+                    websiteGenerated={websiteGenerated}
+                    websitePublishedUrl={websitePublishedUrl}
+                    hasTranscript={!!submission.transcript}
+                    followUpSentAt={(submission as any).followUpEmailSentAt}
+                    updating={updating}
+                    generatingWebsite={generatingWebsite}
+                    publishingWebsite={publishingWebsite}
+                    republishingWebsite={republishingWebsite}
+                    unpublishingWebsite={unpublishingWebsite}
+                    enhancing={enhancing}
+                    sendingEmail={sendingEmail}
+                    markingPaid={markingPaid}
+                    deleting={deleting}
+                    sendingFollowUp={sendingFollowUp}
+                    onGenerateWebsite={() => handleGenerateWebsite()}
+                    onApprove={() => handleStatusUpdate("approved")}
+                    onMarkInReview={() => handleStatusUpdate("in_review")}
+                    onPublish={handlePublishWebsite}
+                    onRepublish={handleRepublishWebsite}
+                    onUnpublish={handleUnpublishWebsite}
+                    onSendToClient={handleSendWebsiteEmail}
+                    onEnhanceImages={handleTriggerEnhancedImages}
+                    onMarkAsPaid={() => setShowMarkPaidModal(true)}
+                    onResendPaymentEmail={handleResendPaymentEmail}
+                    onSendFollowUp={handleSendFollowUp}
+                    onReject={() => handleStatusUpdate("rejected")}
+                    onDelete={() => setShowDeleteModal(true)}
+                />
+            )}
 
             <div
                 className={`max-w-[1600px] mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 gap-5 items-start ${
@@ -969,6 +1000,9 @@ export default function SubmissionDetailPage() {
                                     onRepublish={handleRepublishWebsite}
                                     onUnpublish={handleUnpublishWebsite}
                                     onDelete={() => setShowDeleteModal(true)}
+                                    onApprove={() => handleStatusUpdate("approved")}
+                                    onReject={() => handleStatusUpdate("rejected")}
+                                    submissionStatus={submission.status}
                                     onToggleDetails={() => setSidebarOpen(!sidebarOpen)}
                                     detailsOpen={sidebarOpen}
                                 />
@@ -979,7 +1013,20 @@ export default function SubmissionDetailPage() {
 
                 {/* Right sidebar — sticky with its own scroll container, collapsible at xl+ */}
                 {sidebarOpen && (
-                    <div className="xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto xl:pr-1 sidebar-scroll">
+                    <div className="xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto xl:pr-1 sidebar-scroll space-y-4">
+                        {/* Drive folder sync status + actions — visible only
+                            when the submission is approved or has had a manual
+                            sync attempt, so the section doesn't clutter the
+                            sidebar for draft/pending rows. */}
+                        {(submission.status === "approved" || (submissionData as any)?.driveSyncStatus) && (
+                            <DriveSection
+                                submissionId={submissionData!._id}
+                                status={(submissionData as any)?.driveSyncStatus}
+                                folderUrl={(submissionData as any)?.driveFolderUrl}
+                                folderCreatedAt={(submissionData as any)?.driveFolderCreatedAt}
+                                error={(submissionData as any)?.driveSyncError}
+                            />
+                        )}
                         <DetailsSidebar
                             submission={{
                                 business_name: submission.business_name,
