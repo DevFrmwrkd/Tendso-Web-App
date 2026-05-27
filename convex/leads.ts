@@ -481,6 +481,9 @@ export const listForMap = query({
             status: string;
             source: string;
             hasSubmission: boolean;
+            websiteUrl: string | null;
+            hasLiveWebsite: boolean;
+            submissionId: string | null;
             submittedBy: {
                 creatorId: string;
                 displayName: string;
@@ -531,6 +534,7 @@ export const listForMap = query({
                 }
             }
 
+            const websiteUrl = (sub as any)?.websiteUrl ?? null;
             result.push({
                 _id: lead._id,
                 businessName,
@@ -541,6 +545,9 @@ export const listForMap = query({
                 status: lead.status,
                 source: lead.source,
                 hasSubmission: !!sub,
+                websiteUrl,
+                hasLiveWebsite: !!websiteUrl,
+                submissionId: sub ? String(sub._id) : null,
                 submittedBy,
             });
         }

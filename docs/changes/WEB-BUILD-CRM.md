@@ -89,6 +89,76 @@ Both routes should be **server-rendered shell + client-rendered data** (Next.js 
 
 ---
 
+## Entry points — where creators discover this page from the dashboard
+
+Three places. **All three must exist** so the page is reachable from anywhere in the platform.
+
+### Entry A — Top-level nav (sidebar or top-bar)
+
+Add a new "Leads" item to the existing creator-side nav. Place it between **Submissions** and **Wallet**:
+
+```
+Dashboard
+Submissions
+Leads          ← NEW. Routes to /creators/leads
+Wallet
+Referrals
+Profile
+```
+
+Match the existing nav-item styling. Optionally show a small count badge next to "Leads" pulling from `stats.total` from `listForMobileCRM` — skip if it'd require extra subscription plumbing.
+
+### Entry B — Dashboard hero card
+
+On the existing `/creators/dashboard`, add a Team Leads card between the balance/earnings area and the recent-submissions list. Mirrors what mobile has on its home tab.
+
+```
+┌────────────────────────────────────────────────────────┐
+│  STEP 02 / TEAM LEADS                          ● LIVE  │
+│                                                        │
+│  12 leads, browse the feed.                            │
+│                                                        │
+│  See every business the team has interviewed —         │
+│  the whole hunt, including the ones with live sites.   │
+│                                                        │
+│  ┌──────┬──────┬──────┬──────────┐                    │
+│  │  12  │   3  │   2  │     4     │                    │
+│  │Total │ Hot  │Yours │ Converted │                    │
+│  └──────┴──────┴──────┴──────────┘                    │
+│                                                        │
+│  [Browse leads →]                                      │
+└────────────────────────────────────────────────────────┘
+```
+
+The whole card is clickable → routes to `/creators/leads`. Stats come from the same `listForMobileCRM` query the page itself uses (free reactive subscription, Convex caches the result).
+
+- **Total** — `stats.total`
+- **Hot** — count of leads with `interviewerCount >= 3` (or use `isHot === true` if exposed)
+- **Yours** — `stats.mine`
+- **Converted** — `stats.converted`
+
+Mobile reference: `ndm/app/(app)/(tabs)/index.tsx` — find the `STEP 02 / TEAM LEADS` card around the middle of the file. Web should look essentially identical, scaled up for desktop.
+
+### Entry C — Submit success page (optional v1)
+
+After a creator finishes submitting a business via the existing submit flow, the success screen typically routes them to dashboard or submissions list. Consider also surfacing a "Find your next interview →" CTA there that routes to `/creators/leads`. Keeps creators moving from one interview to the next without re-navigating.
+
+Optional for v1. Low effort if your submit-success page is easy to edit.
+
+### Naming consistency with mobile
+
+The mobile app calls the same destination two different things depending on which entry point you're tapping. Match this naming on web so creators see consistent language across platforms:
+
+| Mobile button | Web equivalent | Routes to |
+|---|---|---|
+| `See Live Business` (map view of already-interviewed leads with live websites) | Same label on web — or use it as a sub-tab inside `/creators/leads` filtered to `lead.business.websiteUrl != null` | `/creators/leads?live=true` (suggested) |
+| `Find Local Business` (Outscraper discover flow for prospects to interview) | Documented in [WEB-BUILD-CRM-PAGE.md](./WEB-BUILD-CRM-PAGE.md) — Prospects tab | `/creators/leads?tab=prospects` |
+| Generic "Leads" tab/nav item | "Leads" in the top nav | `/creators/leads` |
+
+The user has been explicit: **"See Live Business" = already-interviewed leads with live websites; "Find Local Business" = Outscraper-discovered prospects.** Don't blur the distinction.
+
+---
+
 ## List page UX spec (`/creators/leads`)
 
 Visual reference: mobile's `app/(app)/leads/index.tsx`. The web should be the desktop expansion of that pattern, NOT a separate design language.
@@ -104,6 +174,8 @@ Visual reference: mobile's `app/(app)/leads/index.tsx`. The web should be the de
 │                                                                    │
 │  The whole team's hunt — including yours.                         │
 │  Last sync: 12s ago · 38 leads · 6 hot                            │
+│                                                                    │
+│  [▤ See Live Business  ↗]      [⌕ Find Local Business  ↗]        │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -111,6 +183,21 @@ Visual reference: mobile's `app/(app)/leads/index.tsx`. The web should be the de
 - Live dot pulses next to "LIVE" if Convex socket connected
 - Display headline: Instrument Serif, two-line. The italic word (here: "every") is `colors.accent` emerald
 - Sub-copy: Onest 15px, ink-2
+
+### Two action Doors directly under the headline
+
+These are the primary creator actions and must always be visible above the filter row. Match mobile's two buttons one-to-one.
+
+| Button label | Caption (mono eyebrow) | Variant | What it does | Mobile reference |
+|---|---|---|---|---|
+| **See Live Business** | `ON THE MAP` | `accent` (emerald fill, white text) | Routes to a map view showing already-interviewed businesses that have **live websites**. This is the "what's already working — and earning — on the platform" view. | Mobile: `app/(app)/leads/index.tsx` line ~244 (button), `app/(app)/leads/nearby.tsx` (destination map view). On mobile this opens a native Google Maps view with markers. Web equivalent: either embed Google Maps or open a filtered list with `?live=true` showing only leads where `lead.business.websiteUrl != null`. |
+| **Find Local Business** | `DISCOVER` | `ghost` (paper-3 with ink border) | Opens the Outscraper "discover prospects" flow. Creator picks a category (e.g. "barbershop") + radius (1/3/5/10 km) + confirms, and Convex calls Outscraper to pull nearby businesses **that nobody has interviewed yet**. These appear in the Prospects tab. | Mobile: `app/(app)/leads/index.tsx` line ~252 (button) + the `showScrape` modal lower in the file. On web, this is the gateway into `/creators/leads?tab=prospects` (see [WEB-BUILD-CRM-PAGE.md](./WEB-BUILD-CRM-PAGE.md) for the full Prospects spec). |
+
+**Critical distinction the user has spelled out:**
+- **See Live Business** → existing leads, already interviewed, has a live website → creator can study what's working, what content reads well, etc.
+- **Find Local Business** → BRAND NEW prospects from Outscraper → creator goes and interviews them to earn
+
+Don't merge these into one button. Don't swap their semantics. The labels are exact.
 
 ### Filters row (sticky on scroll)
 
@@ -177,25 +264,47 @@ Both card modes are clickable (full card → detail route). Use semantic `<artic
 
 Two-column on desktop, single-column on tablet/mobile.
 
+> **Mobile parity check.** The mobile detail screen (`ndm/app/(app)/leads/[leadId].tsx`) has SEVEN sections + four action buttons. The web detail page must include all of them — earlier versions of this spec missed Directions, View Website, and the Interviewed-by roster. Don't skip them.
+
 ### Left column (60% width)
 
 1. **Breadcrumb** — `STEP 03 / TEAM LEADS / Lorenzo's Sari-Sari Store`. Last segment serif italic if admin-curated.
 2. **Submitter strip** — Avatar + display name + relative time ("Submitted by Maria S. · 2d ago"). If `isMine`, append a small `MINE` mono pill.
 3. **Status row** — current status as a large pill. If `isMine` or admin, click to open status update dropdown. Status changes write via `leads.updateStatus`.
 4. **Admin social card** (if `hasEnrichedContent`) — exact same FB-style render as the list card, full-width.
-5. **Business details** — paper-3 Card with `business.businessName`, `businessType`, address, city, owner name + phone, etc. Click-to-call on the phone.
-6. **Other interviewers** — paper-3 Card. List of interviewers from `detail.interviewers`. Each row: avatar + display name + time + submission status pill. Used to surface "this business has been interviewed 3 times — it's hot."
-7. **Notes feed** — paper-3 Card. List of notes (latest first). Below the list, an `EditorialField` for posting a new note. POST goes to `leadNotes.add`. Optimistic update; show toast on failure.
+5. **Customer card** — paper-3 Card with `lead.name`, `lead.phone`, `lead.email` (if present). Two primary action buttons inline at the bottom of this card:
+   - **Call** — `colors.accentSolid` (emerald) ink-on-fill button, `Ionicons name="call"`. Wires to `tel:{phone}`. Skip render if no phone.
+   - **Email** — `colors.business` (ink-blue) ink-on-fill button, `Ionicons name="mail"`. Wires to `mailto:{email}`. Skip render if no email.
+6. **Business profile card** — paper-3 Card with `business.businessName` (Display sm), `business.businessType` (Body xs ink3), and a vertically-stacked metadata block with leading Ionicons:
+   - `person-outline` + `business.ownerName`
+   - `call-outline` + `business.ownerPhone`
+   - `mail-outline` + `business.ownerEmail` (if present)
+   - `location-outline` + full address line: `{address}, {city}, {province}`
+   - Optional: horizontal scrollview of `business.photos` thumbnails (104×104, rounded `radius.sm`, tap to open lightbox)
+   - **Two action buttons** below the metadata, side-by-side or stacked depending on width:
+     - **Directions** — `colors.paper2` fill + `colors.rule` border, `Ionicons name="map-outline"` + label "Directions". Opens Google Maps with the business address. URL: `https://www.google.com/maps/search/?api=1&query={encodeURIComponent(address + ', ' + city)}`. **Must always be present** when the business has an address (which is always — submissions require address).
+     - **View website** — `border: 1px solid colors.accent`, transparent fill, `Ionicons name="globe-outline"` in accent + label "View website" in accent. Wires to `business.websiteUrl`. **Only renders when `business.websiteUrl` is set** (i.e., the submission's generated site has been deployed). This is what distinguishes leads with live websites from those still in pipeline. **Don't hide the button entirely if `websiteUrl` is null — instead render a disabled/ghost version that says "Website not live yet"** so creators understand the state.
+7. **Interviewed by (interviewer roster)** — paper-3 Card with a mono `INTERVIEWED BY` eyebrow and a `{count} {count===1?'creator':'creators'}` pill in the top-right. The body is a list of every creator who has interviewed this business (matched by `business.ownerPhone` normalization, computed server-side in `getDetailForMobileCRM` and returned as `interviewers[]`). Each row:
+   - Avatar (image OR initial-on-bg fallback). If `interviewer.isMine === true`, use `colors.accent` bg and 3px left-border on the row container.
+   - Display name + small `YOU` mono pill when `isMine`
+   - Mono subtitle: `{relative time} · {submission status}` (status text in `colors.danger` when `submissionStatus === "rejected"`, otherwise `colors.ink2`)
+   - Row background: `colors.accentBg` when `isMine`, `colors.paper2` otherwise. Opacity 0.6 when rejected AND not isMine.
+   - Empty state when `interviewers.length === 0`: render serif italic "No interview history found for this business." (paper-3 background, no row)
+   - **This section is what surfaces the "this business has been interviewed 3 times — it's hot" pattern.** Don't omit it.
+8. **Notes feed** — paper-3 Card. Mono `NOTES ({count})` eyebrow. List of notes (latest first) rendered as `colors.paper2` rounded bubbles. Below the list, an `EditorialField` textarea + accent send button. POST goes to `leadNotes.add`. Optimistic update; toast on failure.
 
 ### Right column (40% width — sticky on desktop)
 
-1. **Quick contact card** — phone (click-to-call), email (click-to-mailto), copy buttons next to each.
-2. **Lead metadata** — created date, source, lead ID (small mono).
-3. **Submission link** — link to the underlying submission detail in the admin / public submission page, if visible to creators.
+The right column is the **at-a-glance contact + action shortcut bar**. It mirrors the in-card buttons from the left column but keeps them visible while the creator scrolls through interviewers + notes.
+
+1. **Quick contact card** — phone (click-to-call), email (click-to-mailto), copy-to-clipboard buttons next to each.
+2. **Quick actions card** — duplicate Door buttons for Directions + View website (or "Website not live yet" ghost when unavailable). Right column should NEVER show different state than the left — they're synced reflections of the same `lead.business.websiteUrl` and address.
+3. **Lead metadata** — created date, source (`lead.source` — `website` / `qr_code` / `direct` / `outscraper`), lead ID (small mono, click-to-copy).
+4. **Submission link** — if `lead.submissionId` is set, link to the underlying submission detail page. Renders as ghost Door: `[View submission →]`.
 
 ### Mobile (web responsive)
 
-Collapse to single column. Sticky right column becomes a "Quick actions" bottom sheet triggered by a Door button.
+Collapse to single column. Sticky right column becomes a "Quick actions" bottom sheet triggered by a Door button. The Directions + View website + Call buttons should ALSO appear inline within their respective cards on mobile (not just in the sheet) — creators tend to scroll, so the buttons need to be reachable inside the flow too.
 
 ---
 

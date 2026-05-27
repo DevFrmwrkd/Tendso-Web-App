@@ -88,10 +88,10 @@ export default function Footer({
                     </div>
                     <FootCol title="Get the app">
                         {apkUrl ? (
-                            // Routed through /api/download-apk so the browser
-                            // saves the file as "negosyo-digital.apk" instead
-                            // of the cryptic R2 key. Upload pipeline untouched.
-                            <a href="/api/download-apk">
+                            // Direct R2 public URL. The download filename
+                            // comes from the R2 storage key, which the
+                            // upload pipeline pins to "negosyo-digital.apk".
+                            <a href={apkUrl} download="negosyo-digital.apk">
                                 Android · Direct APK
                             </a>
                         ) : (

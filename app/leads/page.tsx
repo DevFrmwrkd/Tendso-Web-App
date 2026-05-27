@@ -6,20 +6,24 @@
  * Mirrors the mobile app's leads index (`ndm/app/(app)/leads/index.tsx`).
  * Reads the team-wide social feed via `api.leads.listForMobileCRM` and
  * renders it as scrollable cards with submitter attribution + status pill.
- * Linked to the dashboard's "STEP 02 / TEAM LEADS" card.
+ *
+ * URL state (per spec):
+ *   ?tab=prospects   — Outscraper-discovered businesses not yet interviewed
+ *   (default)        — All interviewed leads ("See Live Business" map is
+ *                      its own route at /leads/near?live=true)
  *
  * Spec: docs/changes/WEB-BUILD-CRM.md (Creators platform integration).
  */
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { BottomNav } from "@/components/BottomNav";
 import {
-    ArrowLeft, Search, Map as MapIcon, Building2, Loader2, ChevronRight, Star,
+    ArrowLeft, Search, Map as MapIcon, Compass, Building2, Loader2, ChevronRight, Star,
 } from "lucide-react";
 
 // ── Types + constants ─────────────────────────────────────────────────────
@@ -52,9 +56,28 @@ function formatDateShort(ts: number | null | undefined): string {
     return d.toLocaleDateString("en-US", { month: "numeric", day: "numeric", year: "numeric" });
 }
 
-// ── Page ──────────────────────────────────────────────────────────────────
+// ── Page entry — wraps inner content in Suspense for useSearchParams ──────
 export default function CreatorLeadsPage() {
+    return (
+        <Suspense
+            fallback={
+                <div
+                    className="min-h-screen flex items-center justify-center"
+                    style={{ background: "var(--ed-paper)" }}
+                >
+                    <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
+                </div>
+            }
+        >
+            <CreatorLeadsInner />
+        </Suspense>
+    );
+}
+
+function CreatorLeadsInner() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const tab: "all" | "prospects" = searchParams.get("tab") === "prospects" ? "prospects" : "all";
     const { user, isLoaded, isSignedIn } = useUser();
 
     const creator = useQuery(
@@ -121,8 +144,28 @@ export default function CreatorLeadsPage() {
     }
 
     const stats = feed?.stats;
-    const leads = feed?.leads ?? [];
+    const allLeads = feed?.leads ?? [];
+
+    // Tab filter — Prospects = Outscraper-source leads only. Applied AFTER
+    // the Convex query so the stats stay accurate to the full team feed.
+    const leads = useMemo(() => {
+        if (tab === "prospects") {
+            return allLeads.filter((l: any) => l.source === "outscraper");
+        }
+        // "All" excludes Outscraper prospects from the main feed so the two
+        // tabs don't double-count — prospects belong on the Prospects tab.
+        return allLeads.filter((l: any) => l.source !== "outscraper");
+    }, [allLeads, tab]);
+
     const hotCount = useMemo(() => leads.filter((l: any) => l.isHot).length, [leads]);
+    const prospectCount = useMemo(
+        () => allLeads.filter((l: any) => l.source === "outscraper").length,
+        [allLeads],
+    );
+    const interviewedCount = useMemo(
+        () => allLeads.filter((l: any) => l.source !== "outscraper").length,
+        [allLeads],
+    );
 
     return (
         <div
@@ -153,17 +196,37 @@ export default function CreatorLeadsPage() {
                     </div>
                 </div>
 
-                {/* Editorial display */}
-                <h1
-                    className="text-[40px] sm:text-[52px] leading-[1.05] tracking-[-0.02em] mb-3"
-                    style={{ fontFamily: "var(--ed-serif)", color: "var(--ed-ink)" }}
-                >
-                    All leads,{" "}
-                    <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>every interview.</em>
-                </h1>
-                <p className="text-[15px] mb-6" style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}>
-                    The whole team&apos;s hunt — including yours. {stats?.total ?? 0} lead{(stats?.total ?? 0) === 1 ? "" : "s"} · {hotCount} hot.
-                </p>
+                {/* Editorial display — copy swaps per active tab */}
+                {tab === "prospects" ? (
+                    <>
+                        <h1
+                            className="text-[40px] sm:text-[52px] leading-[1.05] tracking-[-0.02em] mb-3"
+                            style={{ fontFamily: "var(--ed-serif)", color: "var(--ed-ink)" }}
+                        >
+                            Find your{" "}
+                            <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>
+                                next interview.
+                            </em>
+                        </h1>
+                        <p className="text-[15px] mb-6" style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}>
+                            {prospectCount} prospect{prospectCount === 1 ? "" : "s"} pulled in from
+                            Outscraper — businesses nobody on the team has interviewed yet.
+                        </p>
+                    </>
+                ) : (
+                    <>
+                        <h1
+                            className="text-[40px] sm:text-[52px] leading-[1.05] tracking-[-0.02em] mb-3"
+                            style={{ fontFamily: "var(--ed-serif)", color: "var(--ed-ink)" }}
+                        >
+                            All leads,{" "}
+                            <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>every interview.</em>
+                        </h1>
+                        <p className="text-[15px] mb-6" style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}>
+                            The whole team&apos;s hunt — including yours. {interviewedCount} lead{interviewedCount === 1 ? "" : "s"} · {hotCount} hot.
+                        </p>
+                    </>
+                )}
 
                 {/* Stats cards (TOTAL · YOURS · HOT LEADS) */}
                 <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-5">
@@ -207,28 +270,73 @@ export default function CreatorLeadsPage() {
                     />
                 </div>
 
-                {/* Primary CTA — Businesses near me (map view) */}
-                <Link
-                    href="/leads/near"
-                    className="block mb-3 rounded-2xl px-5 py-4 flex items-center justify-between transition-opacity hover:opacity-95"
-                    style={{ background: "var(--ed-accent-solid, #10B981)", color: "#fff" }}
-                >
-                    <div>
-                        <div
-                            className="text-[10px] mb-1"
-                            style={{
-                                fontFamily: "var(--ed-mono)",
-                                letterSpacing: "0.14em",
-                                textTransform: "uppercase",
-                                opacity: 0.75,
-                            }}
-                        >
-                            On the map
+                {/* Two action doors — See Live Business + Find Local Business.
+                    Per spec: "Don't merge these into one button. Don't swap their
+                    semantics. The labels are exact." */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-5">
+                    <Link
+                        href="/leads/near?live=true"
+                        className="rounded-2xl px-5 py-4 flex items-center justify-between transition-opacity hover:opacity-95"
+                        style={{ background: "var(--ed-accent-solid, #10B981)", color: "#fff" }}
+                    >
+                        <div>
+                            <div
+                                className="text-[10px] mb-1"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    letterSpacing: "0.14em",
+                                    textTransform: "uppercase",
+                                    opacity: 0.75,
+                                }}
+                            >
+                                On the map
+                            </div>
+                            <div className="text-[16px] font-semibold">See Live Business</div>
                         </div>
-                        <div className="text-[18px] font-semibold">Businesses near me</div>
-                    </div>
-                    <MapIcon className="w-6 h-6" />
-                </Link>
+                        <MapIcon className="w-5 h-5" />
+                    </Link>
+                    <Link
+                        href="/leads?tab=prospects"
+                        className="rounded-2xl px-5 py-4 flex items-center justify-between transition-colors hover:bg-white"
+                        style={{
+                            background: "var(--ed-paper-3)",
+                            color: "var(--ed-ink)",
+                            border: "1px solid var(--ed-rule)",
+                        }}
+                    >
+                        <div>
+                            <div
+                                className="text-[10px] mb-1"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    letterSpacing: "0.14em",
+                                    textTransform: "uppercase",
+                                    color: "var(--ed-ink-3)",
+                                }}
+                            >
+                                Discover
+                            </div>
+                            <div className="text-[16px] font-semibold">Find Local Business</div>
+                        </div>
+                        <Compass className="w-5 h-5" style={{ color: "var(--ed-ink-2)" }} />
+                    </Link>
+                </div>
+
+                {/* All / Prospects tab switcher */}
+                <div className="grid grid-cols-2 mb-5" style={{ borderBottom: "1px solid var(--ed-rule)" }}>
+                    <TabButton
+                        label="All Leads"
+                        count={interviewedCount}
+                        active={tab === "all"}
+                        onClick={() => router.replace("/leads", { scroll: false })}
+                    />
+                    <TabButton
+                        label="Prospects"
+                        count={prospectCount}
+                        active={tab === "prospects"}
+                        onClick={() => router.replace("/leads?tab=prospects", { scroll: false })}
+                    />
+                </div>
 
                 {/* Filter pills row */}
                 <div className="-mx-4 sm:mx-0 mb-5">
@@ -348,6 +456,39 @@ function StatCard({
                 </div>
             )}
         </div>
+    );
+}
+
+function TabButton({
+    label, count, active, onClick,
+}: { label: string; count: number; active: boolean; onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            className="flex items-center justify-center gap-2 py-3 transition-colors text-[11px]"
+            style={{
+                fontFamily: "var(--ed-mono)",
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: active ? "var(--ed-ink)" : "var(--ed-ink-3)",
+                borderBottom: active ? "2px solid var(--ed-ink)" : "2px solid transparent",
+                marginBottom: -1,
+                fontWeight: active ? 600 : 500,
+            }}
+        >
+            {label}
+            <span
+                className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-[10px]"
+                style={{
+                    background: active ? "var(--ed-ink)" : "var(--ed-paper-2)",
+                    color: active ? "var(--ed-paper-3)" : "var(--ed-ink-2)",
+                    fontFamily: "var(--ed-mono)",
+                }}
+            >
+                {count}
+            </span>
+        </button>
     );
 }
 
