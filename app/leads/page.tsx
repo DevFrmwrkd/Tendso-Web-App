@@ -19,12 +19,15 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { BottomNav } from "@/components/BottomNav";
 import {
     ArrowLeft, Search, Map as MapIcon, Compass, Building2, Loader2, ChevronRight, Star,
+    MapPin, Hand, X as XIcon, UserCheck, ArrowRight,
 } from "lucide-react";
+import FindLocalBusinessModal from "@/components/leads/FindLocalBusinessModal";
 
 // ── Types + constants ─────────────────────────────────────────────────────
 type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "lost";
@@ -79,6 +82,7 @@ function CreatorLeadsInner() {
     const searchParams = useSearchParams();
     const tab: "all" | "prospects" = searchParams.get("tab") === "prospects" ? "prospects" : "all";
     const { user, isLoaded, isSignedIn } = useUser();
+    const [findModalOpen, setFindModalOpen] = useState(false);
 
     const creator = useQuery(
         api.creators.getByClerkId,
@@ -124,6 +128,18 @@ function CreatorLeadsInner() {
             : "skip",
     );
 
+    // Prospects feed — separate query so we have claim metadata (claimedBy etc.)
+    // alongside the Outscraper business fields. Only subscribe when the
+    // Prospects tab is active.
+    const prospectsFeed = useQuery(
+        api.outscraper.listScrapedLeads,
+        isSignedIn && creator && tab === "prospects" ? {} : "skip",
+    ) as any[] | undefined;
+
+    // Claim filter for the Prospects tab — defaults to "unclaimed" per spec
+    // so creators see what's available first.
+    const [claimFilter, setClaimFilter] = useState<"all" | "unclaimed" | "mine">("unclaimed");
+
     const ready =
         isLoaded &&
         isSignedIn &&
@@ -146,26 +162,36 @@ function CreatorLeadsInner() {
     const stats = feed?.stats;
     const allLeads = feed?.leads ?? [];
 
-    // Tab filter — Prospects = Outscraper-source leads only. Applied AFTER
-    // the Convex query so the stats stay accurate to the full team feed.
-    const leads = useMemo(() => {
-        if (tab === "prospects") {
-            return allLeads.filter((l: any) => l.source === "outscraper");
-        }
-        // "All" excludes Outscraper prospects from the main feed so the two
-        // tabs don't double-count — prospects belong on the Prospects tab.
-        return allLeads.filter((l: any) => l.source !== "outscraper");
-    }, [allLeads, tab]);
+    // Interviewed feed — exclude Outscraper-source leads so the two tabs
+    // don't double-count.
+    const interviewedLeads = useMemo(
+        () => allLeads.filter((l: any) => l.source !== "outscraper"),
+        [allLeads],
+    );
 
-    const hotCount = useMemo(() => leads.filter((l: any) => l.isHot).length, [leads]);
-    const prospectCount = useMemo(
-        () => allLeads.filter((l: any) => l.source === "outscraper").length,
-        [allLeads],
-    );
-    const interviewedCount = useMemo(
-        () => allLeads.filter((l: any) => l.source !== "outscraper").length,
-        [allLeads],
-    );
+    // Apply claim filter + search to the Prospects feed.
+    const filteredProspects = useMemo(() => {
+        if (!prospectsFeed) return undefined;
+        const q = debouncedSearch.toLowerCase();
+        return prospectsFeed.filter((p: any) => {
+            if (claimFilter === "unclaimed" && p.claimedBy) return false;
+            if (claimFilter === "mine" && !(p.claimedBy && p.claimedBy.isMine)) return false;
+            if (
+                q &&
+                !(p.businessName ?? "").toLowerCase().includes(q) &&
+                !(p.businessAddress ?? "").toLowerCase().includes(q) &&
+                !(p.businessCity ?? "").toLowerCase().includes(q) &&
+                !(p.phone ?? "").toLowerCase().includes(q)
+            ) {
+                return false;
+            }
+            return true;
+        });
+    }, [prospectsFeed, claimFilter, debouncedSearch]);
+
+    const hotCount = useMemo(() => interviewedLeads.filter((l: any) => l.isHot).length, [interviewedLeads]);
+    const prospectCount = prospectsFeed?.length ?? 0;
+    const interviewedCount = interviewedLeads.length;
 
     return (
         <div
@@ -295,9 +321,10 @@ function CreatorLeadsInner() {
                         </div>
                         <MapIcon className="w-5 h-5" />
                     </Link>
-                    <Link
-                        href="/leads?tab=prospects"
-                        className="rounded-2xl px-5 py-4 flex items-center justify-between transition-colors hover:bg-white"
+                    <button
+                        type="button"
+                        onClick={() => setFindModalOpen(true)}
+                        className="text-left rounded-2xl px-5 py-4 flex items-center justify-between transition-colors hover:bg-white"
                         style={{
                             background: "var(--ed-paper-3)",
                             color: "var(--ed-ink)",
@@ -319,7 +346,7 @@ function CreatorLeadsInner() {
                             <div className="text-[16px] font-semibold">Find Local Business</div>
                         </div>
                         <Compass className="w-5 h-5" style={{ color: "var(--ed-ink-2)" }} />
-                    </Link>
+                    </button>
                 </div>
 
                 {/* All / Prospects tab switcher */}
@@ -338,65 +365,101 @@ function CreatorLeadsInner() {
                     />
                 </div>
 
-                {/* Filter pills row */}
+                {/* Filter pills row — branches by tab */}
                 <div className="-mx-4 sm:mx-0 mb-5">
                     <div className="flex items-center gap-2 overflow-x-auto px-4 sm:px-0 pb-1 no-scrollbar">
-                        <FilterPill
-                            label="Only mine"
-                            active={onlyMine}
-                            onClick={() => setOnlyMine((v) => !v)}
-                        />
-                        {(["all", ...STATUS_OPTIONS] as const).map((s) => {
-                            const active = !onlyMine && statusFilter === s;
-                            return (
+                        {tab === "all" ? (
+                            <>
                                 <FilterPill
-                                    key={s}
-                                    label={s}
-                                    active={active}
-                                    onClick={() => {
-                                        setStatusFilter(s);
-                                    }}
+                                    label="Only mine"
+                                    active={onlyMine}
+                                    onClick={() => setOnlyMine((v) => !v)}
                                 />
-                            );
-                        })}
+                                {(["all", ...STATUS_OPTIONS] as const).map((s) => {
+                                    const active = !onlyMine && statusFilter === s;
+                                    return (
+                                        <FilterPill
+                                            key={s}
+                                            label={s}
+                                            active={active}
+                                            onClick={() => setStatusFilter(s)}
+                                        />
+                                    );
+                                })}
+                            </>
+                        ) : (
+                            <>
+                                <FilterPill
+                                    label="Unclaimed"
+                                    active={claimFilter === "unclaimed"}
+                                    onClick={() => setClaimFilter("unclaimed")}
+                                />
+                                <FilterPill
+                                    label="Mine"
+                                    active={claimFilter === "mine"}
+                                    onClick={() => setClaimFilter("mine")}
+                                />
+                                <FilterPill
+                                    label="All"
+                                    active={claimFilter === "all"}
+                                    onClick={() => setClaimFilter("all")}
+                                />
+                            </>
+                        )}
                     </div>
                 </div>
 
-                {/* Feed */}
-                {feed === undefined ? (
-                    <div className="space-y-3">
-                        {Array.from({ length: 3 }).map((_, i) => (
-                            <div
-                                key={i}
-                                className="animate-pulse rounded-2xl"
-                                style={{ background: "var(--ed-paper-2)", height: 160 }}
-                            />
-                        ))}
-                    </div>
-                ) : leads.length === 0 ? (
-                    <EmptyState
-                        title={debouncedSearch || statusFilter !== "all" || onlyMine ? "No matches." : "Nothing yet."}
-                        body={
-                            debouncedSearch || statusFilter !== "all" || onlyMine
-                                ? "Try a different filter or clear the search."
-                                : "The team's leads will appear here as soon as someone submits a business."
-                        }
-                        cta={
-                            debouncedSearch || statusFilter !== "all" || onlyMine
-                                ? null
-                                : { label: "Submit a business", href: "/submit/info" }
-                        }
-                    />
+                {/* Feed — branches by tab */}
+                {tab === "all" ? (
+                    feed === undefined ? (
+                        <FeedSkeleton />
+                    ) : interviewedLeads.length === 0 ? (
+                        <EmptyState
+                            title={debouncedSearch || statusFilter !== "all" || onlyMine ? "No matches." : "Nothing yet."}
+                            body={
+                                debouncedSearch || statusFilter !== "all" || onlyMine
+                                    ? "Try a different filter or clear the search."
+                                    : "The team's leads will appear here as soon as someone submits a business."
+                            }
+                            cta={
+                                debouncedSearch || statusFilter !== "all" || onlyMine
+                                    ? null
+                                    : { label: "Submit a business", href: "/submit/info" }
+                            }
+                        />
+                    ) : (
+                        <div className="space-y-3">
+                            {interviewedLeads.map((lead: any) => (
+                                <LeadCard key={String(lead._id)} lead={lead} />
+                            ))}
+                        </div>
+                    )
                 ) : (
-                    <div className="space-y-3">
-                        {leads.map((lead: any) => (
-                            <LeadCard key={String(lead._id)} lead={lead} />
-                        ))}
-                    </div>
+                    filteredProspects === undefined ? (
+                        <FeedSkeleton />
+                    ) : filteredProspects.length === 0 ? (
+                        <EmptyState
+                            title={debouncedSearch || claimFilter !== "unclaimed" ? "No matches." : "Nothing to interview yet."}
+                            body={
+                                debouncedSearch || claimFilter !== "unclaimed"
+                                    ? "Try a different filter or clear the search."
+                                    : "Tap Find Local Business above — it'll scan your current location and add prospects here within seconds."
+                            }
+                            cta={null}
+                        />
+                    ) : (
+                        <div className="space-y-3">
+                            {filteredProspects.map((p: any) => (
+                                <ProspectCard key={String(p._id)} prospect={p} />
+                            ))}
+                        </div>
+                    )
                 )}
             </div>
 
             <BottomNav active="home" />
+
+            <FindLocalBusinessModal open={findModalOpen} onClose={() => setFindModalOpen(false)} />
         </div>
     );
 }
@@ -653,6 +716,241 @@ function LeadCard({ lead }: { lead: any }) {
             )}
         </Link>
     );
+}
+
+function FeedSkeleton() {
+    return (
+        <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                    key={i}
+                    className="animate-pulse rounded-2xl"
+                    style={{ background: "var(--ed-paper-2)", height: 160 }}
+                />
+            ))}
+        </div>
+    );
+}
+
+function ProspectCard({ prospect: p }: { prospect: any }) {
+    const claim = useMutation(api.outscraper.claimProspect);
+    const release = useMutation(api.outscraper.releaseProspect);
+    const [busy, setBusy] = useState(false);
+
+    const claimedByOther = p.claimedBy && !p.claimedBy.isMine;
+    const claimedByMe = p.claimedBy && p.claimedBy.isMine;
+
+    const directionsHref =
+        p.businessLatitude != null && p.businessLongitude != null
+            ? `https://www.google.com/maps/search/?api=1&query=${p.businessLatitude},${p.businessLongitude}`
+            : p.businessAddress
+                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.businessAddress)}`
+                : null;
+
+    const startInterviewHref =
+        `/submit/info?prospectLeadId=${encodeURIComponent(String(p._id))}` +
+        (p.businessName ? `&businessName=${encodeURIComponent(p.businessName)}` : "") +
+        (p.phone ? `&phone=${encodeURIComponent(p.phone)}` : "") +
+        (p.businessAddress ? `&address=${encodeURIComponent(p.businessAddress)}` : "") +
+        (p.businessCity ? `&city=${encodeURIComponent(p.businessCity)}` : "") +
+        (p.businessCategory ? `&category=${encodeURIComponent(p.businessCategory)}` : "");
+
+    const onClaim = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (busy) return;
+        setBusy(true);
+        try {
+            await claim({ leadId: p._id });
+        } catch (err: any) {
+            toast.error(err?.message ?? "Couldn't claim — try again.");
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    const onRelease = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (busy) return;
+        setBusy(true);
+        try {
+            await release({ leadId: p._id });
+        } catch (err: any) {
+            toast.error(err?.message ?? "Couldn't release — try again.");
+        } finally {
+            setBusy(false);
+        }
+    };
+
+    return (
+        <Link
+            href={`/leads/${p._id}`}
+            className="block rounded-2xl p-4 transition-colors hover:bg-white"
+            style={{
+                background: "var(--ed-paper-3)",
+                border: "1px solid var(--ed-rule)",
+                textDecoration: "none",
+                color: "inherit",
+            }}
+        >
+            {/* Top row — icon left, rating right */}
+            <div className="flex items-start justify-between gap-3 mb-2">
+                <div
+                    className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ background: "var(--ed-paper-2)" }}
+                >
+                    <MapPin className="w-4 h-4" style={{ color: "var(--ed-ink-2)" }} />
+                </div>
+                {p.businessRating != null && (
+                    <div className="flex items-center gap-1 text-[12px]" style={{ color: "var(--ed-ink)" }}>
+                        <Star className="w-3 h-3 fill-current" style={{ color: "var(--ed-warn)" }} />
+                        <span>{p.businessRating.toFixed(1)}</span>
+                        {p.businessReviewCount ? (
+                            <span style={{ color: "var(--ed-ink-3)" }}> · {p.businessReviewCount}</span>
+                        ) : null}
+                    </div>
+                )}
+            </div>
+
+            {/* Headline */}
+            <h3
+                style={{
+                    fontFamily: "var(--ed-serif)",
+                    fontSize: 22,
+                    lineHeight: 1.15,
+                    color: "var(--ed-ink)",
+                    margin: 0,
+                    fontWeight: 500,
+                }}
+            >
+                {p.businessName ?? "(unnamed business)"}
+            </h3>
+            <div className="text-[12px] mb-3" style={{ color: "var(--ed-ink-2)" }}>
+                {[p.businessCategory, p.businessCity].filter(Boolean).join(" · ") || "—"}
+            </div>
+
+            {/* Address + phone */}
+            {(p.businessAddress || p.phone) && (
+                <div className="text-[13px] space-y-0.5 mb-3" style={{ color: "var(--ed-ink-2)" }}>
+                    {p.businessAddress && <div>{p.businessAddress}</div>}
+                    {p.phone && (
+                        <div className="text-[12px]" style={{ color: "var(--ed-ink-3)" }}>
+                            {p.phone}{p.businessWebsite ? ` · ${p.businessWebsite}` : ""}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <div
+                className="flex items-center justify-between gap-2 pt-3 mt-1"
+                style={{ borderTop: "1px solid var(--ed-rule)" }}
+            >
+                {/* Left side: claim state */}
+                <div className="text-[11px] min-w-0" style={{ color: "var(--ed-ink-3)", fontFamily: "var(--ed-mono)", letterSpacing: "0.04em" }}>
+                    {claimedByMe ? (
+                        <span className="inline-flex items-center gap-1" style={{ color: "var(--ed-accent)" }}>
+                            <UserCheck className="w-3 h-3" />
+                            YOU claimed this · {timeAgoShort(p.claimedAt)}
+                        </span>
+                    ) : claimedByOther ? (
+                        <span className="inline-flex items-center gap-1">
+                            <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ background: "var(--ed-warn)" }} />
+                            Claimed by {p.claimedBy.displayName} · {timeAgoShort(p.claimedAt)}
+                        </span>
+                    ) : (
+                        <span>Scraped {timeAgoShort(p.scrapedAt ?? p.createdAt)}</span>
+                    )}
+                </div>
+
+                {/* Right side: actions */}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {claimedByMe && (
+                        <>
+                            <button
+                                type="button"
+                                onClick={onRelease}
+                                disabled={busy}
+                                title="Release claim"
+                                className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-md disabled:opacity-50"
+                                style={{
+                                    background: "transparent",
+                                    color: "var(--ed-ink-3)",
+                                    border: "1px solid var(--ed-rule)",
+                                }}
+                            >
+                                <XIcon className="w-3 h-3" /> Release
+                            </button>
+                            <Link
+                                href={startInterviewHref}
+                                onClick={(e) => e.stopPropagation()}
+                                className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-md"
+                                style={{ background: "var(--ed-accent-solid, #10B981)", color: "#fff" }}
+                            >
+                                Start interview <ArrowRight className="w-3 h-3" />
+                            </Link>
+                        </>
+                    )}
+                    {!p.claimedBy && (
+                        <>
+                            {directionsHref && (
+                                <a
+                                    href={directionsHref}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-md"
+                                    style={{
+                                        background: "var(--ed-paper-2)",
+                                        color: "var(--ed-ink)",
+                                        border: "1px solid var(--ed-rule)",
+                                    }}
+                                >
+                                    <MapPin className="w-3 h-3" /> Directions
+                                </a>
+                            )}
+                            <button
+                                type="button"
+                                onClick={onClaim}
+                                disabled={busy}
+                                className="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-md disabled:opacity-50"
+                                style={{ background: "var(--ed-ink)", color: "var(--ed-paper-3)" }}
+                            >
+                                <Hand className="w-3 h-3" /> I&apos;ll interview this
+                            </button>
+                        </>
+                    )}
+                    {claimedByOther && directionsHref && (
+                        <a
+                            href={directionsHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="inline-flex items-center gap-1 text-[11px] px-2 py-1 rounded-md"
+                            style={{
+                                background: "var(--ed-paper-2)",
+                                color: "var(--ed-ink)",
+                                border: "1px solid var(--ed-rule)",
+                            }}
+                        >
+                            <MapPin className="w-3 h-3" /> Directions
+                        </a>
+                    )}
+                </div>
+            </div>
+        </Link>
+    );
+}
+
+function timeAgoShort(ts: number | null | undefined): string {
+    if (!ts) return "—";
+    const diff = Date.now() - ts;
+    const min = Math.floor(diff / 60_000);
+    if (min < 1) return "just now";
+    if (min < 60) return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h ago`;
+    return `${Math.floor(hr / 24)}d ago`;
 }
 
 function StatusPill({ status }: { status: string }) {

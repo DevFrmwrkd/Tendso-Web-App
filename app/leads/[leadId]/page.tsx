@@ -16,9 +16,10 @@ import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { toast } from "sonner";
 import {
     ArrowLeft, Phone, Mail, MapPin, Loader2, Send, Building2, ExternalLink, Globe,
-    Copy, Check,
+    Copy, Check, Hand, X as XIcon, UserCheck, ArrowRight, Star,
 } from "lucide-react";
 
 type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "lost";
@@ -101,12 +102,35 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
     const [noteDraft, setNoteDraft] = useState("");
     const [posting, setPosting] = useState(false);
 
+    // If the lead is an Outscraper prospect (no submissionId), render the
+    // prospect-specific layout via api.outscraper.getProspect — that query
+    // returns the business fields off the lead row + claim metadata.
+    const isProspect =
+        data && (data as any).lead?.source === "outscraper" && !(data as any).business;
+    const prospectData = useQuery(
+        api.outscraper.getProspect,
+        isProspect ? { leadId } : "skip",
+    );
+
     if (data === undefined) {
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
                 <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
             </div>
         );
+    }
+    if (isProspect) {
+        if (prospectData === undefined) {
+            return (
+                <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
+                    <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
+                </div>
+            );
+        }
+        if (prospectData === null) {
+            return <NotFound />;
+        }
+        return <ProspectDetail data={prospectData as any} creator={creator} />;
     }
     if (data === null) {
         return (
@@ -957,6 +981,482 @@ function RightRail({
             )}
         </aside>
     );
+}
+
+function NotFound() {
+    return (
+        <div
+            className="min-h-screen pb-20"
+            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+        >
+            <div className="max-w-2xl mx-auto px-4 pt-6 sm:pt-8 sm:px-6">
+                <Link
+                    href="/leads"
+                    className="inline-flex items-center gap-1.5 text-[12px] mb-6"
+                    style={{ color: "var(--ed-ink-3)" }}
+                >
+                    <ArrowLeft className="w-3.5 h-3.5" /> Back to Leads
+                </Link>
+                <div
+                    className="rounded-2xl py-10 px-6 text-center"
+                    style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                >
+                    <h2 style={{ fontFamily: "var(--ed-serif)", fontSize: 28, color: "var(--ed-ink)" }}>
+                        Lead not found.
+                    </h2>
+                    <p className="text-[14px] mt-2" style={{ color: "var(--ed-ink-2)" }}>
+                        It may have been deleted or you don&apos;t have access.
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function ProspectDetail({ data, creator }: { data: any; creator: any }) {
+    const { lead, claimedBy, notes } = data;
+    const router = useRouter();
+    const claim = useMutation(api.outscraper.claimProspect);
+    const release = useMutation(api.outscraper.releaseProspect);
+    const addNote = useMutation(api.leadNotes.create);
+    const [noteDraft, setNoteDraft] = useState("");
+    const [posting, setPosting] = useState(false);
+    const [busy, setBusy] = useState(false);
+
+    const claimedByMe = claimedBy?.isMine;
+    const claimedByOther = claimedBy && !claimedBy.isMine;
+
+    const directionsHref =
+        lead.businessLatitude != null && lead.businessLongitude != null
+            ? `https://www.google.com/maps/search/?api=1&query=${lead.businessLatitude},${lead.businessLongitude}`
+            : lead.businessAddress
+                ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lead.businessAddress)}`
+                : null;
+
+    const startInterviewHref =
+        `/submit/info?prospectLeadId=${encodeURIComponent(String(lead._id))}` +
+        (lead.businessName ? `&businessName=${encodeURIComponent(lead.businessName)}` : "") +
+        (lead.phone ? `&phone=${encodeURIComponent(lead.phone)}` : "") +
+        (lead.businessAddress ? `&address=${encodeURIComponent(lead.businessAddress)}` : "") +
+        (lead.businessCity ? `&city=${encodeURIComponent(lead.businessCity)}` : "") +
+        (lead.businessCategory ? `&category=${encodeURIComponent(lead.businessCategory)}` : "");
+
+    const onClaim = async (confirmOverride = false) => {
+        if (busy) return;
+        if (claimedByOther && !confirmOverride) {
+            const ok = window.confirm(
+                `${claimedBy.displayName} claimed this ${formatRelative(lead.claimedAt)}. You can still go ahead, but you might bump into them at the door. Continue anyway?`,
+            );
+            if (!ok) return;
+        }
+        setBusy(true);
+        try {
+            await claim({ leadId: lead._id });
+        } catch (err: any) {
+            toast.error(err?.message ?? "Couldn't claim.");
+        } finally {
+            setBusy(false);
+        }
+    };
+    const onRelease = async () => {
+        if (busy) return;
+        setBusy(true);
+        try {
+            await release({ leadId: lead._id });
+        } catch (err: any) {
+            toast.error(err?.message ?? "Couldn't release.");
+        } finally {
+            setBusy(false);
+        }
+    };
+    const onPostNote = async () => {
+        const trimmed = noteDraft.trim();
+        if (!trimmed || !creator?._id) return;
+        setPosting(true);
+        try {
+            await addNote({
+                leadId: lead._id,
+                creatorId: creator._id as Id<"creators">,
+                content: trimmed,
+            });
+            setNoteDraft("");
+        } catch (err: any) {
+            toast.error(err?.message ?? "Couldn't post note.");
+        } finally {
+            setPosting(false);
+        }
+    };
+
+    return (
+        <div
+            className="min-h-screen pb-24"
+            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
+        >
+            <div className="max-w-5xl mx-auto px-4 pt-6 sm:pt-8 sm:px-6 space-y-5">
+                <div className="flex items-center gap-3">
+                    <Link
+                        href="/leads?tab=prospects"
+                        className="w-9 h-9 rounded-full inline-flex items-center justify-center"
+                        style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                    >
+                        <ArrowLeft className="w-4 h-4" style={{ color: "var(--ed-ink-2)" }} />
+                    </Link>
+                    <div className="flex items-center gap-2 text-[11px]" style={{
+                        fontFamily: "var(--ed-mono)",
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                        color: "var(--ed-ink-3)",
+                    }}>
+                        <span>03 / To Interview</span>
+                        <span>·</span>
+                        <span style={{ color: "var(--ed-accent)" }}>Prospect</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h1
+                        style={{
+                            fontFamily: "var(--ed-serif)",
+                            fontSize: 36,
+                            lineHeight: 1.05,
+                            letterSpacing: "-0.02em",
+                            color: "var(--ed-ink)",
+                            margin: 0,
+                        }}
+                    >
+                        {lead.businessName ?? "(unnamed business)"}
+                    </h1>
+                    <p className="text-[14px] mt-2" style={{ color: "var(--ed-ink-2)" }}>
+                        {[lead.businessCategory, lead.businessCity].filter(Boolean).join(" · ") || "—"}
+                    </p>
+                    {lead.businessRating != null && (
+                        <div className="flex items-center gap-1.5 mt-2 text-[13px]" style={{ color: "var(--ed-ink)" }}>
+                            <Star className="w-3.5 h-3.5 fill-current" style={{ color: "var(--ed-warn)" }} />
+                            <span>{lead.businessRating.toFixed(1)}</span>
+                            {lead.businessReviewCount ? (
+                                <span style={{ color: "var(--ed-ink-3)" }}>
+                                    ({lead.businessReviewCount.toLocaleString()} reviews)
+                                </span>
+                            ) : null}
+                        </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6">
+                    {/* Left rail */}
+                    <div className="space-y-5 min-w-0">
+                        {/* Address card */}
+                        {(lead.businessAddress || directionsHref) && (
+                            <div
+                                className="rounded-2xl p-4 space-y-3"
+                                style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                            >
+                                <div
+                                    className="text-[10px]"
+                                    style={{
+                                        fontFamily: "var(--ed-mono)",
+                                        letterSpacing: "0.14em",
+                                        textTransform: "uppercase",
+                                        color: "var(--ed-ink-3)",
+                                    }}
+                                >
+                                    Where to find it
+                                </div>
+                                {lead.businessAddress && (
+                                    <div className="flex items-start gap-2 text-[14px]" style={{ color: "var(--ed-ink)" }}>
+                                        <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" style={{ color: "var(--ed-accent)" }} />
+                                        <span>{lead.businessAddress}</span>
+                                    </div>
+                                )}
+                                {directionsHref && (
+                                    <a
+                                        href={directionsHref}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1.5 text-[13px] font-semibold px-3 py-2 rounded-xl"
+                                        style={{
+                                            background: "var(--ed-paper-2)",
+                                            color: "var(--ed-ink)",
+                                            border: "1px solid var(--ed-rule)",
+                                        }}
+                                    >
+                                        <MapPin className="w-4 h-4" /> Open in Maps
+                                    </a>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Contact card */}
+                        {(lead.phone || lead.businessWebsite) && (
+                            <div
+                                className="rounded-2xl p-4 space-y-3"
+                                style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                            >
+                                <div
+                                    className="text-[10px]"
+                                    style={{
+                                        fontFamily: "var(--ed-mono)",
+                                        letterSpacing: "0.14em",
+                                        textTransform: "uppercase",
+                                        color: "var(--ed-ink-3)",
+                                    }}
+                                >
+                                    Contact
+                                </div>
+                                {lead.phone && (
+                                    <a
+                                        href={`tel:${lead.phone.replace(/[^0-9+]/g, "")}`}
+                                        className="flex items-center gap-2 text-[14px] px-3 py-2 rounded-lg"
+                                        style={{
+                                            background: "var(--ed-paper-2)",
+                                            color: "var(--ed-ink)",
+                                            border: "1px solid var(--ed-rule)",
+                                        }}
+                                    >
+                                        <Phone className="w-4 h-4" style={{ color: "var(--ed-accent)" }} />
+                                        <span>{lead.phone}</span>
+                                    </a>
+                                )}
+                                {lead.businessWebsite && (
+                                    <a
+                                        href={lead.businessWebsite}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-[13px]"
+                                        style={{ color: "var(--ed-accent)" }}
+                                    >
+                                        <Globe className="w-3.5 h-3.5" />
+                                        <span className="truncate">{lead.businessWebsite}</span>
+                                    </a>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Claim state banner */}
+                        {claimedByMe && (
+                            <div
+                                className="rounded-2xl p-4 flex items-center gap-3"
+                                style={{
+                                    background: "var(--ed-accent-bg, #D1FAE5)",
+                                    border: "1px solid var(--ed-accent)",
+                                }}
+                            >
+                                <UserCheck className="w-5 h-5 flex-shrink-0" style={{ color: "var(--ed-accent-ink, #064E3B)" }} />
+                                <div>
+                                    <div className="text-[14px] font-semibold" style={{ color: "var(--ed-accent-ink, #064E3B)" }}>
+                                        You claimed this {formatRelative(lead.claimedAt)}.
+                                    </div>
+                                    <div className="text-[12px]" style={{ color: "var(--ed-ink-2)" }}>
+                                        Heads up — claims expire after 24h if you don&apos;t submit an interview.
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        {claimedByOther && (
+                            <div
+                                className="rounded-2xl p-4 flex items-center gap-3"
+                                style={{
+                                    background: "var(--ed-status-contacted-bg, #FBE9C4)",
+                                    border: "1px solid var(--ed-rule)",
+                                }}
+                            >
+                                <span className="inline-block w-2 h-2 rounded-full flex-shrink-0" style={{ background: "var(--ed-warn)" }} />
+                                <div>
+                                    <div className="text-[14px] font-semibold" style={{ color: "var(--ed-ink)" }}>
+                                        Claimed by {claimedBy.displayName} · {formatRelative(lead.claimedAt)}
+                                    </div>
+                                    <div className="text-[12px]" style={{ color: "var(--ed-ink-2)" }}>
+                                        Heads up — claims are coordination signals, not locks. You can still take it.
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Notes */}
+                        <div
+                            className="rounded-2xl p-4 space-y-3"
+                            style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                        >
+                            <div
+                                className="text-[10px]"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    letterSpacing: "0.14em",
+                                    textTransform: "uppercase",
+                                    color: "var(--ed-ink-3)",
+                                }}
+                            >
+                                Notes · {notes?.length ?? 0}
+                            </div>
+                            <div className="space-y-2">
+                                <textarea
+                                    value={noteDraft}
+                                    onChange={(e) => setNoteDraft(e.target.value)}
+                                    placeholder="Leave a field note for the team…"
+                                    rows={3}
+                                    className="w-full px-3 py-2.5 text-[14px] focus:outline-none resize-y"
+                                    style={{
+                                        background: "var(--ed-paper)",
+                                        border: "1px solid var(--ed-rule)",
+                                        borderRadius: 12,
+                                        color: "var(--ed-ink)",
+                                        fontFamily: "var(--ed-sans)",
+                                    }}
+                                />
+                                <div className="flex justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={onPostNote}
+                                        disabled={posting || !noteDraft.trim()}
+                                        className="inline-flex items-center gap-1.5 text-[11px] px-3.5 py-2 rounded-full disabled:opacity-50"
+                                        style={{
+                                            background: "var(--ed-ink)",
+                                            color: "var(--ed-paper-3)",
+                                            fontFamily: "var(--ed-mono)",
+                                            letterSpacing: "0.08em",
+                                            textTransform: "uppercase",
+                                        }}
+                                    >
+                                        {posting ? <Loader2 className="w-3 h-3 animate-spin" /> : <Send className="w-3 h-3" />}
+                                        Post note
+                                    </button>
+                                </div>
+                            </div>
+                            {notes && notes.length > 0 ? (
+                                <ul className="space-y-3 pt-2" style={{ borderTop: "1px solid var(--ed-rule)" }}>
+                                    {notes.map((n: any) => (
+                                        <li key={n._id} className="text-[14px]">
+                                            <div
+                                                className="text-[10px] mb-1"
+                                                style={{
+                                                    fontFamily: "var(--ed-mono)",
+                                                    color: "var(--ed-ink-3)",
+                                                    letterSpacing: "0.04em",
+                                                }}
+                                            >
+                                                {formatRelative(n.createdAt)}
+                                            </div>
+                                            <p style={{ color: "var(--ed-ink)", whiteSpace: "pre-wrap" }}>{n.content}</p>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p className="text-[12px] italic" style={{ color: "var(--ed-ink-3)" }}>
+                                    No notes yet. Be the first to add one — leave a tip for the team.
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right rail — sticky quick actions */}
+                    <aside className="lg:sticky lg:top-6 lg:self-start space-y-4">
+                        <div
+                            className="rounded-2xl p-4 space-y-2.5"
+                            style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                        >
+                            <div
+                                className="text-[10px]"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    letterSpacing: "0.14em",
+                                    textTransform: "uppercase",
+                                    color: "var(--ed-ink-3)",
+                                }}
+                            >
+                                Quick actions
+                            </div>
+                            {claimedByMe ? (
+                                <>
+                                    <Link
+                                        href={startInterviewHref}
+                                        className="w-full inline-flex items-center justify-center gap-2 text-[14px] font-semibold px-3 py-2.5 rounded-xl"
+                                        style={{ background: "var(--ed-accent-solid, #10B981)", color: "#fff" }}
+                                    >
+                                        Start interview <ArrowRight className="w-4 h-4" />
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        onClick={onRelease}
+                                        disabled={busy}
+                                        className="w-full inline-flex items-center justify-center gap-2 text-[13px] px-3 py-2 rounded-xl disabled:opacity-50"
+                                        style={{
+                                            background: "transparent",
+                                            color: "var(--ed-ink-2)",
+                                            border: "1px solid var(--ed-rule)",
+                                        }}
+                                    >
+                                        <XIcon className="w-3.5 h-3.5" /> Release this
+                                    </button>
+                                </>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => onClaim()}
+                                    disabled={busy}
+                                    className="w-full inline-flex items-center justify-center gap-2 text-[14px] font-semibold px-3 py-2.5 rounded-xl disabled:opacity-50"
+                                    style={{ background: "var(--ed-ink)", color: "var(--ed-paper-3)" }}
+                                >
+                                    <Hand className="w-4 h-4" /> I&apos;ll interview this
+                                </button>
+                            )}
+                            {directionsHref && (
+                                <a
+                                    href={directionsHref}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-3 py-2 rounded-xl"
+                                    style={{
+                                        background: "var(--ed-paper-2)",
+                                        color: "var(--ed-ink)",
+                                        border: "1px solid var(--ed-rule)",
+                                    }}
+                                >
+                                    <MapPin className="w-4 h-4" /> Open in Maps
+                                </a>
+                            )}
+                        </div>
+
+                        {/* Metadata */}
+                        <div
+                            className="rounded-2xl p-4 space-y-3"
+                            style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                        >
+                            <div
+                                className="text-[10px]"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    letterSpacing: "0.14em",
+                                    textTransform: "uppercase",
+                                    color: "var(--ed-ink-3)",
+                                }}
+                            >
+                                Metadata
+                            </div>
+                            <MetaRow
+                                label="Scraped"
+                                value={lead.scrapedAt ? new Date(lead.scrapedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                            />
+                            <MetaRow label="Source" value="outscraper" mono />
+                            {lead.businessGooglePlaceId && (
+                                <MetaRow label="Google Place ID" value={lead.businessGooglePlaceId} mono />
+                            )}
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function formatRelative(ts: number | null | undefined): string {
+    if (!ts) return "—";
+    const diff = Date.now() - ts;
+    const min = Math.floor(diff / 60_000);
+    if (min < 1) return "just now";
+    if (min < 60) return `${min}m ago`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h ago`;
+    return `${Math.floor(hr / 24)}d ago`;
 }
 
 function MetaRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {

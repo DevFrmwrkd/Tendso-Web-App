@@ -1,8 +1,15 @@
 # Web-side Lead CRM — Creators platform integration
 
-> **Sister doc to [WEB-SYNC-MOBILE-FEATURES.md](./WEB-SYNC-MOBILE-FEATURES.md).** That doc covers the *admin* surfaces (Pending Approval queue, Lead Content editor). This doc covers the **public-facing web Creators platform** — the page that signed-in creators visit on the web (not admin) to view, search, and manage leads alongside the mobile app.
+> **Single source of truth for the web Creators platform's Leads page.** Hand this entire document to the web agent / developer — it is self-contained. There are no cross-doc dependencies; everything the web side needs (Interviewed tab, Prospects tab, Outscraper backend, claim flow, detail page, modal spec, Editorial Paper tokens) lives in this file.
 >
-> Single source of truth for the web Creators platform's "Leads" page (URL: `/creators/leads` or `/dashboard/leads`, exact slug owned by web team). Mirrors mobile's `app/(app)/leads/*` 1:1 in behavior, and adopts the Editorial Paper design system (greens + khaki — NOT orange/terracotta) so the web and mobile apps feel like one product.
+> URL: `/creators/leads` (exact slug owned by web team). Mirrors mobile's `app/(app)/leads/*` 1:1 in behavior, and adopts the **Editorial Paper** design system (greens + khaki — **NOT orange/terracotta**, Instrument Serif + Onest + JetBrains Mono) so the web and mobile apps feel like one product.
+>
+> **Last updated 2026-05-27.** Recent changes folded into this doc:
+> - Auth gate on `outscraper.scrapeNearby` + `outscraper.listScrapedLeads` changed from `requireAdmin` → `requireAuth` (creators are the primary callers)
+> - "Find Local Business" modal now uses a 3-stage loading UI with a pulsing halo + step checklist
+> - "See Live Business" + "Find Local Business" are the exact button labels — never paraphrase
+> - Detail page must include Directions + View Website + Interviewed-by roster (these were missing from earlier drafts)
+> - Prospects tab + claim/release flow (folded in from the old WEB-BUILD-CRM-PAGE.md — deprecated)
 
 ---
 
@@ -11,30 +18,53 @@
 Today, mobile creators can:
 - See the team-wide social feed of leads at `app/(app)/leads/index.tsx`
 - Drill into a single lead at `app/(app)/leads/[leadId].tsx`
+- Tap **See Live Business** → opens a Google Maps view of already-interviewed businesses with live websites
+- Tap **Find Local Business** → opens a modal that scrapes Google Maps for nearby prospects nobody has interviewed yet, via Outscraper
 - See admin-curated social-card content when present
 - Filter, search, and "Only mine" the list
 
-Web creators can do **none** of this. The web Creators platform's existing screens (Home, Referrals, Wallet, Profile) have no Leads tab, even though the Convex queries `listForMobileCRM` and `getDetailForMobileCRM` are deployed in prod and would work the same way from the web client.
+Web creators can do **none** of this. The web Creators platform's existing screens (Home, Referrals, Wallet, Profile) have no Leads tab, even though most of the Convex queries are already deployed in prod.
 
-Goal: ship a `/creators/leads` route on the web that's feature-equivalent to mobile's leads tab, using the same Convex queries (no new backend), styled in the Editorial Paper system to match mobile's redesign.
+Goal: ship a `/creators/leads` route on the web that's feature-equivalent to mobile's Leads tab, using shared Convex queries, styled in the Editorial Paper system to match mobile's redesign.
+
+---
+
+## Audience reminder — who uses this page
+
+| Audience | What they see |
+|---|---|
+| **Signed-in creator (NOT admin)** | This page. Their personal CRM. They see the team's interviewed businesses (the social feed) AND newest prospect businesses (Outscraper-discovered) so they can pick the next door to knock on. |
+| **Admin** | Separate `/admin/...` routes (out of scope of this doc — admins also see leads, but with different actions like reject/delete/reassign). |
+| **Anonymous visitor** | Redirected to `/sign-in` — this page is auth-gated. |
 
 ---
 
 ## Out of scope (explicit)
 
-- Admin surfaces — those are covered in [WEB-SYNC-MOBILE-FEATURES.md Step 10](./WEB-SYNC-MOBILE-FEATURES.md). The admin uses `getDetailForAdmin` + `updateAdminContent`. The Creators page uses `listForMobileCRM` + `getDetailForMobileCRM`. Different consumers, different routes.
-- Schema changes — none. Everything is already deployed.
-- New Convex functions — none. The queries the mobile app already calls are the contract.
+- Admin surfaces — those are covered separately (admin uses `getDetailForAdmin` + `updateAdminContent`; creators page uses `listForMobileCRM` + `getDetailForMobileCRM`).
 - Submissions, Wallet, Referrals web pages — separate redesign work. This doc is leads-only.
 - Native push notifications on web — out of scope for v1.
 
 ---
 
+## State invariants (read this first)
+
+| Lead state | `submissionId` | `source` | Where it appears |
+|---|---|---|---|
+| Interviewed by a creator | set (refs submissions row) | `"website"` / `"qr_code"` / `"direct"` | **Interviewed** tab only |
+| Outscraper prospect, never interviewed, unclaimed | `null` | `"outscraper"` | **Prospects** tab — unclaimed pool |
+| Outscraper prospect, claimed by a creator | `null` | `"outscraper"` | **Prospects** tab — "Claimed" filter shows who has it |
+| Outscraper prospect that got interviewed later | set (linked to new submissions row) | `"outscraper"` | **Interviewed** tab (it graduated — flow handled automatically by mobile + the deep link in Step 9) |
+
+A lead is a prospect if `source === "outscraper"` AND `submissionId == null`. The moment a creator records an interview and submits the business with matching phone (or via the `prospectLeadId` deep link), the prospect lead row gets `submissionId` patched and it graduates to the Interviewed tab.
+
+---
+
 ## Convex contract (frozen — do not modify)
 
-All four functions below are already deployed to `prod:energetic-panther-693`. The web Creators page must call them with the **exact** argument shapes shown.
+All functions below are already deployed to `prod:energetic-panther-693`. The web Creators page must call them with the **exact** argument shapes shown.
 
-### Read: list view
+### Read: list view (Interviewed tab)
 
 ```typescript
 api.leads.listForMobileCRM({
@@ -50,7 +80,7 @@ Each `EnrichedLead` carries: `_id`, `name`, `phone`, `email`, `source`, `status`
 
 Auth: requires a signed-in Convex identity. Anonymous users get `{ leads: [], stats: { total: 0, ... } }`.
 
-### Read: detail view
+### Read: detail view (Interviewed tab)
 
 ```typescript
 api.leads.getDetailForMobileCRM({ id: Id<"leads"> })
@@ -58,7 +88,32 @@ api.leads.getDetailForMobileCRM({ id: Id<"leads"> })
 
 **Returns** `{ lead, submittedBy, isMine, business, adminContent, interviewers, interviewerCount, notes }` or `null` if not found.
 
-### Write: add note
+### Read: prospects list (Prospects tab)
+
+```typescript
+api.outscraper.listScrapedLeads({ limit?: number })
+```
+
+**Returns** an array of lead rows where `source === "outscraper"`, sorted newest-first by `scrapedAt`. Each row carries the standard lead fields plus the Outscraper-scraped business metadata (`businessAddress`, `businessCity`, `businessCategory`, `businessWebsite`, `businessLatitude`, `businessLongitude`, `businessRating`, `businessReviewCount`, `businessGooglePlaceId`, `scrapedAt`).
+
+Auth: **`requireAuth`** (any signed-in creator). See the 2026-05-27 callout below — this was previously `requireAdmin`.
+
+### Write: trigger a new scrape (Find Local Business modal)
+
+```typescript
+api.outscraper.scrapeNearby({
+  location: string,   // "lat,lng" coord string, e.g. "14.30,121.00"
+  query: string,      // category, e.g. "barbershops" — fall back to "businesses" if user leaves blank
+  radiusKm?: number,  // defaults to 5
+  limit?: number,     // defaults to 20, max 50
+})
+```
+
+**Returns** `{ inserted: number; skipped: number; total: number }`.
+
+Auth: **`requireAuth`** (any signed-in creator). The action calls Outscraper's Google Maps Search API, inserts new rows into the `leads` table with `source: "outscraper"`, and dedupes via the `by_place_id` index.
+
+### Write: add a note
 
 ```typescript
 api.leadNotes.add({ leadId: Id<"leads">, content: string })
@@ -66,13 +121,33 @@ api.leadNotes.add({ leadId: Id<"leads">, content: string })
 
 Web should mirror mobile's behavior — any signed-in creator can post a note on any lead.
 
-### Write: update status
+### Write: update status (Interviewed leads only)
 
 ```typescript
 api.leads.updateStatus({ id: Id<"leads">, status: "new" | "contacted" | "qualified" | "converted" | "lost" })
 ```
 
-Mobile gates this to "only the original submitter or admin can change status" — replicate that gate client-side too (use `isMine` from the detail payload; admin elevation is via Clerk roles, same as everywhere else).
+Mobile gates this to "only the original submitter or admin can change status" — replicate that gate client-side too (use `isMine` from the detail payload; admin elevation is via Clerk roles).
+
+### Write: claim / release prospects (new — see Step 9)
+
+```typescript
+api.outscraper.claimProspect({ leadId: Id<"leads"> })
+api.outscraper.releaseProspect({ leadId: Id<"leads"> })
+api.outscraper.getProspect({ leadId: Id<"leads"> })
+```
+
+These three are NEW and need to be added in the web repo's `convex/outscraper.ts` (full source in Step 9). Mobile will pick them up via codegen after web deploys.
+
+---
+
+## 🛑 2026-05-27 — Critical auth-gate fix
+
+> Both `outscraper.scrapeNearby` and `outscraper.listScrapedLeads` were originally gated on `requireAdmin`. **That was wrong.** Creators (not admins) are the primary callers of the Find Local Business button on mobile.
+>
+> The mobile copy of `convex/outscraper.ts` now uses `requireAuth` for both functions. If your deployed copy still uses `requireAdmin`, **any creator hitting the button will get `Forbidden: admin access required`** and the feature is dead.
+>
+> **Action required on web side:** open your `convex/outscraper.ts`, change `requireAdmin(ctx)` to `requireAuth(ctx)` on both functions, then `npx convex deploy --prod`. The mobile source of truth is `ndm/convex/outscraper.ts` if you want to copy it verbatim. After the deploy, the mobile button works immediately — no mobile rebuild needed.
 
 ---
 
@@ -82,14 +157,16 @@ Two routes under the existing authenticated Creators platform shell:
 
 | Route | Purpose | Convex calls |
 |---|---|---|
-| `/creators/leads` | List view — filters, search, social-card cards | `listForMobileCRM` |
-| `/creators/leads/[leadId]` | Detail view — full lead, interviewers, notes | `getDetailForMobileCRM`, `leadNotes.add`, `leads.updateStatus` |
+| `/creators/leads` | List view — two action Doors above two tabs (Interviewed default + Prospects) | `listForMobileCRM`, `listScrapedLeads` |
+| `/creators/leads/[leadId]` | Detail view — works for both interviewed AND prospect leads (render conditionally on `lead.submissionId`) | `getDetailForMobileCRM` for interviewed; `outscraper.getProspect` for prospect |
 
 Both routes should be **server-rendered shell + client-rendered data** (Next.js App Router pattern) so the page paints fast and Convex hydrates the live data.
 
+URL state: tab choice persists in `?tab=interviewed` vs `?tab=prospects`; filters (`status`, `search`, `onlyMine`) also live in URL search params so creators can share/bookmark filtered views.
+
 ---
 
-## Entry points — where creators discover this page from the dashboard
+## Entry points — where creators discover this page
 
 Three places. **All three must exist** so the page is reachable from anywhere in the platform.
 
@@ -106,7 +183,7 @@ Referrals
 Profile
 ```
 
-Match the existing nav-item styling. Optionally show a small count badge next to "Leads" pulling from `stats.total` from `listForMobileCRM` — skip if it'd require extra subscription plumbing.
+Match the existing nav-item styling. Optionally show a small count badge next to "Leads" (e.g. `Leads · 24`) — pulls from `listScrapedLeads.length` or `stats.total`. Skip if it'd require extra subscription plumbing.
 
 ### Entry B — Dashboard hero card
 
@@ -118,8 +195,8 @@ On the existing `/creators/dashboard`, add a Team Leads card between the balance
 │                                                        │
 │  12 leads, browse the feed.                            │
 │                                                        │
-│  See every business the team has interviewed —         │
-│  the whole hunt, including the ones with live sites.   │
+│  See every business the team has interviewed — and     │
+│  the prospects waiting to be talked to.                │
 │                                                        │
 │  ┌──────┬──────┬──────┬──────────┐                    │
 │  │  12  │   3  │   2  │     4     │                    │
@@ -137,25 +214,29 @@ The whole card is clickable → routes to `/creators/leads`. Stats come from the
 - **Yours** — `stats.mine`
 - **Converted** — `stats.converted`
 
-Mobile reference: `ndm/app/(app)/(tabs)/index.tsx` — find the `STEP 02 / TEAM LEADS` card around the middle of the file. Web should look essentially identical, scaled up for desktop.
+Mobile reference: `ndm/app/(app)/(tabs)/index.tsx` — `STEP 02 / TEAM LEADS` card around the middle of the file.
 
 ### Entry C — Submit success page (optional v1)
 
-After a creator finishes submitting a business via the existing submit flow, the success screen typically routes them to dashboard or submissions list. Consider also surfacing a "Find your next interview →" CTA there that routes to `/creators/leads`. Keeps creators moving from one interview to the next without re-navigating.
+After a creator finishes submitting a business, the success screen typically routes them to dashboard or submissions list. Consider also surfacing a "Find your next interview →" CTA there that routes to `/creators/leads?tab=prospects`. Keeps creators moving from one interview to the next without re-navigating.
 
 Optional for v1. Low effort if your submit-success page is easy to edit.
 
 ### Naming consistency with mobile
 
-The mobile app calls the same destination two different things depending on which entry point you're tapping. Match this naming on web so creators see consistent language across platforms:
+These labels are exact, ship on mobile under these exact terms, and must NOT be shortened, paraphrased, or "improved":
 
-| Mobile button | Web equivalent | Routes to |
-|---|---|---|
-| `See Live Business` (map view of already-interviewed leads with live websites) | Same label on web — or use it as a sub-tab inside `/creators/leads` filtered to `lead.business.websiteUrl != null` | `/creators/leads?live=true` (suggested) |
-| `Find Local Business` (Outscraper discover flow for prospects to interview) | Documented in [WEB-BUILD-CRM-PAGE.md](./WEB-BUILD-CRM-PAGE.md) — Prospects tab | `/creators/leads?tab=prospects` |
-| Generic "Leads" tab/nav item | "Leads" in the top nav | `/creators/leads` |
+| Mobile button | Caption (mono eyebrow) | Variant | Routes to |
+|---|---|---|---|
+| `See Live Business` | `ON THE MAP` | `accent` (emerald fill, white text) | `/creators/leads?live=true` — map view of interviewed leads with `business.websiteUrl != null` |
+| `Find Local Business` | `DISCOVER` | `ghost` (paper-3 with ink border) | Opens the category + radius modal (see "Find Local Business modal" section); on submit, calls `outscraper.scrapeNearby`; routes user to `/creators/leads?tab=prospects` after success |
+| Generic "Leads" tab/nav item | — | — | `/creators/leads` |
 
-The user has been explicit: **"See Live Business" = already-interviewed leads with live websites; "Find Local Business" = Outscraper-discovered prospects.** Don't blur the distinction.
+**Critical distinction the user has spelled out:**
+- **See Live Business** → existing leads, already interviewed, has a live website → creator can study what's working, what content reads well, etc.
+- **Find Local Business** → BRAND NEW prospects from Outscraper → creator goes and interviews them to earn
+
+Don't merge these into one button. Don't swap their semantics. The labels are exact.
 
 ---
 
@@ -173,31 +254,143 @@ Visual reference: mobile's `app/(app)/leads/index.tsx`. The web should be the de
 │  every interview.                ← Display: Instrument Serif       │
 │                                                                    │
 │  The whole team's hunt — including yours.                         │
-│  Last sync: 12s ago · 38 leads · 6 hot                            │
+│  Last sync: 12s ago · 38 interviewed · 24 prospects                │
 │                                                                    │
 │  [▤ See Live Business  ↗]      [⌕ Find Local Business  ↗]        │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-- Eyebrow: mono `STEP 03 / TEAM LEADS` (matches the auth page eyebrow pattern)
+- Eyebrow: mono `STEP 03 / TEAM LEADS`
 - Live dot pulses next to "LIVE" if Convex socket connected
 - Display headline: Instrument Serif, two-line. The italic word (here: "every") is `colors.accent` emerald
 - Sub-copy: Onest 15px, ink-2
 
 ### Two action Doors directly under the headline
 
-These are the primary creator actions and must always be visible above the filter row. Match mobile's two buttons one-to-one.
+These are the primary creator actions and must always be visible above the tab row.
 
-| Button label | Caption (mono eyebrow) | Variant | What it does | Mobile reference |
+| Button label | Caption | Variant | What it does | Mobile reference |
 |---|---|---|---|---|
-| **See Live Business** | `ON THE MAP` | `accent` (emerald fill, white text) | Routes to a map view showing already-interviewed businesses that have **live websites**. This is the "what's already working — and earning — on the platform" view. | Mobile: `app/(app)/leads/index.tsx` line ~244 (button), `app/(app)/leads/nearby.tsx` (destination map view). On mobile this opens a native Google Maps view with markers. Web equivalent: either embed Google Maps or open a filtered list with `?live=true` showing only leads where `lead.business.websiteUrl != null`. |
-| **Find Local Business** | `DISCOVER` | `ghost` (paper-3 with ink border) | Opens the Outscraper "discover prospects" flow. Creator picks a category (e.g. "barbershop") + radius (1/3/5/10 km) + confirms, and Convex calls Outscraper to pull nearby businesses **that nobody has interviewed yet**. These appear in the Prospects tab. | Mobile: `app/(app)/leads/index.tsx` line ~252 (button) + the `showScrape` modal lower in the file. On web, this is the gateway into `/creators/leads?tab=prospects` (see [WEB-BUILD-CRM-PAGE.md](./WEB-BUILD-CRM-PAGE.md) for the full Prospects spec). |
+| **See Live Business** | `ON THE MAP` | accent (emerald fill, white text) | Routes to a map view showing already-interviewed businesses with **live websites**. The "what's working — and earning — on the platform" view. | `ndm/app/(app)/leads/index.tsx` button ~line 244; destination `ndm/app/(app)/leads/nearby.tsx`. Web equivalent: either embed Google Maps or open a filtered list with `?live=true` showing only leads where `lead.business.websiteUrl != null`. |
+| **Find Local Business** | `DISCOVER` | ghost (paper-3 with ink border) | Opens the Outscraper "discover prospects" modal — category text input + radius pill row (1/3/5/10 km). On submit, calls `outscraper.scrapeNearby`. Newly-inserted prospects show up in the Prospects tab instantly (reactive Convex). | Mobile button ~line 252 + the scrape modal lower in the same file. |
 
-**Critical distinction the user has spelled out:**
-- **See Live Business** → existing leads, already interviewed, has a live website → creator can study what's working, what content reads well, etc.
-- **Find Local Business** → BRAND NEW prospects from Outscraper → creator goes and interviews them to earn
+### Find Local Business modal (NEW — multi-stage loading UX)
 
-Don't merge these into one button. Don't swap their semantics. The labels are exact.
+Mobile reference: `ndm/app/(app)/leads/index.tsx` — the entire scrape modal including the `ScrapeProgressPanel` component near the bottom of the file. Mirror this on web.
+
+**Resting state** (before user taps "Find businesses"):
+
+```
+┌──────────────────────────────────────────────────┐
+│                                                  │
+│  DISCOVER                                        │
+│  Find your next interview.                       │ ← serif, "interview." italic + emerald
+│                                                  │
+│  Pick the kind of business you want to talk to.  │
+│  We'll use your GPS and pull up to 20 nearby     │
+│  spots that nobody on the team has interviewed   │
+│  yet — go knock on a door.                       │
+│                                                  │
+│  ┌────────────────────────────────────────────┐  │
+│  │ 🏬  restaurants, barbershops, sari-sari… │  │ ← category input
+│  └────────────────────────────────────────────┘  │
+│  WHAT KIND OF BUSINESS?                          │
+│                                                  │
+│  [1 km] [3 km] [5 km] [10 km]                    │ ← radius pills (5 km default)
+│  RADIUS                                          │
+│                                                  │
+│  [FIND BUSINESSES — Show me businesses…]         │ ← solid Door
+│                                                  │
+│  Cancel                                          │
+└──────────────────────────────────────────────────┘
+```
+
+**Loading state** (while `scrapeNearby` is in flight) — replaces the input fields with a 3-stage progress panel:
+
+```
+┌──────────────────────────────────────────────────┐
+│                                                  │
+│  HANG TIGHT                                      │
+│  Looking for restaurants near you.               │ ← business category interpolated
+│                                                  │
+│  Hold on — we're searching within 5 km. This     │
+│  usually takes 5–15 seconds depending on your    │
+│  area. Please don't close the app.               │
+│                                                  │
+│              ╭─────╮                             │
+│             ╱       ╲                            │ ← pulsing emerald halo
+│            │   🔍    │                           │ ← phase-specific icon
+│             ╲       ╱                              ( locate → search → list )
+│              ╰─────╯                             │
+│                                                  │
+│  ┌──────────────────────────────────────────┐    │
+│  │ ✓  Pinning your spot                      │    │ ← done
+│  │    Reading GPS so we search the right…    │    │
+│  ├──────────────────────────────────────────┤    │
+│  │ ◐  Scanning the map                       │    │ ← active (spinner)
+│  │    Checking Google Maps for businesses…  │    │
+│  ├──────────────────────────────────────────┤    │
+│  │ 3  Adding to your list                    │    │ ← pending
+│  │    Saving the ones nobody on the team…   │    │
+│  └──────────────────────────────────────────┘    │
+│                                                  │
+│  [STEP 2 OF 3 — Looking for nearby businesses…] │ ← Door, disabled, animated
+│                                                  │
+│  Please don't close the app — this takes a few   │ ← replaces "Cancel"
+│  seconds.                                        │
+└──────────────────────────────────────────────────┘
+```
+
+Three phases, in order. Use a state machine in the modal:
+
+```typescript
+type ScrapePhase = 'idle' | 'locating' | 'searching' | 'saving';
+```
+
+| Phase | Caption (Door eyebrow) | Door label | Icon | Hint text |
+|---|---|---|---|---|
+| `locating` | `STEP 1 OF 3` | `Finding where you are…` | `locate` | "Reading GPS so we search the right neighborhood." |
+| `searching` | `STEP 2 OF 3` | `Looking for nearby businesses…` | `search` | "Checking Google Maps for businesses around you." |
+| `saving` | `STEP 3 OF 3` | `Almost ready — saving results…` | `list` | "Saving the ones nobody on the team has met yet." |
+
+Step list rendering rules:
+- **Done steps** — checkmark in an emerald circle, row background `colors.accentBg`, ink-2 text
+- **Active step** — small spinner in a ring, row background `colors.paper3`, full ink text, 1.5px emerald border
+- **Pending steps** — numbered dot (1/2/3) in a hollow circle, row background `colors.paper2`, ink-3 text
+
+Pulse animation on the halo: `0.4 → 1.0` opacity + `0.95 → 1.05` scale, 900ms each way, ease-in-out, infinite loop.
+
+After `scrapeNearby` resolves, hold the modal on `saving` for ~350ms so the user sees the final stage flip, then show a success toast:
+
+> Found nearby businesses — `{result.total}` businesses found nearby. Added `{result.inserted}` new ones to your interview list (`{result.skipped}` were already on it).
+
+Then auto-close the modal and reset to `idle`.
+
+Error handling — match mobile's branching on the error message:
+
+| Error message contains | User-facing toast |
+|---|---|
+| `not authenticated` (case-insensitive) | "Please sign in again — your session has expired. Please log out and back in to use this feature." |
+| `forbidden` or `admin` (case-insensitive) | "Not available yet — this feature is being rolled out. Your account isn't enabled for it yet. Check back soon." (This shouldn't fire post-fix, but keep it as a safety net.) |
+| `OUTSCRAPER_API_KEY` | "Temporarily unavailable — the business-search service is offline right now. Please try again later." |
+| anything else | "Search failed — {message}" |
+
+GPS permission: on web use `navigator.geolocation.getCurrentPosition`. If the user denies, show an inline error in the modal ("Please grant location permission so we can search businesses near your current position.") and reset to `idle`.
+
+### Tabs (below the action Doors)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  INTERVIEWED (38)                                       │ ← active (ink underline, ink text)
+└─────────────────────────────────────────────────────────┘
+   PROSPECTS · TO INTERVIEW (24)                            ← inactive (ink3 text)
+```
+
+Active tab gets a 2px ink-bottom-border. Counts in parens are real-time (subscribe to both queries simultaneously). URL state: `?tab=interviewed` (default) vs `?tab=prospects`.
+
+---
+
+## Interviewed tab — card grid
 
 ### Filters row (sticky on scroll)
 
@@ -216,9 +409,10 @@ Don't merge these into one button. Don't swap their semantics. The labels are ex
 Each card has **two render modes** depending on `hasEnrichedContent`:
 
 **Standard mode** (no admin content):
+
 ```
 ┌────────────────────────────────────────┐
-│  ●  BUSINESS NAME              ★ HOT   │  ← header: avatar of submittedBy, mono label, optional hot star (red-orange, NOT brand orange)
+│  ●  BUSINESS NAME              ★ HOT   │  ← header: avatar of submittedBy, mono label, optional hot star
 │     City, Type                          │
 │  ┌──────────────────────────────────┐  │
 │  │ Owner: Maria Cruz                 │  │
@@ -230,9 +424,10 @@ Each card has **two render modes** depending on `hasEnrichedContent`:
 ```
 
 **Social-card mode** (when `hasEnrichedContent === true` — FB-style):
+
 ```
 ┌────────────────────────────────────────┐
-│  Maria S. · 2d ago               ⋯     │  ← submitter strip (avatar + display name)
+│  Maria S. · 2d ago               ⋯     │  ← submitter strip
 │                                          │
 │  Lorenzo's Sari-Sari Store              │  ← serif headline
 │  in italics for accent word              │
@@ -260,7 +455,92 @@ Both card modes are clickable (full card → detail route). Use semantic `<artic
 
 ---
 
-## Detail page UX spec (`/creators/leads/[leadId]`)
+## Prospects tab — card grid (NEW)
+
+Reads `api.outscraper.listScrapedLeads({})` — returns all leads where `source === "outscraper"`, sorted newest-first.
+
+### Card design — creator-facing (NOT admin-facing)
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  📍                                       ⭐ 4.3 · 127   │  ← Google rating + review count
+│                                                          │
+│  Negosyo Barbershop                                      │  ← serif headline
+│  Barbershop · Quezon City                                │
+│                                                          │
+│  123 P. Tuazon Blvd, Cubao, Quezon City                  │
+│  0917 555 1234 · negosyobarber.ph                        │
+│                                                          │
+│  Scraped 3h ago             [I'll interview this] [Directions] │
+└──────────────────────────────────────────────────────────┘
+```
+
+### When a prospect is already claimed by someone else
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  📍                                       ⭐ 4.3 · 127   │
+│                                                          │
+│  Negosyo Barbershop                                      │
+│  Barbershop · Quezon City                                │
+│                                                          │
+│  123 P. Tuazon Blvd, Cubao, Quezon City                  │
+│  0917 555 1234 · negosyobarber.ph                        │
+│                                                          │
+│  ●  Claimed by Maria S. · 1h ago                  [Directions] │  ← shows claimer's name + time
+└──────────────────────────────────────────────────────────┘
+```
+
+The claim is **informational, not exclusive** — another creator can still walk in and interview the business. The "claimed" pill is a coordination signal so two creators don't waste a trip to the same place at the same time. If 24 hours pass without a submission appearing for that prospect, the claim auto-expires (cron, see Step 9).
+
+### When a creator has claimed it themselves
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  📍                                       ⭐ 4.3 · 127   │
+│                                                          │
+│  Negosyo Barbershop                                      │
+│                                                          │
+│  ●  YOU claimed this · 1h ago                  [Release] │  ← release button
+│  [Directions] [Start interview →]                              │  ← straight into submit flow
+└──────────────────────────────────────────────────────────┘
+```
+
+"Start interview →" deep-links the creator straight into the submit flow with the business name + address pre-filled. See Step 10.
+
+### Buttons per card
+
+- **I'll interview this** — claims the prospect for the current creator. Calls `outscraper.claimProspect({ leadId })`. Card updates optimistically to "YOU claimed this" state. Shows release button.
+- **Directions** — opens `https://www.google.com/maps/search/?api=1&query={lat},{lng}` in a new tab. Use the label "Directions" and `Ionicons map-outline` (matches the detail-page Directions button). Available regardless of claim state.
+- **Release** (when YOU claimed) — calls `outscraper.releaseProspect({ leadId })` to un-claim. Lets another creator take it.
+- **Start interview →** (when YOU claimed) — deep links to `/creators/submit?businessName=...&phone=...&address=...&city=...&prospectLeadId=...` (or your web submit-flow equivalent). The prospect lead is linked to the future submission via a query param so the backend can mark it "interviewed" when the submission gets approved.
+
+### Filter bar
+
+- **Category chips** — dynamically built from `businessCategory` values across all prospects. Examples: `All / Barbershop / Restaurant / Salon / Sari-sari / Other`. Shows count per category in parens.
+- **Rating filter pill** — `Any / 4+ ★ / 4.5+ ★` (filters `businessRating`)
+- **City filter** — text input that filters `businessCity` (case-insensitive contains)
+- **Claim filter pills** — `All / Unclaimed / Mine` — defaults to `Unclaimed` (so creators see what's available first)
+- **Search input** — full-text across businessName, businessAddress, businessPhone (300ms debounce)
+
+### Sort order
+
+- Default: newest-scraped first (`scrapedAt desc`)
+- Dropdown: "Highest rated" (`businessRating desc`) · "Most reviews" (`businessReviewCount desc`) · "Alphabetical" (`businessName asc`)
+
+### Empty / loading / error
+
+- **Loading** — 4 skeleton cards (paper-2 bg, animated shimmer)
+- **Empty (no prospects at all)** — Editorial-style empty state:
+  > Nothing to interview *yet.*
+  >
+  > Tap **Find Local Business** above — it'll scan your current location and add prospects here within seconds.
+- **Empty (filters applied)** — "No matches. — Clear filters" ghost button
+- **Error** — danger banner (`#B43A1F` on `#F3D7CF`), no retry button (Convex auto-retries on its own)
+
+---
+
+## Detail page UX spec — Interviewed leads (`/creators/leads/[leadId]`)
 
 Two-column on desktop, single-column on tablet/mobile.
 
@@ -283,7 +563,7 @@ Two-column on desktop, single-column on tablet/mobile.
    - Optional: horizontal scrollview of `business.photos` thumbnails (104×104, rounded `radius.sm`, tap to open lightbox)
    - **Two action buttons** below the metadata, side-by-side or stacked depending on width:
      - **Directions** — `colors.paper2` fill + `colors.rule` border, `Ionicons name="map-outline"` + label "Directions". Opens Google Maps with the business address. URL: `https://www.google.com/maps/search/?api=1&query={encodeURIComponent(address + ', ' + city)}`. **Must always be present** when the business has an address (which is always — submissions require address).
-     - **View website** — `border: 1px solid colors.accent`, transparent fill, `Ionicons name="globe-outline"` in accent + label "View website" in accent. Wires to `business.websiteUrl`. **Only renders when `business.websiteUrl` is set** (i.e., the submission's generated site has been deployed). This is what distinguishes leads with live websites from those still in pipeline. **Don't hide the button entirely if `websiteUrl` is null — instead render a disabled/ghost version that says "Website not live yet"** so creators understand the state.
+     - **View website** — `border: 1px solid colors.accent`, transparent fill, `Ionicons name="globe-outline"` in accent + label "View website" in accent. Wires to `business.websiteUrl`. **Only renders when `business.websiteUrl` is set** (i.e., the submission's generated site has been deployed). **Don't hide the button entirely if `websiteUrl` is null — instead render a disabled/ghost version that says "Website not live yet"** so creators understand the state.
 7. **Interviewed by (interviewer roster)** — paper-3 Card with a mono `INTERVIEWED BY` eyebrow and a `{count} {count===1?'creator':'creators'}` pill in the top-right. The body is a list of every creator who has interviewed this business (matched by `business.ownerPhone` normalization, computed server-side in `getDetailForMobileCRM` and returned as `interviewers[]`). Each row:
    - Avatar (image OR initial-on-bg fallback). If `interviewer.isMine === true`, use `colors.accent` bg and 3px left-border on the row container.
    - Display name + small `YOU` mono pill when `isMine`
@@ -305,6 +585,247 @@ The right column is the **at-a-glance contact + action shortcut bar**. It mirror
 ### Mobile (web responsive)
 
 Collapse to single column. Sticky right column becomes a "Quick actions" bottom sheet triggered by a Door button. The Directions + View website + Call buttons should ALSO appear inline within their respective cards on mobile (not just in the sheet) — creators tend to scroll, so the buttons need to be reachable inside the flow too.
+
+---
+
+## Detail page UX spec — Prospect leads (NEW)
+
+Render conditionally when `lead.submissionId == null && lead.source === "outscraper"`.
+
+Two-column on desktop, single-column on mobile.
+
+### Left column (60%) — Business profile + claim state
+
+| Section | Source |
+|---|---|
+| Mono eyebrow: "STEP 03 / TO INTERVIEW" + LiveDot | static |
+| Serif headline: business name | `lead.businessName` |
+| Sub-line: `Category · City` | `lead.businessCategory` + `lead.businessCity` |
+| Rating display: `⭐ 4.3 (127 reviews)` | `lead.businessRating` + `lead.businessReviewCount` |
+| Full address card (paper-3 with map pin icon + clickable "Open in Maps") | `lead.businessAddress` |
+| Contact card (phone tap-to-call, website tap-to-open) | `lead.businessPhone`, `lead.businessWebsite` |
+| Claim state | `lead.claimedByCreatorId` + `lead.claimedAt` |
+| Notes feed (so creators can leave field notes for the team) | `leadNotes` rows for this lead |
+
+### Right column (40%, sticky on desktop) — Quick actions
+
+| Action | When | What it does |
+|---|---|---|
+| Open in Google Maps | Always | `https://www.google.com/maps/search/?api=1&query={lat},{lng}` |
+| I'll interview this | Unclaimed OR claim expired | `outscraper.claimProspect({ leadId })` |
+| Start interview → | YOU claimed | Deep-link to `/creators/submit?...` with pre-filled fields |
+| Release this | YOU claimed | `outscraper.releaseProspect({ leadId })` |
+| Add note | Always | `leadNotes.add({ leadId, content })` |
+
+Notes work the same as on the Interviewed detail page — creators leave field notes ("Owner is busy on Tuesdays" / "Closed for renovation until next month") that the whole team sees.
+
+### What if the prospect is claimed by someone else?
+
+Show their name and claim time prominently in the left column. The "I'll interview this" button stays visible but with a confirmation modal:
+
+> Maria S. claimed this 2 hours ago. You can still go ahead, but you might bump into her at the door. Continue anyway?
+>
+> [Cancel] [Yes, claim it for me too]
+
+If they confirm, overwrite the claim with the current creator's ID (add a small audit log entry if your stack supports it).
+
+---
+
+## Backend additions on web side (NEW)
+
+Three new Convex functions in `convex/outscraper.ts` + a cron + a schema patch. All additive, safe to deploy.
+
+### `convex/outscraper.ts` — add these to the existing file
+
+```typescript
+import { mutation, query, internalMutation } from "./_generated/server";
+import { v } from "convex/values";
+import { requireAuth } from "./lib/auth";
+
+// Creator claims a prospect for follow-up (informational, not exclusive)
+export const claimProspect = mutation({
+  args: { leadId: v.id("leads") },
+  handler: async (ctx, args) => {
+    const identity = await requireAuth(ctx); // any signed-in creator
+    const lead = await ctx.db.get(args.leadId);
+    if (!lead) throw new Error("Lead not found");
+    if (lead.source !== "outscraper") {
+      throw new Error("Can only claim Outscraper prospects, not customer leads");
+    }
+    if (lead.submissionId) {
+      throw new Error("This prospect has already been interviewed");
+    }
+
+    const creator = await ctx.db
+      .query("creators")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!creator) throw new Error("Creator profile not found");
+
+    await ctx.db.patch(args.leadId, {
+      claimedByCreatorId: creator._id,
+      claimedAt: Date.now(),
+    });
+  },
+});
+
+export const releaseProspect = mutation({
+  args: { leadId: v.id("leads") },
+  handler: async (ctx, args) => {
+    const identity = await requireAuth(ctx);
+    const lead = await ctx.db.get(args.leadId);
+    if (!lead) throw new Error("Lead not found");
+
+    const creator = await ctx.db
+      .query("creators")
+      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+      .first();
+    if (!creator) throw new Error("Creator profile not found");
+
+    if (lead.claimedByCreatorId !== creator._id) {
+      throw new Error("You can only release your own claims");
+    }
+
+    await ctx.db.patch(args.leadId, {
+      claimedByCreatorId: undefined,
+      claimedAt: undefined,
+    });
+  },
+});
+
+// Fetch a single prospect with claimer info enriched (for the detail view)
+export const getProspect = query({
+  args: { leadId: v.id("leads") },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx);
+    const lead = await ctx.db.get(args.leadId);
+    if (!lead || lead.source !== "outscraper") return null;
+
+    let claimedBy = null;
+    if (lead.claimedByCreatorId) {
+      const c = await ctx.db.get(lead.claimedByCreatorId);
+      if (c) {
+        claimedBy = {
+          creatorId: String(c._id),
+          displayName: [c.firstName, c.lastName?.[0]].filter(Boolean).join(" "),
+          profileImage: c.profileImage ?? null,
+        };
+      }
+    }
+    return { lead, claimedBy };
+  },
+});
+
+// Auto-release stale claims (>24h old). Called by the cron below.
+export const releaseStaleClaimsInternal = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const threshold = Date.now() - 24 * 60 * 60 * 1000;
+    const stale = await ctx.db
+      .query("leads")
+      .filter((q) =>
+        q.and(
+          q.eq(q.field("source"), "outscraper"),
+          q.eq(q.field("submissionId"), undefined),
+          q.lt(q.field("claimedAt"), threshold),
+        ),
+      )
+      .collect();
+    for (const lead of stale) {
+      await ctx.db.patch(lead._id, {
+        claimedByCreatorId: undefined,
+        claimedAt: undefined,
+      });
+    }
+  },
+});
+```
+
+### `convex/crons.ts` — add the stale-claim sweeper
+
+```typescript
+import { cronJobs } from "convex/server";
+import { internal } from "./_generated/api";
+
+const crons = cronJobs();
+crons.interval(
+  "release stale prospect claims",
+  { hours: 1 },
+  internal.outscraper.releaseStaleClaimsInternal,
+);
+export default crons;
+```
+
+### `convex/schema.ts` — schema additions
+
+```typescript
+leads: defineTable({
+  // ... existing fields ...
+  // NEW — for prospect claims by creators
+  claimedByCreatorId: v.optional(v.id("creators")),
+  claimedAt: v.optional(v.number()),
+}).index(/* existing indexes unchanged */)
+  .index("by_claimed_creator", ["claimedByCreatorId"]); // NEW
+```
+
+Additive only — both new fields are `v.optional`. No existing field changed.
+
+---
+
+## Outscraper backend essentials (reference — already deployed)
+
+The `convex/outscraper.ts` file lives on the web side (web is source of truth). Mobile keeps a type-stub mirror so codegen works. The action shape, response handling, env vars, and dedupe logic are all documented in `ndm/convex/outscraper.ts` if you need to copy or compare.
+
+Key facts the web agent needs:
+
+- **API endpoint:** `https://api.outscraper.com/maps/search`
+- **Auth header:** `X-API-KEY: {OUTSCRAPER_API_KEY}` (env var, already set on prod by mobile team — don't re-set)
+- **Dedupe:** the `insertScrapedLead` internal mutation skips inserts where `businessGooglePlaceId` already exists (via the `by_place_id` index on the `leads` table)
+- **Attribution:** scraped leads are attributed to the calling creator's `creators` row (`creatorId` field on the lead). If the caller doesn't have a creator row, falls back to the first creator in the system as a placeholder owner — this is fine for now since the scrape action is creator-gated
+- **Rate/cost:** Outscraper charges per result. At ~$0.001/result × 20 results, each tap costs ~$0.02. `limit` defaults to 20, max 50
+- **Response shape:** Outscraper returns `data: [[result1, result2, ...]]` (nested array) for single-query calls. The action flattens both nested and flat shapes
+
+The action source is at `ndm/convex/outscraper.ts` — copy it verbatim if your web copy is out of date. **Make sure both `scrapeNearby` and `listScrapedLeads` use `requireAuth(ctx)`, not `requireAdmin(ctx)`** — see the 2026-05-27 callout earlier in this doc.
+
+---
+
+## Mobile coordination — deep link from "Start interview"
+
+The web "Start interview →" button (when a creator has claimed a prospect) launches the existing submit flow with the prospect's business data pre-filled. The web submit flow lives on the web side; the deep link is just a URL with query params.
+
+Recommended URL shape:
+
+```
+/creators/submit?prospectLeadId=j5...&businessName=Negosyo%20Barbershop&phone=09175551234&address=123%20P.%20Tuazon%20Blvd&city=Quezon%20City&category=Barbershop
+```
+
+When the existing submit flow detects `prospectLeadId` in the URL, it should:
+1. Pre-fill the business info step with the values from the params
+2. On final submit (via the existing mutation that creates a submissions row), include `prospectLeadId` as an optional arg
+3. The submissions creation mutation needs a small addition: if `prospectLeadId` is provided, patch the matching lead row to set `submissionId = newSubmissionId` and the lead "graduates" from Prospects to Interviewed automatically
+
+```typescript
+export const create = mutation({
+  args: {
+    // ... existing args ...
+    prospectLeadId: v.optional(v.id("leads")), // NEW
+  },
+  handler: async (ctx, args) => {
+    const submissionId = await ctx.db.insert("submissions", { /* ... */ });
+    // NEW — link the prospect to this submission
+    if (args.prospectLeadId) {
+      await ctx.db.patch(args.prospectLeadId, {
+        submissionId,
+        claimedByCreatorId: undefined, // claim fulfilled
+        claimedAt: undefined,
+      });
+    }
+    return submissionId;
+  },
+});
+```
+
+Additive optional args are safe — mobile won't break if it doesn't pass `prospectLeadId`.
 
 ---
 
@@ -363,7 +884,7 @@ Load all three Google Fonts in the layout:
   /* Status (CRM lead pipeline) */
   --color-status-new-bg:        #E4E9F0;  --color-status-new-ink:        #1F3654;
   --color-status-contacted-bg:  #FBE9C4;  --color-status-contacted-ink:  #C68A12;
-  --color-status-qualified-bg:  #EDE9FE;  --color-status-qualified-ink:  #6D28D9;  /* muted purple, not bright */
+  --color-status-qualified-bg:  #EDE9FE;  --color-status-qualified-ink:  #6D28D9;
   --color-status-converted-bg:  #D1FAE5;  --color-status-converted-ink:  #064E3B;
   --color-status-lost-bg:       #F3D7CF;  --color-status-lost-ink:       #B43A1F;
 
@@ -383,6 +904,8 @@ Load all three Google Fonts in the layout:
 | `<Body size="md">` | `<p className="sans text-base text-ink-2">` |
 | `<Label tracking={1.4}>` | `<span className="mono text-[11px] tracking-[0.12em] uppercase text-ink-3">` |
 | `<Door variant="solid">` | Black-ink button with mono caption above sans label, right arrow icon |
+| `<Door variant="accent">` | Emerald-fill button with white caption + label |
+| `<Door variant="ghost">` | Paper-3 fill, ink border, ink caption + label |
 | `<Pill active>` | Ink-filled chip with paper text |
 | `<Card>` | `bg-paper-3 border border-rule rounded-[18px] p-4` |
 | `<LiveDot>` | Pulsing 7px green dot (CSS keyframe animation) |
@@ -425,9 +948,10 @@ Build these as web React components and reuse across the redesign — same patte
 
 ## State management
 
-- **Convex hooks**: `useQuery(api.leads.listForMobileCRM, args)` and `useQuery(api.leads.getDetailForMobileCRM, { id })`. Reactive — no manual refresh.
-- **Mutations**: `useMutation(api.leadNotes.add)` and `useMutation(api.leads.updateStatus)`. Optimistic UI for note posting (append immediately, roll back on error).
-- **URL state**: filters (`status`, `search`, `onlyMine`) live in the URL search params so creators can share/bookmark filtered views.
+- **Convex hooks**: `useQuery(api.leads.listForMobileCRM, args)` for Interviewed; `useQuery(api.outscraper.listScrapedLeads, {})` for Prospects; `useQuery(api.leads.getDetailForMobileCRM, { id })` for interviewed detail; `useQuery(api.outscraper.getProspect, { leadId })` for prospect detail. Reactive — no manual refresh.
+- **Mutations**: `useMutation(api.leadNotes.add)`, `useMutation(api.leads.updateStatus)`, `useMutation(api.outscraper.claimProspect)`, `useMutation(api.outscraper.releaseProspect)`. Optimistic UI for note posting and claim/release.
+- **Actions**: `useAction(api.outscraper.scrapeNearby)` — called from the Find Local Business modal.
+- **URL state**: filters (`status`, `search`, `onlyMine`), tab (`?tab=...`), and live-only flag (`?live=true`) live in the URL search params so creators can share/bookmark filtered views.
 - **Auth gate**: route protected by the existing Clerk session middleware. Unauthenticated users redirect to `/sign-in?next=/creators/leads`.
 
 ---
@@ -436,12 +960,15 @@ Build these as web React components and reuse across the redesign — same patte
 
 | Metric | Budget |
 |---|---|
-| LCP | ≤ 1.8s on Fast 4G |
+| LCP on `/creators/leads` | ≤ 1.8s on Fast 4G |
 | Card grid render with 200 leads | < 16ms paint |
 | Search debounce | 300ms |
 | Lead detail server response | < 250ms p95 (Convex hosted) |
+| Claim round-trip (click → UI update) | < 250ms p95 (optimistic update on the client) |
+| Tab switch | Instant (both queries subscribed at page load) |
+| Scrape modal end-to-end (locating → saving) | 5–15s typical (network-bound on Outscraper) |
 
-**Pagination:** the existing `listForMobileCRM` loads ALL leads in one shot (mobile expects this for the social feed). If the prod lead count grows past ~500, the web should add cursor pagination — propose a backend change in a follow-up PR, do not patch around it client-side.
+**Pagination:** `listForMobileCRM` and `listScrapedLeads` both load all rows in one shot (mobile expects this for the social feed). If either grows past ~500, add cursor pagination via `paginate()` — propose as a follow-up PR.
 
 ---
 
@@ -449,21 +976,99 @@ Build these as web React components and reuse across the redesign — same patte
 
 - Color contrast: ink on paper = 14.8:1 (AAA). Accent-ink on accent-bg = 7.1:1 (AAA).
 - All interactive elements keyboard focusable; visible focus ring (2px ink, 2px offset).
-- Lead cards: full card is the link target; nested buttons (status change, copy phone) use `event.stopPropagation()` and have their own `aria-label`.
+- Lead cards: full card is the link target; nested buttons (status change, copy phone, claim/release) use `event.stopPropagation()` and have their own `aria-label`.
 - "Live" badge announces "live data" to screen readers via `aria-live="polite"` on the stats strip.
 - Hot badge: don't rely on color alone — include the word "HOT" in the visual + an `aria-label` of "Hot lead — 3 or more interviewers".
+- Scrape modal loading panel: each step row should have `aria-current="step"` on the active row; the halo + step list should sit inside an `aria-live="polite"` region so screen reader users hear "Step 2 of 3 — Looking for nearby businesses" when the phase advances.
 
 ---
 
 ## Implementation order (suggested)
 
-1. **Day 1** — Create the web design-system primitives (Display, Body, Label, Door, Pill, Card, LiveDot, Avatar, EditorialField, Rule). Drop them in a new `components/editorial/` folder. Add Google Fonts to the root layout. Write a Storybook (or equivalent) page that renders every primitive in both light and dark theme (web supports a dark mode toggle by swapping the `--color-*` vars on `[data-theme="ink"]`).
-2. **Day 2** — Build the list page route. Hook `listForMobileCRM`. Render the filter row + standard-mode card. Skip social-card mode and detail page.
-3. **Day 3** — Add social-card render mode. Add empty/loading/error states. Add URL state syncing.
-4. **Day 4** — Build the detail page. Hook `getDetailForMobileCRM`. Render submitter strip, business card, interviewers, notes feed.
-5. **Day 5** — Wire `leadNotes.add` (optimistic) and `leads.updateStatus` (with the `isMine`/admin gate). QA pass.
-6. **Day 6** — Mobile-responsive pass. Sticky filter bar, single-column collapse, mobile-optimized note input.
-7. **Day 7** — Performance pass, a11y audit, ship behind a feature flag for internal review before rolling out.
+1. **Day 1** — Web design-system primitives (Display, Body, Label, Door, Pill, Card, LiveDot, Avatar, EditorialField, Rule). Drop them in `components/editorial/`. Add Google Fonts to the root layout. Storybook every primitive in light + dark theme (web supports dark via `[data-theme="ink"]` swapping the `--color-*` vars).
+2. **Day 2** — Apply the auth-gate fix (`requireAuth` not `requireAdmin`) and deploy `convex/outscraper.ts`. This unblocks the mobile button immediately, no other web work required.
+3. **Day 3** — Build the list page route shell. Hook `listForMobileCRM`. Render the filter row + standard-mode Interviewed card. Skip social-card mode, Prospects tab, and detail page for now.
+4. **Day 4** — Add the two action Doors at the top (See Live Business + Find Local Business). Build the Find Local Business modal (resting state only — no loading panel yet). Wire it to `scrapeNearby`.
+5. **Day 5** — Add the multi-stage loading panel to the Find Local Business modal. Pulse halo + step list. Add the social-card render mode for Interviewed cards. Add empty/loading/error states.
+6. **Day 6** — Build the Interviewed detail page. Hook `getDetailForMobileCRM`. Render submitter strip, business card, Directions + View website buttons, Interviewers roster, Notes feed. Wire `leadNotes.add` (optimistic) and `leads.updateStatus` (with the `isMine`/admin gate).
+7. **Day 7** — Add the Prospects tab. Add `claimProspect` / `releaseProspect` / `getProspect` mutations + the stale-claim cron + schema additions. Deploy. Build the prospect card grid + filters + sort.
+8. **Day 8** — Build the Prospect detail page. Add the deep-link integration on the submit flow.
+9. **Day 9** — Mobile-responsive pass. Sticky filter bar, single-column collapse, mobile-optimized note input.
+10. **Day 10** — Performance pass, a11y audit, ship behind a feature flag for internal review.
+
+---
+
+## End-to-end test (works without admin)
+
+After deploy, sign in as a regular creator (NOT admin) and:
+
+### Interviewed tab
+1. Open `/creators/leads` — defaults to Interviewed tab
+2. See real cards for businesses the team has interviewed
+3. Click a card → detail view loads with business profile + Directions + View website + Interviewer roster + Notes
+4. (Status change is admin-only on the creators platform — creators can post notes but typically cannot change status. Hide status dropdown for non-admins.)
+
+### Find Local Business modal
+1. Click **Find Local Business** at top of `/creators/leads`
+2. Modal opens with category input + radius pills + Door
+3. Leave category blank, pick 5km radius, click Door
+4. Modal switches to the 3-stage loading panel — see the halo pulse and the step list advance
+5. After 5–15s, success toast appears with `inserted/skipped/total` counts
+6. Switch to Prospects tab — new rows show up at the top
+
+### Prospects tab
+1. Switch to Prospects tab
+2. See prospect cards with business name, rating, address, phone
+3. Filter by category → grid updates
+4. Click **I'll interview this** on an unclaimed prospect → button changes to "YOU claimed this" pill
+5. Click **Directions** → opens Google Maps in new tab
+6. Sign in as a DIFFERENT creator → see the prospect now shows "Claimed by {first creator}"
+7. Click into the card → detail view shows business profile + claim state + notes
+8. (First creator) Click **Release this** → another creator can now claim
+
+### Graduation flow (prospect → interviewed)
+1. Creator clicks **Start interview →** on a claimed prospect → lands on `/creators/submit?prospectLeadId=...&businessName=...&...`
+2. Submit flow is pre-filled
+3. After submission is created (via `submissions.create` with `prospectLeadId`), the prospect lead gets `submissionId = newSubmissionId` and migrates from Prospects → Interviewed tab on next reactive refresh
+
+### Stale claim expiry
+1. Manually patch a lead's `claimedAt` to `Date.now() - 25*60*60*1000` (25 hours ago) via Convex dashboard
+2. Wait up to 1 hour for the cron to run (or manually invoke `internal.outscraper.releaseStaleClaimsInternal`)
+3. Refresh — the prospect no longer shows as claimed
+
+---
+
+## What you MUST NOT do
+
+- ❌ Do not modify `listForMobileCRM`, `getDetailForMobileCRM`, `updateStatus`, `listScrapedLeads`, `scrapeNearby`, `leadNotes.add` — mobile depends on those exact signatures
+- ❌ Do not make claims **exclusive** (i.e., block other creators from also interviewing). Claims are coordination signals, not locks
+- ❌ Do not expose prospects to anonymous (signed-out) visitors. Auth-gate the entire `/creators/leads` route
+- ❌ Do not show status change controls to non-admin creators on the Interviewed tab unless `isMine === true` (mirrors mobile's gate)
+- ❌ Do not use orange anywhere. Editorial Paper palette only. Danger red `#B43A1F` for the "HOT" badge and error states
+- ❌ Do not add admin-only actions (assign-to-admin, delete prospect, force-claim) to this page. Those go on the admin panel, separately
+- ❌ Do not introduce a second design system. If a primitive is missing, extend `components/editorial/` — don't fall back to the existing zinc/emerald admin styles
+- ❌ Do not call admin-only queries (`getDetailForAdmin`, `updateAdminContent`, `generatePreviewImageUploadUrl`, `listPendingApproval`, `approveCreator`) from this page. They are admin-gated and will throw for regular creators
+
+## What's safe to do
+
+- ✅ Add a CSV export of either tab (creator self-service)
+- ✅ Show "Days since scraped" badge on stale prospects to nudge creators toward fresh ones
+- ✅ Add a "Sort by distance from my last submission location" if you can geocode addresses client-side
+- ✅ Add a small "How claims work" tooltip on the Prospects tab explaining the 24h auto-release
+- ✅ Add a "Recently claimed by your team" section above the Prospects grid showing the 3 most recently claimed
+- ✅ Add a notification ping when a prospect a creator was eyeing gets claimed by someone else
+
+---
+
+## Convex deploy from the web repo
+
+> Mobile and web share the same prod Convex deployment (`prod:energetic-panther-693`). After applying the auth-gate fix + adding the new mutations + schema additions:
+>
+> 1. `npx convex dev` to validate locally against the shared dev deployment
+> 2. `npx convex deploy --prod` from the web repo
+> 3. Notify mobile — the new claim/release mutations are creator-callable, so mobile can ALSO add "I'll interview this" buttons on its prospect cards in a future release if you want parity
+
+Schema changes are additive-only. Safe to deploy.
 
 ---
 
@@ -476,20 +1081,12 @@ Build these as web React components and reuse across the redesign — same patte
 
 ---
 
-## What MUST NOT change
+## Mobile source references
 
-- ❌ Do not modify the Convex queries listed above. They are deployed in prod and consumed by mobile — any breaking change reverses the mobile launch.
-- ❌ Do not add new Convex fields without a sister PR to mobile. All shared schema changes go through [WEB-SYNC-MOBILE-FEATURES.md](./WEB-SYNC-MOBILE-FEATURES.md).
-- ❌ Do not introduce a second design system. If a primitive is missing, extend `components/editorial/` — don't fall back to the existing zinc/emerald admin styles. The user has been explicit: greens + khaki, no orange, no SaaS look.
-- ❌ Do not call admin-only queries (`getDetailForAdmin`, `updateAdminContent`, `generatePreviewImageUploadUrl`, `listPendingApproval`, `approveCreator`) from this page. They are admin-gated and will throw for regular creators.
-
----
-
-## Related docs
-
-- [WEB-SYNC-MOBILE-FEATURES.md](./WEB-SYNC-MOBILE-FEATURES.md) — admin web surfaces, Convex schema sync, Editorial Paper tokens (Step 10.5)
-- [MOBILE-CRM-LEADS.md](./MOBILE-CRM-LEADS.md) — mobile-side leads implementation that this web page mirrors
-- [UI-REDESIGN-EDITORIAL-PAPER.md](./UI-REDESIGN-EDITORIAL-PAPER.md) — design system origin doc
-- `ndm/theme/tokens.ts` — canonical token source
-- `ndm/components/ui/primitives.tsx` — mobile primitive reference (mirror these on web)
-- `NEO LAB/For Creators.html` — original design inspiration (note: this uses terracotta — we replace it with emerald)
+- `ndm/app/(app)/leads/index.tsx` — list page (Interviewed feed + the two action Doors + Find Local Business modal with the multi-stage loading panel)
+- `ndm/app/(app)/leads/[leadId].tsx` — interviewed detail view (7 sections + 4 buttons, mirror exactly)
+- `ndm/app/(app)/leads/nearby.tsx` — the on-device map view (See Live Business destination on mobile). Not strictly needed for web v1, but worth referencing if you want to add a map-view toggle as v2
+- `ndm/convex/outscraper.ts` — source of truth for the Outscraper backend. **Make sure your deployed copy uses `requireAuth`, not `requireAdmin`** for both `scrapeNearby` and `listScrapedLeads`
+- `ndm/convex/leads.ts` — `listForMobileCRM` and `getDetailForMobileCRM` definitions
+- `ndm/components/ui/primitives.tsx` — Display / Body / Label / Door / Pill / Card / LiveDot / Avatar / Rule. Mirror these as web React components in `components/editorial/`
+- `ndm/theme/tokens.ts` — canonical token source (palette, fonts, radius, spacing)
