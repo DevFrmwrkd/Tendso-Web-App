@@ -1,7 +1,14 @@
 "use client";
 
 /**
- * /leads/near — "Businesses near you" view.
+ * /leads/near — map view of mappable leads.
+ *
+ * Two modes via URL state:
+ *   (default)      — every lead with resolvable lat/lng
+ *   ?live=true     — "See Live Business" — filter to leads with a live
+ *                    deployed website (lead.hasLiveWebsite). This is the
+ *                    "what's already working — and earning" view from the
+ *                    spec's two action doors.
  *
  * Reads `api.leads.listForMap` for every lead with resolvable lat/lng, then
  * computes haversine distance from the user's browser geolocation and renders
@@ -9,13 +16,13 @@
  * location (or Philippines fallback) using the same Google Maps embed pattern
  * the Astro site uses — no API key required.
  */
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { ArrowLeft, Loader2, MapPin, Building2, ExternalLink } from "lucide-react";
+import { ArrowLeft, Loader2, MapPin, Building2, ExternalLink, Globe } from "lucide-react";
 
 const PH_CENTER = { lat: 14.5995, lng: 120.9842 }; // Manila — used when geolocation unavailable
 
@@ -37,7 +44,23 @@ function formatDistance(km: number): string {
 }
 
 export default function BusinessesNearYouPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
+                    <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
+                </div>
+            }
+        >
+            <NearInner />
+        </Suspense>
+    );
+}
+
+function NearInner() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const liveOnly = searchParams.get("live") === "true";
     const { user, isLoaded, isSignedIn } = useUser();
 
     const creator = useQuery(
@@ -91,13 +114,19 @@ export default function BusinessesNearYouPage() {
     const sorted = useMemo(() => {
         if (!mappable) return undefined;
         const origin = userLoc ?? PH_CENTER;
-        return mappable
+        const filtered = liveOnly
+            ? mappable.filter((m: any) => m.hasLiveWebsite)
+            : mappable;
+        return filtered
             .map((m: any) => ({
                 ...m,
                 distanceKm: haversineKm(origin, { lat: m.lat, lng: m.lng }),
             }))
             .sort((a: any, b: any) => a.distanceKm - b.distanceKm);
-    }, [mappable, userLoc]);
+    }, [mappable, userLoc, liveOnly]);
+
+    const visibleCount = sorted?.length ?? 0;
+    const totalMappable = mappable?.length ?? 0;
 
     if (!ready) {
         return (
@@ -146,14 +175,61 @@ export default function BusinessesNearYouPage() {
                     className="text-[40px] sm:text-[52px] leading-[1.05] tracking-[-0.02em] mb-3"
                     style={{ fontFamily: "var(--ed-serif)", color: "var(--ed-ink)" }}
                 >
-                    Businesses{" "}
-                    <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>near you.</em>
+                    {liveOnly ? (
+                        <>
+                            Live businesses,{" "}
+                            <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>near you.</em>
+                        </>
+                    ) : (
+                        <>
+                            Businesses{" "}
+                            <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>near you.</em>
+                        </>
+                    )}
                 </h1>
                 <p className="text-[14px] mb-5" style={{ color: "var(--ed-ink-2)" }}>
                     {mappable === undefined
                         ? "Loading mappable leads…"
-                        : `${mappable.length} mappable lead${mappable.length === 1 ? "" : "s"}.`}
+                        : liveOnly
+                            ? `${visibleCount} of ${totalMappable} mappable leads have a live website.`
+                            : `${totalMappable} mappable lead${totalMappable === 1 ? "" : "s"}.`}
                 </p>
+
+                {/* Mode toggle — switch between "all mappable" and "live only" */}
+                <div className="flex gap-2 mb-4">
+                    <Link
+                        href="/leads/near"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px]"
+                        style={{
+                            background: liveOnly ? "transparent" : "var(--ed-ink)",
+                            color: liveOnly ? "var(--ed-ink-2)" : "var(--ed-paper-3)",
+                            border: `1px solid ${liveOnly ? "var(--ed-rule)" : "var(--ed-ink)"}`,
+                            fontFamily: "var(--ed-mono)",
+                            letterSpacing: "0.1em",
+                            textTransform: "uppercase",
+                            fontWeight: 600,
+                            textDecoration: "none",
+                        }}
+                    >
+                        <MapPin className="w-3 h-3" /> All mappable
+                    </Link>
+                    <Link
+                        href="/leads/near?live=true"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px]"
+                        style={{
+                            background: liveOnly ? "var(--ed-accent-solid, #10B981)" : "transparent",
+                            color: liveOnly ? "#fff" : "var(--ed-ink-2)",
+                            border: `1px solid ${liveOnly ? "var(--ed-accent-solid, #10B981)" : "var(--ed-rule)"}`,
+                            fontFamily: "var(--ed-mono)",
+                            letterSpacing: "0.1em",
+                            textTransform: "uppercase",
+                            fontWeight: 600,
+                            textDecoration: "none",
+                        }}
+                    >
+                        <Globe className="w-3 h-3" /> Live websites only
+                    </Link>
+                </div>
 
                 {/* Permission / fallback banner */}
                 {locError && (
