@@ -448,6 +448,107 @@ export const listForMobileCRM = query({
     },
 });
 
+/**
+ * Minimal coordinates feed used by the creator-side "Businesses near me" map
+ * view. Returns every lead that has resolvable lat/lng — either from a linked
+ * submission (`submission.coordinates`) or from an Outscraper prospect
+ * (`businessLatitude`/`businessLongitude`). Auth is the same as
+ * listForMobileCRM (any signed-in identity).
+ *
+ * Kept additive and read-only on purpose — mobile callers don't see this
+ * query and the existing CRM queries aren't touched.
+ */
+export const listForMap = query({
+    args: {},
+    handler: async (ctx) => {
+        await requireIdentity(ctx);
+
+        const allLeads = await ctx.db.query('leads').order('desc').collect();
+
+        // Cache submissions/creators so we don't re-fetch per row.
+        const allSubmissions = await ctx.db.query('submissions').collect();
+        const submissionCache = new Map<string, any>();
+        for (const sub of allSubmissions) submissionCache.set(String(sub._id), sub);
+        const creatorCache = new Map<string, any>();
+
+        const result: Array<{
+            _id: any;
+            businessName: string;
+            businessAddress: string | null;
+            businessCity: string | null;
+            lat: number;
+            lng: number;
+            status: string;
+            source: string;
+            hasSubmission: boolean;
+            submittedBy: {
+                creatorId: string;
+                displayName: string;
+                profileImage: string | null;
+            } | null;
+        }> = [];
+
+        for (const lead of allLeads) {
+            const sub = lead.submissionId
+                ? submissionCache.get(String(lead.submissionId))
+                : null;
+
+            // Resolve coords from submission first, then Outscraper fields.
+            let lat: number | null = null;
+            let lng: number | null = null;
+            if (sub?.coordinates?.lat != null && sub?.coordinates?.lng != null) {
+                lat = sub.coordinates.lat;
+                lng = sub.coordinates.lng;
+            } else if (lead.businessLatitude != null && lead.businessLongitude != null) {
+                lat = lead.businessLatitude;
+                lng = lead.businessLongitude;
+            }
+            if (lat == null || lng == null) continue;
+
+            // Pick a display name; fall back through known fields.
+            const businessName =
+                sub?.businessName ?? lead.businessName ?? '(unnamed business)';
+            const businessAddress = sub?.address ?? lead.businessAddress ?? null;
+            const businessCity = sub?.city ?? lead.businessCity ?? null;
+
+            let submittedBy: {
+                creatorId: string;
+                displayName: string;
+                profileImage: string | null;
+            } | null = null;
+            if (lead.creatorId) {
+                let c = creatorCache.get(String(lead.creatorId));
+                if (!c) {
+                    c = await ctx.db.get(lead.creatorId);
+                    if (c) creatorCache.set(String(lead.creatorId), c);
+                }
+                if (c) {
+                    submittedBy = {
+                        creatorId: String(c._id),
+                        displayName: formatCreatorDisplayName(c.firstName, c.lastName),
+                        profileImage: c.profileImage ?? null,
+                    };
+                }
+            }
+
+            result.push({
+                _id: lead._id,
+                businessName,
+                businessAddress,
+                businessCity,
+                lat,
+                lng,
+                status: lead.status,
+                source: lead.source,
+                hasSubmission: !!sub,
+                submittedBy,
+            });
+        }
+
+        return result;
+    },
+});
+
 export const getDetailForMobileCRM = query({
     args: { id: v.id('leads') },
     handler: async (ctx, args) => {
