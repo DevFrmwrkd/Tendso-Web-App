@@ -6,7 +6,7 @@ import { api } from "@/convex/_generated/api"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import Link from "next/link"
-import { Wallet, Store, Clock, Loader2, Bell, User } from "lucide-react"
+import { Wallet, Store, Clock, Loader2, Bell, User, Users, ChevronRight } from "lucide-react"
 import { BottomNav } from "@/components/BottomNav"
 
 export default function DashboardPage() {
@@ -29,6 +29,14 @@ export default function DashboardPage() {
     const unreadCount = useQuery(
         api.notifications.getUnreadCount,
         creator?._id ? { creatorId: creator._id } : "skip"
+    )
+
+    // Team leads feed (for the "STEP 02 / TEAM LEADS" card). Subscribes the
+    // dashboard to the same listForMobileCRM query the /leads page uses so the
+    // count stays in sync as new leads land.
+    const leadsFeed = useQuery(
+        api.leads.listForMobileCRM,
+        creator?._id && creator.role !== 'admin' ? {} : "skip"
     )
 
     // Redirect to login if not authenticated
@@ -275,6 +283,98 @@ export default function DashboardPage() {
                         </div>
                     ))}
                 </div>
+
+                {/* STEP 02 / TEAM LEADS — feed entry card */}
+                {(() => {
+                    const total = leadsFeed?.stats.total ?? 0
+                    const mine = leadsFeed?.stats.mine ?? 0
+                    const converted = leadsFeed?.stats.converted ?? 0
+                    const hot = leadsFeed?.leads.filter((l: any) => l.isHot).length ?? 0
+                    return (
+                        <Link
+                            href="/leads"
+                            className="block rounded-2xl overflow-hidden transition-transform hover:translate-y-[-1px]"
+                            style={{
+                                background: "var(--ed-paper-3)",
+                                border: "1px solid var(--ed-rule)",
+                            }}
+                        >
+                            <div className="p-4 sm:p-5">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2 text-[10px]" style={{
+                                        fontFamily: "var(--ed-mono)",
+                                        letterSpacing: "0.14em",
+                                        textTransform: "uppercase",
+                                        color: "var(--ed-ink-3)",
+                                    }}>
+                                        <span>Step 02 / Team Leads</span>
+                                        <span className="ed-live-dot" />
+                                    </div>
+                                    <ChevronRight className="w-4 h-4" style={{ color: "var(--ed-ink-3)" }} />
+                                </div>
+                                <h2
+                                    style={{
+                                        fontFamily: "var(--ed-serif)",
+                                        fontSize: 26,
+                                        lineHeight: 1.1,
+                                        letterSpacing: "-0.015em",
+                                        color: "var(--ed-ink)",
+                                        margin: 0,
+                                    }}
+                                >
+                                    {total} {total === 1 ? "lead" : "leads"},{" "}
+                                    <em style={{ color: "var(--ed-accent)" }}>browse the feed.</em>
+                                </h2>
+                                <p className="text-[13px] mt-2" style={{ color: "var(--ed-ink-2)" }}>
+                                    See every business the team has interviewed — including yours.
+                                </p>
+                            </div>
+                            <div
+                                className="grid grid-cols-4 divide-x"
+                                style={{
+                                    borderTop: "1px solid var(--ed-rule)",
+                                    background: "var(--ed-paper-2)",
+                                }}
+                            >
+                                {[
+                                    { label: "Total", value: total, tone: "ink" as const },
+                                    { label: "Hot", value: hot, tone: "danger" as const },
+                                    { label: "Yours", value: mine, tone: "ink" as const },
+                                    { label: "Converted", value: converted, tone: "accent" as const },
+                                ].map((stat) => (
+                                    <div key={stat.label} className="px-2 py-3 text-center" style={{ borderColor: "var(--ed-rule)" }}>
+                                        <div
+                                            style={{
+                                                fontFamily: "var(--ed-serif)",
+                                                fontSize: 22,
+                                                lineHeight: 1.05,
+                                                fontVariantNumeric: "tabular-nums",
+                                                color:
+                                                    stat.tone === "accent" ? "var(--ed-accent)" :
+                                                    stat.tone === "danger" ? "var(--ed-danger)" :
+                                                    "var(--ed-ink)",
+                                            }}
+                                        >
+                                            {stat.value}
+                                        </div>
+                                        <div
+                                            className="mt-0.5"
+                                            style={{
+                                                fontFamily: "var(--ed-mono)",
+                                                fontSize: 9,
+                                                letterSpacing: "0.14em",
+                                                textTransform: "uppercase",
+                                                color: "var(--ed-ink-3)",
+                                            }}
+                                        >
+                                            {stat.label}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </Link>
+                    )
+                })()}
 
                 {/* Submission Status — eyebrow + serif heading */}
                 <div>
