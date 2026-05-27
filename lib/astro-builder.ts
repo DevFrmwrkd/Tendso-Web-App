@@ -76,6 +76,8 @@ interface ExtractedContent {
     business_city?: string  // used to seed serviceArea.places
     business_type?: string  // used to pick per-category content defaults
     googleMapsUrl?: string  // GBP / google.com/maps link — renders "Hours on Google" deeplink
+    favicon?: string        // URL for the browser-tab icon (rel="icon")
+    ogImage?: string        // URL for og:image / twitter:image link previews
     // ── Conversion-cluster blocks (admin overrides; else per-business-type defaults) ──
     trust?: TrustData
     why?: WhyItem[]
@@ -194,6 +196,10 @@ function transformToAstroData(
             fontPairing: customizations.fontPairingId || customizations.fontPairing || 'modern',
             contact: content.contact || {},
             navbarStyle: heroStyle,
+            // Favicon — admin uploads via the Images tab "Website tab image"
+            // slot; flows through to BaseLayout's <link rel="icon">.
+            favicon: (content as any).favicon || undefined,
+            ogImage: (content as any).ogImage || (content as any).favicon || undefined,
         },
         customizations: {
             heroStyle,

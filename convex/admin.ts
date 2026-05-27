@@ -192,6 +192,16 @@ export const approveSubmission = mutation({
             delta: 1,
         });
 
+        // Google Drive folder sync — fires asynchronously so the approval
+        // mutation returns immediately while Drive uploads happen in the
+        // background. Status flows via submissions.driveSyncStatus and the
+        // admin UI's Drive section surfaces progress + retry on failure.
+        // Per docs/changes/BUSINESS-SCRAPER.md: only auto-sync on admin
+        // approval — never on draft/pending/rejected states.
+        await ctx.scheduler.runAfter(0, internal.drive.syncSubmissionToDrive, {
+            submissionId: args.submissionId,
+        });
+
         return args.submissionId;
     },
 });

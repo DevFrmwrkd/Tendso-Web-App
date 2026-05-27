@@ -431,10 +431,13 @@ export const listForMobileCRM = query({
 
         let result = enriched;
         if (search) {
+            // name + phone became optional when Outscraper leads landed;
+            // guard the .toLowerCase() calls so a prospect lead without a
+            // customer name doesn't crash the search filter.
             result = enriched.filter(
                 (row) =>
-                    row.name.toLowerCase().includes(search) ||
-                    row.phone.toLowerCase().includes(search) ||
+                    (row.name?.toLowerCase().includes(search) ?? false) ||
+                    (row.phone?.toLowerCase().includes(search) ?? false) ||
                     (row.email?.toLowerCase().includes(search) ?? false) ||
                     row.businessName.toLowerCase().includes(search) ||
                     (row.submittedBy?.displayName.toLowerCase().includes(search) ?? false),

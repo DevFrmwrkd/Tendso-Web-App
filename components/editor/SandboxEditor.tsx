@@ -31,6 +31,8 @@ import {
     ChevronDown,
     ArrowUp,
     ExternalLink,
+    Check,
+    X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { injectEditorBridge } from "./editorBridge";
@@ -201,6 +203,9 @@ export interface SandboxEditorProps {
     onRepublish: () => void;
     onUnpublish: () => void;
     onDelete: () => void;
+    onApprove?: () => void;
+    onReject?: () => void;
+    submissionStatus?: string;
 
     onToggleDetails?: () => void;
     detailsOpen?: boolean;
@@ -231,6 +236,9 @@ export default function SandboxEditor(props: SandboxEditorProps) {
         onRepublish,
         onUnpublish,
         onDelete,
+        onApprove,
+        onReject,
+        submissionStatus,
         onToggleDetails,
         detailsOpen,
     } = props;
@@ -512,7 +520,12 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                 next.images = [...images, url];
                 return next;
             }
-            if (slot === "hero.image") {
+            if (slot === "favicon") {
+                // Website tab image — saved separately from the photo gallery.
+                // Build pipeline reads draft.favicon → siteData.layout.favicon
+                // → <link rel="icon"> in BaseLayout.
+                next.favicon = url;
+            } else if (slot === "hero.image") {
                 if (images.length === 0) images.push(url);
                 else images[0] = url;
                 next.images = images;
@@ -1157,6 +1170,113 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                     {/* ── IMAGES ───────────────────────────────── */}
                     {tab === "images" && (
                         <div className={s.section}>
+                            {/* ── Favicon slot — dedicated, always one image ──
+                                Saves to draft.favicon (not the gallery array) and
+                                ships as <link rel="icon"> in the deployed site.
+                                First admin upload + Republish makes it live. */}
+                            <div
+                                style={{
+                                    background: "var(--sx-panel-2)",
+                                    border: "1px solid var(--sx-rule)",
+                                    borderRadius: 10,
+                                    padding: 14,
+                                    marginBottom: 18,
+                                }}
+                            >
+                                <div
+                                    className={s.sectionHead}
+                                    style={{ marginBottom: 10, color: "var(--sx-accent)" }}
+                                >
+                                    WEBSITE TAB IMAGE · FAVICON
+                                </div>
+                                <div className={s.hint} style={{ marginBottom: 12 }}>
+                                    The small icon shown in the browser tab and in
+                                    Google search results. Square images work best —
+                                    a logo mark, monogram, or product close-up.
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                                    <div
+                                        style={{
+                                            width: 64,
+                                            height: 64,
+                                            borderRadius: 12,
+                                            overflow: "hidden",
+                                            background: "var(--sx-panel)",
+                                            border: "1px solid var(--sx-rule)",
+                                            flexShrink: 0,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                        }}
+                                    >
+                                        {draft?.favicon ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
+                                                src={draft.favicon}
+                                                alt="Favicon"
+                                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                            />
+                                        ) : (
+                                            <ImageIcon style={{ width: 22, height: 22, opacity: 0.35, color: "var(--sx-ink-mute)" }} />
+                                        )}
+                                    </div>
+                                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPendingImageField("favicon");
+                                                requestAnimationFrame(() => {
+                                                    requestAnimationFrame(() => {
+                                                        fileInputRef.current?.click();
+                                                    });
+                                                });
+                                            }}
+                                            disabled={uploadingPhoto}
+                                            style={{
+                                                padding: "8px 14px",
+                                                background: "var(--sx-accent)",
+                                                color: "#052e1f",
+                                                border: 0,
+                                                borderRadius: 6,
+                                                fontSize: 12,
+                                                fontWeight: 600,
+                                                cursor: "pointer",
+                                                fontFamily: "var(--sx-sans)",
+                                                display: "inline-flex",
+                                                alignItems: "center",
+                                                gap: 6,
+                                                justifyContent: "center",
+                                            }}
+                                        >
+                                            {uploadingPhoto && pendingImageField === "favicon" ? (
+                                                <Loader2 style={{ width: 12, height: 12 }} className="animate-spin" />
+                                            ) : (
+                                                <Plus style={{ width: 12, height: 12 }} />
+                                            )}
+                                            {draft?.favicon ? "Replace favicon" : "Upload favicon"}
+                                        </button>
+                                        {draft?.favicon && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setDraft((prev: any) => ({ ...prev, favicon: undefined }))}
+                                                style={{
+                                                    padding: "6px 12px",
+                                                    background: "transparent",
+                                                    color: "var(--sx-ink-mute)",
+                                                    border: "1px solid var(--sx-rule)",
+                                                    borderRadius: 6,
+                                                    fontSize: 11,
+                                                    cursor: "pointer",
+                                                    fontFamily: "var(--sx-sans)",
+                                                }}
+                                            >
+                                                Remove
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className={s.sectionHead}>IMAGES · {effectivePhotos.length} PHOTO{effectivePhotos.length === 1 ? "" : "S"}</div>
 
                             {pendingImageField && (
@@ -1666,6 +1786,34 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                                     <EyeOff style={{ width: 12, height: 12 }} />
                                 )}
                                 Unpublish
+                            </button>
+                        )}
+
+                        {/* Approve — green, only visible when status is pending /
+                            in_review / submitted and an Approve handler was passed. */}
+                        {onApprove && submissionStatus !== "approved" && submissionStatus !== "rejected" && (
+                            <button
+                                type="button"
+                                className={cx(s.btn, s.btnAccent)}
+                                onClick={onApprove}
+                                title="Approve submission"
+                            >
+                                <Check style={{ width: 12, height: 12 }} />
+                                Approve
+                            </button>
+                        )}
+
+                        {/* Reject — red-ish ghost, hidden once already rejected. */}
+                        {onReject && submissionStatus !== "rejected" && (
+                            <button
+                                type="button"
+                                className={cx(s.btn, s.btnGhost)}
+                                onClick={onReject}
+                                title="Reject submission"
+                                style={{ color: "var(--sx-bad)" }}
+                            >
+                                <X style={{ width: 12, height: 12 }} />
+                                Reject
                             </button>
                         )}
 
