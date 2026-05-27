@@ -352,13 +352,18 @@ export default defineSchema({
         businessGooglePlaceId: v.optional(v.string()),    // Dedupe key — see by_place_id index
         scrapedAt: v.optional(v.number()),
         scrapedBy: v.optional(v.string()),                 // Clerk ID of admin who triggered the scrape
+        // Creator-side prospect claim (informational, not exclusive).
+        // Auto-cleared by the releaseStaleClaimsInternal cron after 24h.
+        claimedByCreatorId: v.optional(v.id('creators')),
+        claimedAt: v.optional(v.number()),
     })
         .index('by_submission', ['submissionId'])
         .index('by_creator', ['creatorId'])
         .index('by_status', ['status'])
         // Outscraper dedup index — scrapeNearby checks this before inserting
         // so re-scraping the same area doesn't create duplicate leads.
-        .index('by_place_id', ['businessGooglePlaceId']),
+        .index('by_place_id', ['businessGooglePlaceId'])
+        .index('by_claimed_creator', ['claimedByCreatorId']),
 
     // ==================== LEAD NOTES ====================
     leadNotes: defineTable({

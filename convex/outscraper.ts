@@ -14,9 +14,10 @@
  * Env: OUTSCRAPER_API_KEY (already set on prod by mobile team).
  */
 import { v } from "convex/values";
-import { action, internalMutation, query } from "./_generated/server";
+import { action, internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { requireAdmin } from "./lib/auth";
+import { requireAuth } from "./lib/auth";
+import type { Id } from "./_generated/dataModel";
 
 // Outscraper response is loosely typed — keep this flexible.
 interface OutscraperPlace {
@@ -39,12 +40,13 @@ interface OutscraperPlace {
 }
 
 /**
- * Admin-only: scrape Google Maps near a location, insert dedup'd leads.
+ * Scrape Google Maps near a location, insert dedup'd leads. Creator-callable
+ * (was admin-only, changed per the 2026-05-27 WEB-BUILD-CRM.md update).
  *
  * Args:
  *   - query: free-text category, e.g. "barbershop", "spa", "restaurant"
- *   - location: human-readable area (city/neighbourhood) — passed straight
- *     to Outscraper's `query` along with `query` so the API can geocode.
+ *   - location: human-readable area (city/neighbourhood) OR "lat,lng" coord
+ *     string — passed straight to Outscraper's query so the API can geocode.
  *   - radiusKm: optional, defaults to 5
  *   - limit: optional, defaults to 20 (Outscraper hard caps near 500 anyway)
  *
@@ -59,7 +61,12 @@ export const scrapeNearby = action({
         limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
-        const { me } = await requireAdmin(ctx);
+        const identity = await requireAuth(ctx);
+        // Resolve creator record via internal query — actions can't ctx.db.
+        const me = (await ctx.runQuery(internal.creators.getMeForAuthInternal, {
+            clerkId: identity.subject,
+        })) as { _id: any; clerkId: string } | null;
+        if (!me) throw new Error("No creator record found for this account.");
 
         const apiKey = process.env.OUTSCRAPER_API_KEY;
         if (!apiKey) {
@@ -203,8 +210,9 @@ export const insertScrapedLead = internalMutation({
 });
 
 /**
- * Admin-only: list all Outscraper-scraped leads, newest first.
- * Used by the web admin "Lead prospects" view.
+ * List all Outscraper-scraped leads, newest first. Creator-callable
+ * (was admin-only, changed per the 2026-05-27 WEB-BUILD-CRM.md update —
+ * creators are the primary callers via the Prospects tab).
  */
 export const listScrapedLeads = query({
     args: {
@@ -221,7 +229,7 @@ export const listScrapedLeads = query({
         search: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
-        await requireAdmin(ctx);
+        await requireAuth(ctx);
 
         const all = await ctx.db.query("leads").collect();
         let scraped = all.filter((l) => l.source === "outscraper");
@@ -245,24 +253,254 @@ export const listScrapedLeads = query({
 
         scraped.sort((a, b) => (b.scrapedAt ?? b.createdAt) - (a.scrapedAt ?? a.createdAt));
 
-        return scraped.map((l) => ({
-            _id: l._id,
-            _creationTime: l._creationTime,
-            status: l.status,
-            phone: l.phone ?? null,
-            businessName: l.businessName ?? null,
-            businessAddress: l.businessAddress ?? null,
-            businessCity: l.businessCity ?? null,
-            businessCategory: l.businessCategory ?? null,
-            businessWebsite: l.businessWebsite ?? null,
-            businessLatitude: l.businessLatitude ?? null,
-            businessLongitude: l.businessLongitude ?? null,
-            businessRating: l.businessRating ?? null,
-            businessReviewCount: l.businessReviewCount ?? null,
-            businessGooglePlaceId: l.businessGooglePlaceId ?? null,
-            scrapedAt: l.scrapedAt ?? null,
-            scrapedBy: l.scrapedBy ?? null,
-            createdAt: l.createdAt,
-        }));
+        // Enrich each row with the claimer's display name + isMine flag.
+        const identity = (await ctx.auth.getUserIdentity());
+        const currentCreator = identity
+            ? await ctx.db
+                  .query('creators')
+                  .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+                  .first()
+            : null;
+
+        const creatorCache = new Map<string, any>();
+        const result: any[] = [];
+        for (const l of scraped) {
+            let claimedBy: {
+                creatorId: string;
+                displayName: string;
+                profileImage: string | null;
+                isMine: boolean;
+            } | null = null;
+            const claimerId = (l as any).claimedByCreatorId as Id<"creators"> | undefined;
+            if (claimerId) {
+                let c = creatorCache.get(String(claimerId));
+                if (!c) {
+                    c = await ctx.db.get(claimerId);
+                    if (c) creatorCache.set(String(claimerId), c);
+                }
+                if (c) {
+                    const first = (c.firstName ?? '').trim();
+                    const last = (c.lastName ?? '').trim();
+                    const displayName =
+                        !first && !last
+                            ? 'Unknown creator'
+                            : !last
+                                ? first
+                                : `${first} ${last[0]}.`;
+                    claimedBy = {
+                        creatorId: String(c._id),
+                        displayName,
+                        profileImage: c.profileImage ?? null,
+                        isMine: !!currentCreator && String(c._id) === String(currentCreator._id),
+                    };
+                }
+            }
+
+            result.push({
+                _id: l._id,
+                _creationTime: l._creationTime,
+                status: l.status,
+                phone: l.phone ?? null,
+                businessName: l.businessName ?? null,
+                businessAddress: l.businessAddress ?? null,
+                businessCity: l.businessCity ?? null,
+                businessCategory: l.businessCategory ?? null,
+                businessWebsite: l.businessWebsite ?? null,
+                businessLatitude: l.businessLatitude ?? null,
+                businessLongitude: l.businessLongitude ?? null,
+                businessRating: l.businessRating ?? null,
+                businessReviewCount: l.businessReviewCount ?? null,
+                businessGooglePlaceId: l.businessGooglePlaceId ?? null,
+                scrapedAt: l.scrapedAt ?? null,
+                scrapedBy: l.scrapedBy ?? null,
+                createdAt: l.createdAt,
+                claimedAt: (l as any).claimedAt ?? null,
+                claimedBy,
+            });
+        }
+        return result;
     },
 });
+
+/**
+ * Creator claims a prospect for follow-up. The claim is INFORMATIONAL,
+ * not exclusive — another creator can still walk in and interview the
+ * business. The "claimed by X" pill is a coordination signal so two
+ * creators don't waste a trip to the same place at the same time.
+ *
+ * If 24h pass without a submission being created for this prospect, the
+ * `releaseStaleClaimsInternal` cron auto-clears the claim.
+ */
+export const claimProspect = mutation({
+    args: { leadId: v.id('leads') },
+    handler: async (ctx, args) => {
+        const identity = await requireAuth(ctx);
+        const lead = await ctx.db.get(args.leadId);
+        if (!lead) throw new Error('Lead not found');
+        if (lead.source !== 'outscraper') {
+            throw new Error('Can only claim Outscraper prospects, not customer leads');
+        }
+        if (lead.submissionId) {
+            throw new Error('This prospect has already been interviewed');
+        }
+
+        const creator = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+            .first();
+        if (!creator) throw new Error('Creator profile not found');
+
+        await ctx.db.patch(args.leadId, {
+            claimedByCreatorId: creator._id,
+            claimedAt: Date.now(),
+        });
+    },
+});
+
+/**
+ * Release a claim. Only the creator who placed the claim (or an admin)
+ * can release — server-side enforced.
+ */
+export const releaseProspect = mutation({
+    args: { leadId: v.id('leads') },
+    handler: async (ctx, args) => {
+        const identity = await requireAuth(ctx);
+        const lead = await ctx.db.get(args.leadId);
+        if (!lead) throw new Error('Lead not found');
+
+        const creator = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+            .first();
+        if (!creator) throw new Error('Creator profile not found');
+
+        const isAdmin = creator.role === 'admin';
+        if (!isAdmin && String((lead as any).claimedByCreatorId) !== String(creator._id)) {
+            throw new Error('You can only release your own claims');
+        }
+
+        await ctx.db.patch(args.leadId, {
+            claimedByCreatorId: undefined,
+            claimedAt: undefined,
+        });
+    },
+});
+
+/**
+ * Fetch a single prospect with claimer info enriched, plus its notes.
+ * Used by the /leads/[leadId] detail view when the lead is a prospect
+ * (source === "outscraper" && submissionId == null).
+ */
+export const getProspect = query({
+    args: { leadId: v.id('leads') },
+    handler: async (ctx, args) => {
+        await requireAuth(ctx);
+        const lead = await ctx.db.get(args.leadId);
+        if (!lead || lead.source !== 'outscraper') return null;
+
+        const identity = await ctx.auth.getUserIdentity();
+        const currentCreator = identity
+            ? await ctx.db
+                  .query('creators')
+                  .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+                  .first()
+            : null;
+
+        let claimedBy: {
+            creatorId: string;
+            displayName: string;
+            profileImage: string | null;
+            isMine: boolean;
+        } | null = null;
+        const claimerId = (lead as any).claimedByCreatorId as Id<"creators"> | undefined;
+        if (claimerId) {
+            const c = await ctx.db.get(claimerId);
+            if (c) {
+                const first = (c.firstName ?? '').trim();
+                const last = (c.lastName ?? '').trim();
+                const displayName =
+                    !first && !last
+                        ? 'Unknown creator'
+                        : !last
+                            ? first
+                            : `${first} ${last[0]}.`;
+                claimedBy = {
+                    creatorId: String(c._id),
+                    displayName,
+                    profileImage: c.profileImage ?? null,
+                    isMine: !!currentCreator && String(c._id) === String(currentCreator._id),
+                };
+            }
+        }
+
+        const notes = await ctx.db
+            .query('leadNotes')
+            .withIndex('by_lead', (q) => q.eq('leadId', args.leadId))
+            .order('desc')
+            .collect();
+
+        return {
+            lead: {
+                _id: lead._id,
+                _creationTime: lead._creationTime,
+                status: lead.status,
+                phone: lead.phone ?? null,
+                businessName: lead.businessName ?? null,
+                businessAddress: lead.businessAddress ?? null,
+                businessCity: lead.businessCity ?? null,
+                businessCategory: lead.businessCategory ?? null,
+                businessWebsite: lead.businessWebsite ?? null,
+                businessLatitude: lead.businessLatitude ?? null,
+                businessLongitude: lead.businessLongitude ?? null,
+                businessRating: lead.businessRating ?? null,
+                businessReviewCount: lead.businessReviewCount ?? null,
+                businessGooglePlaceId: lead.businessGooglePlaceId ?? null,
+                scrapedAt: lead.scrapedAt ?? null,
+                createdAt: lead.createdAt,
+                source: lead.source,
+                claimedAt: (lead as any).claimedAt ?? null,
+            },
+            claimedBy,
+            notes: notes.map((n) => ({
+                _id: n._id,
+                content: n.content,
+                createdAt: n.createdAt,
+                creatorId: n.creatorId ? String(n.creatorId) : null,
+            })),
+        };
+    },
+});
+
+/**
+ * Auto-release prospect claims older than 24 hours. Called hourly by the
+ * crons.ts schedule so a creator who claims a lead and never interviews
+ * doesn't permanently squat on it.
+ */
+export const releaseStaleClaimsInternal = internalMutation({
+    args: {},
+    handler: async (ctx) => {
+        const threshold = Date.now() - 24 * 60 * 60 * 1000;
+        const stale = await ctx.db
+            .query('leads')
+            .filter((q) =>
+                q.and(
+                    q.eq(q.field('source'), 'outscraper'),
+                    q.eq(q.field('submissionId'), undefined),
+                    q.neq(q.field('claimedAt'), undefined),
+                    q.lt(q.field('claimedAt'), threshold),
+                ),
+            )
+            .collect();
+        for (const lead of stale) {
+            await ctx.db.patch(lead._id, {
+                claimedByCreatorId: undefined,
+                claimedAt: undefined,
+            });
+        }
+        return { released: stale.length };
+    },
+});
+
+// (scrapeNearbyForCreator removed in 2026-05-28 refactor — the canonical
+// scrapeNearby action above is now creator-callable, so the sibling export
+// is no longer needed. Web + mobile share the same callable.)
