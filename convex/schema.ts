@@ -136,6 +136,22 @@ export default defineSchema({
         domainCostPHP: v.optional(v.number()),
         // Cloudflare zone for this custom domain
         cloudflareZoneId: v.optional(v.string()),
+
+        // ==================== GOOGLE DRIVE SYNC ====================
+        // Folder structure (transcript, photos, video, audio) is auto-created
+        // in the shared "Negosyo Digital" Drive when the admin approves the
+        // submission. Status tracks the async job's lifecycle so the admin UI
+        // can show progress + retry on failure.
+        driveFolderId: v.optional(v.string()),
+        driveFolderUrl: v.optional(v.string()),
+        driveFolderCreatedAt: v.optional(v.number()),
+        driveSyncStatus: v.optional(v.union(
+            v.literal('pending'),
+            v.literal('creating'),
+            v.literal('synced'),
+            v.literal('failed'),
+        )),
+        driveSyncError: v.optional(v.string()),
     })
         // Use mobile's index name (by_creator_id, not by_creatorId)
         .index('by_creator_id', ['creatorId'])
@@ -306,9 +322,12 @@ export default defineSchema({
         submissionId: v.optional(v.id('submissions')), // Optional — standalone leads don't need a submission
         creatorId: v.optional(v.id('creators')),        // Optional — auto-filled from submission if linked
         businessOwnerId: v.optional(v.string()),
-        source: v.string(), // "website" | "qr_code" | "direct"
-        name: v.string(),
-        phone: v.string(),
+        source: v.string(), // "website" | "qr_code" | "direct" | "outscraper"
+        // name + phone are optional — Outscraper-scraped prospect businesses
+        // use businessName + (optional) businessPhone instead. Existing
+        // customer leads continue to populate these as before.
+        name: v.optional(v.string()),
+        phone: v.optional(v.string()),
         email: v.optional(v.string()),
         message: v.optional(v.string()),
         status: v.string(), // "new" | "contacted" | "qualified" | "converted" | "lost"
@@ -320,10 +339,26 @@ export default defineSchema({
         externalPreviewUrl: v.optional(v.string()),       // external link admin wants featured
         adminUpdatedAt: v.optional(v.number()),
         adminUpdatedBy: v.optional(v.string()),           // Clerk ID of admin who edited
+        // ── Outscraper-scraped fields (populated when source === 'outscraper') ──
+        businessName: v.optional(v.string()),
+        businessAddress: v.optional(v.string()),
+        businessCity: v.optional(v.string()),
+        businessCategory: v.optional(v.string()),
+        businessWebsite: v.optional(v.string()),
+        businessLatitude: v.optional(v.number()),
+        businessLongitude: v.optional(v.number()),
+        businessRating: v.optional(v.number()),
+        businessReviewCount: v.optional(v.number()),
+        businessGooglePlaceId: v.optional(v.string()),    // Dedupe key — see by_place_id index
+        scrapedAt: v.optional(v.number()),
+        scrapedBy: v.optional(v.string()),                 // Clerk ID of admin who triggered the scrape
     })
         .index('by_submission', ['submissionId'])
         .index('by_creator', ['creatorId'])
-        .index('by_status', ['status']),
+        .index('by_status', ['status'])
+        // Outscraper dedup index — scrapeNearby checks this before inserting
+        // so re-scraping the same area doesn't create duplicate leads.
+        .index('by_place_id', ['businessGooglePlaceId']),
 
     // ==================== LEAD NOTES ====================
     leadNotes: defineTable({

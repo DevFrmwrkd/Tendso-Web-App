@@ -231,6 +231,8 @@ const vis = siteData.visibility;
   contact={siteData.layout.contact}
   navbarStyle={siteData.customizations.heroStyle}
   showScrollTop={vis.scrollTopButton !== false}
+  favicon={(siteData.layout as any).favicon}
+  ogImage={(siteData.layout as any).ogImage}
 >
   {vis.heroSection !== false && (
     <HeroComponent {...siteData.hero} />

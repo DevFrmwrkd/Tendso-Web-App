@@ -19,6 +19,17 @@ interface Props {
    * Blocks tab in the sandbox editor. Button color matches --primary.
    */
   showScrollTop?: boolean;
+  /**
+   * Favicon URL — what shows in the browser tab next to the title.
+   * Uploaded via the Images tab "Website tab image" slot. Falls back
+   * to the og:image / business hero photo when unset.
+   */
+  favicon?: string;
+  /**
+   * og:image — large preview when the site URL is shared on social.
+   * Defaults to favicon when unset.
+   */
+  ogImage?: string;
 }
 
 const {
@@ -31,7 +42,14 @@ const {
   contact = {},
   navbarStyle = 'A',
   showScrollTop = true,
+  favicon,
+  ogImage,
 } = Astro.props;
+
+// Resolve the favicon + og:image with a sensible fallback chain so the
+// site always has *something* in the browser tab and link previews.
+const resolvedFavicon = favicon || ogImage || '';
+const resolvedOgImage = ogImage || favicon || '';
 
 // Font pairings
 const fontPairings: Record<string, { heading: string; body: string }> = {
@@ -169,7 +187,23 @@ const year = new Date().getFullYear();
   <meta property="og:title" content={`${cleanBusinessName} - ${cleanTagline}`} />
   <meta property="og:description" content={cleanTagline} />
   <meta property="og:type" content="website" />
+  {resolvedOgImage && (
+    <>
+      <meta property="og:image" content={resolvedOgImage} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:image" content={resolvedOgImage} />
+    </>
+  )}
   <title>{cleanBusinessName} {cleanTagline ? ` - ${cleanTagline}` : ''}</title>
+  {/* Favicon — admin-uploaded via the Images tab "Website tab image" slot.
+      Browsers infer the MIME type from the URL, so JPG / PNG / WebP / SVG /
+      ICO all work. */}
+  {resolvedFavicon && (
+    <>
+      <link rel="icon" href={resolvedFavicon} />
+      <link rel="apple-touch-icon" href={resolvedFavicon} />
+    </>
+  )}
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href={fontUrl} rel="stylesheet" />

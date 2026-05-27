@@ -621,3 +621,18 @@ export const listRejected = query({
             .sort((a, b) => b.rejectedAt - a.rejectedAt);
     },
 });
+
+/**
+ * Internal — fetch a creator record by clerkId for action-context auth checks.
+ * Used by `convex/lib/auth.ts:requireAdmin` when called from an ActionCtx
+ * (which can't read ctx.db directly). Never call from user code.
+ */
+export const getMeForAuthInternal = internalQuery({
+    args: { clerkId: v.string() },
+    handler: async (ctx, args) => {
+        return await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.clerkId))
+            .first();
+    },
+});

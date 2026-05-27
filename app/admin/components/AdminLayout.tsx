@@ -15,6 +15,7 @@ import {
     History,
     Download,
     FileText,
+    Building2,
     LogOut,
     Menu,
     X,
@@ -36,6 +37,11 @@ const navItems = [
         label: "Leads",
         href: "/admin/leads",
         icon: FileText,
+    },
+    {
+        label: "Lead Prospects",
+        href: "/admin/lead-prospects",
+        icon: Building2,
     },
     {
         label: "Payouts",
