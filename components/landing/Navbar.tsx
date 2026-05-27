@@ -31,11 +31,12 @@ export default function Navbar({
     onCountryChange?: (v: string) => void;
 } = {}) {
     // Direct APK download URL (admin uploads via /admin/app-release).
-    // Falls back to /signup if no APK is currently uploaded. Routed through
-    // /api/download-apk so the browser saves the file as "negosyo-digital.apk"
-    // instead of the cryptic R2 key. Upload pipeline unchanged.
+    // Falls back to /signup if no APK is currently uploaded. The URL points
+    // straight at the R2 public URL — R2 derives the download filename from
+    // the storage key (which the upload code pins to releases/negosyo-digital.apk),
+    // so no proxy route or Content-Disposition rewrite is needed.
     const apkUrl = useQuery(api.settings.get, { key: "apk_download_url" }) as string | null | undefined;
-    const downloadHref = apkUrl ? "/api/download-apk" : "/signup";
+    const downloadHref = apkUrl ?? "/signup";
     const isApk = !!apkUrl;
     return (
         <div className="topbar">

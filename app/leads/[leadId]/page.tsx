@@ -18,6 +18,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
     ArrowLeft, Phone, Mail, MapPin, Loader2, Send, Building2, ExternalLink, Globe,
+    Copy, Check,
 } from "lucide-react";
 
 type LeadStatus = "new" | "contacted" | "qualified" | "converted" | "lost";
@@ -164,7 +165,7 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
             className="min-h-screen pb-24"
             style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
         >
-            <div className="max-w-2xl mx-auto px-4 pt-6 sm:pt-8 sm:px-6 space-y-5">
+            <div className="max-w-5xl mx-auto px-4 pt-6 sm:pt-8 sm:px-6 space-y-5">
                 {/* Header */}
                 <div className="flex items-center gap-3">
                     <Link
@@ -210,6 +211,11 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                         </p>
                     )}
                 </div>
+
+                {/* Two-column layout below the title — left content rail
+                    + sticky right rail. Single-column on mobile/tablet. */}
+                <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6">
+                    <div className="space-y-5 min-w-0">
 
                 {/* Submitter strip */}
                 {submittedBy && (
@@ -344,7 +350,8 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                     </div>
                 )}
 
-                {/* Lead contact (the customer who inquired) */}
+                {/* Lead contact (the customer who inquired) — with primary
+                    Call + Email action buttons per spec. */}
                 {(lead.name || lead.phone || lead.email) && (
                     <div
                         className="rounded-2xl p-4 space-y-3"
@@ -366,33 +373,48 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                                 {lead.name}
                             </div>
                         )}
-                        <div className="flex flex-wrap gap-2">
-                            {lead.phone && (
+                        {(lead.phone || lead.email) && (
+                            <div className="text-[12px] space-y-1" style={{ color: "var(--ed-ink-2)" }}>
+                                {lead.phone && (
+                                    <div className="flex items-center gap-2">
+                                        <Phone className="w-3.5 h-3.5" style={{ color: "var(--ed-ink-3)" }} />
+                                        <span>{lead.phone}</span>
+                                    </div>
+                                )}
+                                {lead.email && (
+                                    <div className="flex items-center gap-2">
+                                        <Mail className="w-3.5 h-3.5" style={{ color: "var(--ed-ink-3)" }} />
+                                        <span className="truncate">{lead.email}</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {/* Primary action buttons — Call (emerald) + Email (ink-blue) */}
+                        <div className="grid grid-cols-2 gap-2 pt-1">
+                            {lead.phone ? (
                                 <a
                                     href={`tel:${lead.phone.replace(/[^0-9+]/g, "")}`}
-                                    className="inline-flex items-center gap-1.5 text-[13px] px-3 py-1.5 rounded-full"
+                                    className="inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-3 py-2.5 rounded-xl transition-opacity hover:opacity-95"
                                     style={{
-                                        background: "var(--ed-paper-2)",
-                                        color: "var(--ed-ink)",
-                                        border: "1px solid var(--ed-rule)",
+                                        background: "var(--ed-accent-solid, #10B981)",
+                                        color: "#fff",
                                     }}
                                 >
-                                    <Phone className="w-3.5 h-3.5" /> {lead.phone}
+                                    <Phone className="w-4 h-4" /> Call
                                 </a>
-                            )}
-                            {lead.email && (
+                            ) : <span />}
+                            {lead.email ? (
                                 <a
                                     href={`mailto:${lead.email}`}
-                                    className="inline-flex items-center gap-1.5 text-[13px] px-3 py-1.5 rounded-full"
+                                    className="inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-3 py-2.5 rounded-xl transition-opacity hover:opacity-95"
                                     style={{
-                                        background: "var(--ed-paper-2)",
-                                        color: "var(--ed-ink)",
-                                        border: "1px solid var(--ed-rule)",
+                                        background: "var(--ed-ink)",
+                                        color: "var(--ed-paper-3)",
                                     }}
                                 >
-                                    <Mail className="w-3.5 h-3.5" /> {lead.email}
+                                    <Mail className="w-4 h-4" /> Email
                                 </a>
-                            )}
+                            ) : <span />}
                         </div>
                     </div>
                 )}
@@ -455,63 +477,194 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                                 href={business.websiteUrl}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 text-[13px]"
+                                className="inline-flex items-center gap-1.5 text-[12px] truncate max-w-full"
                                 style={{ color: "var(--ed-accent)" }}
                             >
-                                <Globe className="w-3.5 h-3.5" /> {business.websiteUrl}
+                                <Globe className="w-3.5 h-3.5 flex-shrink-0" />
+                                <span className="truncate">{business.websiteUrl}</span>
                             </a>
                         )}
+
+                        {/* Primary action buttons — Directions (always when address) +
+                            View Website (active when live, ghost "not live yet" otherwise) */}
+                        <div className="grid grid-cols-2 gap-2 pt-2">
+                            {business.address ? (
+                                <a
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                        [business.address, business.city, business.province]
+                                            .filter(Boolean)
+                                            .join(", "),
+                                    )}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-3 py-2.5 rounded-xl transition-colors hover:bg-white"
+                                    style={{
+                                        background: "var(--ed-paper-2)",
+                                        color: "var(--ed-ink)",
+                                        border: "1px solid var(--ed-rule)",
+                                    }}
+                                >
+                                    <MapPin className="w-4 h-4" /> Directions
+                                </a>
+                            ) : <span />}
+                            {business.websiteUrl ? (
+                                <a
+                                    href={business.websiteUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-3 py-2.5 rounded-xl transition-colors"
+                                    style={{
+                                        background: "transparent",
+                                        color: "var(--ed-accent)",
+                                        border: "1px solid var(--ed-accent)",
+                                    }}
+                                >
+                                    <Globe className="w-4 h-4" /> View website
+                                </a>
+                            ) : (
+                                <span
+                                    className="inline-flex items-center justify-center gap-2 text-[12px] font-medium px-3 py-2.5 rounded-xl"
+                                    style={{
+                                        background: "transparent",
+                                        color: "var(--ed-ink-3)",
+                                        border: "1px dashed var(--ed-rule-strong, #B7AC95)",
+                                    }}
+                                    title="The submission hasn't been deployed yet."
+                                >
+                                    <Globe className="w-4 h-4" /> Website not live yet
+                                </span>
+                            )}
+                        </div>
                     </div>
                 )}
 
-                {/* Other interviewers */}
-                {interviewers && interviewers.length > 1 && (
+                {/* Interviewed by — full roster of every creator who's
+                    interviewed this business. Spec calls this out explicitly:
+                    "this is what surfaces the 'this business has been
+                    interviewed 3 times — it's hot' pattern. Don't omit it." */}
+                {interviewers && (
                     <div
                         className="rounded-2xl p-4 space-y-3"
                         style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
                     >
-                        <div
-                            className="text-[10px]"
-                            style={{
-                                fontFamily: "var(--ed-mono)",
-                                letterSpacing: "0.14em",
-                                textTransform: "uppercase",
-                                color: "var(--ed-ink-3)",
-                            }}
-                        >
-                            Other Interviewers · {interviewers.length}
+                        <div className="flex items-center justify-between">
+                            <div
+                                className="text-[10px]"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    letterSpacing: "0.14em",
+                                    textTransform: "uppercase",
+                                    color: "var(--ed-ink-3)",
+                                }}
+                            >
+                                Interviewed by
+                            </div>
+                            {interviewers.length > 0 && (
+                                <span
+                                    className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+                                    style={{
+                                        background: "var(--ed-paper-2)",
+                                        color: "var(--ed-ink-2)",
+                                        fontFamily: "var(--ed-mono)",
+                                    }}
+                                >
+                                    {interviewers.length} {interviewers.length === 1 ? "creator" : "creators"}
+                                </span>
+                            )}
                         </div>
-                        <ul className="space-y-2.5">
-                            {interviewers.map((i: any) => (
-                                <li key={i.submissionId} className="flex items-center justify-between gap-3 text-[13px]">
-                                    <div className="flex items-center gap-2.5 min-w-0">
-                                        {i.creatorProfileImage ? (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={i.creatorProfileImage} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
-                                        ) : (
+                        {interviewers.length === 0 ? (
+                            <p
+                                className="text-[13px] italic py-2"
+                                style={{
+                                    fontFamily: "var(--ed-serif)",
+                                    color: "var(--ed-ink-3)",
+                                }}
+                            >
+                                No interview history found for this business.
+                            </p>
+                        ) : (
+                            <ul className="space-y-2">
+                                {interviewers.map((i: any) => {
+                                    const rejected = i.submissionStatus === "rejected";
+                                    const rowBg = i.isMine
+                                        ? "var(--ed-accent-bg, #D1FAE5)"
+                                        : "var(--ed-paper-2)";
+                                    const opacity = rejected && !i.isMine ? 0.6 : 1;
+                                    return (
+                                        <li
+                                            key={i.submissionId}
+                                            className="flex items-center justify-between gap-3 text-[13px] px-3 py-2.5 rounded-xl"
+                                            style={{
+                                                background: rowBg,
+                                                borderLeft: i.isMine ? "3px solid var(--ed-accent)" : "3px solid transparent",
+                                                opacity,
+                                            }}
+                                        >
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                {i.creatorProfileImage ? (
+                                                    // eslint-disable-next-line @next/next/no-img-element
+                                                    <img
+                                                        src={i.creatorProfileImage}
+                                                        alt=""
+                                                        className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                                                    />
+                                                ) : (
+                                                    <div
+                                                        className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] flex-shrink-0"
+                                                        style={{
+                                                            background: i.isMine
+                                                                ? "var(--ed-accent-solid, #10B981)"
+                                                                : "var(--ed-ink-3)",
+                                                            color: "#fff",
+                                                            fontFamily: "var(--ed-serif)",
+                                                            fontWeight: 500,
+                                                        }}
+                                                    >
+                                                        {(i.creatorName ?? "?").slice(0, 1).toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <span className="truncate" style={{ color: "var(--ed-ink)" }}>
+                                                    {i.creatorName}
+                                                </span>
+                                                {i.isMine && (
+                                                    <span
+                                                        className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded flex-shrink-0"
+                                                        style={{
+                                                            background: "var(--ed-accent-solid, #10B981)",
+                                                            color: "#fff",
+                                                            fontFamily: "var(--ed-mono)",
+                                                            letterSpacing: "0.1em",
+                                                            textTransform: "uppercase",
+                                                        }}
+                                                    >
+                                                        You
+                                                    </span>
+                                                )}
+                                            </div>
                                             <div
-                                                className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] flex-shrink-0"
+                                                className="text-right flex-shrink-0 text-[10px]"
                                                 style={{
-                                                    background: "var(--ed-paper-2)",
-                                                    color: "var(--ed-ink)",
-                                                    fontFamily: "var(--ed-serif)",
-                                                    fontWeight: 500,
+                                                    fontFamily: "var(--ed-mono)",
+                                                    letterSpacing: "0.04em",
                                                 }}
                                             >
-                                                {(i.creatorName ?? "?").slice(0, 1).toUpperCase()}
+                                                <div style={{ color: "var(--ed-ink-3)" }}>
+                                                    {timeAgo(i.interviewedAt)}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        color: rejected ? "var(--ed-danger)" : "var(--ed-ink-2)",
+                                                        textTransform: "uppercase",
+                                                    }}
+                                                >
+                                                    {i.submissionStatus}
+                                                </div>
                                             </div>
-                                        )}
-                                        <span className="truncate" style={{ color: "var(--ed-ink)" }}>
-                                            {i.creatorName}
-                                            {i.isMine && <span style={{ color: "var(--ed-accent)" }}> · mine</span>}
-                                        </span>
-                                    </div>
-                                    <span className="ed-label flex-shrink-0" style={{ color: "var(--ed-ink-3)" }}>
-                                        {timeAgo(i.interviewedAt)}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
                     </div>
                 )}
 
@@ -593,6 +746,241 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                         </p>
                     )}
                 </div>
+
+                    </div>
+                    {/* Right rail — sticky on desktop, stacked under main column on mobile/tablet */}
+                    <RightRail lead={lead} business={business} leadId={leadId} />
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function RightRail({
+    lead, business, leadId,
+}: {
+    lead: any;
+    business: any;
+    leadId: Id<"leads">;
+}) {
+    const [copiedId, setCopiedId] = useState(false);
+    const directionsHref = business?.address
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              [business.address, business.city, business.province].filter(Boolean).join(", "),
+          )}`
+        : null;
+
+    const handleCopyId = async () => {
+        try {
+            await navigator.clipboard.writeText(String(lead._id));
+            setCopiedId(true);
+            setTimeout(() => setCopiedId(false), 1500);
+        } catch {
+            // Older browsers — silently ignore.
+        }
+    };
+
+    return (
+        <aside className="lg:sticky lg:top-6 lg:self-start space-y-4">
+            {/* Quick contact */}
+            {(lead.phone || lead.email) && (
+                <div
+                    className="rounded-2xl p-4 space-y-2.5"
+                    style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                >
+                    <div
+                        className="text-[10px]"
+                        style={{
+                            fontFamily: "var(--ed-mono)",
+                            letterSpacing: "0.14em",
+                            textTransform: "uppercase",
+                            color: "var(--ed-ink-3)",
+                        }}
+                    >
+                        Quick contact
+                    </div>
+                    {lead.phone && (
+                        <a
+                            href={`tel:${lead.phone.replace(/[^0-9+]/g, "")}`}
+                            className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-lg transition-colors hover:bg-white"
+                            style={{
+                                background: "var(--ed-paper-2)",
+                                color: "var(--ed-ink)",
+                                border: "1px solid var(--ed-rule)",
+                            }}
+                        >
+                            <Phone className="w-3.5 h-3.5" style={{ color: "var(--ed-accent)" }} />
+                            <span className="truncate">{lead.phone}</span>
+                        </a>
+                    )}
+                    {lead.email && (
+                        <a
+                            href={`mailto:${lead.email}`}
+                            className="flex items-center gap-2 text-[13px] px-3 py-2 rounded-lg transition-colors hover:bg-white"
+                            style={{
+                                background: "var(--ed-paper-2)",
+                                color: "var(--ed-ink)",
+                                border: "1px solid var(--ed-rule)",
+                            }}
+                        >
+                            <Mail className="w-3.5 h-3.5" style={{ color: "var(--ed-accent)" }} />
+                            <span className="truncate">{lead.email}</span>
+                        </a>
+                    )}
+                </div>
+            )}
+
+            {/* Quick actions — sticky duplicate of Directions + Website */}
+            {(directionsHref || business) && (
+                <div
+                    className="rounded-2xl p-4 space-y-2.5"
+                    style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                >
+                    <div
+                        className="text-[10px]"
+                        style={{
+                            fontFamily: "var(--ed-mono)",
+                            letterSpacing: "0.14em",
+                            textTransform: "uppercase",
+                            color: "var(--ed-ink-3)",
+                        }}
+                    >
+                        Quick actions
+                    </div>
+                    {directionsHref && (
+                        <a
+                            href={directionsHref}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-[13px] font-semibold px-3 py-2.5 rounded-xl transition-colors hover:bg-white"
+                            style={{
+                                background: "var(--ed-paper-2)",
+                                color: "var(--ed-ink)",
+                                border: "1px solid var(--ed-rule)",
+                            }}
+                        >
+                            <MapPin className="w-4 h-4" /> Directions
+                        </a>
+                    )}
+                    {business?.websiteUrl ? (
+                        <a
+                            href={business.websiteUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-[13px] font-semibold px-3 py-2.5 rounded-xl"
+                            style={{
+                                background: "transparent",
+                                color: "var(--ed-accent)",
+                                border: "1px solid var(--ed-accent)",
+                            }}
+                        >
+                            <Globe className="w-4 h-4" /> View website
+                        </a>
+                    ) : (
+                        <span
+                            className="flex items-center gap-2 text-[12px] font-medium px-3 py-2.5 rounded-xl"
+                            style={{
+                                background: "transparent",
+                                color: "var(--ed-ink-3)",
+                                border: "1px dashed var(--ed-rule-strong, #B7AC95)",
+                            }}
+                            title="The submission hasn't been deployed yet."
+                        >
+                            <Globe className="w-4 h-4" /> Website not live yet
+                        </span>
+                    )}
+                </div>
+            )}
+
+            {/* Lead metadata */}
+            <div
+                className="rounded-2xl p-4 space-y-3"
+                style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+            >
+                <div
+                    className="text-[10px]"
+                    style={{
+                        fontFamily: "var(--ed-mono)",
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                        color: "var(--ed-ink-3)",
+                    }}
+                >
+                    Metadata
+                </div>
+                <MetaRow label="Created" value={new Date(lead.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} />
+                <MetaRow label="Source" value={lead.source} mono />
+                <div>
+                    <div
+                        className="text-[10px] mb-1"
+                        style={{
+                            fontFamily: "var(--ed-mono)",
+                            color: "var(--ed-ink-3)",
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
+                        }}
+                    >
+                        Lead ID
+                    </div>
+                    <button
+                        type="button"
+                        onClick={handleCopyId}
+                        className="flex items-center gap-1.5 text-[11px] font-mono px-2 py-1 rounded-md w-full text-left transition-colors hover:bg-white"
+                        style={{
+                            background: "var(--ed-paper-2)",
+                            color: "var(--ed-ink-2)",
+                            border: "1px solid var(--ed-rule)",
+                            fontFamily: "var(--ed-mono)",
+                        }}
+                        title="Copy lead ID"
+                    >
+                        {copiedId ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                        <span className="truncate">{String(lead._id)}</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Submission link */}
+            {business?.submissionId && (
+                <Link
+                    href={`/submissions/${business.submissionId}`}
+                    className="flex items-center justify-between gap-2 rounded-2xl p-4 text-[13px] transition-colors hover:bg-white"
+                    style={{
+                        background: "var(--ed-paper-3)",
+                        color: "var(--ed-ink)",
+                        border: "1px solid var(--ed-rule)",
+                    }}
+                >
+                    <span>View submission</span>
+                    <ExternalLink className="w-4 h-4" style={{ color: "var(--ed-ink-3)" }} />
+                </Link>
+            )}
+        </aside>
+    );
+}
+
+function MetaRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+    return (
+        <div>
+            <div
+                className="text-[10px] mb-0.5"
+                style={{
+                    fontFamily: "var(--ed-mono)",
+                    color: "var(--ed-ink-3)",
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                }}
+            >
+                {label}
+            </div>
+            <div
+                className="text-[13px]"
+                style={{
+                    color: "var(--ed-ink)",
+                    fontFamily: mono ? "var(--ed-mono)" : "var(--ed-sans)",
+                }}
+            >
+                {value}
             </div>
         </div>
     );
