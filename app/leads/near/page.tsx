@@ -18,11 +18,32 @@
  */
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ArrowLeft, Loader2, MapPin, Building2, ExternalLink, Globe } from "lucide-react";
+
+// Leaflet touches `window` on import — must be client-only.
+const LeadsMap = dynamic(() => import("@/components/leads/LeadsMap"), {
+    ssr: false,
+    loading: () => (
+        <div
+            style={{
+                height: 360,
+                background: "var(--ed-paper-2)",
+                borderRadius: 16,
+                border: "1px solid var(--ed-rule)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+            }}
+        >
+            <Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--ed-ink-3)" }} />
+        </div>
+    ),
+});
 
 const PH_CENTER = { lat: 14.5995, lng: 120.9842 }; // Manila — used when geolocation unavailable
 
@@ -136,11 +157,9 @@ function NearInner() {
         );
     }
 
-    const mapCenter = userLoc ?? PH_CENTER;
-    const mapQuery = userLoc
-        ? `${mapCenter.lat},${mapCenter.lng}`
-        : "Philippines";
-    const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&z=${userLoc ? 13 : 6}&hl=en&output=embed`;
+    // Map pin set — uses the same `sorted` list so the map and the list
+    // below it stay perfectly in sync (filtered + ordered identically).
+    const mapPins = sorted ?? [];
 
     return (
         <div
@@ -258,17 +277,13 @@ function NearInner() {
                     </div>
                 )}
 
-                {/* Map */}
-                <div
-                    className="rounded-2xl overflow-hidden mb-5"
-                    style={{ border: "1px solid var(--ed-rule)" }}
-                >
-                    <iframe
-                        title="Map"
-                        src={mapEmbedSrc}
-                        loading="lazy"
-                        referrerPolicy="no-referrer-when-downgrade"
-                        style={{ width: "100%", height: 320, border: 0 }}
+                {/* Map — Leaflet + OpenStreetMap, one pin per filtered lead */}
+                <div className="mb-5">
+                    <LeadsMap
+                        leads={mapPins}
+                        userLocation={userLoc}
+                        fallbackCenter={PH_CENTER}
+                        height={360}
                     />
                 </div>
 

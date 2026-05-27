@@ -35,4 +35,13 @@ crons.hourly(
     internal.withdrawals.checkProcessingStatusCron
 );
 
+// Hourly (offset by 45 min): auto-release prospect claims older than 24h.
+// Stops creators from permanently squatting on Outscraper-discovered leads
+// they claimed but never interviewed. See WEB-BUILD-CRM.md Step 9.
+crons.hourly(
+    'release-stale-prospect-claims',
+    { minuteUTC: 45 },
+    internal.outscraper.releaseStaleClaimsInternal,
+);
+
 export default crons;
