@@ -10,73 +10,100 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
  * Stable, friendly-named download endpoint for the Negosyo Digital APK.
  *
  * The APK upload pipeline (convex/r2.ts:generateApkUploadUrl + the admin
- * App Release page) intentionally stores each release at a collision-safe
- * R2 key like `releases/1704812345678-a8b2c1d4.apk`. That keeps re-uploads
- * safe but makes the user-facing filename ugly when the browser downloads
- * directly from the public R2 URL.
+ * App Release page) stores each release at a collision-safe R2 key like
+ * `releases/1704812345678-a8b2c1d4.apk` and persists FOUR Convex settings:
  *
- * This route fixes only the user-facing filename. It:
- *  1. Looks up the current `apk_r2_key` from Convex settings.
- *  2. Mints a fresh presigned GET URL with
- *     `ResponseContentDisposition: attachment; filename="negosyo-digital.apk"`.
- *     R2 honors that header on the response, so the browser saves the file
- *     with the friendly name regardless of the cryptic R2 key.
- *  3. 302-redirects to it. The R2 download stream then handles the bytes
- *     directly — Next.js never proxies the 200 MB payload.
+ *   apk_r2_key       — R2 storage key, used to mint presigned URLs
+ *   apk_download_url — public R2 URL, used as a fallback
+ *   apk_file_name    — original filename
+ *   apk_uploaded_at  — upload timestamp
  *
- * NO changes to the upload side. NO migration of existing R2 keys.
+ * The Navbar/Footer link decision is based on `apk_download_url`. This route
+ * MUST be at least as available as that decision — otherwise a setting drift
+ * (where apk_download_url is present but apk_r2_key isn't, e.g. legacy
+ * uploads or a manual edit in the Convex dashboard) makes the download
+ * appear available in the UI but 404 on click.
+ *
+ * Resolution strategy (most-friendly first, last-resort last):
+ *   1. apk_r2_key present                    → presigned URL + friendly name
+ *   2. apk_download_url + R2_PUBLIC_URL set  → derive key from URL → same
+ *   3. apk_download_url present              → 302 to public URL (cryptic name, but works)
+ *   4. neither present                       → real 404
  */
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
     try {
-        // Resolve the current release's R2 key from Convex settings. The
-        // admin App Release page persists this on every upload.
-        const apkR2Key = (await fetchQuery(api.settings.get, {
-            key: 'apk_r2_key',
-        })) as string | null | undefined
+        // Read both settings up front — cheap, single round trip.
+        const [apkR2Key, apkDownloadUrl] = (await Promise.all([
+            fetchQuery(api.settings.get, { key: 'apk_r2_key' }),
+            fetchQuery(api.settings.get, { key: 'apk_download_url' }),
+        ])) as Array<string | null | undefined>
 
-        if (!apkR2Key) {
+        // Fail fast on the genuine "nothing uploaded" case.
+        if (!apkR2Key && !apkDownloadUrl) {
             return NextResponse.json(
                 { error: 'No APK release available right now.' },
                 { status: 404 },
             )
         }
 
-        const r2AccountId = process.env.R2_ACCOUNT_ID
-        const r2AccessKeyId = process.env.R2_ACCESS_KEY_ID
-        const r2SecretAccessKey = process.env.R2_SECRET_ACCESS_KEY
-        const r2BucketName = process.env.R2_BUCKET_NAME
-
-        if (!r2AccountId || !r2AccessKeyId || !r2SecretAccessKey || !r2BucketName) {
-            console.error('download-apk: R2 env vars are not configured')
-            return NextResponse.json(
-                { error: 'APK storage is not configured.' },
-                { status: 500 },
-            )
+        // Strategy 2: derive the R2 key from the public URL when apk_r2_key
+        // is missing. R2 public URLs are built as `${R2_PUBLIC_URL}/${key}`
+        // (see convex/r2.ts:generateApkUploadUrl), so stripping the prefix
+        // gives us the key back. This recovers gracefully from settings
+        // drift without forcing the admin to re-upload.
+        const r2PublicUrlRaw = process.env.R2_PUBLIC_URL
+        const r2PublicUrl = r2PublicUrlRaw ? r2PublicUrlRaw.replace(/\/$/, '') : null
+        let resolvedKey: string | null = apkR2Key ?? null
+        if (!resolvedKey && apkDownloadUrl && r2PublicUrl && apkDownloadUrl.startsWith(r2PublicUrl + '/')) {
+            resolvedKey = apkDownloadUrl.slice(r2PublicUrl.length + 1)
         }
 
-        const client = new S3Client({
-            region: 'auto',
-            endpoint: `https://${r2AccountId}.r2.cloudflarestorage.com`,
-            credentials: {
-                accessKeyId: r2AccessKeyId,
-                secretAccessKey: r2SecretAccessKey,
-            },
-        })
+        // Strategies 1 + 2: mint a presigned URL so the browser gets the
+        // friendly `negosyo-digital.apk` filename via response headers.
+        if (resolvedKey) {
+            const r2AccountId = process.env.R2_ACCOUNT_ID
+            const r2AccessKeyId = process.env.R2_ACCESS_KEY_ID
+            const r2SecretAccessKey = process.env.R2_SECRET_ACCESS_KEY
+            const r2BucketName = process.env.R2_BUCKET_NAME
 
-        // Generate a short-lived presigned URL whose `Content-Disposition`
-        // response header overrides whatever R2 would have served. The
-        // browser uses this header to name the saved file.
-        const command = new GetObjectCommand({
-            Bucket: r2BucketName,
-            Key: apkR2Key,
-            ResponseContentDisposition: 'attachment; filename="negosyo-digital.apk"',
-            ResponseContentType: 'application/vnd.android.package-archive',
-        })
-        const signedUrl = await getSignedUrl(client, command, {
-            expiresIn: 60 * 60, // 1 hour — plenty for the redirect to land
-        })
+            if (r2AccountId && r2AccessKeyId && r2SecretAccessKey && r2BucketName) {
+                try {
+                    const client = new S3Client({
+                        region: 'auto',
+                        endpoint: `https://${r2AccountId}.r2.cloudflarestorage.com`,
+                        credentials: { accessKeyId: r2AccessKeyId, secretAccessKey: r2SecretAccessKey },
+                    })
+                    const command = new GetObjectCommand({
+                        Bucket: r2BucketName,
+                        Key: resolvedKey,
+                        ResponseContentDisposition: 'attachment; filename="negosyo-digital.apk"',
+                        ResponseContentType: 'application/vnd.android.package-archive',
+                    })
+                    const signedUrl = await getSignedUrl(client, command, { expiresIn: 60 * 60 })
+                    return NextResponse.redirect(signedUrl, { status: 302 })
+                } catch (signErr) {
+                    // Fall through to strategy 3 — never block the download
+                    // because the signing step itself failed.
+                    console.error('download-apk: presign failed, falling back to public URL', signErr)
+                }
+            } else {
+                console.warn('download-apk: R2 env vars missing, falling back to public URL')
+            }
+        }
 
-        return NextResponse.redirect(signedUrl, { status: 302 })
+        // Strategy 3: last-resort direct redirect to the public R2 URL. The
+        // user gets the cryptic R2 key as the filename but at least the
+        // download succeeds — strictly better than a 404.
+        if (apkDownloadUrl) {
+            return NextResponse.redirect(apkDownloadUrl, { status: 302 })
+        }
+
+        // Should be unreachable given the early return above, but kept for
+        // exhaustiveness.
+        return NextResponse.json(
+            { error: 'No APK release available right now.' },
+            { status: 404 },
+        )
     } catch (err: any) {
         console.error('download-apk error:', err)
         return NextResponse.json(
