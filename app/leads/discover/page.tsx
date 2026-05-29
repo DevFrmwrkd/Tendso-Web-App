@@ -136,11 +136,68 @@ function DiscoverInner() {
         );
     }, [ready]);
 
-    // Pull unclaimed Outscraper prospects, filtered to the scrape radius.
-    const prospects = useQuery(
+    // Per the 2026-05-29 evening spec update: the discover map has TWO
+    // data sources, in priority order:
+    //
+    //   1. PRIMARY — URL `data` param. After a successful scrape, the
+    //      modal encodes result.businesses as JSON and passes it via the
+    //      URL. This bypasses the silently-failing DB write path entirely.
+    //
+    //   2. FALLBACK — listScrapedLeads query. Only used when the user
+    //      navigates here without `data` (deep link, browser back/forward,
+    //      cold start to /leads/discover).
+    //
+    // Both sources get normalized into a shared shape and feed the same
+    // downstream pin-rendering pipeline.
+    const urlData = searchParams.get("data");
+    const urlBusinesses = useMemo(() => {
+        if (!urlData) return null;
+        try {
+            const parsed = JSON.parse(decodeURIComponent(urlData));
+            if (!Array.isArray(parsed)) return null;
+            // Normalize URL businesses to match the listScrapedLeads shape
+            // the rest of the page expects (_id, submissionId, etc.). The
+            // synthetic _id is used purely as a React `key`; nothing actually
+            // looks it up in the DB.
+            return parsed.map((b: any) => ({
+                _id: b.placeId ?? `${b.businessName}:${b.businessLatitude}:${b.businessLongitude}`,
+                submissionId: null,
+                businessName: b.businessName ?? null,
+                businessAddress: b.businessAddress ?? null,
+                businessCity: b.businessCity ?? null,
+                businessCategory: b.businessCategory ?? null,
+                businessWebsite: b.businessWebsite ?? null,
+                phone: b.businessPhone ?? null,
+                businessLatitude: b.businessLatitude ?? null,
+                businessLongitude: b.businessLongitude ?? null,
+                businessRating: b.businessRating ?? null,
+                businessReviewCount: b.businessReviewCount ?? null,
+            }));
+        } catch (err) {
+            console.warn("[discover] failed to parse URL data param:", err);
+            return null;
+        }
+    }, [urlData]);
+
+    // Fallback query — ONLY subscribe when there's no URL data. Saves a
+    // round-trip + reactive subscription on the happy path (post-scrape).
+    const fallbackProspects = useQuery(
         api.outscraper.listScrapedLeads,
-        ready ? {} : "skip",
+        ready && !urlBusinesses ? {} : "skip",
     ) as any[] | undefined;
+
+    // Defensive against the deployed validator-drift shape: the deployed
+    // listScrapedLeads sometimes returns { leads, stats } instead of an
+    // array. Unwrap if needed.
+    const fallbackArray: any[] | undefined = useMemo(() => {
+        if (fallbackProspects === undefined) return undefined;
+        if (Array.isArray(fallbackProspects)) return fallbackProspects;
+        const wrapped = fallbackProspects as any;
+        if (Array.isArray(wrapped?.leads)) return wrapped.leads;
+        return [];
+    }, [fallbackProspects]);
+
+    const prospects: any[] | undefined = urlBusinesses ?? fallbackArray;
 
     // Client-side geocoder cache — keyed by lead id. Used when an Outscraper
     // prospect has an address but no latitude/longitude (sometimes happens

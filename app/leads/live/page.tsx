@@ -114,7 +114,13 @@ function LiveBusinessesInner() {
     const [geocodeStatus, setGeocodeStatus] = useState<
         | { phase: "idle" }
         | { phase: "running" }
-        | { phase: "done"; geocoded: number; failed: number; scanned: number }
+        | {
+              phase: "done";
+              geocoded: number;
+              failed: number;
+              scanned: number;
+              googleBillingDisabled: boolean;
+          }
         | { phase: "error"; message: string }
     >({ phase: "idle" });
 
@@ -141,6 +147,7 @@ function LiveBusinessesInner() {
                     geocoded: res.geocoded,
                     failed: res.failed,
                     scanned: res.scanned,
+                    googleBillingDisabled: !!res.googleBillingDisabled,
                 });
             })
             .catch((err: any) => {
@@ -323,6 +330,35 @@ function LiveBusinessesInner() {
                             {geocodeStatus.failed > 0
                                 ? ` ${geocodeStatus.failed} failed (check the addresses for typos).`
                                 : ""}
+                        </span>
+                    </div>
+                )}
+
+                {/* Google billing-disabled hint — shown after a successful
+                    batch that fell back to Nominatim. Tells the user how to
+                    upgrade for better accuracy without breaking the current
+                    setup. */}
+                {geocodeStatus.phase === "done" && geocodeStatus.googleBillingDisabled && (
+                    <div
+                        className="rounded-xl px-3 py-2 mb-5 text-[12px] flex items-start gap-2"
+                        style={{
+                            background: "var(--ed-paper-2)",
+                            color: "var(--ed-ink-2)",
+                            border: "1px solid var(--ed-rule)",
+                        }}
+                    >
+                        <Globe className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "var(--ed-ink-3)" }} />
+                        <span>
+                            Pins above were resolved via OpenStreetMap (free, less accurate for informal PH addresses). To use Google Maps geocoding — same key as the map — enable Billing on your GCP project at{" "}
+                            <a
+                                href="https://console.cloud.google.com/project/_/billing/enable"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: "var(--ed-accent)" }}
+                            >
+                                console.cloud.google.com/.../billing/enable
+                            </a>
+                            . Free up to $200/month — you won&apos;t be charged for normal use.
                         </span>
                     </div>
                 )}

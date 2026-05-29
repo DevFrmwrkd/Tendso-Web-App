@@ -148,18 +148,20 @@ export default function FindLocalBusinessModal({
             setPhase("saving");
             await new Promise((r) => setTimeout(r, 350));
 
-            // Per the 2026-05-29 spec update: NO success toast, NO Alert
-            // dialog. The map at /leads/discover IS the success state —
-            // the modal closes and the router takes the creator straight
-            // to the result map. Don't show "X businesses added to your
-            // interview list" — that's the broken UX mobile already deleted.
-            // The result counts (res.total / inserted / skipped) are
-            // surfaced by the map's header copy instead.
+            // Per the 2026-05-29 evening spec update: pass the raw
+            // `businesses` array via URL `data` param so the discover map
+            // can render pins from in-memory state directly. This bypasses
+            // the silently-failing DB write path — the map shows pins even
+            // if `listScrapedLeads` returns empty. See WEB-BUILD-CRM.md
+            // "Map B — Find Local Business" for the new data flow.
             setPhase("idle");
             activeRef.current = false;
             onClose();
+            const businessesParam = (res as any).businesses
+                ? `&data=${encodeURIComponent(JSON.stringify((res as any).businesses))}`
+                : "";
             const discoverHref =
-                `/leads/discover?category=${encodeURIComponent(queryStr)}&radiusKm=${radius}`;
+                `/leads/discover?category=${encodeURIComponent(queryStr)}&radiusKm=${radius}${businessesParam}`;
             router.push(discoverHref);
         } catch (err: any) {
             const message = err?.message ?? String(err);
