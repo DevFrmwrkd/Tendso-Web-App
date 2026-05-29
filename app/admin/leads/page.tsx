@@ -21,6 +21,7 @@ import {
     Image as ImageIcon,
 } from "lucide-react"
 import LeadContentModal, { type LeadContentModalLead } from "./LeadContentModal"
+import ProspectsView from "./_components/ProspectsView"
 
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     new: { label: "New", color: "bg-blue-100 text-blue-700" },
@@ -46,6 +47,11 @@ export default function AdminLeadsPage() {
 
     const [search, setSearch] = useState("")
     const [statusFilter, setStatusFilter] = useState<string>("all")
+    // Tab switcher — Customer Leads (default) + Prospects.
+    // Replaces the former standalone /admin/lead-prospects page, which is
+    // removed in this commit so admins have one consolidated leads surface.
+    const [activeTab, setActiveTab] = useState<"customers" | "prospects">("customers")
+    const prospectsCount = useQuery(api.outscraper.listScrapedLeads, { statusFilter: "all" }) as any[] | undefined
     // For the "Add Lead" modal — fetch all submissions so admin can pick one from a dropdown
     const allSubmissions = useQuery(api.submissions.getAll)
     const [showAddModal, setShowAddModal] = useState(false)
@@ -236,17 +242,68 @@ export default function AdminLeadsPage() {
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Lead Management</h1>
                         <p className="text-sm text-gray-500 mt-1">
-                            {leads?.length || 0} total leads across all submissions
+                            {activeTab === "customers"
+                                ? `${leads?.length || 0} total customer leads`
+                                : `${prospectsCount?.length ?? 0} Outscraper prospects in the funnel`}
                         </p>
                     </div>
-                    <button
-                        onClick={() => setShowAddModal(true)}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20"
-                    >
-                        <Plus size={18} />
-                        Add Lead
-                    </button>
+                    {activeTab === "customers" && (
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20"
+                        >
+                            <Plus size={18} />
+                            Add Lead
+                        </button>
+                    )}
                 </div>
+
+                {/* Tab switcher — Customer Leads / Prospects */}
+                <div
+                    className="grid grid-cols-2 gap-0 mb-6"
+                    style={{ borderBottom: "1px solid var(--ed-rule)" }}
+                >
+                    {([
+                        { key: "customers" as const, label: "Customer Leads", count: leads?.length ?? 0 },
+                        { key: "prospects" as const, label: "Prospects", count: prospectsCount?.length ?? 0 },
+                    ]).map((t) => {
+                        const active = activeTab === t.key
+                        return (
+                            <button
+                                key={t.key}
+                                type="button"
+                                onClick={() => setActiveTab(t.key)}
+                                className="flex items-center justify-center gap-2 py-3 transition-colors text-[11px]"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    letterSpacing: "0.12em",
+                                    textTransform: "uppercase",
+                                    color: active ? "var(--ed-ink)" : "var(--ed-ink-3)",
+                                    borderBottom: active ? "2px solid var(--ed-ink)" : "2px solid transparent",
+                                    marginBottom: -1,
+                                    fontWeight: active ? 600 : 500,
+                                }}
+                            >
+                                {t.label}
+                                <span
+                                    className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full text-[10px]"
+                                    style={{
+                                        background: active ? "var(--ed-ink)" : "var(--ed-paper-2)",
+                                        color: active ? "var(--ed-paper-3)" : "var(--ed-ink-2)",
+                                        fontFamily: "var(--ed-mono)",
+                                    }}
+                                >
+                                    {t.count}
+                                </span>
+                            </button>
+                        )
+                    })}
+                </div>
+
+                {activeTab === "prospects" ? (
+                    <ProspectsView />
+                ) : (
+                <>
 
                 {/* Status filter pills */}
                 <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -415,6 +472,9 @@ export default function AdminLeadsPage() {
                         </table>
                     </div>
                 </div>
+
+                </>
+                )}
 
                 {/* Add Lead Modal */}
                 {showAddModal && (
