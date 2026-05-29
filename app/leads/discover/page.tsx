@@ -137,41 +137,52 @@ function DiscoverInner() {
         ready ? {} : "skip",
     ) as any[] | undefined;
 
-    // Pins are sorted nearest-first when GPS is available; without GPS
-    // we keep insertion order (newest-scraped first from the query).
-    const pins = useMemo(() => {
+    // Strict candidate set per spec: unclaimed Outscraper rows with coords.
+    // Filtering by radius is its own step below so we can fall back if it
+    // yields zero pins (e.g. the user is in a different area than their
+    // older scrape, or the radius is too tight).
+    const allMappableProspects = useMemo(() => {
         if (!prospects) return [] as any[];
-        const origin = userLoc;
-        const filtered = prospects
+        return prospects
             .filter(
                 (p: any) =>
                     !p.submissionId &&
                     p.businessLatitude != null &&
                     p.businessLongitude != null,
             )
-            .filter((p: any) => {
-                if (!origin) return true;
-                return (
-                    haversineKm(origin, { lat: p.businessLatitude, lng: p.businessLongitude }) <=
-                    radiusKm
-                );
-            })
             .map((p: any) => ({
                 ...p,
                 lat: p.businessLatitude,
                 lng: p.businessLongitude,
                 categoryKey: classifyCategory(p.businessCategory),
-                distanceKm: origin
-                    ? haversineKm(origin, { lat: p.businessLatitude, lng: p.businessLongitude })
+                distanceKm: userLoc
+                    ? haversineKm(userLoc, { lat: p.businessLatitude, lng: p.businessLongitude })
                     : null,
             }));
-        if (origin) {
-            filtered.sort(
+    }, [prospects, userLoc]);
+
+    const withinRadius = useMemo(() => {
+        if (!userLoc) return allMappableProspects;
+        return allMappableProspects.filter(
+            (p: any) => (p.distanceKm ?? Infinity) <= radiusKm,
+        );
+    }, [allMappableProspects, userLoc, radiusKm]);
+
+    // Fallback: when the radius filter rules everything out but we DO have
+    // mappable prospects elsewhere, show them all rather than blank canvas.
+    // Surface a banner so the creator understands the relaxation.
+    const usingRadiusFallback = withinRadius.length === 0 && allMappableProspects.length > 0;
+    const pinsUnsorted = usingRadiusFallback ? allMappableProspects : withinRadius;
+
+    const pins = useMemo(() => {
+        const arr = [...pinsUnsorted];
+        if (userLoc) {
+            arr.sort(
                 (a: any, b: any) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity),
             );
         }
-        return filtered;
-    }, [prospects, userLoc, radiusKm]);
+        return arr;
+    }, [pinsUnsorted, userLoc]);
 
     // Distance formatter matching spec: "{N} m" < 1km, "{N.N} km" < 10km,
     // "{N} km" otherwise, "—" if null.
@@ -318,6 +329,26 @@ function DiscoverInner() {
                         </div>
                     )}
                 </div>
+
+                {/* Radius-fallback banner — fires when the user's GPS
+                    radius excluded every mappable prospect but there are
+                    prospects elsewhere we can show. Better than a blank
+                    map. */}
+                {usingRadiusFallback && (
+                    <div
+                        className="flex items-start gap-2 rounded-xl px-3 py-2.5 mb-4 text-[12px]"
+                        style={{
+                            background: "var(--ed-status-contacted-bg, #FBE9C4)",
+                            color: "var(--ed-ink-2)",
+                            border: "1px solid var(--ed-rule)",
+                        }}
+                    >
+                        <Compass className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "var(--ed-warn)" }} />
+                        <span>
+                            None of the {allMappableProspects.length} prospect{allMappableProspects.length === 1 ? "" : "s"} on the map are within {radiusKm} km of you. Showing them all so you can plan a route — or tap <strong>Find Local Business</strong> again with a wider radius.
+                        </span>
+                    </div>
+                )}
 
                 {/* Permission-denied banner — only when geolocation was
                     explicitly denied. Per spec: "Enable location to sort

@@ -51,7 +51,7 @@ export default function AdminLeadsPage() {
     // Replaces the former standalone /admin/lead-prospects page, which is
     // removed in this commit so admins have one consolidated leads surface.
     const [activeTab, setActiveTab] = useState<"customers" | "prospects">("customers")
-    const prospectsCount = useQuery(api.outscraper.listScrapedLeads, { statusFilter: "all" }) as any[] | undefined
+    const prospectsCount = useQuery(api.outscraper.listScrapedLeads, {}) as any[] | undefined
     // For the "Add Lead" modal — fetch all submissions so admin can pick one from a dropdown
     const allSubmissions = useQuery(api.submissions.getAll)
     const [showAddModal, setShowAddModal] = useState(false)
