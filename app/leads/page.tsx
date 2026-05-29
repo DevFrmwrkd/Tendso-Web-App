@@ -139,6 +139,11 @@ function CreatorLeadsInner() {
     // Claim filter for the Prospects tab — defaults to "unclaimed" per spec
     // so creators see what's available first.
     const [claimFilter, setClaimFilter] = useState<"all" | "unclaimed" | "mine">("unclaimed");
+    // Additional Prospects-tab filters per spec
+    const [categoryFilter, setCategoryFilter] = useState<string>("all");
+    const [ratingFilter, setRatingFilter] = useState<"any" | "4" | "4.5">("any");
+    const [cityFilter, setCityFilter] = useState<string>("");
+    const [sortOrder, setSortOrder] = useState<"newest" | "rating" | "reviews" | "alpha">("newest");
 
     const ready =
         isLoaded &&
@@ -169,13 +174,25 @@ function CreatorLeadsInner() {
         [allLeads],
     );
 
-    // Apply claim filter + search to the Prospects feed.
+    // Apply claim filter + search + category/rating/city + sort to the
+    // Prospects feed.
     const filteredProspects = useMemo(() => {
         if (!prospectsFeed) return undefined;
         const q = debouncedSearch.toLowerCase();
-        return prospectsFeed.filter((p: any) => {
+        const cityQ = cityFilter.trim().toLowerCase();
+        const ratingThreshold = ratingFilter === "any" ? 0 : parseFloat(ratingFilter);
+
+        const matched = prospectsFeed.filter((p: any) => {
             if (claimFilter === "unclaimed" && p.claimedBy) return false;
             if (claimFilter === "mine" && !(p.claimedBy && p.claimedBy.isMine)) return false;
+            if (categoryFilter !== "all") {
+                const cat = (p.businessCategory ?? "Uncategorized").trim() || "Uncategorized";
+                if (cat !== categoryFilter) return false;
+            }
+            if (ratingThreshold > 0 && !(typeof p.businessRating === "number" && p.businessRating >= ratingThreshold)) {
+                return false;
+            }
+            if (cityQ && !(p.businessCity ?? "").toLowerCase().includes(cityQ)) return false;
             if (
                 q &&
                 !(p.businessName ?? "").toLowerCase().includes(q) &&
@@ -187,7 +204,37 @@ function CreatorLeadsInner() {
             }
             return true;
         });
-    }, [prospectsFeed, claimFilter, debouncedSearch]);
+
+        const sorted = [...matched].sort((a: any, b: any) => {
+            switch (sortOrder) {
+                case "rating":
+                    return (b.businessRating ?? 0) - (a.businessRating ?? 0);
+                case "reviews":
+                    return (b.businessReviewCount ?? 0) - (a.businessReviewCount ?? 0);
+                case "alpha":
+                    return (a.businessName ?? "").localeCompare(b.businessName ?? "");
+                case "newest":
+                default:
+                    return (b.scrapedAt ?? b.createdAt ?? 0) - (a.scrapedAt ?? a.createdAt ?? 0);
+            }
+        });
+        return sorted;
+    }, [prospectsFeed, claimFilter, debouncedSearch, categoryFilter, ratingFilter, cityFilter, sortOrder]);
+
+    // Dynamically build the category chip list from the data — limited to
+    // the top 8 by count so the chip row doesn't overflow.
+    const categoryChips = useMemo(() => {
+        if (!prospectsFeed) return [] as Array<{ key: string; count: number }>;
+        const counts: Record<string, number> = {};
+        for (const p of prospectsFeed) {
+            const k = ((p as any).businessCategory ?? "Uncategorized").trim() || "Uncategorized";
+            counts[k] = (counts[k] ?? 0) + 1;
+        }
+        return Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 8)
+            .map(([key, count]) => ({ key, count }));
+    }, [prospectsFeed]);
 
     const hotCount = useMemo(() => interviewedLeads.filter((l: any) => l.isHot).length, [interviewedLeads]);
     const prospectCount = prospectsFeed?.length ?? 0;
@@ -409,6 +456,81 @@ function CreatorLeadsInner() {
                     </div>
                 </div>
 
+                {/* Secondary prospect filters — only on Prospects tab.
+                    Category chips + rating + city + sort dropdown, per spec. */}
+                {tab === "prospects" && (
+                    <div className="space-y-3 mb-5">
+                        {/* Category chips (dynamic) */}
+                        {categoryChips.length > 0 && (
+                            <div className="-mx-4 sm:mx-0">
+                                <div className="flex items-center gap-2 overflow-x-auto px-4 sm:px-0 pb-1 no-scrollbar">
+                                    <FilterPill
+                                        label={`All (${prospectsFeed?.length ?? 0})`}
+                                        active={categoryFilter === "all"}
+                                        onClick={() => setCategoryFilter("all")}
+                                    />
+                                    {categoryChips.map((c) => (
+                                        <FilterPill
+                                            key={c.key}
+                                            label={`${c.key} (${c.count})`}
+                                            active={categoryFilter === c.key}
+                                            onClick={() => setCategoryFilter(c.key)}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Rating + city + sort row */}
+                        <div className="flex flex-wrap items-center gap-2">
+                            <div className="flex items-center gap-1.5">
+                                {([
+                                    { key: "any" as const, label: "Any rating" },
+                                    { key: "4" as const, label: "4+ ★" },
+                                    { key: "4.5" as const, label: "4.5+ ★" },
+                                ]).map((r) => (
+                                    <FilterPill
+                                        key={r.key}
+                                        label={r.label}
+                                        active={ratingFilter === r.key}
+                                        onClick={() => setRatingFilter(r.key)}
+                                    />
+                                ))}
+                            </div>
+                            <input
+                                type="text"
+                                value={cityFilter}
+                                onChange={(e) => setCityFilter(e.target.value)}
+                                placeholder="City…"
+                                className="flex-1 min-w-[120px] max-w-[200px] px-3 py-2 text-[12px] focus:outline-none"
+                                style={{
+                                    background: "var(--ed-paper-3)",
+                                    border: "1px solid var(--ed-rule)",
+                                    borderRadius: 10,
+                                    color: "var(--ed-ink)",
+                                    fontFamily: "var(--ed-sans)",
+                                }}
+                            />
+                            <select
+                                value={sortOrder}
+                                onChange={(e) => setSortOrder(e.target.value as any)}
+                                className="text-[12px] px-3 py-2 rounded-md"
+                                style={{
+                                    background: "var(--ed-paper-3)",
+                                    border: "1px solid var(--ed-rule)",
+                                    color: "var(--ed-ink)",
+                                    fontFamily: "var(--ed-sans)",
+                                }}
+                            >
+                                <option value="newest">Newest scraped</option>
+                                <option value="rating">Highest rated</option>
+                                <option value="reviews">Most reviews</option>
+                                <option value="alpha">Alphabetical</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
+
                 {/* Feed — branches by tab */}
                 {tab === "all" ? (
                     feed === undefined ? (
@@ -577,6 +699,72 @@ function FilterPill({ label, active, onClick }: { label: string; active: boolean
 }
 
 function LeadCard({ lead }: { lead: any }) {
+    // When the admin has curated content for this lead, render the FB-style
+    // social card per spec instead of the standard inquiry card. The two
+    // modes are visually distinct so creators can scan the feed and pick
+    // out the cards worth studying.
+    if (lead.hasEnrichedContent) {
+        return <LeadSocialCard lead={lead} />;
+    }
+    return <LeadStandardCard lead={lead} />;
+}
+
+function SubmitterStrip({ lead }: { lead: any }) {
+    if (!lead.submittedBy) return null;
+    return (
+        <div className="flex items-center gap-2.5">
+            {lead.submittedBy.profileImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    src={lead.submittedBy.profileImage}
+                    alt=""
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                />
+            ) : (
+                <div
+                    className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] flex-shrink-0"
+                    style={{
+                        background: "var(--ed-paper-2)",
+                        color: "var(--ed-ink)",
+                        fontFamily: "var(--ed-serif)",
+                        fontWeight: 500,
+                    }}
+                >
+                    {(lead.submittedBy.displayName ?? "?").slice(0, 1).toUpperCase()}
+                </div>
+            )}
+            <div className="min-w-0 flex-1">
+                <div className="text-[14px] font-semibold truncate" style={{ color: "var(--ed-ink)" }}>
+                    {lead.submittedBy.displayName}
+                </div>
+                <div
+                    className="text-[11px]"
+                    style={{
+                        fontFamily: "var(--ed-mono)",
+                        color: "var(--ed-ink-3)",
+                        letterSpacing: "0.04em",
+                    }}
+                >
+                    submitted this · {formatDateShort(lead._creationTime)}
+                </div>
+            </div>
+            {lead.isHot && (
+                <span
+                    className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex-shrink-0"
+                    style={{
+                        background: "var(--ed-status-lost-bg, #F3D7CF)",
+                        color: "var(--ed-danger)",
+                    }}
+                    aria-label="Hot lead — 3 or more interviewers"
+                >
+                    <Star className="w-2.5 h-2.5 fill-current" /> Hot
+                </span>
+            )}
+        </div>
+    );
+}
+
+function LeadStandardCard({ lead }: { lead: any }) {
     return (
         <Link
             href={`/leads/${lead._id}`}
@@ -588,57 +776,9 @@ function LeadCard({ lead }: { lead: any }) {
                 color: "inherit",
             }}
         >
-            {/* Submitter strip */}
-            {lead.submittedBy && (
-                <div className="flex items-center gap-2.5 mb-3">
-                    {lead.submittedBy.profileImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                            src={lead.submittedBy.profileImage}
-                            alt=""
-                            className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                        />
-                    ) : (
-                        <div
-                            className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] flex-shrink-0"
-                            style={{
-                                background: "var(--ed-paper-2)",
-                                color: "var(--ed-ink)",
-                                fontFamily: "var(--ed-serif)",
-                                fontWeight: 500,
-                            }}
-                        >
-                            {(lead.submittedBy.displayName ?? "?").slice(0, 1).toUpperCase()}
-                        </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                        <div className="text-[14px] font-semibold truncate" style={{ color: "var(--ed-ink)" }}>
-                            {lead.submittedBy.displayName}
-                        </div>
-                        <div
-                            className="text-[11px]"
-                            style={{
-                                fontFamily: "var(--ed-mono)",
-                                color: "var(--ed-ink-3)",
-                                letterSpacing: "0.04em",
-                            }}
-                        >
-                            submitted this · {formatDateShort(lead._creationTime)}
-                        </div>
-                    </div>
-                    {lead.isHot && (
-                        <span
-                            className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full flex-shrink-0"
-                            style={{
-                                background: "var(--ed-status-lost-bg, #F3D7CF)",
-                                color: "var(--ed-danger)",
-                            }}
-                        >
-                            <Star className="w-2.5 h-2.5 fill-current" /> Hot
-                        </span>
-                    )}
-                </div>
-            )}
+            <div className="mb-3">
+                <SubmitterStrip lead={lead} />
+            </div>
 
             {/* Lead inquired-by row */}
             {(lead.name || lead.phone || lead.email) && (
@@ -677,7 +817,6 @@ function LeadCard({ lead }: { lead: any }) {
                 </div>
             )}
 
-            {/* Divider */}
             <hr className="border-t" style={{ borderColor: "var(--ed-rule)" }} />
 
             {/* Business + status */}
@@ -697,23 +836,152 @@ function LeadCard({ lead }: { lead: any }) {
                 </div>
             </div>
 
-            {/* Interviewer count + admin-curated indicator */}
-            {(lead.interviewerCount > 1 || lead.hasEnrichedContent) && (
+            {lead.interviewerCount > 1 && (
                 <div
-                    className="mt-2 flex items-center gap-2 text-[11px]"
+                    className="mt-2 text-[11px]"
                     style={{
                         fontFamily: "var(--ed-mono)",
                         color: "var(--ed-ink-3)",
                         letterSpacing: "0.04em",
                     }}
                 >
-                    {lead.interviewerCount > 1 && (
-                        <span>{lead.interviewerCount} interviewers</span>
-                    )}
-                    {lead.hasEnrichedContent && lead.interviewerCount > 1 && <span>·</span>}
-                    {lead.hasEnrichedContent && <span style={{ color: "var(--ed-accent)" }}>Curated</span>}
+                    {lead.interviewerCount} interviewers
                 </div>
             )}
+        </Link>
+    );
+}
+
+// Social-card mode — FB-style render when hasEnrichedContent. Submitter strip
+// on top, then a serif headline, then the curated hero image, description,
+// and external link card. Footer: NEW · N interviewers + Curated tag.
+function LeadSocialCard({ lead }: { lead: any }) {
+    return (
+        <Link
+            href={`/leads/${lead._id}`}
+            className="block rounded-2xl overflow-hidden transition-colors hover:bg-white"
+            style={{
+                background: "var(--ed-paper-3)",
+                border: "1px solid var(--ed-rule)",
+                textDecoration: "none",
+                color: "inherit",
+            }}
+        >
+            <div className="p-4 pb-3">
+                <SubmitterStrip lead={lead} />
+            </div>
+
+            {/* Serif headline */}
+            <h3
+                className="px-4 mb-3"
+                style={{
+                    fontFamily: "var(--ed-serif)",
+                    fontSize: 22,
+                    lineHeight: 1.15,
+                    color: "var(--ed-ink)",
+                    margin: 0,
+                    fontWeight: 500,
+                }}
+            >
+                {lead.businessName}
+                {lead.businessCity && (
+                    <span
+                        className="ml-1"
+                        style={{ fontSize: 14, color: "var(--ed-ink-3)" }}
+                    >
+                        · {lead.businessCity}
+                    </span>
+                )}
+            </h3>
+
+            {/* Hero image */}
+            {lead.previewImageUrl && (
+                <div
+                    className="w-full"
+                    style={{ aspectRatio: "16 / 9", maxHeight: 280, background: "var(--ed-paper-2)", overflow: "hidden" }}
+                >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={lead.previewImageUrl}
+                        alt=""
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+            )}
+
+            {/* Description */}
+            {lead.adminDescription && (
+                <p
+                    className="px-4 pt-3 text-[14px]"
+                    style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}
+                >
+                    {lead.adminDescription.length > 280
+                        ? lead.adminDescription.slice(0, 280) + "…"
+                        : lead.adminDescription}
+                </p>
+            )}
+
+            {/* External link card */}
+            {lead.externalPreviewUrl && (
+                <div className="px-4 pt-3">
+                    <div
+                        className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl"
+                        style={{
+                            background: "var(--ed-paper-2)",
+                            border: "1px solid var(--ed-rule)",
+                        }}
+                    >
+                        <div className="min-w-0 flex-1">
+                            <div
+                                className="text-[9px]"
+                                style={{
+                                    fontFamily: "var(--ed-mono)",
+                                    color: "var(--ed-ink-3)",
+                                    letterSpacing: "0.12em",
+                                    textTransform: "uppercase",
+                                }}
+                            >
+                                External link
+                            </div>
+                            <div className="text-[12px] truncate" style={{ color: "var(--ed-ink)" }}>
+                                {lead.externalPreviewUrl}
+                            </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "var(--ed-ink-3)" }} />
+                    </div>
+                </div>
+            )}
+
+            {/* Footer */}
+            <div className="px-4 pt-3 pb-4 flex items-center justify-between gap-2"
+                 style={{ borderTop: "1px solid var(--ed-rule)", marginTop: 12 }}>
+                <div className="flex items-center gap-2">
+                    <StatusPill status={lead.status} />
+                    {lead.interviewerCount > 1 && (
+                        <span
+                            className="text-[11px]"
+                            style={{
+                                fontFamily: "var(--ed-mono)",
+                                color: "var(--ed-ink-3)",
+                                letterSpacing: "0.04em",
+                            }}
+                        >
+                            {lead.interviewerCount} interviewers
+                        </span>
+                    )}
+                </div>
+                <span
+                    className="text-[10px]"
+                    style={{
+                        fontFamily: "var(--ed-mono)",
+                        color: "var(--ed-accent)",
+                        letterSpacing: "0.12em",
+                        textTransform: "uppercase",
+                    }}
+                >
+                    Curated
+                </span>
+            </div>
         </Link>
     );
 }

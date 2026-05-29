@@ -94,13 +94,21 @@ export default function CreatorLeadDetailPage({
     );
 }
 
+type PendingNote = { tempId: string; content: string; createdAt: number };
+
 function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any }) {
     const data = useQuery(api.leads.getDetailForMobileCRM, { id: leadId });
     const updateStatus = useMutation(api.leads.updateStatus);
-    const addNote = useMutation(api.leadNotes.create);
+    // Spec contract: api.leadNotes.add({ leadId, content }) — creatorId is
+    // derived server-side from the Clerk identity.
+    const addNote = useMutation(api.leadNotes.add);
 
     const [noteDraft, setNoteDraft] = useState("");
     const [posting, setPosting] = useState(false);
+    // Optimistic notes — appended locally on submit so the UI updates
+    // instantly. Cleared as soon as the mutation resolves; the real note
+    // arrives via the reactive Convex query.
+    const [pendingNotes, setPendingNotes] = useState<PendingNote[]>([]);
 
     // If the lead is an Outscraper prospect (no submissionId), render the
     // prospect-specific layout via api.outscraper.getProspect — that query
@@ -168,17 +176,23 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
 
     const handlePostNote = async () => {
         const trimmed = noteDraft.trim();
-        if (!trimmed || !creator?._id) return;
+        if (!trimmed) return;
+        // Optimistic — append locally, clear the input, then send.
+        const tempId = `pending-${Date.now()}-${Math.random()}`;
+        const optimistic: PendingNote = { tempId, content: trimmed, createdAt: Date.now() };
+        setPendingNotes((prev) => [optimistic, ...prev]);
+        setNoteDraft("");
         setPosting(true);
         try {
-            await addNote({
-                leadId,
-                creatorId: creator._id as Id<"creators">,
-                content: trimmed,
-            });
-            setNoteDraft("");
+            await addNote({ leadId, content: trimmed });
+            // Real note will arrive via reactive query; drop the optimistic.
+            setPendingNotes((prev) => prev.filter((n) => n.tempId !== tempId));
         } catch (e: any) {
-            alert(e?.message ?? "Failed to post note");
+            // Rollback — remove optimistic and put the draft back so the user
+            // can retry.
+            setPendingNotes((prev) => prev.filter((n) => n.tempId !== tempId));
+            setNoteDraft(trimmed);
+            toast.error(e?.message ?? "Failed to post note");
         } finally {
             setPosting(false);
         }
@@ -706,7 +720,7 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                             color: "var(--ed-ink-3)",
                         }}
                     >
-                        Notes · {notes?.length ?? 0}
+                        Notes · {(notes?.length ?? 0) + pendingNotes.length}
                     </div>
 
                     {/* Composer */}
@@ -746,9 +760,24 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                     </div>
 
                     {/* Notes list */}
-                    {notes && notes.length > 0 ? (
+                    {(pendingNotes.length > 0 || (notes && notes.length > 0)) ? (
                         <ul className="space-y-3 pt-2" style={{ borderTop: "1px solid var(--ed-rule)" }}>
-                            {notes.map((n: any) => (
+                            {pendingNotes.map((n) => (
+                                <li key={n.tempId} className="text-[14px]" style={{ opacity: 0.6 }}>
+                                    <div
+                                        className="text-[10px] mb-1 inline-flex items-center gap-1"
+                                        style={{
+                                            fontFamily: "var(--ed-mono)",
+                                            color: "var(--ed-ink-3)",
+                                            letterSpacing: "0.04em",
+                                        }}
+                                    >
+                                        <Loader2 className="w-2.5 h-2.5 animate-spin" /> posting…
+                                    </div>
+                                    <p style={{ color: "var(--ed-ink)", whiteSpace: "pre-wrap" }}>{n.content}</p>
+                                </li>
+                            ))}
+                            {(notes ?? []).map((n: any) => (
                                 <li key={n._id} className="text-[14px]">
                                     <div
                                         className="text-[10px] mb-1"
@@ -1018,10 +1047,11 @@ function ProspectDetail({ data, creator }: { data: any; creator: any }) {
     const router = useRouter();
     const claim = useMutation(api.outscraper.claimProspect);
     const release = useMutation(api.outscraper.releaseProspect);
-    const addNote = useMutation(api.leadNotes.create);
+    const addNote = useMutation(api.leadNotes.add);
     const [noteDraft, setNoteDraft] = useState("");
     const [posting, setPosting] = useState(false);
     const [busy, setBusy] = useState(false);
+    const [pendingNotes, setPendingNotes] = useState<PendingNote[]>([]);
 
     const claimedByMe = claimedBy?.isMine;
     const claimedByOther = claimedBy && !claimedBy.isMine;
@@ -1071,16 +1101,18 @@ function ProspectDetail({ data, creator }: { data: any; creator: any }) {
     };
     const onPostNote = async () => {
         const trimmed = noteDraft.trim();
-        if (!trimmed || !creator?._id) return;
+        if (!trimmed) return;
+        const tempId = `pending-${Date.now()}-${Math.random()}`;
+        const optimistic: PendingNote = { tempId, content: trimmed, createdAt: Date.now() };
+        setPendingNotes((prev) => [optimistic, ...prev]);
+        setNoteDraft("");
         setPosting(true);
         try {
-            await addNote({
-                leadId: lead._id,
-                creatorId: creator._id as Id<"creators">,
-                content: trimmed,
-            });
-            setNoteDraft("");
+            await addNote({ leadId: lead._id, content: trimmed });
+            setPendingNotes((prev) => prev.filter((n) => n.tempId !== tempId));
         } catch (err: any) {
+            setPendingNotes((prev) => prev.filter((n) => n.tempId !== tempId));
+            setNoteDraft(trimmed);
             toast.error(err?.message ?? "Couldn't post note.");
         } finally {
             setPosting(false);
@@ -1286,7 +1318,7 @@ function ProspectDetail({ data, creator }: { data: any; creator: any }) {
                                     color: "var(--ed-ink-3)",
                                 }}
                             >
-                                Notes · {notes?.length ?? 0}
+                                Notes · {(notes?.length ?? 0) + pendingNotes.length}
                             </div>
                             <div className="space-y-2">
                                 <textarea
@@ -1322,9 +1354,24 @@ function ProspectDetail({ data, creator }: { data: any; creator: any }) {
                                     </button>
                                 </div>
                             </div>
-                            {notes && notes.length > 0 ? (
+                            {(pendingNotes.length > 0 || (notes && notes.length > 0)) ? (
                                 <ul className="space-y-3 pt-2" style={{ borderTop: "1px solid var(--ed-rule)" }}>
-                                    {notes.map((n: any) => (
+                                    {pendingNotes.map((n) => (
+                                        <li key={n.tempId} className="text-[14px]" style={{ opacity: 0.6 }}>
+                                            <div
+                                                className="text-[10px] mb-1 inline-flex items-center gap-1"
+                                                style={{
+                                                    fontFamily: "var(--ed-mono)",
+                                                    color: "var(--ed-ink-3)",
+                                                    letterSpacing: "0.04em",
+                                                }}
+                                            >
+                                                <Loader2 className="w-2.5 h-2.5 animate-spin" /> posting…
+                                            </div>
+                                            <p style={{ color: "var(--ed-ink)", whiteSpace: "pre-wrap" }}>{n.content}</p>
+                                        </li>
+                                    ))}
+                                    {(notes ?? []).map((n: any) => (
                                         <li key={n._id} className="text-[14px]">
                                             <div
                                                 className="text-[10px] mb-1"

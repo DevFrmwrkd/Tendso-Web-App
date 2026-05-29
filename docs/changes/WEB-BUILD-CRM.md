@@ -4,9 +4,18 @@
 >
 > URL: `/creators/leads` (exact slug owned by web team). Mirrors mobile's `app/(app)/leads/*` 1:1 in behavior, and adopts the **Editorial Paper** design system (greens + khaki — **NOT orange/terracotta**, Instrument Serif + Onest + JetBrains Mono) so the web and mobile apps feel like one product.
 >
-> **Last updated 2026-05-27.** Recent changes folded into this doc:
+> **Last updated 2026-05-28.** Recent changes folded into this doc:
+>
+> **Mobile-as-source-of-truth alignment** — mobile owns the canonical behavior for both action buttons; the web side is currently misaligned (See Live Business does nothing / shows a blank leaflet, Find Local Business has no map). Web must mirror mobile.
+>
+> | Button | Mobile behavior (canonical — keep) | Web behavior (currently broken — fix to match mobile) |
+> |---|---|---|
+> | **See Live Business** | Routes to `app/(app)/leads/nearby.tsx` — a Google Maps view showing every already-interviewed business that has a **live website**. Each pin uses the same accent-emerald style. Creators study what's already earning on the platform. **Do not change mobile.** | Currently shows a blank leaflet / does nothing. Must become a Google Maps view (JS Maps SDK, not Leaflet) showing the same set of leads with the same accent-emerald pins. Read from `listForMobileCRM` filtered to `lead.business.websiteUrl != null` (or add a server-side helper if filtering 200+ rows client-side hurts paint). |
+> | **Find Local Business** | After the 3-stage Outscraper scrape modal succeeds, routes to a **NEW map view** showing every business returned by that scrape (plus existing not-yet-interviewed Outscraper leads in the same radius). **Pin style is keyed off business category** (barbershop / restaurant / sari-sari / salon / other) so creators can scan the map for the kind of business they're targeting. | Must match mobile: same scrape modal → same post-scrape map → same category-keyed pin styles. |
+>
+> Other recent updates:
 > - Auth gate on `outscraper.scrapeNearby` + `outscraper.listScrapedLeads` changed from `requireAdmin` → `requireAuth` (creators are the primary callers)
-> - "Find Local Business" modal now uses a 3-stage loading UI with a pulsing halo + step checklist
+> - "Find Local Business" modal uses a 3-stage loading UI with a pulsing halo + step checklist before routing into the map
 > - "See Live Business" + "Find Local Business" are the exact button labels — never paraphrase
 > - Detail page must include Directions + View Website + Interviewed-by roster (these were missing from earlier drafts)
 > - Prospects tab + claim/release flow (folded in from the old WEB-BUILD-CRM-PAGE.md — deprecated)
@@ -153,14 +162,32 @@ These three are NEW and need to be added in the web repo's `convex/outscraper.ts
 
 ## Page architecture (web)
 
-Two routes under the existing authenticated Creators platform shell:
+Four routes under the existing authenticated Creators platform shell:
 
 | Route | Purpose | Convex calls |
 |---|---|---|
 | `/creators/leads` | List view — two action Doors above two tabs (Interviewed default + Prospects) | `listForMobileCRM`, `listScrapedLeads` |
+| `/creators/leads/live` | **Map A** — See Live Business destination. Google Maps view of interviewed leads with live websites. Replace the existing broken Leaflet view. | `listForMobileCRM` (filtered to `submissionId != null && business.websiteUrl != null`) |
+| `/creators/leads/discover` | **Map B** — Find Local Business destination. Opens AFTER a successful Outscraper scrape. Google Maps view with category-keyed pins. | `listScrapedLeads` (filtered to `submissionId == null` and the scraped radius) |
 | `/creators/leads/[leadId]` | Detail view — works for both interviewed AND prospect leads (render conditionally on `lead.submissionId`) | `getDetailForMobileCRM` for interviewed; `outscraper.getProspect` for prospect |
 
-Both routes should be **server-rendered shell + client-rendered data** (Next.js App Router pattern) so the page paints fast and Convex hydrates the live data.
+All routes should be **server-rendered shell + client-rendered data** (Next.js App Router pattern) so the page paints fast and Convex hydrates the live data. The two map routes additionally hydrate the Google Maps JS SDK client-side.
+
+---
+
+## Mobile-side work (what mobile owes web parity, what mobile already ships)
+
+The doc is web-centric but the alignment is bidirectional. Here's what mobile already has, what mobile needs to add, and what mobile must NOT change:
+
+| Surface | Mobile status | What mobile owes |
+|---|---|---|
+| **See Live Business button + map** | ✅ Built. `app/(app)/leads/index.tsx` button → `app/(app)/leads/nearby.tsx` map. **Canonical — do not change.** | Web must mirror this; mobile is reference. |
+| **Find Local Business button + scrape modal + 3-stage loading** | ✅ Built. Same `index.tsx` button → `showScrape` modal → `ScrapeProgressPanel`. | None — keep as-is. |
+| **Find Local Business post-scrape map** | ❌ NOT built yet. Today the scrape modal closes with an `Alert.alert` toast and that's it. | **Build `app/(app)/leads/discover.tsx`** matching the Map B spec — `react-native-maps`, category-keyed pins (use the same color + Ionicons table from the Map B section), sticky legend, bottom sheet on pin tap. Route to it from the modal's success path: replace `setShowScrape(false)` + `Alert.alert(...)` with a toast + `router.push('/(app)/leads/discover?category=...&radiusKm=...')`. |
+| **Pin colors + category mapping** | Not implemented anywhere yet. | First implementation lives in mobile's new `discover.tsx`; web mirrors the same color/icon table. |
+| **Bottom sheet content on pin tap** | Not implemented yet for discover. | Mobile builds first (same fields as Map B spec), web mirrors. |
+
+**Rule of thumb for the web agent:** if a behavior already exists on mobile, mirror it pixel-for-pixel. If a behavior is new in this doc (discover map + category pins), mobile and web ship it together — write the visual treatment ONCE and apply to both. When in doubt about copy or exact pin SVG, ask the mobile team or read `ndm/app/(app)/leads/discover.tsx` once it lands.
 
 URL state: tab choice persists in `?tab=interviewed` vs `?tab=prospects`; filters (`status`, `search`, `onlyMine`) also live in URL search params so creators can share/bookmark filtered views.
 
@@ -228,15 +255,161 @@ These labels are exact, ship on mobile under these exact terms, and must NOT be 
 
 | Mobile button | Caption (mono eyebrow) | Variant | Routes to |
 |---|---|---|---|
-| `See Live Business` | `ON THE MAP` | `accent` (emerald fill, white text) | `/creators/leads?live=true` — map view of interviewed leads with `business.websiteUrl != null` |
-| `Find Local Business` | `DISCOVER` | `ghost` (paper-3 with ink border) | Opens the category + radius modal (see "Find Local Business modal" section); on submit, calls `outscraper.scrapeNearby`; routes user to `/creators/leads?tab=prospects` after success |
+| `See Live Business` | `ON THE MAP` | `accent` (emerald fill, white text) | Map view of every business the team has **already interviewed and that has a live website**. Pin style: solid emerald droplet (single style across all pins). Mobile destination: `app/(app)/leads/nearby.tsx`. Web equivalent: `/creators/leads/live` (or whatever your slug convention is). |
+| `Find Local Business` | `DISCOVER` | `ghost` (paper-3 with ink border) | Opens the category + radius modal → 3-stage loading panel → after success, routes user to a map view showing every newly-scraped Outscraper business plus existing not-yet-interviewed Outscraper leads in the same radius. **Pin style varies by business category** (see "Find Local Business map" below). Mobile destination: NEW route at `app/(app)/leads/discover.tsx` (to be built — see mobile section). Web equivalent: `/creators/leads/discover`. |
 | Generic "Leads" tab/nav item | — | — | `/creators/leads` |
 
-**Critical distinction the user has spelled out:**
-- **See Live Business** → existing leads, already interviewed, has a live website → creator can study what's working, what content reads well, etc.
-- **Find Local Business** → BRAND NEW prospects from Outscraper → creator goes and interviews them to earn
+**Critical distinction:**
+
+- **See Live Business** → "show me what's already working — businesses we've interviewed and that have a live website." Showcase / inspiration view. Creators study what's earning on the platform.
+- **Find Local Business** → "find me a new door to knock on." Discovery view. Creator picks a category, app scrapes Outscraper, results land on a map with pins styled by business category so the creator can plan a route.
 
 Don't merge these into one button. Don't swap their semantics. The labels are exact.
+
+---
+
+## Map views — exact spec (mobile owns, web mirrors)
+
+Both action buttons land on map views. **Mobile is the source of truth for behavior, copy, pin styles, and tap interactions.** The web side currently has neither map wired up correctly — implement both to match mobile exactly.
+
+**Base layer:** Google Maps (mobile uses `react-native-maps`; web must use the **Google JS Maps SDK**, NOT Leaflet). The Maps API key `AIzaSyAt-knwNJgQ-Nx5ZY5aZUC-T8sj8D3QZ7U` is already paid for and lives in `ndm/app.json` — reuse it on web; do not provision a new key.
+
+> ⚠️ **Web is currently broken — fix priority #1.** Today on web, clicking **See Live Business** shows a blank Leaflet canvas with no pins and no header. Clicking **Find Local Business** has no map at all. Both must be replaced with the implementations below.
+
+### Map A — See Live Business (the showcase)
+
+**Mobile reference:** `app/(app)/leads/nearby.tsx`. **Do not change the mobile implementation** — it is canonical.
+
+**What it pins:** every lead where the business has a live website AND was already interviewed. Exact SELECT criteria:
+
+```typescript
+// Server-side filter (add a helper if listForMobileCRM doesn't already do this):
+lead.submissionId != null                  // someone has interviewed it
+  && lead.business.websiteUrl != null      // and the site is live
+  && lead.business.latitude  != null       // and we have coords to plot
+  && lead.business.longitude != null
+```
+
+**Pin style:** single style across the map — accent-emerald droplet, white inset dot, white outline. No category variation here. The visual consistency reinforces "these are all our success stories."
+
+**Header above the map** (Editorial Paper):
+
+```
+STEP 03 / LIVE BUSINESSES                                ● LIVE
+
+Already-interviewed
+and live.
+
+{n} businesses the team has interviewed that now have a live website. Tap any pin to study what's working.
+```
+
+- Eyebrow: mono `STEP 03 / LIVE BUSINESSES` + LiveDot
+- Display: two-line headline; "and live." is italic + `colors.accent`
+- Body sub-copy: ink-2, Onest 14px
+
+**Pin tap → bottom sheet (mobile) / popover (web desktop):**
+- Business name (serif Display sm)
+- Submitter chip (avatar + display name + relative time)
+- Address line + `business.websiteUrl` displayed as a chip
+- `[Visit website ↗]` `[Directions]` `[View detail →]` Door buttons
+- "View detail →" links to `/creators/leads/[leadId]` (interviewed detail page)
+
+**Camera behavior:** center on creator's current `navigator.geolocation` position; fit-bounds to all pins on first render. If no pins exist, show an empty-state card overlaid on the map:
+
+> Nothing live *yet.* — When the first team submission gets a website deployed, it'll appear here.
+
+**Web implementation notes:**
+- Use `@vis.gl/react-google-maps` or `@react-google-maps/api`
+- Marker SVG: 32×40 droplet, `#10B981` fill, `#FFFFFF` 2px outline, white inset dot at the apex
+- The currently-rendered blank Leaflet view must be removed entirely — do NOT layer Google Maps on top of Leaflet
+- Mirror mobile's header (eyebrow + Display + Body) above the map container — don't render the map full-bleed without context
+
+### Map B — Find Local Business (the discovery view, NEW)
+
+**Mobile status:** the post-scrape map view does not exist yet on mobile. Build it as a new route at `app/(app)/leads/discover.tsx`. After the 3-stage loading modal succeeds, replace the modal-dismiss + Alert success path with a `router.push('/(app)/leads/discover?category=barbershops&radiusKm=5')` call.
+
+**Web status:** mirror mobile. Web route: `/creators/leads/discover?category=...&radiusKm=...`.
+
+**What it pins:** every Outscraper-sourced lead in the visible radius that is NOT yet interviewed. Exact SELECT criteria:
+
+```typescript
+lead.source === "outscraper"
+  && lead.submissionId == null               // not interviewed yet
+  && lead.businessLatitude  != null
+  && lead.businessLongitude != null
+  // (optional) within the search radius the user just scraped
+  && haversine(userLatLng, [lead.businessLatitude, lead.businessLongitude]) <= radiusKm
+```
+
+This includes BOTH the just-scraped results AND any existing Outscraper rows in the radius that other creators previously discovered but nobody has interviewed yet. Showing both is intentional — a creator might claim and interview an older prospect they hadn't seen.
+
+**Pin style — keyed by business category.** This is the key visual: a creator opens the map and can scan for "barbershops near me" or "restaurants near me" at a glance.
+
+| `businessCategory` value (case-insensitive contains) | Pin color | Icon overlay (Ionicons name) |
+|---|---|---|
+| `barbershop`, `salon`, `hair`, `beauty` | `#7C3AED` (violet) | `cut-outline` |
+| `restaurant`, `cafe`, `coffee`, `food`, `eatery`, `bakery` | `#EA580C` → use `#C68A12` (warm khaki — replace the orange) | `restaurant-outline` |
+| `sari-sari`, `convenience`, `grocery`, `mart`, `store` | `#10B981` (emerald) | `storefront-outline` |
+| `auto`, `mechanic`, `repair`, `wash` | `#1F3654` (deep ink-blue) | `car-outline` |
+| `pharmacy`, `clinic`, `dental`, `medical` | `#B43A1F` (danger red) | `medkit-outline` |
+| (everything else / `Other`) | `#3C3F4A` (ink-2) | `business-outline` |
+
+Pin shape: same 32×40 droplet silhouette as Map A, but the fill color varies per the table above and the icon is rendered inside the droplet's circular head (16×16 white-tinted overlay).
+
+**Header above the map:**
+
+```
+STEP 03 / NEARBY TO INTERVIEW                            ● LIVE
+
+Fresh finds
+around you.
+
+{n} businesses found within {radiusKm} km of you. Pin colors show categories — tap any pin to claim it or get directions.
+```
+
+- Eyebrow mono + LiveDot
+- Display: "around you." italic + emerald
+- Body sub-copy: ink-2
+
+**Legend** — sticky in the top-right of the map, ALWAYS visible:
+
+```
+┌────────────────────────────────┐
+│ CATEGORIES                     │  ← mono label
+│  ✂  Barbershop · Salon         │  ← icon dot in pin color + label
+│  🍴 Restaurant · Cafe          │
+│  🛒 Sari-sari · Grocery        │
+│  🚗 Auto · Mechanic            │
+│  ⚕  Pharmacy · Clinic          │
+│  🏢 Other                      │
+└────────────────────────────────┘
+```
+
+Only show legend rows for categories that actually have pins on the map (skip the empty ones to reduce clutter).
+
+**Pin tap → bottom sheet:**
+- Business name (serif Display sm)
+- `Category · City` line
+- Rating: `⭐ 4.3 · 127 reviews` (from `businessRating` + `businessReviewCount`)
+- Full address line
+- Phone (tap-to-call) + website (tap-to-open) if present
+- Claim state (if any): `Claimed by Maria S. · 1h ago` pill
+- Door buttons: `[I'll interview this]` `[Directions]` `[View detail →]`
+  - `I'll interview this` calls `outscraper.claimProspect({ leadId })` (or shows the "claim conflict" confirmation modal if someone else already has it)
+  - `Directions` opens Google Maps with `?api=1&query={lat},{lng}` in a new tab
+  - `View detail →` links to the prospect detail page at `/creators/leads/[leadId]`
+
+**Camera behavior:**
+- Initial center: the user's GPS position (same one passed to `scrapeNearby`)
+- Initial zoom: fit-bounds to all the freshly-inserted rows from the most recent scrape (`result.inserted` count from the action response)
+- A "Re-center on me" floating button (bottom-right) returns the camera to the user's position at default zoom
+
+**Empty state** (radius came back with 0 inserts AND 0 existing rows): overlay an Editorial card:
+
+> Nothing nearby *yet.* — Try widening the radius to 10 km, or pick a different category and search again.
+> [Search again →]
+
+**Loading hand-off from the scrape modal:** the moment `scrapeNearby` resolves, the modal's success toast appears and the modal closes; simultaneously the router pushes to the discover map route. The map opens already centered + bound to the new results — no "click here to see results" intermediate screen.
 
 ---
 
@@ -990,11 +1163,13 @@ Build these as web React components and reuse across the redesign — same patte
 3. **Day 3** — Build the list page route shell. Hook `listForMobileCRM`. Render the filter row + standard-mode Interviewed card. Skip social-card mode, Prospects tab, and detail page for now.
 4. **Day 4** — Add the two action Doors at the top (See Live Business + Find Local Business). Build the Find Local Business modal (resting state only — no loading panel yet). Wire it to `scrapeNearby`.
 5. **Day 5** — Add the multi-stage loading panel to the Find Local Business modal. Pulse halo + step list. Add the social-card render mode for Interviewed cards. Add empty/loading/error states.
-6. **Day 6** — Build the Interviewed detail page. Hook `getDetailForMobileCRM`. Render submitter strip, business card, Directions + View website buttons, Interviewers roster, Notes feed. Wire `leadNotes.add` (optimistic) and `leads.updateStatus` (with the `isMine`/admin gate).
-7. **Day 7** — Add the Prospects tab. Add `claimProspect` / `releaseProspect` / `getProspect` mutations + the stale-claim cron + schema additions. Deploy. Build the prospect card grid + filters + sort.
-8. **Day 8** — Build the Prospect detail page. Add the deep-link integration on the submit flow.
-9. **Day 9** — Mobile-responsive pass. Sticky filter bar, single-column collapse, mobile-optimized note input.
-10. **Day 10** — Performance pass, a11y audit, ship behind a feature flag for internal review.
+6. **Day 6 (fixes web's broken map UX)** — **Replace the blank Leaflet See Live Business view with the Google Maps implementation per "Map A" spec.** Render the eyebrow + Display + Body header above the map. Plot pins for leads where `submissionId != null && business.websiteUrl != null`. Test bottom-sheet tap interaction. No category variation on this map — single emerald pin style.
+7. **Day 7 (the new discover map)** — Build the post-scrape `Map B` at `/creators/leads/discover` per the Find Local Business map spec. Implement category-keyed pin styling (6 categories per the table). Add the sticky legend. Wire the scrape modal's success path to `router.push('/creators/leads/discover?...')` instead of just closing the modal with an Alert. Mirror this work on mobile at `app/(app)/leads/discover.tsx` and link both — mobile is canonical, both should look + behave identically.
+8. **Day 8** — Build the Interviewed detail page. Hook `getDetailForMobileCRM`. Render submitter strip, business card, Directions + View website buttons, Interviewers roster, Notes feed. Wire `leadNotes.add` (optimistic) and `leads.updateStatus` (with the `isMine`/admin gate).
+9. **Day 9** — Add the Prospects tab. Add `claimProspect` / `releaseProspect` / `getProspect` mutations + the stale-claim cron + schema additions. Deploy. Build the prospect card grid + filters + sort.
+10. **Day 10** — Build the Prospect detail page. Add the deep-link integration on the submit flow.
+11. **Day 11** — Mobile-responsive pass. Sticky filter bar, single-column collapse, mobile-optimized note input.
+12. **Day 12** — Performance pass, a11y audit, ship behind a feature flag for internal review.
 
 ---
 
@@ -1008,13 +1183,27 @@ After deploy, sign in as a regular creator (NOT admin) and:
 3. Click a card → detail view loads with business profile + Directions + View website + Interviewer roster + Notes
 4. (Status change is admin-only on the creators platform — creators can post notes but typically cannot change status. Hide status dropdown for non-admins.)
 
-### Find Local Business modal
+### See Live Business map (Map A)
+1. Click **See Live Business** at top of `/creators/leads`
+2. Lands on `/creators/leads/live` — full-screen Google Maps view, NOT a blank Leaflet canvas
+3. Header reads `STEP 03 / LIVE BUSINESSES` + Display "Already-interviewed and live." + sub-copy with the live count
+4. Pins are emerald droplets, all same style (no category variation), only over locations of interviewed businesses with live websites
+5. Tap a pin → bottom sheet with business name, submitter chip, address, `[Visit website ↗]` `[Directions]` `[View detail →]` buttons
+6. **Cross-check parity:** open the same view on mobile (`app/(app)/leads/nearby.tsx`) — pin set, header, and tap interaction should be visually identical
+
+### Find Local Business modal + discover map (Map B)
 1. Click **Find Local Business** at top of `/creators/leads`
 2. Modal opens with category input + radius pills + Door
-3. Leave category blank, pick 5km radius, click Door
+3. Type `restaurants`, pick 5km radius, click Door
 4. Modal switches to the 3-stage loading panel — see the halo pulse and the step list advance
 5. After 5–15s, success toast appears with `inserted/skipped/total` counts
-6. Switch to Prospects tab — new rows show up at the top
+6. **Modal closes and routes to `/creators/leads/discover?category=restaurants&radiusKm=5`**
+7. Discover map renders with the warm-khaki "restaurant" pins for the just-scraped results
+8. Type a different category in the modal next time (e.g. `barbershops`) → violet `cut-outline` pins appear
+9. Sticky legend in top-right shows only the categories present on the map
+10. Tap a pin → bottom sheet with rating, address, phone, claim state, `[I'll interview this]` `[Directions]` `[View detail →]` buttons
+11. Tap `I'll interview this` → button switches to "YOU claimed this" + Release button appears
+12. **Cross-check parity:** the same flow on mobile (`app/(app)/leads/discover.tsx`) should be visually identical
 
 ### Prospects tab
 1. Switch to Prospects tab
