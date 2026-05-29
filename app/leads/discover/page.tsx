@@ -117,12 +117,16 @@ function DiscoverInner() {
         isLoaded && isSignedIn && creator !== undefined && !!creator && (creator.role === "admin" || !!creator.certifiedAt);
 
     const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null);
+    const [locDenied, setLocDenied] = useState(false);
     useEffect(() => {
         if (!ready) return;
-        if (typeof window === "undefined" || !navigator.geolocation) return;
+        if (typeof window === "undefined" || !navigator.geolocation) {
+            setLocDenied(true);
+            return;
+        }
         navigator.geolocation.getCurrentPosition(
             (pos) => setUserLoc({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-            () => {},
+            () => setLocDenied(true),
             { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60_000 },
         );
     }, [ready]);
@@ -133,10 +137,12 @@ function DiscoverInner() {
         ready ? {} : "skip",
     ) as any[] | undefined;
 
+    // Pins are sorted nearest-first when GPS is available; without GPS
+    // we keep insertion order (newest-scraped first from the query).
     const pins = useMemo(() => {
-        if (!prospects) return [];
+        if (!prospects) return [] as any[];
         const origin = userLoc;
-        return prospects
+        const filtered = prospects
             .filter(
                 (p: any) =>
                     !p.submissionId &&
@@ -155,8 +161,26 @@ function DiscoverInner() {
                 lat: p.businessLatitude,
                 lng: p.businessLongitude,
                 categoryKey: classifyCategory(p.businessCategory),
+                distanceKm: origin
+                    ? haversineKm(origin, { lat: p.businessLatitude, lng: p.businessLongitude })
+                    : null,
             }));
+        if (origin) {
+            filtered.sort(
+                (a: any, b: any) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity),
+            );
+        }
+        return filtered;
     }, [prospects, userLoc, radiusKm]);
+
+    // Distance formatter matching spec: "{N} m" < 1km, "{N.N} km" < 10km,
+    // "{N} km" otherwise, "—" if null.
+    const formatDistance = (km: number | null): string => {
+        if (km == null) return "—";
+        if (km < 1) return `${Math.round(km * 1000)} m`;
+        if (km < 10) return `${km.toFixed(1)} km`;
+        return `${Math.round(km)} km`;
+    };
 
     const categoriesInView = useMemo(() => {
         const set = new Set<CategoryKey>();
@@ -208,10 +232,14 @@ function DiscoverInner() {
                     Fresh finds{" "}
                     <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>around you.</em>
                 </h1>
+                {/* Sub-copy — three variants per spec: loading / empty / has results.
+                    The category name is interpolated from the URL param. */}
                 <p className="text-[14px] mb-5" style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}>
                     {prospects === undefined
-                        ? "Loading…"
-                        : `${pins.length} business${pins.length === 1 ? "" : "es"} found within ${radiusKm} km of you. Pin colors show categories — tap any pin to claim it or get directions.`}
+                        ? "Loading nearby businesses to interview…"
+                        : pins.length === 0
+                            ? "No nearby businesses yet — try widening the radius or a different category."
+                            : `${pins.length} ${category} business${pins.length === 1 ? "" : "es"} within ${radiusKm} km. Pin colors show categories.`}
                 </p>
 
                 {/* Map with sticky legend */}
@@ -291,7 +319,55 @@ function DiscoverInner() {
                     )}
                 </div>
 
-                {/* Below-map: empty state OR scrape-again CTA */}
+                {/* Permission-denied banner — only when geolocation was
+                    explicitly denied. Per spec: "Enable location to sort
+                    by distance" ghost Door. */}
+                {locDenied && (
+                    <div
+                        className="flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 mb-4 text-[12px]"
+                        style={{
+                            background: "var(--ed-status-contacted-bg, #FBE9C4)",
+                            color: "var(--ed-ink-2)",
+                            border: "1px solid var(--ed-rule)",
+                        }}
+                    >
+                        <span className="inline-flex items-center gap-2">
+                            <MapPin className="w-3.5 h-3.5" style={{ color: "var(--ed-warn)" }} />
+                            Enable location to sort by distance.
+                        </span>
+                    </div>
+                )}
+
+                {/* Section header above the card list — NEAREST FIRST when
+                    GPS granted, ALL NEARBY when denied. Right side: N pinned. */}
+                {prospects !== undefined && pins.length > 0 && (
+                    <div className="flex items-center justify-between mb-3">
+                        <div
+                            className="text-[10px]"
+                            style={{
+                                fontFamily: "var(--ed-mono)",
+                                letterSpacing: "0.18em",
+                                textTransform: "uppercase",
+                                color: "var(--ed-ink-3)",
+                            }}
+                        >
+                            {userLoc ? "Nearest first" : "All nearby"}
+                        </div>
+                        <div
+                            className="text-[10px]"
+                            style={{
+                                fontFamily: "var(--ed-mono)",
+                                letterSpacing: "0.18em",
+                                textTransform: "uppercase",
+                                color: "var(--ed-ink-3)",
+                            }}
+                        >
+                            {pins.length} pinned
+                        </div>
+                    </div>
+                )}
+
+                {/* Below-map: list, empty state, or skeleton */}
                 {prospects === undefined ? (
                     <div className="space-y-3">
                         {Array.from({ length: 3 }).map((_, i) => (
@@ -307,17 +383,22 @@ function DiscoverInner() {
                         className="rounded-2xl py-10 px-6 text-center"
                         style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
                     >
-                        <Compass className="w-9 h-9 mx-auto mb-3" style={{ color: "var(--ed-accent)" }} />
+                        <div
+                            className="w-14 h-14 rounded-full inline-flex items-center justify-center mb-3"
+                            style={{ background: "var(--ed-paper-2)" }}
+                        >
+                            <Compass className="w-7 h-7" style={{ color: "var(--ed-ink-3)" }} />
+                        </div>
                         <h3 style={{ fontFamily: "var(--ed-serif)", fontSize: 26, color: "var(--ed-ink)" }}>
-                            Nothing nearby{" "}
+                            Nothing to interview{" "}
                             <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>yet.</em>
                         </h3>
-                        <p className="text-[14px] mt-2 mb-4" style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}>
-                            Try widening the radius to 10 km, or pick a different category and search again.
+                        <p className="text-[13px] mt-2 mb-4" style={{ color: "var(--ed-ink-3)", lineHeight: 1.5 }}>
+                            Tap Find Local Business again with a wider radius or a different category to add more pins here.
                         </p>
                         <Link
                             href="/leads"
-                            className="inline-flex items-center gap-1.5 text-[12px] px-4 py-2.5 rounded-full"
+                            className="inline-flex items-center justify-center gap-1.5 text-[12px] px-4 py-2.5 rounded-xl w-full"
                             style={{
                                 background: "var(--ed-ink)",
                                 color: "var(--ed-paper-3)",
@@ -326,7 +407,7 @@ function DiscoverInner() {
                                 textTransform: "uppercase",
                             }}
                         >
-                            Search again →
+                            ← Back to leads
                         </Link>
                     </div>
                 ) : (
@@ -338,7 +419,7 @@ function DiscoverInner() {
                                 <li key={String(p._id)}>
                                     <Link
                                         href={`/leads/${p._id}`}
-                                        className="flex items-start gap-3 rounded-2xl p-3.5 hover:bg-white transition-colors"
+                                        className="flex items-stretch gap-3 rounded-2xl p-3.5 hover:bg-white transition-colors"
                                         style={{
                                             background: "var(--ed-paper-3)",
                                             border: "1px solid var(--ed-rule)",
@@ -347,7 +428,7 @@ function DiscoverInner() {
                                         }}
                                     >
                                         <div
-                                            className="w-10 h-10 rounded-xl inline-flex items-center justify-center flex-shrink-0"
+                                            className="w-11 h-11 rounded-xl inline-flex items-center justify-center flex-shrink-0"
                                             style={{ background: meta.color, color: "#fff" }}
                                         >
                                             <Icon className="w-5 h-5" />
@@ -356,14 +437,43 @@ function DiscoverInner() {
                                             <div className="text-[15px] font-semibold truncate" style={{ color: "var(--ed-ink)" }}>
                                                 {p.businessName ?? "(unnamed)"}
                                             </div>
-                                            <div className="text-[12px]" style={{ color: "var(--ed-ink-3)" }}>
-                                                {[p.businessCategory, p.businessCity].filter(Boolean).join(" · ") || "—"}
+                                            <div className="text-[12px] truncate" style={{ color: "var(--ed-ink-3)" }}>
+                                                {[p.businessCategory, p.businessCity].filter(Boolean).join(" · ") ||
+                                                    p.businessAddress ||
+                                                    "—"}
                                             </div>
                                             {p.businessRating != null && (
-                                                <div className="flex items-center gap-1 text-[11px] mt-0.5" style={{ color: "var(--ed-ink)" }}>
+                                                <div className="flex items-center gap-1 text-[11px] mt-1" style={{ color: "var(--ed-ink)" }}>
                                                     <Star className="w-2.5 h-2.5 fill-current" style={{ color: "var(--ed-warn)" }} />
                                                     {p.businessRating.toFixed(1)}
                                                     {p.businessReviewCount ? <span style={{ color: "var(--ed-ink-3)" }}> · {p.businessReviewCount}</span> : null}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="text-right flex-shrink-0 flex flex-col items-end justify-center">
+                                            {p.distanceKm != null ? (
+                                                <div
+                                                    style={{
+                                                        fontFamily: "var(--ed-serif)",
+                                                        fontSize: 18,
+                                                        letterSpacing: "-0.01em",
+                                                        color: "var(--ed-ink)",
+                                                        lineHeight: 1,
+                                                    }}
+                                                >
+                                                    {formatDistance(p.distanceKm)}
+                                                </div>
+                                            ) : (
+                                                <div
+                                                    className="text-[9px]"
+                                                    style={{
+                                                        fontFamily: "var(--ed-mono)",
+                                                        color: "var(--ed-ink-3)",
+                                                        letterSpacing: "0.14em",
+                                                        textTransform: "uppercase",
+                                                    }}
+                                                >
+                                                    Distance off
                                                 </div>
                                             )}
                                         </div>
@@ -484,6 +594,22 @@ function CategoryPins({ pins }: { pins: any[] }) {
                             >
                                 Directions
                             </a>
+                            {selected.phone && (
+                                <a
+                                    href={`tel:${String(selected.phone).replace(/[^0-9+]/g, "")}`}
+                                    style={{
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        padding: "4px 10px",
+                                        borderRadius: 999,
+                                        background: "#EFEBE0",
+                                        color: "#1B1C24",
+                                        textDecoration: "none",
+                                    }}
+                                >
+                                    Call
+                                </a>
+                            )}
                             <Link
                                 href={`/leads/${selected._id}`}
                                 style={{
@@ -506,31 +632,47 @@ function CategoryPins({ pins }: { pins: any[] }) {
     );
 }
 
+// Pin per spec discover.tsx: 34×34 circle head (2px white border, 16×16 white
+// Ionicon centered) + 8px downward triangle tail (6px half-width). Drop
+// shadow for elevation. NOT a single droplet — explicitly two stacked
+// shapes per the spec's exact JSX.
 function CategoryDroplet({ categoryKey }: { categoryKey: CategoryKey }) {
     const meta = CATEGORY_META[categoryKey];
+    const Icon = meta.Icon;
     return (
-        <div style={{ position: "relative", width: 32, height: 40 }}>
-            <svg width={32} height={40} viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
-                <path
-                    d="M16 0C7.16 0 0 7.16 0 16c0 11 16 24 16 24s16-13 16-24C32 7.16 24.84 0 16 0z"
-                    fill={meta.color}
-                    stroke="#FFFFFF"
-                    strokeWidth={2}
-                />
-                <circle cx={16} cy={15} r={6} fill="rgba(255,255,255,0.9)" />
-            </svg>
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.25))",
+            }}
+        >
             <div
                 style={{
-                    position: "absolute",
-                    top: 8,
-                    left: 10,
-                    width: 12,
-                    height: 12,
-                    color: meta.color,
+                    width: 34,
+                    height: 34,
+                    borderRadius: "50%",
+                    background: meta.color,
+                    border: "2px solid #FFFFFF",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                 }}
             >
-                <meta.Icon width={12} height={12} />
+                <Icon className="w-4 h-4" style={{ color: "#FFFFFF" }} />
             </div>
+            <div
+                style={{
+                    width: 0,
+                    height: 0,
+                    borderLeft: "6px solid transparent",
+                    borderRight: "6px solid transparent",
+                    borderTop: `8px solid ${meta.color}`,
+                    marginTop: -2,
+                }}
+                aria-hidden
+            />
         </div>
     );
 }

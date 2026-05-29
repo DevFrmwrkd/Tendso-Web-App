@@ -471,6 +471,23 @@ export const listForMap = query({
         for (const sub of allSubmissions) submissionCache.set(String(sub._id), sub);
         const creatorCache = new Map<string, any>();
 
+        // Build a submissionId → publishedUrl lookup from the generatedWebsites
+        // table. The canonical "live URL" lives on submission.websiteUrl, but
+        // when the auto-backfill hasn't run yet (or got cleared by unpublish),
+        // submission.websiteUrl is null even though generatedWebsites.publishedUrl
+        // is populated. The admin code at convex/admin.ts:354-361 does the
+        // same fallback resolution — we mirror it here so Map A actually pins
+        // leads whose websites are live but whose submission rows haven't
+        // been backfilled.
+        const allWebsites = await ctx.db.query('generatedWebsites').collect();
+        const publishedUrlBySubmission = new Map<string, string>();
+        for (const w of allWebsites) {
+            const url = (w as any).publishedUrl;
+            if (url && w.submissionId) {
+                publishedUrlBySubmission.set(String(w.submissionId), url);
+            }
+        }
+
         const result: Array<{
             _id: any;
             businessName: string;
@@ -534,7 +551,13 @@ export const listForMap = query({
                 }
             }
 
-            const websiteUrl = (sub as any)?.websiteUrl ?? null;
+            // Same fallback chain admin.ts:354-361 uses to resolve a live URL:
+            // submission.websiteUrl → generatedWebsites.publishedUrl.
+            const websiteUrl =
+                (sub as any)?.websiteUrl ??
+                (lead.submissionId
+                    ? publishedUrlBySubmission.get(String(lead.submissionId)) ?? null
+                    : null);
             result.push({
                 _id: lead._id,
                 businessName,

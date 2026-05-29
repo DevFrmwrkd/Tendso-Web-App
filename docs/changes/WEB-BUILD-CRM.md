@@ -4,16 +4,18 @@
 >
 > URL: `/creators/leads` (exact slug owned by web team). Mirrors mobile's `app/(app)/leads/*` 1:1 in behavior, and adopts the **Editorial Paper** design system (greens + khaki — **NOT orange/terracotta**, Instrument Serif + Onest + JetBrains Mono) so the web and mobile apps feel like one product.
 >
-> **Last updated 2026-05-28.** Recent changes folded into this doc:
+> **Last updated 2026-05-29.** Recent changes folded into this doc:
 >
 > 🚨 **URGENT — Outscraper currently broken on prod.** Find Local Business returns 0 results every time because the deployed `convex/outscraper.ts` builds an invalid request to Outscraper's API. Full diagnosis + fix in the "🛑 2026-05-28 — Outscraper query-format bug" section below. **Fix this first** — everything downstream of Find Local Business (Prospects tab, discover map, claim flow) is blocked until creators can actually populate prospect rows.
 >
-> **Mobile-as-source-of-truth alignment** — mobile owns the canonical behavior for both action buttons; the web side is currently misaligned (See Live Business does nothing / shows a blank leaflet, Find Local Business has no map). Web must mirror mobile.
+> ✅ **2026-05-29 — Mobile discover map is now BUILT.** The previous broken UX (scrape success → useless "X businesses added to your interview list" Alert dialog → nothing visible) has been replaced. Mobile's Find Local Business button now routes directly to the discover map at `app/(app)/leads/discover.tsx` after the scrape resolves. There is no more interview-list-Alert step. The map pins every Outscraper-scraped business with category-keyed pins + a sticky category legend. **Web must mirror this exact flow.** Spec is in "Map B — Find Local Business" below.
 >
-> | Button | Mobile behavior (canonical — keep) | Web behavior (currently broken — fix to match mobile) |
+> **Mobile-as-source-of-truth alignment** — mobile owns the canonical behavior for both action buttons. Web is currently misaligned and must catch up.
+>
+> | Button | Mobile (canonical — DO NOT change) | Web (currently broken — fix to match mobile) |
 > |---|---|---|
-> | **See Live Business** | Routes to `app/(app)/leads/nearby.tsx` — a Google Maps view showing every already-interviewed business that has a **live website**. Each pin uses the same accent-emerald style. Creators study what's already earning on the platform. **Do not change mobile.** | Currently shows a blank leaflet / does nothing. Must become a Google Maps view (JS Maps SDK, not Leaflet) showing the same set of leads with the same accent-emerald pins. Read from `listForMobileCRM` filtered to `lead.business.websiteUrl != null` (or add a server-side helper if filtering 200+ rows client-side hurts paint). |
-> | **Find Local Business** | After the 3-stage Outscraper scrape modal succeeds, routes to a **NEW map view** showing every business returned by that scrape (plus existing not-yet-interviewed Outscraper leads in the same radius). **Pin style is keyed off business category** (barbershop / restaurant / sari-sari / salon / other) so creators can scan the map for the kind of business they're targeting. | Must match mobile: same scrape modal → same post-scrape map → same category-keyed pin styles. |
+> | **See Live Business** | Routes to `app/(app)/leads/nearby.tsx` — a Google Maps view showing every already-interviewed business that has a **live website**. Each pin uses the same accent-emerald style. Creators study what's already earning on the platform. | Currently shows a blank leaflet / does nothing. Must become a Google Maps view (JS Maps SDK, not Leaflet) showing the same set of leads with the same accent-emerald pins. Read from `listForMobileCRM` filtered to `lead.business.websiteUrl != null`. |
+> | **Find Local Business** | After the 3-stage Outscraper scrape modal succeeds, immediately routes (`router.push`) to `app/(app)/leads/discover.tsx` with `?category=...&radiusKm=...` URL params. **No interview-list Alert dialog** — the map IS the result. The discover map reads `outscraper.listScrapedLeads`, filters to rows where `submissionId == null`, plots each as a colored pin keyed off `businessCategory`, shows a sticky category legend in the top-right of the map, and below the map lists the businesses sorted by distance with rating + Directions/Call buttons. | Currently has no map at all. Must mirror mobile: same scrape modal → same post-scrape `router.push` to a discover route → same category-keyed pin styles → same sticky legend → same scrollable distance-sorted list under the map. No "X businesses added" toast or list intermediate. |
 >
 > Other recent updates:
 > - Auth gate on `outscraper.scrapeNearby` + `outscraper.listScrapedLeads` changed from `requireAdmin` → `requireAuth` (creators are the primary callers)
@@ -185,11 +187,11 @@ The doc is web-centric but the alignment is bidirectional. Here's what mobile al
 |---|---|---|
 | **See Live Business button + map** | ✅ Built. `app/(app)/leads/index.tsx` button → `app/(app)/leads/nearby.tsx` map. **Canonical — do not change.** | Web must mirror this; mobile is reference. |
 | **Find Local Business button + scrape modal + 3-stage loading** | ✅ Built. Same `index.tsx` button → `showScrape` modal → `ScrapeProgressPanel`. | None — keep as-is. |
-| **Find Local Business post-scrape map** | ❌ NOT built yet. Today the scrape modal closes with an `Alert.alert` toast and that's it. | **Build `app/(app)/leads/discover.tsx`** matching the Map B spec — `react-native-maps`, category-keyed pins (use the same color + Ionicons table from the Map B section), sticky legend, bottom sheet on pin tap. Route to it from the modal's success path: replace `setShowScrape(false)` + `Alert.alert(...)` with a toast + `router.push('/(app)/leads/discover?category=...&radiusKm=...')`. |
-| **Pin colors + category mapping** | Not implemented anywhere yet. | First implementation lives in mobile's new `discover.tsx`; web mirrors the same color/icon table. |
-| **Bottom sheet content on pin tap** | Not implemented yet for discover. | Mobile builds first (same fields as Map B spec), web mirrors. |
+| **Find Local Business post-scrape map** | ✅ Built (2026-05-29). `app/(app)/leads/discover.tsx` lives behind the success path of the scrape modal. The modal calls `router.push('/(app)/leads/discover?category=...&radiusKm=...')` after the scrape resolves — no Alert, no list intermediate. **Canonical — web must mirror this exact shape.** | Web must build `/creators/leads/discover` to match. |
+| **Pin colors + category mapping** | ✅ Built. Lives in `CATEGORY_STYLES` at the top of `app/(app)/leads/discover.tsx`. Six categories (barbershop, restaurant, sari-sari, auto, medical, other) each with a hex color + Ionicons name. The `categorize()` function does case-insensitive substring matching on `businessCategory` to bucket each scraped row. | Web must copy the exact same color + icon mapping. Don't invent new categories. |
+| **Bottom sheet content on pin tap** | ✅ Built. Tapping a pin focuses that row in the scrollable list below the map; the focused row reveals `[Directions]` + `[Call]` Door buttons inline. There is no separate bottom-sheet modal — the list IS the detail surface, with the active row highlighted by a category-colored left border. | Web mirrors the same pattern OR uses a proper desktop popover near the pin; either is fine, but the available actions and field set must match (rating, distance, address, Directions, Call). |
 
-**Rule of thumb for the web agent:** if a behavior already exists on mobile, mirror it pixel-for-pixel. If a behavior is new in this doc (discover map + category pins), mobile and web ship it together — write the visual treatment ONCE and apply to both. When in doubt about copy or exact pin SVG, ask the mobile team or read `ndm/app/(app)/leads/discover.tsx` once it lands.
+**Rule of thumb for the web agent:** if a behavior already exists on mobile, mirror it pixel-for-pixel. Read `ndm/app/(app)/leads/discover.tsx` as the source of truth — the pin SVG shape, the category table, the legend layout, the empty state copy, and the active-row pattern are all defined there and have shipped.
 
 URL state: tab choice persists in `?tab=interviewed` vs `?tab=prospects`; filters (`status`, `search`, `onlyMine`) also live in URL search params so creators can share/bookmark filtered views.
 
@@ -334,7 +336,7 @@ and live.
 
 ### Map B — Find Local Business (the discovery view, NEW)
 
-**Mobile status:** the post-scrape map view does not exist yet on mobile. Build it as a new route at `app/(app)/leads/discover.tsx`. After the 3-stage loading modal succeeds, replace the modal-dismiss + Alert success path with a `router.push('/(app)/leads/discover?category=barbershops&radiusKm=5')` call.
+**Mobile status:** ✅ shipped 2026-05-29 at `app/(app)/leads/discover.tsx`. The scrape modal's success path is `router.push('/(app)/leads/discover?category=${cat}&radiusKm=${radius}')` — no Alert dialog, no list intermediate. The map opens immediately after the saving phase. Read that file as the canonical implementation.
 
 **Web status:** mirror mobile. Web route: `/creators/leads/discover?category=...&radiusKm=...`.
 
@@ -353,18 +355,53 @@ This includes BOTH the just-scraped results AND any existing Outscraper rows in 
 
 **Pin style — keyed by business category.** This is the key visual: a creator opens the map and can scan for "barbershops near me" or "restaurants near me" at a glance.
 
-| `businessCategory` value (case-insensitive contains) | Pin color | Icon overlay (Ionicons name) |
-|---|---|---|
-| `barbershop`, `salon`, `hair`, `beauty` | `#7C3AED` (violet) | `cut-outline` |
-| `restaurant`, `cafe`, `coffee`, `food`, `eatery`, `bakery` | `#EA580C` → use `#C68A12` (warm khaki — replace the orange) | `restaurant-outline` |
-| `sari-sari`, `convenience`, `grocery`, `mart`, `store` | `#10B981` (emerald) | `storefront-outline` |
-| `auto`, `mechanic`, `repair`, `wash` | `#1F3654` (deep ink-blue) | `car-outline` |
-| `pharmacy`, `clinic`, `dental`, `medical` | `#B43A1F` (danger red) | `medkit-outline` |
-| (everything else / `Other`) | `#3C3F4A` (ink-2) | `business-outline` |
+The exact category-detection regex used in `discover.tsx` (port verbatim — these include PH-specific terms Outscraper returns for businesses in the Philippines):
 
-Pin shape: same 32×40 droplet silhouette as Map A, but the fill color varies per the table above and the icon is rendered inside the droplet's circular head (16×16 white-tinted overlay).
+| Bucket | Regex (case-insensitive) | Pin color | Icon (Ionicons name) | Legend label |
+|---|---|---|---|---|
+| `barbershop` | `/barbershop\|salon\|hair\|beauty\|nail/` | `#7C3AED` (violet) | `cut-outline` | `Barbershop · Salon` |
+| `restaurant` | `/restaurant\|cafe\|coffee\|food\|eatery\|bakery\|fastfood\|carinderia\|kakanin\|lutong/` | `#C68A12` (warm khaki — NOT orange) | `restaurant-outline` | `Restaurant · Cafe` |
+| `sari-sari` | `/sari-?sari\|convenience\|grocery\|mart\|store/` | `#10B981` (emerald) | `storefront-outline` | `Sari-sari · Grocery` |
+| `auto` | `/auto\|mechanic\|vulcanizing\|repair\|car ?wash\|tire/` | `#1F3654` (deep ink-blue) | `car-outline` | `Auto · Mechanic` |
+| `medical` | `/pharmacy\|drugstore\|clinic\|dental\|medical\|hospital/` | `#B43A1F` (danger red) | `medkit-outline` | `Pharmacy · Clinic` |
+| `other` | (fallback when no regex matches) | `#3C3F4A` (ink-2) | `business-outline` | `Other` |
 
-**Header above the map:**
+Matching is **first match wins** — evaluate buckets in the order listed (barbershop → restaurant → sari-sari → auto → medical → other). The regex tests run against `businessCategory.toLowerCase()`. Match order matters because some categories share keywords (e.g. a "Beauty salon" hits `barbershop` first, not `sari-sari`'s `store`).
+
+**Pin SVG shape — exact spec from `discover.tsx`:**
+
+The shipped pin is **not** a single droplet — it's a composite of two stacked shapes:
+
+1. **Head:** a 34×34 perfect circle, filled with the category color, 2px white border. Inside the circle, a 16×16 Ionicon rendered in white.
+2. **Tail:** an 8px downward-pointing triangle directly below the head, same fill color as the head, 6px half-width. Margin-top: -2 to overlap the circle slightly.
+
+Container: `alignItems: 'center'` so the tail sits centered under the head. Drop shadow: `shadowOpacity: 0.25, shadowRadius: 3, shadowOffset: {0, 2}`, `elevation: 4` for Android.
+
+```jsx
+<View style={{ alignItems: 'center' }}>
+  <View style={{
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: categoryColor,
+    borderWidth: 2, borderColor: '#FFFFFF',
+    alignItems: 'center', justifyContent: 'center',
+    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 3, shadowOffset: { width: 0, height: 2 },
+    elevation: 4,
+  }}>
+    <Ionicons name={categoryIcon} size={16} color="#FFFFFF" />
+  </View>
+  <View style={{
+    width: 0, height: 0,
+    borderLeftWidth: 6, borderRightWidth: 6, borderTopWidth: 8,
+    borderLeftColor: 'transparent', borderRightColor: 'transparent',
+    borderTopColor: categoryColor,
+    marginTop: -2,
+  }} />
+</View>
+```
+
+Web should reproduce this exact silhouette as an inline SVG marker — circle head + triangle tail in the same colors. Do NOT swap for Google's default red droplet.
+
+**Header above the map — exact copy + sizing:**
 
 ```
 STEP 03 / NEARBY TO INTERVIEW                            ● LIVE
@@ -372,52 +409,106 @@ STEP 03 / NEARBY TO INTERVIEW                            ● LIVE
 Fresh finds
 around you.
 
-{n} businesses found within {radiusKm} km of you. Pin colors show categories — tap any pin to claim it or get directions.
+{N} {category} business(es) within {radiusKm} km. Pin colors show categories.
 ```
 
-- Eyebrow mono + LiveDot
-- Display: "around you." italic + emerald
-- Body sub-copy: ink-2
+- Header container: `paddingHorizontal: 20, paddingTop: 14, paddingBottom: 14`
+- Eyebrow row: 36×36 circular back button (paper-3 fill, rule border) on the left, then `<Label tracking={1.8}>03 / NEARBY TO INTERVIEW</Label>` + mono "·" + `<LiveDot size={6}>` + `<Label color={colors.live}>LIVE</Label>`
+- Display headline: two `<Display size="md">` text nodes baseline-aligned. First is `Fresh finds ` (plain). Second is `around you.` (italic + `colors.accent`)
+- Sub-copy: `<Body size="sm" color={colors.ink2}>` — count, category (interpolated from URL param), radius. Three variants:
+  - Loading: `"Loading nearby businesses to interview…"`
+  - Empty: `"No nearby businesses yet — try widening the radius or a different category."`
+  - Has results: `"{N} {category} business(es) within {radiusKm} km. Pin colors show categories."`
+- `<Rule strong />` divider after the header block
 
-**Legend** — sticky in the top-right of the map, ALWAYS visible:
+**Map container:** 340px tall, `width: '100%'`, paper-2 fallback background. Loading state: centered `<ActivityIndicator color={colors.accent}>`.
+
+**Legend — exact layout from `discover.tsx`:**
+
+Absolute-positioned in the map's top-right corner, only renders when there are pins:
 
 ```
-┌────────────────────────────────┐
-│ CATEGORIES                     │  ← mono label
-│  ✂  Barbershop · Salon         │  ← icon dot in pin color + label
-│  🍴 Restaurant · Cafe          │
-│  🛒 Sari-sari · Grocery        │
-│  🚗 Auto · Mechanic            │
-│  ⚕  Pharmacy · Clinic          │
-│  🏢 Other                      │
-└────────────────────────────────┘
+position: absolute, top: 12, right: 12
+backgroundColor: 'rgba(252, 250, 245, 0.96)'    ← paper-3 at 96% opacity
+borderColor: colors.rule, borderWidth: 1
+borderRadius: radius.sm                          ← 12px
+paddingVertical: 8, paddingHorizontal: 10
+maxWidth: 180
 ```
 
-Only show legend rows for categories that actually have pins on the map (skip the empty ones to reduce clutter).
+Inside:
+- Mono "CATEGORIES" label: `fonts.monoMed, fontSize: 9, letterSpacing: 1.2, color: colors.ink3, textTransform: 'uppercase', marginBottom: 6`
+- One row per active category (omit categories with zero pins). Each row: `flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4`. The row contains:
+  - A 14×14 circle with the category color fill, 8×8 white Ionicon centered inside
+  - A label text: `fonts.mono, fontSize: 10, color: colors.ink2, letterSpacing: 0.3`, numberOfLines: 1
 
-**Pin tap → bottom sheet:**
-- Business name (serif Display sm)
-- `Category · City` line
-- Rating: `⭐ 4.3 · 127 reviews` (from `businessRating` + `businessReviewCount`)
-- Full address line
-- Phone (tap-to-call) + website (tap-to-open) if present
-- Claim state (if any): `Claimed by Maria S. · 1h ago` pill
-- Door buttons: `[I'll interview this]` `[Directions]` `[View detail →]`
-  - `I'll interview this` calls `outscraper.claimProspect({ leadId })` (or shows the "claim conflict" confirmation modal if someone else already has it)
-  - `Directions` opens Google Maps with `?api=1&query={lat},{lng}` in a new tab
-  - `View detail →` links to the prospect detail page at `/creators/leads/[leadId]`
+Legend labels (full strings, do not abbreviate):
+- `Barbershop · Salon`
+- `Restaurant · Cafe`
+- `Sari-sari · Grocery`
+- `Auto · Mechanic`
+- `Pharmacy · Clinic`
+- `Other`
+
+**Pin tap — inline active-card pattern (NOT a bottom sheet):**
+
+Tapping a pin does NOT open a modal or bottom sheet. Instead:
+
+1. The list below the map sets that lead as `activeLeadId`
+2. The map animates to the pin: `mapRef.animateToRegion({ latitude, longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }, 500ms)`
+3. The active row in the list re-orders to the top, gets a 3px category-colored left border
+4. The active row reveals inline `[Directions]` + `[Call]` Door buttons below its content
+
+This means the list-below-map IS the pin detail surface. There's no overlay UI. Web can either mirror this exact pattern OR use a desktop popover anchored to the pin — both are acceptable as long as the available actions and field set match.
+
+**Card layout for each business in the list below the map:**
+
+Card padding 14, large radius. Left section: row container with `gap: 12`:
+- 44×44 colored square (`borderRadius: radius.sm`, category color fill) with the category Ionicon centered, white, size 20
+- Flex-1 column:
+  - `<Body size="md" weight="bold" color={colors.ink} numberOfLines={1}>` — business name
+  - `<Body size="xs" color={colors.ink3} numberOfLines={1} style={{ marginTop: 1 }}>` — `{businessCategory} · {businessCity}` joined with ` · `, fallback to `businessAddress`, final fallback `'—'`
+  - If `businessRating != null`: row with `gap: 4, marginTop: 4` containing a `star` Ionicon size 11 in `colors.warn` plus mono text `"{rating.toFixed(1)} · {reviewCount}"`
+- Right section: `alignItems: 'flex-end'`
+  - Serif distance text: `fonts.serif, fontSize: 18, letterSpacing: -0.2, color: colors.ink` — uses `formatDistance(distanceKm)`: `"{N} m"` < 1km, `"{N.N} km"` < 10km, `"{N} km"` otherwise, `"—"` if null
+  - If distance null: mono caption `"DISTANCE OFF"` below
+
+**Active-card treatment:**
+- `borderColor: colors.ink` (instead of rule)
+- `borderLeftWidth: 3, borderLeftColor: {categoryColor}` (replaces the 1px rule on the left)
+- Below the card body, reveal an action row with `flexDirection: 'row', gap: 8, marginTop: 12`:
+  - `<Door variant="solid" caption="GO" label="Directions">` + `navigate` icon — opens `https://www.google.com/maps/search/?api=1&query={lat},{lng}` via `Linking.openURL`
+  - `<Door variant="ghost" caption="CALL" label="Phone">` + `call-outline` icon — opens `tel:{phone}` via `Linking.openURL`. Only renders if `businessPhone != null`
+
+**Section header above the card list:**
+
+```
+NEAREST FIRST                                              {N} pinned
+```
+
+- Label tracking 1.8, text reads `NEAREST FIRST` when GPS granted, `ALL NEARBY` when denied
+- Right side: mono `"{N} pinned"` count chip when there are results
 
 **Camera behavior:**
-- Initial center: the user's GPS position (same one passed to `scrapeNearby`)
-- Initial zoom: fit-bounds to all the freshly-inserted rows from the most recent scrape (`result.inserted` count from the action response)
-- A "Re-center on me" floating button (bottom-right) returns the camera to the user's position at default zoom
+- Initial region: user's GPS position with `latitudeDelta: 0.08, longitudeDelta: 0.08`
+- If no GPS yet: fall back to Manila (`14.5995, 120.9842`, deltas 0.5)
+- On GPS arrival: `mapRef.animateToRegion(...)` 400ms
+- On card tap: `animateToRegion` to the pin with deltas 0.02 (closer zoom), 500ms
+- `showsUserLocation={true}` when permission granted, `showsMyLocationButton={false}` (we don't render Google's default control)
 
-**Empty state** (radius came back with 0 inserts AND 0 existing rows): overlay an Editorial card:
+**Permission denied banner:** below the map, render a ghost Door labelled "Enable location to sort by distance" with a `settings-outline` icon → `Linking.openSettings()`.
 
-> Nothing nearby *yet.* — Try widening the radius to 10 km, or pick a different category and search again.
-> [Search again →]
+**Empty state (no pinned rows after load):**
 
-**Loading hand-off from the scrape modal:** the moment `scrapeNearby` resolves, the modal's success toast appears and the modal closes; simultaneously the router pushes to the discover map route. The map opens already centered + bound to the new results — no "click here to see results" intermediate screen.
+Centered Card with `padding: 22`:
+- 56×56 paper-2 circle with `search-outline` icon, size 26, ink-3
+- Two-line Display sm: `"Nothing to interview "` + italic emerald `"yet."`
+- `<Body size="sm" color={colors.ink3}>` sub-copy: `"Tap Find Local Business again with a wider radius or a different category to add more pins here."`
+- Self-stretched solid Door: `"Back to leads"` with caption `"TRY AGAIN"`, `arrow-back` icon, routes `router.replace('/(app)/leads')`
+
+**No interview-list Alert, no success toast.** The map IS the success state. The previous Alert dialog (`"X businesses found nearby. Added Y new ones to your interview list (Z were already on it)"`) has been removed entirely.
+
+**Loading hand-off from the scrape modal:** the moment `scrapeNearby` resolves, the modal does `setShowScrape(false)` + `router.push('/(app)/leads/discover?category=${encoded}&radiusKm=${radius}')`. No intermediate screen, no toast.
 
 ---
 
