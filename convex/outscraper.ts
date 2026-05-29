@@ -239,20 +239,18 @@ export const insertScrapedLead = internalMutation({
  * List all Outscraper-scraped leads, newest first. Creator-callable
  * (was admin-only, changed per the 2026-05-27 WEB-BUILD-CRM.md update —
  * creators are the primary callers via the Prospects tab).
+ *
+ * Signature restored per the 2026-05-29 spec callout — the deployed
+ * validator drifted to `{ search?, statusFilter? }` and was rejecting
+ * mobile's discover-map calls that send `{ limit }`. The canonical
+ * signature is `{ limit?: number }` returning the raw outscraper fields
+ * (businessLatitude / businessLongitude / businessCategory / businessRating
+ * etc.) so the discover map can plot category-keyed pins. Status + search
+ * filtering moved to clients.
  */
 export const listScrapedLeads = query({
     args: {
-        statusFilter: v.optional(
-            v.union(
-                v.literal("all"),
-                v.literal("new"),
-                v.literal("contacted"),
-                v.literal("qualified"),
-                v.literal("converted"),
-                v.literal("lost"),
-            ),
-        ),
-        search: v.optional(v.string()),
+        limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         await requireAuth(ctx);
@@ -260,24 +258,11 @@ export const listScrapedLeads = query({
         const all = await ctx.db.query("leads").collect();
         let scraped = all.filter((l) => l.source === "outscraper");
 
-        const statusFilter = args.statusFilter ?? "all";
-        if (statusFilter !== "all") {
-            scraped = scraped.filter((l) => l.status === statusFilter);
-        }
-
-        const search = args.search?.trim().toLowerCase();
-        if (search) {
-            scraped = scraped.filter(
-                (l) =>
-                    l.businessName?.toLowerCase().includes(search) ||
-                    l.businessCity?.toLowerCase().includes(search) ||
-                    l.businessCategory?.toLowerCase().includes(search) ||
-                    l.businessAddress?.toLowerCase().includes(search) ||
-                    l.phone?.toLowerCase().includes(search),
-            );
-        }
-
         scraped.sort((a, b) => (b.scrapedAt ?? b.createdAt) - (a.scrapedAt ?? a.createdAt));
+
+        if (args.limit != null && args.limit > 0) {
+            scraped = scraped.slice(0, args.limit);
+        }
 
         // Enrich each row with the claimer's display name + isMine flag.
         const identity = (await ctx.auth.getUserIdentity());

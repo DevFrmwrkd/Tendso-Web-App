@@ -10,6 +10,8 @@
 >
 > ✅ **2026-05-29 — Mobile discover map is now BUILT.** The previous broken UX (scrape success → useless "X businesses added to your interview list" Alert dialog → nothing visible) has been replaced. Mobile's Find Local Business button now routes directly to the discover map at `app/(app)/leads/discover.tsx` after the scrape resolves. There is no more interview-list-Alert step. The map pins every Outscraper-scraped business with category-keyed pins + a sticky category legend. **Web must mirror this exact flow.** Spec is in "Map B — Find Local Business" below.
 >
+> 🚨 **2026-05-29 — `outscraper.listScrapedLeads` validator drift.** The deployed function on prod rejects `{ limit: number }` with `ArgumentValidationError: Object contains extra field 'limit' that is not in the validator`. The deployed validator only accepts `{ search?, statusFilter? }` — likely got accidentally rewritten as a `listForMobileCRM`-style wrapper. **The original signature `{ limit?: number }` returning raw outscraper leads (with `businessLatitude`, `businessLongitude`, `businessCategory`, `businessRating`, etc.) must be restored** — mobile's discover map needs those raw fields, and `listForMobileCRM` strips them out (it only surfaces submission-derived business fields). Source of truth: `ndm/convex/outscraper.ts`. Mobile's caller in `discover.tsx` now sends `{}` defensively and filters client-side as a workaround, but the proper fix is restoring the validator + return shape per the mobile copy. See "Convex contract" section for the required signature.
+>
 > **Mobile-as-source-of-truth alignment** — mobile owns the canonical behavior for both action buttons. Web is currently misaligned and must catch up.
 >
 > | Button | Mobile (canonical — DO NOT change) | Web (currently broken — fix to match mobile) |
@@ -101,15 +103,41 @@ api.leads.getDetailForMobileCRM({ id: Id<"leads"> })
 
 **Returns** `{ lead, submittedBy, isMine, business, adminContent, interviewers, interviewerCount, notes }` or `null` if not found.
 
-### Read: prospects list (Prospects tab)
+### Read: prospects list (Prospects tab + Discover map)
 
 ```typescript
 api.outscraper.listScrapedLeads({ limit?: number })
 ```
 
-**Returns** an array of lead rows where `source === "outscraper"`, sorted newest-first by `scrapedAt`. Each row carries the standard lead fields plus the Outscraper-scraped business metadata (`businessAddress`, `businessCity`, `businessCategory`, `businessWebsite`, `businessLatitude`, `businessLongitude`, `businessRating`, `businessReviewCount`, `businessGooglePlaceId`, `scrapedAt`).
+**Required return shape:** an **array** of lead rows where `source === "outscraper"`, sorted newest-first by `scrapedAt`. Each row MUST carry the standard lead fields PLUS the raw Outscraper-scraped business metadata fields the discover map renders:
 
-Auth: **`requireAuth`** (any signed-in creator). See the 2026-05-27 callout below — this was previously `requireAdmin`.
+```typescript
+{
+  _id: Id<"leads">,
+  source: "outscraper",
+  submissionId: Id<"submissions"> | null,
+  status: "new" | ...,
+  createdAt: number,
+  scrapedAt: number,
+  // ↓ The discover map REQUIRES these raw fields ↓
+  businessName: string,
+  businessAddress: string | null,
+  businessCity: string | null,
+  businessCategory: string | null,        // pin color is keyed off this
+  businessWebsite: string | null,
+  businessPhone: string | null,
+  businessLatitude: number | null,        // pin coords
+  businessLongitude: number | null,       // pin coords
+  businessRating: number | null,
+  businessReviewCount: number | null,
+  businessGooglePlaceId: string | null,
+  // ...
+}
+```
+
+> 🚨 **2026-05-29 — Current deployed validator is wrong.** The version on prod accepts only `{ search?, statusFilter? }` (looks like someone wrapped it as a `listForMobileCRM`-style filter). That validator REJECTS `{ limit }` with `ArgumentValidationError`, and the return shape may or may not include the raw business fields above. **Restore the original signature** from `ndm/convex/outscraper.ts` (which uses `{ limit?: number }` and returns a raw array of lead rows with all the fields above intact). Do NOT wrap or enrich the result — the discover map needs raw row access.
+
+Auth: **`requireAuth`** (any signed-in creator). See the 2026-05-27 callout above — this was previously `requireAdmin`.
 
 ### Write: trigger a new scrape (Find Local Business modal)
 

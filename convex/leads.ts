@@ -493,8 +493,11 @@ export const listForMap = query({
             businessName: string;
             businessAddress: string | null;
             businessCity: string | null;
-            lat: number;
-            lng: number;
+            // lat/lng may be null when the lead has only an address (not yet
+            // geocoded). Client geocodes via the Google Maps API and renders
+            // the pin once coords arrive.
+            lat: number | null;
+            lng: number | null;
             status: string;
             source: string;
             hasSubmission: boolean;
@@ -523,7 +526,16 @@ export const listForMap = query({
                 lat = lead.businessLatitude;
                 lng = lead.businessLongitude;
             }
-            if (lat == null || lng == null) continue;
+
+            // Resolve a display address (used for client-side geocoding when
+            // no coords are available).
+            const businessAddressForResolve =
+                sub?.address ?? lead.businessAddress ?? null;
+
+            // Only drop leads that have NEITHER coords NOR an address —
+            // those are genuinely unmappable. Anything with an address can
+            // be geocoded on the client.
+            if (lat == null && lng == null && !businessAddressForResolve) continue;
 
             // Pick a display name; fall back through known fields.
             const businessName =
