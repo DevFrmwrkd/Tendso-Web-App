@@ -72,21 +72,44 @@ export default function ProspectsView() {
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
     const [search, setSearch] = useState("");
 
-    const prospects = useQuery(api.outscraper.listScrapedLeads, {
-        statusFilter,
-        search,
-    }) as ScrapedLead[] | undefined;
+    // listScrapedLeads now takes only `{ limit? }` per the 2026-05-29 spec —
+    // status + search filtering happens client-side on the returned rows.
+    const allProspects = useQuery(api.outscraper.listScrapedLeads, {}) as
+        | ScrapedLead[]
+        | undefined;
 
     const updateStatus = useMutation(api.leads.updateStatus);
 
+    // Stat rollup runs against the UNFILTERED feed so the pill counts stay
+    // accurate (counts represent how many prospects exist in each bucket
+    // overall, not how many are currently visible).
     const stats = useMemo(() => {
-        const counts = { all: prospects?.length ?? 0, new: 0, contacted: 0, qualified: 0, converted: 0, lost: 0 };
-        for (const p of prospects ?? []) {
+        const counts = { all: allProspects?.length ?? 0, new: 0, contacted: 0, qualified: 0, converted: 0, lost: 0 };
+        for (const p of allProspects ?? []) {
             const k = p.status as keyof typeof counts;
             if (counts[k] !== undefined) counts[k]++;
         }
         return counts;
-    }, [prospects]);
+    }, [allProspects]);
+
+    // Apply status + search filter on the client.
+    const prospects = useMemo(() => {
+        if (!allProspects) return allProspects;
+        const q = search.trim().toLowerCase();
+        return allProspects.filter((l) => {
+            if (statusFilter !== "all" && l.status !== statusFilter) return false;
+            if (q) {
+                const hit =
+                    (l.businessName ?? "").toLowerCase().includes(q) ||
+                    (l.businessCity ?? "").toLowerCase().includes(q) ||
+                    (l.businessCategory ?? "").toLowerCase().includes(q) ||
+                    (l.businessAddress ?? "").toLowerCase().includes(q) ||
+                    (l.phone ?? "").toLowerCase().includes(q);
+                if (!hit) return false;
+            }
+            return true;
+        });
+    }, [allProspects, statusFilter, search]);
 
     return (
         <div className="space-y-5">

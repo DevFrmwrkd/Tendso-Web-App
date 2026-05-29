@@ -19,7 +19,7 @@
  * Uses Google Maps via @vis.gl/react-google-maps (not Leaflet — per spec,
  * the old Leaflet view at /leads/near was wrong).
  */
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
@@ -27,10 +27,11 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
     APIProvider,
-    Map,
+    Map as GoogleMap,
     AdvancedMarker,
     InfoWindow,
     useMap,
+    useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 import {
     ArrowLeft, Loader2, MapPin, Globe, ExternalLink, ArrowRight,
@@ -104,11 +105,69 @@ function LiveBusinessesInner() {
 
     const mappable = useQuery(api.leads.listForMap, ready ? {} : "skip");
 
-    // Per Map A spec — interviewed AND live website.
-    const livePins = useMemo(() => {
-        if (!mappable) return [] as any[];
-        return mappable.filter((m: any) => m.hasSubmission && m.hasLiveWebsite);
-    }, [mappable]);
+    // Client-side geocoding cache. Many submissions have address but no
+    // coordinates (the coordinates field is optional on the schema). We
+    // resolve address → lat/lng client-side via the Google Maps Geocoding
+    // API and merge into the lead row before rendering pins.
+    const [geocoded, setGeocoded] = useState<Map<string, { lat: number; lng: number }>>(
+        new Map(),
+    );
+
+    // Merge any geocoded coords into the lead rows. Rows that already have
+    // coords pass through unchanged.
+    const enrichedMappable = useMemo(() => {
+        if (!mappable) return undefined;
+        return mappable.map((m: any) => {
+            if (m.lat != null && m.lng != null) return m;
+            const g = geocoded.get(String(m._id));
+            if (g) return { ...m, lat: g.lat, lng: g.lng };
+            return m;
+        });
+    }, [mappable, geocoded]);
+
+    // Per Map A spec — interviewed AND live website (strict).
+    const strictPins = useMemo(() => {
+        if (!enrichedMappable) return [] as any[];
+        return enrichedMappable.filter(
+            (m: any) =>
+                m.hasSubmission &&
+                m.hasLiveWebsite &&
+                m.lat != null &&
+                m.lng != null,
+        );
+    }, [enrichedMappable]);
+
+    // Fallback: every interviewed lead the team has, with coords. Used when
+    // the strict filter returns 0 so creators see SOMETHING on the map
+    // instead of a blank canvas. Surfaced with a banner that explains the
+    // distinction.
+    const interviewedPins = useMemo(() => {
+        if (!enrichedMappable) return [] as any[];
+        return enrichedMappable.filter(
+            (m: any) => m.hasSubmission && m.lat != null && m.lng != null,
+        );
+    }, [enrichedMappable]);
+
+    const usingFallback = strictPins.length === 0 && interviewedPins.length > 0;
+    const livePins = usingFallback ? interviewedPins : strictPins;
+
+    // Pending-geocode list — rows with an address but no coords yet. The
+    // <AddressGeocoder> child resolves these in batch once the Maps API
+    // library has loaded.
+    const pendingGeocodes = useMemo(() => {
+        if (!mappable) return [] as Array<{ id: string; address: string }>;
+        return mappable
+            .filter((m: any) => m.hasSubmission && m.lat == null && m.lng == null)
+            .map((m: any) => ({
+                id: String(m._id),
+                // Include city for better hit rate, plus "Philippines" since
+                // your data is PH-centric.
+                address: [m.businessAddress, m.businessCity, "Philippines"]
+                    .filter(Boolean)
+                    .join(", "),
+            }))
+            .filter((m: { id: string; address: string }) => !geocoded.has(m.id));
+    }, [mappable, geocoded]);
 
     if (!ready) {
         return (
@@ -154,11 +213,33 @@ function LiveBusinessesInner() {
                     Already-interviewed{" "}
                     <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>and live.</em>
                 </h1>
-                <p className="text-[14px] mb-5" style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}>
+                <p className="text-[14px] mb-3" style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}>
                     {mappable === undefined
                         ? "Loading…"
-                        : `${livePins.length} business${livePins.length === 1 ? "" : "es"} the team has interviewed that now have a live website. Tap any pin to study what's working.`}
+                        : usingFallback
+                            ? `Showing all ${livePins.length} interviewed business${livePins.length === 1 ? "" : "es"} the team has on the map — none have a deployed website yet, so we're showing every interview the team's done.`
+                            : `${livePins.length} business${livePins.length === 1 ? "" : "es"} the team has interviewed that now have a live website. Tap any pin to study what's working.`}
                 </p>
+
+                {/* Fallback notice — visible when we've relaxed the strict
+                    "live website" filter so the user knows what they're
+                    seeing. Goes away as soon as any submission has a
+                    deployed site. */}
+                {usingFallback && (
+                    <div
+                        className="rounded-xl px-3 py-2 mb-5 text-[12px] flex items-start gap-2"
+                        style={{
+                            background: "var(--ed-status-contacted-bg, #FBE9C4)",
+                            color: "var(--ed-ink-2)",
+                            border: "1px solid var(--ed-rule)",
+                        }}
+                    >
+                        <Globe className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "var(--ed-warn)" }} />
+                        <span>
+                            No team submissions have a live website yet. Once a website is deployed (admin publishes from the submission detail page), the strict filter will kick back in.
+                        </span>
+                    </div>
+                )}
 
                 {/* Map */}
                 <div
@@ -166,7 +247,17 @@ function LiveBusinessesInner() {
                     style={{ border: "1px solid var(--ed-rule)", height: 480, background: "var(--ed-paper-2)" }}
                 >
                     <APIProvider apiKey={MAPS_API_KEY}>
-                        <Map
+                        <AddressGeocoder
+                            pending={pendingGeocodes}
+                            onResolved={(id, lat, lng) => {
+                                setGeocoded((prev) => {
+                                    const next = new Map(prev);
+                                    next.set(id, { lat, lng });
+                                    return next;
+                                });
+                            }}
+                        />
+                        <GoogleMap
                             mapId="leads-live-map"
                             defaultCenter={userLoc ?? PH_CENTER}
                             defaultZoom={userLoc ? 12 : 6}
@@ -191,7 +282,7 @@ function LiveBusinessesInner() {
                                 </AdvancedMarker>
                             )}
                             <LivePins pins={livePins} />
-                        </Map>
+                        </GoogleMap>
                     </APIProvider>
                 </div>
 
@@ -213,11 +304,11 @@ function LiveBusinessesInner() {
                     >
                         <Globe className="w-9 h-9 mx-auto mb-3" style={{ color: "var(--ed-accent)" }} />
                         <h3 style={{ fontFamily: "var(--ed-serif)", fontSize: 26, color: "var(--ed-ink)" }}>
-                            Nothing live{" "}
+                            Nothing to pin{" "}
                             <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>yet.</em>
                         </h3>
                         <p className="text-[14px] mt-2" style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}>
-                            When the first team submission gets a website deployed, it&apos;ll appear here.
+                            The team hasn&apos;t interviewed any businesses with location coordinates yet. Once someone submits a business with an address that geocodes, it&apos;ll appear here.
                         </p>
                     </div>
                 ) : (
@@ -387,14 +478,60 @@ function FitToBoundsOnLoad({
     userLoc: { lat: number; lng: number } | null;
 }) {
     const map = useMap();
-    const [done, setDone] = useState(false);
+    const [lastCount, setLastCount] = useState(0);
     useEffect(() => {
-        if (done || !map || pins.length === 0) return;
+        // Re-fit when the pin set grows (e.g. async geocoding finishes after
+        // first paint). Skips when nothing changed to avoid camera jitter.
+        if (!map || pins.length === 0 || pins.length === lastCount) return;
         const bounds = new google.maps.LatLngBounds();
         for (const p of pins) bounds.extend({ lat: p.lat, lng: p.lng });
         if (userLoc) bounds.extend(userLoc);
         map.fitBounds(bounds, 64);
-        setDone(true);
-    }, [map, pins, userLoc, done]);
+        setLastCount(pins.length);
+    }, [map, pins, userLoc, lastCount]);
+    return null;
+}
+
+/**
+ * Resolves address strings → lat/lng using the Google Maps Geocoder. Runs
+ * once per address (the parent caches results in a Map keyed by lead id).
+ * Must live inside the <APIProvider> so useMapsLibrary can hand back the
+ * loaded geocoding library.
+ *
+ * Geocoding API quota: 50 QPS / 100k req/day on the free tier — plenty for
+ * a typical creator's lead set.
+ */
+function AddressGeocoder({
+    pending, onResolved,
+}: {
+    pending: Array<{ id: string; address: string }>;
+    onResolved: (id: string, lat: number, lng: number) => void;
+}) {
+    const geocodingLib = useMapsLibrary("geocoding");
+    const inFlightRef = useRef<Set<string>>(new Set());
+
+    useEffect(() => {
+        if (!geocodingLib || pending.length === 0) return;
+        const geocoder = new geocodingLib.Geocoder();
+        for (const item of pending) {
+            if (inFlightRef.current.has(item.id)) continue;
+            inFlightRef.current.add(item.id);
+            geocoder
+                .geocode({ address: item.address })
+                .then((res) => {
+                    const loc = res.results[0]?.geometry.location;
+                    if (loc) onResolved(item.id, loc.lat(), loc.lng());
+                })
+                .catch((err) => {
+                    // Silent — most failures are address-format issues we
+                    // can't recover from. Log so devs can diagnose if needed.
+                    console.warn(
+                        `[geocoder] failed for "${item.address}":`,
+                        err?.message ?? err,
+                    );
+                });
+        }
+    }, [geocodingLib, pending, onResolved]);
+
     return null;
 }
