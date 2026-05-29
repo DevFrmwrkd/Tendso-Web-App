@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { query, mutation, action, internalQuery } from './_generated/server';
+import { query, mutation, action, internalQuery, internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
@@ -881,5 +881,161 @@ export const getDetailForAdmin = query({
                   }
                 : null,
         };
+    },
+});
+
+
+// ============================================================================
+// SERVER-SIDE GEOCODING
+//
+// Many submissions have an `address` but no `coordinates`. Without coordinates,
+// the live-business map can't pin them. We solve this with a Convex action
+// that calls Google's Geocoding REST API server-side, then patches
+// `submission.coordinates` so the result is cached forever — listForMap
+// surfaces the coords on the next reactive re-fetch and the pin shows up.
+//
+// Env var required: GOOGLE_MAPS_GEOCODING_API_KEY (set via `npx convex env set`).
+// The mobile / web Maps API key can be reused — the only requirement is that
+// the key has the Geocoding API enabled in the GCP project.
+// ============================================================================
+
+/**
+ * Internal — patch a submission with resolved lat/lng.
+ */
+export const _patchSubmissionCoordinates = internalMutation({
+    args: {
+        submissionId: v.id('submissions'),
+        lat: v.number(),
+        lng: v.number(),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.submissionId, {
+            coordinates: { lat: args.lat, lng: args.lng },
+        });
+    },
+});
+
+/**
+ * Geocode every submission that has an address but no coordinates. Calls
+ * Google's Geocoding REST API server-side, then persists the result to
+ * `submission.coordinates` so the next listForMap call surfaces it.
+ *
+ * Returns a summary { scanned, geocoded, skipped, failed } so the caller
+ * can show a progress badge.
+ *
+ * The action is auth-gated — any signed-in user can trigger it. The work
+ * is idempotent (already-geocoded submissions are skipped) so calling
+ * repeatedly is safe.
+ */
+export const geocodePendingSubmissions = action({
+    args: { limit: v.optional(v.number()) },
+    handler: async (
+        ctx,
+        args,
+    ): Promise<{ scanned: number; geocoded: number; skipped: number; failed: number }> => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error('Not authenticated');
+
+        const apiKey =
+            process.env.GOOGLE_MAPS_GEOCODING_API_KEY ||
+            process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+        if (!apiKey) {
+            throw new Error(
+                'GOOGLE_MAPS_GEOCODING_API_KEY is not set on this Convex deployment. Set it with: npx convex env set GOOGLE_MAPS_GEOCODING_API_KEY <your-key>',
+            );
+        }
+
+        // Fetch pending submissions (address but no coordinates) via an
+        // internal query. We cap at `limit` to keep each invocation bounded.
+        const pending = (await ctx.runQuery(
+            internal.leads._listSubmissionsPendingGeocode,
+            { limit: args.limit ?? 25 },
+        )) as Array<{
+            _id: any;
+            address: string;
+            city: string | null;
+            province: string | null;
+        }>;
+
+        let geocoded = 0;
+        let skipped = 0;
+        let failed = 0;
+
+        for (const sub of pending) {
+            const queryParts = [sub.address, sub.city, sub.province, 'Philippines']
+                .filter(Boolean)
+                .join(', ');
+            if (!queryParts) {
+                skipped++;
+                continue;
+            }
+            try {
+                const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
+                url.searchParams.set('address', queryParts);
+                url.searchParams.set('region', 'ph');
+                url.searchParams.set('key', apiKey);
+
+                const res = await fetch(url.toString());
+                if (!res.ok) {
+                    console.warn(
+                        `[geocode] HTTP ${res.status} for "${queryParts}"`,
+                    );
+                    failed++;
+                    continue;
+                }
+                const payload: any = await res.json();
+                if (payload.status === 'OK' && payload.results?.[0]?.geometry?.location) {
+                    const loc = payload.results[0].geometry.location;
+                    await ctx.runMutation(internal.leads._patchSubmissionCoordinates, {
+                        submissionId: sub._id,
+                        lat: loc.lat,
+                        lng: loc.lng,
+                    });
+                    geocoded++;
+                } else if (payload.status === 'ZERO_RESULTS') {
+                    console.warn(`[geocode] zero results for "${queryParts}"`);
+                    skipped++;
+                } else {
+                    console.warn(
+                        `[geocode] non-OK status ${payload.status} for "${queryParts}": ${payload.error_message ?? ''}`,
+                    );
+                    failed++;
+                }
+            } catch (err: any) {
+                console.warn(
+                    `[geocode] threw for "${queryParts}": ${err?.message ?? err}`,
+                );
+                failed++;
+            }
+        }
+
+        return { scanned: pending.length, geocoded, skipped, failed };
+    },
+});
+
+/**
+ * Internal — fetch submissions that have an address but no coordinates.
+ * Used by the action above; not exposed publicly.
+ */
+export const _listSubmissionsPendingGeocode = internalQuery({
+    args: { limit: v.number() },
+    handler: async (ctx, args) => {
+        const all = await ctx.db.query('submissions').collect();
+        const pending = all
+            .filter(
+                (s: any) =>
+                    typeof s.address === 'string' &&
+                    s.address.trim().length > 0 &&
+                    (!s.coordinates ||
+                        s.coordinates.lat == null ||
+                        s.coordinates.lng == null),
+            )
+            .slice(0, args.limit);
+        return pending.map((s: any) => ({
+            _id: s._id,
+            address: s.address,
+            city: s.city ?? null,
+            province: s.province ?? null,
+        }));
     },
 });

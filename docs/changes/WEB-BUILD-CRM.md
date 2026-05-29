@@ -12,6 +12,8 @@
 >
 > 🚨 **2026-05-29 — `outscraper.listScrapedLeads` validator drift.** The deployed function on prod rejects `{ limit: number }` with `ArgumentValidationError: Object contains extra field 'limit' that is not in the validator`. The deployed validator only accepts `{ search?, statusFilter? }` — likely got accidentally rewritten as a `listForMobileCRM`-style wrapper. **The original signature `{ limit?: number }` returning raw outscraper leads (with `businessLatitude`, `businessLongitude`, `businessCategory`, `businessRating`, etc.) must be restored** — mobile's discover map needs those raw fields, and `listForMobileCRM` strips them out (it only surfaces submission-derived business fields). Source of truth: `ndm/convex/outscraper.ts`. Mobile's caller in `discover.tsx` now sends `{}` defensively and filters client-side as a workaround, but the proper fix is restoring the validator + return shape per the mobile copy. See "Convex contract" section for the required signature.
 >
+> 🚨 **2026-05-29 — Outscraper account balance must be > $0.** Find Local Business will silently return 0 results if the Outscraper account is out of credits, with NO explicit API error. The HTTP request returns 200 with `status: "Success"` + `data: [[]]` (or just an empty array) — the same shape we get from a successful zero-match search. From the mobile UX side, this looks identical to "the scrape worked but nothing was nearby" — the discover map opens with an empty state and the user has no way to tell that billing is the blocker. The current account uses an AppSumo deal ($30 credits/month, no expiration), but the credit doesn't always auto-apply at the start of each billing period. **Check balance at https://app.outscraper.cloud/billing/payments before assuming the API is broken.** Mobile's `convex/outscraper.ts` now logs `[outscraper] EMPTY RESULTS — full response keys={...}` whenever `rawResults.length === 0` — that diagnostic line surfaces the upstream `status` / `message` / `error_message` so you can tell billing-empty from genuine-zero in Convex prod logs. See "🛑 Three Outscraper blockers" section below for the full triage tree.
+>
 > **Mobile-as-source-of-truth alignment** — mobile owns the canonical behavior for both action buttons. Web is currently misaligned and must catch up.
 >
 > | Button | Mobile (canonical — DO NOT change) | Web (currently broken — fix to match mobile) |
@@ -1089,6 +1091,54 @@ The action source is at `ndm/convex/outscraper.ts` — copy it verbatim if your 
 
 ---
 
+## 🛑 Three Outscraper blockers — triage tree
+
+If Find Local Business shows an empty map / zero pins, work through these three causes in order. They cover every known failure mode as of 2026-05-29.
+
+```
+Creator taps Find Local Business → 3-stage loader → discover map opens empty
+                                                                │
+                  ┌─────────────────────────────────────────────┴─┐
+                  ▼                                                ▼
+   Check the debug strip on the discover map's empty state:
+   "DEBUG · rows=N · outscraper=N · with-coords=N"
+                  │
+   ┌──────────────┼──────────────────────────────────────────────────────┐
+   ▼              ▼                                                      ▼
+rows=0     rows>0, with-coords=0                              rows>0, with-coords>0
+   │              │                                                      │
+   │              │                                            Should render pins.
+   │              │                                            If not, look at filter logic
+   │              │                                            in discover.tsx pinned useMemo.
+   │              │
+   │     BLOCKER 2 — listScrapedLeads validator drift
+   │     (web's deployed copy strips the raw lat/lng/category fields).
+   │     Fix: restore the original signature per "Convex contract" section + redeploy.
+   │
+   │
+Two sub-cases, check Convex prod logs for the most-recent `outscraper:scrapeNearby` run:
+   │
+   ├── Log shows `[outscraper] received 0 businesses from Outscraper`
+   │   AND `[outscraper] EMPTY RESULTS — full response keys={status:"Success",...}`
+   │   AND your account balance is $0
+   │   → BLOCKER 3 — billing. Top up at app.outscraper.cloud/billing/payments.
+   │
+   ├── Log shows `[outscraper] received 0 businesses` with non-empty `message`/`error_message`
+   │   → Read the message — could be quota exceeded, key revoked, region blocked, etc.
+   │
+   ├── Log shows the OLD format (no `[outscraper] scrapeNearby → query…` line)
+   │   → BLOCKER 1 — query-format bug. The deployed function predates the
+   │     2026-05-28 fix. Redeploy `convex/outscraper.ts` from mobile.
+   │
+   └── Logs look clean, real query, no errors, but zero results
+       → Genuine zero matches. Try a wider radius or a category with more
+         density in your area (e.g. "businesses" instead of "vulcanizing").
+```
+
+Each blocker has its own section below.
+
+---
+
 ## 🛑 2026-05-28 — Outscraper query-format bug (currently broken on prod)
 
 > **Symptom:** Creator taps Find Local Business → 3-stage loader runs for 20–25 seconds → success alert appears with **"0 businesses found nearby. Added 0 new ones."** Convex log shows `outscraper:scrapeNearby success 24.2s` — no error, just empty results.
@@ -1136,6 +1186,35 @@ The action source is at `ndm/convex/outscraper.ts` — copy it verbatim if your 
 > 1. Tap Find Local Business with category `salon`, radius 5km, anywhere with businesses around you
 > 2. Check Convex prod logs — should see `[outscraper] scrapeNearby → salon, 14.30,121.00, 3mi (limit=20)` followed by `[outscraper] received N businesses from Outscraper` where N > 0
 > 3. Alert should now show `N businesses found nearby. Added N new ones to your interview list (0 were already on it).`
+
+---
+
+## 🛑 2026-05-29 — Outscraper billing balance must be > $0
+
+> **Symptom:** Find Local Business completes the 3-stage loader successfully, the discover map opens, but no pins appear. The diagnostic strip on the map's empty state shows `DEBUG · rows=0 · outscraper=0 · with-coords=0`. Convex prod logs show `outscraper:scrapeNearby success` with `[outscraper] received 0 businesses from Outscraper` — no error thrown, no HTTP failure.
+>
+> **Root cause:** Outscraper's API does NOT return an explicit error (no HTTP 402, no `status: "Failed"`) when the account is out of credits. Instead it returns HTTP 200 with `status: "Success"` and `data: [[]]` — indistinguishable from a legitimate zero-match search. The 20–25 second latency that earlier appeared to suggest async-mode fallback may actually be the upstream running a billing precheck on every request.
+>
+> **Diagnosing it:** mobile's `convex/outscraper.ts` (2026-05-29) now logs a second line whenever the result count is zero:
+>
+> ```
+> [outscraper] EMPTY RESULTS — full response keys={"id":null,"status":"Success","message":null,"error_message":null,"has_data":true}. If you see this with status="Success" and your billing balance is $0, the account is out of credits — top up at app.outscraper.cloud/billing.
+> ```
+>
+> If the log line shows `status: "Success"` AND `has_data: true` (meaning Outscraper returned `data: []` not nothing), AND your account balance is $0, billing is the cause.
+>
+> **Action required:**
+> 1. Open **https://app.outscraper.cloud/billing/payments**
+> 2. Check `Current Balance` — if it's `$0.00`, that's the blocker
+> 3. The current account uses an **AppSumo deal** ($30 credits/month, no expiration). The credit should auto-apply at the start of each billing cycle but does NOT always do so cleanly. Confirm under `Invoices` whether the $30 credit has actually been applied for the current period
+> 4. Top up manually with any amount (even $5) to confirm whether billing is the blocker. After top-up, retry Find Local Business immediately
+> 5. If the AppSumo $30 didn't auto-apply, contact Outscraper support — that's their bug to fix
+>
+> **How to prevent this from recurring:**
+> - Add an alert when the balance drops below $5 (Outscraper's billing settings support email alerts)
+> - For the long-term: switch to a usage-based prepaid balance (`Top Up Balance` section on the billing page) so each scrape draws from a known pot, rather than depending on the AppSumo monthly credit applying cleanly
+>
+> **Cost reference:** Outscraper charges ~$0.001 per result. At default `limit: 20` per scrape, each Find Local Business tap costs ~$0.02. The AppSumo $30/month covers ~1,500 scrapes per month — plenty for a small creator team but watch out if usage spikes.
 
 ---
 
