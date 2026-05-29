@@ -78,26 +78,39 @@ export const scrapeNearby = action({
         const limit = Math.min(args.limit ?? 20, 200);
         const radiusKm = Math.max(0.5, args.radiusKm ?? 5);
 
-        // 🛑 2026-05-28 FIX (per WEB-BUILD-CRM.md Outscraper query-format bug):
-        // Outscraper's /maps/search-v3 endpoint silently drops `coordinates`
-        // and `radius` when passed as separate query params, then runs the
-        // category as a worldwide search, exceeds the synchronous budget,
-        // and returns `data: [[]]`. The fix is to embed both inside the
-        // query string per Outscraper's documented format:
-        //   query=salon, 14.30,121.00, 3mi
-        const radiusMiles = Math.max(1, Math.round(radiusKm * 0.621371));
+        // Query-format history (per WEB-BUILD-CRM.md):
+        //   v1 (original): query=salon, coordinates=14.29,121.00, radius=3
+        //     → Outscraper ignored `radius`, returned 0 results.
+        //   v2 (2026-05-28 "fix"): query="salon, 14.29,121.00, 3mi"
+        //     → Outscraper treats the comma-soup as a literal place query,
+        //       fails to resolve it, returns a sentinel record with
+        //       place_id="__NO_PLACE_FOUND__" — looks like 1 result but
+        //       contains no usable data.
+        //   v3 (2026-05-29 late evening — current): query="salon",
+        //     coordinates=14.29,121.00, zoom=13 (no radius)
+        //     → Matches Outscraper's documented API.
+        //
+        // Zoom derivation per the spec's radius→zoom mapping for PH latitudes:
+        const zoom =
+            radiusKm <= 1 ? 15 :
+            radiusKm <= 3 ? 14 :
+            radiusKm <= 5 ? 13 :
+            radiusKm <= 10 ? 12 :
+            11;
         const userCategory = args.query.trim() || "businesses";
-        const queryString = `${userCategory}, ${args.location.trim()}, ${radiusMiles}mi`;
+        const coordinates = args.location.trim();
 
         const url = new URL("https://api.outscraper.com/maps/search-v3");
-        url.searchParams.set("query", queryString);
+        url.searchParams.set("query", userCategory);
+        url.searchParams.set("coordinates", coordinates);
+        url.searchParams.set("zoom", String(zoom));
         url.searchParams.set("limit", String(limit));
         url.searchParams.set("language", "en");
         url.searchParams.set("region", "PH");
         url.searchParams.set("async", "false");
 
         console.log(
-            `[outscraper] scrapeNearby → ${queryString} (limit=${limit})`,
+            `[outscraper] scrapeNearby → query="${userCategory}" coords=${coordinates} zoom=${zoom} (limit=${limit}, radiusKm=${radiusKm})`,
         );
 
         let payload: any;
@@ -180,6 +193,20 @@ export const scrapeNearby = action({
                     category: sample.category ?? sample.type ?? sample.subtypes ?? null,
                 })}`,
             );
+        }
+
+        // Sentinel detection — when Outscraper can't resolve the query to
+        // a place to search, it returns a single record with
+        // place_id="__NO_PLACE_FOUND__" and nulled-out fields. Bail out
+        // cleanly so we don't insert junk rows or render junk pins.
+        if (
+            raw.length > 0 &&
+            (raw[0] as any).place_id === "__NO_PLACE_FOUND__"
+        ) {
+            console.warn(
+                `[outscraper] __NO_PLACE_FOUND__ sentinel detected — Outscraper couldn't resolve the query. Returning empty results.`,
+            );
+            return { inserted: 0, skipped: 0, total: 0, businesses: [] };
         }
 
         const scrapedBy = me.clerkId;
