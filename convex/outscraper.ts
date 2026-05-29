@@ -141,6 +141,28 @@ export const scrapeNearby = action({
 
         console.log(`[outscraper] received ${raw.length} businesses from Outscraper`);
 
+        // EMPTY-RESULTS diagnostic — when Outscraper returns 0 places, surface
+        // the upstream response keys so we can tell billing-empty from
+        // genuine-zero in Convex prod logs. Outscraper does NOT throw a
+        // billing error: when the account is out of credits, the response is
+        // HTTP 200 with `status: "Success"` and `data: [[]]` — indistinguishable
+        // from a legitimate zero-match search by shape alone. Logging
+        // `status` / `message` / `error_message` + `has_data` lets us read
+        // off the cause from the log line. See WEB-BUILD-CRM.md "🛑 Three
+        // Outscraper blockers" for the full triage tree.
+        if (raw.length === 0) {
+            const diag = {
+                id: payload?.id ?? null,
+                status: payload?.status ?? null,
+                message: payload?.message ?? null,
+                error_message: payload?.error_message ?? null,
+                has_data: Array.isArray(payload?.data),
+            };
+            console.log(
+                `[outscraper] EMPTY RESULTS — full response keys=${JSON.stringify(diag)}. If you see this with status="Success" and your billing balance is $0, the account is out of credits — top up at app.outscraper.cloud/billing.`,
+            );
+        }
+
         const scrapedBy = me.clerkId;
         const scrapedAt = Date.now();
         let inserted = 0;

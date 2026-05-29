@@ -22,14 +22,19 @@
  * URL state: ?category=salon&radiusKm=5 — passed by the modal on
  * success so the map can scope distance + headline copy.
  */
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
-    APIProvider, Map, AdvancedMarker, InfoWindow, useMap,
+    APIProvider,
+    Map as GoogleMap,
+    AdvancedMarker,
+    InfoWindow,
+    useMap,
+    useMapsLibrary,
 } from "@vis.gl/react-google-maps";
 import { toast } from "sonner";
 import {
@@ -137,29 +142,66 @@ function DiscoverInner() {
         ready ? {} : "skip",
     ) as any[] | undefined;
 
-    // Strict candidate set per spec: unclaimed Outscraper rows with coords.
-    // Filtering by radius is its own step below so we can fall back if it
-    // yields zero pins (e.g. the user is in a different area than their
-    // older scrape, or the radius is too tight).
+    // Client-side geocoder cache — keyed by lead id. Used when an Outscraper
+    // prospect has an address but no latitude/longitude (sometimes happens
+    // when Outscraper can't resolve precise coords for informal places).
+    const [geocoded, setGeocoded] = useState<Map<string, { lat: number; lng: number }>>(
+        new Map(),
+    );
+
+    // Candidate set per spec — unclaimed Outscraper rows. Includes both
+    // rows with coords and rows with only an address (the latter get
+    // geocoded client-side via <AddressGeocoder> below). Filtering by
+    // radius is a separate step so we can fall back if the radius yields
+    // zero pins (e.g. user is in a different area than their older scrape).
     const allMappableProspects = useMemo(() => {
         if (!prospects) return [] as any[];
+        return prospects
+            .filter((p: any) => !p.submissionId)
+            .map((p: any) => {
+                // Resolve coords: Outscraper-provided first, then geocoded.
+                let lat: number | null = p.businessLatitude ?? null;
+                let lng: number | null = p.businessLongitude ?? null;
+                if (lat == null || lng == null) {
+                    const g = geocoded.get(String(p._id));
+                    if (g) {
+                        lat = g.lat;
+                        lng = g.lng;
+                    }
+                }
+                if (lat == null || lng == null) return null;
+                return {
+                    ...p,
+                    lat,
+                    lng,
+                    categoryKey: classifyCategory(p.businessCategory),
+                    distanceKm: userLoc
+                        ? haversineKm(userLoc, { lat, lng })
+                        : null,
+                };
+            })
+            .filter((p): p is any => p !== null);
+    }, [prospects, userLoc, geocoded]);
+
+    // Pending geocode set — prospects with an address but no coords yet.
+    // The <AddressGeocoder> child resolves these in batch.
+    const pendingGeocodes = useMemo(() => {
+        if (!prospects) return [] as Array<{ id: string; address: string }>;
         return prospects
             .filter(
                 (p: any) =>
                     !p.submissionId &&
-                    p.businessLatitude != null &&
-                    p.businessLongitude != null,
+                    (p.businessLatitude == null || p.businessLongitude == null) &&
+                    p.businessAddress,
             )
             .map((p: any) => ({
-                ...p,
-                lat: p.businessLatitude,
-                lng: p.businessLongitude,
-                categoryKey: classifyCategory(p.businessCategory),
-                distanceKm: userLoc
-                    ? haversineKm(userLoc, { lat: p.businessLatitude, lng: p.businessLongitude })
-                    : null,
-            }));
-    }, [prospects, userLoc]);
+                id: String(p._id),
+                address: [p.businessAddress, p.businessCity, "Philippines"]
+                    .filter(Boolean)
+                    .join(", "),
+            }))
+            .filter((p: { id: string; address: string }) => !geocoded.has(p.id));
+    }, [prospects, geocoded]);
 
     const withinRadius = useMemo(() => {
         if (!userLoc) return allMappableProspects;
@@ -259,7 +301,17 @@ function DiscoverInner() {
                     style={{ border: "1px solid var(--ed-rule)", height: 480, background: "var(--ed-paper-2)" }}
                 >
                     <APIProvider apiKey={MAPS_API_KEY}>
-                        <Map
+                        <AddressGeocoder
+                            pending={pendingGeocodes}
+                            onResolved={(id, lat, lng) => {
+                                setGeocoded((prev) => {
+                                    const next = new Map(prev);
+                                    next.set(id, { lat, lng });
+                                    return next;
+                                });
+                            }}
+                        />
+                        <GoogleMap
                             mapId="leads-discover-map"
                             defaultCenter={userLoc ?? PH_CENTER}
                             defaultZoom={userLoc ? 13 : 6}
@@ -283,7 +335,7 @@ function DiscoverInner() {
                                 </AdvancedMarker>
                             )}
                             <CategoryPins pins={pins} />
-                        </Map>
+                        </GoogleMap>
                     </APIProvider>
 
                     {/* Sticky legend — only categories present on the map */}
@@ -427,6 +479,35 @@ function DiscoverInner() {
                         <p className="text-[13px] mt-2 mb-4" style={{ color: "var(--ed-ink-3)", lineHeight: 1.5 }}>
                             Tap Find Local Business again with a wider radius or a different category to add more pins here.
                         </p>
+
+                        {/* DEBUG strip — per WEB-BUILD-CRM.md "Three Outscraper blockers"
+                            triage tree. Surfaces the data shape so creators (and
+                            us during support) can tell at a glance which
+                            blocker is in play:
+                              rows=0          → no Outscraper rows at all (BLOCKER 1 or 3)
+                              outscraper>0, with-coords=0  → BLOCKER 2 (validator drift)
+                              outscraper>0, with-coords>0  → frontend filter bug */}
+                        <div
+                            className="rounded-md px-3 py-2 mb-4 text-[10px] inline-block"
+                            style={{
+                                background: "var(--ed-paper-2)",
+                                color: "var(--ed-ink-3)",
+                                border: "1px solid var(--ed-rule)",
+                                fontFamily: "var(--ed-mono)",
+                                letterSpacing: "0.08em",
+                            }}
+                        >
+                            DEBUG · rows={prospects?.length ?? 0} ·
+                            outscraper={(prospects ?? []).filter((p: any) => !p.submissionId).length} ·
+                            with-coords={
+                                (prospects ?? []).filter(
+                                    (p: any) =>
+                                        !p.submissionId &&
+                                        p.businessLatitude != null &&
+                                        p.businessLongitude != null,
+                                ).length
+                            }
+                        </div>
                         <Link
                             href="/leads"
                             className="inline-flex items-center justify-center gap-1.5 text-[12px] px-4 py-2.5 rounded-xl w-full"
@@ -715,14 +796,56 @@ function FitToBoundsOnLoad({
     userLoc: { lat: number; lng: number } | null;
 }) {
     const map = useMap();
-    const [done, setDone] = useState(false);
+    const [lastCount, setLastCount] = useState(0);
     useEffect(() => {
-        if (done || !map || pins.length === 0) return;
+        // Re-fit when the pin set grows (e.g. geocoding finishes after
+        // first paint and new pins arrive). Skips when nothing changed to
+        // avoid camera jitter on every render.
+        if (!map || pins.length === 0 || pins.length === lastCount) return;
         const bounds = new google.maps.LatLngBounds();
         for (const p of pins) bounds.extend({ lat: p.lat, lng: p.lng });
         if (userLoc) bounds.extend(userLoc);
         map.fitBounds(bounds, 64);
-        setDone(true);
-    }, [map, pins, userLoc, done]);
+        setLastCount(pins.length);
+    }, [map, pins, userLoc, lastCount]);
+    return null;
+}
+
+/**
+ * Same client-side Google Geocoder pattern as /leads/live. Lives inside
+ * <APIProvider> so useMapsLibrary can hand back the loaded geocoding lib.
+ * The parent caches results in a Map keyed by lead id so each address is
+ * geocoded once per session.
+ */
+function AddressGeocoder({
+    pending, onResolved,
+}: {
+    pending: Array<{ id: string; address: string }>;
+    onResolved: (id: string, lat: number, lng: number) => void;
+}) {
+    const geocodingLib = useMapsLibrary("geocoding");
+    const inFlightRef = useRef<Set<string>>(new Set());
+
+    useEffect(() => {
+        if (!geocodingLib || pending.length === 0) return;
+        const geocoder = new geocodingLib.Geocoder();
+        for (const item of pending) {
+            if (inFlightRef.current.has(item.id)) continue;
+            inFlightRef.current.add(item.id);
+            geocoder
+                .geocode({ address: item.address })
+                .then((res) => {
+                    const loc = res.results[0]?.geometry.location;
+                    if (loc) onResolved(item.id, loc.lat(), loc.lng());
+                })
+                .catch((err) => {
+                    console.warn(
+                        `[geocoder] failed for "${item.address}":`,
+                        err?.message ?? err,
+                    );
+                });
+        }
+    }, [geocodingLib, pending, onResolved]);
+
     return null;
 }

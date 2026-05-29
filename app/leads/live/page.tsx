@@ -23,7 +23,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
+import { useAction, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
     APIProvider,
@@ -105,10 +105,55 @@ function LiveBusinessesInner() {
 
     const mappable = useQuery(api.leads.listForMap, ready ? {} : "skip");
 
-    // Client-side geocoding cache. Many submissions have address but no
-    // coordinates (the coordinates field is optional on the schema). We
-    // resolve address → lat/lng client-side via the Google Maps Geocoding
-    // API and merge into the lead row before rendering pins.
+    // Server-side geocoding — calls the Convex action that geocodes
+    // submission addresses via Google's REST API and persists the result
+    // to `submission.coordinates`. listForMap is reactive, so the new coords
+    // surface here automatically once the action returns.
+    const geocodePending = useAction(api.leads.geocodePendingSubmissions);
+    const geocodeKickedOffRef = useRef(false);
+    const [geocodeStatus, setGeocodeStatus] = useState<
+        | { phase: "idle" }
+        | { phase: "running" }
+        | { phase: "done"; geocoded: number; failed: number; scanned: number }
+        | { phase: "error"; message: string }
+    >({ phase: "idle" });
+
+    // Count of leads we'd want to map but that lack coords. If > 0 and we
+    // haven't kicked off the action yet, do so now. The action is idempotent
+    // (already-geocoded submissions are skipped) so this is safe.
+    const needsGeocoding = useMemo(() => {
+        if (!mappable) return 0;
+        return mappable.filter(
+            (m: any) => m.hasSubmission && (m.lat == null || m.lng == null),
+        ).length;
+    }, [mappable]);
+
+    useEffect(() => {
+        if (!ready || !mappable) return;
+        if (needsGeocoding === 0) return;
+        if (geocodeKickedOffRef.current) return;
+        geocodeKickedOffRef.current = true;
+        setGeocodeStatus({ phase: "running" });
+        geocodePending({ limit: 50 })
+            .then((res) => {
+                setGeocodeStatus({
+                    phase: "done",
+                    geocoded: res.geocoded,
+                    failed: res.failed,
+                    scanned: res.scanned,
+                });
+            })
+            .catch((err: any) => {
+                setGeocodeStatus({
+                    phase: "error",
+                    message: err?.message ?? "Geocoding failed.",
+                });
+            });
+    }, [ready, mappable, needsGeocoding, geocodePending]);
+
+    // Client-side geocoding cache — kept as a SECONDARY path for any
+    // residual misses after the server-side action runs (or while the
+    // action is in flight). Resolved coords merge into enrichedMappable.
     const [geocoded, setGeocoded] = useState<Map<string, { lat: number; lng: number }>>(
         new Map(),
     );
@@ -237,6 +282,65 @@ function LiveBusinessesInner() {
                         <Globe className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" style={{ color: "var(--ed-warn)" }} />
                         <span>
                             No team submissions have a live website yet. Once a website is deployed (admin publishes from the submission detail page), the strict filter will kick back in.
+                        </span>
+                    </div>
+                )}
+
+                {/* Geocoding status — visible so the user can see what's
+                    happening when addresses haven't resolved yet. Hides
+                    automatically once everything is done. */}
+                {geocodeStatus.phase === "running" && (
+                    <div
+                        className="rounded-xl px-3 py-2 mb-5 text-[12px] flex items-center gap-2"
+                        style={{
+                            background: "var(--ed-paper-3)",
+                            color: "var(--ed-ink-2)",
+                            border: "1px solid var(--ed-rule)",
+                        }}
+                    >
+                        <Loader2 className="w-3.5 h-3.5 animate-spin flex-shrink-0" style={{ color: "var(--ed-accent)" }} />
+                        <span>
+                            Geocoding {needsGeocoding} address
+                            {needsGeocoding === 1 ? "" : "es"} via Google Maps —
+                            pins will appear as soon as this finishes (usually
+                            a few seconds).
+                        </span>
+                    </div>
+                )}
+                {geocodeStatus.phase === "done" && geocodeStatus.geocoded > 0 && (
+                    <div
+                        className="rounded-xl px-3 py-2 mb-5 text-[12px] flex items-center gap-2"
+                        style={{
+                            background: "var(--ed-accent-bg, #D1FAE5)",
+                            color: "var(--ed-accent-ink, #064E3B)",
+                            border: "1px solid var(--ed-accent)",
+                        }}
+                    >
+                        <Globe className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span>
+                            Geocoded {geocodeStatus.geocoded} of {geocodeStatus.scanned} address
+                            {geocodeStatus.scanned === 1 ? "" : "es"}.
+                            {geocodeStatus.failed > 0
+                                ? ` ${geocodeStatus.failed} failed (check the addresses for typos).`
+                                : ""}
+                        </span>
+                    </div>
+                )}
+                {geocodeStatus.phase === "error" && (
+                    <div
+                        className="rounded-xl px-3 py-2 mb-5 text-[12px] flex items-start gap-2"
+                        style={{
+                            background: "var(--ed-status-lost-bg, #F3D7CF)",
+                            color: "var(--ed-danger)",
+                            border: "1px solid var(--ed-rule)",
+                        }}
+                    >
+                        <Globe className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+                        <span>
+                            <strong>Geocoding failed.</strong> {geocodeStatus.message}{" "}
+                            Most commonly this means the <code>GOOGLE_MAPS_GEOCODING_API_KEY</code> env
+                            var isn&apos;t set in Convex. Run{" "}
+                            <code>npx convex env set GOOGLE_MAPS_GEOCODING_API_KEY &lt;your-key&gt;</code> and reload.
                         </span>
                     </div>
                 )}
