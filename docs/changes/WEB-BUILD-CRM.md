@@ -6,6 +6,8 @@
 >
 > **Last updated 2026-05-29 (evening).** Recent changes folded into this doc:
 >
+> 🚨 **2026-05-29 LATE evening — Outscraper query format wrong AGAIN — third attempt now in place.** Diagnostic logs from a live test surfaced Outscraper's sentinel response: when the query format is wrong, Outscraper returns a single record with `place_id: "__NO_PLACE_FOUND__"` and no useful fields. The previous "embedded comma-soup" format (`"businesses, 14.29,121.00, 3mi"`) triggers this. **The correct format per Outscraper's actual docs is `query=businesses&coordinates=14.29,121.00&zoom=13` — query is just the category, coordinates separate, zoom controls the area, no `radius` parameter exists.** Mobile's `convex/outscraper.ts` now uses this format and also detects the sentinel so it returns `{businesses: []}` instead of polluting the leads table. See "🛑 2026-05-29 late — Outscraper sentinel response" section below for full diagnosis.
+>
 > 🚨 **2026-05-29 evening — DEPLOY ACTION REQUIRED on the web side.** The mobile team has rewritten `convex/outscraper.ts` to bypass the broken DB write path entirely (details below). For the Find Local Business map to actually show pins in production, **the web agent must merge mobile's `convex/outscraper.ts` changes into the web repo and run `npx convex deploy --prod` from the WEB repo.** Mobile is NOT allowed to deploy directly — the established rule that web owns the deployed `convex/outscraper.ts` is unchanged. See **"🚀 Deploy steps for the web agent"** at the end of this doc for the exact merge recipe (which mobile changes to copy, which web-added functions to preserve).
 >
 > ✅ **2026-05-29 evening — Mobile bypassed the broken DB path entirely.** After dashboard inspection confirmed zero rows in `leads` table where `source === "outscraper"` (despite Outscraper returning data and the action logging `received 1 businesses`), mobile pivoted the architecture: **`scrapeNearby` now returns the raw businesses array DIRECTLY to the client. The discover map renders pins from that in-memory data using URL query params — no DB read needed.** The DB inserts still happen as best-effort (wrapped in try/catch, write failures don't break the map). Net effect: pins show up on the discover map even if `insertScrapedLead` is completely broken in prod and `listScrapedLeads` returns empty. The map is no longer blocked by either of those failures. See updated "Convex contract" → "Write: trigger a new scrape" and "Map B — Find Local Business (the discovery view)" for the new shape.
@@ -1249,6 +1251,65 @@ Each blocker has its own section below.
 > 1. Tap Find Local Business with category `salon`, radius 5km, anywhere with businesses around you
 > 2. Check Convex prod logs — should see `[outscraper] scrapeNearby → salon, 14.30,121.00, 3mi (limit=20)` followed by `[outscraper] received N businesses from Outscraper` where N > 0
 > 3. Alert should now show `N businesses found nearby. Added N new ones to your interview list (0 were already on it).`
+
+---
+
+## 🛑 2026-05-29 (late evening) — Outscraper sentinel response: query format STILL wrong
+
+> **Symptom:** Convex prod logs show `[outscraper] received 1 businesses from Outscraper`, but `[outscraper] first business sample: {"place_id":"__NO_PLACE_FOUND__","category":null}` — the "1 business" is actually a sentinel record with no usable data. `inserted=0, skipped=1`. The discover map shows zero pins.
+>
+> **Root cause:** Outscraper returns a placeholder record with `place_id: "__NO_PLACE_FOUND__"` and nulled-out fields when it can't resolve the query to a place to search. The previous "embedded comma format" (`query="businesses, 14.29,121.00, 3mi"`) triggers this — Outscraper treats the comma-separated string as a single literal search query, can't find a place matching that text, returns the sentinel.
+>
+> **The format Outscraper's `/maps/search` actually expects (per their published API docs):**
+>
+> ```typescript
+> // ✅ Per Outscraper docs at app.outscraper.com/api-docs
+> //   - `query` is just the natural-language category (no embedded location)
+> //   - `coordinates` is a SEPARATE param accepting "lat,lng"
+> //   - `zoom` controls search area: 1 = world, 21 = building. ~13 for 5km.
+> //   - There is NO `radius` parameter on /maps/search
+> new URLSearchParams({
+>   query: userCategory,            // "businesses" — just the category
+>   coordinates: args.location,     // "14.29,121.00" — separate param
+>   zoom: "13",                     // derived from radiusKm
+>   limit: String(limit),
+>   async: "false",
+>   language: "en",
+>   region: "PH",
+> });
+> ```
+>
+> **Radius-to-zoom mapping (Philippines latitude band):**
+>
+> | Mobile UI radius pill | Zoom level passed to Outscraper |
+> |---|---|
+> | 1 km | 15 |
+> | 3 km | 14 |
+> | 5 km (default) | 13 |
+> | 10 km | 12 |
+> | (>10 km) | 11 |
+>
+> **Sentinel detection in mobile's code:** after parsing Outscraper's response, mobile checks if the first business has `place_id === "__NO_PLACE_FOUND__"`. If so, the action logs a WARNING line and returns `{ inserted: 0, skipped: 0, total: 0, businesses: [] }` — no junk row gets inserted, no junk pin on the map.
+>
+> **Action required on web side:** When porting `scrapeNearby` per the "🚀 Deploy steps for the web agent" section, make sure your copy uses this v3 format (separate `coordinates` + `zoom`). The diagnostic logs in mobile's version will surface the sentinel if it ever happens again, so you'll see immediately if the format reverts.
+>
+> **What history of attempts looks like in code comments:**
+>
+> ```
+> v1 (original): query=salon, coordinates=14.29,121.00, radius=3
+>   → Outscraper ignored `radius`, returned 0 results
+> v2 (2026-05-28 "fix"): query="salon, 14.29,121.00, 3mi"  (location embedded)
+>   → Outscraper returns sentinel {place_id:"__NO_PLACE_FOUND__"}
+> v3 (2026-05-29 late evening — current): query="salon"&coordinates=14.29,121.00&zoom=13
+>   → Matches Outscraper's documented API. Expected to return real results.
+> ```
+>
+> **How to verify after deploy:**
+> 1. Tap Find Local Business with category `salon` (or leave blank for "businesses"), radius 5km
+> 2. Check Convex prod logs — should see `[outscraper] scrapeNearby → query="salon" coords=14.29,121.00 zoom=13 (limit=20, radiusKm=5)`
+> 3. Then `[outscraper] received N businesses from Outscraper` where N > 0
+> 4. `[outscraper] first business sample` should show a REAL `place_id` (a string starting with `ChIJ...`), NOT `__NO_PLACE_FOUND__`
+> 5. Discover map should show N pins
 
 ---
 
