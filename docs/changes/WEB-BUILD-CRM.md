@@ -4,7 +4,11 @@
 >
 > URL: `/creators/leads` (exact slug owned by web team). Mirrors mobile's `app/(app)/leads/*` 1:1 in behavior, and adopts the **Editorial Paper** design system (greens + khaki — **NOT orange/terracotta**, Instrument Serif + Onest + JetBrains Mono) so the web and mobile apps feel like one product.
 >
-> **Last updated 2026-05-29.** Recent changes folded into this doc:
+> **Last updated 2026-05-29 (evening).** Recent changes folded into this doc:
+>
+> 🚨 **2026-05-29 evening — DEPLOY ACTION REQUIRED on the web side.** The mobile team has rewritten `convex/outscraper.ts` to bypass the broken DB write path entirely (details below). For the Find Local Business map to actually show pins in production, **the web agent must merge mobile's `convex/outscraper.ts` changes into the web repo and run `npx convex deploy --prod` from the WEB repo.** Mobile is NOT allowed to deploy directly — the established rule that web owns the deployed `convex/outscraper.ts` is unchanged. See **"🚀 Deploy steps for the web agent"** at the end of this doc for the exact merge recipe (which mobile changes to copy, which web-added functions to preserve).
+>
+> ✅ **2026-05-29 evening — Mobile bypassed the broken DB path entirely.** After dashboard inspection confirmed zero rows in `leads` table where `source === "outscraper"` (despite Outscraper returning data and the action logging `received 1 businesses`), mobile pivoted the architecture: **`scrapeNearby` now returns the raw businesses array DIRECTLY to the client. The discover map renders pins from that in-memory data using URL query params — no DB read needed.** The DB inserts still happen as best-effort (wrapped in try/catch, write failures don't break the map). Net effect: pins show up on the discover map even if `insertScrapedLead` is completely broken in prod and `listScrapedLeads` returns empty. The map is no longer blocked by either of those failures. See updated "Convex contract" → "Write: trigger a new scrape" and "Map B — Find Local Business (the discovery view)" for the new shape.
 >
 > 🚨 **URGENT — Outscraper currently broken on prod.** Find Local Business returns 0 results every time because the deployed `convex/outscraper.ts` builds an invalid request to Outscraper's API. Full diagnosis + fix in the "🛑 2026-05-28 — Outscraper query-format bug" section below. **Fix this first** — everything downstream of Find Local Business (Prospects tab, discover map, claim flow) is blocked until creators can actually populate prospect rows.
 >
@@ -152,9 +156,43 @@ api.outscraper.scrapeNearby({
 })
 ```
 
-**Returns** `{ inserted: number; skipped: number; total: number }`.
+**Returns (UPDATED 2026-05-29 evening):**
 
-Auth: **`requireAuth`** (any signed-in creator). The action calls Outscraper's Google Maps Search API, inserts new rows into the `leads` table with `source: "outscraper"`, and dedupes via the `by_place_id` index.
+```typescript
+{
+  inserted: number;   // how many rows were successfully written to leads table
+  skipped: number;    // how many were skipped (dedupe match OR no placeId OR insert failed)
+  total: number;      // how many businesses Outscraper returned
+  businesses: Array<{ // 🟢 NEW — raw businesses array, used by mobile to render pins directly
+    placeId: string;
+    businessName: string;
+    businessAddress: string | null;
+    businessCity: string | null;
+    businessCategory: string | null;
+    businessWebsite: string | null;
+    businessPhone: string | null;
+    businessLatitude: number | null;
+    businessLongitude: number | null;
+    businessRating: number | null;
+    businessReviewCount: number | null;
+  }>;
+}
+```
+
+> ⚠️ **Critical for web parity:** the `businesses` array is the primary data path for the discover map. Mobile reads it from the action's return value and passes it via URL query params to the discover screen, which renders pins from in-memory data. Web MUST also use this array — do NOT rebuild the map to query `listScrapedLeads` instead. The DB write path is best-effort (try/catch wrapped); the `businesses` array always reflects what Outscraper actually returned, regardless of whether the DB write succeeded.
+
+Auth: **`requireAuth`** (any signed-in creator). The action calls Outscraper's Google Maps Search API, returns the raw businesses array to the client, AND best-effort inserts each into the `leads` table with `source: "outscraper"` (deduped via the `by_place_id` index, errors swallowed and logged so they don't break the map).
+
+**Robust placeId fallback in the action body:** Outscraper occasionally returns business records without a `place_id` field. The action tries `place_id` → `google_id` → `cid` → `feature_id` → `id` → synthetic `name:lat:lng`. No business with coords gets silently dropped from the `businesses` return array — even if all placeId candidates are missing, it gets included with a synthetic key for the map's React `key` prop.
+
+**Diagnostic logs the deployed action now emits (in Convex prod logs):**
+- `[outscraper] scrapeNearby → {query} (limit={N})` — the outbound Outscraper query
+- `[outscraper] received {N} businesses from Outscraper` — count from upstream
+- `[outscraper] first business keys: {keys}` — fields present on first business (so we can spot Outscraper API shape changes)
+- `[outscraper] first business sample: {name, place_id, latitude, longitude, category}` — values for verification
+- `[outscraper] EMPTY RESULTS — full response keys={...}` — only when the API returned zero results, with the upstream status/message/error_message for diagnosing billing vs format vs genuine-zero
+- `[outscraper] insertScrapedLead failed for "X": {error}` — DB write failure surfaced rather than silently swallowed
+- `[outscraper] returning to client: {N} businesses with coords (inserted=X, skipped=Y)` — final count handed back to mobile
 
 ### Write: add a note
 
@@ -364,24 +402,47 @@ and live.
 - The currently-rendered blank Leaflet view must be removed entirely — do NOT layer Google Maps on top of Leaflet
 - Mirror mobile's header (eyebrow + Display + Body) above the map container — don't render the map full-bleed without context
 
-### Map B — Find Local Business (the discovery view, NEW)
+### Map B — Find Local Business (the discovery view)
 
-**Mobile status:** ✅ shipped 2026-05-29 at `app/(app)/leads/discover.tsx`. The scrape modal's success path is `router.push('/(app)/leads/discover?category=${cat}&radiusKm=${radius}')` — no Alert dialog, no list intermediate. The map opens immediately after the saving phase. Read that file as the canonical implementation.
+**Mobile status:** ✅ shipped 2026-05-29 at `app/(app)/leads/discover.tsx`.
 
-**Web status:** mirror mobile. Web route: `/creators/leads/discover?category=...&radiusKm=...`.
+**Data flow (UPDATED 2026-05-29 evening — was previously DB-query-based):**
 
-**What it pins:** every Outscraper-sourced lead in the visible radius that is NOT yet interviewed. Exact SELECT criteria:
+The discover map has **two data sources**, in priority order:
+
+1. **Primary — URL-passed `data` param.** After a successful scrape, the modal's success path is:
+   ```typescript
+   const businessesJSON = encodeURIComponent(JSON.stringify(result.businesses));
+   router.push(`/(app)/leads/discover?category=${cat}&radiusKm=${radius}&data=${businessesJSON}`);
+   ```
+   The discover screen reads the `data` param, JSON-parses it, and renders pins immediately from in-memory state. **No DB query, no `useQuery`.** This works even if `listScrapedLeads` is broken or the DB write never landed.
+
+2. **Fallback — `listScrapedLeads` query.** Used ONLY when the user navigates to `/discover` without `data` (e.g., a deep link, browser back+forward, app cold start to the discover route). The fallback also filters defensively against the broken-deployed-shape cases (wrapped `{leads, stats}` return, source/coords missing).
+
+The web equivalent should use the same priority: read the `data` URL param first; only call `listScrapedLeads` if there's no URL data.
+
+**Why the bypass:** The 2026-05-29 evening dashboard inspection found zero rows in the `leads` table with `source === "outscraper"`, despite Outscraper returning data and `scrapeNearby` reporting success. The DB write path is silently failing somewhere between `received N businesses` and the row actually landing. Rather than wait for that to be diagnosed, mobile pivoted to consume `result.businesses` directly. The map now works regardless of DB state.
+
+**Web route:** `/creators/leads/discover?category=...&radiusKm=...&data=...` — same query-param contract as mobile.
+
+**What gets pinned (when `data` param is present — the normal flow):**
 
 ```typescript
+// Render every business from the URL-passed array that has coords
+businesses
+  .filter(b => typeof b.businessLatitude === 'number' && typeof b.businessLongitude === 'number')
+  .map(/* build pin */)
+```
+
+**What gets pinned (fallback path — DB query):**
+
+```typescript
+// Filter as defensively as possible to handle deployed-function variations
 lead.source === "outscraper"
   && lead.submissionId == null               // not interviewed yet
   && lead.businessLatitude  != null
   && lead.businessLongitude != null
-  // (optional) within the search radius the user just scraped
-  && haversine(userLatLng, [lead.businessLatitude, lead.businessLongitude]) <= radiusKm
 ```
-
-This includes BOTH the just-scraped results AND any existing Outscraper rows in the radius that other creators previously discovered but nobody has interviewed yet. Showing both is intentional — a creator might claim and interview an older prospect they hadn't seen.
 
 **Pin style — keyed by business category.** This is the key visual: a creator opens the map and can scan for "barbershops near me" or "restaurants near me" at a glance.
 
@@ -1093,6 +1154,8 @@ The action source is at `ndm/convex/outscraper.ts` — copy it verbatim if your 
 
 ## 🛑 Three Outscraper blockers — triage tree
 
+> **2026-05-29 evening update:** after the architectural pivot, Blocker 2 (the `listScrapedLeads` validator drift) no longer blocks the map's primary path — mobile reads businesses directly from `scrapeNearby`'s return value via a URL `data` param. Blocker 2 only affects the fallback (deep-link / cold-start to the discover route without a fresh scrape). Blocker 1 (Outscraper query format) and Blocker 3 (billing balance) still apply directly.
+
 If Find Local Business shows an empty map / zero pins, work through these three causes in order. They cover every known failure mode as of 2026-05-29.
 
 ```
@@ -1514,6 +1577,100 @@ After deploy, sign in as a regular creator (NOT admin) and:
 > 3. Notify mobile — the new claim/release mutations are creator-callable, so mobile can ALSO add "I'll interview this" buttons on its prospect cards in a future release if you want parity
 
 Schema changes are additive-only. Safe to deploy.
+
+---
+
+## 🚀 Deploy steps for the web agent (2026-05-29 evening)
+
+> **Hard rule:** The mobile team must NOT run `npx convex deploy`. All deploys to prod come from the web repo. This is the established project convention and is unchanged. The mobile team made changes locally to `ndm/convex/outscraper.ts` to fix the discover map — the web agent's job is to port those changes into the web repo's `convex/outscraper.ts` and deploy.
+
+### Step 1 — Open both files side by side
+
+- **Source (mobile)**: `ndm/convex/outscraper.ts` — has the new fixes
+- **Target (web)**: `<web-repo>/convex/outscraper.ts` — receives the merge
+
+### Step 2 — Port the `scrapeNearby` function body from mobile to web
+
+Replace your current `scrapeNearby` handler entirely with mobile's version. The diff covers:
+
+- **Return type:** add `businesses: Array<...>` to the return shape (full type listed in the "Convex contract" section above)
+- **Query building:** location + radius embedded into the query string (`"businesses, 14.30,121.00, 3mi"` format), NOT passed as separate `coordinates`/`radius` params
+- **Diagnostic logs:** the seven `console.log` lines listed in the Convex contract section
+- **`businesses` array assembly:** new code that builds the array with full placeId fallback chain (`place_id → google_id → cid → feature_id → id → synthetic`)
+- **try/catch around `ctx.runMutation(internal.outscraper.insertScrapedLead, ...)`:** so a DB write failure doesn't break the map
+
+Mobile's `scrapeNearby` is the entire export between `export const scrapeNearby = action({` and the closing `});`. Copy that block verbatim.
+
+### Step 3 — Preserve the four web-added functions
+
+Mobile's local `outscraper.ts` does NOT contain these four functions, but the production deployment DOES (your team added them per the prospects/claim spec):
+
+- `claimProspect`
+- `releaseProspect`
+- `getProspect`
+- `releaseStaleClaimsInternal`
+
+**Do NOT delete these from the web repo's `outscraper.ts`.** Their implementations stay exactly as they currently are. Only `scrapeNearby` is being replaced.
+
+If `listScrapedLeads` was rewritten in your web copy to a `listForMobileCRM`-style wrapper (with `{ search?, statusFilter? }` args), **restore it to mobile's signature** while you're in the file:
+
+```typescript
+export const listScrapedLeads = query({
+  args: { limit: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    await requireAuth(ctx);
+    const cap = Math.min(args.limit ?? 100, 500);
+    const all = await ctx.db.query("leads").order("desc").take(cap * 4);
+    return all.filter((l) => l.source === "outscraper").slice(0, cap);
+  },
+});
+```
+
+This makes the discover map's fallback path work for deep-link / cold-start cases.
+
+### Step 4 — Sanity-check the merged file
+
+After your edits, the web repo's `convex/outscraper.ts` should export ALL of these:
+
+| Export | Source | Purpose |
+|---|---|---|
+| `scrapeNearby` | Mobile (copy verbatim) | Outscraper API + return businesses array + best-effort DB insert |
+| `insertScrapedLead` | Mobile (copy verbatim) | Internal mutation called by scrapeNearby |
+| `listScrapedLeads` | Mobile (copy verbatim — restore signature) | Read query for fallback path |
+| `claimProspect` | Web (preserve existing) | Creator claims a prospect |
+| `releaseProspect` | Web (preserve existing) | Creator releases their claim |
+| `getProspect` | Web (preserve existing) | Read single prospect with claimer info |
+| `releaseStaleClaimsInternal` | Web (preserve existing) | Cron-driven stale-claim sweeper |
+
+### Step 5 — Deploy
+
+From the web repo root:
+
+```bash
+# Validate against shared dev deployment first
+npx convex dev
+
+# When that succeeds, deploy to prod
+npx convex deploy --prod
+```
+
+### Step 6 — Verify on mobile
+
+After your deploy:
+
+1. Tell the mobile team to rebuild the APK (or use the existing build)
+2. Sign in as a creator, tap **Find Local Business**, complete the scrape
+3. Check Convex prod logs — you should see the new diagnostic lines:
+   - `[outscraper] scrapeNearby → businesses, 14.29,121.00, 3mi (limit=20)`
+   - `[outscraper] received N businesses from Outscraper`
+   - `[outscraper] first business keys: name, place_id, latitude, longitude, ...`
+   - `[outscraper] returning to client: N businesses with coords (inserted=X, skipped=Y)`
+4. The mobile discover map should show pins immediately (in-memory, no DB query)
+5. If `inserted=0` consistently and the leads table still shows zero `source="outscraper"` rows, the DB write path still has a bug we haven't found yet — but the map will work regardless
+
+### Step 7 — Sister deploy from mobile? NO.
+
+Even if the discover map appears broken on mobile after a deploy, **do not have the mobile team run `npx convex deploy`**. That would overwrite all four of the web-added functions (claim/release/getProspect/cron). The fix path is always: mobile edits `ndm/convex/outscraper.ts` → web agent ports the changes → web agent deploys.
 
 ---
 

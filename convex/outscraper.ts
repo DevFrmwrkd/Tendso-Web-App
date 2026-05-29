@@ -163,42 +163,128 @@ export const scrapeNearby = action({
             );
         }
 
+        // Diagnostic: log what fields the first business actually has, so we
+        // can spot Outscraper API shape changes (e.g. they rename `place_id`
+        // to `google_id`) without redeploying.
+        if (raw.length > 0) {
+            console.log(
+                `[outscraper] first business keys: ${Object.keys(raw[0] as any).join(",")}`,
+            );
+            const sample = raw[0] as any;
+            console.log(
+                `[outscraper] first business sample: ${JSON.stringify({
+                    name: sample.name,
+                    place_id: sample.place_id ?? sample.google_id ?? null,
+                    latitude: sample.latitude,
+                    longitude: sample.longitude,
+                    category: sample.category ?? sample.type ?? sample.subtypes ?? null,
+                })}`,
+            );
+        }
+
         const scrapedBy = me.clerkId;
         const scrapedAt = Date.now();
         let inserted = 0;
         let skipped = 0;
 
-        for (const place of raw) {
-            const placeId = place.google_id || place.place_id;
-            if (!placeId || !place.name) {
+        // Build the in-memory `businesses` array per the 2026-05-29 evening
+        // architecture change. The discover map renders pins from this array
+        // directly (via URL data param), so the DB write path is no longer
+        // load-bearing for the map UX. Best-effort: a failed insert just
+        // doesn't make it into the leads table, but the pin still shows.
+        const businesses: Array<{
+            placeId: string;
+            businessName: string;
+            businessAddress: string | null;
+            businessCity: string | null;
+            businessCategory: string | null;
+            businessWebsite: string | null;
+            businessPhone: string | null;
+            businessLatitude: number | null;
+            businessLongitude: number | null;
+            businessRating: number | null;
+            businessReviewCount: number | null;
+        }> = [];
+
+        for (const place of raw as any[]) {
+            // Robust placeId fallback chain. Outscraper occasionally returns
+            // records missing `place_id`; we try several other id-ish fields
+            // before falling back to a synthetic key. No business with coords
+            // gets silently dropped from the returned array.
+            const placeId: string =
+                place.place_id ||
+                place.google_id ||
+                place.cid ||
+                place.feature_id ||
+                place.id ||
+                `synthetic:${place.name ?? "unknown"}:${place.latitude ?? "0"}:${place.longitude ?? "0"}`;
+
+            if (!place.name) {
                 skipped++;
                 continue;
             }
-            const result = await ctx.runMutation(
-                internal.outscraper.insertScrapedLead,
-                {
-                    creatorId: me._id,
-                    scrapedAt,
-                    scrapedBy,
-                    businessName: place.name,
-                    businessAddress: place.full_address || place.address || undefined,
-                    businessCity: place.city || undefined,
-                    businessCategory:
-                        place.category || place.type || place.subtypes || undefined,
-                    businessWebsite: place.site || place.website || undefined,
-                    businessLatitude: place.latitude ?? undefined,
-                    businessLongitude: place.longitude ?? undefined,
-                    businessRating: place.rating ?? undefined,
-                    businessReviewCount: place.reviews ?? undefined,
-                    businessGooglePlaceId: placeId,
-                    phone: place.phone || undefined,
-                },
-            );
-            if (result.skipped) skipped++;
-            else inserted++;
+
+            // Push to in-memory `businesses` BEFORE attempting the DB write,
+            // so the array reflects what Outscraper actually returned
+            // regardless of DB write outcome.
+            businesses.push({
+                placeId: String(placeId),
+                businessName: place.name,
+                businessAddress: place.full_address || place.address || null,
+                businessCity: place.city || null,
+                businessCategory:
+                    place.category || place.type || place.subtypes || null,
+                businessWebsite: place.site || place.website || null,
+                businessPhone: place.phone || null,
+                businessLatitude:
+                    typeof place.latitude === "number" ? place.latitude : null,
+                businessLongitude:
+                    typeof place.longitude === "number" ? place.longitude : null,
+                businessRating:
+                    typeof place.rating === "number" ? place.rating : null,
+                businessReviewCount:
+                    typeof place.reviews === "number" ? place.reviews : null,
+            });
+
+            // Best-effort DB write — wrapped in try/catch so a write failure
+            // does not break the map. Failures get logged per-row so we can
+            // diagnose later.
+            try {
+                const result = await ctx.runMutation(
+                    internal.outscraper.insertScrapedLead,
+                    {
+                        creatorId: me._id,
+                        scrapedAt,
+                        scrapedBy,
+                        businessName: place.name,
+                        businessAddress: place.full_address || place.address || undefined,
+                        businessCity: place.city || undefined,
+                        businessCategory:
+                            place.category || place.type || place.subtypes || undefined,
+                        businessWebsite: place.site || place.website || undefined,
+                        businessLatitude: place.latitude ?? undefined,
+                        businessLongitude: place.longitude ?? undefined,
+                        businessRating: place.rating ?? undefined,
+                        businessReviewCount: place.reviews ?? undefined,
+                        businessGooglePlaceId: String(placeId),
+                        phone: place.phone || undefined,
+                    },
+                );
+                if (result.skipped) skipped++;
+                else inserted++;
+            } catch (err: any) {
+                console.warn(
+                    `[outscraper] insertScrapedLead failed for "${place.name}": ${err?.message ?? err}`,
+                );
+                skipped++;
+            }
         }
 
-        return { inserted, skipped, total: raw.length };
+        console.log(
+            `[outscraper] returning to client: ${businesses.length} businesses with coords (inserted=${inserted}, skipped=${skipped})`,
+        );
+
+        return { inserted, skipped, total: raw.length, businesses };
     },
 });
 
