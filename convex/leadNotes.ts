@@ -23,6 +23,39 @@ export const create = mutation({
 });
 
 /**
+ * Creator-friendly alias for `create`. Matches the WEB-BUILD-CRM.md spec
+ * contract exactly — `{ leadId, content }`. The calling creator's id is
+ * derived from the Clerk identity server-side, so the client doesn't have
+ * to pass it. Both web and mobile call this version on the creator path.
+ */
+export const add = mutation({
+    args: {
+        leadId: v.id('leads'),
+        content: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const identity = await ctx.auth.getUserIdentity();
+        if (!identity) throw new Error('Not authenticated');
+        const creator = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+            .first();
+        if (!creator) throw new Error('Creator profile not found');
+
+        const trimmed = args.content.trim();
+        if (!trimmed) throw new Error('Note content cannot be empty');
+        if (trimmed.length > 2000) throw new Error('Note too long (max 2000 chars)');
+
+        return await ctx.db.insert('leadNotes', {
+            leadId: args.leadId,
+            creatorId: creator._id,
+            content: trimmed,
+            createdAt: Date.now(),
+        });
+    },
+});
+
+/**
  * Delete a note
  */
 export const remove = mutation({
