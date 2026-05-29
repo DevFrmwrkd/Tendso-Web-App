@@ -348,7 +348,7 @@ function CreatorLeadsInner() {
                     semantics. The labels are exact." */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-5">
                     <Link
-                        href="/leads/near?live=true"
+                        href="/leads/live"
                         className="rounded-2xl px-5 py-4 flex items-center justify-between transition-opacity hover:opacity-95"
                         style={{ background: "var(--ed-accent-solid, #10B981)", color: "#fff" }}
                     >

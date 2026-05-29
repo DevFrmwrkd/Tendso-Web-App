@@ -76,18 +76,29 @@ export const scrapeNearby = action({
         }
 
         const limit = Math.min(args.limit ?? 20, 200);
-        // Outscraper's Google Maps Search V3 — synchronous endpoint that
-        // returns up to ~500 results per query when `async=false`.
-        // Docs: https://app.outscraper.com/api-docs#tag/Google-Maps-Data
+        const radiusKm = Math.max(0.5, args.radiusKm ?? 5);
+
+        // 🛑 2026-05-28 FIX (per WEB-BUILD-CRM.md Outscraper query-format bug):
+        // Outscraper's /maps/search-v3 endpoint silently drops `coordinates`
+        // and `radius` when passed as separate query params, then runs the
+        // category as a worldwide search, exceeds the synchronous budget,
+        // and returns `data: [[]]`. The fix is to embed both inside the
+        // query string per Outscraper's documented format:
+        //   query=salon, 14.30,121.00, 3mi
+        const radiusMiles = Math.max(1, Math.round(radiusKm * 0.621371));
+        const userCategory = args.query.trim() || "businesses";
+        const queryString = `${userCategory}, ${args.location.trim()}, ${radiusMiles}mi`;
+
         const url = new URL("https://api.outscraper.com/maps/search-v3");
-        url.searchParams.set(
-            "query",
-            `${args.query.trim()}, ${args.location.trim()}`,
-        );
+        url.searchParams.set("query", queryString);
         url.searchParams.set("limit", String(limit));
         url.searchParams.set("language", "en");
         url.searchParams.set("region", "PH");
         url.searchParams.set("async", "false");
+
+        console.log(
+            `[outscraper] scrapeNearby → ${queryString} (limit=${limit})`,
+        );
 
         let payload: any;
         try {
@@ -106,6 +117,19 @@ export const scrapeNearby = action({
             throw new Error(`Outscraper request failed: ${err?.message ?? err}`);
         }
 
+        // Guard against async fallback — if Outscraper couldn't satisfy the
+        // request synchronously and returned a pending job descriptor, we
+        // surface that rather than silently report "0 businesses found"
+        // (which used to mask the original query-format bug).
+        if (
+            payload?.status === "Pending" ||
+            (payload?.id && !payload?.data)
+        ) {
+            throw new Error(
+                "Outscraper fell back to async mode for this query — try a smaller radius or a more specific category.",
+            );
+        }
+
         // Outscraper returns: { data: [[ placeA, placeB, ... ]] } for a single
         // query, or { data: [[...], [...]] } for multi-query. We sent one, so
         // flatten the first sublist.
@@ -114,6 +138,8 @@ export const scrapeNearby = action({
             : Array.isArray(payload?.data)
                 ? payload.data
                 : [];
+
+        console.log(`[outscraper] received ${raw.length} businesses from Outscraper`);
 
         const scrapedBy = me.clerkId;
         const scrapedAt = Date.now();

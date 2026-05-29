@@ -154,7 +154,12 @@ export default function FindLocalBusinessModal({
             setPhase("idle");
             activeRef.current = false;
             onClose();
-            router.replace("/leads?tab=prospects");
+            // Per spec — modal success routes straight to the Discover map view
+            // (NOT just the Prospects list) so the creator immediately sees the
+            // pins they just pulled.
+            const discoverHref =
+                `/leads/discover?category=${encodeURIComponent(queryStr)}&radiusKm=${radius}`;
+            router.push(discoverHref);
         } catch (err: any) {
             const message = err?.message ?? String(err);
             toast.error(classifyError(message));

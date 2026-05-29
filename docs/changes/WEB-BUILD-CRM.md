@@ -6,6 +6,8 @@
 >
 > **Last updated 2026-05-28.** Recent changes folded into this doc:
 >
+> 🚨 **URGENT — Outscraper currently broken on prod.** Find Local Business returns 0 results every time because the deployed `convex/outscraper.ts` builds an invalid request to Outscraper's API. Full diagnosis + fix in the "🛑 2026-05-28 — Outscraper query-format bug" section below. **Fix this first** — everything downstream of Find Local Business (Prospects tab, discover map, claim flow) is blocked until creators can actually populate prospect rows.
+>
 > **Mobile-as-source-of-truth alignment** — mobile owns the canonical behavior for both action buttons; the web side is currently misaligned (See Live Business does nothing / shows a blank leaflet, Find Local Business has no map). Web must mirror mobile.
 >
 > | Button | Mobile behavior (canonical — keep) | Web behavior (currently broken — fix to match mobile) |
@@ -280,10 +282,16 @@ Both action buttons land on map views. **Mobile is the source of truth for behav
 
 **Mobile reference:** `app/(app)/leads/nearby.tsx`. **Do not change the mobile implementation** — it is canonical.
 
-**What it pins:** every lead where the business has a live website AND was already interviewed. Exact SELECT criteria:
+**Backing query:** the web team has already added a `leads.listForMap` query on prod (visible in Convex logs at `prod:energetic-panther-693`). Mobile does not have this query in its local `convex/leads.ts` copy — it lives in the web repo. Once web deploys it formally, mobile picks it up via codegen. Both clients should call:
 
 ```typescript
-// Server-side filter (add a helper if listForMobileCRM doesn't already do this):
+api.leads.listForMap({})  // returns leads with coords + business.websiteUrl + interviewed flag
+```
+
+**What it pins:** every lead where the business has a live website AND was already interviewed. Exact SELECT criteria (apply server-side in `listForMap`):
+
+```typescript
+// Server-side filter:
 lead.submissionId != null                  // someone has interviewed it
   && lead.business.websiteUrl != null      // and the site is live
   && lead.business.latitude  != null       // and we have coords to plot
@@ -959,6 +967,56 @@ Key facts the web agent needs:
 - **Response shape:** Outscraper returns `data: [[result1, result2, ...]]` (nested array) for single-query calls. The action flattens both nested and flat shapes
 
 The action source is at `ndm/convex/outscraper.ts` — copy it verbatim if your web copy is out of date. **Make sure both `scrapeNearby` and `listScrapedLeads` use `requireAuth(ctx)`, not `requireAdmin(ctx)`** — see the 2026-05-27 callout earlier in this doc.
+
+---
+
+## 🛑 2026-05-28 — Outscraper query-format bug (currently broken on prod)
+
+> **Symptom:** Creator taps Find Local Business → 3-stage loader runs for 20–25 seconds → success alert appears with **"0 businesses found nearby. Added 0 new ones."** Convex log shows `outscraper:scrapeNearby success 24.2s` — no error, just empty results.
+>
+> **Root cause:** The deployed `convex/outscraper.ts` builds its Outscraper request like this:
+>
+> ```typescript
+> // ❌ BROKEN — Outscraper's /maps/search endpoint ignores these standalone params
+> new URLSearchParams({
+>   query: args.query,                    // "salon"
+>   coordinates: args.location,           // "14.30,121.00"
+>   radius: String(radiusMiles),          // "3"
+>   limit: String(limit),
+>   async: "false",
+>   language: "en",
+>   region: "PH",
+> });
+> ```
+>
+> Outscraper's `/maps/search` endpoint does NOT accept `coordinates` and `radius` as separate query params. It silently drops them and runs `query=salon` as a worldwide search, which exceeds the synchronous-mode result budget and ends up returning an empty `data: [[]]`. The 24-second response time is the API's internal fallback to async mode — it returns an empty payload rather than a proper job ID, so our handler thinks "success, 0 results."
+>
+> **Fix (already applied in `ndm/convex/outscraper.ts`):** Embed the location and radius INSIDE the query string per Outscraper's documented format:
+>
+> ```typescript
+> // ✅ CORRECT — Outscraper docs: "query=salons, 40.7,-73.9, 3mi"
+> const radiusMiles = Math.max(1, Math.round(radiusKm * 0.621371));
+> const userCategory = args.query.trim() || "businesses";
+> const queryString = `${userCategory}, ${args.location}, ${radiusMiles}mi`;
+> // → "salon, 14.30,121.00, 3mi"
+>
+> const params = new URLSearchParams({
+>   query: queryString,
+>   limit: String(limit),
+>   async: "false",
+>   language: "en",
+>   region: "PH",
+> });
+> ```
+>
+> Also added: a `console.log` of the outbound query string (for Convex log debugging), a `console.log` of the result count, and a guard that throws if Outscraper falls back into async mode (returns `status: "Pending"` with no `data`) instead of silently reporting 0. The async-fallback guard prevents the misleading "0 businesses found" UX from masking a real upstream problem.
+>
+> **Action required on web side:** copy the entire `handler` body of `scrapeNearby` from `ndm/convex/outscraper.ts` over to your web copy and `npx convex deploy --prod`. The args validator is unchanged so the mobile caller doesn't need any update. After deploy, the next Find Local Business tap should return real results.
+>
+> **How to verify after deploy:**
+> 1. Tap Find Local Business with category `salon`, radius 5km, anywhere with businesses around you
+> 2. Check Convex prod logs — should see `[outscraper] scrapeNearby → salon, 14.30,121.00, 3mi (limit=20)` followed by `[outscraper] received N businesses from Outscraper` where N > 0
+> 3. Alert should now show `N businesses found nearby. Added N new ones to your interview list (0 were already on it).`
 
 ---
 
