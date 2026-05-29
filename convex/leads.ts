@@ -937,16 +937,9 @@ export const geocodePendingSubmissions = action({
         geocoded: number;
         skipped: number;
         failed: number;
-        googleBillingDisabled: boolean;
     }> => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) throw new Error('Not authenticated');
-
-        const apiKey =
-            process.env.GOOGLE_MAPS_GEOCODING_API_KEY ||
-            process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-        // No key is allowed — we fall straight to Nominatim. The Google
-        // path is just the preferred provider when available.
 
         // Fetch pending submissions (address but no coordinates) via an
         // internal query. We cap at `limit` to keep each invocation bounded.
@@ -963,12 +956,6 @@ export const geocodePendingSubmissions = action({
         let geocoded = 0;
         let skipped = 0;
         let failed = 0;
-        // Sticky flag — once we see Google return REQUEST_DENIED we stop
-        // trying it for the rest of the batch (saves N pointless API
-        // round-trips) and fall straight to Nominatim. Surfaced to the
-        // client so the UI can render a "Billing not enabled on GCP"
-        // hint.
-        let googleBillingDisabled = false;
 
         for (const sub of pending) {
             const queryParts = [sub.address, sub.city, sub.province, 'Philippines']
@@ -979,98 +966,48 @@ export const geocodePendingSubmissions = action({
                 continue;
             }
 
+            // OpenStreetMap Nominatim — free, no API key, no billing setup.
+            // Slower than Google (1 req/sec rate limit) and less accurate
+            // for informal PH addresses, but it doesn't require any GCP
+            // configuration and works out of the box.
             let coords: { lat: number; lng: number } | null = null;
+            try {
+                const url = new URL('https://nominatim.openstreetmap.org/search');
+                url.searchParams.set('q', queryParts);
+                url.searchParams.set('format', 'json');
+                url.searchParams.set('countrycodes', 'ph');
+                url.searchParams.set('limit', '1');
 
-            // ── Provider 1: Google Maps Geocoding API ──────────────────
-            // Requires Billing enabled on the GCP project. Free up to
-            // $200/month credit (~40k requests). If REQUEST_DENIED comes
-            // back, billing is the cause — stop trying for this batch.
-            if (apiKey && !googleBillingDisabled) {
-                try {
-                    const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
-                    url.searchParams.set('address', queryParts);
-                    url.searchParams.set('region', 'ph');
-                    url.searchParams.set('key', apiKey);
-
-                    const res = await fetch(url.toString());
-                    if (res.ok) {
-                        const payload: any = await res.json();
-                        if (
-                            payload.status === 'OK' &&
-                            payload.results?.[0]?.geometry?.location
-                        ) {
-                            const loc = payload.results[0].geometry.location;
-                            coords = { lat: loc.lat, lng: loc.lng };
-                        } else if (payload.status === 'REQUEST_DENIED') {
-                            // Most common cause: Billing not enabled.
-                            // Flip the sticky flag so we skip Google for
-                            // the remainder of this batch.
-                            googleBillingDisabled = true;
-                            console.warn(
-                                `[geocode] Google REQUEST_DENIED — ${payload.error_message ?? 'likely needs Billing enabled on the GCP project'}. Falling back to Nominatim for the rest of this batch.`,
-                            );
-                        } else if (payload.status === 'ZERO_RESULTS') {
-                            console.warn(
-                                `[geocode] Google zero results for "${queryParts}" — trying Nominatim.`,
-                            );
-                        } else {
-                            console.warn(
-                                `[geocode] Google non-OK status ${payload.status} for "${queryParts}": ${payload.error_message ?? ''}`,
-                            );
+                const res = await fetch(url.toString(), {
+                    headers: {
+                        // Nominatim ToS requires a User-Agent that
+                        // identifies the application.
+                        'User-Agent': 'NegosyoDigital/1.0 (frmwrkd.media@gmail.com)',
+                        Accept: 'application/json',
+                    },
+                });
+                if (res.ok) {
+                    const payload: any = await res.json();
+                    if (Array.isArray(payload) && payload[0]) {
+                        const lat = parseFloat(payload[0].lat);
+                        const lng = parseFloat(payload[0].lon);
+                        if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+                            coords = { lat, lng };
                         }
                     } else {
-                        console.warn(`[geocode] Google HTTP ${res.status} for "${queryParts}"`);
+                        console.warn(
+                            `[geocode] Nominatim zero results for "${queryParts}"`,
+                        );
                     }
-                } catch (err: any) {
-                    console.warn(
-                        `[geocode] Google threw for "${queryParts}": ${err?.message ?? err}`,
-                    );
+                } else {
+                    console.warn(`[geocode] Nominatim HTTP ${res.status} for "${queryParts}"`);
                 }
-            }
-
-            // ── Provider 2: OpenStreetMap Nominatim ────────────────────
-            // Free, no API key, no Billing required. Slower (1 req/sec
-            // rate limit) and less reliable for informal PH addresses,
-            // but adequate as a fallback when Google is unavailable.
-            if (!coords) {
-                try {
-                    const url = new URL('https://nominatim.openstreetmap.org/search');
-                    url.searchParams.set('q', queryParts);
-                    url.searchParams.set('format', 'json');
-                    url.searchParams.set('countrycodes', 'ph');
-                    url.searchParams.set('limit', '1');
-
-                    const res = await fetch(url.toString(), {
-                        headers: {
-                            // Nominatim ToS requires a User-Agent that
-                            // identifies the application.
-                            'User-Agent': 'NegosyoDigital/1.0 (frmwrkd.media@gmail.com)',
-                            Accept: 'application/json',
-                        },
-                    });
-                    if (res.ok) {
-                        const payload: any = await res.json();
-                        if (Array.isArray(payload) && payload[0]) {
-                            const lat = parseFloat(payload[0].lat);
-                            const lng = parseFloat(payload[0].lon);
-                            if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
-                                coords = { lat, lng };
-                            }
-                        } else {
-                            console.warn(
-                                `[geocode] Nominatim zero results for "${queryParts}"`,
-                            );
-                        }
-                    } else {
-                        console.warn(`[geocode] Nominatim HTTP ${res.status} for "${queryParts}"`);
-                    }
-                    // Polite delay — Nominatim asks for ≤1 req/sec.
-                    await new Promise((r) => setTimeout(r, 1100));
-                } catch (err: any) {
-                    console.warn(
-                        `[geocode] Nominatim threw for "${queryParts}": ${err?.message ?? err}`,
-                    );
-                }
+                // Polite delay — Nominatim asks for ≤1 req/sec.
+                await new Promise((r) => setTimeout(r, 1100));
+            } catch (err: any) {
+                console.warn(
+                    `[geocode] Nominatim threw for "${queryParts}": ${err?.message ?? err}`,
+                );
             }
 
             if (coords) {
@@ -1090,7 +1027,6 @@ export const geocodePendingSubmissions = action({
             geocoded,
             skipped,
             failed,
-            googleBillingDisabled,
         };
     },
 });
