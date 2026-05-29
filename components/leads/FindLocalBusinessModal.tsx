@@ -148,15 +148,16 @@ export default function FindLocalBusinessModal({
             setPhase("saving");
             await new Promise((r) => setTimeout(r, 350));
 
-            toast.success("Found nearby businesses", {
-                description: `${res.total} business${res.total === 1 ? "" : "es"} found nearby. Added ${res.inserted} new one${res.inserted === 1 ? "" : "s"} to your interview list (${res.skipped} were already on it).`,
-            });
+            // Per the 2026-05-29 spec update: NO success toast, NO Alert
+            // dialog. The map at /leads/discover IS the success state —
+            // the modal closes and the router takes the creator straight
+            // to the result map. Don't show "X businesses added to your
+            // interview list" — that's the broken UX mobile already deleted.
+            // The result counts (res.total / inserted / skipped) are
+            // surfaced by the map's header copy instead.
             setPhase("idle");
             activeRef.current = false;
             onClose();
-            // Per spec — modal success routes straight to the Discover map view
-            // (NOT just the Prospects list) so the creator immediately sees the
-            // pins they just pulled.
             const discoverHref =
                 `/leads/discover?category=${encodeURIComponent(queryStr)}&radiusKm=${radius}`;
             router.push(discoverHref);
