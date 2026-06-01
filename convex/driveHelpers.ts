@@ -11,7 +11,11 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 
 /**
- * Internal — fetch the submission + linked website content the sync needs.
+ * Internal — fetch the submission + linked website docs the sync needs.
+ *
+ * Returns both `generatedWebsites` and `websiteContent` rows: enhanced/
+ * optimized images can live on either depending on which pipeline produced
+ * them, so the Drive sync collects from both and dedupes.
  */
 export const getSubmissionForSync = internalQuery({
     args: { submissionId: v.id("submissions") },
@@ -27,7 +31,13 @@ export const getSubmissionForSync = internalQuery({
                 .filter((q) => q.eq(q.field("submissionId"), args.submissionId))
                 .first()
                 .catch(() => null)) ?? null;
-        return { submission, website };
+        const websiteContent =
+            (await ctx.db
+                .query("websiteContent")
+                .filter((q) => q.eq(q.field("submissionId"), args.submissionId))
+                .first()
+                .catch(() => null)) ?? null;
+        return { submission, website, websiteContent };
     },
 });
 
