@@ -117,35 +117,43 @@ type DriveClient = Awaited<ReturnType<typeof getDriveClient>>;
 /**
  * Resolve a stored asset reference (photo / video / audio) to a fetchable URL.
  *
- * Web-side submissions store full R2 public URLs (`https://...`) so the
- * passthrough branch handles them. Mobile-APK submissions, per
- * docs/changes/WEB-DRIVE-SYNC.md, write raw Convex storage IDs like
- * `images/1780282669962-av801pum.jpg`. Passing those straight into `fetch()`
- * throws `Failed to parse URL`, which is what caused the prod sync failure
- * we are fixing here.
+ * Three shapes show up in `submissions.{photos,videoUrl,audioUrl}`:
+ *   1. `https://…` — full URL written by the web submit flow; passthrough.
+ *   2. `images/…`, `videos/…`, `audio/…`, `avatars/…` — R2 object keys
+ *      written by the mobile APK. Resolve by prefixing `R2_PUBLIC_URL`.
+ *      (The R2 deletion route in app/api/delete-submission/route.ts uses
+ *      the same prefix as the inverse operation.)
+ *   3. Anything else — treat as a Convex `_storage` ID and call
+ *      `ctx.storage.getUrl()`. Last because it throws hard on a bad input
+ *      and we don't want to misclassify R2 keys as Convex IDs.
  *
- * Branches:
- *   1. `http://` / `https://` prefix → already fetchable; return unchanged.
- *   2. Otherwise → treat as a Convex storage ID and resolve via
- *      `ctx.storage.getUrl()` to get a signed Convex URL.
- *
- * Throws a clear error if a non-URL string fails to resolve so future
- * debugging takes seconds, not hours.
+ * Throws a clear, contextual error so a bad reference is easy to triage.
  */
+const R2_FOLDER_PREFIX_RE = /^(images|videos|audio|avatars)\//;
+
 async function resolveFetchableUrl(
     ctx: ActionCtx,
-    urlOrStorageId: string,
+    ref: string,
 ): Promise<string> {
-    if (/^https?:\/\//i.test(urlOrStorageId)) {
-        return urlOrStorageId;
+    if (/^https?:\/\//i.test(ref)) {
+        return ref;
     }
-    const resolved = await ctx.storage.getUrl(
-        urlOrStorageId as Id<"_storage">,
-    );
+
+    if (R2_FOLDER_PREFIX_RE.test(ref)) {
+        const r2Public = process.env.R2_PUBLIC_URL?.replace(/\/$/, "");
+        if (!r2Public) {
+            throw new Error(
+                `R2_PUBLIC_URL env var is not set — cannot resolve R2 key "${ref}".`,
+            );
+        }
+        return `${r2Public}/${ref}`;
+    }
+
+    const resolved = await ctx.storage.getUrl(ref as Id<"_storage">);
     if (!resolved) {
         throw new Error(
-            `Could not resolve storage reference "${urlOrStorageId}" to a URL. ` +
-                "Either the storage ID is invalid, or this is meant to be a full URL that's missing its scheme.",
+            `Could not resolve storage reference "${ref}" to a URL. ` +
+                "Not an HTTP URL, R2 key, or Convex storage ID.",
         );
     }
     return resolved;
@@ -259,7 +267,7 @@ export const syncSubmissionToDrive = internalAction({
             if (!bundle?.submission) {
                 throw new Error("Submission not found");
             }
-            const { submission, website } = bundle;
+            const { submission, website, websiteContent } = bundle;
 
             const drive = await getDriveClient();
 
@@ -308,8 +316,73 @@ export const syncSubmissionToDrive = internalAction({
                     photosFolder.id,
                 );
             }
-            await safeUpload((submission as any).videoUrl, "interview.mp4", videoFolder.id);
-            await safeUpload((submission as any).audioUrl, "interview.m4a", audioFolder.id);
+
+            // Enhanced / optimized images — produced by the image enhancement
+            // pipeline and stored on either generatedWebsites or websiteContent
+            // (depending on which path produced them). Shape:
+            //   { headshot: { url }, exterior: { url }, interior_1: { url }, … }
+            // Same source list the delete route walks, deduped by URL.
+            const enhancedSources: Record<string, unknown>[] = [
+                (website as any)?.enhancedImages,
+                (website as any)?.extractedContent?.enhancedImages,
+                (websiteContent as any)?.enhancedImages,
+            ].filter((src) => src && typeof src === "object") as Record<string, unknown>[];
+
+            const seenEnhanced = new Set<string>();
+            const enhancedUploads: Array<{ slot: string; url: string }> = [];
+            for (const src of enhancedSources) {
+                for (const [slot, val] of Object.entries(src)) {
+                    if (!val || typeof val !== "object") continue;
+                    const url =
+                        (val as any).url ||
+                        (val as any).storageId ||
+                        undefined;
+                    if (typeof url !== "string" || !url) continue;
+                    if (seenEnhanced.has(url)) continue;
+                    seenEnhanced.add(url);
+                    enhancedUploads.push({ slot, url });
+                }
+            }
+            for (const { slot, url } of enhancedUploads) {
+                const ext = /^https?:\/\//i.test(url)
+                    ? url.split(".").pop()?.split("?")[0] || "jpg"
+                    : "jpg";
+                const safeSlot = slot.replace(/[^a-z0-9_-]+/gi, "_");
+                await safeUpload(
+                    url,
+                    `enhanced-${safeSlot}.${ext}`,
+                    photosFolder.id,
+                );
+            }
+
+            // Video + audio — coalesce web-style (*Url full URL) and mobile-
+            // style (*StorageId R2 key). Either field can be empty depending
+            // on which client submitted. resolveFetchableUrl handles both.
+            //
+            // Filename extension is derived from the actual ref so we don't
+            // mislabel files: web accepts mp3 / m4a / wav, mobile records m4a,
+            // hard-coding either was wrong. Default `mp4` / `mp3` when the ref
+            // isn't a URL we can parse.
+            const extFromRef = (ref: string | undefined, fallback: string): string => {
+                if (!ref) return fallback;
+                if (!/^https?:\/\//i.test(ref) && !/^(images|videos|audio|avatars)\//.test(ref)) {
+                    return fallback;
+                }
+                const tail = ref.split("?")[0].split("/").pop() ?? "";
+                const ext = tail.includes(".") ? tail.split(".").pop() : "";
+                return ext && ext.length <= 5 ? ext.toLowerCase() : fallback;
+            };
+
+            const videoRef =
+                (submission as any).videoUrl ||
+                (submission as any).videoStorageId ||
+                undefined;
+            const audioRef =
+                (submission as any).audioUrl ||
+                (submission as any).audioStorageId ||
+                undefined;
+            await safeUpload(videoRef, `interview.${extFromRef(videoRef, "mp4")}`, videoFolder.id);
+            await safeUpload(audioRef, `interview.${extFromRef(audioRef, "mp3")}`, audioFolder.id);
 
             if (submission.transcript) {
                 try {
