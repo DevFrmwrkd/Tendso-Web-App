@@ -112,23 +112,9 @@ function mapStyleToLetter(numericStyle: string | undefined, fallback: string = '
     return map[numericStyle] || numericStyle // Pass through if already a letter
 }
 
-// Variant-code → category override for conversion-block defaults.
-// Letters A-J are the legacy generic variants (use submission.business_type).
-// K-O are category-specific variants — they force a category regardless of
-// what was typed into business_type, so a barber selecting variant K still
-// gets barber-specific Why/How/Testimonial copy.
-const VARIANT_CODE_OVERRIDES: Record<string, string> = {
-    K: 'barber',
-    L: 'auto',
-    M: 'salon',
-    N: 'restaurant',
-    O: 'clinic',
-}
-
-function effectiveBusinessType(heroStyleLetter: string, businessType: string | undefined): string | undefined {
-    const code = (heroStyleLetter || '').charAt(0).toUpperCase()
-    return VARIANT_CODE_OVERRIDES[code] ?? businessType
-}
+// Variant-code → category routing was removed when the template library was
+// wiped. `submission.business_type` is still passed through for whatever new
+// designs do with it (e.g. picking a default color palette).
 
 // Minimal PH city-adjacency seed for the ServiceArea block (3-4 places per
 // known business city). The brief: "service area as a real map or list of
@@ -416,10 +402,10 @@ function transformToAstroData(
                 undefined,
             messenger: content.messaging?.messenger,
         },
-        // ── Conversion-cluster blocks (with per-business-type defaults) ──
-        // Resolution order: admin-typed → variant-code-override → per-business-type → generic
+        // ── Conversion-cluster blocks (neutral fallback after template wipe) ──
+        // Resolution order: admin-typed → generic neutral fallback.
         ...(() => {
-            const d = defaultsFor(effectiveBusinessType(heroStyle, content.business_type))
+            const d = defaultsFor(content.business_type)
             return {
                 trust: content.trust ?? d.trust,
                 why: content.why ?? d.why,

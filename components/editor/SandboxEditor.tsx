@@ -36,73 +36,23 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { injectEditorBridge } from "./editorBridge";
-import {
-    StylePreviewBadge,
-    STYLE_METADATA,
-    CATEGORY_STYLES,
-    SECTION_LABELS,
-    SECTION_FIELD_MAP,
-    VariantPreview,
-    type SectionId,
-} from "../ContentEditor";
 import s from "./SandboxEditor.module.css";
 
 // ── BUCKETS · pick-one categories ────────────────────────────────────
+// `business_type` carries forward, but the variant-prefix routing was
+// removed when the template library was wiped. New designs decide for
+// themselves whether/how to use the bucket id.
 const TEMPLATE_BUCKETS = [
-    { id: "barber",     label: "Barber",     business: "Barber Shop",       desc: "Vintage masculine · heritage",    variantPrefix: "K" },
-    { id: "salon",      label: "Beauty",     business: "Salon / Spa",       desc: "Luxe ethereal · soft & feminine", variantPrefix: "M" },
-    { id: "auto",       label: "Automotive", business: "Auto Shop",         desc: "Industrial · technical · rugged", variantPrefix: "L" },
-    { id: "restaurant", label: "Food",       business: "Restaurant / Café", desc: "Warm · appetizing · hospitable",  variantPrefix: "N" },
-    { id: "clinic",     label: "Medical",    business: "Clinic / Dental",   desc: "Clean · trustworthy · professional", variantPrefix: "O" },
-    { id: "retail",     label: "Retail",     business: "Retail Store",      desc: "Blueprint · clear · catalog",     variantPrefix: "" },
-    { id: "fitness",    label: "Fitness",    business: "Gym / Studio",      desc: "Kinetic · bold · confident",      variantPrefix: "" },
-    { id: "education",  label: "Education",  business: "School / Workshop", desc: "Warm · inviting · academic",      variantPrefix: "" },
-    { id: "services",   label: "Services",   business: "Trades / Services", desc: "Service area · utility · clear",  variantPrefix: "" },
+    { id: "barber",     label: "Barber",     business: "Barber Shop",       desc: "Vintage masculine · heritage" },
+    { id: "salon",      label: "Beauty",     business: "Salon / Spa",       desc: "Luxe ethereal · soft & feminine" },
+    { id: "auto",       label: "Automotive", business: "Auto Shop",         desc: "Industrial · technical · rugged" },
+    { id: "restaurant", label: "Food",       business: "Restaurant / Café", desc: "Warm · appetizing · hospitable" },
+    { id: "clinic",     label: "Medical",    business: "Clinic / Dental",   desc: "Clean · trustworthy · professional" },
+    { id: "retail",     label: "Retail",     business: "Retail Store",      desc: "Blueprint · clear · catalog" },
+    { id: "fitness",    label: "Fitness",    business: "Gym / Studio",      desc: "Kinetic · bold · confident" },
+    { id: "education",  label: "Education",  business: "School / Workshop", desc: "Warm · inviting · academic" },
+    { id: "services",   label: "Services",   business: "Trades / Services", desc: "Service area · utility · clear" },
 ] as const;
-
-// Variant counts per category-letter (matches astro-site-template/src/components/{heroes,about,services,gallery,contact}/).
-// Hero has an extra M6 variant — the editorial NEO Labs salon hero we added.
-const GENERIC_VARIANTS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
-function variantsFor(section: "hero" | "about" | "services" | "gallery" | "contact", categoryLetter: string): string[] {
-    const base = {
-        K: ["K1", "K2", "K3", "K4", "K5"],
-        L: ["L1", "L2", "L3", "L4", "L5"],
-        M: ["M1", "M2", "M3", "M4", "M5"],
-        N: ["N1", "N2", "N3", "N4", "N5"],
-        O: ["O1", "O2", "O3", "O4", "O5"],
-    } as Record<string, string[]>;
-    let cat: string[] = base[categoryLetter] ?? [];
-    if (section === "hero" && categoryLetter === "M") cat = [...cat, "M6"];
-    return [...cat, ...GENERIC_VARIANTS];
-}
-
-// Friendly variant labels — short descriptive name per letter. Only A-J have
-// distinct labels; numbered (K1, M6, …) are kept as-is in the dropdown since
-// they're category-specific designs with no shared metadata.
-const VARIANT_LABELS: Record<string, string> = {
-    A: "Split Modern",
-    B: "Fullscreen",
-    C: "Carousel",
-    D: "Agency Dark",
-    E: "Visual Narrative",
-    F: "Luxury Elegant",
-    G: "First Class",
-    H: "Nexus Forge",
-    I: "Meridian Strategy",
-    J: "Atelier Creative",
-    M6: "Editorial (NEO Labs)",
-};
-const SECTION_KEYS: Array<{
-    key: "hero" | "about" | "services" | "gallery" | "contact";
-    label: string;
-    custKey: keyof Pick<any, "heroStyle" | "aboutStyle" | "servicesStyle" | "galleryStyle" | "contactStyle">;
-}> = [
-    { key: "hero",     label: "Hero",     custKey: "heroStyle" },
-    { key: "about",    label: "About",    custKey: "aboutStyle" },
-    { key: "services", label: "Services", custKey: "servicesStyle" },
-    { key: "gallery",  label: "Gallery",  custKey: "galleryStyle" },
-    { key: "contact",  label: "Contact",  custKey: "contactStyle" },
-];
 
 // ── 15 v01 BLOCKS ─────────────────────────────────────────────────────
 const ALL_BLOCKS: Array<{ name: string; tag: "required" | "recommended"; visKey: string }> = [
@@ -252,21 +202,6 @@ export default function SandboxEditor(props: SandboxEditorProps) {
     // Cleared after the upload (or when admin manually clicks Add image).
     const [pendingImageField, setPendingImageField] = useState<string | null>(null);
 
-    // Collapsible section accordions (Template tab variant picker).
-    // Hero is open by default so admin sees a starting point; the rest
-    // collapse to keep the panel short — click to expand.
-    const [expandedAccordions, setExpandedAccordions] = useState<Set<string>>(
-        () => new Set(["hero"]),
-    );
-    const toggleAccordion = (key: string) => {
-        setExpandedAccordions((prev) => {
-            const next = new Set(prev);
-            if (next.has(key)) next.delete(key);
-            else next.add(key);
-            return next;
-        });
-    };
-
     // Scroll-to-top — track panelBody scroll position so we can pop a
     // floating button when the admin is scrolled past the fold.
     const panelBodyRef = useRef<HTMLDivElement | null>(null);
@@ -409,9 +344,6 @@ export default function SandboxEditor(props: SandboxEditorProps) {
     // User selections are batched here — no regen on every click. They
     // get committed to the parent on Save changes (atomically with any
     // content draft) so the page regenerates ONCE with everything applied.
-    const bucket = TEMPLATE_BUCKETS.find((b) => b.id === selectedBucket);
-    const categoryLetter = bucket?.variantPrefix ?? "";
-
     const [pendingCustomizations, setPendingCustomizations] = useState<any>(customizations);
     useEffect(() => {
         setPendingCustomizations(customizations);
@@ -477,26 +409,6 @@ export default function SandboxEditor(props: SandboxEditorProps) {
     function handleReset() {
         setDraft(content ?? {});
         setPendingCustomizations(customizations);
-    }
-
-    // Merge generic A-J + category-specific (K1-K5, L1-L5, M1-M5, N1-N5,
-    // O1-O5) variants per section. Hero gets an extra M6 (NEO Labs editorial).
-    function variantsForSection(sectionId: SectionId): Array<{ key: string; label: string }> {
-        const out: Array<{ key: string; label: string }> = [];
-        const cat = CATEGORY_STYLES.find((c) => c.key === categoryLetter);
-        if (cat) {
-            for (const v of cat.sections[sectionId] ?? []) {
-                out.push({ key: v.key, label: v.label });
-            }
-            if (sectionId === "hero" && categoryLetter === "M") {
-                out.push({ key: "M6", label: "Editorial (NEO Labs)" });
-            }
-        }
-        const generic = STYLE_METADATA[`${sectionId}Style`] ?? {};
-        for (const [key, meta] of Object.entries(generic)) {
-            out.push({ key, label: (meta as any).label ?? `Style ${key}` });
-        }
-        return out;
     }
 
     // ── Image upload (Images tab) ─────────────────────────────────────
@@ -650,14 +562,12 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                 <div className={s.panelInner}>
                 <div ref={panelBodyRef} className={cx(s.panelBody, s.scrollable)}>
                     {/* ── TEMPLATE ─────────────────────────────── */}
-                    {/* Recycled 1:1 from ContentEditor's category picker —
-                        same light card pattern (emoji + label + ACTIVE pill +
-                        palette dots + chevron), same VariantPreview schematics.
-                        Cards float as light "paper islands" inside the dark
-                        sandbox panel for an editorial sidebar feel.
-
-                        Pending selections accumulate in pendingCustomizations
-                        and only commit on Save changes. */}
+                    {/* Template variants were removed for a clean-slate redesign.
+                        The only thing this tab still does is let the admin pick a
+                        business bucket — it persists to draft.business_type on
+                        Save changes and shows next to the preview header. The
+                        per-section variant picker will come back once new
+                        designs land. */}
                     {tab === "template" && (
                         <div className="space-y-3">
                             {customizationsDirty && (
@@ -667,314 +577,57 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                                 </div>
                             )}
 
-                            {CATEGORY_STYLES.map((cat) => {
-                                const sectionKey = `cat-${cat.key}`;
-                                const isExpanded = expandedAccordions.has(sectionKey);
-                                const currentHero = (effectiveCustomizations as any)?.heroStyle ?? "";
-                                const isActiveCat = currentHero.startsWith(cat.key);
-                                return (
-                                    <div
-                                        key={cat.key}
-                                        className="rounded-lg overflow-hidden transition-colors"
-                                        style={{
-                                            background: "var(--sx-panel-2)",
-                                            border: isActiveCat
-                                                ? "1px solid var(--sx-accent)"
-                                                : "1px solid var(--sx-rule)",
-                                        }}
+                            <div className={s.section}>
+                                <div className={s.sectionHead}>BUSINESS CATEGORY</div>
+                                <div className={s.hint} style={{ marginBottom: 12 }}>
+                                    Tags the submission so future designs can pick a fitting
+                                    default. No template variants yet — designs are being
+                                    rebuilt from scratch.
+                                </div>
+                                <div className={s.field}>
+                                    <label>Category</label>
+                                    <select
+                                        value={selectedBucket}
+                                        onChange={(e) => setSelectedBucket(e.target.value)}
                                     >
-                                        {/* Category header — dark sandbox theme */}
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                toggleAccordion(sectionKey);
-                                                const bucketMatch = TEMPLATE_BUCKETS.find(
-                                                    (b) => b.variantPrefix === cat.key,
-                                                );
-                                                if (bucketMatch) setSelectedBucket(bucketMatch.id);
-                                            }}
-                                            className="w-full flex items-center gap-3 p-3 text-left transition-colors"
-                                            style={{
-                                                background: isActiveCat
-                                                    ? "rgba(16, 185, 129, 0.08)"
-                                                    : "transparent",
-                                                color: "var(--sx-ink)",
-                                                fontFamily: "var(--sx-sans)",
-                                            }}
-                                        >
-                                            <span style={{ fontSize: 22, lineHeight: 1, flexShrink: 0 }}>{cat.emoji}</span>
-                                            <div style={{ flex: 1, minWidth: 0 }}>
-                                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                                    <span style={{ fontWeight: 600, color: "var(--sx-ink)" }}>{cat.label}</span>
-                                                    {isActiveCat && (
-                                                        <span
-                                                            style={{
-                                                                fontSize: 9,
-                                                                fontWeight: 700,
-                                                                textTransform: "uppercase",
-                                                                letterSpacing: "0.1em",
-                                                                color: "var(--sx-accent)",
-                                                                background: "rgba(16, 185, 129, 0.18)",
-                                                                borderRadius: 999,
-                                                                padding: "2px 7px",
-                                                                fontFamily: "var(--sx-mono)",
-                                                            }}
-                                                        >
-                                                            Active
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p
-                                                    style={{
-                                                        fontSize: 11,
-                                                        color: "var(--sx-ink-soft)",
-                                                        margin: "2px 0 0",
-                                                        whiteSpace: "nowrap",
-                                                        overflow: "hidden",
-                                                        textOverflow: "ellipsis",
-                                                    }}
-                                                >
-                                                    {cat.tagline}
-                                                </p>
-                                            </div>
-                                            <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                                                <span style={{ width: 10, height: 10, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", backgroundColor: cat.palette.bg }} />
-                                                <span style={{ width: 10, height: 10, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", backgroundColor: cat.palette.primary }} />
-                                                <span style={{ width: 10, height: 10, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", backgroundColor: cat.palette.accent }} />
-                                                <span style={{ width: 10, height: 10, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.1)", backgroundColor: cat.palette.text }} />
-                                            </div>
-                                            <ChevronDown
-                                                style={{
-                                                    width: 14,
-                                                    height: 14,
-                                                    color: isExpanded ? "var(--sx-accent)" : "var(--sx-ink-mute)",
-                                                    flexShrink: 0,
-                                                    transition: "transform 0.18s",
-                                                    transform: isExpanded ? "rotate(180deg)" : "none",
-                                                }}
-                                            />
-                                        </button>
+                                        {TEMPLATE_BUCKETS.map((b) => (
+                                            <option key={b.id} value={b.id}>
+                                                {b.label} · {b.business}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
 
-                                        {/* Expanded — section sub-accordions, dark theme */}
-                                        {isExpanded && (
-                                            <div style={{ padding: 12, display: "flex", flexDirection: "column", gap: 10, borderTop: "1px solid var(--sx-rule)" }}>
-                                                {(Object.keys(cat.sections) as SectionId[]).map((sectionId) => {
-                                                    const variants = cat.sections[sectionId];
-                                                    if (!variants) return null;
-                                                    const fieldKey = SECTION_FIELD_MAP[sectionId];
-                                                    const currentValue =
-                                                        (effectiveCustomizations as any)?.[fieldKey];
-                                                    const sectionMeta = SECTION_LABELS[sectionId];
-                                                    const subKey = `${sectionKey}-${sectionId}`;
-                                                    const isSubOpen =
-                                                        expandedAccordions.has(subKey) ||
-                                                        (sectionId === "hero" && isExpanded &&
-                                                            !expandedAccordions.has(`${subKey}-closed`));
-                                                    const toggleSub = () => {
-                                                        if (sectionId === "hero" && isSubOpen) {
-                                                            setExpandedAccordions((prev) => {
-                                                                const next = new Set(prev);
-                                                                next.add(`${subKey}-closed`);
-                                                                next.delete(subKey);
-                                                                return next;
-                                                            });
-                                                        } else if (sectionId === "hero" && !isSubOpen) {
-                                                            setExpandedAccordions((prev) => {
-                                                                const next = new Set(prev);
-                                                                next.delete(`${subKey}-closed`);
-                                                                next.add(subKey);
-                                                                return next;
-                                                            });
-                                                        } else {
-                                                            toggleAccordion(subKey);
-                                                        }
-                                                    };
-                                                    return (
-                                                        <div
-                                                            key={sectionId}
-                                                            style={{
-                                                                background: "var(--sx-panel)",
-                                                                border: "1px solid var(--sx-rule)",
-                                                                borderRadius: 8,
-                                                                overflow: "hidden",
-                                                            }}
-                                                        >
-                                                            <button
-                                                                type="button"
-                                                                onClick={toggleSub}
-                                                                style={{
-                                                                    width: "100%",
-                                                                    display: "flex",
-                                                                    alignItems: "center",
-                                                                    justifyContent: "space-between",
-                                                                    padding: "10px 12px",
-                                                                    background: "transparent",
-                                                                    border: 0,
-                                                                    color: "var(--sx-ink)",
-                                                                    cursor: "pointer",
-                                                                    fontFamily: "var(--sx-sans)",
-                                                                }}
-                                                            >
-                                                                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2, minWidth: 0 }}>
-                                                                    <span
-                                                                        style={{
-                                                                            fontSize: 11,
-                                                                            fontWeight: 700,
-                                                                            color: "var(--sx-accent)",
-                                                                            textTransform: "uppercase",
-                                                                            letterSpacing: "0.16em",
-                                                                            fontFamily: "var(--sx-mono)",
-                                                                        }}
-                                                                    >
-                                                                        {sectionMeta.label}
-                                                                    </span>
-                                                                    <span
-                                                                        style={{
-                                                                            fontSize: 9,
-                                                                            fontWeight: 600,
-                                                                            color: "var(--sx-ink-mute)",
-                                                                            textTransform: "uppercase",
-                                                                            letterSpacing: "0.12em",
-                                                                            fontFamily: "var(--sx-mono)",
-                                                                        }}
-                                                                    >
-                                                                        {sectionMeta.sub}
-                                                                    </span>
-                                                                </div>
-                                                                <ChevronDown
-                                                                    style={{
-                                                                        width: 13,
-                                                                        height: 13,
-                                                                        color: isSubOpen ? "var(--sx-accent)" : "var(--sx-ink-mute)",
-                                                                        transition: "transform 0.18s",
-                                                                        transform: isSubOpen ? "rotate(180deg)" : "none",
-                                                                    }}
-                                                                />
-                                                            </button>
-
-                                                            {isSubOpen && (
-                                                                <div style={{ padding: 12, borderTop: "1px solid var(--sx-rule)" }}>
-                                                                    <div className="grid grid-cols-2 gap-2.5">
-                                                                        {variants.map((v) => {
-                                                                            const isSelected = currentValue === v.key;
-                                                                            const isAvailable = v.status === "available";
-                                                                            return (
-                                                                                <button
-                                                                                    key={v.key}
-                                                                                    type="button"
-                                                                                    disabled={!isAvailable}
-                                                                                    onClick={() =>
-                                                                                        isAvailable &&
-                                                                                        setVariant(
-                                                                                            fieldKey as string,
-                                                                                            v.key,
-                                                                                        )
-                                                                                    }
-                                                                                    style={{
-                                                                                        position: "relative",
-                                                                                        display: "flex",
-                                                                                        flexDirection: "column",
-                                                                                        padding: 8,
-                                                                                        borderRadius: 12,
-                                                                                        background: isSelected
-                                                                                            ? "rgba(16, 185, 129, 0.08)"
-                                                                                            : "var(--sx-panel-2)",
-                                                                                        border: isSelected
-                                                                                            ? "1px solid var(--sx-accent)"
-                                                                                            : "1px solid var(--sx-rule)",
-                                                                                        cursor: isAvailable ? "pointer" : "not-allowed",
-                                                                                        opacity: isAvailable ? 1 : 0.5,
-                                                                                        textAlign: "left",
-                                                                                        transition: "0.15s",
-                                                                                        fontFamily: "var(--sx-sans)",
-                                                                                    }}
-                                                                                >
-                                                                                    {/* Schematic preview — kept light on purpose
-                                                                                        so the VariantPreview's white-fill schematics
-                                                                                        stay legible against the dark card. */}
-                                                                                    <div
-                                                                                        style={{
-                                                                                            width: "100%",
-                                                                                            marginBottom: 6,
-                                                                                            borderRadius: 8,
-                                                                                            overflow: "hidden",
-                                                                                            background: "#fff",
-                                                                                            border: "1px solid rgba(255,255,255,0.06)",
-                                                                                        }}
-                                                                                    >
-                                                                                        <VariantPreview
-                                                                                            sectionId={sectionId}
-                                                                                            variantKey={v.key}
-                                                                                            palette={cat.palette}
-                                                                                        />
-                                                                                    </div>
-
-                                                                                    <div style={{ flex: 1, minWidth: 0, padding: "0 2px" }}>
-                                                                                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                                                                            <span
-                                                                                                style={{
-                                                                                                    fontSize: 10,
-                                                                                                    fontWeight: 800,
-                                                                                                    textTransform: "uppercase",
-                                                                                                    letterSpacing: "-0.005em",
-                                                                                                    color: isSelected
-                                                                                                        ? "var(--sx-accent)"
-                                                                                                        : "var(--sx-ink)",
-                                                                                                    whiteSpace: "nowrap",
-                                                                                                    overflow: "hidden",
-                                                                                                    textOverflow: "ellipsis",
-                                                                                                }}
-                                                                                            >
-                                                                                                {v.label}
-                                                                                            </span>
-                                                                                            {isSelected && (
-                                                                                                <span
-                                                                                                    style={{
-                                                                                                        width: 12,
-                                                                                                        height: 12,
-                                                                                                        background: "var(--sx-accent)",
-                                                                                                        borderRadius: "50%",
-                                                                                                        display: "inline-flex",
-                                                                                                        alignItems: "center",
-                                                                                                        justifyContent: "center",
-                                                                                                        color: "#052e1f",
-                                                                                                        fontSize: 9,
-                                                                                                        fontWeight: 700,
-                                                                                                        flexShrink: 0,
-                                                                                                    }}
-                                                                                                >
-                                                                                                    ✓
-                                                                                                </span>
-                                                                                            )}
-                                                                                        </div>
-                                                                                        <div
-                                                                                            style={{
-                                                                                                fontSize: 9,
-                                                                                                color: "var(--sx-ink-mute)",
-                                                                                                fontWeight: 700,
-                                                                                                marginTop: 2,
-                                                                                                textTransform: "uppercase",
-                                                                                                fontFamily: "var(--sx-mono)",
-                                                                                                letterSpacing: "0.06em",
-                                                                                            }}
-                                                                                        >
-                                                                                            Style {v.key}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </button>
-                                                                            );
-                                                                        })}
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
+                            <div
+                                style={{
+                                    padding: 16,
+                                    borderRadius: 12,
+                                    background: "var(--sx-panel-2)",
+                                    border: "1px dashed var(--sx-rule)",
+                                    color: "var(--sx-ink-soft)",
+                                    fontSize: 12,
+                                    lineHeight: 1.55,
+                                }}
+                            >
+                                <div
+                                    style={{
+                                        fontFamily: "var(--sx-mono)",
+                                        fontSize: 10,
+                                        fontWeight: 700,
+                                        letterSpacing: "0.16em",
+                                        textTransform: "uppercase",
+                                        color: "var(--sx-accent)",
+                                        marginBottom: 6,
+                                    }}
+                                >
+                                    Clean slate
+                                </div>
+                                Template library was wiped to make room for new designs.
+                                Submissions still render a minimal placeholder until the
+                                new templates ship — content edits, theme tokens, and
+                                image uploads all keep working.
+                            </div>
                         </div>
                     )}
 
