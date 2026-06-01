@@ -198,7 +198,12 @@ export default function SubmissionDetailPage() {
     // Default the right details panel CLOSED so the page lands on the
     // 2-column sandbox layout (editor sidebar + iframe) that matches
     // Landing Pages v01 / sandbox.html. Admin can re-open with "Details".
+    // Auto-opens further down (useEffect) when there's no website yet,
+    // so the admin can read the submission info before generating.
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    // Tracks whether the user has manually toggled the sidebar this
+    // session — once they have, we stop auto-opening on their behalf.
+    const [sidebarManuallyToggled, setSidebarManuallyToggled] = useState(false);
 
     const [updating, setUpdating] = useState(false);
     const [transcribing, setTranscribing] = useState(false);
@@ -297,6 +302,12 @@ export default function SubmissionDetailPage() {
             if (existingWebsite.htmlContent) setWebsiteGenerated(true);
         }
     }, [existingWebsite]);
+
+    // (Auto-open the Details sidebar on no-website submissions used to be
+    // here. The actual fix was rendering the DetailsSidebar inline in the
+    // main area when no website exists, which moots the auto-open. The
+    // sidebarManuallyToggled state is kept so the existing toggle keeps
+    // working for users who flip the sidebar open alongside the editor.)
 
     useEffect(() => {
         if (submissionData) {
@@ -772,10 +783,13 @@ export default function SubmissionDetailPage() {
 
     return (
         <div className="min-h-screen bg-neutral-50 text-neutral-900">
-            {/* Minimal back+title strip — always visible so admin can
-                navigate away from the editor without scrolling through the
-                sandbox. The full TopActionBar still mounts on Styles tab. */}
-            {activeTab === "editor" && (
+            {/* Minimal back+title strip — only when in editor tab AND a
+                website already exists. When there's no website yet, fall
+                back to the full TopActionBar (below) so the admin can see
+                the Generate button + submission status + payment actions.
+                Without this gate the page rendered just an empty "No
+                website generated yet" card with no controls at all. */}
+            {activeTab === "editor" && websiteGenerated && (
                 <div className="border-b border-neutral-200 bg-white px-4 sm:px-6 py-3 flex items-center gap-4">
                     <button
                         type="button"
@@ -793,13 +807,13 @@ export default function SubmissionDetailPage() {
                 </div>
             )}
 
-            {/* TopActionBar is hidden in the editor tab — the SandboxEditor
-                preview-bar owns Enhance / Regen / Publish / Republish /
-                Unpublish / Send to client / Approve / Reject / Delete.
-                Kept mounted for the legacy Styles tab so the payment +
-                follow-up flows (Mark in Review, Mark as Paid, Resend, etc.)
-                remain reachable when admin needs them. */}
-            {activeTab !== "editor" && (
+            {/* TopActionBar is normally hidden in the editor tab — the
+                SandboxEditor preview-bar owns Enhance / Regen / Publish /
+                Republish / Unpublish / Send to client / Approve / Reject /
+                Delete. But when no website has been generated yet, we
+                ALWAYS show the TopActionBar so the Generate button + status
+                pills + payment actions are reachable. */}
+            {(activeTab !== "editor" || !websiteGenerated) && (
                 <TopActionBar
                     businessName={submission.business_name}
                     status={submission.status}
@@ -891,7 +905,10 @@ export default function SubmissionDetailPage() {
                                     Open in New Tab
                                 </a>
                                 <button
-                                    onClick={() => setSidebarOpen(!sidebarOpen)}
+                                    onClick={() => {
+                                        setSidebarManuallyToggled(true);
+                                        setSidebarOpen(!sidebarOpen);
+                                    }}
                                     className="hidden xl:inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-emerald-700 px-2.5 py-1.5 rounded-lg border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors whitespace-nowrap"
                                     title={sidebarOpen ? "Hide details panel" : "Show details panel"}
                                     aria-label={sidebarOpen ? "Hide details panel" : "Show details panel"}
@@ -914,19 +931,68 @@ export default function SubmissionDetailPage() {
                         </div>
                     )}
 
-                    {/* No website yet */}
+                    {/* No website yet — show the FULL submission overview
+                        inline (business info / owner / address / media /
+                        transcript / quality checklist) so the admin can
+                        actually review what they're acting on. Before this
+                        the main area was just an empty placeholder card
+                        and all submission detail lived in an off-by-default
+                        sidebar — meaning a fresh submission detail page
+                        rendered no usable information at all. */}
                     {!websiteGenerated && !generatingWebsite && (
-                        <div className="bg-white rounded-2xl border border-dashed border-neutral-300 p-12 text-center">
-                            <Palette className="w-10 h-10 text-neutral-300 mx-auto mb-3" />
-                            <h4
-                                style={{ fontFamily: "var(--font-fraunces)" }}
-                                className="text-xl font-semibold text-neutral-900 mb-1"
+                        <div className="space-y-4">
+                            <div
+                                className="rounded-2xl px-5 py-4 flex items-start gap-3"
+                                style={{
+                                    background: "var(--ed-accent-bg, #D1FAE5)",
+                                    border: "1px solid var(--ed-accent)",
+                                    color: "var(--ed-accent-ink, #064E3B)",
+                                }}
                             >
-                                No website generated yet
-                            </h4>
-                            <p className="text-sm text-neutral-600 max-w-sm mx-auto">
-                                Click <span className="font-semibold">Generate</span> in the top bar to create a real coded website from this submission.
-                            </p>
+                                <Palette className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                                <div className="min-w-0">
+                                    <h4
+                                        style={{ fontFamily: "var(--font-fraunces)" }}
+                                        className="text-base font-semibold mb-0.5"
+                                    >
+                                        Ready to generate this website.
+                                    </h4>
+                                    <p className="text-[13px]" style={{ color: "var(--ed-ink-2)" }}>
+                                        Review the submission below, then click{" "}
+                                        <span className="font-semibold">Generate</span>{" "}
+                                        in the top bar to create a real coded site.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <DetailsSidebar
+                                submission={{
+                                    business_name: submission.business_name,
+                                    business_type: submission.business_type,
+                                    owner_name: submission.owner_name,
+                                    owner_phone: submission.owner_phone,
+                                    owner_email: submission.owner_email,
+                                    address: submission.address,
+                                    city: submission.city,
+                                    photos: submission.photos || [],
+                                    transcript: submission.transcript,
+                                    status: submission.status,
+                                    creator_payout: submission.creator_payout,
+                                    created_at: submission.created_at,
+                                }}
+                                photoUrls={photoUrls}
+                                transcriptionUpdatedAt={submissionData?.transcriptionUpdatedAt}
+                                qualityChecklist={qualityChecklist}
+                                creator={creator}
+                                onEditBusinessInfo={handleEdit}
+                                onEditPhotos={handleEdit}
+                                onOpenLightbox={(index) => {
+                                    setLightboxIndex(index);
+                                    setLightboxOpen(true);
+                                }}
+                                transcribing={transcribing}
+                                onRetriggerTranscription={handleRetriggerTranscription}
+                            />
                         </div>
                     )}
 
@@ -1003,7 +1069,10 @@ export default function SubmissionDetailPage() {
                                     onApprove={() => handleStatusUpdate("approved")}
                                     onReject={() => handleStatusUpdate("rejected")}
                                     submissionStatus={submission.status}
-                                    onToggleDetails={() => setSidebarOpen(!sidebarOpen)}
+                                    onToggleDetails={() => {
+                                        setSidebarManuallyToggled(true);
+                                        setSidebarOpen(!sidebarOpen);
+                                    }}
                                     detailsOpen={sidebarOpen}
                                 />
                             )}
