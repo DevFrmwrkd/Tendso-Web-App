@@ -6,23 +6,51 @@
 >
 > ---
 >
-> ## ✅ Phase 0 mobile-side spec is READY for porting (2026-06-01)
+> ## ✅ Phase 0 — SHIPPED on prod (2026-06-01 evening, by web agent)
 >
-> Mobile has shipped the P0 spec — schemas, helpers, and types are all in `ndm/convex/` ready for the web agent to copy. **Web agent: do these steps next:**
+> Web agent has completed P0: schema deployed, h3-js verified in Convex V8 runtime, h3_test.ts cleanup done. Mobile codegen has the new schema types.
 >
-> 1. Run the three feasibility checks in §8 (most importantly, verify `h3-js` loads in Convex's V8 runtime — there's a one-file test in §8 Check 1 that takes 5 min to run)
-> 2. If checks pass: port the four schema additions from mobile's `ndm/convex/schema.ts` to web's `convex/schema.ts` (search mobile's file for the comment `2026-06-01 — Inventory-Driven Prospect Pool (P0)` — copy that entire block, plus the two single-field additions to `submissions.prospectId` and `leads.migratedToProspectId`)
-> 3. Port mobile's `ndm/convex/lib/h3.ts`, `ndm/convex/lib/phone.ts` (already exists; check if the `normalizePhoneE164` export was added — it's new), and `ndm/convex/lib/quality.ts` verbatim
-> 4. Add `h3-js` to web repo's `package.json` (`npm install h3-js` — mobile is on `^4.4.0`)
-> 5. `npx convex deploy --prod`
+> ## ✅ Phase 1 mobile-side spec is READY for porting (2026-06-01)
 >
-> Mobile's `convex/_generated/api.d.ts` will pick up the new types via codegen on the next `npx convex dev`. No mobile UI code consumes these tables yet — that's P1.
+> Mobile has shipped the P1 spec on branch `feature/prospect-pool-p1` (or local — coordinate with mobile team). **Web agent: do these steps next:**
 >
-> **Files in mobile's spec (already written, ready to port):**
-> - `ndm/convex/schema.ts` — 4 new tables + 2 optional fields added
-> - `ndm/convex/lib/h3.ts` — 6 helpers (latLngToH3Cells, getNeighborCellsRes7, cellChildrenRes8, cellCentroid, isValidCell, haversineKm)
-> - `ndm/convex/lib/phone.ts` — added `normalizePhoneE164(raw, country)` alongside existing `normalizePhone`
-> - `ndm/convex/lib/quality.ts` — `computeQualityScore`, `normalizeBusinessName`, `bucketCategory`, default weights export
+> 1. **Port `ndm/convex/prospects.ts`** verbatim to web repo's `convex/prospects.ts`. Contains:
+>    - `searchNearby` (public query) — reads from prospect pool, sorts by qualityScore desc
+>    - `getByPlaceId` (internal query) — dedup lookup helper
+>    - `adjustInventory` (internal mutation) — atomic inventory counter, called by migration in P1 + state mutations in P2
+> 2. **Port `ndm/convex/prospectsMigration.ts`** verbatim to web repo's `convex/prospectsMigration.ts`. Contains:
+>    - `backfillProspects` (internal action) — paginates through outscraper-source leads, calls batch mutation per page
+>    - `fetchBackfillPage` (internal query) — paginated read of leads needing migration
+>    - `backfillBatch` (internal mutation) — atomic inserts + inventory updates + lead patches
+>    - ⚠️ **Note the name**: NOT `migration.ts` — mobile renamed to `prospectsMigration.ts` to avoid collision with existing `convex/migrations.ts` (plural, unrelated cleanup migrations). Use the same name on web.
+> 3. **`npx convex deploy --prod`** from the web repo
+> 4. **Seed `category_locales`** with the 10 PH categories listed in §7 of this doc. Run from Convex dashboard's "Run function" panel — there's no auto-seeding code, it's a one-time dashboard write.
+> 5. **Run the backfill manually** from Convex dashboard:
+>    - Functions → `prospectsMigration` → `backfillProspects` → Run with args `{}` (or `{ batchSize: 50, countryDefault: "PH" }`)
+>    - Watch logs for `[migration] page N: processed=X migrated=Y skipped=Z` lines
+>    - Should complete in 30-90 seconds depending on lead count
+>    - Final log line: `[migration] backfillProspects DONE — totalProcessed=N totalMigrated=M totalSkipped=K`
+> 6. **Verify on mobile after deploy:**
+>    - Open Convex Data tab → `prospects` table — should have rows
+>    - Open `prospect_inventory` table — should have one row per (cell, category) with `availableCount` summing to total prospects
+>    - On mobile, navigate to /leads/discover (without doing a fresh scrape) — the map should show pins from the pool. Debug strip will show `DEBUG · direct=0 · pool=N · legacy=M · with-coords=K` where N reflects the backfilled pool.
+>
+> **Mobile side coordination:** mobile's `discover.tsx` is already updated to dual-read from `prospects.searchNearby` (via a typed `any` cast since mobile's codegen can't refresh until web deploys). After web's P1 deploy, mobile can:
+> 1. Optionally re-run `npx convex codegen` (when dev URL is reachable) to get strongly-typed `api.prospects.searchNearby`
+> 2. Replace the `(api as any).prospects?.searchNearby` cast with `api.prospects.searchNearby`
+> 3. Rebuild APK and the dual-read renders pool prospects in production
+>
+> **Files in mobile's P1 spec (already written, ready to port):**
+> - `ndm/convex/prospects.ts` — searchNearby query, getByPlaceId helper, adjustInventory mutation
+> - `ndm/convex/prospectsMigration.ts` — backfillProspects action + supporting query + batch mutation
+> - `ndm/app/(app)/leads/discover.tsx` — already updated with the dual-read merge logic, debug strip shows per-source counts, no further mobile work for P1
+>
+> **What's intentionally NOT in P1 (saved for P2+):**
+> - ❌ Reservation mutations (`reserve`, `markContacted`, etc.) — P2
+> - ❌ `releaseExpiredReservations` cron — P2
+> - ❌ Background `scrapeAndStore` action — P4
+> - ❌ Replenishment cron — P4
+> - ❌ Mobile UI changes for the "I'll interview this" → reserve flow — P2 mobile work
 
 ---
 
