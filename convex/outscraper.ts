@@ -39,6 +39,60 @@ interface OutscraperPlace {
     longitude?: number;
 }
 
+// ── Path B: Google Places hyper-local merge (per WEB-PROPECT-POOL.md §Path B) ──
+// Outscraper ranks by popularity/relevance, not physical distance. A creator
+// 50m from "PARES SA GARAHE" gets back restaurants 1.2-1.7km away because
+// Google ranks the bigger places higher. Google Places Nearby Search with
+// `rankby=distance` ranks purely by physical distance and surfaces those
+// hyper-local hits Outscraper drops. We call BOTH APIs in `scrapeNearby`
+// and merge by `place_id`. Path B fires only for short-radius searches
+// (≤ PLACES_HYPERLOCAL_RADIUS_KM) — Outscraper still owns wider-area
+// coverage because Places caps at 60 results across 3 paginated requests.
+const GOOGLE_PLACES_NEARBY_URL =
+    "https://maps.googleapis.com/maps/api/place/nearbysearch/json";
+const PLACES_HYPERLOCAL_RADIUS_KM = 2;
+
+interface PlacesNearbyResult {
+    place_id?: string;
+    name?: string;
+    vicinity?: string;
+    formatted_address?: string;
+    types?: string[];
+    rating?: number;
+    user_ratings_total?: number;
+    geometry?: {
+        location?: { lat?: number; lng?: number };
+    };
+}
+
+/**
+ * Map a free-text user category to Google Places' `type` parameter.
+ * When this returns a string, Places is called with `rankby=distance` +
+ * `type=<that>` (distance-sorted, type-filtered). When this returns
+ * `undefined`, we fall back to `radius=N` mode (the same approach
+ * Outscraper takes, just from Google directly).
+ *
+ * Table mirrors mobile's helper (see WEB-PROPECT-POOL.md §Path B table).
+ */
+function mapCategoryToPlacesType(userCategory: string): string | undefined {
+    const k = userCategory.trim().toLowerCase();
+    if (!k) return undefined;
+    if (/\b(barbershop|barber)\b/.test(k)) return "hair_care";
+    if (/\b(hair\s*salon|salon)\b/.test(k)) return "beauty_salon";
+    if (/\b(nail|manicure)\b/.test(k)) return "beauty_salon";
+    if (/\b(spa|massage)\b/.test(k)) return "spa";
+    if (/\b(auto|mechanic|vulcanizing|car\s*repair)\b/.test(k)) return "car_repair";
+    if (/\b(dental|dentist)\b/.test(k)) return "dentist";
+    if (/\b(pharmacy|drugstore)\b/.test(k)) return "pharmacy";
+    if (/\b(restaurant|carinderia|eatery|fastfood)\b/.test(k)) return "restaurant";
+    if (/\b(cafe|coffee)\b/.test(k)) return "cafe";
+    if (/\b(bakery|panaderia)\b/.test(k)) return "bakery";
+    if (/\b(sari[-\s]?sari|convenience)\b/.test(k)) return "convenience_store";
+    if (/\b(grocery|supermarket)\b/.test(k)) return "supermarket";
+    if (/\b(store|shop|mart)\b/.test(k)) return "store";
+    return undefined;
+}
+
 /**
  * Scrape Google Maps near a location, insert dedup'd leads. Creator-callable
  * (was admin-only, changed per the 2026-05-27 WEB-BUILD-CRM.md update).
@@ -310,6 +364,128 @@ export const scrapeNearby = action({
         console.log(
             `[outscraper] returning to client: ${businesses.length} businesses with coords (inserted=${inserted}, skipped=${skipped})`,
         );
+
+        // ── Path B: Google Places hyper-local merge ──────────────────
+        // Only fires for short-radius searches AND when both the env var
+        // and a parseable lat/lng coordinate string are present. Failures
+        // are non-fatal — Outscraper results still return.
+        try {
+            const placesKey = process.env.GOOGLE_PLACES_API_KEY;
+            const coordMatch = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.exec(
+                coordinates,
+            );
+            if (
+                placesKey &&
+                coordMatch &&
+                radiusKm <= PLACES_HYPERLOCAL_RADIUS_KM
+            ) {
+                const lat = Number(coordMatch[1]);
+                const lng = Number(coordMatch[2]);
+                const placesType = mapCategoryToPlacesType(userCategory);
+
+                const placesUrl = new URL(GOOGLE_PLACES_NEARBY_URL);
+                placesUrl.searchParams.set("key", placesKey);
+                placesUrl.searchParams.set("location", `${lat},${lng}`);
+                if (placesType) {
+                    // rankby=distance + type=X surfaces the nearest businesses
+                    // of that type, sorted by physical distance. radius is
+                    // NOT allowed in this mode.
+                    placesUrl.searchParams.set("rankby", "distance");
+                    placesUrl.searchParams.set("type", placesType);
+                } else {
+                    // No type mapping — fall back to radius-mode keyword search.
+                    placesUrl.searchParams.set(
+                        "radius",
+                        String(Math.round(radiusKm * 1000)),
+                    );
+                    placesUrl.searchParams.set("keyword", userCategory);
+                }
+
+                console.log(
+                    `[outscraper] hyper-local Places call → location=${lat},${lng} type=${placesType ?? "(none)"} (radiusKm=${radiusKm})`,
+                );
+
+                const placesRes = await fetch(placesUrl.toString(), {
+                    method: "GET",
+                    headers: { Accept: "application/json" },
+                });
+                if (!placesRes.ok) {
+                    throw new Error(`Places HTTP ${placesRes.status}`);
+                }
+                const placesPayload = (await placesRes.json()) as {
+                    status?: string;
+                    results?: PlacesNearbyResult[];
+                    error_message?: string;
+                };
+                if (
+                    placesPayload.status &&
+                    placesPayload.status !== "OK" &&
+                    placesPayload.status !== "ZERO_RESULTS"
+                ) {
+                    throw new Error(
+                        `Places status=${placesPayload.status}${placesPayload.error_message ? ": " + placesPayload.error_message : ""}`,
+                    );
+                }
+
+                const placesResults = placesPayload.results ?? [];
+                console.log(
+                    `[outscraper] Places returned ${placesResults.length} hyper-local businesses`,
+                );
+
+                // Build a dedup set from the existing Outscraper results.
+                // Anything already in `businesses` (by place_id) is skipped.
+                const seenPlaceIds = new Set<string>();
+                for (const b of businesses) seenPlaceIds.add(b.placeId);
+
+                let mergedCount = 0;
+                for (const r of placesResults) {
+                    const placeId = r.place_id;
+                    if (!placeId || seenPlaceIds.has(placeId)) continue;
+                    const placeLat = r.geometry?.location?.lat;
+                    const placeLng = r.geometry?.location?.lng;
+                    if (
+                        typeof placeLat !== "number" ||
+                        typeof placeLng !== "number"
+                    )
+                        continue;
+                    if (!r.name) continue;
+
+                    businesses.push({
+                        placeId,
+                        businessName: r.name,
+                        businessAddress: r.vicinity || r.formatted_address || null,
+                        businessCity: null,
+                        // Places returns `types: string[]` — first one is usually
+                        // the most specific. Stringify for our flat field.
+                        businessCategory:
+                            Array.isArray(r.types) && r.types.length > 0
+                                ? r.types[0]
+                                : null,
+                        businessWebsite: null,
+                        businessPhone: null,
+                        businessLatitude: placeLat,
+                        businessLongitude: placeLng,
+                        businessRating:
+                            typeof r.rating === "number" ? r.rating : null,
+                        businessReviewCount:
+                            typeof r.user_ratings_total === "number"
+                                ? r.user_ratings_total
+                                : null,
+                    });
+                    seenPlaceIds.add(placeId);
+                    mergedCount += 1;
+                }
+
+                console.log(
+                    `[outscraper] merged ${mergedCount} new businesses from Places (total now ${businesses.length})`,
+                );
+            }
+        } catch (err: any) {
+            // Non-fatal — never let a Places failure break the scrape.
+            console.warn(
+                `[outscraper] Places hyper-local merge failed (non-fatal): ${err?.message ?? err}`,
+            );
+        }
 
         return { inserted, skipped, total: raw.length, businesses };
     },

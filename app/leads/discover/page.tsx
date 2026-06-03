@@ -136,19 +136,28 @@ function DiscoverInner() {
         );
     }, [ready]);
 
-    // Per the 2026-05-29 evening spec update: the discover map has TWO
-    // data sources, in priority order:
+    // Per the 2026-06-01 P1 prospect-pool deploy: the discover map has
+    // THREE data sources, merged in priority order with place_id dedup:
     //
     //   1. PRIMARY — URL `data` param. After a successful scrape, the
     //      modal encodes result.businesses as JSON and passes it via the
     //      URL. This bypasses the silently-failing DB write path entirely.
     //
-    //   2. FALLBACK — listScrapedLeads query. Only used when the user
-    //      navigates here without `data` (deep link, browser back/forward,
-    //      cold start to /leads/discover).
+    //   2. POOL — prospects.searchNearby. The new global prospect pool
+    //      (shared across creators, replenished by background cron in P4).
+    //      Subscribes once the user's GPS resolves; no Outscraper call.
     //
-    // Both sources get normalized into a shared shape and feed the same
-    // downstream pin-rendering pipeline.
+    //   3. LEGACY FALLBACK — outscraper.listScrapedLeads. The old per-creator
+    //      scraped leads. Kept during the migration window so cold-start
+    //      navigations (deep link, browser back/forward) still have data.
+    //      Will be removed in Phase M.4 cleanup.
+    //
+    // All three sources get normalized into a shared shape (with a
+    // `__source` tag for the DEBUG strip + claim-button gating) and feed
+    // the same downstream pin-rendering pipeline. The "I'll interview
+    // this" button is hidden on pool-sourced pins until P2's
+    // prospects.reserve mutation ships — legacy/url pins still use
+    // outscraper.claimProspect as before.
     const urlData = searchParams.get("data");
     const urlBusinesses = useMemo(() => {
         if (!urlData) return null;
@@ -161,6 +170,8 @@ function DiscoverInner() {
             // looks it up in the DB.
             return parsed.map((b: any) => ({
                 _id: b.placeId ?? `${b.businessName}:${b.businessLatitude}:${b.businessLongitude}`,
+                __source: "url" as const,
+                businessGooglePlaceId: b.placeId ?? null,
                 submissionId: null,
                 businessName: b.businessName ?? null,
                 businessAddress: b.businessAddress ?? null,
@@ -179,8 +190,48 @@ function DiscoverInner() {
         }
     }, [urlData]);
 
-    // Fallback query — ONLY subscribe when there's no URL data. Saves a
-    // round-trip + reactive subscription on the happy path (post-scrape).
+    // P1 pool query — prospects.searchNearby reads from the new global
+    // pool. Subscribes only once GPS resolves so we have a real (lat, lng);
+    // suspending earlier would cost a wasted query. The (api as any) cast
+    // lets us ship before the next-build codegen refresh wires up the
+    // typed binding — drops to `api.prospects.searchNearby` once codegen
+    // catches up. Safe because P1 web deploy already shipped this function.
+    const poolProspects = useQuery(
+        (api as any).prospects?.searchNearby,
+        ready && userLoc
+            ? { lat: userLoc.lat, lng: userLoc.lng, radiusKm, limit: 200 }
+            : "skip",
+    ) as any[] | undefined;
+
+    const poolArray = useMemo(() => {
+        if (!Array.isArray(poolProspects)) return [];
+        // Map prospects.* shape → the discover-map row shape. Pool docs use
+        // `latitude`/`longitude` (no `business` prefix), `phone`, `rating`,
+        // `reviewCount`, `address`. We also stamp `__source: "pool"` so the
+        // claim button can be hidden until P2's reserve mutation lands.
+        return poolProspects.map((p: any) => ({
+            _id: p._id,
+            __source: "pool" as const,
+            businessGooglePlaceId: p.googlePlaceId ?? null,
+            // submissionId on the pool side means "already converted" —
+            // map it through so the candidate filter below excludes it
+            // (same semantics as the legacy lead.submissionId).
+            submissionId: p.submissionId ?? null,
+            businessName: p.businessName ?? null,
+            businessAddress: p.address ?? null,
+            businessCity: p.city ?? null,
+            businessCategory: p.category ?? null,
+            businessWebsite: p.website ?? null,
+            phone: p.phone ?? null,
+            businessLatitude: p.latitude ?? null,
+            businessLongitude: p.longitude ?? null,
+            businessRating: p.rating ?? null,
+            businessReviewCount: p.reviewCount ?? null,
+        }));
+    }, [poolProspects]);
+
+    // Legacy fallback query — ONLY subscribe when there's no URL data.
+    // Stays during the migration window; removed in Phase M.4.
     const fallbackProspects = useQuery(
         api.outscraper.listScrapedLeads,
         ready && !urlBusinesses ? {} : "skip",
@@ -191,13 +242,51 @@ function DiscoverInner() {
     // array. Unwrap if needed.
     const fallbackArray: any[] | undefined = useMemo(() => {
         if (fallbackProspects === undefined) return undefined;
-        if (Array.isArray(fallbackProspects)) return fallbackProspects;
-        const wrapped = fallbackProspects as any;
-        if (Array.isArray(wrapped?.leads)) return wrapped.leads;
-        return [];
+        const arr = Array.isArray(fallbackProspects)
+            ? fallbackProspects
+            : Array.isArray((fallbackProspects as any)?.leads)
+                ? (fallbackProspects as any).leads
+                : [];
+        return arr.map((p: any) => ({ ...p, __source: "legacy" as const }));
     }, [fallbackProspects]);
 
-    const prospects: any[] | undefined = urlBusinesses ?? fallbackArray;
+    // Per-source counts for the DEBUG strip — matches mobile's debug
+    // string so cross-platform support reads the same numbers.
+    const sourceCounts = useMemo(() => ({
+        url: urlBusinesses?.length ?? 0,
+        pool: poolArray.length,
+        legacy: fallbackArray?.length ?? 0,
+    }), [urlBusinesses, poolArray, fallbackArray]);
+
+    // Merge sources with place_id dedup. Priority: url > pool > legacy.
+    // Falls back to the legacy-only path when URL data is present (post-
+    // scrape happy path) — pool + legacy still ride along so a partial
+    // URL set doesn't hide nearby pool rows.
+    const prospects: any[] | undefined = useMemo(() => {
+        // Suspense gate: wait until at least ONE source has resolved.
+        // (poolProspects can resolve faster than fallbackProspects since
+        // it doesn't depend on the legacy list-all path.)
+        const haveAnyResolved =
+            urlBusinesses != null ||
+            poolProspects !== undefined ||
+            fallbackProspects !== undefined;
+        if (!haveAnyResolved) return undefined;
+
+        const byKey = new Map<string, any>();
+        const stash = (row: any) => {
+            // Dedup key: prefer Google place_id (the only stable cross-source
+            // identity), fall back to lat,lng,name when place_id is missing
+            // (rare — only happens for very old legacy rows).
+            const key =
+                row.businessGooglePlaceId
+                ?? `${row.businessLatitude},${row.businessLongitude},${row.businessName}`;
+            if (!byKey.has(key)) byKey.set(key, row);
+        };
+        if (urlBusinesses) urlBusinesses.forEach(stash);
+        poolArray.forEach(stash);
+        if (fallbackArray) fallbackArray.forEach(stash);
+        return Array.from(byKey.values());
+    }, [urlBusinesses, poolProspects, poolArray, fallbackProspects, fallbackArray]);
 
     // Client-side geocoder cache — keyed by lead id. Used when an Outscraper
     // prospect has an address but no latitude/longitude (sometimes happens
@@ -537,13 +626,12 @@ function DiscoverInner() {
                             Tap Find Local Business again with a wider radius or a different category to add more pins here.
                         </p>
 
-                        {/* DEBUG strip — per WEB-BUILD-CRM.md "Three Outscraper blockers"
-                            triage tree. Surfaces the data shape so creators (and
-                            us during support) can tell at a glance which
-                            blocker is in play:
-                              rows=0          → no Outscraper rows at all (BLOCKER 1 or 3)
-                              outscraper>0, with-coords=0  → BLOCKER 2 (validator drift)
-                              outscraper>0, with-coords>0  → frontend filter bug */}
+                        {/* DEBUG strip — per-source breakdown matching mobile's
+                            discover.tsx format for cross-platform support.
+                              direct=N      → pins from the URL ?data= param (post-scrape)
+                              pool=N        → pins from prospects.searchNearby (P1 pool)
+                              legacy=N      → pins from outscraper.listScrapedLeads (pre-P1)
+                              with-coords=N → final pin count after coord filtering */}
                         <div
                             className="rounded-md px-3 py-2 mb-4 text-[10px] inline-block"
                             style={{
@@ -554,9 +642,7 @@ function DiscoverInner() {
                                 letterSpacing: "0.08em",
                             }}
                         >
-                            DEBUG · rows={prospects?.length ?? 0} ·
-                            outscraper={(prospects ?? []).filter((p: any) => !p.submissionId).length} ·
-                            with-coords={
+                            DEBUG · direct={sourceCounts.url} · pool={sourceCounts.pool} · legacy={sourceCounts.legacy} · with-coords={
                                 (prospects ?? []).filter(
                                     (p: any) =>
                                         !p.submissionId &&
@@ -721,7 +807,12 @@ function CategoryPins({ pins }: { pins: any[] }) {
                             </div>
                         )}
                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                            {!selected.claimedBy && (
+                            {/* Claim button: shown for legacy/url-sourced pins only.
+                                Pool-sourced pins are reserved via prospects.reserve
+                                in P2; until that mutation ships, the button is
+                                hidden on pool entries to prevent leadId type
+                                mismatches with outscraper.claimProspect. */}
+                            {!selected.claimedBy && selected.__source !== "pool" && (
                                 <button
                                     type="button"
                                     onClick={async () => {
@@ -746,6 +837,21 @@ function CategoryPins({ pins }: { pins: any[] }) {
                                 >
                                     I&apos;ll interview this
                                 </button>
+                            )}
+                            {selected.__source === "pool" && !selected.claimedBy && (
+                                <span
+                                    title="Reserve flow ships in P2 — for now, pool pins are read-only."
+                                    style={{
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        padding: "4px 10px",
+                                        borderRadius: 999,
+                                        background: "#EFEBE0",
+                                        color: "#7A7E8A",
+                                    }}
+                                >
+                                    Pool · reserve coming soon
+                                </span>
                             )}
                             <a
                                 href={`https://www.google.com/maps/search/?api=1&query=${selected.lat},${selected.lng}`}

@@ -51,6 +51,112 @@
 > - ❌ Background `scrapeAndStore` action — P4
 > - ❌ Replenishment cron — P4
 > - ❌ Mobile UI changes for the "I'll interview this" → reserve flow — P2 mobile work
+>
+> ---
+>
+> ## 🟢 Path B — Google Places hyper-local fix (2026-06-02)
+>
+> **Why this exists:** Outscraper Maps Search returns results ranked by Google's relevance/popularity algorithm, NOT by physical distance. A creator standing 50m from "PARES SA GARAHE" (a roadside food stall listed on Google Maps) gets back restaurants 1.2-1.7km away because Google ranks the bigger places higher. Even with `category="restaurant"` and `radius=1km`, the hyper-local stall is missing.
+>
+> **The fix:** Google Places API "Nearby Search" with `rankby=distance` ranks purely by physical distance, surfacing informal local businesses that Outscraper drops. We call BOTH APIs and merge results by `place_id`. Outscraper still owns wider-area coverage (>2km radius) because Places caps at 60 results across 3 paginated requests.
+>
+> **Cost impact for current scale:** $0 out-of-pocket. Google Cloud Maps Platform includes a $200/month free credit that covers ~6,250 Places Nearby Search calls per month. At present testing volume (~100 scrapes/month), this is well within the free tier.
+>
+> **Web agent: porting steps for Path B**
+>
+> 1. **Enable Places API on the existing Google Cloud project** (30 seconds, no new project needed):
+>    - https://console.cloud.google.com → select the existing project (the one the Maps API key `AIzaSyAt-knwNJgQ-Nx5ZY5aZUC-T8sj8D3QZ7U` lives in — same project as `negosyo-digital`)
+>    - APIs & Services → Library → search "Places API" → click → **Enable**
+>    - The existing API key automatically gains Places API access — no new key needed
+>    - Optional but recommended: API key → Edit → "Set application restriction" → "API restrictions" → check "Places API" so the same key can be reused
+>
+> 2. **Set the Convex env var** (the action reads `GOOGLE_PLACES_API_KEY` — graceful fallback if absent):
+>    ```bash
+>    npx convex env set GOOGLE_PLACES_API_KEY AIzaSyAt-knwNJgQ-Nx5ZY5aZUC-T8sj8D3QZ7U --prod
+>    ```
+>    (Reuses the existing Maps API key. If you'd rather scope a separate key for server-side Places usage, create a second key restricted to Places API only and use that instead.)
+>
+> 3. **Port mobile's `scrapeNearby` changes** from `ndm/convex/outscraper.ts` to the web repo's `convex/outscraper.ts`:
+>    - Add the new constants: `GOOGLE_PLACES_NEARBY_URL`, `PLACES_HYPERLOCAL_RADIUS_KM`
+>    - Add the new helper function: `mapCategoryToPlacesType(userCategory: string): string | undefined`
+>    - Add the `PlacesNearbyResult` type
+>    - Inject the hyper-local merge block right BEFORE the existing `return { inserted, skipped, total, businesses };` line (search for `[outscraper] returning to client:` log line — the merge sits immediately after that log)
+>    - The merge is wrapped in try/catch — Places failures are non-fatal, scrape still returns Outscraper results
+>
+> 4. **Deploy:** `npx convex deploy --prod` from the web repo
+>
+> 5. **Verify after deploy:**
+>    - Open Convex prod logs
+>    - On mobile, tap Find Local Business with category `restaurant` and 1km radius
+>    - Watch for new log lines:
+>      - `[outscraper] hyper-local Places call → location=14.29,121.00 type=restaurant (radiusKm=1)`
+>      - `[outscraper] Places returned N hyper-local businesses`
+>      - `[outscraper] merged M new businesses from Places (total now X)`
+>    - Discover map should now show businesses < 1km away. PARES SA GARAHE should appear.
+>
+> **Web creator page UI changes — implement on the web platform's `/creators/leads/discover` page**
+>
+> The merge happens server-side, so the web creator page's data flow doesn't change. BUT three UI polish items should be implemented to match what creators expect:
+>
+> 1. **Distance filter on the client** — when the user picks `radius=1km`, show ONLY businesses where `distanceKm <= 1`. The merged response can include businesses slightly beyond the radius (Places returns 20 nearest regardless of radius hint in `rankby=distance` mode). Filter client-side so the header sub-copy "20 businesses within 1km" is honest.
+>
+>    ```typescript
+>    // In your web discover map's React component:
+>    const filteredBusinesses = businesses.filter((b) => {
+>      if (!userGps || b.businessLatitude == null || b.businessLongitude == null) return true;
+>      const km = haversineKm(userGps, { lat: b.businessLatitude, lng: b.businessLongitude });
+>      return km <= radiusKm;
+>    });
+>    ```
+>
+> 2. **Sub-copy accuracy** — match mobile. Show the filtered count, not the merged-total count:
+>
+>    ```typescript
+>    const headerSubCopy = `${filteredBusinesses.length} ${category} businesses within ${radiusKm} km. Pin colors show categories.`;
+>    ```
+>
+> 3. **"Hyper-local" indicator pin** — businesses that came from Places API (not Outscraper) should have a small badge or different pin style indicating they're hyper-local discovery hits. This signals trust to the creator ("the system found this one specifically because it's close to you"). One way: add a `source: 'outscraper' | 'places'` field to each business in the return shape (server-side change), then render a `[hyper-local]` mono-label badge next to the business name on the prospect card when source === 'places'.
+>
+>    Mobile has NOT shipped this badge in the current Path B implementation — both sources merge into the same business shape. If you want this visual distinction on web, propose it as a P-B.5 follow-up and we'll add a `discoveredVia` field to the server return.
+>
+> **What `mapCategoryToPlacesType` covers:**
+>
+> The category mapping is 1:1 with mobile's helper. Categories that map cleanly to Google Places types:
+>
+> | User category | Google Places `type` |
+> |---|---|
+> | barbershop, barber | `hair_care` |
+> | hair salon, salon | `beauty_salon` |
+> | nail, manicure | `beauty_salon` |
+> | spa, massage | `spa` |
+> | auto, mechanic | `car_repair` |
+> | dental, dentist | `dentist` |
+> | pharmacy, drugstore | `pharmacy` |
+> | restaurant, carinderia, eatery | `restaurant` |
+> | cafe, coffee | `cafe` |
+> | bakery | `bakery` |
+> | sari-sari, convenience | `convenience_store` |
+> | grocery, supermarket | `supermarket` |
+> | store, shop, mart | `store` |
+> | (anything else) | undefined → falls back to radius-mode |
+>
+> When `mapCategoryToPlacesType` returns `undefined`, the Places call uses `radius=N` mode (not `rankby=distance`) — same approach Outscraper takes, just from Google directly.
+>
+> **What does NOT change on the existing Outscraper integration:**
+>
+> - ✅ `outscraper.scrapeNearby` args unchanged
+> - ✅ Outscraper async-mode + query-format fixes from prior callouts still apply
+> - ✅ The `__NO_PLACE_FOUND__` sentinel detection still applies
+> - ✅ Mobile `discover.tsx` dual-read merge logic unchanged — businesses array is unified
+> - ✅ The P4 background `scrapeAndStore` (future) will use the SAME Path B merge pattern so the inventory pool gets the benefit too
+>
+> **Files in mobile's Path B spec (already written, ready to port):**
+> - `ndm/convex/outscraper.ts` — Places API integration in `scrapeNearby`, new `mapCategoryToPlacesType` helper, `PlacesNearbyResult` type, two new constants
+>
+> **What's NOT in Path B (would be a P-B.2 enhancement):**
+> - ❌ Fetching business phone/website via Places Details API (extra cost ~$0.017/call × 20 results = $0.34/scrape — only do if creators report missing phone/website on hyper-local businesses)
+> - ❌ Pagination beyond the first 20 Places results (Places caps at 60 total, but each extra page costs and adds latency)
+> - ❌ Separate `source: 'outscraper' | 'places'` field on returned businesses (proposed for P-B.5 if web UI wants to badge them differently)
 
 ---
 
