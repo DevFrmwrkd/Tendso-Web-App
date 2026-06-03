@@ -1,0 +1,84 @@
+---
+/**
+ * Forge Cinematic hero — full-bleed dark, rising headline, rating row.
+ * Reads the same content.hero shape as HeroF so content stays portable
+ * when admin swaps variants.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const locality = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || (layout.contact?.phone ? `tel:${String(layout.contact.phone).replace(/[^0-9+]/g, '')}` : '#');
+const ratingBig = hero.rating?.big || '';
+const ratingLabel = hero.rating?.label || '';
+---
+<section class="heroC" id="top">
+  <div class="heroC-bg">
+    <div class="kb">
+      <div class="bg-img" data-image-field="hero.image" style={heroImage ? `background-image:url('${heroImage}');` : ''}></div>
+    </div>
+  </div>
+  <div class="heroC-scrim"></div>
+  <div class="wrap heroC-inner">
+    {locality && <div class="heroC-locality" data-field="hero.kicker">{locality}</div>}
+    <h1 class="heroC-title">
+      {headlineLines.map((line: string, i: number) => (
+        <span class="l"><span data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+      ))}
+    </h1>
+    {sub && <p class="heroC-sub" data-field="hero.sub">{sub}</p>}
+    <div class="heroC-actions">
+      {cta1Text && <a class="btn btn--brass" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+      {cta2Text && <a class="btn btn--ghost on-dark" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+    </div>
+  </div>
+  {(ratingBig || ratingLabel) && (
+    <div class="wrap heroC-meta">
+      <div class="rating">
+        {ratingBig && <b data-field="hero.rating.big">{ratingBig}</b>}
+        <span class="st">★★★★★</span>
+        {ratingLabel && <span data-field="hero.rating.label" set:html={ratingLabel}></span>}
+      </div>
+      <div class="heroC-scroll">Scroll to explore<span class="ln"></span></div>
+    </div>
+  )}
+</section>
+<style>
+  .heroC { position: relative; min-height: 100svh; display: flex; flex-direction: column; justify-content: flex-end; overflow: hidden; background: var(--ink); color: var(--paper); }
+  .heroC-bg { position: absolute; inset: 0; z-index: 0; }
+  .heroC-bg .kb { position: absolute; inset: 0; animation: cZoom 18s ease-in-out infinite alternate; }
+  .heroC-bg .bg-img { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  .heroC-scrim { position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg,rgba(var(--ink-rgb),.82) 0%,rgba(var(--ink-rgb),.22) 34%,rgba(var(--ink-rgb),.5) 66%,rgba(var(--ink-rgb),.96) 100%); pointer-events: none; }
+  .heroC-scrim::after { content: ""; position: absolute; inset: 0; background: radial-gradient(95% 75% at 50% 38%, transparent, rgba(var(--ink-rgb),.45)); }
+  .heroC-inner { position: relative; z-index: 3; flex: 1; display: flex; flex-direction: column; justify-content: center; padding-top: 140px; padding-bottom: 4vh; }
+  .heroC-locality { font-family: var(--cond); text-transform: uppercase; letter-spacing: .42em; font-size: 12px; color: var(--brass-bright); margin-bottom: 24px; opacity: 0; animation: cFade .9s ease .2s both; }
+  .heroC-title { font-family: var(--display); text-transform: uppercase; font-weight: 400; font-size: clamp(64px, 12.5vw, 210px); line-height: .82; margin: 0; letter-spacing: -.01em; }
+  .heroC-title .l { display: block; overflow: hidden; padding-bottom: .03em; }
+  .heroC-title .l > span { display: block; transform: translateY(112%); }
+  .heroC-title .l:nth-child(1) > span { animation: cRise 1.1s cubic-bezier(.16,1,.3,1) .3s both; }
+  .heroC-title .l:nth-child(2) > span { animation: cRise 1.1s cubic-bezier(.16,1,.3,1) .44s both; color: var(--brass-bright); }
+  .heroC-title .l:nth-child(n+3) > span { animation: cRise 1.1s cubic-bezier(.16,1,.3,1) .58s both; }
+  .heroC-sub { max-width: 46ch; color: var(--muted-light); font-size: clamp(16px, 1.5vw, 20px); margin: 30px 0 36px; opacity: 0; animation: cFade 1s ease .92s both; }
+  .heroC-actions { display: flex; gap: 14px; flex-wrap: wrap; opacity: 0; animation: cFade 1s ease 1.06s both; }
+  .heroC-meta { position: relative; z-index: 3; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-top: 26px; padding-bottom: 26px; margin-top: 4vh; border-top: 1px solid var(--line-light); opacity: 0; animation: cFade 1s ease 1.2s both; }
+  .heroC-meta .rating { display: flex; align-items: center; gap: 12px; font-family: var(--cond); text-transform: uppercase; letter-spacing: .16em; font-size: 13px; color: var(--muted-light); }
+  .heroC-meta .rating b { font-family: var(--display); font-weight: 400; font-size: 28px; color: var(--brass-bright); }
+  .heroC-meta .rating .st { color: var(--brass); letter-spacing: 2px; }
+  .heroC-scroll { display: flex; align-items: center; gap: 12px; font-family: var(--cond); text-transform: uppercase; letter-spacing: .22em; font-size: 11px; color: var(--muted-light); white-space: nowrap; }
+  .heroC-scroll .ln { width: 48px; height: 1px; background: var(--line-light); position: relative; overflow: hidden; }
+  .heroC-scroll .ln::after { content: ""; position: absolute; inset: 0; background: var(--brass); animation: cScroll 1.9s ease-in-out infinite; }
+  @keyframes cRise { to { transform: none; } }
+  @keyframes cFade { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+  @keyframes cZoom { from { transform: scale(1.05); } to { transform: scale(1.2); } }
+  @keyframes cScroll { 0% { transform: translateX(-101%); } 50% { transform: translateX(0); } 100% { transform: translateX(101%); } }
+  @media (max-width: 560px) { .heroC-meta { flex-direction: column; align-items: flex-start; } }
+  @media (prefers-reduced-motion: reduce) { .heroC * { animation: none !important; opacity: 1 !important; transform: none !important; } }
+</style>

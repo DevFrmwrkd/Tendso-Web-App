@@ -1,0 +1,127 @@
+---
+/**
+ * generic / HeaderA — sticky nav.
+ *
+ * Editable hooks for the editor bridge:
+ *   nav.brand                          (text)
+ *   nav.links[i] (text + href)         (text + link pair)
+ *   nav.phone                          (text, also drives tel: href)
+ *   nav.cta (text + href)              (text + link pair)
+ */
+interface Props {
+  layout: any;
+  content: any;
+}
+const { layout, content } = Astro.props;
+
+const brand = layout.businessName || 'Your Business';
+const navLinks = (layout.navLinks && layout.navLinks.length)
+  ? layout.navLinks
+  : [];
+
+const phone = layout.contact?.phone || content.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const ctaText = content.navCtaText || 'Order ahead';
+const ctaHref = content.navCtaHref || '#visit';
+---
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="brand" data-field="nav.brand"><span class="dot"></span>{brand}</a>
+    <div class="nav-links">
+      {navLinks.map((link: any, i: number) => (
+        <a
+          href={link.href}
+          data-field={`nav.links.${i}.label`}
+          data-href-field={`nav.links.${i}.href`}
+        >{link.label}</a>
+      ))}
+    </div>
+    <div class="nav-right">
+      {phone && (
+        <a
+          href={`tel:${phoneDigits}`}
+          class="nav-phone"
+          data-field="nav.phone"
+          data-href-field="nav.phone.href"
+        >{phone}</a>
+      )}
+      <a
+        href={ctaHref}
+        class="btn btn-primary"
+        data-field="nav.cta.text"
+        data-href-field="nav.cta.href"
+      >{ctaText}</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  header.nav {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: rgba(var(--paper-rgb), .85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-in {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    height: 76px;
+  }
+  .brand {
+    font-family: var(--disp);
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -.03em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand .dot {
+    width: 14px;
+    height: 14px;
+    background: var(--gold);
+    border-radius: 50%;
+  }
+  .nav-links {
+    display: flex;
+    gap: 26px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  .nav-links a {
+    position: relative;
+    padding: 4px 0;
+    color: var(--ink-soft);
+  }
+  .nav-links a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    height: 2px;
+    width: 0;
+    background: var(--gold);
+    transition: width .28s ease;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .nav-phone {
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  @media (max-width: 920px) {
+    .nav-links, .nav-phone { display: none; }
+  }
+</style>

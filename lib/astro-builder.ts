@@ -112,22 +112,43 @@ function mapStyleToLetter(numericStyle: string | undefined, fallback: string = '
     return map[numericStyle] || numericStyle // Pass through if already a letter
 }
 
-// Variant-code → category override for conversion-block defaults.
-// Letters A-J are the legacy generic variants (use submission.business_type).
-// K-O are category-specific variants — they force a category regardless of
-// what was typed into business_type, so a barber selecting variant K still
-// gets barber-specific Why/How/Testimonial copy.
-const VARIANT_CODE_OVERRIDES: Record<string, string> = {
-    K: 'barber',
-    L: 'auto',
-    M: 'salon',
-    N: 'restaurant',
-    O: 'clinic',
+// Variant-code → category routing was removed when the template library was
+// wiped. `submission.business_type` is still passed through for whatever new
+// designs do with it (e.g. picking a default color palette).
+
+// ─── Derived defaults for generic templates ────────────────────────────
+// Shared, browser-safe helpers live in ./derive-content-defaults so the
+// editor sidebar (ContentFieldsAuto) can mirror what we render here.
+import {
+    deriveContentDefaults,
+    normalizeBusinessType,
+} from './derive-content-defaults'
+
+function deriveDefaultsFor(content: ExtractedContent, photos: string[]) {
+    return deriveContentDefaults(content as any, photos)
 }
 
-function effectiveBusinessType(heroStyleLetter: string, businessType: string | undefined): string | undefined {
-    const code = (heroStyleLetter || '').charAt(0).toUpperCase()
-    return VARIANT_CODE_OVERRIDES[code] ?? businessType
+/**
+ * Maps business_type → color scheme id for the `auto` palette. Used by
+ * the generic-template theme override when admin leaves Color Scheme on
+ * "auto". Empty string means "keep the template's native palette".
+ */
+export const AUTO_SCHEME_BY_BUSINESS_TYPE: Record<string, string> = {
+    barber:    'brown',
+    salon:     'pink',
+    auto:      'blue',
+    restaurant:'orange',
+    cafe:      'brown',
+    retail:    'brown',
+    clinic:    'green',
+    fitness:   'red',
+    education: 'purple',
+    services:  'maroon',
+}
+
+export function autoSchemeFor(businessType: string | undefined | null): string {
+    const k = normalizeBusinessType(businessType)
+    return AUTO_SCHEME_BY_BUSINESS_TYPE[k] || ''
 }
 
 // Minimal PH city-adjacency seed for the ServiceArea block (3-4 places per
@@ -165,13 +186,63 @@ function derivePhoneDigits(phone: string | undefined | null): string {
 }
 
 /**
- * Transform existing ExtractedContent + Customizations into the Astro site-data.json format
+ * Format a phone for display: forces a `+63` PH country prefix when the
+ * input is a local PH mobile number (10 digits starting `9`, or 11
+ * digits starting `09`). Numbers already in international form are left
+ * alone. Empty input returns empty string so callers can fall through.
  */
-function transformToAstroData(
+function formatPhoneDisplay(phone: string | undefined | null): string {
+    if (!phone) return ''
+    const trimmed = String(phone).trim()
+    if (!trimmed) return ''
+    // Already international (+countrycode) — return as-is.
+    if (trimmed.startsWith('+')) return trimmed
+    const digits = trimmed.replace(/[^0-9]/g, '')
+    if (!digits) return trimmed
+    // PH local mobile patterns.
+    if (digits.startsWith('09') && digits.length === 11) return '+63' + digits.slice(1)
+    if (digits.startsWith('9') && digits.length === 10)  return '+63' + digits
+    if (digits.startsWith('63') && digits.length >= 12)  return '+' + digits
+    // Fallback — leave whatever the admin typed.
+    return trimmed
+}
+
+/**
+ * Transform existing ExtractedContent + Customizations into the Astro site-data.json format.
+ *
+ * Async because we geocode the business address at build time when no
+ * lat/lng was provided — otherwise the Leaflet map points at a per-template
+ * fallback city (Mission St / Linden Ave / etc).
+ */
+async function transformToAstroData(
     content: ExtractedContent,
     customizations: Customizations,
     photos: string[]
 ) {
+    // ── Geocode address if no coords known ─────────────────────────────
+    // Resolution order: admin-typed coords > submission.coordinates >
+    // content.location > Nominatim lookup of contact.address. Cached into
+    // content.location so subsequent regens skip the network call.
+    const haveLatLng = (
+        typeof content.location?.lat === 'number' &&
+        typeof content.location?.lng === 'number'
+    );
+    if (!haveLatLng && content.contact?.address) {
+        try {
+            const { geocodeAddress } = await import('./geocode')
+            const coords = await geocodeAddress(content.contact.address)
+            if (coords) {
+                content = {
+                    ...content,
+                    location: { ...(content.location || {}), lat: coords.lat, lng: coords.lng },
+                }
+            }
+        } catch {
+            // Geocoding failure is non-fatal — components fall back to
+            // rendering the map at a coarse center if no coords.
+        }
+    }
+
     const heroStyle = mapStyleToLetter(customizations.heroStyle)
     const aboutStyle = mapStyleToLetter(customizations.aboutStyle)
     const servicesStyle = mapStyleToLetter(customizations.servicesStyle)
@@ -180,6 +251,14 @@ function transformToAstroData(
 
     // Map visibility from snake_case to camelCase
     const vis = content.visibility || {}
+
+    // Format the phone with +63 prefix for PH local mobiles so the header,
+    // nav, footer, location card, and CTAs all show "+639278147733"
+    // instead of "9278147733". Original raw value still available on the
+    // submission if some component needs the local form.
+    const formattedContact = content.contact
+        ? { ...content.contact, phone: formatPhoneDisplay(content.contact.phone) || content.contact.phone }
+        : content.contact
 
     return {
         layout: {
@@ -194,7 +273,7 @@ function transformToAstroData(
             socialLinks: content.footer?.social_links || [],
             colorScheme: customizations.colorSchemeId || customizations.colorScheme || 'auto',
             fontPairing: customizations.fontPairingId || customizations.fontPairing || 'modern',
-            contact: content.contact || {},
+            contact: formattedContact || {},
             navbarStyle: heroStyle,
             // Favicon — admin uploads via the Images tab "Website tab image"
             // slot; flows through to BaseLayout's <link rel="icon">.
@@ -241,7 +320,7 @@ function transformToAstroData(
             servicesSubheadline: vis.services_subheadline !== false,
             servicesImage: vis.services_image !== false,
             servicesList: vis.services_list !== false,
-            gallerySection: vis.featured_section !== false,
+            // (gallerySection moved below — auto-hides when empty)
             galleryHeadline: vis.featured_headline !== false,
             gallerySubheadline: vis.featured_subheadline !== false,
             galleryItems: vis.featured_products !== false,
@@ -263,12 +342,49 @@ function transformToAstroData(
             // Scroll-to-top button — default ON. Themed via --primary so it
             // picks up the admin's color scheme automatically.
             scrollTopButton: vis.scroll_top_button !== false,
-            trustBlock: vis.trust_block !== false,
+            // Trust/Testimonials/Credentials auto-hide when the admin
+            // hasn't supplied content AND no AI extracted any. Avoids
+            // fake-looking empty bands. Admin can re-enable explicitly
+            // from the Blocks tab.
+            trustBlock: vis.trust_block === false
+                ? false
+                : Array.isArray((content as any).trust?.cells)
+                    ? (content as any).trust.cells.length > 0
+                    : false,
             whyUsBlock: vis.why_us_block !== false,
             howItWorksBlock: vis.how_it_works_block !== false,
-            testimonialsBlock: vis.testimonials_block !== false,
+            // testimonials is an object `{ tag, headline, items[] }` on
+            // generic templates; legacy A-O stored a plain array. Accept
+            // either: section renders when admin disabled is explicitly
+            // false OR there are zero quotes in either shape.
+            testimonialsBlock: vis.testimonials_block === false
+                ? false
+                : (
+                    Array.isArray((content as any).testimonials)
+                        ? (content as any).testimonials.length > 0
+                        : Array.isArray((content as any).testimonials?.items)
+                            ? (content as any).testimonials.items.length > 0
+                            : false
+                ),
             faqBlock: vis.faq_block !== false,
-            credentialsBlock: vis.credentials_block !== false,
+            // Credentials auto-hides when no items exist. Like testimonials
+            // the new shape is `{ tag, headline, items[] }` while legacy
+            // stored a plain array. Accept either.
+            credentialsBlock: vis.credentials_block === false
+                ? false
+                : (
+                    Array.isArray((content as any).credentials)
+                        ? (content as any).credentials.length > 0
+                        : Array.isArray((content as any).credentials?.items)
+                            ? (content as any).credentials.items.length > 0
+                            : false
+                ),
+            // Gallery auto-hides when there's nothing to show (no admin
+            // gallery items AND no submission photos).
+            gallerySection: vis.gallery_section === false || vis.featured_section === false
+                ? false
+                : (Array.isArray((content as any).gallery?.items) && (content as any).gallery.items.length > 0)
+                    || photos.length > 0,
             ctaBandBlock: vis.cta_band_block !== false,
         },
         hero: {
@@ -416,10 +532,10 @@ function transformToAstroData(
                 undefined,
             messenger: content.messaging?.messenger,
         },
-        // ── Conversion-cluster blocks (with per-business-type defaults) ──
-        // Resolution order: admin-typed → variant-code-override → per-business-type → generic
+        // ── Conversion-cluster blocks (neutral fallback after template wipe) ──
+        // Resolution order: admin-typed → generic neutral fallback.
         ...(() => {
-            const d = defaultsFor(effectiveBusinessType(heroStyle, content.business_type))
+            const d = defaultsFor(content.business_type)
             return {
                 trust: content.trust ?? d.trust,
                 why: content.why ?? d.why,
@@ -428,6 +544,104 @@ function transformToAstroData(
                 faq: content.faq ?? d.faq,
                 credentials: content.credentials ?? d.credentials,
                 ctaBand: content.ctaBand ?? d.ctaBand,
+            }
+        })(),
+        // ── Generic landing-page nested content ─────────────────────────
+        // The Astro PageA…PageE wrappers read `siteData.content.hero.*`,
+        // `siteData.content.about.*`, etc. — pass through the nested shape
+        // produced by groq.service.generateGenericSections() / admin edits.
+        // Existing legacy-template flows ignore this field, so it's
+        // additive and doesn't affect A-O variants.
+        content: (() => {
+            const d = defaultsFor(content.business_type)
+            const derived = deriveDefaultsFor(content, photos)
+            const c = content as any
+
+            // `content.services` is "array of {name, description}" in the
+            // legacy shape, "object with .items[]" in the new shape. Detect.
+            const servicesNested = (
+                typeof c.services === 'object' &&
+                !Array.isArray(c.services) &&
+                c.services !== null
+            ) ? c.services : undefined
+
+            // Per-section "did admin/AI supply anything?" — if no, use the
+            // derived defaults so the section renders coherently. Each leaf
+            // still falls back individually inside the section component.
+            const mergeShallow = <T extends object>(src: T | undefined, fb: T): T => {
+                if (!src || typeof src !== 'object') return fb
+                const out: any = { ...fb }
+                for (const [k, v] of Object.entries(src)) {
+                    if (v !== undefined && v !== null && v !== '') out[k] = v
+                }
+                return out as T
+            }
+
+            const heroMerged = mergeShallow<any>(c.hero, derived.hero)
+            // Headline backfills: if neither admin nor AI gave a
+            // single-line headline, use derived.headline. If neither gave
+            // headlineLines, fall back to splitting headline on newlines.
+            if (!heroMerged.headlineLines || (Array.isArray(heroMerged.headlineLines) && heroMerged.headlineLines.length === 0)) {
+                if (typeof heroMerged.headline === 'string') {
+                    heroMerged.headlineLines = heroMerged.headline.split('\n').filter(Boolean)
+                }
+                if (!heroMerged.headlineLines || heroMerged.headlineLines.length === 0) {
+                    heroMerged.headlineLines = derived.hero.headlineLines
+                }
+            }
+
+            return {
+                description: content.about,
+                photos,
+                contact: formattedContact,
+                marquee: mergeShallow<any>(c.marquee, derived.marquee),
+                hero: heroMerged,
+                about: mergeShallow<any>(c.about, derived.about),
+                services: servicesNested
+                    ? mergeShallow<any>(servicesNested, derived.services)
+                    : derived.services,
+                gallery: (() => {
+                    const g = mergeShallow<any>(c.gallery, derived.gallery)
+                    // Fill empty image slots with submission photos so the
+                    // gallery is never an empty grid on first build.
+                    if (Array.isArray(g.items)) {
+                        g.items = g.items.map((it: any, i: number) => ({
+                            ...it,
+                            image: it?.image || photos[i] || '',
+                        }))
+                    } else if (photos.length) {
+                        g.items = photos.slice(0, 6).map((image, i) => ({
+                            image,
+                            caption: derived.gallery.items[i]?.caption || '',
+                        }))
+                    }
+                    return g
+                })(),
+                area: mergeShallow<any>(c.area, derived.area),
+                location: { ...derived.location, ...(content.location || {}) },
+                ctaBand: mergeShallow<any>(c.ctaBand, derived.ctaBand),
+                footer: mergeShallow<any>(c.footer, derived.footer),
+                navCtaText: c.navCtaText || 'Get in touch',
+                navCtaHref: c.navCtaHref || '#visit',
+                navbar_links: Array.isArray(c.navbar_links) && c.navbar_links.length
+                    ? c.navbar_links
+                    : derived.navbar_links,
+                // Why / How — same 3-tier resolution. Admin > AI > derived.
+                why:          c.why          ?? derived.why,
+                how:          c.how          ?? derived.how,
+                // Conversion-cluster blocks — admin overrides win, else
+                // empty (NOT block-defaults.ts demo copy). Empty sections
+                // are hidden via visibility flags below.
+                trust:        c.trust        ?? d.trust,
+                testimonials: c.testimonials ?? undefined,
+                faq:          c.faq          ?? derived.faq,
+                credentials:  c.credentials  ?? undefined,
+                // Carry over enhancedImages so the image picker modal can
+                // surface them from inside the iframe-rendered Astro output.
+                enhancedImages: c.enhancedImages,
+                business_name: content.business_name,
+                business_type: c.business_type,
+                business_city: content.business_city,
             }
         })(),
     }
@@ -496,7 +710,7 @@ export async function buildAstroSite(
     const outputPath = path.join(astroDir, 'dist', 'index.html')
 
     // 1. Transform data to Astro format
-    const siteData = transformToAstroData(content, customizations, photos)
+    const siteData = await transformToAstroData(content, customizations, photos)
 
     // 2. Write site-data.json + ensure .astro cache dir exists
     await fs.writeFile(dataPath, JSON.stringify(siteData, null, 2), 'utf-8')

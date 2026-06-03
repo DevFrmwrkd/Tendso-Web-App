@@ -1,0 +1,117 @@
+---
+/**
+ * generic / GalleryA — 5-tile bento grid with hover captions.
+ *
+ * Editable hooks:
+ *   gallery.tag, gallery.headline,
+ *   gallery.items[i].image  (image)
+ *   gallery.items[i].caption (text)
+ */
+interface Props {
+  content: any;
+  layout: any;
+}
+const { content, layout: _layout } = Astro.props;
+const gallery = content.gallery || content.featured || {};
+
+const tag      = gallery.tag      || 'Inside the roastery';
+const headline = gallery.headline || 'A look around the counter.';
+
+const allPhotos = Array.isArray(content.photos) ? content.photos
+  : Array.isArray(content.hero?.photos) ? content.hero.photos
+  : [];
+
+const fromContent = Array.isArray(gallery.items) && gallery.items.length
+  ? gallery.items
+  : null;
+
+const defaultCaps = ['The drum roaster', 'Pour-over bar', 'Bagged fresh', 'The counter', 'On the bar'];
+
+const items: Array<{ image?: string; caption?: string }> = fromContent || (
+  allPhotos.slice(0, 5).map((p: string, i: number) => ({ image: p, caption: defaultCaps[i] }))
+);
+
+const tileClasses = ['g-a', 'g-b', 'g-c', 'g-d', 'g-e'];
+const idx = (i: number) => String(i + 1).padStart(2, '0');
+---
+
+<section class="sec" id="work">
+  <div class="wrap">
+    <p class="sec-tag reveal" data-field="gallery.tag">{tag}</p>
+    <h2 class="reveal" data-field="gallery.headline" set:html={headline}></h2>
+    <div class="gal-grid">
+      {items.filter((it: any) => it && it.image).slice(0, 5).map((it: any, i: number) => (
+        <div class={`gtile ${tileClasses[i]} reveal`} style={i > 0 ? `transition-delay:.${i * 8}s;` : ''}>
+          <div
+            class="gtile-img"
+            data-image-field={`gallery.items.${i}.image`}
+            style={it.image ? `background-image:url('${it.image}');` : ''}
+          ></div>
+          <div class="cap">
+            <span data-field={`gallery.items.${i}.caption`}>{it.caption}</span>
+            <span>{idx(i)}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .gal-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 16px;
+    margin-top: 46px;
+  }
+  .gtile {
+    position: relative;
+    overflow: hidden;
+    border-radius: 16px;
+    background: var(--card);
+    border: 2px solid var(--ink);
+  }
+  .gtile-img {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    transition: transform .6s cubic-bezier(.2, .8, .2, 1);
+  }
+  .gtile:hover .gtile-img { transform: scale(1.06); }
+  .gtile .cap {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 16px 18px;
+    background: linear-gradient(to top, rgba(var(--ink-rgb), .82), transparent);
+    color: var(--paper-2);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    transform: translateY(8px);
+    opacity: 0;
+    transition: .35s;
+    display: flex;
+    justify-content: space-between;
+  }
+  .gtile:hover .cap {
+    transform: none;
+    opacity: 1;
+  }
+  .g-a { grid-column: span 7; height: 380px; }
+  .g-b { grid-column: span 5; height: 380px; }
+  .g-c { grid-column: span 4; height: 300px; }
+  .g-d { grid-column: span 4; height: 300px; }
+  .g-e { grid-column: span 4; height: 300px; }
+  @media (max-width: 760px) {
+    .gal-grid { grid-template-columns: 1fr 1fr; }
+    .g-a, .g-b, .g-c, .g-d, .g-e {
+      grid-column: span 1;
+      height: 220px;
+    }
+    .g-a { grid-column: span 2; }
+  }
+</style>

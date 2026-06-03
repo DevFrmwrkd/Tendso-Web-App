@@ -1,0 +1,64 @@
+---
+/**
+ * generic / TrustA — espresso band with 4 gold numerals.
+ *
+ * Editable hooks:
+ *   trust.cells[i].num     (text)
+ *   trust.cells[i].label   (text)
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+
+const cells = (content.trust?.cells && content.trust.cells.length > 0)
+  ? content.trust.cells
+  : [];
+---
+
+<section class="trust">
+  <div class="wrap trust-row">
+    {cells.map((cell: any, i: number) => (
+      <div class="trust-cell reveal" style={i > 0 ? `transition-delay:.${i * 8}s;` : ''}>
+        <div class="num" data-field={`trust.cells.${i}.num`}>{cell.num}</div>
+        <div class="lbl" data-field={`trust.cells.${i}.label`}>{cell.label}</div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .trust {
+    background: var(--ink);
+    color: var(--paper-2);
+  }
+  .trust-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .trust-cell {
+    padding: 44px 26px;
+    border-left: 1px solid rgba(var(--paper-rgb), .16);
+  }
+  .trust-cell:first-child { border-left: none; }
+  .trust-cell .num {
+    font-family: var(--disp);
+    font-size: 54px;
+    font-weight: 800;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .trust-cell .lbl {
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(var(--paper-rgb), .66);
+  }
+  @media (max-width: 760px) {
+    .trust-row { grid-template-columns: repeat(2, 1fr); }
+    .trust-cell:nth-child(3) { border-left: none; }
+    .trust-cell:nth-child(n+3) {
+      border-top: 1px solid rgba(var(--paper-rgb), .16);
+    }
+  }
+</style>

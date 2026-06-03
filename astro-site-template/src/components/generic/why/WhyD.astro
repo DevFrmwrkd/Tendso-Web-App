@@ -1,0 +1,35 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const why = content.why || content.whyUs || {};
+const tag = why.tag || 'why_northpoint';
+const headline = why.headline || '';
+const items = Array.isArray(why.items) && why.items.length > 0 ? why.items : [];
+---
+<section class="sec why-sec" id="why">
+  <div class="wrap">
+    <p class="sec-tag reveal" data-field="why.tag">{tag}</p>
+    <h2 class="reveal" data-field="why.headline" set:html={headline}></h2>
+    <div class="why-grid">
+      {items.map((it: any, i: number) => (
+        <div class="why-cell reveal">
+          <div class="tick"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div>
+            <h3 data-field={`why.items.${i}.title`}>{it.title}</h3>
+            <p data-field={`why.items.${i}.body`}>{it.body || it.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .why-sec { background: var(--bg-2); }
+  .why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px 40px; margin-top: 46px; }
+  .why-cell { display: flex; gap: 18px; align-items: flex-start; padding: 24px 0; border-top: 1px solid var(--line); }
+  .why-cell .tick { flex: none; width: 30px; height: 30px; border-radius: 8px; background: rgba(var(--accent-rgb), .12); border: 1px solid var(--lime); display: flex; align-items: center; justify-content: center; }
+  .why-cell .tick svg { width: 16px; height: 16px; stroke: var(--lime); fill: none; stroke-width: 2.4; }
+  .why-cell h3 { font-size: 21px; }
+  .why-cell p { margin-top: 8px; color: var(--muted); font-size: 15px; max-width: 42ch; }
+  @media (max-width: 760px) { .why-grid { grid-template-columns: 1fr; } }
+</style>

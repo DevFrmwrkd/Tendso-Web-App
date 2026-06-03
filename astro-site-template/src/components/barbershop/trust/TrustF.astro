@@ -1,0 +1,33 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const cells = Array.isArray(content.trust?.cells) ? content.trust.cells : [];
+---
+{cells.length > 0 && (
+  <section class="trust">
+    <div class="trust-row">
+      {cells.map((cell: any, i: number) => (
+        <div class="trust-cell">
+          <div class="num" data-field={`trust.cells.${i}.num`}>{cell.num}</div>
+          <div class="lbl" data-field={`trust.cells.${i}.label`}>{cell.label}</div>
+          {cell.src && <div class="src" data-field={`trust.cells.${i}.src`}>{cell.src}</div>}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+
+<style>
+  .trust { background: var(--brass); color: var(--ink); }
+  .trust-row { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .trust-cell { padding: 30px var(--pad); text-align: center; border-right: 1px solid rgba(var(--ink-rgb), .16); }
+  .trust-cell:last-child { border-right: none; }
+  .trust-cell .num { font-family: var(--display); font-size: clamp(32px, 4vw, 48px); line-height: 1; }
+  .trust-cell .lbl { font-family: var(--cond); text-transform: uppercase; letter-spacing: .2em; font-size: 11.5px; font-weight: 600; margin-top: 8px; opacity: .85; }
+  .trust-cell .src { font-size: 11px; opacity: .6; margin-top: 4px; font-family: var(--body); letter-spacing: 0; text-transform: none; }
+  @media (max-width: 760px) {
+    .trust-row { grid-template-columns: repeat(2, 1fr); }
+    .trust-cell:nth-child(2) { border-right: none; }
+    .trust-cell:nth-child(1), .trust-cell:nth-child(2) { border-bottom: 1px solid rgba(var(--ink-rgb), .16); }
+  }
+</style>

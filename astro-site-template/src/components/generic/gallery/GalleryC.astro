@@ -1,0 +1,46 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const gallery = content.gallery || content.featured || {};
+const tag = gallery.tag || 'Recent work';
+const headline = gallery.headline || "Yards we've built.";
+const allPhotos = Array.isArray(content.photos) ? content.photos : [];
+const defaultCaps = ['Flagstone patio', 'Retaining wall', 'Front-yard redesign', 'Fire-pit lounge', 'Native garden'];
+const fromContent = Array.isArray(gallery.items) && gallery.items.length ? gallery.items : null;
+const items: Array<{ image?: string; caption?: string }> = fromContent || allPhotos.slice(0, 5).map((p: string, i: number) => ({ image: p, caption: defaultCaps[i] }));
+const tileClasses = ['gw3', 'gw3', 'gw2', 'gw2', 'gw2'];
+const idx = (i: number) => String(i + 1).padStart(2, '0');
+---
+<section class="sec" id="work">
+  <div class="wrap">
+    <span class="sec-tag reveal" data-field="gallery.tag">{tag}</span>
+    <h2 class="reveal" data-field="gallery.headline" set:html={headline}></h2>
+    <div class="gal">
+      {items.filter((it: any) => it && it.image).slice(0, 5).map((it: any, i: number) => (
+        <div class={`gtile ${tileClasses[i]} reveal`} style={i > 0 ? `transition-delay:.${i * 8}s;` : ''}>
+          <div class="img" data-image-field={`gallery.items.${i}.image`} style={it.image ? `background-image:url('${it.image}');` : ''}></div>
+          <div class="cap">
+            <span class="ct" data-field={`gallery.items.${i}.caption`}>{it.caption}</span>
+            <span class="cx">{idx(i)}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .gal { display: grid; grid-template-columns: repeat(6, 1fr); gap: 16px; margin-top: 50px; }
+  .gtile { position: relative; overflow: hidden; border: 2px solid var(--ink); background: var(--stone); }
+  .gtile .img { width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+  .gtile:hover .img { transform: scale(1.07); }
+  .gtile .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 16px 18px; background: linear-gradient(to top, rgba(var(--ink-rgb), .85), transparent); color: var(--paper-2); display: flex; justify-content: space-between; align-items: flex-end; transform: translateY(8px); opacity: 0; transition: .35s; }
+  .gtile .cap .ct { font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: 13px; }
+  .gtile .cap .cx { font-family: var(--disp); font-size: 24px; color: var(--amber); }
+  .gtile:hover .cap { transform: none; opacity: 1; }
+  .gw3 { grid-column: span 3; height: 360px; }
+  .gw2 { grid-column: span 2; height: 260px; }
+  @media (max-width: 760px) {
+    .gal { grid-template-columns: 1fr 1fr; }
+    .gw3, .gw2 { grid-column: span 1; height: 200px; }
+  }
+</style>

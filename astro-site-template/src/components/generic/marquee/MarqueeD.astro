@@ -1,0 +1,15 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const text = content.marquee?.text || 'Quality ◆ Trusted ◆ Local ◆ Reliable';
+const doubled = `${text} / ${text} /`;
+---
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track"><span data-field="marquee.text">{doubled}</span></div>
+</div>
+<style>
+  .marquee { background: var(--lime); overflow: hidden; }
+  .marquee-track { display: flex; white-space: nowrap; font-family: var(--mono); font-size: 15px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; padding: 14px 0; width: max-content; animation: scrollx 28s linear infinite; color: #0C0F14; }
+  .marquee-track :global(i) { margin: 0 1.4rem; font-style: normal; }
+  @keyframes scrollx { to { transform: translateX(-50%); } }
+</style>

@@ -1,0 +1,39 @@
+---
+interface Props { layout: any; content: any; }
+const { layout, content: _content } = Astro.props;
+const brand = layout.businessName || 'Your Business';
+const navLinks = (layout.navLinks && layout.navLinks.length) ? layout.navLinks : [];
+const status = layout.statusLabel || 'systems operational';
+const ctaText = layout.ctaText || 'Get support';
+const ctaHref = layout.ctaHref || '#visit';
+---
+<header class="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="brand"><span class="mk"></span><span data-field="nav.brand">{brand}</span></a>
+    <div class="nav-links">
+      {navLinks.map((link: any, i: number) => (
+        <a href={link.href} data-field={`nav.links.${i}.label`} data-href-field={`nav.links.${i}.href`}>{link.label}</a>
+      ))}
+    </div>
+    <div class="nav-right">
+      <span class="nav-status"><span class="d"></span><span data-field="nav.status">{status}</span></span>
+      <a href={ctaHref} class="btn btn-primary" data-field="nav.cta.text" data-href-field="nav.cta.href">{ctaText}</a>
+    </div>
+  </div>
+</header>
+<style>
+  header.nav { position: sticky; top: 0; z-index: 1000; background: rgba(var(--bg-rgb), .82); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+  .nav-in { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 74px; }
+  .brand { font-family: var(--disp); font-size: 23px; font-weight: 700; display: flex; align-items: center; gap: 10px; letter-spacing: -.02em; }
+  .brand .mk { width: 16px; height: 16px; background: var(--lime); border-radius: 4px; transform: rotate(45deg); }
+  .nav-links { display: flex; gap: 26px; font-family: var(--mono); font-size: 13px; }
+  .nav-links a { position: relative; color: var(--muted); padding: 4px 0; }
+  .nav-links a::after { content: ""; position: absolute; left: 0; bottom: 0; height: 1.5px; width: 0; background: var(--lime); transition: .25s; }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-status { font-family: var(--mono); font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 7px; }
+  .nav-status .d { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 0 rgba(var(--accent-rgb), .6); animation: pulse 2.4s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), .5); } 70% { box-shadow: 0 0 0 8px rgba(var(--accent-rgb), 0); } 100% { box-shadow: 0 0 0 0 rgba(var(--accent-rgb), 0); } }
+  @media (max-width: 980px) { .nav-links, .nav-status { display: none; } }
+</style>

@@ -1,0 +1,55 @@
+---
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+const gallery = content.gallery || {};
+const tag = gallery.tag || '';
+const headline = gallery.headline || '';
+const sub = gallery.sub || '';
+const items: Array<{ image?: string; caption?: string }> = Array.isArray(gallery.items) ? gallery.items : [];
+const visible = items.filter((it) => it && it.image);
+const tileClasses = ['tv-a', 'tv-b', 'tv-c', 'tv-d', 'tv-e'];
+const idx = (i: number) => String(i + 1).padStart(2, '0');
+---
+{visible.length > 0 && (
+  <section class="pad-y ink-sect" id="work">
+    <div class="wrap">
+      <div class="sect-head reveal">
+        <div>
+          {tag && <span class="kicker on-dark" data-field="gallery.tag">{tag}</span>}
+          {headline && <h2 class="h-sect" data-field="gallery.headline" set:html={headline}></h2>}
+        </div>
+        {sub && <p class="lead on-dark" data-field="gallery.sub">{sub}</p>}
+      </div>
+      <div class="tv-work reveal">
+        {visible.slice(0, 5).map((it, i) => (
+          <figure class={`tv-tile ${tileClasses[i]}`}>
+            <span class="tv-num">{idx(i)}</span>
+            <div class="tv-img" data-image-field={`gallery.items.${i}.image`} style={`background-image:url('${it.image}');`}></div>
+            <figcaption class="tv-cap">
+              <span class="t" data-field={`gallery.items.${i}.caption`}>{it.caption || ''}</span>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .tv-work { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+  .tv-tile { position: relative; overflow: hidden; background: var(--ink-2); cursor: pointer; margin: 0; }
+  .tv-img { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 1s cubic-bezier(.16, 1, .3, 1); }
+  .tv-tile:hover .tv-img { transform: scale(1.06); }
+  .tv-tile::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, rgba(16, 15, 13, .72), transparent 55%); opacity: .55; transition: opacity .5s; }
+  .tv-tile:hover::after { opacity: .9; }
+  .tv-num { position: absolute; top: 18px; left: 22px; z-index: 2; font-family: var(--cond); font-size: 12px; letter-spacing: .2em; color: var(--paper); opacity: .7; }
+  .tv-cap { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; margin: 0; padding: 22px 24px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; transform: translateY(10px); opacity: .92; transition: transform .55s cubic-bezier(.16, 1, .3, 1), opacity .55s; }
+  .tv-tile:hover .tv-cap { transform: none; opacity: 1; }
+  .tv-cap .t { font-family: var(--display); text-transform: uppercase; color: var(--paper); font-size: clamp(20px, 2.1vw, 32px); line-height: 1; }
+  .tv-a { grid-column: span 7; height: clamp(320px, 46vh, 520px); }
+  .tv-b { grid-column: span 5; height: clamp(320px, 46vh, 520px); }
+  .tv-c, .tv-d, .tv-e { grid-column: span 4; height: clamp(260px, 34vh, 380px); }
+  @media (max-width: 760px) {
+    .tv-work { grid-template-columns: 1fr; }
+    .tv-a, .tv-b, .tv-c, .tv-d, .tv-e { grid-column: span 1; height: 48vh; }
+  }
+</style>

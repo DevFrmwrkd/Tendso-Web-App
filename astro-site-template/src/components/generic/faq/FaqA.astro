@@ -1,0 +1,73 @@
+---
+/**
+ * generic / FaqA — narrow column of expandable details.
+ *
+ * Editable hooks:
+ *   faq.tag, faq.headline,
+ *   faq.items[i].q (text), faq.items[i].a (text)
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const faq = content.faq || {};
+
+const tag      = faq.tag      || 'Good to know';
+const headline = faq.headline || 'Questions, answered.';
+
+const items = Array.isArray(faq.items) && faq.items.length
+  ? faq.items
+  : [];
+---
+
+<section class="sec" id="faq" style="padding-top:0;">
+  <div class="wrap" style="max-width:920px;">
+    <p class="sec-tag reveal" data-field="faq.tag">{tag}</p>
+    <h2 class="reveal" data-field="faq.headline" set:html={headline}></h2>
+    <div class="faq-wrap">
+      {items.map((it: any, i: number) => (
+        <details class="reveal">
+          <summary>
+            <span data-field={`faq.items.${i}.q`}>{it.q || it.question}</span>
+            <span class="pm">+</span>
+          </summary>
+          <div class="ans" data-field={`faq.items.${i}.a`}>{it.a || it.answer}</div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .faq-wrap {
+    margin-top: 40px;
+    border-top: 2px solid var(--ink);
+  }
+  details {
+    border-bottom: 1px solid var(--line);
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 26px 4px;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: center;
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: -.01em;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary .pm {
+    font-family: var(--mono);
+    font-size: 26px;
+    color: var(--gold-deep);
+    transition: transform .3s;
+  }
+  details[open] summary .pm { transform: rotate(45deg); }
+  details .ans {
+    padding: 0 4px 26px;
+    color: var(--ink-soft);
+    max-width: 70ch;
+  }
+</style>

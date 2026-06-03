@@ -1,0 +1,93 @@
+---
+/**
+ * generic / WhyA — 4 latte cards on a card-paper background.
+ *
+ * Editable hooks:
+ *   why.tag, why.headline, why.items[i].title, why.items[i].body
+ *
+ * Icons are templated inline SVG by index; they're decoration and not
+ * editable from the bridge in this batch.
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const why = content.why || content.whyUs || {};
+
+const tag      = why.tag      || 'Why us';
+const headline = why.headline || '';
+
+const items = Array.isArray(why.items) && why.items.length > 0 ? why.items
+  : [];
+
+// Decorative SVG paths per index — purely visual.
+const iconPaths = [
+  '<path d="M3 13h2l2-7 4 14 3-9 2 2h5"/>',
+  '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+  '<path d="M12 3l8 4v6c0 5-4 7-8 8-4-1-8-3-8-8V7z"/>',
+  '<path d="M4 20h16M6 20V9m6 11V5m6 15v-8"/>',
+];
+---
+
+<section class="sec why-sec" id="why">
+  <div class="wrap">
+    <p class="sec-tag reveal" data-field="why.tag">{tag}</p>
+    <h2 class="reveal" data-field="why.headline" set:html={headline}></h2>
+    <div class="why-grid">
+      {items.map((it: any, i: number) => (
+        <div class="why-cell reveal" style={i > 0 ? `transition-delay:.${i * 8}s;` : ''}>
+          <div class="ic">
+            <svg viewBox="0 0 24 24" set:html={iconPaths[i] || iconPaths[0]}></svg>
+          </div>
+          <h3 data-field={`why.items.${i}.title`}>{it.title}</h3>
+          <p data-field={`why.items.${i}.body`}>{it.body || it.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .why-sec { background: var(--card); }
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    margin-top: 46px;
+  }
+  .why-cell {
+    background: var(--paper-2);
+    border: 2px solid var(--ink);
+    border-radius: 18px;
+    padding: 30px 26px;
+  }
+  .why-cell .ic {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .why-cell svg {
+    width: 26px;
+    height: 26px;
+    stroke: var(--ink);
+    fill: none;
+    stroke-width: 1.7;
+  }
+  .why-cell h3 {
+    font-size: 22px;
+    margin-top: 18px;
+  }
+  .why-cell p {
+    margin-top: 10px;
+    font-size: 15px;
+    color: var(--ink-soft);
+  }
+  @media (max-width: 860px) {
+    .why-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 520px) {
+    .why-grid { grid-template-columns: 1fr; }
+  }
+</style>

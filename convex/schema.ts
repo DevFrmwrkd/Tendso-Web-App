@@ -576,6 +576,20 @@ export default defineSchema({
             footerDescription: v.optional(v.boolean()),
             footerContact: v.optional(v.boolean()),
             footerSocial: v.optional(v.boolean()),
+            // ── New generic-template block keys (PageA…PageE read these) ──
+            gallerySection: v.optional(v.boolean()),
+            contactSection: v.optional(v.boolean()),
+            trustBlock: v.optional(v.boolean()),
+            whyUsBlock: v.optional(v.boolean()),
+            howItWorksBlock: v.optional(v.boolean()),
+            testimonialsBlock: v.optional(v.boolean()),
+            faqBlock: v.optional(v.boolean()),
+            serviceAreaBlock: v.optional(v.boolean()),
+            credentialsBlock: v.optional(v.boolean()),
+            locationBlock: v.optional(v.boolean()),
+            ctaBandBlock: v.optional(v.boolean()),
+            clickToMessage: v.optional(v.boolean()),
+            scrollTopButton: v.optional(v.boolean()),
         })),
 
         // ==================== CUSTOMIZATIONS (STYLES) ====================

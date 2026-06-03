@@ -1,0 +1,34 @@
+---
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const band = content.ctaBand || {};
+const tag = band.tag || '';
+const headline = band.headline || '';
+const sub = band.sub || band.body || '';
+const cta1Text = band.cta?.text || band.primaryLabel || '';
+const cta1Href = band.cta?.href || band.primaryLink || '#visit';
+const cta2Text = band.cta2?.text || (layout.contact?.phone ? `Call ${layout.contact.phone}` : '');
+const cta2Href = band.cta2?.href || (layout.contact?.phone ? `tel:${layout.contact.phone.replace(/[^0-9+]/g, '')}` : '#');
+---
+<section class="pad-y cta-band">
+  <div class="wrap reveal">
+    {tag && <span class="kicker" style="justify-content:center;color:rgba(var(--ink-rgb),.6);" data-field="ctaBand.tag">{tag}</span>}
+    {headline && <h2 class="h-sect" data-field="ctaBand.headline" set:html={headline}></h2>}
+    {sub && <p data-field="ctaBand.sub">{sub}</p>}
+    <div class="cta-actions">
+      {cta1Text && (
+        <a class="btn" href={cta1Href} data-field="ctaBand.cta.text" data-href-field="ctaBand.cta.href">{cta1Text}</a>
+      )}
+      {cta2Text && (
+        <a class="btn btn--ghost" href={cta2Href} data-field="ctaBand.cta2.text" data-href-field="ctaBand.cta2.href">{cta2Text}</a>
+      )}
+    </div>
+  </div>
+</section>
+<style>
+  .cta-band { background: var(--brass); color: var(--ink); text-align: center; }
+  .cta-band .h-sect { color: var(--ink); }
+  .cta-band p { font-size: 18px; max-width: 48ch; margin: 18px auto 34px; color: rgba(var(--ink-rgb), .74); }
+  .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .cta-band :global(.btn) { border-color: var(--ink); }
+</style>

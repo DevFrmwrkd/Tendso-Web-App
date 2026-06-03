@@ -1,0 +1,106 @@
+---
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const loc = content.location || {};
+const tag = loc.tag || '';
+const headline = loc.headline || '';
+const sub = loc.sub || '';
+const address = loc.address || layout.contact?.address || '';
+const addressLines = address.split('\n');
+const phone = loc.phone || layout.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const hours: Array<{ day: string; time: string }> = Array.isArray(loc.hours) ? loc.hours : (Array.isArray((content as any).footer?.hours) ? (content as any).footer.hours : []);
+const dirText = loc.directions?.text || 'Get directions';
+const dirHref = loc.directions?.href || (address ? `https://maps.google.com/?q=${encodeURIComponent(address.replace(/\n/g, ' '))}` : '#');
+const lat = loc.lat != null ? Number(loc.lat) : (layout.contact?.lat != null ? Number(layout.contact.lat) : null);
+const lng = loc.lng != null ? Number(loc.lng) : (layout.contact?.lng != null ? Number(layout.contact.lng) : null);
+const label = layout.businessName || 'Our location';
+const mapAria = `Map showing ${label}`;
+---
+<section class="pad-y" id="visit">
+  <div class="wrap">
+    <div class="sect-head reveal">
+      <div>
+        {tag && <span class="kicker" data-field="location.tag">{tag}</span>}
+        {headline && <h2 class="h-sect" data-field="location.headline" set:html={headline}></h2>}
+      </div>
+      {sub && <p class="lead" data-field="location.sub">{sub}</p>}
+    </div>
+    <div class="loc-grid reveal">
+      <div class="loc-info">
+        {address && (
+          <div class="row">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div>
+              <div class="k">Address</div>
+              <div class="v" data-field="location.address">
+                {addressLines.map((line: string, i: number) => (
+                  <>
+                    {i > 0 && <br />}{line}
+                  </>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        {phone && (
+          <div class="row">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg>
+            <div>
+              <div class="k">Phone</div>
+              <div class="v"><a href={`tel:${phoneDigits}`} data-field="location.phone" data-href-field="location.phone.href">{phone}</a></div>
+            </div>
+          </div>
+        )}
+        {hours.length > 0 && (
+          <div class="row">
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <div>
+              <div class="k">Hours · kept live on Google</div>
+              <div class="v loc-hours">
+                {hours.map((row: any, i: number) => (
+                  <div>
+                    <span data-field={`location.hours.${i}.day`}>{row.day}</span>
+                    <span data-field={`location.hours.${i}.time`}>{row.time}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+        <div style="margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;">
+          <a class="btn btn--brass" href={dirHref} target="_blank" rel="noopener noreferrer" data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
+        </div>
+      </div>
+      <div id="map" role="img" aria-label={mapAria}>
+        {!(lat != null && lng != null) && (
+          <div class="map-fallback">Address-based map will appear here after geocoding.</div>
+        )}
+      </div>
+    </div>
+  </div>
+</section>
+{lat != null && lng != null && (
+  <script is:inline define:vars={{ lat, lng, label }}>
+    (function init() {
+      if (lat == null || lng == null) return;
+      if (window.__barbershopInitMap) window.__barbershopInitMap(lat, lng, label);
+      else setTimeout(init, 80);
+    })();
+  </script>
+)}
+<style>
+  .loc-grid { display: grid; grid-template-columns: 1fr 1.15fr; gap: 0; border: 1px solid var(--line); }
+  .loc-info { padding: clamp(34px, 4vw, 56px); }
+  .loc-info .row { display: flex; gap: 16px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+  .loc-info .row:last-child { border-bottom: none; }
+  .loc-info .ic { width: 22px; height: 22px; color: var(--brass); flex: 0 0 auto; margin-top: 3px; }
+  .loc-info .row .k { font-family: var(--cond); text-transform: uppercase; letter-spacing: .18em; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .loc-info .row .v { font-size: 16px; line-height: 1.5; }
+  .loc-info .row .v a:hover { color: var(--brass); }
+  .loc-hours { font-size: 14.5px; color: var(--muted); }
+  .loc-hours div { display: flex; justify-content: space-between; max-width: 280px; padding: 2px 0; }
+  #map { width: 100%; height: 100%; min-height: 440px; background: var(--paper-2); }
+  .map-fallback { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted); font-family: var(--cond); letter-spacing: .1em; text-transform: uppercase; font-size: 13px; }
+  @media (max-width: 840px) { .loc-grid { grid-template-columns: 1fr; } #map { min-height: 340px; order: -1; } }
+</style>

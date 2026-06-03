@@ -1,0 +1,130 @@
+---
+/**
+ * barbershop / PageI — Forge Minimal.
+ * Neutral grayscale + Archivo Black. Palette tokens scoped to
+ * html[data-page="I"] so sister wrappers don't bleed.
+ */
+import HeaderF from './header/HeaderF.astro';
+import HeroI from './hero/HeroI.astro';
+import TrustF from './trust/TrustF.astro';
+import AboutF from './about/AboutF.astro';
+import ServicesF from './services/ServicesF.astro';
+import WhyF from './why/WhyF.astro';
+import HowF from './how/HowF.astro';
+import TestimonialsF from './testimonials/TestimonialsF.astro';
+import GalleryF from './gallery/GalleryF.astro';
+import FaqF from './faq/FaqF.astro';
+import AreaF from './area/AreaF.astro';
+import CredentialsF from './credentials/CredentialsF.astro';
+import LocationF from './location/LocationF.astro';
+import MarqueeF from './marquee/MarqueeF.astro';
+import CtaBandF from './ctaBand/CtaBandF.astro';
+import FooterF from './footer/FooterF.astro';
+import BarbershopSpine from './BarbershopSpine.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __themePairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="I">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+  <style is:global>
+    html[data-page="I"] {
+      --ink: #1A1A1A; --ink-2: #232323; --ink-3: #2C2C2C;
+      --paper: #FAFAF8; --paper-2: #F0F0EC;
+      --ink-rgb: 26,26,26; --paper-rgb: 250,250,248; --brass-rgb: 26,26,26;
+      --brass: #1A1A1A; --brass-bright: #4A4A4A;
+      --line: rgba(26,26,26,.12); --line-light: rgba(250,250,248,.16);
+      --muted: rgba(26,26,26,.58); --muted-light: rgba(250,250,248,.62);
+      --on-brass: #FAFAF8; --on-ink: #FAFAF8; --on-paper: #1A1A1A;
+      --display: "Archivo Black", sans-serif;
+      --cond: "Manrope", system-ui, sans-serif;
+      --serif: "Manrope", system-ui, sans-serif;
+      --body: "Manrope", system-ui, sans-serif;
+      --pad: clamp(20px, 5vw, 96px);
+      --maxw: 1280px;
+    }
+    /* Minimal: tighter line-height, more whitespace, subtle kicker rule. */
+    html[data-page="I"] body { line-height: 1.7; }
+    html[data-page="I"] .h-sect { font-size: clamp(44px, 7vw, 100px); line-height: .92; letter-spacing: -.01em; text-transform: none; }
+    html[data-page="I"] .pad-y { padding-block: clamp(80px, 10vw, 160px); }
+    html[data-page="I"] .eyebrow { color: var(--brass-bright); }
+    html[data-page="I"] .kicker { letter-spacing: .28em; }
+    html[data-page="I"] .kicker::before { background: var(--ink); opacity: .5; width: 30px; }
+    html[data-page="I"] .kicker.on-dark::before { background: var(--paper); opacity: .5; }
+    /* No color flip on hover — keep it quiet. */
+    html[data-page="I"] .btn:hover { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  </style>
+  <BarbershopSpine />
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <HeaderF layout={layout} content={content} />
+  <main id="top">
+    {visibility.heroSection !== false && <HeroI content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustF content={content} />}
+    {visibility.aboutSection !== false && <AboutF content={content} />}
+    {visibility.servicesSection !== false && <ServicesF content={content} />}
+    {visibility.whyUsBlock !== false && <WhyF content={content} />}
+    {visibility.howItWorksBlock !== false && <HowF content={content} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsF content={content} />}
+    {visibility.gallerySection !== false && <GalleryF content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqF content={content} />}
+    {visibility.serviceAreaBlock !== false && <AreaF content={content} />}
+    {visibility.credentialsBlock !== false && <CredentialsF content={content} />}
+    {visibility.locationBlock !== false && <LocationF content={content} layout={layout} />}
+    <MarqueeF content={content} />
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandF content={content} layout={layout} />}
+  <FooterF layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce && !document.hidden) {
+        var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
+        document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+      } else {
+        document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+      }
+      var hdr = document.querySelector('header.nav');
+      if (hdr) {
+        var onScroll = function () { if (window.scrollY > 16) hdr.classList.add('scrolled'); else hdr.classList.remove('scrolled'); };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+      window.__barbershopInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map'); if (!el) return;
+        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 15);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
+        var icon = L.divIcon({ className: '', html: '<div style="width:22px;height:22px;background:#1A1A1A;border:3px solid #FAFAF8;border-radius:50% 50% 50% 0;transform:rotate(-45deg);"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });
+        L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup('<b>' + label + '</b>');
+      };
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+---
+/**
+ * Barbershop spine — shared base CSS injected once per page.
+ *
+ * The 5 Forge variants (PageF…PageJ) each set their own palette + font
+ * tokens scoped to `html[data-page="<L>"]`, so this spine references
+ * those tokens via `var(--brass)`, `var(--paper)`, etc. and works for
+ * every variant without bleed.
+ *
+ * Variant-specific overrides (e.g. PageG's oversized .h-sect) live in
+ * the per-letter wrapper, ALSO scoped to `html[data-page="<L>"]` to
+ * stop them leaking into sister wrappers when Vite hoists styles.
+ */
+---
+<style is:global>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
+  section { position: relative; }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--pad); }
+  .pad-y { padding-block: clamp(72px, 9vw, 140px); }
+  .ink-sect { background: var(--ink); color: var(--paper); }
+  .ink-sect .h-sect { color: var(--paper); }
+  .ink-sect .kicker { color: var(--muted-light); }
+  .eyebrow {
+    font-family: var(--serif); font-style: italic;
+    font-size: clamp(20px,2.2vw,28px); color: var(--brass);
+    line-height: 1; margin: 0 0 18px;
+  }
+  .kicker {
+    font-family: var(--cond); text-transform: uppercase;
+    letter-spacing: .32em; font-weight: 600; font-size: 12px;
+    color: var(--muted); display: inline-flex; align-items: center; gap: 12px;
+  }
+  .kicker::before { content: ""; width: 34px; height: 1px; background: var(--brass); display: inline-block; }
+  .kicker.on-dark { color: var(--muted-light); }
+  .h-sect {
+    font-family: var(--display); font-weight: 400;
+    font-size: clamp(40px,6vw,86px); line-height: .94;
+    letter-spacing: .01em; text-transform: uppercase; margin: 18px 0 0;
+  }
+  .lead { font-size: clamp(17px,1.4vw,20px); color: var(--muted); max-width: 54ch; }
+  .on-dark .lead, .lead.on-dark { color: var(--muted-light); }
+  /* Buttons read background & text from contrast-paired tokens.
+     `--on-ink` / `--on-brass` / `--on-paper` are luminance-aware
+     in every variant + the override CSS, so picking a black or
+     neon-yellow scheme can never produce white-on-white. */
+  .btn {
+    font-family: var(--cond); text-transform: uppercase;
+    letter-spacing: .16em; font-weight: 600; font-size: 13px;
+    padding: 16px 30px; display: inline-flex; align-items: center; gap: 10px;
+    border: 1px solid var(--ink); background: var(--ink); color: var(--on-ink, var(--paper));
+    cursor: pointer; transition: transform .25s ease, background .25s ease, color .25s ease, border-color .25s ease;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--brass); border-color: var(--brass); color: var(--on-brass, var(--ink)); transform: translateY(-2px); }
+  .btn--brass { background: var(--brass); border-color: var(--brass); color: var(--on-brass, var(--ink)); }
+  .btn--brass:hover { background: var(--ink); border-color: var(--ink); color: var(--on-ink, var(--paper)); }
+  .btn--ghost { background: transparent; color: var(--on-paper, var(--ink)); border-color: var(--on-paper, var(--ink)); }
+  .btn--ghost:hover { background: var(--ink); color: var(--on-ink, var(--paper)); border-color: var(--ink); }
+  .btn--ghost.on-dark { color: var(--on-ink, var(--paper)); border-color: var(--on-ink, var(--paper)); }
+  .btn--ghost.on-dark:hover { background: var(--on-ink, var(--paper)); color: var(--ink); border-color: var(--on-ink, var(--paper)); }
+  .sect-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; flex-wrap: wrap; margin-bottom: 54px; }
+  .sect-head .lead { margin: 14px 0 0; }
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    * { animation: none !important; }
+  }
+</style>

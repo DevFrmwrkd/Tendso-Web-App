@@ -1049,6 +1049,9 @@ export default function SubmissionDetailPage() {
                                         ...(photoUrls || []),
                                         ...((heroImageUrls || []).filter((u): u is string => u !== null)),
                                     ].filter((url, index, self) => self.indexOf(url) === index)}
+                                    enhancedImageUrls={Object.values(enhancedUrlMap).filter(
+                                        (u): u is string => typeof u === "string" && u.length > 0,
+                                    )}
                                     onSaveContent={handleSaveContent}
                                     onUpdateDesign={handleUpdateDesign}
                                     websitePublishedUrl={websitePublishedUrl ?? undefined}

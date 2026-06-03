@@ -1,0 +1,202 @@
+---
+/**
+ * generic / HeroA — full-bleed centered hero, ink scrim over background image.
+ *
+ * Editable hooks:
+ *   hero.image          (background image)
+ *   hero.kicker
+ *   hero.headline       (multi-line; we split by line break)
+ *   hero.sub
+ *   hero.cta1 / cta2    (text + href)
+ *   hero.meta1 / meta2
+ */
+interface Props {
+  content: any;
+}
+const { content } = Astro.props;
+const hero = content.hero || {};
+
+const heroImage =
+  hero.image ||
+  (hero.photos && hero.photos[0]) ||
+  (content.photos && content.photos[0]) ||
+  '';
+
+const kicker  = hero.kicker  || hero.badge_text || '';
+const headline = hero.headline || '';
+const headlineLines = Array.isArray(hero.headlineLines)
+  ? hero.headlineLines
+  : (typeof headline === 'string' ? headline.split('\n') : [String(headline)]);
+
+const sub = hero.sub || hero.description || hero.tagline ||
+  '';
+
+const cta1Text = hero.cta1?.text || hero.cta_label || 'Visit the café';
+const cta1Href = hero.cta1?.href || hero.cta_link  || '#visit';
+const cta2Text = hero.cta2?.text || hero.cta_secondary_label || 'See the menu';
+const cta2Href = hero.cta2?.href || hero.cta_secondary_link  || '#menu';
+
+const meta1 = hero.meta1 || '★★★★★ rated on Google';
+const meta2 = hero.meta2 || 'Your address line 1 · open daily';
+---
+
+<section class="hero">
+  <div class="bg">
+    <div
+      class="bg-img"
+      data-image-field="hero.image"
+      style={heroImage ? `background-image: url('${heroImage}');` : ''}
+    ></div>
+  </div>
+  <div class="scrim"></div>
+  <div class="wrap hero-in">
+    <p class="hero-kicker reveal" data-field="hero.kicker">{kicker}</p>
+    <h1 class="htitle" data-field="hero.headline">
+      {headlineLines.map((line: string) => (
+        <span class="ln"><span set:html={line}></span></span>
+      ))}
+    </h1>
+    <p class="hero-sub reveal" style="transition-delay:.1s;" data-field="hero.sub">{sub}</p>
+    <div class="hero-cta reveal" style="transition-delay:.16s;">
+      <a
+        href={cta1Href}
+        class="btn btn-primary"
+        data-field="hero.cta1.text"
+        data-href-field="hero.cta1.href"
+      >{cta1Text}</a>
+      <a
+        href={cta2Href}
+        class="btn btn-ghost"
+        data-field="hero.cta2.text"
+        data-href-field="hero.cta2.href"
+      >{cta2Text}</a>
+    </div>
+    <div class="hero-meta reveal" style="transition-delay:.22s;">
+      <span data-field="hero.meta1" set:html={meta1}></span>
+      <span data-field="hero.meta2" set:html={meta2}></span>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+    background: var(--ink);
+  }
+  .bg, .bg-img {
+    position: absolute;
+    inset: 0;
+  }
+  .bg-img {
+    background-size: cover;
+    background-position: center;
+  }
+  .scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none; /* let clicks reach the .bg-img image picker */
+    background: linear-gradient(
+      180deg,
+      rgba(var(--ink-rgb), .5),
+      rgba(var(--ink-rgb), .42) 42%,
+      rgba(var(--ink-rgb), .82)
+    );
+  }
+  .hero-in {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1040px;
+    padding: 130px 20px 72px;
+    color: var(--paper-2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .hero-kicker {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .htitle {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: clamp(46px, 7.4vw, 116px);
+    line-height: .96;
+    letter-spacing: -.035em;
+    margin-top: 22px;
+  }
+  .htitle :global(em) {
+    font-style: normal;
+    color: var(--gold);
+  }
+  .htitle .ln { display: block; }
+  .htitle .ln > span {
+    display: inline-block;
+    transform: translateY(0);
+    opacity: 1;
+    white-space: nowrap;
+  }
+  :global(body.reveal-on) .htitle .ln > span {
+    animation: hrise .9s cubic-bezier(.2, .85, .25, 1) both;
+  }
+  :global(body.reveal-on) .htitle .ln:nth-child(2) > span { animation-delay: .1s; }
+  :global(body.reveal-on) .htitle .ln:nth-child(3) > span { animation-delay: .2s; }
+  @keyframes hrise {
+    from { transform: translateY(44%); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+  }
+  .hero-sub {
+    margin-top: 24px;
+    max-width: 54ch;
+    font-size: 19px;
+    color: rgba(var(--paper-rgb), .88);
+  }
+  .hero-cta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 32px;
+  }
+  .hero-cta :global(.btn-ghost) {
+    color: var(--paper-2);
+    border-color: rgba(var(--paper-rgb), .5);
+  }
+  .hero-cta :global(.btn-ghost:hover) {
+    background: var(--paper-2);
+    color: var(--ink);
+    border-color: var(--paper-2);
+  }
+  .hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 26px;
+    margin-top: 26px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .03em;
+    color: rgba(var(--paper-rgb), .72);
+  }
+  .hero-meta :global(b) {
+    color: var(--paper-2);
+    font-weight: 700;
+  }
+  .hero-meta :global(.stars) {
+    color: var(--gold);
+    letter-spacing: 2px;
+  }
+  @media (max-width: 680px) {
+    .hero-in { padding: 104px 16px 56px; }
+  }
+</style>

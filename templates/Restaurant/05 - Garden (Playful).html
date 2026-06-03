@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sorrel — Seasonal live-fire cooking · Hayes Valley, SF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+  :root{
+    --cream:#FFF4E0; --cream-2:#FFE9C4; --ink:#23332E; --tomato:#E8543C; --sun:#F4B43A; --teal:#1F8A6E; --plum:#7B4B8A;
+    --cream-rgb:255,244,224; --ink-rgb:35,51,46; --tomato-rgb:232,84,60;
+    --maxw:1240px; --gut:clamp(20px,5vw,64px); --r:26px;
+    --disp:"Caprasimo",system-ui,cursive; --body:"DM Sans",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--body);font-weight:400;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:var(--disp);font-weight:400;line-height:1;margin:0;letter-spacing:0;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding-inline:var(--gut);}
+  .eyebrow{font-family:var(--body);font-weight:700;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--tomato);}
+  .btn{display:inline-flex;align-items:center;gap:.5em;font-family:var(--body);font-weight:700;font-size:15px;padding:15px 28px;min-height:50px;border-radius:999px;cursor:pointer;transition:transform .2s cubic-bezier(.2,.9,.3,1.3),box-shadow .2s;border:2.5px solid var(--ink);}
+  .btn--tomato{background:var(--tomato);color:#fff;box-shadow:0 5px 0 var(--ink);}
+  .btn--tomato:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--ink);}
+  .btn--tomato:active{transform:translateY(3px);box-shadow:0 2px 0 var(--ink);}
+  .btn--sun{background:var(--sun);color:var(--ink);box-shadow:0 5px 0 var(--ink);}
+  .btn--sun:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--ink);}
+  .btn--cream{background:var(--cream);color:var(--ink);box-shadow:0 5px 0 var(--ink);}
+  .btn--cream:hover{transform:translateY(-2px);box-shadow:0 7px 0 var(--ink);}
+  /* header */
+  header.nav{position:sticky;top:0;z-index:40;background:rgba(var(--cream-rgb),.9);backdrop-filter:blur(10px);border-bottom:2.5px solid var(--ink);}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:12px var(--gut);max-width:var(--maxw);margin:0 auto;}
+  .logo{font-family:var(--disp);font-size:30px;display:flex;align-items:center;gap:8px;}
+  .logo .seed{width:18px;height:18px;border-radius:50% 0 50% 50%;background:var(--teal);transform:rotate(45deg);display:inline-block;}
+  .nav-links{display:flex;gap:8px;align-items:center;}
+  .nav-links a{font-weight:600;font-size:15px;padding:8px 14px;border-radius:999px;transition:background .2s;}
+  .nav-links a:hover{background:var(--cream-2);}
+  .nav-right{display:flex;align-items:center;gap:14px;}
+  .nav-phone{font-weight:700;font-size:15px;}
+  .nav-toggle{display:none;background:none;border:0;font-size:24px;cursor:pointer;color:var(--ink);}
+  @media(max-width:920px){.nav-links,.nav-phone{display:none;}.nav-toggle{display:block;}}
+  /* image slot */
+  img-slot{position:relative;display:block;overflow:hidden;background:var(--cream-2);cursor:pointer;border:2.5px solid var(--ink);border-radius:var(--r);}
+  img-slot .is-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;font-size:13px;font-weight:700;letter-spacing:.02em;color:rgba(var(--ink-rgb),.5);}
+  img-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  img-slot.has-img .is-ph{display:none;}
+  img-slot.is-over{outline:3px dashed var(--tomato);outline-offset:-10px;}
+  /* hero — asymmetric layered cards */
+  .hero{padding:clamp(36px,6vw,72px) 0 clamp(50px,7vw,90px);position:relative;overflow:hidden;}
+  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,4vw,48px);align-items:center;}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;background:var(--sun);border:2.5px solid var(--ink);border-radius:999px;padding:8px 16px;font-weight:700;font-size:14px;animation:cardpop .6s cubic-bezier(.2,.9,.3,1.3) both;}
+  .hero h1{font-size:clamp(52px,9vw,128px);margin:24px 0;}
+  .hero h1 .t{color:var(--tomato);}
+  .hero h1 .g{color:var(--teal);}
+  .hero h1 .word{display:inline-block;animation:cardpop .6s cubic-bezier(.2,.9,.3,1.3) both;}
+  .hero h1 .word:nth-child(2){animation-delay:.1s;}
+  .hero h1 .word:nth-child(3){animation-delay:.2s;}
+  .hero-sub{font-size:19px;max-width:42ch;color:rgba(var(--ink-rgb),.8);margin-bottom:28px;animation:cardpop .6s cubic-bezier(.2,.9,.3,1.3) .3s both;}
+  .hero-cta{display:flex;gap:14px;flex-wrap:wrap;animation:cardpop .6s cubic-bezier(.2,.9,.3,1.3) .4s both;}
+  .hero-stack{position:relative;height:clamp(380px,46vw,520px);}
+  .hero-stack img-slot{position:absolute;width:72%;height:72%;}
+  .hero-stack .c1{top:0;right:0;z-index:2;transform:rotate(3deg);animation:cardpop .7s cubic-bezier(.2,.9,.3,1.3) .2s both;}
+  .hero-stack .c2{bottom:0;left:0;z-index:3;width:60%;height:54%;transform:rotate(-4deg);animation:cardpop .7s cubic-bezier(.2,.9,.3,1.3) .4s both;}
+  .hero-stack .blob{position:absolute;top:18%;left:4%;width:46%;height:46%;background:var(--teal);border-radius:50%;z-index:1;animation:cardpop .7s ease .1s both;}
+  .hero-stack .tag{position:absolute;z-index:4;background:var(--tomato);color:#fff;border:2.5px solid var(--ink);border-radius:999px;padding:8px 16px;font-weight:700;font-size:14px;bottom:8%;right:4%;transform:rotate(-6deg);box-shadow:0 4px 0 var(--ink);animation:cardpop .6s cubic-bezier(.2,.9,.3,1.3) .6s both;}
+  @keyframes cardpop{from{opacity:0;transform:translateY(26px) scale(.9);}to{opacity:1;}}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}.hero-stack{height:340px;margin-top:10px;}}
+  /* trust pills */
+  .trust{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;padding-block:0;}
+  .trust .pill{background:#fff;border:2.5px solid var(--ink);border-radius:var(--r);padding:20px 30px;text-align:center;box-shadow:0 5px 0 var(--ink);flex:1 1 200px;}
+  .trust .pill:nth-child(1){background:var(--sun);}
+  .trust .pill:nth-child(3){background:var(--teal);color:#fff;}
+  .trust .n{font-family:var(--disp);font-size:clamp(30px,4vw,46px);line-height:1;}
+  .trust .l{font-weight:600;font-size:13px;margin-top:8px;}
+  /* sections */
+  section{padding:clamp(56px,8vw,110px) 0;}
+  .sec-head{text-align:center;max-width:36ch;margin:0 auto 50px;}
+  .sec-head .eyebrow{display:block;margin-bottom:14px;}
+  .sec-head h2{font-size:clamp(38px,6vw,80px);}
+  .sec-head p{color:rgba(var(--ink-rgb),.75);margin-top:14px;}
+  /* about — rounded card + sticker */
+  .about-card{background:var(--teal);color:#fff;border:2.5px solid var(--ink);border-radius:36px;padding:clamp(30px,5vw,64px);display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,4vw,56px);align-items:center;box-shadow:0 8px 0 var(--ink);position:relative;}
+  .about-card .sticker{position:absolute;top:-22px;right:30px;background:var(--sun);color:var(--ink);border:2.5px solid var(--ink);border-radius:999px;width:90px;height:90px;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--disp);font-size:14px;transform:rotate(12deg);line-height:1.05;box-shadow:0 4px 0 var(--ink);}
+  .about-card h2{font-size:clamp(30px,4vw,52px);margin-bottom:18px;}
+  .about-card p{margin:0 0 14px;opacity:.95;}
+  .about-card img-slot{height:clamp(280px,34vw,380px);border-color:var(--ink);}
+  @media(max-width:760px){.about-card{grid-template-columns:1fr;}}
+  /* menu — bento grid */
+  .bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:minmax(150px,auto);gap:18px;}
+  .b{border:2.5px solid var(--ink);border-radius:var(--r);padding:24px;box-shadow:0 5px 0 var(--ink);display:flex;flex-direction:column;justify-content:space-between;transition:transform .2s;}
+  .b:hover{transform:translateY(-4px);}
+  .b .tag{font-weight:700;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:.7;}
+  .b h3{font-family:var(--disp);font-size:clamp(20px,2vw,26px);margin:8px 0;}
+  .b p{font-size:14px;margin:0;opacity:.85;}
+  .b.big{grid-column:span 2;grid-row:span 2;background:var(--tomato);color:#fff;}
+  .b.s1{background:var(--cream);grid-column:span 2;}
+  .b.s2{background:var(--sun);}
+  .b.s3{background:#fff;}
+  .b.s4{background:var(--teal);color:#fff;grid-column:span 2;}
+  .b.s5{background:#fff;}
+  .b.img{padding:0;overflow:hidden;}
+  .b.img img-slot{border:0;border-radius:0;height:100%;width:100%;}
+  @media(max-width:820px){.bento{grid-template-columns:1fr 1fr;}.b.big{grid-column:span 2;}.b.s1,.b.s4{grid-column:span 2;}}
+  /* why — colorful icon cards */
+  .why-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+  .why-cell{border:2.5px solid var(--ink);border-radius:var(--r);padding:32px;box-shadow:0 5px 0 var(--ink);display:flex;gap:18px;align-items:flex-start;}
+  .why-cell:nth-child(1){background:var(--sun);}
+  .why-cell:nth-child(2){background:#fff;}
+  .why-cell:nth-child(3){background:#fff;}
+  .why-cell:nth-child(4){background:var(--cream-2);}
+  .why-cell .ico{flex:none;width:54px;height:54px;border-radius:50%;background:var(--ink);color:var(--cream);display:flex;align-items:center;justify-content:center;}
+  .why-cell .ico svg{width:28px;height:28px;}
+  .why-cell h3{font-family:var(--disp);font-size:24px;margin-bottom:8px;}
+  .why-cell p{margin:0;font-size:15px;opacity:.85;}
+  @media(max-width:680px){.why-grid{grid-template-columns:1fr;}}
+  /* how — number bubbles */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;}
+  .step{text-align:center;}
+  .step .bub{width:96px;height:96px;border-radius:50%;border:2.5px solid var(--ink);display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:46px;margin:0 auto 20px;box-shadow:0 5px 0 var(--ink);}
+  .step:nth-child(1) .bub{background:var(--tomato);color:#fff;}
+  .step:nth-child(2) .bub{background:var(--sun);}
+  .step:nth-child(3) .bub{background:var(--teal);color:#fff;}
+  .step h3{font-family:var(--disp);font-size:26px;margin-bottom:8px;}
+  .step p{color:rgba(var(--ink-rgb),.75);font-size:15px;max-width:30ch;margin:0 auto;}
+  @media(max-width:680px){.steps{grid-template-columns:1fr;}}
+  /* marquee tilt */
+  .marquee{background:var(--ink);color:var(--cream);overflow:hidden;padding:16px 0;transform:rotate(-1.5deg) scale(1.04);margin-block:30px;border-block:2.5px solid var(--ink);}
+  .marquee-track{display:flex;width:max-content;white-space:nowrap;animation:scrollx 24s linear infinite;font-family:var(--disp);font-size:clamp(26px,3.6vw,44px);}
+  .marquee-track span{padding-inline:24px;display:flex;align-items:center;gap:24px;}
+  .marquee-track .s{color:var(--sun);}
+  @keyframes scrollx{to{transform:translateX(-50%);}}
+  /* testimonials speech bubbles */
+  .reviews{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
+  .review{background:#fff;border:2.5px solid var(--ink);border-radius:var(--r);padding:26px;box-shadow:0 5px 0 var(--ink);position:relative;}
+  .review:nth-child(2){background:var(--cream-2);margin-top:24px;}
+  .review::after{content:"";position:absolute;bottom:-14px;left:34px;width:22px;height:22px;background:inherit;border-right:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);transform:rotate(45deg);}
+  .review .stars{color:var(--sun);letter-spacing:2px;-webkit-text-stroke:1px var(--ink);font-size:18px;}
+  .review p{font-weight:500;font-size:17px;margin:14px 0;}
+  .review .who{display:flex;align-items:center;gap:10px;font-weight:700;font-size:14px;}
+  .review .who .av{width:34px;height:34px;border-radius:50%;border:2px solid var(--ink);background:var(--teal);flex:none;}
+  .review .who span{font-weight:500;color:rgba(var(--ink-rgb),.6);}
+  @media(max-width:820px){.reviews{grid-template-columns:1fr;}.review:nth-child(2){margin-top:0;}}
+  /* gallery rounded tiles */
+  .gal{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  .gal img-slot{position:relative;aspect-ratio:4/3;}
+  .gal img-slot:nth-child(3n+1){transform:rotate(-1.2deg);}
+  .gal img-slot:nth-child(3n+2){transform:rotate(1deg);}
+  .gal .gcap{position:absolute;left:10px;bottom:10px;background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:6px 14px;font-weight:700;font-size:12px;z-index:2;opacity:0;transform:translateY(8px);transition:.3s;pointer-events:none;}
+  .gal img-slot.has-img:hover .gcap{opacity:1;transform:none;}
+  .gal img-slot.has-img img{transition:transform .5s;}
+  .gal img-slot.has-img:hover img{transform:scale(1.07);}
+  @media(max-width:680px){.gal{grid-template-columns:1fr 1fr;}}
+  /* faq rounded */
+  .faq-wrap{max-width:780px;margin:0 auto;display:grid;gap:14px;}
+  details.faq{border:2.5px solid var(--ink);border-radius:20px;background:#fff;overflow:hidden;box-shadow:0 4px 0 var(--ink);}
+  details.faq[open]{background:var(--cream-2);}
+  details.faq summary{list-style:none;cursor:pointer;padding:20px 24px;display:flex;justify-content:space-between;gap:16px;font-family:var(--disp);font-size:20px;}
+  details.faq summary::-webkit-details-marker{display:none;}
+  details.faq summary .pm{color:var(--tomato);font-size:26px;line-height:1;transition:transform .3s;}
+  details.faq[open] summary .pm{transform:rotate(45deg);}
+  details.faq .ans{padding:0 24px 22px;font-size:15px;opacity:.85;}
+  /* area + creds */
+  .split2{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+  .panel{border:2.5px solid var(--ink);border-radius:var(--r);padding:clamp(28px,4vw,44px);box-shadow:0 5px 0 var(--ink);}
+  .panel.a{background:var(--sun);}
+  .panel.b{background:#fff;}
+  .panel h2{font-family:var(--disp);font-size:clamp(28px,3.4vw,42px);margin:8px 0 12px;}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px;}
+  .chip{background:var(--cream);border:2px solid var(--ink);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;}
+  .creds{list-style:none;padding:0;margin:16px 0 0;display:grid;gap:10px;}
+  .creds li{display:flex;gap:12px;align-items:center;font-weight:600;font-size:15px;}
+  .creds li .ck{width:28px;height:28px;border-radius:50%;background:var(--teal);color:#fff;display:flex;align-items:center;justify-content:center;flex:none;}
+  @media(max-width:760px){.split2{grid-template-columns:1fr;}}
+  /* location */
+  .loc-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:22px;}
+  .loc-info{background:var(--tomato);color:#fff;border:2.5px solid var(--ink);border-radius:var(--r);padding:clamp(30px,4vw,52px);box-shadow:0 5px 0 var(--ink);}
+  .loc-info .nap b{font-family:var(--disp);font-size:26px;display:block;margin-bottom:4px;}
+  .hours{margin-top:24px;}
+  .hours div{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.3);font-size:14.5px;font-weight:500;}
+  #map{min-height:440px;height:100%;border:2.5px solid var(--ink);border-radius:var(--r);z-index:0;box-shadow:0 5px 0 var(--ink);}
+  @media(max-width:760px){.loc-grid{grid-template-columns:1fr;}#map{min-height:320px;}}
+  /* cta */
+  .cta-band{padding-bottom:clamp(70px,9vw,130px);}
+  .cta-inner{background:var(--teal);color:#fff;border:2.5px solid var(--ink);border-radius:40px;text-align:center;padding:clamp(40px,6vw,80px);box-shadow:0 8px 0 var(--ink);}
+  .cta-inner h2{font-size:clamp(40px,7vw,96px);}
+  .cta-inner h2 .y{color:var(--sun);}
+  .cta-inner p{max-width:42ch;margin:18px auto 30px;font-size:18px;opacity:.95;}
+  /* footer */
+  footer{background:var(--ink);color:var(--cream);padding:60px 0 96px;}
+  .foot-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:34px;}
+  .foot-grid h4{font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:12px;color:var(--sun);margin:0 0 16px;}
+  .foot-grid a,.foot-grid p{display:block;color:rgba(var(--cream-rgb),.8);font-size:14px;margin-bottom:8px;}
+  .foot-grid a:hover{color:#fff;}
+  .foot-logo{font-family:var(--disp);font-size:38px;}
+  @media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr;}}
+  /* fab + switcher */
+  .fab{position:fixed;right:18px;bottom:78px;z-index:50;display:flex;flex-direction:column;gap:10px;}
+  .fab a{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;border:2.5px solid var(--ink);box-shadow:0 4px 0 var(--ink);transition:transform .2s;}
+  .fab a:hover{transform:translateY(-3px);}
+  .fab .call{background:var(--teal);}
+  .fab .msg{background:var(--tomato);}
+  .switcher{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:60;display:flex;gap:3px;background:#fff;border:2.5px solid var(--ink);padding:5px;border-radius:999px;box-shadow:0 4px 0 var(--ink);}
+  .switcher a{width:34px;height:34px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:14px;color:rgba(var(--ink-rgb),.55);}
+  .switcher a:hover{background:var(--cream-2);color:var(--ink);}
+  .switcher a.cur{background:var(--tomato);color:#fff;}
+  /* reveal */
+  [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1);}
+  [data-reveal].in{opacity:1;transform:none;}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;}[data-reveal]{opacity:1;transform:none;}html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-in">
+    <a class="logo" href="#top"><span class="seed"></span>Sorrel</a>
+    <nav class="nav-links">
+      <a href="#menu">Menu</a><a href="#about">Story</a><a href="#visit">Visit</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-right">
+      <a class="nav-phone" href="tel:+14155550148">(415) 555-0148</a>
+      <a class="btn btn--tomato" href="#reserve">Reserve</a>
+      <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('.nav-links').style.display='flex'">≡</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<a id="top"></a>
+<!-- HERO layered cards -->
+<section class="hero"><div class="wrap"><div class="hero-grid">
+  <div class="hero-copy">
+    <span class="hero-badge">🔥 Fresh off the fire, nightly</span>
+    <h1 aria-label="Big, happy, fire food">
+      <span class="word">Big,</span> <span class="word t">happy,</span> <span class="word g">fire&nbsp;food.</span>
+    </h1>
+    <p class="hero-sub">Sorrel is your seasonal neighborhood spot in Hayes Valley — market veg, a roaring hearth, hand-rolled pasta, and natural wine worth the trip.</p>
+    <div class="hero-cta">
+      <a class="btn btn--tomato" href="#reserve">Grab a table</a>
+      <a class="btn btn--cream" href="#menu">Peek at the menu</a>
+    </div>
+  </div>
+  <div class="hero-stack">
+    <div class="blob"></div>
+    <img-slot class="c1" slot-id="sorrel-hero" placeholder="Drop hero photo — plated dish"></img-slot>
+    <img-slot class="c2" slot-id="sorrel-g2" placeholder="Drop photo — pasta"></img-slot>
+    <span class="tag">⭐ 4.8 on Google</span>
+  </div>
+</div></div></section>
+
+<!-- TRUST pills -->
+<section style="padding-top:0;"><div class="wrap"><div class="trust" data-reveal>
+  <div class="pill"><div class="n">4.8★</div><div class="l">Live on Google</div></div>
+  <div class="pill"><div class="n">6</div><div class="l">Nights a week</div></div>
+  <div class="pill"><div class="n">42+8</div><div class="l">Seats + hearth</div></div>
+  <div class="pill"><div class="n">100mi</div><div class="l">Sourcing radius</div></div>
+</div></div></section>
+
+<!-- ABOUT card -->
+<section id="about"><div class="wrap">
+  <div class="about-card" data-reveal>
+    <span class="sticker">Since<br/>2019</span>
+    <div>
+      <p class="eyebrow" style="color:var(--sun);">Our story</p>
+      <h2>From a market stall to your favorite table.</h2>
+      <p>We cook almost everything over live oak and almond wood — that flavor can't be faked with a dial. Bread is milled and baked in-house, and veg arrives twice a week from growers we know by name.</p>
+      <p>Whole-animal, low-waste, zero theatre. Just really good food and people who want to feed you.</p>
+    </div>
+    <img-slot slot-id="sorrel-about" placeholder="Drop photo — chef / dining room"></img-slot>
+  </div>
+</div></section>
+
+<!-- MENU bento -->
+<section id="menu"><div class="wrap">
+  <div class="sec-head" data-reveal><span class="eyebrow">The menu · this week</span><h2>Today's spread</h2><p>Written each morning around the market. A taste of tonight.</p></div>
+  <div class="bento" data-reveal>
+    <div class="b big"><span class="tag">★ House favorite</span><div><h3>Whole fish on the coals</h3><p>Line-caught, grilled over oak till the skin crackles. Salsa verde, lemon, sea salt.</p></div></div>
+    <div class="b s1"><span class="tag">Pasta</span><h3>Hand-cut tagliatelle</h3><p>Slow ragù of the day, brown butter, garden herbs.</p></div>
+    <div class="b img"><img-slot slot-id="sorrel-g5" placeholder="Produce photo"></img-slot></div>
+    <div class="b s2"><span class="tag">Snacks</span><h3>Hearth bread &amp; butter</h3><p>Stone-milled levain, smoked salt.</p></div>
+    <div class="b s4"><span class="tag">From the fire</span><h3>Dry-aged beef, shared</h3><p>Local ranch, embers, bone marrow, watercress.</p></div>
+    <div class="b s3"><span class="tag">Garden</span><h3>Charred little gems</h3><p>Anchovy, sheep's cheese, breadcrumb.</p></div>
+    <div class="b s5"><span class="tag">Sweets</span><h3>Olive-oil cake</h3><p>Roasted stone fruit, crème fraîche, honey.</p></div>
+  </div>
+  <div style="text-align:center;margin-top:36px;" data-reveal><a class="btn btn--tomato" href="#reserve">Book the hearth menu</a></div>
+</div></section>
+
+<!-- WHY -->
+<section><div class="wrap">
+  <div class="sec-head" data-reveal><span class="eyebrow">Why Sorrel</span><h2>Four happy reasons</h2></div>
+  <div class="why-grid">
+    <div class="why-cell" data-reveal><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2c1.5 3-1 5 0 8 1 .5 3-1 3-3 2 2 3 5 3 8a6 6 0 0 1-12 0c0-2 1-4 2-5 .5 2 2 2 1-1 1-2 0-4 0-7z"/></svg></span><div><h3>Live-fire kitchen</h3><p>Oak &amp; almond wood, no gas line, no shortcuts.</p></div></div>
+    <div class="why-cell" data-reveal><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18M5 8c0-3 3-5 7-5M19 8c0-3-3-5-7-5M5 8c0 4 3 6 7 6M19 8c0 4-3 6-7 6"/></svg></span><div><h3>Market-led</h3><p>The menu changes daily with the harvest.</p></div></div>
+    <div class="why-cell" data-reveal><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3h8l-1 6a4 4 0 0 1-6 0L8 3zM12 15v6M8 21h8"/></svg></span><div><h3>Natural wine</h3><p>A short, low-intervention list — ask and we'll pour.</p></div></div>
+    <div class="why-cell" data-reveal><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg></span><div><h3>Walk-ins welcome</h3><p>Pull up a stool at the bar. No dress code, ever.</p></div></div>
+  </div>
+</div></section>
+
+<!-- HOW bubbles -->
+<section id="reserve"><div class="wrap">
+  <div class="sec-head" data-reveal><span class="eyebrow">How a night works</span><h2>Easy as 1-2-3</h2></div>
+  <div class="steps" data-reveal>
+    <div class="step"><div class="bub">1</div><h3>Reserve</h3><p>Book a table or counter seat online. Bar kept open for walk-ins.</p></div>
+    <div class="step"><div class="bub">2</div><h3>Come hungry</h3><p>Settle in with a glass and tell us about any allergies.</p></div>
+    <div class="step"><div class="bub">3</div><h3>Dig in</h3><p>Order à la carte, or let the kitchen send out the best of today.</p></div>
+  </div>
+</div></section>
+
+<!-- MARQUEE -->
+<div class="marquee" aria-hidden="true"><div class="marquee-track">
+  <span>WOOD-FIRED <span class="s">✦</span> MARKET-LED <span class="s">✦</span> NATURAL WINE <span class="s">✦</span> BAKED IN-HOUSE <span class="s">✦</span>&nbsp;</span>
+  <span>WOOD-FIRED <span class="s">✦</span> MARKET-LED <span class="s">✦</span> NATURAL WINE <span class="s">✦</span> BAKED IN-HOUSE <span class="s">✦</span>&nbsp;</span>
+</div></div>
+
+<!-- TESTIMONIALS -->
+<section id="reviews"><div class="wrap">
+  <div class="sec-head" data-reveal><span class="eyebrow">Kept live · Google · Resy · Yelp</span><h2>People are talking</h2></div>
+  <div class="reviews">
+    <div class="review" data-reveal><div class="stars">★★★★★</div><p>"The whole fish off the coals was the best thing I've eaten this year. You can taste the fire."</p><div class="who"><span class="av" style="background:var(--tomato);"></span>Dana R. <span>· Google</span></div></div>
+    <div class="review" data-reveal><div class="stars">★★★★★</div><p>"Handed it to the kitchen and every plate was better than the last. Easy, warm, no fuss."</p><div class="who"><span class="av" style="background:var(--sun);"></span>Marcus L. <span>· Resy</span></div></div>
+    <div class="review" data-reveal><div class="stars">★★★★★</div><p>"My new neighborhood spot. Sat at the bar on a whim, left a regular. The bread alone!"</p><div class="who"><span class="av"></span>Priya S. <span>· Yelp</span></div></div>
+  </div>
+</div></section>
+
+<!-- GALLERY -->
+<section id="gallery"><div class="wrap">
+  <div class="sec-head" data-reveal><span class="eyebrow">The reel</span><h2>Inside Sorrel</h2></div>
+  <div class="gal" data-reveal>
+    <img-slot slot-id="sorrel-g1" placeholder="The hearth"><span class="gcap">The hearth</span></img-slot>
+    <img-slot slot-id="sorrel-g2" placeholder="A plate"><span class="gcap">Tonight's pasta</span></img-slot>
+    <img-slot slot-id="sorrel-g3" placeholder="Dining room"><span class="gcap">The room</span></img-slot>
+    <img-slot slot-id="sorrel-g4" placeholder="Wine"><span class="gcap">Natural pours</span></img-slot>
+    <img-slot slot-id="sorrel-g5" placeholder="Produce"><span class="gcap">Morning box</span></img-slot>
+    <img-slot slot-id="sorrel-g8" placeholder="Bread"><span class="gcap">House levain</span></img-slot>
+  </div>
+</div></section>
+
+<!-- FAQ -->
+<section id="faq"><div class="wrap">
+  <div class="sec-head" data-reveal><span class="eyebrow">Good to know</span><h2>Quick questions</h2></div>
+  <div class="faq-wrap" data-reveal>
+    <details class="faq"><summary>Do you take walk-ins?<span class="pm">+</span></summary><div class="ans">Yes — the bar and a handful of counter seats are kept for walk-ins every night. The dining room books up, so reserve ahead for a table at a set time.</div></details>
+    <details class="faq"><summary>Allergies &amp; dietary needs?<span class="pm">+</span></summary><div class="ans">Always. Tell us when you book or sit down. Because we cook to the market we can flex most dishes, with strong vegetable and gluten-free options nightly.</div></details>
+    <details class="faq"><summary>Is there a tasting menu?<span class="pm">+</span></summary><div class="ans">Yes — the Hearth Menu is a chef's selection of the day's best, served family-style. Book the counter to watch it come together.</div></details>
+    <details class="faq"><summary>Do you do corkage?<span class="pm">+</span></summary><div class="ans">We do, for a per-bottle fee, on bottles not on our list. Share a taste with the team and it's on us.</div></details>
+    <details class="faq"><summary>Where should I park?<span class="pm">+</span></summary><div class="ans">Street parking around Hayes Valley plus the Civic Center garage two blocks east. Short walk from Van Ness Muni; a bike rack out front.</div></details>
+  </div>
+</div></section>
+
+<!-- AREA + CREDS -->
+<section><div class="wrap"><div class="split2">
+  <div class="panel a" data-reveal>
+    <p class="eyebrow" style="color:var(--ink);">Private dining &amp; events</p>
+    <h2>We'll cook across the city</h2>
+    <p>Buy out the room or bring the hearth to you — dinners &amp; events around the Bay:</p>
+    <div class="chips"><span class="chip">Hayes Valley</span><span class="chip">NoPa</span><span class="chip">The Mission</span><span class="chip">Pacific Heights</span><span class="chip">Mission Bay</span><span class="chip">Oakland</span></div>
+  </div>
+  <div class="panel b" data-reveal>
+    <p class="eyebrow">Credentials</p>
+    <h2>All above board</h2>
+    <ul class="creds">
+      <li><span class="ck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> SF DPH health rating: A</li>
+      <li><span class="ck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> Certified SF Green Business</li>
+      <li><span class="ck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> Fully licensed &amp; insured bar</li>
+      <li><span class="ck"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></span> Good Food Purchasing member</li>
+    </ul>
+  </div>
+</div></div></section>
+
+<!-- LOCATION -->
+<section id="visit"><div class="wrap">
+  <div class="sec-head" data-reveal><span class="eyebrow">Find us</span><h2>Come on over</h2></div>
+  <div class="loc-grid" data-reveal>
+    <div class="loc-info">
+      <p class="nap"><b>Sorrel</b>580 Hayes Street<br/>San Francisco, CA 94102</p>
+      <p style="margin-top:10px;"><a href="tel:+14155550148" style="color:#fff;text-decoration:underline;">(415) 555-0148</a></p>
+      <div class="hours">
+        <div><span>Mon</span><span>Closed</span></div>
+        <div><span>Tue – Thu</span><span>5 – 10pm</span></div>
+        <div><span>Fri – Sat</span><span>5 – 11pm</span></div>
+        <div><span>Sun</span><span>5 – 9pm</span></div>
+      </div>
+      <div style="margin-top:24px;"><a class="btn btn--sun" href="#reserve">Reserve a table</a></div>
+    </div>
+    <div id="map" aria-label="Map showing Sorrel at 580 Hayes Street, San Francisco"></div>
+  </div>
+</div></section>
+
+<!-- CTA -->
+<section class="cta-band"><div class="wrap">
+  <div class="cta-inner" data-reveal>
+    <h2>Hungry <span class="y">yet?</span></h2>
+    <p>Reserve online in under a minute, or call and we'll find you a seat by the fire.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;">
+      <a class="btn btn--sun" href="#reserve">Reserve now</a>
+      <a class="btn btn--cream" href="tel:+14155550148">Call us</a>
+    </div>
+  </div>
+</div></section>
+</main>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div><div class="foot-logo">Sorrel</div><p style="margin-top:12px;max-width:32ch;">Seasonal live-fire cooking in Hayes Valley, San Francisco.</p></div>
+    <div><h4>Visit</h4><p>580 Hayes Street<br/>San Francisco, CA 94102</p><a href="tel:+14155550148">(415) 555-0148</a></div>
+    <div><h4>Hours</h4><p>Tue–Thu 5–10<br/>Fri–Sat 5–11<br/>Sun 5–9<br/>Mon closed</p></div>
+    <div><h4>Explore</h4><a href="#menu">Menu</a><a href="#about">Story</a><a href="#reviews">Reviews</a><a href="#reserve">Reserve</a></div>
+  </div>
+</footer>
+
+<div class="fab">
+  <a class="msg" href="sms:+14155550148" aria-label="Message us"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 0 1-12 7.6L3 21l1.9-6A8.5 8.5 0 1 1 21 11.5z"/></svg></a>
+  <a class="call" href="tel:+14155550148" aria-label="Call us"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></a>
+</div>
+
+<nav class="switcher" aria-label="Design variations">
+  <a href="01 — Harvest (Rustic).html">01</a>
+  <a href="02 — Atelier (Minimal).html">02</a>
+  <a href="03 — Press (Bold).html">03</a>
+  <a href="04 — Ember (Cinematic).html">04</a>
+  <a class="cur" href="05 — Garden (Playful).html">05</a>
+</nav>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+class ImgSlot extends HTMLElement{
+  connectedCallback(){
+    const id=this.getAttribute('slot-id');const ph=this.getAttribute('placeholder')||'Drop a photo';const inner=this.innerHTML;
+    this.innerHTML='<div class="is-ph">'+ph+'</div>'+inner;
+    let s=null;try{s=localStorage.getItem('imgslot:'+id);}catch(e){}if(s)this.setImg(s);
+    this.addEventListener('dragover',e=>{e.preventDefault();this.classList.add('is-over');});
+    this.addEventListener('dragleave',()=>this.classList.remove('is-over'));
+    this.addEventListener('drop',e=>{e.preventDefault();this.classList.remove('is-over');this.read(e.dataTransfer.files[0],id);});
+    this.addEventListener('click',()=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=()=>this.read(i.files[0],id);i.click();});
+  }
+  read(f,id){if(!f||!f.type.startsWith('image/'))return;const r=new FileReader();r.onload=()=>{try{localStorage.setItem('imgslot:'+id,r.result);}catch(e){}this.setImg(r.result);};r.readAsDataURL(f);}
+  setImg(src){let img=this.querySelector('img');if(!img){img=document.createElement('img');this.insertBefore(img,this.firstChild);}img.src=src;this.classList.add('has-img');}
+}
+customElements.define('img-slot',ImgSlot);
+(function(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const io=new IntersectionObserver((es)=>{es.forEach((e,i)=>{if(e.isIntersecting){e.target.style.transitionDelay=(Math.min(i,4)*70)+'ms';e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.14});
+  document.querySelectorAll('[data-reveal]').forEach(el=>io.observe(el));
+})();
+window.addEventListener('load',function(){
+  if(typeof L==='undefined')return;const el=document.getElementById('map');if(!el)return;
+  const map=L.map(el,{scrollWheelZoom:false}).setView([37.7767,-122.4256],15);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap, © CARTO',maxZoom:19,subdomains:'abcd'}).addTo(map);
+  const pin=L.divIcon({className:'',html:'<div style="width:22px;height:22px;border-radius:50% 50% 50% 0;background:#E8543C;border:2.5px solid #23332E;transform:rotate(-45deg);box-shadow:0 3px 6px rgba(0,0,0,.3);"></div>',iconSize:[22,22],iconAnchor:[11,22]});
+  L.marker([37.7767,-122.4256],{icon:pin}).addTo(map).bindPopup('<b>Sorrel</b><br>580 Hayes St');
+});
+</script>
+</body>
+</html>

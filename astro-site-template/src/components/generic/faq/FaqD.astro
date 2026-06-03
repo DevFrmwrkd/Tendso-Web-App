@@ -1,0 +1,36 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const faq = content.faq || {};
+const tag = faq.tag || 'faq';
+const headline = faq.headline || 'Common questions.';
+const items = Array.isArray(faq.items) && faq.items.length ? faq.items : [];
+---
+<section class="sec" id="faq" style="padding-top:0;">
+  <div class="wrap" style="max-width:980px;">
+    <p class="sec-tag reveal" data-field="faq.tag">{tag}</p>
+    <h2 class="reveal" data-field="faq.headline">{headline}</h2>
+    <div class="faq">
+      {items.map((it: any, i: number) => (
+        <details class="reveal">
+          <summary>
+            <span data-field={`faq.items.${i}.q`}>{it.q || it.question}</span>
+            <span class="pm">+</span>
+          </summary>
+          <div class="ans" data-field={`faq.items.${i}.a`}>{it.a || it.answer}</div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .faq { margin-top: 46px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  details { border-top: 1px solid var(--line); background: var(--panel); }
+  details:first-child { border-top: none; }
+  summary { list-style: none; cursor: pointer; padding: 24px 28px; display: flex; justify-content: space-between; gap: 20px; align-items: center; font-family: var(--disp); font-size: 21px; font-weight: 600; }
+  summary::-webkit-details-marker { display: none; }
+  summary .pm { font-family: var(--mono); font-size: 22px; color: var(--lime); transition: transform .3s; }
+  details[open] summary .pm { transform: rotate(45deg); }
+  details .ans { padding: 0 28px 24px; color: var(--muted); max-width: 76ch; }
+  details .ans::before { content: "$ "; font-family: var(--mono); color: var(--lime); }
+</style>

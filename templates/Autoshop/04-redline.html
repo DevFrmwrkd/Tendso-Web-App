@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Apex Auto Works — Redline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+  :root{
+    --bg:#0a0a0b; --bg-rgb:10,10,11;
+    --panel:#141416; --panel2:#1c1c1f;
+    --ink:#f3f3f0; --ink-rgb:243,243,240; --paper-rgb:243,243,240;
+    --lime:#c8ff00; --lime-rgb:200,255,0; --accent-rgb:200,255,0;
+    --muted:#8a8a86;
+    --line:#2a2a2d;
+    --maxw:1320px;
+    --pad:clamp(20px,4.5vw,72px);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0; background:var(--bg); color:var(--ink); font-family:"Barlow",system-ui,sans-serif; font-size:17px; line-height:1.55; -webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:"Anton",Impact,sans-serif; font-weight:400; margin:0; line-height:0.9; text-transform:uppercase; letter-spacing:0.005em;}
+  a{color:inherit; text-decoration:none}
+  img{max-width:100%; display:block}
+  .wrap{max-width:var(--maxw); margin:0 auto; padding-inline:var(--pad);}
+  .mono{font-family:"Spline Sans Mono",monospace; text-transform:uppercase; letter-spacing:0.16em; font-size:12px; font-weight:500;}
+  .btn{display:inline-flex; align-items:center; gap:10px; font-family:"Barlow"; font-weight:800; text-transform:uppercase; letter-spacing:0.05em; font-size:15px; padding:16px 28px; min-height:48px; cursor:pointer; transition:.18s ease; border:2px solid transparent;}
+  .btn.lime{background:var(--lime); color:#0a0a0b;}
+  .btn.lime:hover{transform:translate(0,-3px); box-shadow:0 8px 0 rgba(var(--lime-rgb),.3);}
+  .btn.out{background:transparent; color:var(--ink); border-color:var(--line);}
+  .btn.out:hover{border-color:var(--lime); color:var(--lime);}
+  .btn.dark{background:#0a0a0b; color:var(--lime); border-color:#0a0a0b;}
+  .btn.dark:hover{transform:translate(0,-3px);}
+  image-slot{background:#202022;}
+  .stars{color:var(--lime); letter-spacing:2px;}
+
+  header.site{position:sticky; top:0; z-index:50; background:rgba(10,10,11,.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);}
+  .nav{display:flex; align-items:center; justify-content:space-between; gap:20px; height:74px;}
+  .logo{display:flex; align-items:center; gap:11px; font-family:"Anton"; font-size:24px; text-transform:uppercase; letter-spacing:0.01em;}
+  .logo .mk{width:34px; height:34px; background:var(--lime); color:#0a0a0b; display:grid; place-items:center; font-family:"Anton"; font-size:20px; transform:skewX(-8deg);}
+  .nav-links{display:flex; gap:30px;}
+  .nav-links a{font-family:"Barlow"; font-weight:700; text-transform:uppercase; font-size:14px; letter-spacing:0.06em; color:var(--muted); position:relative; padding:4px 0;}
+  .nav-links a::after{content:""; position:absolute; left:0; bottom:0; width:0; height:2px; background:var(--lime); transition:width .2s;}
+  .nav-links a:hover{color:var(--ink);} .nav-links a:hover::after{width:100%;}
+  .nav-r{display:flex; align-items:center; gap:16px;}
+  .nav-phone{font-family:"Spline Sans Mono"; font-weight:600; font-size:14px; color:var(--lime);}
+  .burger{display:none; background:none; border:2px solid var(--line); width:46px; height:46px; cursor:pointer;}
+  .burger span,.burger span::before,.burger span::after{display:block; width:18px; height:2px; background:var(--ink); margin:auto; position:relative;}
+  .burger span::before{content:"";position:absolute;top:-6px;} .burger span::after{content:"";position:absolute;top:6px;}
+
+  /* hero — kinetic oversized type */
+  .hero{position:relative; padding-block:clamp(40px,6vw,70px) 0; overflow:hidden;}
+  .hero .top{display:flex; justify-content:space-between; align-items:flex-end; gap:20px; flex-wrap:wrap;}
+  .hero .kicker{max-width:42ch; color:var(--muted); font-size:clamp(16px,1.4vw,19px);}
+  .hero .kicker .lime{color:var(--lime); font-weight:700;}
+  .hero h1{font-size:clamp(70px,17vw,260px); line-height:0.82; margin:30px 0 0; letter-spacing:-0.01em;}
+  .hero h1 .l1{display:block; overflow:hidden;}
+  .hero h1 .l1 > span{display:block;}
+  .hero h1 .out2{color:transparent; -webkit-text-stroke:2px var(--ink);}
+  .hero h1 em{font-style:normal; color:var(--lime);}
+  .hero-bar{display:flex; align-items:stretch; gap:0; margin-top:36px; border-top:2px solid var(--ink); border-bottom:2px solid var(--ink);}
+  .hero-bar .acts{display:flex; gap:14px; padding:22px 0; flex-wrap:wrap; align-items:center; flex:1;}
+  .hero-bar .rate{padding:22px 0 22px 28px; border-left:1px solid var(--line); display:flex; flex-direction:column; justify-content:center;}
+  .hero-media{margin-top:0; position:relative; aspect-ratio:21/8; border-bottom:2px solid var(--ink);}
+  .hero-media image-slot{width:100%; height:100%;}
+  .hero-media .scrim{position:absolute; inset:0; background:linear-gradient(to top, rgba(var(--bg-rgb),.7), transparent 60%); pointer-events:none;}
+
+  @keyframes rise{from{transform:translateY(105%);}to{transform:translateY(0);}}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(16px);}to{opacity:1; transform:none;}}
+  .anim .l1 > span{animation:rise 1s cubic-bezier(.16,.84,.3,1) both;}
+  .anim .l1:nth-child(1) > span{animation-delay:.05s;}
+  .anim .l1:nth-child(2) > span{animation-delay:.16s;}
+  .anim .l1:nth-child(3) > span{animation-delay:.27s;}
+  .f1{animation:fadeUp .7s ease both .5s;} .f2{animation:fadeUp .7s ease both .62s;}
+
+  .reveal{opacity:0; transform:translateY(26px); transition:opacity .7s ease, transform .7s cubic-bezier(.2,.8,.2,1);}
+  .reveal.in{opacity:1; transform:none;}
+  .reveal.d1{transition-delay:.08s} .reveal.d2{transition-delay:.16s} .reveal.d3{transition-delay:.24s}
+
+  /* ticker marquee (also used as trust strip secondary) */
+  .ticker{background:var(--lime); color:#0a0a0b; overflow:hidden; padding:12px 0;}
+  .tt{display:flex; gap:34px; width:max-content; animation:scroll 24s linear infinite; font-family:"Anton"; font-size:clamp(20px,3vw,34px); text-transform:uppercase;}
+  .tt span{display:flex; align-items:center; gap:34px;} .tt i{font-style:normal; font-size:.7em;}
+  @keyframes scroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+  /* trust strip — stat blocks */
+  .trust{display:grid; grid-template-columns:repeat(4,1fr); border-bottom:2px solid var(--ink);}
+  .trust div{padding:34px var(--pad); border-right:1px solid var(--line);}
+  .trust div:last-child{border-right:none;}
+  .trust b{font-family:"Anton"; font-size:clamp(40px,5vw,64px); color:var(--lime); display:block; line-height:.9;}
+  .trust span{display:block; margin-top:10px;}
+
+  section.block{padding-block:clamp(64px,9vw,128px);}
+  .head{display:flex; align-items:baseline; gap:18px; margin-bottom:50px; flex-wrap:wrap;}
+  .head .hn{font-family:"Spline Sans Mono"; color:var(--lime); font-size:14px;}
+  .head h2{font-size:clamp(40px,7vw,96px);}
+  .head h2 em{font-style:normal; color:transparent; -webkit-text-stroke:2px var(--ink);}
+
+  /* about — full-bleed pull quote */
+  .about{background:var(--panel); border-block:2px solid var(--ink);}
+  .about .wrap{padding-block:clamp(60px,9vw,120px);}
+  .about-q{font-family:"Anton"; font-size:clamp(30px,5.2vw,76px); line-height:.98; text-transform:uppercase; max-width:18ch;}
+  .about-q em{color:var(--lime); font-style:normal;}
+  .about-cols{display:grid; grid-template-columns:repeat(2,1fr); gap:40px; margin-top:46px; max-width:880px;}
+  .about-cols p{color:var(--muted);}
+  .about-cols b{color:var(--ink);}
+
+  /* services — menu board with leaders */
+  .menu{border-top:2px solid var(--ink);}
+  .mrow{display:flex; align-items:baseline; gap:0; padding:24px 0; border-bottom:1px solid var(--line); transition:.2s; cursor:default;}
+  .mrow:hover{background:var(--panel); padding-inline:16px;}
+  .mrow .mn{font-family:"Spline Sans Mono"; color:var(--lime); font-size:14px; width:54px; flex:none;}
+  .mrow .mname{font-family:"Anton"; font-size:clamp(24px,3.4vw,44px); text-transform:uppercase; white-space:nowrap;}
+  .mrow .lead{flex:1; border-bottom:2px dotted var(--line); margin:0 16px; transform:translateY(-6px);}
+  .mrow .mdesc{color:var(--muted); font-size:14px; max-width:30ch; text-align:right; flex:none;}
+  .mrow:hover .mname{color:var(--lime);}
+
+  /* why us — big numbers */
+  .why-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:0; border:2px solid var(--ink);}
+  .wc{padding:40px 32px; border-right:2px solid var(--ink); border-bottom:2px solid var(--ink);}
+  .wc:nth-child(3n){border-right:none;} .wc:nth-child(n+4){border-bottom:none;}
+  .wc .wn{font-family:"Anton"; font-size:56px; color:transparent; -webkit-text-stroke:2px var(--lime); line-height:1;}
+  .wc h3{font-family:"Anton"; font-size:26px; margin:14px 0 10px;}
+  .wc p{color:var(--muted); font-size:15px;}
+
+  /* how it works — diagonal stacked numbers */
+  .steps{display:grid; gap:0;}
+  .step{display:grid; grid-template-columns:auto 1fr; gap:clamp(20px,4vw,60px); align-items:center; padding:clamp(28px,4vw,52px) 0; border-top:1px solid var(--line);}
+  .step:first-child{border-top:none;}
+  .step .sn{font-family:"Anton"; font-size:clamp(70px,12vw,180px); line-height:.8; color:var(--panel2); -webkit-text-stroke:2px var(--line);}
+  .step:hover .sn{color:transparent; -webkit-text-stroke:2px var(--lime);}
+  .step h3{font-family:"Anton"; font-size:clamp(28px,4vw,52px);}
+  .step p{color:var(--muted); margin-top:12px; max-width:54ch; font-size:16px;}
+
+  /* testimonials — bold + scroll strip */
+  .tbig{border:2px solid var(--ink); padding:clamp(36px,5vw,64px); position:relative;}
+  .tbig .mark{font-family:"Anton"; font-size:120px; color:var(--lime); line-height:.6; position:absolute; top:30px; left:30px; opacity:.18;}
+  .tbig blockquote{font-family:"Anton"; font-size:clamp(28px,4.2vw,60px); line-height:1; text-transform:uppercase; margin:0; position:relative;}
+  .tbig blockquote em{color:var(--lime); font-style:normal;}
+  .tbig .who{margin-top:24px; color:var(--muted);}
+  .qstrip{display:grid; grid-template-columns:1fr 1fr; gap:0; margin-top:0; border:2px solid var(--ink); border-top:none;}
+  .qstrip .qc{padding:30px; border-right:2px solid var(--ink);}
+  .qstrip .qc:last-child{border-right:none;}
+  .qstrip blockquote{margin:10px 0 0; font-size:17px; line-height:1.5;}
+  .qstrip .who{margin-top:14px;}
+
+  /* gallery — edge to edge filmstrip */
+  .strip-head{margin-bottom:0;}
+  .film{display:grid; grid-template-columns:repeat(6,1fr); gap:6px; height:clamp(280px,42vw,520px);}
+  .film .fc{position:relative; overflow:hidden;}
+  .film .fc image-slot{width:100%; height:100%; transition:transform .6s ease;}
+  .film .fc:hover{grid-column:span 2;}
+  .film .fc:hover image-slot{transform:scale(1.06);}
+  .film .fc::after{content:""; position:absolute; inset:0; background:linear-gradient(to top, rgba(var(--bg-rgb),.85), transparent 55%);}
+  .film .fc .gi{position:absolute; top:12px; left:14px; z-index:2; color:var(--lime);}
+  .film .fc .cap{position:absolute; left:14px; bottom:14px; z-index:2; font-family:"Anton"; font-size:20px; text-transform:uppercase; transform:translateY(8px); opacity:0; transition:.3s;}
+  .film .fc:hover .cap{transform:none; opacity:1;}
+
+  /* faq — bold uppercase accordion */
+  .faq{border-top:2px solid var(--ink);}
+  details.q{border-bottom:1px solid var(--line);}
+  details.q summary{list-style:none; cursor:pointer; padding:26px 0; display:flex; justify-content:space-between; gap:18px; font-family:"Anton"; font-size:clamp(20px,2.6vw,32px); text-transform:uppercase;}
+  details.q summary::-webkit-details-marker{display:none;}
+  details.q .ic{color:var(--lime); font-family:"Anton"; transition:transform .25s; flex:none;}
+  details.q[open] .ic{transform:rotate(45deg);}
+  details.q[open] summary{color:var(--lime);}
+  details.q p{margin:0 0 26px; color:var(--muted); max-width:64ch; font-size:16px;}
+
+  /* service area */
+  .area-tags{display:flex; flex-wrap:wrap; gap:0;}
+  .area-tags span{font-family:"Anton"; font-size:clamp(20px,3vw,40px); text-transform:uppercase; color:var(--panel2); -webkit-text-stroke:1px var(--muted); padding:6px 18px; transition:.2s; cursor:default;}
+  .area-tags span:hover{color:var(--lime); -webkit-text-stroke:1px var(--lime);}
+
+  /* credentials */
+  .creds{display:grid; grid-template-columns:repeat(4,1fr); gap:0; border:2px solid var(--ink);}
+  .cred{padding:32px; text-align:center; border-right:2px solid var(--ink);}
+  .cred:last-child{border-right:none;}
+  .cred .ci{font-family:"Anton"; font-size:34px; color:var(--lime);}
+  .cred h4{font-family:"Barlow"; font-weight:800; text-transform:uppercase; font-size:14px; letter-spacing:0.04em; margin:12px 0 6px;}
+  .cred p{font-size:13px; color:var(--muted);}
+
+  /* location */
+  .loc-grid{display:grid; grid-template-columns:1fr 1.2fr; border:2px solid var(--ink);}
+  .loc-info{padding:clamp(30px,4vw,52px); border-right:2px solid var(--ink);}
+  .loc-info h2{font-size:clamp(32px,4.4vw,60px);}
+  .loc-line{display:flex; gap:14px; padding:16px 0; border-bottom:1px solid var(--line);}
+  .loc-line .lk{width:88px; flex:none; font-family:"Spline Sans Mono"; font-size:12px; color:var(--lime); padding-top:3px;}
+  .loc-line .lv{font-weight:500;}
+  #map{min-height:480px; background:#101012;}
+
+  /* cta */
+  .cta-band{background:var(--lime); color:#0a0a0b; text-align:center; padding-block:clamp(60px,10vw,140px); border-block:2px solid #0a0a0b;}
+  .cta-band h2{font-size:clamp(48px,11vw,170px); color:#0a0a0b;}
+  .cta-band p{max-width:50ch; margin:18px auto 0; font-weight:600; font-size:18px;}
+  .cta-band .acts{display:flex; gap:14px; justify-content:center; margin-top:34px; flex-wrap:wrap;}
+
+  footer.site{background:#070708; color:var(--ink); padding-block:64px;}
+  .foot-grid{display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; gap:40px;}
+  .foot-logo{display:flex; align-items:center; gap:11px; font-family:"Anton"; font-size:26px; text-transform:uppercase;}
+  .foot-logo .mk{width:34px;height:34px;background:var(--lime);color:#0a0a0b;display:grid;place-items:center;font-family:"Anton";transform:skewX(-8deg);}
+  footer.site h4{font-family:"Barlow"; font-weight:800; text-transform:uppercase; font-size:13px; letter-spacing:0.1em; color:var(--lime); margin-bottom:16px;}
+  footer.site a,footer.site p{color:var(--muted); font-size:15px; margin:8px 0;}
+  footer.site a:hover{color:var(--lime);}
+  .foot-bot{margin-top:46px; padding-top:24px; border-top:1px solid var(--line); display:flex; justify-content:space-between; flex-wrap:wrap; gap:14px;}
+
+  .fab{position:fixed; right:20px; bottom:20px; z-index:60; display:flex; gap:10px;}
+  .fab a{padding:14px 22px; font-family:"Barlow"; font-weight:800; text-transform:uppercase; font-size:14px; min-height:52px; display:flex; align-items:center; gap:8px;}
+  .fab a.call{background:var(--lime); color:#0a0a0b;}
+  .fab a.msg{background:#fff; color:#0a0a0b;}
+  .fab a:hover{transform:translateY(-3px);}
+
+  .switcher{position:fixed; left:50%; transform:translateX(-50%); bottom:20px; z-index:70; display:flex; align-items:center; background:#0a0a0b; border:2px solid var(--lime); box-shadow:0 8px 24px rgba(0,0,0,.5);}
+  .switcher b{font-family:"Spline Sans Mono"; font-size:10px; letter-spacing:0.14em; color:var(--muted); padding:0 12px;}
+  .switcher a{width:36px; height:36px; display:grid; place-items:center; font-family:"Spline Sans Mono"; font-size:13px; color:var(--ink); border-left:1px solid var(--line);}
+  .switcher a.active{background:var(--lime); color:#0a0a0b; font-weight:600;}
+  .switcher a:hover:not(.active){background:var(--panel);}
+
+  @media(max-width:980px){
+    .trust{grid-template-columns:1fr 1fr;} .trust div:nth-child(2){border-right:none;} .trust div{border-bottom:1px solid var(--line);}
+    .about-cols{grid-template-columns:1fr;}
+    .why-grid{grid-template-columns:1fr;} .wc{border-right:none !important; border-bottom:2px solid var(--ink) !important;} .wc:last-child{border-bottom:none !important;}
+    .qstrip{grid-template-columns:1fr;} .qstrip .qc{border-right:none; border-bottom:2px solid var(--ink);} .qstrip .qc:last-child{border-bottom:none;}
+    .film{grid-template-columns:repeat(2,1fr); height:auto; grid-auto-rows:200px;} .film .fc:hover{grid-column:span 2;}
+    .creds{grid-template-columns:1fr 1fr;} .cred:nth-child(2){border-right:none;} .cred{border-bottom:2px solid var(--ink);}
+    .loc-grid{grid-template-columns:1fr;} .loc-info{border-right:none; border-bottom:2px solid var(--ink);}
+    .mrow .mdesc{display:none;}
+    .foot-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media(max-width:720px){ .nav-links{display:none;} .burger{display:flex;} .nav-phone{display:none;} .switcher b{display:none;} .mrow .lead{margin:0 10px;} }
+  @media(prefers-reduced-motion:reduce){ *{animation:none !important; transition:none !important;} .reveal{opacity:1; transform:none;} html{scroll-behavior:auto;} }
+</style>
+</head>
+<body id="top">
+<header class="site">
+  <div class="wrap nav">
+    <a class="logo" href="#top"><span class="mk">A</span> Apex Auto Works</a>
+    <nav class="nav-links">
+      <a href="#services">Services</a><a href="#how">Process</a><a href="#work">Work</a><a href="#faq">FAQ</a><a href="#location">Visit</a>
+    </nav>
+    <div class="nav-r">
+      <a class="nav-phone" href="tel:+15035550147">(503) 555-0147</a>
+      <a class="btn lime" href="#book">Book It</a>
+      <button class="burger" aria-label="Menu" onclick="var n=document.querySelector('.nav-links');n.style.display=n.style.display==='flex'?'none':'flex'"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main>
+<!-- HERO — kinetic oversized type -->
+<section class="hero">
+  <div class="wrap">
+    <div class="top">
+      <p class="kicker f1">ASE-certified techs. Dealer-grade tools. <span class="lime">Honest shop prices.</span> Portland since 2009.</p>
+      <span class="mono f1" style="color:var(--muted);">// NW PORTLAND · EST. 2009</span>
+    </div>
+    <h1 class="anim">
+      <span class="l1"><span>Fixed</span></span>
+      <span class="l1"><span class="out2">right.</span></span>
+      <span class="l1"><span>Priced <em>fair.</em></span></span>
+    </h1>
+  </div>
+  <div class="wrap">
+    <div class="hero-bar">
+      <div class="acts f2">
+        <a class="btn lime" href="#book">Book Service →</a>
+        <a class="btn out" href="#services">See What We Do</a>
+      </div>
+      <div class="rate f2">
+        <span class="stars">★★★★★</span>
+        <span class="mono" style="color:var(--muted); margin-top:6px;">4.9 · LIVE ON GOOGLE</span>
+      </div>
+    </div>
+  </div>
+  <div class="hero-media">
+    <image-slot id="apex-hero" placeholder="Drop a hero photo — car on the lift / shop floor"></image-slot>
+    <div class="scrim"></div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker" aria-hidden="true">
+  <div class="tt">
+    <span>Brakes <i>●</i> Diagnostics <i>●</i> Tires <i>●</i> Alignment <i>●</i> Oil <i>●</i> Suspension <i>●</i> Maintenance <i>●</i></span>
+    <span>Brakes <i>●</i> Diagnostics <i>●</i> Tires <i>●</i> Alignment <i>●</i> Oil <i>●</i> Suspension <i>●</i> Maintenance <i>●</i></span>
+  </div>
+</div>
+
+<!-- TRUST -->
+<section class="trust">
+  <div class="reveal"><b>15</b><span class="mono" style="color:var(--muted)">Years deep</span></div>
+  <div class="reveal d1"><b>38K+</b><span class="mono" style="color:var(--muted)">Cars serviced</span></div>
+  <div class="reveal d2"><b>3/36K</b><span class="mono" style="color:var(--muted)">Yr/mi warranty</span></div>
+  <div class="reveal d3"><b>4.9★</b><span class="mono" style="color:var(--muted)">900+ reviews</span></div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="wrap">
+    <span class="mono" style="color:var(--lime)">[ 01 — THE SHOP ]</span>
+    <p class="about-q reveal" style="margin-top:24px;">We don't guess. We <em>diagnose</em>, photograph it, and tell you straight.</p>
+    <div class="about-cols">
+      <p class="reveal"><b>Every car gets shot during inspection</b> — so you see exactly what we see before you approve a dime of work. No mystery charges, no parts you didn't need.</p>
+      <p class="reveal d1"><b>Fifteen years in the same bays.</b> Our techs train on the same diagnostic platforms the dealerships run. We just pick up the phone faster and charge you less for it.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES — menu board -->
+<section class="block" id="services">
+  <div class="wrap">
+    <div class="head reveal"><span class="hn">[ 02 ]</span><h2>The <em>work</em></h2></div>
+    <div class="menu">
+      <div class="mrow reveal"><span class="mn">01</span><span class="mname">Diagnostics</span><span class="lead"></span><span class="mdesc">Factory scan tools. Real answers, not guesses.</span></div>
+      <div class="mrow reveal"><span class="mn">02</span><span class="mname">Brakes &amp; Rotors</span><span class="lead"></span><span class="mdesc">Pads, rotors, fluid. Free check every visit.</span></div>
+      <div class="mrow reveal"><span class="mn">03</span><span class="mname">Tires &amp; Alignment</span><span class="lead"></span><span class="mdesc">Mount, balance, laser 4-wheel alignment.</span></div>
+      <div class="mrow reveal"><span class="mn">04</span><span class="mname">Oil &amp; Fluids</span><span class="lead"></span><span class="mdesc">Full-synthetic + free multi-point inspection.</span></div>
+      <div class="mrow reveal"><span class="mn">05</span><span class="mname">Suspension</span><span class="lead"></span><span class="mdesc">Struts, shocks, steering, dialed to spec.</span></div>
+      <div class="mrow reveal"><span class="mn">06</span><span class="mname">Maintenance</span><span class="lead"></span><span class="mdesc">Factory intervals that protect your warranty.</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY US -->
+<section class="block" id="why" style="padding-top:0;">
+  <div class="wrap">
+    <div class="head reveal"><span class="hn">[ 03 ]</span><h2>Why <em>us</em></h2></div>
+    <div class="why-grid">
+      <div class="wc reveal"><div class="wn">01</div><h3>Straight quotes</h3><p>Written, photo-backed, before we touch the car. The quote is the price. Period.</p></div>
+      <div class="wc reveal d1"><div class="wn">02</div><h3>Real diagnostics</h3><p>Dealer-grade tools so we kill the cause once — not the symptom twice.</p></div>
+      <div class="wc reveal d2"><div class="wn">03</div><h3>Free loaners</h3><p>On most longer jobs, so your day doesn't stop when your car does.</p></div>
+      <div class="wc reveal"><div class="wn">04</div><h3>3yr / 36k warranty</h3><p>Parts and labor, covered nationwide. Drive easy.</p></div>
+      <div class="wc reveal d1"><div class="wn">05</div><h3>ASE-certified</h3><p>Master techs current on hybrids, turbos, modern electronics.</p></div>
+      <div class="wc reveal d2"><div class="wn">06</div><h3>No upsells</h3><p>We flag what's coming, fix what's due. Never invent work.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="block" id="how" style="padding-top:0;">
+  <div class="wrap">
+    <div class="head reveal"><span class="hn">[ 04 ]</span><h2>How it <em>runs</em></h2></div>
+    <div class="steps">
+      <div class="step reveal"><span class="sn">1</span><div><h3>Book it</h3><p>Online or call. Tell us the symptoms; we plan the visit around them.</p></div></div>
+      <div class="step reveal"><span class="sn">2</span><div><h3>See the diagnosis</h3><p>We inspect, photograph, and send a written estimate. Nothing happens till you say go.</p></div></div>
+      <div class="step reveal"><span class="sn">3</span><div><h3>Drive away covered</h3><p>Fixed right, on time, with a 3-year warranty riding shotgun.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="block" id="reviews" style="padding-top:0;">
+  <div class="wrap">
+    <div class="head reveal"><span class="hn">[ 05 ]</span><h2>Word on the <em>street</em></h2></div>
+    <div class="tbig reveal">
+      <span class="mark">"</span>
+      <blockquote>"First shop that ever <em>showed me the why.</em> Photos of my worn brakes before I approved a thing. Quote held to the penny."</blockquote>
+      <div class="who mono">— VERIFIED GOOGLE REVIEW · NORTHWEST DISTRICT</div>
+    </div>
+    <div class="qstrip reveal d1">
+      <div class="qc"><span class="stars">★★★★★</span><blockquote>"Loaner car meant I didn't miss a day of work. Diagnostic was spot-on when two other shops guessed wrong."</blockquote><div class="who mono" style="color:var(--muted)">GOOGLE · SLABTOWN</div></div>
+      <div class="qc"><span class="stars">★★★★★</span><blockquote>"Told me a repair another shop pushed wasn't even needed yet. Customer for life right there."</blockquote><div class="who mono" style="color:var(--muted)">GOOGLE · PEARL DISTRICT</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY — filmstrip -->
+<section class="block" id="work" style="padding-top:0;">
+  <div class="wrap">
+    <div class="head reveal strip-head"><span class="hn">[ 06 ]</span><h2>In the <em>bays</em></h2></div>
+  </div>
+  <div class="wrap">
+    <div class="film reveal">
+      <div class="fc"><span class="gi mono">01</span><image-slot id="apex-g1" placeholder="Shop floor"></image-slot><div class="cap">Diagnostics</div></div>
+      <div class="fc"><span class="gi mono">02</span><image-slot id="apex-g2" placeholder="Brakes"></image-slot><div class="cap">Brakes</div></div>
+      <div class="fc"><span class="gi mono">03</span><image-slot id="apex-g3" placeholder="Alignment"></image-slot><div class="cap">Alignment</div></div>
+      <div class="fc"><span class="gi mono">04</span><image-slot id="apex-g4" placeholder="Engine"></image-slot><div class="cap">Engine</div></div>
+      <div class="fc"><span class="gi mono">05</span><image-slot id="apex-g5" placeholder="Detail"></image-slot><div class="cap">Final check</div></div>
+      <div class="fc"><span class="gi mono">06</span><image-slot id="apex-g6" placeholder="Team"></image-slot><div class="cap">The crew</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="block" id="faq" style="padding-top:0;">
+  <div class="wrap">
+    <div class="head reveal"><span class="hn">[ 07 ]</span><h2>Straight <em>answers</em></h2></div>
+    <div class="faq">
+      <details class="q reveal"><summary>Do you work on my ride?<span class="ic">+</span></summary><p>Domestic, Asian, and most European makes — including hybrids and turbos. If we can't help, we'll point you to someone who can.</p></details>
+      <details class="q reveal"><summary>Will service void my factory warranty?<span class="ic">+</span></summary><p>No. Independent shops can do scheduled maintenance without affecting your manufacturer warranty, and we document it all.</p></details>
+      <details class="q reveal"><summary>Do I get a quote first?<span class="ic">+</span></summary><p>Always. Written, photo-backed estimate — and we don't start until you approve it.</p></details>
+      <details class="q reveal"><summary>How long does it take?<span class="ic">+</span></summary><p>Many jobs are same-day. For longer ones, free loaner cars so you're never stranded.</p></details>
+      <details class="q reveal"><summary>What's the warranty?<span class="ic">+</span></summary><p>3 years / 36,000 miles on parts and labor, honored nationwide.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICE AREA -->
+<section class="block" id="area" style="padding-top:0;">
+  <div class="wrap">
+    <div class="head reveal"><span class="hn">[ 08 ]</span><h2>Where we <em>roll</em></h2></div>
+    <div class="area-tags reveal">
+      <span>Northwest</span><span>Pearl</span><span>Slabtown</span><span>Nob Hill</span><span>Goose Hollow</span><span>Downtown</span><span>St. Johns</span><span>Sellwood</span><span>Hollywood</span><span>Multnomah Village</span><span>Lake Oswego</span>
+    </div>
+  </div>
+</section>
+
+<!-- CREDENTIALS -->
+<section class="block" id="creds" style="padding-top:0;">
+  <div class="wrap">
+    <div class="head reveal"><span class="hn">[ 09 ]</span><h2>Legit &amp; <em>certified</em></h2></div>
+    <div class="creds">
+      <div class="cred reveal"><div class="ci">ASE</div><h4>ASE Certified</h4><p>Master techs on staff</p></div>
+      <div class="cred reveal d1"><div class="ci">⛨</div><h4>Licensed &amp; Insured</h4><p>Bonded OR facility</p></div>
+      <div class="cred reveal d2"><div class="ci">AAA</div><h4>AAA Approved</h4><p>Independently inspected</p></div>
+      <div class="cred reveal d3"><div class="ci">A+</div><h4>BBB Accredited</h4><p>Top local rating</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section class="block" id="location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="loc-grid">
+      <div class="loc-info">
+        <span class="hn mono" style="color:var(--lime)">[ 10 — VISIT ]</span>
+        <h2 style="margin-top:14px;">Roll on by</h2>
+        <div style="margin-top:22px;">
+          <div class="loc-line"><span class="lk">ADDRESS</span><span class="lv">1420 Foundry Ave<br />Portland, OR 97210</span></div>
+          <div class="loc-line"><span class="lk">PHONE</span><span class="lv"><a href="tel:+15035550147">(503) 555-0147</a></span></div>
+          <div class="loc-line"><span class="lk">EMAIL</span><span class="lv">service@apexautoworks.com</span></div>
+          <div class="loc-line"><span class="lk">HOURS</span><span class="lv">Mon–Fri · weekend drop-off<br /><span style="color:var(--muted); font-size:14px;">Live on Google</span></span></div>
+        </div>
+        <div class="acts" style="margin-top:26px; display:flex; gap:12px; flex-wrap:wrap;">
+          <a class="btn lime" href="#book">Book Service</a>
+          <a class="btn out" href="https://maps.google.com/?q=1420+Foundry+Ave+Portland+OR" target="_blank" rel="noopener">Directions</a>
+        </div>
+      </div>
+      <div id="map" role="img" aria-label="Map showing Apex Auto Works at 1420 Foundry Ave, Portland, OR"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-band" id="book">
+  <div class="wrap">
+    <h2 class="reveal">Book it.</h2>
+    <p class="reveal d1">Same-week appointments. Free multi-point inspection every visit. Real warranty. Zero runaround.</p>
+    <div class="acts reveal d2"><a class="btn dark" href="tel:+15035550147">Call (503) 555-0147</a><a class="btn dark" href="#top" style="background:transparent; border-color:#0a0a0b; color:#0a0a0b;">Book Online →</a></div>
+  </div>
+</section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-logo"><span class="mk">A</span> Apex Auto Works</div>
+        <p style="margin-top:14px;">Fixed right. Priced fair. Family-owned and independent in Northwest Portland since 2009.</p>
+        <p style="color:var(--lime); margin-top:12px;">★★★★★ 4.9 on Google</p>
+      </div>
+      <div><h4>Visit</h4><p>1420 Foundry Ave</p><p>Portland, OR 97210</p><p><a href="tel:+15035550147">(503) 555-0147</a></p></div>
+      <div><h4>Hours</h4><p>Mon–Fri</p><p>Weekend drop-off</p><p style="color:var(--lime);">Live on Google</p></div>
+      <div><h4>Services</h4><p><a href="#services">Diagnostics</a></p><p><a href="#services">Brakes &amp; Tires</a></p><p><a href="#services">Maintenance</a></p><p><a href="#faq">FAQ</a></p></div>
+    </div>
+    <div class="foot-bot"><span class="mono" style="color:var(--muted)">© 2026 APEX AUTO WORKS</span><span class="mono" style="color:var(--muted)">PORTLAND, OREGON</span></div>
+  </div>
+</footer>
+
+<div class="fab">
+  <a class="msg" href="sms:+15035550147">✉ Text</a>
+  <a class="call" href="tel:+15035550147">✆ Call</a>
+</div>
+
+<nav class="switcher" aria-label="Design variations">
+  <b>APEX</b>
+  <a href="01-foundry.html">01</a>
+  <a href="02-meridian.html">02</a>
+  <a href="03-volt.html">03</a>
+  <a href="04-redline.html" class="active">04</a>
+  <a href="05-maple-street.html">05</a>
+</nav>
+
+<script src="image-slot.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+  (function(){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in'); io.unobserve(e.target);}});},{threshold:.12});
+    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+  })();
+  (function(){
+    if(typeof L==='undefined') return;
+    var lat=45.5340, lng=-122.6990;
+    var map=L.map('map',{scrollWheelZoom:false}).setView([lat,lng],14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{attribution:'&copy; OpenStreetMap &copy; CARTO', maxZoom:19}).addTo(map);
+    var icon=L.divIcon({className:'',html:'<div style="width:20px;height:20px;background:#c8ff00;border:2px solid #0a0a0b;transform:skewX(-8deg);box-shadow:0 0 0 4px rgba(200,255,0,.3)"></div>',iconSize:[20,20],iconAnchor:[10,10]});
+    L.marker([lat,lng],{icon:icon}).addTo(map).bindPopup('<b>Apex Auto Works</b><br>1420 Foundry Ave');
+    setTimeout(function(){map.invalidateSize();},300);
+  })();
+</script>
+</body>
+</html>

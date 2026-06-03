@@ -1,342 +1,84 @@
 ---
+/**
+ * Astro entry page.
+ *
+ * Routes between template "letters" based on `customizations.heroStyle`
+ * in site-data.json:
+ *
+ *   "generic:A"     → Ironwood Coffee
+ *   "generic:B"     → Stillwater Studio
+ *   "generic:C"     → Cedar & Stone
+ *   "generic:D"     → Northpoint IT
+ *   "generic:E"     → Wash House
+ *   "barbershop:F"  → Forge (default brass)
+ *   "barbershop:G"  → Forge Cinematic
+ *   "barbershop:H"  → Forge Kinetic (black + green)
+ *   "barbershop:I"  → Forge Minimal (neutral)
+ *   "barbershop:J"  → Forge Stacked (paper + dark red)
+ *
+ * Each PageX wrapper produces the full document (its own doctype, theme,
+ * fonts, leaflet boot) so they do not compose with BaseLayout.
+ */
 import BaseLayout from '../layouts/BaseLayout.astro';
-
-// Hero components
-import HeroA from '../components/heroes/HeroA.astro';
-import HeroB from '../components/heroes/HeroB.astro';
-import HeroC from '../components/heroes/HeroC.astro';
-import HeroD from '../components/heroes/HeroD.astro';
-import HeroE from '../components/heroes/HeroE.astro';
-import HeroF from '../components/heroes/HeroF.astro';
-import HeroG from '../components/heroes/HeroG.astro';
-import HeroH from '../components/heroes/HeroH.astro';
-import HeroI from '../components/heroes/HeroI.astro';
-import HeroJ from '../components/heroes/HeroJ.astro';
-// Category styles (themed) — variants per section per category
-import HeroK1 from '../components/heroes/HeroK1.astro';
-import HeroK2 from '../components/heroes/HeroK2.astro';
-import HeroK3 from '../components/heroes/HeroK3.astro';
-import HeroK4 from '../components/heroes/HeroK4.astro';
-import HeroK5 from '../components/heroes/HeroK5.astro';
-import HeroL1 from '../components/heroes/HeroL1.astro';
-import HeroL2 from '../components/heroes/HeroL2.astro';
-import HeroL3 from '../components/heroes/HeroL3.astro';
-import HeroL4 from '../components/heroes/HeroL4.astro';
-import HeroL5 from '../components/heroes/HeroL5.astro';
-import HeroM1 from '../components/heroes/HeroM1.astro';
-import HeroM2 from '../components/heroes/HeroM2.astro';
-import HeroM3 from '../components/heroes/HeroM3.astro';
-import HeroM4 from '../components/heroes/HeroM4.astro';
-import HeroM5 from '../components/heroes/HeroM5.astro';
-import HeroM6 from '../components/heroes/HeroM6.astro';
-import HeroN1 from '../components/heroes/HeroN1.astro';
-import HeroN2 from '../components/heroes/HeroN2.astro';
-import HeroN3 from '../components/heroes/HeroN3.astro';
-import HeroN4 from '../components/heroes/HeroN4.astro';
-import HeroN5 from '../components/heroes/HeroN5.astro';
-import HeroO1 from '../components/heroes/HeroO1.astro';
-import HeroO2 from '../components/heroes/HeroO2.astro';
-import HeroO3 from '../components/heroes/HeroO3.astro';
-import HeroO4 from '../components/heroes/HeroO4.astro';
-import HeroO5 from '../components/heroes/HeroO5.astro';
-
-// About components
-import AboutA from '../components/about/AboutA.astro';
-import AboutB from '../components/about/AboutB.astro';
-import AboutC from '../components/about/AboutC.astro';
-import AboutD from '../components/about/AboutD.astro';
-import AboutE from '../components/about/AboutE.astro';
-import AboutF from '../components/about/AboutF.astro';
-import AboutG from '../components/about/AboutG.astro';
-import AboutH from '../components/about/AboutH.astro';
-import AboutI from '../components/about/AboutI.astro';
-import AboutJ from '../components/about/AboutJ.astro';
-import AboutK1 from '../components/about/AboutK1.astro';
-import AboutK2 from '../components/about/AboutK2.astro';
-import AboutK3 from '../components/about/AboutK3.astro';
-import AboutK4 from '../components/about/AboutK4.astro';
-import AboutK5 from '../components/about/AboutK5.astro';
-import AboutL1 from '../components/about/AboutL1.astro';
-import AboutL2 from '../components/about/AboutL2.astro';
-import AboutL3 from '../components/about/AboutL3.astro';
-import AboutL4 from '../components/about/AboutL4.astro';
-import AboutL5 from '../components/about/AboutL5.astro';
-import AboutM1 from '../components/about/AboutM1.astro';
-import AboutM2 from '../components/about/AboutM2.astro';
-import AboutM3 from '../components/about/AboutM3.astro';
-import AboutM4 from '../components/about/AboutM4.astro';
-import AboutM5 from '../components/about/AboutM5.astro';
-import AboutN1 from '../components/about/AboutN1.astro';
-import AboutN2 from '../components/about/AboutN2.astro';
-import AboutN3 from '../components/about/AboutN3.astro';
-import AboutN4 from '../components/about/AboutN4.astro';
-import AboutN5 from '../components/about/AboutN5.astro';
-import AboutO1 from '../components/about/AboutO1.astro';
-import AboutO2 from '../components/about/AboutO2.astro';
-import AboutO3 from '../components/about/AboutO3.astro';
-import AboutO4 from '../components/about/AboutO4.astro';
-import AboutO5 from '../components/about/AboutO5.astro';
-
-// Services components
-import ServicesA from '../components/services/ServicesA.astro';
-import ServicesB from '../components/services/ServicesB.astro';
-import ServicesC from '../components/services/ServicesC.astro';
-import ServicesD from '../components/services/ServicesD.astro';
-import ServicesE from '../components/services/ServicesE.astro';
-import ServicesF from '../components/services/ServicesF.astro';
-import ServicesG from '../components/services/ServicesG.astro';
-import ServicesH from '../components/services/ServicesH.astro';
-import ServicesI from '../components/services/ServicesI.astro';
-import ServicesJ from '../components/services/ServicesJ.astro';
-import ServicesK1 from '../components/services/ServicesK1.astro';
-import ServicesK2 from '../components/services/ServicesK2.astro';
-import ServicesK3 from '../components/services/ServicesK3.astro';
-import ServicesK4 from '../components/services/ServicesK4.astro';
-import ServicesK5 from '../components/services/ServicesK5.astro';
-import ServicesL1 from '../components/services/ServicesL1.astro';
-import ServicesL2 from '../components/services/ServicesL2.astro';
-import ServicesL3 from '../components/services/ServicesL3.astro';
-import ServicesL4 from '../components/services/ServicesL4.astro';
-import ServicesL5 from '../components/services/ServicesL5.astro';
-import ServicesM1 from '../components/services/ServicesM1.astro';
-import ServicesM2 from '../components/services/ServicesM2.astro';
-import ServicesM3 from '../components/services/ServicesM3.astro';
-import ServicesM4 from '../components/services/ServicesM4.astro';
-import ServicesM5 from '../components/services/ServicesM5.astro';
-import ServicesN1 from '../components/services/ServicesN1.astro';
-import ServicesN2 from '../components/services/ServicesN2.astro';
-import ServicesN3 from '../components/services/ServicesN3.astro';
-import ServicesN4 from '../components/services/ServicesN4.astro';
-import ServicesN5 from '../components/services/ServicesN5.astro';
-import ServicesO1 from '../components/services/ServicesO1.astro';
-import ServicesO2 from '../components/services/ServicesO2.astro';
-import ServicesO3 from '../components/services/ServicesO3.astro';
-import ServicesO4 from '../components/services/ServicesO4.astro';
-import ServicesO5 from '../components/services/ServicesO5.astro';
-
-// Gallery components
-import GalleryA from '../components/gallery/GalleryA.astro';
-import GalleryB from '../components/gallery/GalleryB.astro';
-import GalleryC from '../components/gallery/GalleryC.astro';
-import GalleryD from '../components/gallery/GalleryD.astro';
-import GalleryE from '../components/gallery/GalleryE.astro';
-import GalleryF from '../components/gallery/GalleryF.astro';
-import GalleryG from '../components/gallery/GalleryG.astro';
-import GalleryH from '../components/gallery/GalleryH.astro';
-import GalleryI from '../components/gallery/GalleryI.astro';
-import GalleryJ from '../components/gallery/GalleryJ.astro';
-import GalleryK1 from '../components/gallery/GalleryK1.astro';
-import GalleryK2 from '../components/gallery/GalleryK2.astro';
-import GalleryK3 from '../components/gallery/GalleryK3.astro';
-import GalleryK4 from '../components/gallery/GalleryK4.astro';
-import GalleryK5 from '../components/gallery/GalleryK5.astro';
-import GalleryL1 from '../components/gallery/GalleryL1.astro';
-import GalleryL2 from '../components/gallery/GalleryL2.astro';
-import GalleryL3 from '../components/gallery/GalleryL3.astro';
-import GalleryL4 from '../components/gallery/GalleryL4.astro';
-import GalleryL5 from '../components/gallery/GalleryL5.astro';
-import GalleryM1 from '../components/gallery/GalleryM1.astro';
-import GalleryM2 from '../components/gallery/GalleryM2.astro';
-import GalleryM3 from '../components/gallery/GalleryM3.astro';
-import GalleryM4 from '../components/gallery/GalleryM4.astro';
-import GalleryM5 from '../components/gallery/GalleryM5.astro';
-import GalleryN1 from '../components/gallery/GalleryN1.astro';
-import GalleryN2 from '../components/gallery/GalleryN2.astro';
-import GalleryN3 from '../components/gallery/GalleryN3.astro';
-import GalleryN4 from '../components/gallery/GalleryN4.astro';
-import GalleryN5 from '../components/gallery/GalleryN5.astro';
-import GalleryO1 from '../components/gallery/GalleryO1.astro';
-import GalleryO2 from '../components/gallery/GalleryO2.astro';
-import GalleryO3 from '../components/gallery/GalleryO3.astro';
-import GalleryO4 from '../components/gallery/GalleryO4.astro';
-import GalleryO5 from '../components/gallery/GalleryO5.astro';
-
-// Contact components
-import ContactA from '../components/contact/ContactA.astro';
-import ContactB from '../components/contact/ContactB.astro';
-import ContactC from '../components/contact/ContactC.astro';
-import ContactD from '../components/contact/ContactD.astro';
-import ContactE from '../components/contact/ContactE.astro';
-import ContactF from '../components/contact/ContactF.astro';
-import ContactG from '../components/contact/ContactG.astro';
-import ContactH from '../components/contact/ContactH.astro';
-import ContactI from '../components/contact/ContactI.astro';
-import ContactJ from '../components/contact/ContactJ.astro';
-import ContactK1 from '../components/contact/ContactK1.astro';
-import ContactK2 from '../components/contact/ContactK2.astro';
-import ContactK3 from '../components/contact/ContactK3.astro';
-import ContactK4 from '../components/contact/ContactK4.astro';
-import ContactK5 from '../components/contact/ContactK5.astro';
-import ContactL1 from '../components/contact/ContactL1.astro';
-import ContactL2 from '../components/contact/ContactL2.astro';
-import ContactL3 from '../components/contact/ContactL3.astro';
-import ContactL4 from '../components/contact/ContactL4.astro';
-import ContactL5 from '../components/contact/ContactL5.astro';
-import ContactM1 from '../components/contact/ContactM1.astro';
-import ContactM2 from '../components/contact/ContactM2.astro';
-import ContactM3 from '../components/contact/ContactM3.astro';
-import ContactM4 from '../components/contact/ContactM4.astro';
-import ContactM5 from '../components/contact/ContactM5.astro';
-import ContactN1 from '../components/contact/ContactN1.astro';
-import ContactN2 from '../components/contact/ContactN2.astro';
-import ContactN3 from '../components/contact/ContactN3.astro';
-import ContactN4 from '../components/contact/ContactN4.astro';
-import ContactN5 from '../components/contact/ContactN5.astro';
-import ContactO1 from '../components/contact/ContactO1.astro';
-import ContactO2 from '../components/contact/ContactO2.astro';
-import ContactO3 from '../components/contact/ContactO3.astro';
-import ContactO4 from '../components/contact/ContactO4.astro';
-import ContactO5 from '../components/contact/ContactO5.astro';
-
-// ── New v01-spec blocks (render on every variant via this page) ──
-import LocationBlock from '../components/extras/LocationBlock.astro';
-import ServiceAreaBlock from '../components/extras/ServiceAreaBlock.astro';
-import ClickToMessage from '../components/extras/ClickToMessage.astro';
-import TrustBlock from '../components/extras/TrustBlock.astro';
-import WhyUsBlock from '../components/extras/WhyUsBlock.astro';
-import HowItWorksBlock from '../components/extras/HowItWorksBlock.astro';
-import TestimonialsBlock from '../components/extras/TestimonialsBlock.astro';
-import FaqBlock from '../components/extras/FaqBlock.astro';
-import CredentialsBlock from '../components/extras/CredentialsBlock.astro';
-import CtaBandBlock from '../components/extras/CtaBandBlock.astro';
-
-// Import site data
+import PageA from '../components/generic/PageA.astro';
+import PageB from '../components/generic/PageB.astro';
+import PageC from '../components/generic/PageC.astro';
+import PageD from '../components/generic/PageD.astro';
+import PageE from '../components/generic/PageE.astro';
+import PageF from '../components/barbershop/PageF.astro';
+import PageG from '../components/barbershop/PageG.astro';
+import PageH from '../components/barbershop/PageH.astro';
+import PageI from '../components/barbershop/PageI.astro';
+import PageJ from '../components/barbershop/PageJ.astro';
 import siteData from '../data/site-data.json';
 
-// Component maps
-const heroComponents: Record<string, any> = { A: HeroA, B: HeroB, C: HeroC, D: HeroD, E: HeroE, F: HeroF, G: HeroG, H: HeroH, I: HeroI, J: HeroJ, K1: HeroK1, K2: HeroK2, K3: HeroK3, K4: HeroK4, K5: HeroK5, L1: HeroL1, L2: HeroL2, L3: HeroL3, L4: HeroL4, L5: HeroL5, M1: HeroM1, M2: HeroM2, M3: HeroM3, M4: HeroM4, M5: HeroM5, M6: HeroM6, N1: HeroN1, N2: HeroN2, N3: HeroN3, N4: HeroN4, N5: HeroN5, O1: HeroO1, O2: HeroO2, O3: HeroO3, O4: HeroO4, O5: HeroO5 };
-const aboutComponents: Record<string, any> = { A: AboutA, B: AboutB, C: AboutC, D: AboutD, E: AboutE, F: AboutF, G: AboutG, H: AboutH, I: AboutI, J: AboutJ, K1: AboutK1, K2: AboutK2, K3: AboutK3, K4: AboutK4, K5: AboutK5, L1: AboutL1, L2: AboutL2, L3: AboutL3, L4: AboutL4, L5: AboutL5, M1: AboutM1, M2: AboutM2, M3: AboutM3, M4: AboutM4, M5: AboutM5, N1: AboutN1, N2: AboutN2, N3: AboutN3, N4: AboutN4, N5: AboutN5, O1: AboutO1, O2: AboutO2, O3: AboutO3, O4: AboutO4, O5: AboutO5 };
-const servicesComponents: Record<string, any> = { A: ServicesA, B: ServicesB, C: ServicesC, D: ServicesD, E: ServicesE, F: ServicesF, G: ServicesG, H: ServicesH, I: ServicesI, J: ServicesJ, K1: ServicesK1, K2: ServicesK2, K3: ServicesK3, K4: ServicesK4, K5: ServicesK5, L1: ServicesL1, L2: ServicesL2, L3: ServicesL3, L4: ServicesL4, L5: ServicesL5, M1: ServicesM1, M2: ServicesM2, M3: ServicesM3, M4: ServicesM4, M5: ServicesM5, N1: ServicesN1, N2: ServicesN2, N3: ServicesN3, N4: ServicesN4, N5: ServicesN5, O1: ServicesO1, O2: ServicesO2, O3: ServicesO3, O4: ServicesO4, O5: ServicesO5 };
-const galleryComponents: Record<string, any> = { A: GalleryA, B: GalleryB, C: GalleryC, D: GalleryD, E: GalleryE, F: GalleryF, G: GalleryG, H: GalleryH, I: GalleryI, J: GalleryJ, K1: GalleryK1, K2: GalleryK2, K3: GalleryK3, K4: GalleryK4, K5: GalleryK5, L1: GalleryL1, L2: GalleryL2, L3: GalleryL3, L4: GalleryL4, L5: GalleryL5, M1: GalleryM1, M2: GalleryM2, M3: GalleryM3, M4: GalleryM4, M5: GalleryM5, N1: GalleryN1, N2: GalleryN2, N3: GalleryN3, N4: GalleryN4, N5: GalleryN5, O1: GalleryO1, O2: GalleryO2, O3: GalleryO3, O4: GalleryO4, O5: GalleryO5 };
-const contactComponents: Record<string, any> = { A: ContactA, B: ContactB, C: ContactC, D: ContactD, E: ContactE, F: ContactF, G: ContactG, H: ContactH, I: ContactI, J: ContactJ, K1: ContactK1, K2: ContactK2, K3: ContactK3, K4: ContactK4, K5: ContactK5, L1: ContactL1, L2: ContactL2, L3: ContactL3, L4: ContactL4, L5: ContactL5, M1: ContactM1, M2: ContactM2, M3: ContactM3, M4: ContactM4, M5: ContactM5, N1: ContactN1, N2: ContactN2, N3: ContactN3, N4: ContactN4, N5: ContactN5, O1: ContactO1, O2: ContactO2, O3: ContactO3, O4: ContactO4, O5: ContactO5 };
+const layout = (siteData as any).layout ?? {};
+const customizations = (siteData as any).customizations ?? {};
+const content = (siteData as any).content ?? {};
 
-// Select components based on customizations
-const HeroComponent = heroComponents[siteData.customizations.heroStyle] || HeroA;
-const AboutComponent = aboutComponents[siteData.customizations.aboutStyle] || AboutA;
-const ServicesComponent = servicesComponents[siteData.customizations.servicesStyle] || ServicesA;
-const GalleryComponent = galleryComponents[siteData.customizations.galleryStyle] || GalleryA;
-const ContactComponent = contactComponents[siteData.customizations.contactStyle] || ContactA;
-
-// Visibility shortcuts
-const vis = siteData.visibility;
+const heroStyle: string = customizations.heroStyle ?? '';
+const genericMatch = /^generic:([A-E])$/.exec(heroStyle);
+const genericLetter = genericMatch ? genericMatch[1] : null;
+const barbershopMatch = /^barbershop:([F-J])$/.exec(heroStyle);
+const barbershopLetter = barbershopMatch ? barbershopMatch[1] : null;
+const anyLetter = genericLetter || barbershopLetter;
 ---
 
-<BaseLayout
-  businessName={siteData.layout.businessName}
-  tagline={siteData.layout.tagline}
-  navLinks={siteData.layout.navLinks}
-  socialLinks={siteData.layout.socialLinks}
-  colorScheme={siteData.layout.colorScheme}
-  fontPairing={siteData.layout.fontPairing}
-  contact={siteData.layout.contact}
-  navbarStyle={siteData.customizations.heroStyle}
-  showScrollTop={vis.scrollTopButton !== false}
-  favicon={(siteData.layout as any).favicon}
-  ogImage={(siteData.layout as any).ogImage}
->
-  {vis.heroSection !== false && (
-    <HeroComponent {...siteData.hero} />
-  )}
-
-  {/* Trust ribbon — credibility before they spend attention */}
-  <TrustBlock
-    years={(siteData as any).trust?.years}
-    licenses={(siteData as any).trust?.licenses}
-    memberships={(siteData as any).trust?.memberships}
-    variantStyle={(siteData.customizations as any)?.trustStyle}
-    visibility={vis}
-  />
-
-  {vis.aboutSection !== false && (
-    <AboutComponent {...siteData.about} />
-  )}
-
-  {vis.servicesSection !== false && (
-    <ServicesComponent {...siteData.services} />
-  )}
-
-  {/* Why-us — answers "why you over a competitor?" */}
-  <WhyUsBlock
-    items={(siteData as any).why}
-    variantStyle={(siteData.customizations as any)?.whyUsStyle}
-    visibility={vis}
-  />
-
-  {/* How-it-works — kills "what happens if I contact them?" friction */}
-  <HowItWorksBlock
-    items={(siteData as any).how}
-    variantStyle={(siteData.customizations as any)?.howItWorksStyle}
-    visibility={vis}
-  />
-
-  {/* Testimonials — social proof */}
-  <TestimonialsBlock
-    items={(siteData as any).testimonials}
-    variantStyle={(siteData.customizations as any)?.testimonialsStyle}
-    visibility={vis}
-  />
-
-  {vis.gallerySection !== false && (
-    <GalleryComponent {...siteData.gallery} />
-  )}
-
-  {/* FAQ — kills last objections + wins Google "People also ask" */}
-  <FaqBlock
-    items={(siteData as any).faq}
-    variantStyle={(siteData.customizations as any)?.faqStyle}
-    visibility={vis}
-  />
-
-  {/* ServiceArea — long-tail "[service] in [town]" SEO */}
-  {(siteData as any).serviceArea && (
-    <ServiceAreaBlock
-      heading={(siteData as any).serviceArea?.heading}
-      places={(siteData as any).serviceArea?.places ?? []}
-      variantStyle={(siteData.customizations as any)?.serviceAreaStyle}
-      visibility={vis}
-    />
-  )}
-
-  {/* Credentials — hard trust (licenced/insured); decisive for medical & trades */}
-  <CredentialsBlock
-    items={(siteData as any).credentials}
-    variantStyle={(siteData.customizations as any)?.credentialsStyle}
-    visibility={vis}
-  />
-
-  {/* Location (NAP + Leaflet pin) — local-SEO backbone */}
-  <LocationBlock
-    businessName={siteData.layout.businessName}
-    address={siteData.layout.contact?.address}
-    phone={siteData.layout.contact?.phone}
-    email={siteData.layout.contact?.email}
-    lat={(siteData as any).location?.lat}
-    lng={(siteData as any).location?.lng}
-    googleMapsUrl={(siteData as any).location?.googleMapsUrl}
-    visibility={vis}
-  />
-
-  {/* CTA band — re-offers the action so they don't scroll back up */}
-  <CtaBandBlock
-    heading={(siteData as any).ctaBand?.heading}
-    body={(siteData as any).ctaBand?.body}
-    primaryLabel={(siteData as any).ctaBand?.primaryLabel}
-    primaryLink={(siteData as any).ctaBand?.primaryLink}
-    secondaryLabel={(siteData as any).ctaBand?.secondaryLabel}
-    secondaryLink={(siteData as any).ctaBand?.secondaryLink}
-    variantStyle={(siteData.customizations as any)?.ctaBandStyle}
-    visibility={vis}
-  />
-
-  {vis.contactSection !== false && (
-    <ContactComponent {...siteData.contact} />
-  )}
-
-  {/* Floating click-to-message FAB */}
-  <ClickToMessage
-    whatsapp={(siteData as any).messaging?.whatsapp}
-    messenger={(siteData as any).messaging?.messenger}
-    variantStyle={(siteData.customizations as any)?.clickToMessageStyle}
-    visibility={vis}
-  />
-</BaseLayout>
+{genericLetter === 'A' && <PageA siteData={siteData} />}
+{genericLetter === 'B' && <PageB siteData={siteData} />}
+{genericLetter === 'C' && <PageC siteData={siteData} />}
+{genericLetter === 'D' && <PageD siteData={siteData} />}
+{genericLetter === 'E' && <PageE siteData={siteData} />}
+{barbershopLetter === 'F' && <PageF siteData={siteData} />}
+{barbershopLetter === 'G' && <PageG siteData={siteData} />}
+{barbershopLetter === 'H' && <PageH siteData={siteData} />}
+{barbershopLetter === 'I' && <PageI siteData={siteData} />}
+{barbershopLetter === 'J' && <PageJ siteData={siteData} />}
+{!anyLetter && (
+  <BaseLayout
+    businessName={layout.businessName ?? ''}
+    tagline={layout.tagline ?? ''}
+    navLinks={layout.navLinks ?? []}
+    socialLinks={layout.socialLinks ?? []}
+    colorScheme={layout.colorScheme ?? 'auto'}
+    fontPairing={layout.fontPairing ?? 'modern'}
+    contact={layout.contact ?? {}}
+    navbarStyle={layout.navbarStyle ?? 'A'}
+    showScrollTop={false}
+    favicon={(siteData as any).favicon}
+    ogImage={(siteData as any).ogImage}
+  >
+    <main class="min-h-screen flex items-center justify-center px-6 py-24">
+      <div class="max-w-xl text-center space-y-4">
+        <h1 class="text-3xl md:text-4xl font-semibold tracking-tight">
+          {content.hero?.headline ?? layout.businessName ?? 'Coming soon'}
+        </h1>
+        {content.hero?.description && (
+          <p class="text-base md:text-lg text-neutral-600 leading-relaxed">
+            {content.hero.description}
+          </p>
+        )}
+      </div>
+    </main>
+  </BaseLayout>
+)}

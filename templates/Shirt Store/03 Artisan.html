@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meridian Shirt Co. — Artisan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+:root{
+  --cream:#F1E8DB; --cream-2:#E8DCCB; --paper:#FBF6EC; --ink:#2B211A; --ink-soft:#6B5C4E;
+  --clay:#BC5E3C; --clay-d:#9C4A2D; --sage:#7C8A66; --gold:#B07A2E;
+  --line:rgba(43,33,26,.16); --line-2:rgba(43,33,26,.28);
+  --ink-rgb:43,33,26; --paper-rgb:241,232,219; --accent-rgb:188,94,60;
+  --disp:"Newsreader",Georgia,serif; --body:"Work Sans",-apple-system,"Segoe UI",sans-serif;
+  --r:14px; --r-lg:24px; --sh:0 18px 44px -16px rgba(43,33,26,.34);
+  --maxw:1320px; --pad:clamp(20px,5vw,72px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--cream);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--pad);padding-right:var(--pad)}
+.kicker{font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--clay)}
+.kicker.line{display:inline-flex;align-items:center;gap:12px}
+.kicker.line::before{content:"";width:30px;height:1px;background:var(--clay)}
+h1,h2,h3{font-family:var(--disp);font-weight:300;line-height:1.02;letter-spacing:-.01em}
+.it{font-style:italic;color:var(--clay)}
+section{position:relative}
+.btn{display:inline-flex;align-items:center;gap:.55em;font-family:var(--body);font-weight:600;font-size:14px;letter-spacing:.02em;padding:15px 28px;min-height:50px;border-radius:999px;border:1.5px solid var(--ink);transition:transform .35s cubic-bezier(.2,.8,.1,1),background .3s,color .3s,box-shadow .3s}
+.btn:hover{transform:translateY(-2px);box-shadow:var(--sh)}
+.btn-fill{background:var(--clay);border-color:var(--clay);color:#fff}
+.btn-fill:hover{background:var(--clay-d);border-color:var(--clay-d)}
+.btn-out:hover{background:var(--ink);color:var(--cream)}
+.link{font-family:var(--body);font-size:13px;font-weight:600;letter-spacing:.02em;display:inline-flex;align-items:center;gap:7px;color:var(--clay);transition:gap .25s}
+.link:hover{gap:12px}
+image-slot{--is-bg:#DFD2BF;--is-fg:#9d8b73;border-radius:var(--r)}
+
+.hl{display:block;overflow:hidden}
+.hl span{display:block}
+.fig{overflow:hidden}
+@media (prefers-reduced-motion: no-preference){
+  @keyframes mrise{from{transform:translateY(112%)}to{transform:translateY(0)}}
+  @keyframes mfade{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+  @keyframes mclip{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+  .reveal.in{animation:mfade .9s cubic-bezier(.2,.8,.1,1) both;animation-delay:calc(var(--i,0)*.08s)}
+  .hl.in span{animation:mrise 1s cubic-bezier(.2,.85,.15,1) both;animation-delay:calc(.08s + var(--l,0)*.12s)}
+  .clip.in{animation:mclip 1.1s cubic-bezier(.55,0,.1,1) both;animation-delay:calc(var(--i,0)*.1s)}
+  .clip.in image-slot{animation:zoomout 1.6s cubic-bezier(.2,.7,0,1) both}
+  @keyframes zoomout{from{transform:scale(1.12)}to{transform:scale(1)}}
+}
+
+/* header */
+header.nav{position:sticky;top:0;z-index:60;background:rgba(241,232,219,.86);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;gap:22px;height:74px}
+.logo{font-family:var(--disp);font-size:27px;letter-spacing:-.01em;white-space:nowrap}
+.logo .it{font-style:italic}
+.nav-links{display:flex;gap:30px;font-size:14px;font-weight:500}
+.nav-links a{position:relative;color:var(--ink-soft);padding:4px 0}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:0;width:0;height:1.5px;background:var(--clay);transition:width .3s;border-radius:2px}
+.nav-links a:hover{color:var(--ink)}.nav-links a:hover::after{width:100%}
+.nav-right{display:flex;align-items:center;gap:20px}
+.nav-phone{font-size:14px;font-weight:600}
+.nav .btn{padding:10px 20px;min-height:42px}
+@media(max-width:940px){.nav-links,.nav-phone{display:none}}
+
+/* hero — editorial split + image triptych */
+.hero{padding:clamp(30px,5vw,68px) 0 clamp(44px,6vw,84px)}
+.hero-grid{display:grid;grid-template-columns:1fr 1.08fr;gap:clamp(30px,5vw,72px);align-items:center}
+.hero-copy .kicker{margin-bottom:20px}
+.hero h1{font-size:clamp(46px,6.4vw,108px);font-weight:300}
+.hero h1 .it{color:var(--clay)}
+.hero-sub{font-size:clamp(17px,1.35vw,20px);color:var(--ink-soft);max-width:36ch;margin:26px 0 30px}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap}
+.hero-rate{display:flex;align-items:center;gap:12px;margin-top:30px;color:var(--ink-soft);font-size:14px}
+.hero-rate .stars{color:var(--clay);letter-spacing:2px;font-size:16px}
+.hero-rate b{font-family:var(--disp);color:var(--ink);font-size:19px;font-weight:400}
+.hero-art{position:relative;display:grid;grid-template-columns:1.28fr .82fr;grid-template-rows:1fr 1fr;gap:16px;height:min(78vh,660px)}
+.hero-art .fig{border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh)}
+.hero-art image-slot{width:100%;height:100%;border-radius:0;transition:transform .8s cubic-bezier(.2,.8,.1,1)}
+.hero-art .fig:hover image-slot{transform:scale(1.05)}
+.hero-art .a{grid-row:1 / span 2}
+.hero-seal{position:absolute;top:16px;left:16px;width:104px;height:104px;border-radius:50%;background:var(--clay);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--disp);font-style:italic;font-size:16px;line-height:1.14;box-shadow:var(--sh);z-index:3;border:1.5px solid rgba(255,255,255,.5)}
+@media(max-width:840px){.hero-grid{grid-template-columns:1fr}.hero-art{order:-1;height:auto;grid-template-rows:auto auto}.hero-art .a{grid-row:auto;grid-column:1 / -1;aspect-ratio:16/10}.hero-art .b,.hero-art .c{aspect-ratio:1/1}}
+
+/* trust — warm band */
+.trust{margin-top:clamp(40px,5vw,72px)}
+.trust-row{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.trust-card{background:var(--paper);border-radius:var(--r-lg);padding:26px 24px;border:1px solid var(--line)}
+.trust-card .n{font-family:var(--disp);font-size:clamp(34px,3.6vw,50px)}
+.trust-card .t{font-size:13px;color:var(--ink-soft);margin-top:4px}
+.trust-card:nth-child(2) .n,.trust-card:nth-child(4) .n{color:var(--clay)}
+@media(max-width:720px){.trust-row{grid-template-columns:1fr 1fr}}
+
+/* about — story split */
+.about{padding:clamp(64px,9vw,140px) 0}
+.about-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(32px,5vw,84px);align-items:center}
+.about-fig{position:relative}
+.about-fig image-slot{width:100%;height:min(76vh,680px)}
+.about-fig .stamp{position:absolute;right:-14px;top:-14px;width:118px;height:118px;border-radius:50%;background:var(--clay);color:#fff;display:flex;align-items:center;justify-content:center;text-align:center;font-family:var(--disp);font-style:italic;font-size:17px;line-height:1.12;box-shadow:var(--sh);padding:12px}
+.about h2{font-size:clamp(34px,4.6vw,64px);margin:16px 0 22px}
+.about p{font-size:18px;color:var(--ink-soft);margin-bottom:16px;max-width:50ch}
+.about .pull{font-family:var(--disp);font-style:italic;font-size:clamp(22px,2.4vw,30px);line-height:1.3;color:var(--ink);margin:26px 0;padding-left:22px;border-left:2px solid var(--clay)}
+.about-stats{display:flex;gap:36px;margin-top:24px;flex-wrap:wrap}
+.about-stats .n{font-family:var(--disp);font-size:36px;color:var(--clay)}
+.about-stats .t{font-size:13px;color:var(--ink-soft)}
+@media(max-width:840px){.about-grid{grid-template-columns:1fr}.about-fig{order:-1}}
+
+/* collection — warm catalogue grid */
+.coll{padding:clamp(40px,6vw,80px) 0 clamp(56px,8vw,120px);background:var(--cream-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.coll-head{text-align:center;max-width:640px;margin:0 auto clamp(34px,5vw,56px)}
+.coll-head h2{font-size:clamp(36px,5vw,72px);margin-top:12px}
+.coll-head p{color:var(--ink-soft);margin-top:14px}
+.coll-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(16px,2vw,26px)}
+.pcard{background:var(--paper);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);display:flex;flex-direction:column;transition:transform .4s cubic-bezier(.2,.8,.1,1),box-shadow .4s}
+.pcard:hover{transform:translateY(-6px);box-shadow:var(--sh)}
+.pcard .fig{position:relative;overflow:hidden}
+.pcard image-slot{width:100%;border-radius:0;transition:transform .7s cubic-bezier(.2,.8,.1,1)}
+.pcard:hover image-slot{transform:scale(1.05)}
+.pcard .num{position:absolute;top:14px;left:14px;font-family:var(--disp);font-style:italic;font-size:18px;background:var(--paper);width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--clay);z-index:2}
+.pcard .body{padding:22px 24px;display:flex;flex-direction:column;flex:1}
+.pcard h3{font-size:27px;margin-bottom:8px}
+.pcard p{font-size:14px;color:var(--ink-soft);margin-bottom:16px;flex:1}
+.pcard .foot{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pcard .spec{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--sage);font-weight:600}
+.feat{grid-column:span 3;grid-row:span 2}
+.feat image-slot{height:min(72vh,600px)}
+.feat .body{padding:clamp(24px,2.5vw,34px)}
+.feat h3{font-size:clamp(30px,3vw,44px)}
+.feat p{font-size:16px}
+.half{grid-column:span 3}
+.half image-slot{height:300px}
+@media(max-width:860px){.coll-grid{grid-template-columns:1fr 1fr}.feat,.half{grid-column:span 1}.feat image-slot{height:420px}}
+@media(max-width:560px){.coll-grid{grid-template-columns:1fr}.feat,.half{grid-column:span 1}.half image-slot{height:340px}}
+
+/* why — warm split list + image */
+.why{padding:clamp(64px,9vw,140px) 0}
+.why-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(32px,5vw,80px);align-items:center}
+.why-fig image-slot{width:100%;height:min(70vh,620px)}
+.why h2{font-size:clamp(32px,4.4vw,58px);margin-bottom:10px}
+.why-intro{color:var(--ink-soft);max-width:42ch;margin-bottom:30px}
+.why-item{display:grid;grid-template-columns:54px 1fr;gap:18px;padding:22px 0;border-top:1px solid var(--line);align-items:start}
+.why-item:last-child{border-bottom:1px solid var(--line)}
+.why-ic{width:46px;height:46px;border-radius:50%;background:var(--paper);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-style:italic;color:var(--clay);font-size:19px}
+.why-item h3{font-family:var(--disp);font-size:24px;font-weight:400}
+.why-item p{font-size:15px;color:var(--ink-soft);margin-top:4px;max-width:50ch}
+@media(max-width:840px){.why-grid{grid-template-columns:1fr}.why-fig{order:-1}}
+
+/* how — warm steps over image band */
+.how{padding:clamp(60px,8vw,130px) 0;background:var(--ink);color:var(--cream)}
+.how .kicker{color:#E2A786}
+.how .kicker.line::before{background:#E2A786}
+.how h2{color:var(--cream);font-size:clamp(32px,4.4vw,58px);margin:14px 0 50px}
+.how h2 .it{color:#E2A786}
+.how-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,5vw,72px);align-items:center}
+.how-fig image-slot{width:100%;height:min(64vh,540px);border:1px solid rgba(241,232,219,.2)}
+.how-steps{display:grid}
+.how-step{display:grid;grid-template-columns:60px 1fr;gap:22px;padding:24px 0;position:relative;border-top:1px solid rgba(241,232,219,.18)}
+.how-step:first-child{border-top:0}
+.how-dot{width:50px;height:50px;border-radius:50%;border:1.5px solid #E2A786;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-size:22px;color:#E2A786}
+.how-step h3{font-family:var(--disp);color:var(--cream);font-size:26px;font-weight:400;margin-bottom:6px}
+.how-step p{color:rgba(241,232,219,.72);font-size:15px;max-width:48ch}
+@media(max-width:840px){.how-grid{grid-template-columns:1fr}.how-fig{order:-1}}
+
+/* testimonials — warm cards */
+.test{padding:clamp(64px,9vw,140px) 0}
+.test-head{text-align:center;margin-bottom:46px}
+.test-head h2{font-size:clamp(34px,4.6vw,60px);margin-top:12px}
+.test-grid{columns:2;column-gap:22px}
+.rev{break-inside:avoid;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);padding:30px;margin-bottom:22px}
+.rev .stars{color:var(--clay);letter-spacing:2px;font-size:17px}
+.rev .q{font-family:var(--disp);font-size:23px;line-height:1.34;margin:14px 0 22px}
+.rev .by{display:flex;align-items:center;gap:13px;font-size:14px}
+.rev .av{width:40px;height:40px;border-radius:50%;background:var(--sage);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600}
+.rev .src{color:var(--ink-soft);font-size:13px}
+@media(max-width:680px){.test-grid{columns:1}}
+
+/* gallery — warm masonry */
+.gal{padding:clamp(56px,8vw,120px) 0;background:var(--cream-2);border-top:1px solid var(--line)}
+.gal-head{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:30px}
+.gal-head h2{font-size:clamp(34px,4.6vw,62px)}
+.gal-grid{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:120px;gap:16px}
+.gi{position:relative;border-radius:var(--r);overflow:hidden}
+.gi image-slot{width:100%;height:100%;border-radius:0;transition:transform .8s cubic-bezier(.2,.8,.1,1)}
+.gi:hover image-slot{transform:scale(1.06)}
+.gi::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,rgba(43,33,26,.5),transparent 60%);opacity:0;transition:.45s}
+.gi:hover::after{opacity:1}
+.gi .cap{position:absolute;left:16px;bottom:14px;right:16px;display:flex;justify-content:space-between;align-items:flex-end;color:#fff;opacity:0;transform:translateY(8px);transition:.45s;z-index:2}
+.gi:hover .cap{opacity:1;transform:none}
+.gi .cap .t{font-family:var(--disp);font-size:19px}
+.gi .cap .x{font-size:11px;letter-spacing:.18em}
+.gi-1{grid-column:span 7;grid-row:span 4}
+.gi-2{grid-column:span 5;grid-row:span 2}
+.gi-3{grid-column:span 5;grid-row:span 2}
+.gi-4{grid-column:span 4;grid-row:span 3}
+.gi-5{grid-column:span 4;grid-row:span 3}
+.gi-6{grid-column:span 4;grid-row:span 3}
+@media(max-width:780px){.gal-grid{grid-template-columns:1fr 1fr;grid-auto-rows:140px}.gi-1{grid-column:span 2;grid-row:span 3}.gi-2,.gi-3,.gi-4,.gi-5,.gi-6{grid-column:span 1;grid-row:span 2}}
+
+/* faq — warm 2col */
+.faq{padding:clamp(64px,9vw,140px) 0}
+.faq-grid{display:grid;grid-template-columns:.7fr 1.3fr;gap:clamp(26px,5vw,72px)}
+.faq h2{font-size:clamp(32px,4.4vw,56px)}
+.faq-sub{color:var(--ink-soft);margin-top:16px;max-width:32ch}
+.faq-list{display:grid;gap:14px}
+details.qa{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+details.qa summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:18px;align-items:center;padding:22px 26px;font-family:var(--disp);font-size:22px}
+details.qa summary::-webkit-details-marker{display:none}
+details.qa .pm{font-family:var(--body);font-size:24px;color:var(--clay);transition:transform .3s}
+details.qa[open] .pm{transform:rotate(45deg)}
+details.qa .ans{padding:0 26px 24px;color:var(--ink-soft);max-width:62ch}
+@media(max-width:780px){.faq-grid{grid-template-columns:1fr}}
+
+/* area — warm chips on sage */
+.area{padding:clamp(60px,8vw,120px) 0;background:var(--sage);color:#fff}
+.area-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,60px);align-items:center}
+.area .kicker{color:#EAF0E2}.area .kicker.line::before{background:#EAF0E2}
+.area h2{color:#fff;font-size:clamp(32px,4.4vw,56px);margin:14px 0 14px}
+.area h2 .it{color:#F2E3C9}
+.area p{color:rgba(255,255,255,.85);max-width:42ch}
+.chips{display:flex;flex-wrap:wrap;gap:12px}
+.chips span{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:10px 18px;font-size:14px;font-weight:500}
+.chips .ship{background:#fff;color:var(--sage);border-color:#fff;font-weight:600}
+
+/* credentials — seals */
+.creds{padding:clamp(60px,8vw,120px) 0;text-align:center}
+.creds h2{font-size:clamp(30px,4vw,52px);margin:10px 0 44px}
+.creds-row{display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.seal{display:flex;flex-direction:column;align-items:center;gap:14px}
+.seal .ring{width:104px;height:104px;border-radius:50%;border:2px dashed var(--clay);display:flex;align-items:center;justify-content:center;background:var(--paper)}
+.seal .ring span{width:78px;height:78px;border-radius:50%;background:var(--clay);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--disp);font-style:italic;font-size:30px}
+.seal .ct{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.seal .cn{font-family:var(--disp);font-size:21px;margin-top:-8px}
+@media(max-width:720px){.creds-row{grid-template-columns:1fr 1fr}}
+
+/* location — warm map card */
+.loc{padding:0 0 clamp(64px,9vw,130px)}
+.loc-card{display:grid;grid-template-columns:1fr 1.15fr;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--sh);max-width:var(--maxw);margin:0 auto}
+.loc-info{padding:clamp(36px,4vw,60px)}
+.loc-info h2{font-size:clamp(32px,4.4vw,56px);margin:12px 0 22px}
+.loc-info h2 .it{color:var(--clay)}
+.loc-line{display:grid;grid-template-columns:90px 1fr;gap:14px;padding:15px 0;border-top:1px solid var(--line);font-size:16px}
+.loc-line .k{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--clay);margin-top:4px}
+.loc-line a{border-bottom:1px solid var(--clay)}
+#map03{min-height:460px;height:100%;width:100%;background:var(--cream-2)}
+@media(max-width:840px){.loc-card{grid-template-columns:1fr}#map03{min-height:330px}}
+
+/* closing — full-bleed image */
+.cta{padding:clamp(20px,3vw,40px) var(--pad) clamp(56px,8vw,110px)}
+.cta-stage{position:relative;border-radius:var(--r-lg);overflow:hidden;max-width:var(--maxw);margin:0 auto;min-height:min(70vh,560px);display:flex;align-items:center;justify-content:center;text-align:center}
+.cta-stage image-slot{position:absolute;inset:0;width:100%;height:100%;border-radius:0}
+.cta-stage .scrim{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(43,33,26,.42),rgba(156,74,45,.6))}
+.cta-in{position:relative;z-index:2;color:#fff;padding:40px var(--pad)}
+.cta h2{color:#fff;font-size:clamp(40px,7vw,104px);font-weight:300}
+.cta h2 .it{color:#F2E3C9}
+.cta p{color:rgba(255,255,255,.88);max-width:42ch;margin:16px auto 0}
+.cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+.cta .btn-fill{background:#fff;border-color:#fff;color:var(--clay)}
+.cta .btn-fill:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+.cta .btn-out{color:#fff;border-color:rgba(255,255,255,.6)}
+.cta .btn-out:hover{background:#fff;color:var(--clay)}
+
+/* footer */
+footer{background:var(--ink);color:var(--cream);padding:clamp(50px,7vw,90px) 0 30px}
+.foot-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:34px}
+.foot-logo{font-family:var(--disp);font-size:30px;margin-bottom:14px}
+.foot-logo .it{font-style:italic}
+.foot-grid p,.foot-grid a{color:rgba(241,232,219,.64);font-size:14px;line-height:1.9}
+.foot-grid a:hover{color:var(--cream)}
+.foot-h{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#E2A786;margin-bottom:12px}
+.foot-col{display:flex;flex-direction:column;gap:4px}
+.foot-bottom{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:46px;padding-top:22px;border-top:1px solid rgba(241,232,219,.18);font-size:12px;color:rgba(241,232,219,.5)}
+@media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr}}
+
+/* floating + switcher */
+.float{position:fixed;right:20px;bottom:20px;z-index:70}
+.float a{display:inline-flex;align-items:center;gap:9px;background:var(--clay);color:#fff;padding:14px 22px;border-radius:999px;font-weight:600;font-size:14px;box-shadow:var(--sh);transition:transform .3s}
+.float a:hover{transform:translateY(-3px)}
+.float .fdot{width:9px;height:9px;border-radius:50%;background:#fff}
+.switch{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:80;display:flex;gap:2px;background:var(--ink);padding:5px;border-radius:999px;box-shadow:var(--sh)}
+.switch a{font-family:var(--body);font-size:12px;font-weight:600;color:rgba(241,232,219,.6);padding:8px 13px;min-width:40px;text-align:center;border-radius:999px;transition:.25s}
+.switch a:hover{color:var(--cream)}
+.switch a.on{background:var(--clay);color:#fff}
+@media(max-width:560px){.switch a{padding:7px 10px;min-width:34px}}
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="03 Artisan">
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="logo">Meridian <span class="it">&amp; Co.</span></a>
+    <nav class="nav-links">
+      <a href="#shirts">Shirts</a><a href="#story">About</a><a href="#how">How it works</a><a href="#reviews">Reviews</a><a href="#visit">Visit</a>
+    </nav>
+    <div class="nav-right">
+      <a href="tel:+14155550148" class="nav-phone">(415) 555-0148</a>
+      <a href="#shirts" class="btn btn-fill">Shop the collection</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="kicker line">Est. San Francisco — Crafted shirts</span>
+      <h1>
+        <span class="hl"><span style="--l:0">Shirts you'll</span></span>
+        <span class="hl"><span style="--l:1">reach for</span></span>
+        <span class="hl"><span style="--l:2" class="it">first.</span></span>
+      </h1>
+      <p class="hero-sub reveal" style="--i:1">Heavyweight organic cotton, honest construction, and a fit that outlasts the season. Made in small runs in San Francisco.</p>
+      <div class="hero-cta reveal" style="--i:2">
+        <a href="#shirts" class="btn btn-fill">Shop the collection</a>
+        <a href="#visit" class="btn btn-out">Visit the flagship</a>
+      </div>
+      <div class="hero-rate reveal" style="--i:3"><span class="stars">★★★★★</span><span><b>4.9</b> average — kept live on Google</span></div>
+    </div>
+    <div class="hero-art">
+      <figure class="fig a clip"><image-slot id="hero-main" placeholder="Drop — model in oxford, warm light (portrait)"></image-slot></figure>
+      <figure class="fig b clip reveal" style="--i:1"><image-slot id="product-tee" placeholder="Drop — folded tee detail"></image-slot></figure>
+      <figure class="fig c clip reveal" style="--i:2"><image-slot id="fabric-macro" placeholder="Drop — fabric macro"></image-slot></figure>
+      <span class="hero-seal">Small<br />batch</span>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section class="trust">
+  <div class="wrap trust-row">
+    <div class="trust-card reveal"><div class="n">12k+</div><div class="t">Customers dressed</div></div>
+    <div class="trust-card reveal" style="--i:1"><div class="n">4.9★</div><div class="t">Rated on Google</div></div>
+    <div class="trust-card reveal" style="--i:2"><div class="n">100%</div><div class="t">Organic cotton</div></div>
+    <div class="trust-card reveal" style="--i:3"><div class="n">30-day</div><div class="t">Free returns</div></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="story">
+  <div class="wrap about-grid">
+    <figure class="about-fig fig clip reveal">
+      <image-slot id="flagship-interior" placeholder="Drop — flagship interior / workroom, warm"></image-slot>
+      <span class="stamp">Small<br />batch<br />since day one</span>
+    </figure>
+    <div>
+      <span class="kicker line reveal">Our story</span>
+      <h2 class="reveal" style="--i:1">The perfect shirt that <span class="it">refused</span> to fall apart.</h2>
+      <p class="reveal" style="--i:1">Meridian began with one frustration: the perfect white tee that went thin after a season. We spent two years sourcing long-staple organic cotton, refining a heavier 240gsm knit, and obsessing over collars that hold their shape.</p>
+      <blockquote class="pull reveal" style="--i:2">We make a tight collection of shirts we'd wear every day — and do.</blockquote>
+      <div class="about-stats reveal" style="--i:2">
+        <div><div class="n">2 yrs</div><div class="t">to get it right</div></div>
+        <div><div class="n">5</div><div class="t">shirts in the line</div></div>
+        <div><div class="n">1</div><div class="t">flagship in SF</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COLLECTION -->
+<section class="coll" id="shirts">
+  <div class="wrap">
+    <div class="coll-head">
+      <span class="kicker">The collection</span>
+      <h2 class="reveal">Five shirts, <span class="it">done right.</span></h2>
+      <p class="reveal" style="--i:1">A deliberately small range — each one earns its place in the drawer.</p>
+    </div>
+    <div class="coll-grid">
+      <div class="pcard feat reveal">
+        <div class="fig"><span class="num">01</span><image-slot id="product-tee" placeholder="Drop — The Everyday Tee, on body or flatlay"></image-slot></div>
+        <div class="body"><h3>The Everyday Tee</h3><p>240gsm organic combed cotton in classic or boxy fit. The one you'll reach for first, every single morning — heavyweight, opaque, and softer with every wash.</p><div class="foot"><span class="link">Shop the tee →</span><span class="spec">Heavyweight knit</span></div></div>
+      </div>
+      <div class="pcard half reveal" style="--i:1">
+        <div class="fig"><span class="num">02</span><image-slot id="product-oxford" placeholder="Drop — The Washed Oxford"></image-slot></div>
+        <div class="body"><h3>The Washed Oxford</h3><p>Soft from day one, with a structured collar that keeps its roll.</p><div class="foot"><span class="link">Shop the oxford →</span><span class="spec">140gsm</span></div></div>
+      </div>
+      <div class="pcard half reveal" style="--i:2">
+        <div class="fig"><span class="num">03</span><image-slot id="product-crew" placeholder="Drop — The Heavyweight Crew"></image-slot></div>
+        <div class="body"><h3>The Heavyweight Crew</h3><p>Structured, opaque, built to hold its shape through years of wash days.</p><div class="foot"><span class="link">Shop the crew →</span><span class="spec">Structured</span></div></div>
+      </div>
+      <div class="pcard half reveal">
+        <div class="fig"><span class="num">04</span><image-slot id="product-linen" placeholder="Drop — The Linen Camp Shirt"></image-slot></div>
+        <div class="body"><h3>The Linen Camp Shirt</h3><p>Breathable European linen, relaxed through the body, ready for summer.</p><div class="foot"><span class="link">Shop the linen →</span><span class="spec">Pure linen</span></div></div>
+      </div>
+      <div class="pcard half reveal" style="--i:1">
+        <div class="fig"><span class="num">05</span><image-slot id="product-custom" placeholder="Drop — monogram / embroidery detail"></image-slot></div>
+        <div class="body"><h3>Custom &amp; Monogram</h3><p>Add a quiet monogram online, or small-run embroidery for teams and gifts.</p><div class="foot"><span class="link">Start a custom order →</span><span class="spec">Made to order</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="why">
+  <div class="wrap why-grid">
+    <figure class="why-fig fig clip reveal"><image-slot id="fabric-macro" placeholder="Drop — fabric macro / weave close-up"></image-slot></figure>
+    <div>
+      <span class="kicker line reveal">Why Meridian</span>
+      <h2 class="reveal" style="--i:1">The difference is <span class="it">in the details.</span></h2>
+      <p class="why-intro reveal" style="--i:1">Anyone can sell a plain shirt. This is why ours come back from the wash looking like the day you bought them.</p>
+      <div class="why-item reveal"><div class="why-ic">i</div><div><h3>Long-staple organic cotton</h3><p>Smoother, stronger fibres that resist pilling and keep their hand-feel for years.</p></div></div>
+      <div class="why-item reveal" style="--i:1"><div class="why-ic">ii</div><div><h3>Pre-shrunk &amp; colorfast</h3><p>Garment-washed before you ever see them — what you try on is what you keep.</p></div></div>
+      <div class="why-item reveal" style="--i:2"><div class="why-ic">iii</div><div><h3>Reinforced collars &amp; seams</h3><p>Double-stitched stress points and taped shoulders that hold their shape.</p></div></div>
+      <div class="why-item reveal" style="--i:3"><div class="why-ic">iv</div><div><h3>Small runs, restocked</h3><p>We make less, more carefully — and bring back what works, not trends.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="how" id="how">
+  <div class="wrap">
+    <span class="kicker line">How it works</span>
+    <h2 class="reveal">From drawer to <span class="it">doorstep.</span></h2>
+    <div class="how-grid">
+      <figure class="how-fig fig clip reveal"><image-slot id="gallery-4" placeholder="Drop — lifestyle / fitting at the flagship"></image-slot></figure>
+      <div class="how-steps">
+        <div class="how-step reveal"><div class="how-dot">1</div><div><h3>Find your fit</h3><p>Take our 30-second fit quiz online, or book a fitting at the Valencia St flagship and we'll size you in person.</p></div></div>
+        <div class="how-step reveal" style="--i:1"><div class="how-dot">2</div><div><h3>Choose your shirts</h3><p>Order online or in-store. We keep the line tight on purpose, so the choice is calm and easy.</p></div></div>
+        <div class="how-step reveal" style="--i:2"><div class="how-dot">3</div><div><h3>Wear them in</h3><p>Free 30-day returns and free repairs on seams and buttons, for the whole life of the shirt.</p></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="test" id="reviews">
+  <div class="wrap">
+    <div class="test-head"><span class="kicker">Reviews · kept live on Google</span><h2 class="reveal">Loved, washed, <span class="it">reordered.</span></h2></div>
+    <div class="test-grid">
+      <div class="rev reveal"><div class="stars">★★★★★</div><div class="q">The only tee that's survived a year of weekly washes without going see-through. I bought five.</div><div class="by"><span class="av">M</span><div><div>Marcus T.</div><div class="src">via Google</div></div></div></div>
+      <div class="rev reveal" style="--i:1"><div class="stars">★★★★★</div><div class="q">Booked a fitting on a whim and walked out with the best oxford I own. No pressure — all craft.</div><div class="by"><span class="av">D</span><div><div>Dana R.</div><div class="src">via Google</div></div></div></div>
+      <div class="rev reveal"><div class="stars">★★★★★</div><div class="q">Ordered Tuesday, wore it Thursday. The cotton is unreal — heavy but soft.</div><div class="by"><span class="av">P</span><div><div>Priya S.</div><div class="src">via Trustpilot</div></div></div></div>
+      <div class="rev reveal" style="--i:1"><div class="stars">★★★★★</div><div class="q">They replaced a shirt with a snagged seam, no questions asked. That's why I keep coming back.</div><div class="by"><span class="av">L</span><div><div>Leo M.</div><div class="src">via Google</div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="gal">
+  <div class="wrap">
+    <div class="gal-head"><div><span class="kicker">In the wild</span><h2 class="reveal">Worn everywhere.</h2></div><p style="color:var(--ink-soft)">Tag <b>@meridianshirt</b> to be featured.</p></div>
+    <div class="gal-grid">
+      <div class="gi gi-1 reveal"><image-slot id="gallery-1" placeholder="Drop — hero on-body shot"></image-slot><div class="cap"><span class="t">The Everyday Tee</span><span class="x">01</span></div></div>
+      <div class="gi gi-2 reveal" style="--i:1"><image-slot id="gallery-2" placeholder="Drop — fabric macro"></image-slot><div class="cap"><span class="t">240gsm cotton</span><span class="x">02</span></div></div>
+      <div class="gi gi-3 reveal" style="--i:2"><image-slot id="gallery-3" placeholder="Drop — collar detail"></image-slot><div class="cap"><span class="t">Collar detail</span><span class="x">03</span></div></div>
+      <div class="gi gi-4 reveal" style="--i:1"><image-slot id="gallery-5" placeholder="Drop — linen camp shirt"></image-slot><div class="cap"><span class="t">Linen Camp Shirt</span><span class="x">04</span></div></div>
+      <div class="gi gi-5 reveal" style="--i:2"><image-slot id="gallery-6" placeholder="Drop — folded stack"></image-slot><div class="cap"><span class="t">Restocked, not churned</span><span class="x">05</span></div></div>
+      <div class="gi gi-6 reveal" style="--i:3"><image-slot id="about-image" placeholder="Drop — worktable detail"></image-slot><div class="cap"><span class="t">In the workroom</span><span class="x">06</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <div class="wrap faq-grid">
+    <div><span class="kicker line reveal">Good to know</span><h2 class="reveal" style="--i:1">Questions, <span class="it">answered.</span></h2><p class="faq-sub reveal" style="--i:1">Still unsure? Message us — a real person on Valencia St will reply.</p></div>
+    <div class="faq-list">
+      <details class="qa reveal"><summary>What weight is the cotton?<span class="pm">+</span></summary><div class="ans">Our tees are a heavyweight 240gsm organic combed cotton; oxfords are a midweight 140gsm washed cotton. Both stay opaque and hold their shape.</div></details>
+      <details class="qa reveal"><summary>How do your shirts fit?<span class="pm">+</span></summary><div class="ans">We offer classic and boxy fits. Every product page lists full measurements, or book a flagship fitting and we'll size you in person.</div></details>
+      <details class="qa reveal"><summary>Do they shrink?<span class="pm">+</span></summary><div class="ans">Everything is pre-shrunk and garment-washed, so what you try on is what you keep. Wash cold, hang or tumble low.</div></details>
+      <details class="qa reveal"><summary>What's your return policy?<span class="pm">+</span></summary><div class="ans">Free 30-day returns on unworn shirts, plus free repairs on seams and buttons for the life of the shirt.</div></details>
+      <details class="qa reveal"><summary>Do you do custom or team orders?<span class="pm">+</span></summary><div class="ans">Yes — add a monogram online, or talk to us about small-run embroidery for teams, events, and gifts.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- AREA -->
+<section class="area">
+  <div class="wrap area-grid">
+    <div>
+      <span class="kicker line">Where we serve</span>
+      <h2 class="reveal">Nationwide online, <span class="it">at home in SF.</span></h2>
+      <p class="reveal" style="--i:1">Free carbon-neutral shipping across the U.S. Our Valencia St flagship is a quick walk for these neighborhoods.</p>
+    </div>
+    <div class="chips reveal" style="--i:1">
+      <span class="ship">Free U.S. shipping</span><span>The Mission</span><span>Hayes Valley</span><span>Noe Valley</span><span>SoMa</span><span>The Castro</span><span>Bernal Heights</span><span>Potrero Hill</span><span>Cole Valley</span>
+    </div>
+  </div>
+</section>
+
+<!-- CREDENTIALS -->
+<section class="creds">
+  <div class="wrap">
+    <span class="kicker">Credentials</span>
+    <h2 class="reveal">Made the right way.</h2>
+    <div class="creds-row">
+      <div class="seal reveal"><div class="ring"><span>✓</span></div><div class="ct">Certified</div><div class="cn">GOTS organic</div></div>
+      <div class="seal reveal" style="--i:1"><div class="ring"><span>✦</span></div><div class="ct">Shipping</div><div class="cn">Carbon-neutral</div></div>
+      <div class="seal reveal" style="--i:2"><div class="ring"><span>✶</span></div><div class="ct">Sourcing</div><div class="cn">Fair-wage mills</div></div>
+      <div class="seal reveal" style="--i:3"><div class="ring"><span>∞</span></div><div class="ct">Forever</div><div class="cn">Free repairs</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section class="loc" id="visit">
+  <div class="wrap">
+    <div class="loc-card">
+      <div class="loc-info">
+        <span class="kicker line">Visit the flagship</span>
+        <h2 class="reveal">210 Valencia <span class="it">Street.</span></h2>
+        <div class="reveal" style="--i:1">
+          <div class="loc-line"><span class="k">Address</span><span>210 Valencia Street<br />San Francisco, CA 94103</span></div>
+          <div class="loc-line"><span class="k">Hours</span><span>Open daily — current hours kept live on Google</span></div>
+          <div class="loc-line"><span class="k">Phone</span><a href="tel:+14155550148">(415) 555-0148</a></div>
+          <div class="loc-line"><span class="k">Fittings</span><span>Walk-ins welcome; book ahead for a private fitting</span></div>
+        </div>
+      </div>
+      <div id="map03" aria-label="Map showing 210 Valencia Street, San Francisco"></div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section class="cta">
+  <div class="cta-stage">
+    <image-slot id="hero-main" placeholder="Drop — full-bleed closing image, warm"></image-slot>
+    <div class="scrim"></div>
+    <div class="cta-in">
+      <h2 class="reveal">Find the shirt you'll <span class="it">reach for first.</span></h2>
+      <p class="reveal" style="--i:1">Heavyweight cotton, honest construction, free repairs for life. Try one on.</p>
+      <div class="cta-row reveal" style="--i:1">
+        <a href="#shirts" class="btn btn-fill">Shop the collection</a>
+        <a href="#visit" class="btn btn-out">Book a fitting</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div><div class="foot-logo">Meridian <span class="it">&amp; Co.</span></div><p>Premium everyday shirts, made in small runs.<br />Designed in San Francisco, worn everywhere.</p></div>
+      <div class="foot-col"><div class="foot-h">Shop</div><a href="#shirts">The Everyday Tee</a><a href="#shirts">The Washed Oxford</a><a href="#shirts">Heavyweight Crew</a><a href="#shirts">Linen Camp Shirt</a><a href="#shirts">Custom &amp; Monogram</a></div>
+      <div class="foot-col"><div class="foot-h">Visit</div><p>210 Valencia Street<br />San Francisco, CA 94103</p><a href="tel:+14155550148">(415) 555-0148</a><p>Hours kept live on Google</p></div>
+      <div class="foot-col"><div class="foot-h">More</div><a href="#story">Our story</a><a href="#how">How it works</a><a href="#reviews">Reviews</a><a href="#visit">Returns &amp; repairs</a></div>
+    </div>
+    <div class="foot-bottom"><span>© 2026 Meridian Shirt Co.</span><span>Carbon-neutral shipping · GOTS organic cotton</span></div>
+  </div>
+</footer>
+
+<div class="float"><a href="sms:+14155550148"><span class="fdot"></span>Message us</a></div>
+
+<nav class="switch" aria-label="Design switcher">
+  <a href="01 Editorial.html">01</a><a href="02 Streetwear.html">02</a><a href="03 Artisan.html" class="on">03</a><a href="04 Modern.html">04</a><a href="05 Kinetic.html">05</a>
+</nav>
+
+</div>
+
+<script src="image-slot.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(function(){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var hero=document.querySelector('.hero');
+  requestAnimationFrame(function(){
+    document.querySelectorAll('.hl').forEach(function(e){e.classList.add('in');});
+    if(hero){[].forEach.call(hero.querySelectorAll('.reveal,.clip'),function(e){e.classList.add('in');});}
+  });
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.1,rootMargin:'0px 0px -6% 0px'});
+    document.querySelectorAll('.reveal,.clip').forEach(function(e){io.observe(e);});
+  }
+})();
+(function(){
+  if(typeof L==='undefined')return;
+  var ll=[37.7679,-122.4220];
+  var map=L.map('map03',{scrollWheelZoom:false}).setView(ll,15);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+  var icon=L.divIcon({className:'',html:'<div style="width:18px;height:18px;background:#BC5E3C;border:3px solid #FBF6EC;border-radius:50%;box-shadow:0 0 0 5px rgba(188,94,60,.3)"></div>',iconSize:[18,18],iconAnchor:[9,9]});
+  L.marker(ll,{icon:icon}).addTo(map).bindPopup('<b>Meridian Shirt Co.</b><br>210 Valencia St');
+})();
+</script>
+</body>
+</html>

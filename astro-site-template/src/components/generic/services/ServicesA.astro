@@ -1,0 +1,98 @@
+---
+/**
+ * generic / ServicesA — bold numbered rows (menu-board feel).
+ *
+ * Editable hooks:
+ *   services.tag, services.headline,
+ *   services.items[i].title, services.items[i].desc, services.items[i].note
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const services = content.services || {};
+
+const tag      = services.tag || services.headlineEyebrow || 'What we pour & sell';
+const headline = services.headline || 'From the bar to <em>your kitchen.</em>';
+
+const fromContent = Array.isArray(services.items) && services.items.length
+  ? services.items
+  : (Array.isArray(content.services_list) ? content.services_list : null);
+
+const items = fromContent || [
+  { title: 'Espresso bar',        desc: "A full bar of espresso, pour-over, and seasonal milk drinks pulled to order — no syrups hiding a flat shot.", note: 'Dine-in · to-go' },
+  { title: 'Whole-bean retail',   desc: "Take home the same coffee we're pouring. Bags are roasted to order and stamped with the day they left the drum.", note: 'Roasted to order' },
+  { title: 'Wholesale & cafés',   desc: 'Standing weekly accounts for restaurants and offices, with dial-in support and barista training included.', note: 'Weekly delivery' },
+  { title: 'Home subscriptions',  desc: "Pick a cadence and a roast level — we'll mill, bag, and ship within hours of roasting. Pause anytime.", note: 'Ships fresh' },
+];
+
+const idx = (i: number) => String(i + 1).padStart(2, '0');
+---
+
+<section class="sec services-sec" id="menu" style="padding-top:0;">
+  <div class="wrap">
+    <p class="sec-tag reveal" data-field="services.tag">{tag}</p>
+    <h2 class="reveal" data-field="services.headline" set:html={headline}></h2>
+    <div class="menu-list">
+      {items.map((it: any, i: number) => (
+        <div class="menu-row reveal">
+          <div class="idx">{idx(i)}</div>
+          <div>
+            <h3 data-field={`services.items.${i}.title`}>{it.title || it.name}</h3>
+            <p class="desc" data-field={`services.items.${i}.desc`}>{it.desc || it.description}</p>
+          </div>
+          <div class="note" data-field={`services.items.${i}.note`}>{it.note || ''}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .menu-list {
+    margin-top: 48px;
+    border-top: 2px solid var(--ink);
+  }
+  .menu-row {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 24px;
+    align-items: center;
+    padding: 32px 8px;
+    border-bottom: 1px solid var(--line);
+    transition: padding-left .3s ease, background .3s ease;
+  }
+  .menu-row:hover {
+    padding-left: 24px;
+    background: var(--paper-2);
+  }
+  .menu-row .idx {
+    font-family: var(--disp);
+    font-weight: 800;
+    font-size: 44px;
+    color: var(--gold);
+  }
+  .menu-row h3 { font-size: 30px; }
+  .menu-row .desc {
+    margin-top: 8px;
+    color: var(--ink-soft);
+    max-width: 54ch;
+    font-size: 16px;
+  }
+  .menu-row .note {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    text-align: right;
+    white-space: nowrap;
+  }
+  @media (max-width: 680px) {
+    .menu-row {
+      grid-template-columns: 60px 1fr;
+    }
+    .menu-row .note {
+      grid-column: 2;
+      text-align: left;
+    }
+  }
+</style>
