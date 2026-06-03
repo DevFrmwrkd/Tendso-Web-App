@@ -152,6 +152,12 @@ export default defineSchema({
             v.literal('failed'),
         )),
         driveSyncError: v.optional(v.string()),
+
+        // ==================== PROSPECT POOL (2026-06-01 — P0 schema only) ====================
+        // Links a captured interview back to the source prospect row in the
+        // new global prospects pool. Optional + additive — existing
+        // submissions stay valid. Mutations that set this land in P2+.
+        prospectId: v.optional(v.id('prospects')),
     })
         // Use mobile's index name (by_creator_id, not by_creatorId)
         .index('by_creator_id', ['creatorId'])
@@ -356,6 +362,13 @@ export default defineSchema({
         // Auto-cleared by the releaseStaleClaimsInternal cron after 24h.
         claimedByCreatorId: v.optional(v.id('creators')),
         claimedAt: v.optional(v.number()),
+
+        // ==================== PROSPECT POOL MIGRATION (2026-06-01 — P0 schema only) ====================
+        // Set by migration.backfillProspects when an Outscraper-source lead
+        // row has been ported to the new prospects table. Idempotency key:
+        // the backfill skips any lead with this set. Outscraper-source rows
+        // stay in `leads` until Phase M.4 cleanup.
+        migratedToProspectId: v.optional(v.id('prospects')),
     })
         .index('by_submission', ['submissionId'])
         .index('by_creator', ['creatorId'])
@@ -364,6 +377,161 @@ export default defineSchema({
         // so re-scraping the same area doesn't create duplicate leads.
         .index('by_place_id', ['businessGooglePlaceId'])
         .index('by_claimed_creator', ['claimedByCreatorId']),
+
+    // ==================== PROSPECT POOL (2026-06-01 — P0 schema only) ====================
+    // New global inventory of businesses, scraped ONCE and shared across
+    // creators. Replaces creator-triggered Outscraper scraping with a
+    // background-replenished pool. Schema only in P0; functions land P1+.
+    // See docs/changes/WEB-PROPECT-POOL.md for the full architecture.
+    prospects: defineTable({
+        // Identity (dedupe layer 2 — place_id is the primary key)
+        googlePlaceId: v.string(),
+
+        // Business metadata
+        businessName: v.string(),
+        normalizedName: v.string(),                  // lowercase, stripped, for dedup layer 4
+        category: v.string(),                        // raw Outscraper category
+        categoryBucket: v.string(),                  // normalized bucket (barbershop, restaurant, ...)
+        address: v.optional(v.string()),
+        phone: v.optional(v.string()),
+        normalizedPhone: v.optional(v.string()),     // E.164 form, for dedup layer 3
+        website: v.optional(v.string()),
+        latitude: v.number(),
+        longitude: v.number(),
+        city: v.optional(v.string()),
+        country: v.string(),                         // ISO 3166-1 alpha-2 ("PH", "ID", "VN")
+
+        // H3 spatial index (dedup layer 1 + query path)
+        h3CellRes7: v.string(),                      // ~5km hex, primary search key
+        h3CellRes8: v.string(),                      // ~1km hex, finer-grained subdivision
+        h3CellRes9: v.string(),                      // ~400m hex, block-level
+
+        // Outscraper-supplied metadata
+        rating: v.optional(v.number()),
+        reviewCount: v.optional(v.number()),
+
+        // State machine
+        state: v.union(
+            v.literal('available'),
+            v.literal('reserved'),
+            v.literal('contacted'),
+            v.literal('qualified'),
+            v.literal('converted'),
+            v.literal('lost'),
+        ),
+        stateUpdatedAt: v.number(),
+
+        // Reservation tracking
+        reservedByCreatorId: v.optional(v.id('creators')),
+        reservedAt: v.optional(v.number()),
+        reservationExpiresAt: v.optional(v.number()),
+
+        // Quality scoring (0-100)
+        qualityScore: v.number(),
+
+        // Provenance
+        scrapedAt: v.number(),
+        lastRefreshedAt: v.number(),
+        scrapeJobId: v.optional(v.string()),
+
+        // Conversion linkage
+        submissionId: v.optional(v.id('submissions')),
+    })
+        .index('by_place_id', ['googlePlaceId'])
+        .index('by_h3_res7', ['h3CellRes7'])
+        .index('by_h3_res7_and_category', ['h3CellRes7', 'categoryBucket'])
+        .index('by_h3_res7_and_state', ['h3CellRes7', 'state'])
+        .index('by_normalized_phone', ['normalizedPhone'])
+        .index('by_state_and_reservation_expires', ['state', 'reservationExpiresAt'])
+        .index('by_reserved_creator', ['reservedByCreatorId'])
+        .index('by_country_and_category', ['country', 'categoryBucket']),
+
+    // ==================== PROSPECT INVENTORY ====================
+    // Per-cell+category counters used by the replenishment cron to decide
+    // which cells need scraping. Atomically maintained by `adjustInventory`
+    // (P2). One row per (h3CellRes7, categoryBucket).
+    prospect_inventory: defineTable({
+        h3CellRes7: v.string(),
+        categoryBucket: v.string(),
+        country: v.string(),
+
+        availableCount: v.number(),
+        reservedCount: v.number(),
+        contactedCount: v.number(),
+        qualifiedCount: v.number(),
+        convertedCount: v.number(),
+        lostCount: v.number(),
+
+        lastScrapedAt: v.optional(v.number()),
+        scrapesAttempted: v.number(),
+        lastScrapeJobId: v.optional(v.string()),
+
+        minAvailableThreshold: v.number(),
+
+        updatedAt: v.number(),
+    })
+        .index('by_h3_and_category', ['h3CellRes7', 'categoryBucket'])
+        .index('by_country_and_category_and_available', ['country', 'categoryBucket', 'availableCount']),
+
+    // ==================== SCRAPE HISTORY ====================
+    // Audit log for every Outscraper job — used for cost tracking, debugging,
+    // and the cap-detection logic that triggers cell subdivision (P5).
+    scrape_history: defineTable({
+        jobId: v.string(),
+        h3CellRes7: v.string(),
+        h3CellRes8: v.optional(v.string()),
+        categoryBucket: v.string(),
+        country: v.string(),
+
+        outscraperQuery: v.string(),
+        outscraperCoordinates: v.string(),
+        outscraperZoom: v.number(),
+        outscraperLimit: v.number(),
+
+        outscraperJobId: v.optional(v.string()),
+        status: v.union(
+            v.literal('pending'),
+            v.literal('running'),
+            v.literal('completed'),
+            v.literal('failed'),
+        ),
+
+        rawResultCount: v.optional(v.number()),
+        insertedCount: v.optional(v.number()),
+        dedupedCount: v.optional(v.number()),
+        hitLimitCap: v.optional(v.boolean()),
+
+        estimatedCost: v.optional(v.number()),
+        errorMessage: v.optional(v.string()),
+
+        startedAt: v.number(),
+        completedAt: v.optional(v.number()),
+    })
+        .index('by_job_id', ['jobId'])
+        .index('by_outscraper_job_id', ['outscraperJobId'])
+        .index('by_h3_and_category', ['h3CellRes7', 'categoryBucket'])
+        .index('by_status_and_started', ['status', 'startedAt']),
+
+    // ==================== CATEGORY LOCALES ====================
+    // Per-country, per-category config: Outscraper search synonyms, the
+    // "low" threshold that triggers replenishment, and the quality-score
+    // weights used by computeQualityScore. Seeded manually after deploy.
+    category_locales: defineTable({
+        country: v.string(),
+        categoryBucket: v.string(),
+        displayName: v.string(),
+        outscraperQueries: v.array(v.string()),
+        minAvailableThreshold: v.number(),
+        scoringWeights: v.object({
+            hasWebsite: v.number(),
+            hasPhone: v.number(),
+            reviewCountMultiplier: v.number(),
+            minRating: v.number(),
+        }),
+        enabled: v.boolean(),
+    })
+        .index('by_country_and_bucket', ['country', 'categoryBucket'])
+        .index('by_country_and_enabled', ['country', 'enabled']),
 
     // ==================== LEAD NOTES ====================
     leadNotes: defineTable({

@@ -28,6 +28,7 @@
     "framer-motion": "^12.38.0",
     "googleapis": "^172.0.0",
     "groq-sdk": "^0.37.0",
+    "h3-js": "^4.4.0",
     "html-to-image": "^1.11.13",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",
