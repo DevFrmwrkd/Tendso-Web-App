@@ -1,43 +1,84 @@
 ---
+/**
+ * Astro entry page.
+ *
+ * Routes between template "letters" based on `customizations.heroStyle`
+ * in site-data.json:
+ *
+ *   "generic:A"     → Ironwood Coffee
+ *   "generic:B"     → Stillwater Studio
+ *   "generic:C"     → Cedar & Stone
+ *   "generic:D"     → Northpoint IT
+ *   "generic:E"     → Wash House
+ *   "barbershop:F"  → Forge (default brass)
+ *   "barbershop:G"  → Forge Cinematic
+ *   "barbershop:H"  → Forge Kinetic (black + green)
+ *   "barbershop:I"  → Forge Minimal (neutral)
+ *   "barbershop:J"  → Forge Stacked (paper + dark red)
+ *
+ * Each PageX wrapper produces the full document (its own doctype, theme,
+ * fonts, leaflet boot) so they do not compose with BaseLayout.
+ */
 import BaseLayout from '../layouts/BaseLayout.astro';
+import PageA from '../components/generic/PageA.astro';
+import PageB from '../components/generic/PageB.astro';
+import PageC from '../components/generic/PageC.astro';
+import PageD from '../components/generic/PageD.astro';
+import PageE from '../components/generic/PageE.astro';
+import PageF from '../components/barbershop/PageF.astro';
+import PageG from '../components/barbershop/PageG.astro';
+import PageH from '../components/barbershop/PageH.astro';
+import PageI from '../components/barbershop/PageI.astro';
+import PageJ from '../components/barbershop/PageJ.astro';
 import siteData from '../data/site-data.json';
 
-// Clean slate. All variant components were removed so new designs can be
-// built fresh. The page reads site-data.json so the build pipeline keeps
-// working — `astro build` still produces a valid dist/index.html that the
-// generation API stores in Convex.
-//
-// To start a new design, drop components under `src/components/` and render
-// them below, passing fields from `siteData` (layout / content /
-// customizations / visibility / images).
-
-const layout = siteData.layout ?? {};
+const layout = (siteData as any).layout ?? {};
+const customizations = (siteData as any).customizations ?? {};
 const content = (siteData as any).content ?? {};
+
+const heroStyle: string = customizations.heroStyle ?? '';
+const genericMatch = /^generic:([A-E])$/.exec(heroStyle);
+const genericLetter = genericMatch ? genericMatch[1] : null;
+const barbershopMatch = /^barbershop:([F-J])$/.exec(heroStyle);
+const barbershopLetter = barbershopMatch ? barbershopMatch[1] : null;
+const anyLetter = genericLetter || barbershopLetter;
 ---
 
-<BaseLayout
-  businessName={layout.businessName ?? ''}
-  tagline={layout.tagline ?? ''}
-  navLinks={layout.navLinks ?? []}
-  socialLinks={layout.socialLinks ?? []}
-  colorScheme={layout.colorScheme ?? 'auto'}
-  fontPairing={layout.fontPairing ?? 'modern'}
-  contact={layout.contact ?? {}}
-  navbarStyle={layout.navbarStyle ?? 'A'}
-  showScrollTop={false}
-  favicon={(siteData as any).favicon}
-  ogImage={(siteData as any).ogImage}
->
-  <main class="min-h-screen flex items-center justify-center px-6 py-24">
-    <div class="max-w-xl text-center space-y-4">
-      <h1 class="text-3xl md:text-4xl font-semibold tracking-tight">
-        {content.hero?.headline ?? layout.businessName ?? 'Coming soon'}
-      </h1>
-      {content.hero?.description && (
-        <p class="text-base md:text-lg text-neutral-600 leading-relaxed">
-          {content.hero.description}
-        </p>
-      )}
-    </div>
-  </main>
-</BaseLayout>
+{genericLetter === 'A' && <PageA siteData={siteData} />}
+{genericLetter === 'B' && <PageB siteData={siteData} />}
+{genericLetter === 'C' && <PageC siteData={siteData} />}
+{genericLetter === 'D' && <PageD siteData={siteData} />}
+{genericLetter === 'E' && <PageE siteData={siteData} />}
+{barbershopLetter === 'F' && <PageF siteData={siteData} />}
+{barbershopLetter === 'G' && <PageG siteData={siteData} />}
+{barbershopLetter === 'H' && <PageH siteData={siteData} />}
+{barbershopLetter === 'I' && <PageI siteData={siteData} />}
+{barbershopLetter === 'J' && <PageJ siteData={siteData} />}
+{!anyLetter && (
+  <BaseLayout
+    businessName={layout.businessName ?? ''}
+    tagline={layout.tagline ?? ''}
+    navLinks={layout.navLinks ?? []}
+    socialLinks={layout.socialLinks ?? []}
+    colorScheme={layout.colorScheme ?? 'auto'}
+    fontPairing={layout.fontPairing ?? 'modern'}
+    contact={layout.contact ?? {}}
+    navbarStyle={layout.navbarStyle ?? 'A'}
+    showScrollTop={false}
+    favicon={(siteData as any).favicon}
+    ogImage={(siteData as any).ogImage}
+  >
+    <main class="min-h-screen flex items-center justify-center px-6 py-24">
+      <div class="max-w-xl text-center space-y-4">
+        <h1 class="text-3xl md:text-4xl font-semibold tracking-tight">
+          {content.hero?.headline ?? layout.businessName ?? 'Coming soon'}
+        </h1>
+        {content.hero?.description && (
+          <p class="text-base md:text-lg text-neutral-600 leading-relaxed">
+            {content.hero.description}
+          </p>
+        )}
+      </div>
+    </main>
+  </BaseLayout>
+)}

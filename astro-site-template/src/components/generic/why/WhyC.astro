@@ -1,0 +1,40 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const why = content.why || content.whyUs || {};
+const tag = why.tag || 'Why us';
+const headline = why.headline || '';
+const items = Array.isArray(why.items) && why.items.length > 0 ? why.items : [];
+const iconPaths = [
+  '<path d="M3 21V8l9-5 9 5v13M9 21v-6h6v6"/>',
+  '<path d="M12 3l8 4v6c0 5-4 7-8 8-4-1-8-3-8-8V7z"/><path d="M9 12l2 2 4-4"/>',
+  '<path d="M5 21c0-7 3-12 7-12s7 5 7 12M12 9V3"/>',
+  '<path d="M3 13h4l3-9 4 18 3-9h4"/>',
+];
+---
+<section class="sec" id="why">
+  <div class="wrap">
+    <span class="sec-tag reveal" data-field="why.tag">{tag}</span>
+    <h2 class="reveal" data-field="why.headline" set:html={headline}></h2>
+    <div class="why-grid">
+      {items.map((it: any, i: number) => (
+        <div class="why-cell reveal" style={i > 0 ? `transition-delay:.${i * 8}s;` : ''}>
+          <div class="ic"><svg viewBox="0 0 24 24" set:html={iconPaths[i] || iconPaths[0]}></svg></div>
+          <div>
+            <h3 data-field={`why.items.${i}.title`}>{it.title}</h3>
+            <p data-field={`why.items.${i}.body`}>{it.body || it.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .why-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; margin-top: 50px; }
+  .why-cell { background: var(--card); border: 2px solid var(--ink); box-shadow: var(--shadow); padding: 34px; display: flex; gap: 22px; align-items: flex-start; }
+  .why-cell .ic { flex: none; width: 54px; height: 54px; background: var(--amber); border: 2px solid var(--ink); display: flex; align-items: center; justify-content: center; }
+  .why-cell svg { width: 28px; height: 28px; stroke: var(--ink); fill: none; stroke-width: 1.8; }
+  .why-cell h3 { font-size: 26px; }
+  .why-cell p { margin-top: 10px; color: var(--ink-soft); font-size: 16px; }
+  @media (max-width: 760px) { .why-grid { grid-template-columns: 1fr; } }
+</style>

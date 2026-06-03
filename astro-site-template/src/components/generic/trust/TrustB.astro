@@ -1,0 +1,31 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const cells = (content.trust?.cells && content.trust.cells.length > 0)
+  ? content.trust.cells
+  : [];
+---
+<section class="trustline">
+  <div class="wrap">
+    <div class="row">
+      {cells.map((cell: any, i: number) => (
+        <>
+          <span class="item reveal">
+            <span class="n" data-field={`trust.cells.${i}.num`}>{cell.num}</span>
+            <span class="t" data-field={`trust.cells.${i}.label`}>{cell.label}</span>
+          </span>
+          {i < cells.length - 1 && <span class="sep"></span>}
+        </>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .trustline { padding: 54px 0; text-align: center; }
+  .trustline .row { display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 18px 34px; }
+  .trustline .item { display: inline-flex; align-items: baseline; gap: 11px; }
+  .trustline .n { font-family: var(--serif); font-size: 50px; color: var(--teal); line-height: 1; }
+  .trustline .t { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); font-weight: 600; }
+  .trustline .sep { width: 7px; height: 7px; border-radius: 50%; background: var(--peach); }
+  @media (max-width: 680px) { .trustline .sep { display: none; } }
+</style>

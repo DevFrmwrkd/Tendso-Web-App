@@ -1,0 +1,56 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const services = content.services || {};
+const tag = services.tag || 'What we do';
+const headline = services.headline || 'Pick the way that <em>fits your week.</em>';
+const items: Array<{ title: string; desc: string; bullets: string[]; badge?: string; feature?: boolean }> = Array.isArray(services.items) && services.items.length ? services.items : [];
+const iconPaths = [
+  '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  '<path d="M3 13l2-5h14l2 5M5 13h14v5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><circle cx="8" cy="16" r="1"/>',
+  '<path d="M6 3h12l-1.5 6.5a4 4 0 0 1-3.9 3.1h-1.2A4 4 0 0 1 7.5 9.5zM10 16h4l1 5H9z"/>',
+];
+---
+<section class="sec" id="services" style="padding-top:0;">
+  <div class="wrap">
+    <p class="sec-tag reveal" data-field="services.tag">{tag}</p>
+    <h2 class="reveal" data-field="services.headline" set:html={headline}></h2>
+    <div class="svc-grid">
+      {items.map((it: any, i: number) => (
+        <div class={`svc ${it.feature ? 'feature' : ''} reveal`} style={i > 0 ? `transition-delay:.${i * 8}s;` : ''}>
+          {it.badge && <span class="badge" data-field={`services.items.${i}.badge`}>{it.badge}</span>}
+          <div class="ic"><svg viewBox="0 0 24 24" set:html={iconPaths[i] || iconPaths[0]}></svg></div>
+          <h3 data-field={`services.items.${i}.title`}>{it.title}</h3>
+          <p data-field={`services.items.${i}.desc`}>{it.desc || it.description}</p>
+          <ul>
+            {(it.bullets || []).map((b: string, j: number) => (
+              <li>
+                <svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>
+                <span data-field={`services.items.${i}.bullets.${j}`}>{b}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .svc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 50px; }
+  .svc { background: var(--card); border-radius: 26px; padding: 34px 30px; box-shadow: 0 10px 30px rgba(var(--ink-rgb), .07); transition: transform .25s, box-shadow .25s; border: 1px solid var(--line); position: relative; }
+  .svc:hover { transform: translateY(-6px); box-shadow: 0 20px 44px rgba(var(--ink-rgb), .14); }
+  .svc.feature { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .svc .ic { width: 58px; height: 58px; border-radius: 18px; background: var(--blue-soft); display: flex; align-items: center; justify-content: center; }
+  .svc.feature .ic { background: rgba(255, 255, 255, .18); }
+  .svc .ic svg { width: 28px; height: 28px; stroke: var(--blue); fill: none; stroke-width: 1.9; }
+  .svc.feature .ic svg { stroke: #fff; }
+  .svc h3 { font-size: 25px; margin-top: 20px; }
+  .svc p { margin-top: 10px; color: var(--ink-soft); font-size: 15px; }
+  .svc.feature p { color: rgba(255, 255, 255, .85); }
+  .svc ul { list-style: none; padding: 0; margin: 18px 0 0; display: flex; flex-direction: column; gap: 9px; }
+  .svc li { display: flex; align-items: center; gap: 10px; font-size: 14.5px; font-weight: 500; }
+  .svc li svg { width: 16px; height: 16px; stroke: var(--mint); fill: none; stroke-width: 2.6; flex: none; }
+  .svc.feature li svg { stroke: var(--yellow); }
+  .svc .badge { position: absolute; top: 24px; right: 24px; background: var(--yellow); color: var(--ink); font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 20px; }
+  @media (max-width: 860px) { .svc-grid { grid-template-columns: 1fr; } }
+</style>

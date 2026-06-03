@@ -247,6 +247,55 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             }
         }
 
+        // ── Generic-section AI generation ─────────────────────────────
+        // When the selected template is one of the generic landing pages
+        // (PageA…PageE), produce the section-level content (hero, about,
+        // services items, gallery captions, area, location, footer copy,
+        // marquee, navbar). One Groq call per submission; result cached
+        // into extractedContent so subsequent regenerations are free.
+        //
+        // Existing admin-edited fields win — we MERGE-FILL, never overwrite.
+        const ec2 = extractedContent as any
+        // finalCustomizations is declared further down — read the incoming
+        // customizations / persisted customizations directly so we don't
+        // hoist-trap on the const declaration.
+        const incomingHeroStyle = String(
+            (customizations as any)?.heroStyle ??
+            (existingWebsite?.customizations as any)?.heroStyle ??
+            ''
+        )
+        const isGenericRender = /^generic:[A-E]$/.test(incomingHeroStyle)
+        const hasGenericSections = !!(
+            ec2?.hero?.headlineLines || ec2?.services?.items ||
+            ec2?.about?.paragraphs || ec2?.gallery?.items ||
+            ec2?.area?.places || ec2?.marquee?.text
+        )
+        if (isGenericRender && !hasGenericSections && submission.transcript) {
+            try {
+                const sections = await groqService.generateGenericSections(
+                    submission.transcript,
+                    {
+                        name: submission.business_name,
+                        type: submission.business_type,
+                        owner: submission.owner_name,
+                        location: `${submission.address || ''}${submission.address ? ', ' : ''}${submission.city || ''}`.trim(),
+                    }
+                )
+                if (sections) {
+                    // Shallow merge — admin edits already in extractedContent
+                    // win on each leaf because they were set first. We only
+                    // fill keys that didn't already exist.
+                    const merged: any = { ...extractedContent }
+                    for (const [k, v] of Object.entries(sections)) {
+                        if (merged[k] == null) merged[k] = v
+                    }
+                    extractedContent = merged
+                }
+            } catch (err) {
+                console.error('Generic-section generation failed (using fallbacks):', err)
+            }
+        }
+
         // Template name kept for backward compat in database records
         const selectedTemplate = templateName || 'astro'
 
@@ -833,7 +882,9 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                 about: contentWithContact.about_images,
                 services: contentWithContact.services_image ? [contentWithContact.services_image] : undefined,
             },
-            // Visibility settings
+            // Visibility settings — both legacy snake_case keys (kept for the
+            // A–O templates) AND the new generic-template block keys are
+            // forwarded so a toggle in the Blocks tab actually takes effect.
             visibility: contentWithContact.visibility ? {
                 navbar: contentWithContact.visibility.navbar,
                 navbarHeadline: contentWithContact.visibility.navbar_headline,
@@ -862,12 +913,28 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                 featuredSubheadline: contentWithContact.visibility.featured_subheadline,
                 featuredProducts: contentWithContact.visibility.featured_products,
                 featuredImages: contentWithContact.visibility.featured_images,
+                gallerySection: contentWithContact.visibility.gallery_section ?? contentWithContact.visibility.featured_section,
                 footerSection: contentWithContact.visibility.footer_section,
                 footerBadge: contentWithContact.visibility.footer_badge,
                 footerHeadline: contentWithContact.visibility.footer_headline,
                 footerDescription: contentWithContact.visibility.footer_description,
                 footerContact: contentWithContact.visibility.footer_contact,
                 footerSocial: contentWithContact.visibility.footer_social,
+                contactSection: contentWithContact.visibility.contact_section ?? contentWithContact.visibility.footer_section,
+                // New generic-template block keys. These are the ones the
+                // Blocks tab actually toggles; the Astro PageA…PageE wrappers
+                // read camelCase block keys (visibility.trustBlock etc.).
+                trustBlock: contentWithContact.visibility.trust_block,
+                whyUsBlock: contentWithContact.visibility.why_us_block,
+                howItWorksBlock: contentWithContact.visibility.how_it_works_block,
+                testimonialsBlock: contentWithContact.visibility.testimonials_block,
+                faqBlock: contentWithContact.visibility.faq_block,
+                serviceAreaBlock: contentWithContact.visibility.service_area_block,
+                credentialsBlock: contentWithContact.visibility.credentials_block,
+                locationBlock: contentWithContact.visibility.location_block,
+                ctaBandBlock: contentWithContact.visibility.cta_band_block,
+                clickToMessage: contentWithContact.visibility.click_to_message,
+                scrollTopButton: contentWithContact.visibility.scroll_top_button,
             } : undefined,
             // Customizations
             customizations: {

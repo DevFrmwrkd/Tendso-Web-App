@@ -1,0 +1,34 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const faq = content.faq || {};
+const tag = faq.tag || 'Questions';
+const headline = faq.headline || 'Before you call.';
+const items = Array.isArray(faq.items) && faq.items.length ? faq.items : [];
+---
+<section class="sec" id="faq" style="padding-top:0;">
+  <div class="wrap" style="max-width:960px;">
+    <span class="sec-tag reveal" data-field="faq.tag">{tag}</span>
+    <h2 class="reveal" data-field="faq.headline">{headline}</h2>
+    <div class="faq">
+      {items.map((it: any, i: number) => (
+        <details class="reveal">
+          <summary>
+            <span data-field={`faq.items.${i}.q`}>{it.q || it.question}</span>
+            <span class="pm">+</span>
+          </summary>
+          <div class="ans" data-field={`faq.items.${i}.a`}>{it.a || it.answer}</div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .faq { margin-top: 46px; display: flex; flex-direction: column; gap: 16px; }
+  details { border: 2px solid var(--ink); background: var(--card); }
+  summary { list-style: none; cursor: pointer; padding: 24px 26px; display: flex; justify-content: space-between; gap: 20px; align-items: center; font-family: var(--disp); font-size: 24px; text-transform: uppercase; }
+  summary::-webkit-details-marker { display: none; }
+  summary .pm { font-family: var(--disp); font-size: 28px; color: var(--amber); -webkit-text-stroke: 1px var(--ink); transition: transform .3s; }
+  details[open] summary .pm { transform: rotate(45deg); }
+  details .ans { padding: 0 26px 24px; color: var(--ink-soft); max-width: 74ch; }
+</style>

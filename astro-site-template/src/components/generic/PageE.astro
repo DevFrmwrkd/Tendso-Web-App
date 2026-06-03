@@ -1,0 +1,136 @@
+---
+/**
+ * generic / PageE — Wash House template wrapper.
+ * Paper-blue + yellow + mint, friendly laundry aesthetic.
+ */
+import HeaderE from './header/HeaderE.astro';
+import HeroE from './hero/HeroE.astro';
+import MarqueeE from './marquee/MarqueeE.astro';
+import TrustE from './trust/TrustE.astro';
+import AboutE from './about/AboutE.astro';
+import ServicesE from './services/ServicesE.astro';
+import WhyE from './why/WhyE.astro';
+import HowE from './how/HowE.astro';
+import TestimonialsE from './testimonials/TestimonialsE.astro';
+import GalleryE from './gallery/GalleryE.astro';
+import FaqE from './faq/FaqE.astro';
+import AreaE from './area/AreaE.astro';
+import LocationE from './location/LocationE.astro';
+import CtaBandE from './ctaBand/CtaBandE.astro';
+import FooterE from './footer/FooterE.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}` : 'Welcome';
+const { scheme: __themeScheme, pairing: __themePairing } = resolveTheme(layout, (content as any).business_type);
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+  <style is:global>
+    :root {
+      --paper: #EEF5FB; --paper-2: #FFFFFF; --card: #FFFFFF;
+      --ink: #16314A; --ink-soft: #5A7088; --line: #D7E5F1;
+      --blue: #2C7BE5; --blue-deep: #1A5BC0;
+      --mint: #5FCDB2; --mint-soft: #DBF3EC;
+      --yellow: #FFD24C; --yellow-soft: #FFF1C9; --blue-soft: #E1ECFB;
+      --paper-rgb: 238,245,251; --ink-rgb: 22,49,74; --accent-rgb: 44,123,229;
+      --disp: "Gabarito", system-ui, sans-serif;
+      --sans: "Plus Jakarta Sans", system-ui, sans-serif;
+      --mono: "DM Mono", monospace;
+      --wrap: 1240px; --r: 24px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    img { max-width: 100%; display: block; }
+    a { color: inherit; text-decoration: none; }
+    h1, h2, h3, h4 { margin: 0; font-family: var(--disp); font-weight: 800; line-height: 1.02; letter-spacing: -.02em; }
+    p { margin: 0; }
+    .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 28px; }
+    .eyebrow { font-family: var(--mono); font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--blue); }
+    section { position: relative; }
+    .btn { display: inline-flex; align-items: center; gap: 9px; font-family: var(--sans); font-size: 15px; font-weight: 700; padding: 15px 26px; min-height: 50px; border: none; border-radius: 40px; cursor: pointer; transition: transform .22s ease, box-shadow .22s ease, background .22s ease; }
+    .btn-primary { background: var(--blue); color: #fff; box-shadow: 0 8px 22px rgba(var(--accent-rgb), .32); }
+    .btn-primary:hover { transform: translateY(-3px); background: var(--blue-deep); box-shadow: 0 14px 30px rgba(var(--accent-rgb), .4); }
+    .btn-yellow { background: var(--yellow); color: var(--ink); box-shadow: 0 8px 20px rgba(255, 210, 76, .5); }
+    .btn-yellow:hover { transform: translateY(-3px); }
+    .btn-ghost { background: var(--paper-2); color: var(--ink); border: 1.5px solid var(--line); }
+    .btn-ghost:hover { transform: translateY(-3px); border-color: var(--blue); color: var(--blue); }
+    .reveal, .pop-card { opacity: 1; transform: none; }
+    body.reveal-on .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s cubic-bezier(.2,.85,.3,1), transform .7s cubic-bezier(.2,.85,.3,1); }
+    body.reveal-on .reveal.in, body.reveal-on .pop-card.in { opacity: 1; transform: none; }
+    body.reveal-on .pop-card { opacity: 0; transform: translateY(30px) scale(.92); transition: opacity .7s cubic-bezier(.2,.9,.3,1.1), transform .7s cubic-bezier(.2,.9,.3,1.1); }
+    .sec { padding: 96px 0; }
+    .sec-tag { font-family: var(--mono); font-size: 13px; letter-spacing: .05em; text-transform: uppercase; color: var(--blue); margin-bottom: 16px; }
+    .sec h2 { font-size: clamp(34px, 4.8vw, 62px); max-width: 18ch; }
+    .sec h2 em { font-style: normal; color: var(--blue); }
+    .sec .lead { margin-top: 16px; color: var(--ink-soft); max-width: 52ch; font-size: 18px; }
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+      .reveal, .pop-card { opacity: 1 !important; transform: none !important; }
+      html { scroll-behavior: auto; }
+    }
+  </style>
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <HeaderE layout={layout} content={content} />
+  <main id="top">
+    {visibility.heroSection !== false && <HeroE content={content} />}
+    <MarqueeE content={content} />
+    {visibility.trustBlock !== false && <TrustE content={content} />}
+    {visibility.aboutSection !== false && <AboutE content={content} />}
+    {visibility.servicesSection !== false && <ServicesE content={content} />}
+    {visibility.whyUsBlock !== false && <WhyE content={content} />}
+    {visibility.howItWorksBlock !== false && <HowE content={content} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsE content={content} />}
+    {visibility.gallerySection !== false && <GalleryE content={content} />}
+    {visibility.faqBlock !== false && <FaqE content={content} />}
+    {visibility.serviceAreaBlock !== false && <AreaE content={content} />}
+    {visibility.locationBlock !== false && <LocationE content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandE content={content} layout={layout} />}
+  <FooterE layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce && !document.hidden) {
+        document.body.classList.add('reveal-on');
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
+        document.querySelectorAll('.reveal, .pop-card').forEach(function (el) { io.observe(el); });
+      }
+      window.__genericInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map'); if (!el) return;
+        var ll = [lat, lng];
+        var map = L.map('map', { scrollWheelZoom: false }).setView(ll, 15);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
+        var icon = L.divIcon({ className: '', html: '<div style="width:24px;height:24px;background:#2C7BE5;border:4px solid #fff;border-radius:50%;box-shadow:0 3px 10px rgba(0,0,0,.3);"></div>', iconSize: [24, 24], iconAnchor: [12, 12] });
+        L.marker(ll, { icon: icon }).addTo(map).bindPopup('<b>' + label + '</b>');
+      };
+    })();
+  </script>
+</body>
+</html>

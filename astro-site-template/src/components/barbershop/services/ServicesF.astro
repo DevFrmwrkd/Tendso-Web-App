@@ -1,0 +1,47 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const services = content.services || {};
+const tag = services.tag || '';
+const headline = services.headline || '';
+const sub = services.sub || '';
+const items = Array.isArray(services.items) ? services.items : [];
+const idx = (i: number) => String(i + 1).padStart(2, '0');
+---
+<section class="pad-y svc-sec" id="services">
+  <div class="wrap">
+    <div class="sect-head reveal">
+      <div>
+        {tag && <span class="kicker" data-field="services.tag">{tag}</span>}
+        {headline && <h2 class="h-sect" data-field="services.headline" set:html={headline}></h2>}
+      </div>
+      {sub && <p class="lead" data-field="services.sub">{sub}</p>}
+    </div>
+    {items.length > 0 && (
+      <div class="svc-grid reveal">
+        {items.map((it: any, i: number) => (
+          <div class="svc">
+            <span class="no">{idx(i)} · Service</span>
+            <h3 data-field={`services.items.${i}.title`}>{it.title}</h3>
+            <p data-field={`services.items.${i}.desc`}>{it.desc || it.description || ''}</p>
+            {it.note && <span class="tag" data-field={`services.items.${i}.note`}>{it.note}</span>}
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+<style>
+  .svc-sec { background: var(--paper-2); }
+  .svc-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+  .svc { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 38px 34px; transition: background .3s ease, color .3s ease; }
+  .svc:hover { background: var(--ink); color: var(--paper); }
+  .svc .no { font-family: var(--cond); font-size: 13px; letter-spacing: .2em; color: var(--brass); font-weight: 600; }
+  .svc h3 { font-family: var(--cond); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; font-size: 22px; margin: 18px 0 12px; }
+  .svc p { color: var(--muted); font-size: 15px; margin: 0; }
+  .svc:hover p { color: var(--muted-light); }
+  .svc .tag { display: inline-block; margin-top: 14px; font-family: var(--cond); text-transform: uppercase; letter-spacing: .18em; font-size: 11px; color: var(--brass); border: 1px solid var(--line); padding: 6px 12px; }
+  .svc:hover .tag { color: var(--brass-bright); border-color: var(--line-light); }
+  @media (max-width: 900px) { .svc-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .svc-grid { grid-template-columns: 1fr; } }
+</style>

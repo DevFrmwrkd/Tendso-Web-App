@@ -1,0 +1,27 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const cells = (content.trust?.cells && content.trust.cells.length > 0) ? content.trust.cells : [];
+const tones = ['c1', 'c2', 'c3', 'c4'];
+---
+<section class="trust">
+  <div class="wrap trust-row">
+    {cells.map((cell: any, i: number) => (
+      <div class={`tchip ${tones[i]} reveal`} style={i > 0 ? `transition-delay:.${i * 8}s;` : ''}>
+        <span class="n" data-field={`trust.cells.${i}.num`}>{cell.num}</span>
+        <span class="lbl" data-field={`trust.cells.${i}.label`} set:html={String(cell.label).replace(/\n/g, '<br />')}></span>
+      </div>
+    ))}
+  </div>
+</section>
+<style>
+  .trust { padding: 60px 0; }
+  .trust-row { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; max-width: var(--wrap); margin: 0 auto; padding: 0 28px; }
+  .tchip { display: flex; align-items: center; gap: 14px; border-radius: 40px; padding: 18px 28px; font-weight: 600; }
+  .tchip .n { font-family: var(--disp); font-size: 34px; font-weight: 800; }
+  .tchip.c1 { background: var(--blue-soft); color: var(--blue-deep); }
+  .tchip.c2 { background: var(--mint-soft); color: #1c7a63; }
+  .tchip.c3 { background: var(--yellow-soft); color: #9a7400; }
+  .tchip.c4 { background: #fff; color: var(--ink); box-shadow: 0 6px 18px rgba(var(--ink-rgb), .08); }
+  .tchip .lbl { font-size: 14px; line-height: 1.25; }
+</style>

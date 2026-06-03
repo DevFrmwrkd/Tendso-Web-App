@@ -1,0 +1,61 @@
+---
+/**
+ * generic / HowA — 3 big-numeral steps in a row.
+ *
+ * Editable hooks:
+ *   how.tag, how.headline, how.steps[i].title, how.steps[i].body
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const how = content.how || content.howItWorks || {};
+
+const tag      = how.tag      || 'How a bag finds you';
+const headline = how.headline || 'Three steps from drum to door.';
+
+const steps = Array.isArray(how.steps) && how.steps.length > 0 ? how.steps
+  : [];
+---
+
+<section class="sec how-sec" id="how">
+  <div class="wrap">
+    <p class="sec-tag reveal" data-field="how.tag">{tag}</p>
+    <h2 class="reveal" data-field="how.headline" set:html={headline}></h2>
+    <div class="steps">
+      {steps.map((s: any, i: number) => (
+        <div class="step reveal" style={i > 0 ? `transition-delay:.${i}s;` : ''}>
+          <div class="sn">{i + 1}</div>
+          <h3 data-field={`how.steps.${i}.title`}>{s.title}</h3>
+          <p data-field={`how.steps.${i}.body`}>{s.body || s.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 34px;
+    margin-top: 48px;
+  }
+  .step .sn {
+    font-family: var(--disp);
+    font-weight: 800;
+    font-size: 74px;
+    color: var(--gold);
+    line-height: 1;
+  }
+  .step h3 {
+    font-size: 25px;
+    margin-top: 10px;
+  }
+  .step p {
+    margin-top: 10px;
+    color: var(--ink-soft);
+    font-size: 16px;
+  }
+  @media (max-width: 760px) {
+    .steps { grid-template-columns: 1fr; gap: 30px; }
+  }
+</style>

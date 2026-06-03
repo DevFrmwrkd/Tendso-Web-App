@@ -1,0 +1,43 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const about = content.about || {};
+const tag = about.tag || 'Our story';
+const headline = about.headline || '';
+const paragraphs = Array.isArray(about.paragraphs) && about.paragraphs.length ? about.paragraphs : [];
+const signature = about.signature || 'Move gently, breathe fully.';
+const aboutImage = about.image || (content.photos && content.photos[0]) || '';
+const aboutTag = about.tag2 || '';
+---
+<section class="sec" id="about">
+  <div class="wrap about-grid">
+    <div class="about-img reveal">
+      <div class="arch2">
+        <div class="img" data-image-field="about.image" style={aboutImage ? `background-image:url('${aboutImage}');` : ''}></div>
+      </div>
+      <span class="tag" data-field="about.tag2">{aboutTag}</span>
+    </div>
+    <div class="about-txt">
+      <p class="sec-tag reveal" data-field="about.tag">{tag}</p>
+      <h2 class="reveal" data-field="about.headline" set:html={headline}></h2>
+      {paragraphs.map((p: string, i: number) => (
+        <p class="reveal" data-field={`about.paragraphs.${i}`}>{p}</p>
+      ))}
+      <p class="sign reveal" data-field="about.signature">{signature}</p>
+    </div>
+  </div>
+</section>
+<style>
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+  .about-img { position: relative; }
+  .about-img .arch2 { border-radius: 500px 500px 40px 40px; overflow: hidden; }
+  .about-img .img { width: 100%; height: 520px; background-size: cover; background-position: center; background-color: var(--teal-soft); }
+  .about-img .tag { position: absolute; right: -16px; bottom: 28px; background: var(--peach); color: var(--ink); border-radius: 40px; padding: 14px 24px; font-size: 14px; font-weight: 600; box-shadow: 0 12px 30px rgba(var(--ink-rgb), .16); }
+  .about-txt h2 { font-size: clamp(36px, 4.2vw, 58px); }
+  .about-txt p { margin-top: 22px; color: var(--ink-soft); font-size: 18px; }
+  .about-txt .sign { margin-top: 24px; font-family: var(--serif); font-style: italic; font-size: 26px; color: var(--teal); }
+  @media (max-width: 880px) {
+    .about-grid { grid-template-columns: 1fr; gap: 40px; }
+    .about-img .img { height: 400px; }
+  }
+</style>

@@ -1,0 +1,39 @@
+---
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+const brand = layout.businessName || 'Your Business';
+const navLinks = (layout.navLinks && layout.navLinks.length) ? layout.navLinks : [];
+const phone = layout.contact?.phone || content.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const ctaText = content.navCtaText || 'Book a class';
+const ctaHref = content.navCtaHref || '#visit';
+---
+<header class="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="brand" data-field="nav.brand">{brand}</a>
+    <div class="nav-links">
+      {navLinks.map((link: any, i: number) => (
+        <a href={link.href} data-field={`nav.links.${i}.label`} data-href-field={`nav.links.${i}.href`}>{link.label}</a>
+      ))}
+    </div>
+    <div class="nav-right">
+      {phone && (
+        <a href={`tel:${phoneDigits}`} class="nav-phone" data-field="nav.phone" data-href-field="nav.phone.href">{phone}</a>
+      )}
+      <a href={ctaHref} class="btn btn-primary" data-field="nav.cta.text" data-href-field="nav.cta.href">{ctaText}</a>
+    </div>
+  </div>
+</header>
+<style>
+  header.nav { position: sticky; top: 0; z-index: 1000; background: rgba(var(--paper-rgb), .82); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+  .nav-in { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 78px; }
+  .brand { font-family: var(--serif); font-size: 32px; letter-spacing: 0; }
+  .nav-links { display: flex; gap: 30px; font-size: 13px; letter-spacing: .05em; font-weight: 600; }
+  .nav-links a { position: relative; padding: 4px 0; color: var(--ink-soft); }
+  .nav-links a::after { content: ""; position: absolute; left: 50%; bottom: 0; height: 1.5px; width: 0; background: var(--peach); transition: .3s; transform: translateX(-50%); }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-right { display: flex; align-items: center; gap: 18px; }
+  .nav-phone { font-size: 14px; }
+  @media (max-width: 920px) { .nav-links, .nav-phone { display: none; } }
+</style>

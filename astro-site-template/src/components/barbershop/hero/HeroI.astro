@@ -1,0 +1,110 @@
+---
+/**
+ * Forge Minimal hero — centered single-column with italic eyebrow,
+ * giant title, animated rule + meta row, and a thin reveal strip.
+ * Same content.hero shape as HeroF.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const eyebrow = hero.kicker || hero.locality || hero.eyebrow || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const titleText = headlineLines[0] || layout.businessName || '';
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || (layout.contact?.phone ? `tel:${String(layout.contact.phone).replace(/[^0-9+]/g, '')}` : '#');
+const metaParts: string[] = Array.isArray(hero.meta) && hero.meta.length
+  ? hero.meta
+  : [];
+---
+<section class="heroM" id="top">
+  <div class="heroM-inner">
+    {eyebrow && <div class="heroM-eyebrow" data-field="hero.kicker">{eyebrow}</div>}
+    {titleText && <h1 class="heroM-title" data-field="hero.headlineLines.0" set:html={titleText}></h1>}
+    <div class="heroM-rule"></div>
+    {sub && <p class="heroM-sub" data-field="hero.sub">{sub}</p>}
+    <div class="heroM-actions">
+      {cta1Text && <a class="btn btn--brass" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+      {cta2Text && <a class="btn btn--ghost on-dark" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+    </div>
+    {metaParts.length > 0 && (
+      <div class="heroM-meta">
+        {metaParts.map((p: string, i: number) => (
+          <>
+            {i > 0 && <span class="sep">·</span>}
+            <span data-field={`hero.meta.${i}`}>{p}</span>
+          </>
+        ))}
+      </div>
+    )}
+  </div>
+  {heroImage && (
+    <div class="heroM-strip">
+      <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+    </div>
+  )}
+</section>
+<style>
+  .heroM {
+    position: relative; min-height: 100svh; background: var(--ink); color: var(--paper);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; overflow: hidden; padding: 140px var(--pad) 0;
+  }
+  .heroM::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(72% 60% at 50% 28%, rgba(var(--brass-rgb), .16), transparent 70%);
+    opacity: 0; animation: mGlow 1.6s ease .2s both; pointer-events: none;
+  }
+  .heroM-inner { position: relative; z-index: 2; max-width: 1000px; }
+  .heroM-eyebrow {
+    font-family: var(--serif); font-style: italic;
+    font-size: clamp(20px, 2.4vw, 30px); color: var(--brass-bright);
+    opacity: 0; animation: mFade 1s ease .2s both;
+  }
+  .heroM-title {
+    font-family: var(--display); text-transform: uppercase; font-weight: 400;
+    font-size: clamp(78px, 16vw, 260px); line-height: .9; letter-spacing: .07em;
+    margin: .1em 0 0; opacity: 0; transform: scale(1.06);
+    animation: mTitle 1.4s cubic-bezier(.16,1,.3,1) .35s both;
+  }
+  .heroM-rule {
+    width: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--brass), transparent);
+    margin: 34px auto; animation: mRule 1.2s ease .92s both;
+  }
+  .heroM-sub {
+    max-width: 52ch; margin: 0 auto; color: var(--muted-light);
+    font-size: clamp(16px, 1.5vw, 20px);
+    opacity: 0; animation: mFade 1s ease 1.05s both;
+  }
+  .heroM-actions {
+    display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+    margin-top: 36px; opacity: 0; animation: mFade 1s ease 1.2s both;
+  }
+  .heroM-meta {
+    margin-top: 40px;
+    font-family: var(--cond); text-transform: uppercase; letter-spacing: .28em;
+    font-size: 12px; color: var(--muted-light);
+    opacity: 0; animation: mFade 1s ease 1.35s both;
+    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; align-items: center;
+  }
+  .heroM-meta .sep { color: var(--brass); }
+  .heroM-strip {
+    position: relative; z-index: 2; width: 100%; max-width: var(--maxw);
+    margin: clamp(40px, 6vh, 80px) auto 0;
+    height: clamp(140px, 22vh, 240px); overflow: hidden;
+    clip-path: inset(100% 0 0 0); animation: mReveal 1.2s cubic-bezier(.7,0,.2,1) 1.1s forwards;
+  }
+  .heroM-strip .bg-img { width: 100%; height: 100%; background-size: cover; background-position: center; }
+  @keyframes mTitle { to { opacity: 1; transform: none; } }
+  @keyframes mFade { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+  @keyframes mRule { to { width: min(440px, 72%); } }
+  @keyframes mGlow { to { opacity: 1; } }
+  @keyframes mReveal { to { clip-path: inset(0 0 0 0); } }
+  @media (prefers-reduced-motion: reduce) { .heroM * { animation: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; } }
+</style>

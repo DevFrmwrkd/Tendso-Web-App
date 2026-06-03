@@ -36,7 +36,38 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { injectEditorBridge } from "./editorBridge";
+import LinkPopover, { type LinkPopoverData } from "./LinkPopover";
+import ImagePickerModal from "./ImagePickerModal";
+import ContentFieldsAuto from "./ContentFieldsAuto";
+import { deriveContentDefaults, getDerivedAt } from "@/lib/derive-content-defaults";
 import s from "./SandboxEditor.module.css";
+
+// ── GENERIC LANDING PAGES · 5 templates with iframe previews ─────────
+// Each entry maps to a `customizations.heroStyle = "generic:<letter>"`
+// selection that the Astro page router uses to render PageA…PageE.
+const GENERIC_TEMPLATES = [
+    { letter: 'A', code: 'generic:A', label: 'Ironwood',      tagline: 'Paper + gold · café',           preview: '/template-previews/a.html' },
+    { letter: 'B', code: 'generic:B', label: 'Stillwater',    tagline: 'Teal + peach · yoga / studio',  preview: '/template-previews/b.html' },
+    { letter: 'C', code: 'generic:C', label: 'Cedar & Stone', tagline: 'Amber + forest · build trades', preview: '/template-previews/c.html' },
+    { letter: 'D', code: 'generic:D', label: 'Northpoint',    tagline: 'Lime on dark · tech / IT',      preview: '/template-previews/d.html' },
+    { letter: 'E', code: 'generic:E', label: 'Wash House',    tagline: 'Blue + yellow · laundry',       preview: '/template-previews/e.html' },
+] as const;
+
+// ── BARBERSHOP · Forge family · 5 letter variants ────────────────────
+// Codes map to `customizations.heroStyle = "barbershop:<letter>"` which
+// the Astro router resolves to PageF…PageJ. Each variant shares the
+// same 16 Letter F section components and only swaps :root tokens for
+// per-letter palette / typography identity.
+const BARBERSHOP_TEMPLATES = [
+    { letter: 'F', code: 'barbershop:F', label: 'Forge',     tagline: 'Paper + brass · classic',           preview: '/template-previews/f.html' },
+    { letter: 'G', code: 'barbershop:G', label: 'Cinematic', tagline: 'Oversized type · editorial',         preview: '/template-previews/g.html' },
+    { letter: 'H', code: 'barbershop:H', label: 'Kinetic',   tagline: 'Black + green · energetic',          preview: '/template-previews/h.html' },
+    { letter: 'I', code: 'barbershop:I', label: 'Minimal',   tagline: 'Neutral grayscale · refined',        preview: '/template-previews/i.html' },
+    { letter: 'J', code: 'barbershop:J', label: 'Stacked',   tagline: 'Stone + dark red · bold serif',      preview: '/template-previews/j.html' },
+] as const;
+
+type TemplateFamily = 'generic' | 'barbershop';
+const ALL_TEMPLATES = [...GENERIC_TEMPLATES, ...BARBERSHOP_TEMPLATES] as readonly { letter: string; code: string; label: string; tagline: string; preview: string }[];
 
 // ── BUCKETS · pick-one categories ────────────────────────────────────
 // `business_type` carries forward, but the variant-prefix routing was
@@ -133,6 +164,12 @@ export interface SandboxEditorProps {
     content: any;
     customizations: any;
     photos: string[];
+    /**
+     * AI-enhanced image URLs resolved by the parent page (Convex storage
+     * IDs already converted to https URLs via api.files.getMultipleUrls).
+     * The Image-picker modal's "AI-enhanced" tab reads from this list.
+     */
+    enhancedImageUrls?: string[];
 
     onSaveContent: (content: any, customizationsOverride?: any) => Promise<void>;
     onUpdateDesign: (customizations: any) => Promise<void>;
@@ -170,6 +207,7 @@ export default function SandboxEditor(props: SandboxEditorProps) {
         content,
         customizations,
         photos,
+        enhancedImageUrls,
         onSaveContent,
         onUpdateDesign,
         websitePublishedUrl,
@@ -295,6 +333,23 @@ export default function SandboxEditor(props: SandboxEditorProps) {
     // ── Iframe live preview ───────────────────────────────────────────
     const previewHtml = useMemo(() => injectEditorBridge(htmlContent || ""), [htmlContent]);
 
+    // ── Link popover + Image picker modal state ───────────────────────
+    // Both modals open in response to iframe → parent messages. The link
+    // popover edits an <a>'s text + href in place. The image picker shows
+    // originals + AI-enhanced for the clicked slot.
+    const [linkPopover, setLinkPopover] = useState<LinkPopoverData | null>(null);
+    const [imagePicker, setImagePicker] = useState<string | null>(null);
+    // Template-tab accordions — Modern Designs (Generic) + Barbershop.
+    // Each defaults open if no template selected OR the active selection
+    // belongs to that family; collapsed otherwise (still expandable).
+    const __initStyle = String((customizations as any)?.heroStyle ?? "");
+    const [templateAccordionOpen, setTemplateAccordionOpen] = useState<boolean>(
+        () => /^generic:[A-E]$/.test(__initStyle) || !/^(generic|barbershop):/.test(__initStyle),
+    );
+    const [barbershopAccordionOpen, setBarbershopAccordionOpen] = useState<boolean>(
+        () => /^barbershop:[F-J]$/.test(__initStyle),
+    );
+
     // Click-to-focus: iframe sends ed:click → either focus a text input
     // (Content tab) OR open the image picker for the clicked image slot
     // (Images tab). The two-RAF defer lets React mount whichever tab
@@ -306,6 +361,64 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                 bridgeReady.current = true;
                 return;
             }
+
+            // Link click — open the link popover. data-href-field on the
+            // anchor tells us where to write the new href; data-field (if
+            // present) is the text-label field.
+            if (e.data.type === "ed:link-click") {
+                setLinkPopover({
+                    field: String(e.data.field || ''),
+                    hrefField: String(e.data.hrefField || ''),
+                    platformField: e.data.platformField ? String(e.data.platformField) : undefined,
+                    text: String(e.data.text || ''),
+                    href: String(e.data.href || ''),
+                    platform: e.data.platform ? String(e.data.platform) : undefined,
+                });
+                return;
+            }
+
+            // Image click — open the image picker modal.
+            if (e.data.type === "ed:image-click" && typeof e.data.field === "string") {
+                setImagePicker(e.data.field);
+                return;
+            }
+
+            // Selection inside iframe → soft-focus the matching sidebar input.
+            // Unlike ed:click this doesn't switch tabs; it only scrolls + ring-
+            // highlights the input so admin sees where the field lives.
+            if (e.data.type === "ed:select" && typeof e.data.field === "string") {
+                const field = e.data.field;
+                if (tab === "content") {
+                    requestAnimationFrame(() => {
+                        const inputEl = document.querySelector(
+                            `[data-field-input="${field}"]`,
+                        ) as HTMLElement | null;
+                        if (inputEl) {
+                            inputEl.scrollIntoView({ block: "center", behavior: "smooth" });
+                            inputEl.classList.add("ed-selection-pulse");
+                            window.setTimeout(() => inputEl.classList.remove("ed-selection-pulse"), 1400);
+                        }
+                    });
+                } else {
+                    // Other tab is open — flip to content so the highlight is
+                    // visible. This is the "highlight to edit" UX flow.
+                    setTab("content");
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            const inputEl = document.querySelector(
+                                `[data-field-input="${field}"]`,
+                            ) as HTMLElement | null;
+                            if (inputEl) {
+                                inputEl.scrollIntoView({ block: "center", behavior: "smooth" });
+                                inputEl.classList.add("ed-selection-pulse");
+                                window.setTimeout(() => inputEl.classList.remove("ed-selection-pulse"), 1400);
+                            }
+                        });
+                    });
+                }
+                return;
+            }
+
             if (e.data.type === "ed:click" && typeof e.data.field === "string") {
                 const field = e.data.field;
 
@@ -339,6 +452,70 @@ export default function SandboxEditor(props: SandboxEditorProps) {
         window.addEventListener("message", onMessage);
         return () => window.removeEventListener("message", onMessage);
     }, []);
+
+    // ── Link popover save — push update to iframe + patch draft ──────
+    const handleLinkSave = useCallback((next: LinkPopoverData) => {
+        // 1. Live-update the iframe so the preview shows the change.
+        try {
+            iframeRef.current?.contentWindow?.postMessage(
+                {
+                    type: "ed:link-update",
+                    field: next.field,
+                    hrefField: next.hrefField,
+                    text: next.text,
+                    href: next.href,
+                    platformField: next.platformField,
+                    platform: next.platform,
+                },
+                "*",
+            );
+        } catch { /* sandboxed iframe — ignore */ }
+        // 2. Patch the draft so the change survives Save. We write under
+        //    the SHORT path segments (text → data-field path, href →
+        //    data-href-field path with the trailing ".href" implied).
+        if (next.field) setDeepDraft(next.field, next.text);
+        if (next.hrefField) setDeepDraft(next.hrefField, next.href);
+    }, []);
+
+    // ── Image picker — apply the chosen URL ──────────────────────────
+    const handleImagePick = useCallback((field: string, src: string) => {
+        try {
+            iframeRef.current?.contentWindow?.postMessage(
+                { type: "ed:image", field, src },
+                "*",
+            );
+        } catch { /* sandboxed iframe — ignore */ }
+        setDeepDraft(field, src);
+        setImagePicker(null);
+    }, []);
+
+    // ── setDeepDraft — write a dotted path into the content draft ─────
+    // Used by the link popover and image picker so changes persist past
+    // the in-iframe live update. Mutates a new copy and updates state.
+    function setDeepDraft(path: string, value: any) {
+        setDraft((prev: any) => {
+            const root = prev ? { ...prev } : {};
+            const parts = path.split('.');
+            let cur: any = root;
+            for (let i = 0; i < parts.length - 1; i++) {
+                const k = parts[i];
+                const nextKey = parts[i + 1];
+                const numeric = /^\d+$/.test(nextKey);
+                // Preserve existing value's array-ness; otherwise create
+                // an array when next segment is a number, else an object.
+                if (Array.isArray(cur[k])) {
+                    cur[k] = [...cur[k]];
+                } else if (typeof cur[k] === 'object' && cur[k] !== null) {
+                    cur[k] = { ...cur[k] };
+                } else {
+                    cur[k] = numeric ? [] : {};
+                }
+                cur = cur[k];
+            }
+            cur[parts[parts.length - 1]] = value;
+            return root;
+        });
+    }
 
     // ── Pending customizations (Template + Theme tabs) ────────────────
     // User selections are batched here — no regen on every click. They
@@ -562,77 +739,497 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                 <div className={s.panelInner}>
                 <div ref={panelBodyRef} className={cx(s.panelBody, s.scrollable)}>
                     {/* ── TEMPLATE ─────────────────────────────── */}
-                    {/* Template variants were removed for a clean-slate redesign.
-                        The only thing this tab still does is let the admin pick a
-                        business bucket — it persists to draft.business_type on
-                        Save changes and shows next to the preview header. The
-                        per-section variant picker will come back once new
-                        designs land. */}
-                    {tab === "template" && (
-                        <div className="space-y-3">
-                            {customizationsDirty && (
-                                <div className={s.pendingBanner}>
-                                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--sx-accent)" }} />
-                                    Pending · click Save changes to apply
-                                </div>
-                            )}
+                    {/* Compact single-dropdown picker. Category section was
+                        removed per user request — admins pick the design
+                        directly. The dropdown lists the 5 generic landing
+                        pages plus an "Auto / placeholder" option that keeps
+                        the legacy non-generic flow. */}
+                    {tab === "template" && (() => {
+                        const currentHeroStyle = String(
+                            (effectiveCustomizations as any)?.heroStyle ?? "",
+                        );
+                        const onPickTemplate = (code: string) => {
+                            if (!code) {
+                                // "Auto" / clear — drop the generic codes,
+                                // restore something the legacy flow accepts.
+                                setPendingCustomizations((prev: any) => ({
+                                    ...(prev ?? customizations ?? {}),
+                                    heroStyle: "",
+                                    aboutStyle: "",
+                                    servicesStyle: "",
+                                    galleryStyle: "",
+                                    contactStyle: "",
+                                    trustStyle: "",
+                                    whyUsStyle: "",
+                                    howItWorksStyle: "",
+                                    testimonialsStyle: "",
+                                    faqStyle: "",
+                                    serviceAreaStyle: "",
+                                    credentialsStyle: "",
+                                    ctaBandStyle: "",
+                                }));
+                                return;
+                            }
+                            const tpl = ALL_TEMPLATES.find((t) => t.code === code);
+                            const letter = tpl?.letter ?? "A";
+                            setPendingCustomizations((prev: any) => ({
+                                ...(prev ?? customizations ?? {}),
+                                heroStyle: code,
+                                aboutStyle: code,
+                                servicesStyle: code,
+                                galleryStyle: code,
+                                contactStyle: code,
+                                trustStyle: code,
+                                whyUsStyle: code,
+                                howItWorksStyle: code,
+                                testimonialsStyle: code,
+                                faqStyle: code,
+                                serviceAreaStyle: code,
+                                credentialsStyle: code,
+                                ctaBandStyle: code,
+                                navbarStyle: letter,
+                            }));
+                        };
+                        const activeTpl = ALL_TEMPLATES.find((t) => t.code === currentHeroStyle);
+                        const activeFamily: TemplateFamily | null = activeTpl
+                            ? (BARBERSHOP_TEMPLATES.some((t) => t.code === activeTpl.code) ? 'barbershop' : 'generic')
+                            : null;
+                        return (
+                            <div className="space-y-3">
+                                {customizationsDirty && (
+                                    <div className={s.pendingBanner}>
+                                        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--sx-accent)" }} />
+                                        Pending · click Save changes to apply
+                                    </div>
+                                )}
 
-                            <div className={s.section}>
-                                <div className={s.sectionHead}>BUSINESS CATEGORY</div>
-                                <div className={s.hint} style={{ marginBottom: 12 }}>
-                                    Tags the submission so future designs can pick a fitting
-                                    default. No template variants yet — designs are being
-                                    rebuilt from scratch.
-                                </div>
-                                <div className={s.field}>
-                                    <label>Category</label>
-                                    <select
-                                        value={selectedBucket}
-                                        onChange={(e) => setSelectedBucket(e.target.value)}
+                                <div className={s.section}>
+                                    <details
+                                        open={templateAccordionOpen}
+                                        onToggle={(e) => setTemplateAccordionOpen((e.target as HTMLDetailsElement).open)}
+                                        style={{
+                                            borderRadius: 10,
+                                            overflow: "hidden",
+                                            background: "var(--sx-panel-2)",
+                                            border: "1px solid var(--sx-rule)",
+                                        }}
                                     >
-                                        {TEMPLATE_BUCKETS.map((b) => (
-                                            <option key={b.id} value={b.id}>
-                                                {b.label} · {b.business}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        <summary
+                                            style={{
+                                                listStyle: "none",
+                                                cursor: "pointer",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                padding: "12px 14px",
+                                                color: "var(--sx-ink)",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+                                                <div
+                                                    style={{
+                                                        fontFamily: "var(--sx-mono)",
+                                                        fontSize: 10,
+                                                        fontWeight: 700,
+                                                        letterSpacing: "0.16em",
+                                                        textTransform: "uppercase",
+                                                        color: "var(--sx-accent)",
+                                                    }}
+                                                >
+                                                    Modern Designs
+                                                </div>
+                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                    {activeFamily === 'generic' && activeTpl ? activeTpl.label : "Auto / placeholder"}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: "var(--sx-ink-soft)",
+                                                        whiteSpace: "nowrap",
+                                                        overflow: "hidden",
+                                                        textOverflow: "ellipsis",
+                                                    }}
+                                                >
+                                                    {activeFamily === 'generic' && activeTpl ? activeTpl.tagline : "Click to browse landing-page designs"}
+                                                </div>
+                                            </div>
+                                            <ChevronDown
+                                                style={{
+                                                    width: 14,
+                                                    height: 14,
+                                                    color: "var(--sx-ink-soft)",
+                                                    transition: "transform .18s",
+                                                    transform: templateAccordionOpen ? "rotate(180deg)" : "none",
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        </summary>
+                                        <div
+                                            style={{
+                                                padding: "8px 12px 14px",
+                                                borderTop: "1px solid var(--sx-rule)",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            {GENERIC_TEMPLATES.map((tpl) => {
+                                                const isActive = currentHeroStyle === tpl.code;
+                                                return (
+                                                    <button
+                                                        key={tpl.code}
+                                                        type="button"
+                                                        onClick={() => onPickTemplate(tpl.code)}
+                                                        style={{
+                                                            display: "block",
+                                                            width: "100%",
+                                                            textAlign: "left",
+                                                            padding: 0,
+                                                            background: isActive ? "rgba(16, 185, 129, 0.08)" : "var(--sx-panel)",
+                                                            border: isActive ? "1.5px solid var(--sx-accent)" : "1px solid var(--sx-rule)",
+                                                            borderRadius: 10,
+                                                            overflow: "hidden",
+                                                            cursor: "pointer",
+                                                            transition: "border-color .15s, transform .15s",
+                                                            fontFamily: "var(--sx-sans)",
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                width: "100%",
+                                                                aspectRatio: "16 / 10",
+                                                                background: "#fff",
+                                                                borderBottom: "1px solid var(--sx-rule)",
+                                                                position: "relative",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            <iframe
+                                                                src={tpl.preview}
+                                                                title={`${tpl.label} preview`}
+                                                                loading="lazy"
+                                                                sandbox=""
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: "300%",
+                                                                    height: "300%",
+                                                                    border: 0,
+                                                                    transform: "scale(0.333)",
+                                                                    transformOrigin: "top left",
+                                                                    pointerEvents: "none",
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div style={{ padding: "10px 14px 12px" }}>
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    gap: 8,
+                                                                    justifyContent: "space-between",
+                                                                }}
+                                                            >
+                                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                                    {tpl.label}
+                                                                </div>
+                                                                {isActive && (
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: 9,
+                                                                            fontWeight: 700,
+                                                                            textTransform: "uppercase",
+                                                                            letterSpacing: "0.1em",
+                                                                            color: "var(--sx-accent)",
+                                                                            background: "rgba(16, 185, 129, 0.18)",
+                                                                            borderRadius: 999,
+                                                                            padding: "2px 7px",
+                                                                            fontFamily: "var(--sx-mono)",
+                                                                        }}
+                                                                    >
+                                                                        Active
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: "var(--sx-ink-soft)",
+                                                                    marginTop: 4,
+                                                                }}
+                                                            >
+                                                                {tpl.tagline}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                            <button
+                                                type="button"
+                                                onClick={() => onPickTemplate("")}
+                                                style={{
+                                                    padding: "10px 14px",
+                                                    background: currentHeroStyle === "" ? "rgba(16, 185, 129, 0.08)" : "transparent",
+                                                    border: currentHeroStyle === "" ? "1.5px solid var(--sx-accent)" : "1px dashed var(--sx-rule)",
+                                                    borderRadius: 10,
+                                                    color: "var(--sx-ink-soft)",
+                                                    fontSize: 12,
+                                                    fontFamily: "var(--sx-sans)",
+                                                    cursor: "pointer",
+                                                    textAlign: "left",
+                                                }}
+                                            >
+                                                Auto / placeholder · use when no template is set
+                                            </button>
+                                        </div>
+                                    </details>
                                 </div>
-                            </div>
 
-                            <div
-                                style={{
-                                    padding: 16,
-                                    borderRadius: 12,
-                                    background: "var(--sx-panel-2)",
-                                    border: "1px dashed var(--sx-rule)",
-                                    color: "var(--sx-ink-soft)",
-                                    fontSize: 12,
-                                    lineHeight: 1.55,
-                                }}
-                            >
+                                {/* ── BARBERSHOP · Forge family ─────────────── */}
+                                <div className={s.section}>
+                                    <details
+                                        open={barbershopAccordionOpen}
+                                        onToggle={(e) => setBarbershopAccordionOpen((e.target as HTMLDetailsElement).open)}
+                                        style={{
+                                            borderRadius: 10,
+                                            overflow: "hidden",
+                                            background: "var(--sx-panel-2)",
+                                            border: "1px solid var(--sx-rule)",
+                                        }}
+                                    >
+                                        <summary
+                                            style={{
+                                                listStyle: "none",
+                                                cursor: "pointer",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                padding: "12px 14px",
+                                                color: "var(--sx-ink)",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+                                                <div
+                                                    style={{
+                                                        fontFamily: "var(--sx-mono)",
+                                                        fontSize: 10,
+                                                        fontWeight: 700,
+                                                        letterSpacing: "0.16em",
+                                                        textTransform: "uppercase",
+                                                        color: "var(--sx-accent)",
+                                                    }}
+                                                >
+                                                    Barbershop
+                                                </div>
+                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                    {activeFamily === 'barbershop' && activeTpl ? activeTpl.label : "Forge family · 5 variants"}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: "var(--sx-ink-soft)",
+                                                        whiteSpace: "nowrap",
+                                                        overflow: "hidden",
+                                                        textOverflow: "ellipsis",
+                                                    }}
+                                                >
+                                                    {activeFamily === 'barbershop' && activeTpl ? activeTpl.tagline : "Click to browse barbershop designs"}
+                                                </div>
+                                            </div>
+                                            <ChevronDown
+                                                style={{
+                                                    width: 14,
+                                                    height: 14,
+                                                    color: "var(--sx-ink-soft)",
+                                                    transition: "transform .18s",
+                                                    transform: barbershopAccordionOpen ? "rotate(180deg)" : "none",
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        </summary>
+                                        <div
+                                            style={{
+                                                padding: "8px 12px 14px",
+                                                borderTop: "1px solid var(--sx-rule)",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            {BARBERSHOP_TEMPLATES.map((tpl) => {
+                                                const isActive = currentHeroStyle === tpl.code;
+                                                return (
+                                                    <button
+                                                        key={tpl.code}
+                                                        type="button"
+                                                        onClick={() => onPickTemplate(tpl.code)}
+                                                        style={{
+                                                            display: "block",
+                                                            width: "100%",
+                                                            textAlign: "left",
+                                                            padding: 0,
+                                                            background: isActive ? "rgba(16, 185, 129, 0.08)" : "var(--sx-panel)",
+                                                            border: isActive ? "1.5px solid var(--sx-accent)" : "1px solid var(--sx-rule)",
+                                                            borderRadius: 10,
+                                                            overflow: "hidden",
+                                                            cursor: "pointer",
+                                                            transition: "border-color .15s, transform .15s",
+                                                            fontFamily: "var(--sx-sans)",
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                width: "100%",
+                                                                aspectRatio: "16 / 10",
+                                                                background: "#fff",
+                                                                borderBottom: "1px solid var(--sx-rule)",
+                                                                position: "relative",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            <iframe
+                                                                src={tpl.preview}
+                                                                title={`${tpl.label} preview`}
+                                                                loading="lazy"
+                                                                sandbox=""
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: "300%",
+                                                                    height: "300%",
+                                                                    border: 0,
+                                                                    transform: "scale(0.333)",
+                                                                    transformOrigin: "top left",
+                                                                    pointerEvents: "none",
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div style={{ padding: "10px 14px 12px" }}>
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    gap: 8,
+                                                                    justifyContent: "space-between",
+                                                                }}
+                                                            >
+                                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                                    {tpl.label}
+                                                                </div>
+                                                                {isActive && (
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: 9,
+                                                                            fontWeight: 700,
+                                                                            textTransform: "uppercase",
+                                                                            letterSpacing: "0.1em",
+                                                                            color: "var(--sx-accent)",
+                                                                            background: "rgba(16, 185, 129, 0.18)",
+                                                                            borderRadius: 999,
+                                                                            padding: "2px 7px",
+                                                                            fontFamily: "var(--sx-mono)",
+                                                                        }}
+                                                                    >
+                                                                        Active
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: "var(--sx-ink-soft)",
+                                                                    marginTop: 4,
+                                                                }}
+                                                            >
+                                                                {tpl.tagline}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </details>
+                                </div>
+
                                 <div
                                     style={{
-                                        fontFamily: "var(--sx-mono)",
-                                        fontSize: 10,
-                                        fontWeight: 700,
-                                        letterSpacing: "0.16em",
-                                        textTransform: "uppercase",
-                                        color: "var(--sx-accent)",
-                                        marginBottom: 6,
+                                        padding: 14,
+                                        borderRadius: 10,
+                                        background: "var(--sx-panel-2)",
+                                        border: "1px dashed var(--sx-rule)",
+                                        color: "var(--sx-ink-soft)",
+                                        fontSize: 11,
+                                        lineHeight: 1.55,
                                     }}
                                 >
-                                    Clean slate
+                                    <div
+                                        style={{
+                                            fontFamily: "var(--sx-mono)",
+                                            fontSize: 9,
+                                            fontWeight: 700,
+                                            letterSpacing: "0.16em",
+                                            textTransform: "uppercase",
+                                            color: "var(--sx-accent)",
+                                            marginBottom: 4,
+                                        }}
+                                    >
+                                        Editing tips
+                                    </div>
+                                    Click any text in the preview to focus its sidebar input.
+                                    Click any link to edit the button text + URL. Click any
+                                    image to swap it from your photos or AI-enhanced library.
                                 </div>
-                                Template library was wiped to make room for new designs.
-                                Submissions still render a minimal placeholder until the
-                                new templates ship — content edits, theme tokens, and
-                                image uploads all keep working.
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
 
                     {/* ── CONTENT ──────────────────────────────── */}
-                    {tab === "content" && (
+                    {tab === "content" && /^(generic:[A-E]|barbershop:[F-J])$/.test(String((effectiveCustomizations as any)?.heroStyle ?? "")) && (() => {
+                        // Derive the same "tier-3" fallback the build pipeline
+                        // uses so inputs always show what the iframe shows. The
+                        // editor's getValue() chain becomes:
+                        //   1. draft (admin override)
+                        //   2. schema-declared fallbackPaths (already in ContentFieldsAuto)
+                        //   3. submission-derived defaults (this layer)
+                        const derived = deriveContentDefaults({
+                            business_name: (draft as any)?.business_name || businessName,
+                            business_city: (draft as any)?.business_city || (draft as any)?.contact?.city,
+                            business_type: (draft as any)?.business_type || businessType,
+                            tagline: (draft as any)?.tagline,
+                            about: (draft as any)?.about,
+                            contact: (draft as any)?.contact,
+                        }, photos);
+                        return (
+                            <ContentFieldsAuto
+                                getValue={(path: string) => {
+                                    const parts = path.split('.');
+                                    let cur: any = draft;
+                                    for (const p of parts) {
+                                        if (cur == null) { cur = undefined; break; }
+                                        cur = cur[p];
+                                    }
+                                    if (cur !== undefined && cur !== null && cur !== '') return cur;
+                                    // Final fallback — the derived value for this path.
+                                    return getDerivedAt(derived, path);
+                                }}
+                                setValue={(path: string, value: any) => setDeepDraft(path, value)}
+                                openImagePicker={(path: string) => setImagePicker(path)}
+                                pushLiveText={(path: string, value: any) => {
+                                    try {
+                                        iframeRef.current?.contentWindow?.postMessage(
+                                            { type: 'ed:update', field: path, value },
+                                            '*',
+                                        );
+                                    } catch { /* sandboxed */ }
+                                }}
+                            />
+                        );
+                    })()}
+                    {tab === "content" && !/^generic:[A-E]$/.test(String((effectiveCustomizations as any)?.heroStyle ?? "")) && (
                         <>
                             <div className={s.section}>
                                 <div className={s.sectionHead}>BUSINESS</div>
@@ -1227,9 +1824,8 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                         <div className={s.section}>
                             <div className={s.sectionHead}>THEME · COLOR + FONT</div>
                             <div className={s.hint} style={{ marginBottom: 16 }}>
-                                Pick a curated color scheme + font pairing. Selections
-                                batch with your Template + Content edits — they apply on
-                                Save changes.
+                                Pick a curated color scheme + font pairing. The selection
+                                overrides the template's native palette on Save changes.
                             </div>
                             {customizationsDirty && (
                                 <div className={s.pendingBanner}>
@@ -1566,6 +2162,35 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                     )}
                 </div>
             </section>
+
+            {/* ── Editor modals ─────────────────────────────────────── */}
+            <LinkPopover
+                open={!!linkPopover}
+                initial={linkPopover}
+                onClose={() => setLinkPopover(null)}
+                onSave={handleLinkSave}
+            />
+            <ImagePickerModal
+                open={!!imagePicker}
+                field={imagePicker}
+                originals={(photos as string[]) ?? []}
+                enhanced={(() => {
+                    // Prefer parent-resolved URLs (already converted from
+                    // Convex storage IDs to https URLs). Fall back to the
+                    // raw map in draft / content so the modal still works
+                    // if a future flow stores them inline.
+                    if (enhancedImageUrls && enhancedImageUrls.length) {
+                        const map: Record<string, { url: string }> = {};
+                        enhancedImageUrls.forEach((url, i) => {
+                            map[`enhanced_${i + 1}`] = { url };
+                        });
+                        return map;
+                    }
+                    return (draft as any)?.enhancedImages ?? (content as any)?.enhancedImages;
+                })()}
+                onClose={() => setImagePicker(null)}
+                onSelect={handleImagePick}
+            />
         </div>
     );
 }

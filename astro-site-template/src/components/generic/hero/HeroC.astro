@@ -1,0 +1,57 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.badge_text || '';
+const headlineLines = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0 ? hero.headlineLines
+  : [];
+const sub = hero.sub || hero.description ||
+  '';
+const cta1Text = hero.cta1?.text || 'Get a free quote';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || 'See our work';
+const cta2Href = hero.cta2?.href || '#work';
+const meta1 = hero.meta1 || '★★★★★ rated on Google';
+const meta2 = hero.meta2 || 'Licensed & insured · serving Boulder County';
+---
+<section class="hero">
+  <div class="bg-img" data-image-field="hero.image" style={heroImage ? `background-image:url('${heroImage}');` : ''}></div>
+  <div class="scrim"></div>
+  <div class="wrap hero-in">
+    <span class="eyebrow" data-field="hero.kicker">{kicker}</span>
+    <h1>
+      {headlineLines.map((line: string, i: number) => (
+        <span class="line-mask"><span data-line={i + 1} data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+      ))}
+    </h1>
+    <p class="hero-sub reveal" data-field="hero.sub">{sub}</p>
+    <div class="hero-cta reveal" style="transition-delay:.1s;">
+      <a href={cta1Href} class="btn btn-primary" data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>
+      <a href={cta2Href} class="btn btn-light" data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>
+    </div>
+    <div class="hero-meta reveal" style="transition-delay:.18s;">
+      <span data-field="hero.meta1" set:html={meta1}></span>
+      <span data-field="hero.meta2" set:html={meta2}></span>
+    </div>
+  </div>
+</section>
+<style>
+  .hero { position: relative; min-height: 88vh; display: flex; align-items: flex-end; overflow: hidden; border-bottom: 3px solid var(--ink); }
+  .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; background-color: #2d3a30; }
+  .scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(var(--ink-rgb), .35) 0%, rgba(var(--ink-rgb), .2) 40%, rgba(var(--ink-rgb), .86) 100%); }
+  .hero-in { position: relative; z-index: 2; padding: 0 30px 70px; color: var(--paper-2); max-width: var(--wrap); margin: 0 auto; width: 100%; }
+  .eyebrow { display: inline-block; background: var(--amber); color: var(--ink); padding: 7px 14px; }
+  h1 { font-size: clamp(56px, 10vw, 150px); margin-top: 22px; color: var(--paper-2); text-shadow: 0 2px 30px rgba(0, 0, 0, .4); }
+  h1 :global(em) { font-style: normal; color: var(--amber); }
+  .line-mask { display: block; overflow: hidden; }
+  .line-mask > span { display: block; transform: translateY(0); }
+  :global(body.reveal-on) .line-mask > span { animation: rise 1s cubic-bezier(.2, .8, .2, 1) both; }
+  :global(body.reveal-on) .line-mask > span[data-line="2"] { animation-delay: .12s; }
+  @keyframes rise { from { transform: translateY(105%); } to { transform: translateY(0); } }
+  .hero-sub { margin-top: 22px; max-width: 46ch; font-size: 19px; color: rgba(var(--paper-rgb), .92); }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+  .hero-cta :global(.btn-primary) { box-shadow: 6px 6px 0 rgba(0, 0, 0, .5); }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 12px 28px; margin-top: 28px; font-size: 13px; font-weight: 600; letter-spacing: .04em; }
+  .hero-meta :global(.stars) { color: var(--amber); letter-spacing: 2px; }
+</style>

@@ -1,0 +1,137 @@
+---
+/**
+ * generic / AreaA — service-area chips + credentials side-by-side.
+ *
+ * Editable hooks:
+ *   area.tag, area.headline, area.body, area.places[i],
+ *   credentials.tag, credentials.headline,
+ *   credentials.items[i].title, credentials.items[i].body
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+
+const area = content.area || content.serviceArea || {};
+const tag       = area.tag       || 'Where we deliver';
+const headline  = area.headline  || 'Bags & wholesale <em>across the city.</em>';
+const body      = area.body      || area.description ||
+  'Describe the area you serve. Edit in the Service area section.';
+const places: string[] = Array.isArray(area.places) && area.places.length
+  ? area.places
+  : [];
+
+const creds = content.credentials || {};
+const credTag       = creds.tag       || 'Credentials';
+const credHeadline  = creds.headline  || 'Sourced & served right.';
+const credItems = Array.isArray(creds.items) && creds.items.length
+  ? creds.items
+  : [];
+
+const credIconPaths = [
+  '<path d="M12 3l8 4v6c0 5-4 7-8 8-4-1-8-3-8-8V7z"/><path d="M9 12l2 2 4-4"/>',
+  '<circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/>',
+  '<path d="M12 2v20M5 7l7-4 7 4M5 7v8l7 4 7-4V7"/>',
+];
+---
+
+<section class="sec" id="area">
+  <div class="wrap split2">
+    <div>
+      <p class="sec-tag reveal" data-field="area.tag">{tag}</p>
+      <h2 class="reveal" data-field="area.headline" style="font-size:clamp(30px,3.6vw,46px);" set:html={headline}></h2>
+      <p class="reveal area-body" data-field="area.body">{body}</p>
+      <div class="area-chips reveal">
+        {places.map((p: string, i: number) => (
+          <span data-field={`area.places.${i}`}>{p}</span>
+        ))}
+      </div>
+    </div>
+    <div>
+      <p class="sec-tag reveal" data-field="credentials.tag">{credTag}</p>
+      <h2 class="reveal" data-field="credentials.headline" style="font-size:clamp(30px,3.6vw,46px);">{credHeadline}</h2>
+      <div class="creds-list">
+        {credItems.map((it: any, i: number) => (
+          <div class="cred reveal">
+            <div class="ic">
+              <svg viewBox="0 0 24 24" set:html={credIconPaths[i % credIconPaths.length]}></svg>
+            </div>
+            <div>
+              <b data-field={`credentials.items.${i}.title`}>{it.title || it.label}</b>
+              <p data-field={`credentials.items.${i}.body`}>{it.body || it.detail || it.description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .split2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+  }
+  @media (max-width: 820px) {
+    .split2 { grid-template-columns: 1fr; gap: 40px; }
+  }
+  .area-body {
+    margin-top: 18px;
+    color: var(--ink-soft);
+    max-width: 42ch;
+  }
+  .area-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 26px;
+  }
+  .area-chips span {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .03em;
+    border: 2px solid var(--ink);
+    border-radius: 30px;
+    padding: 9px 16px;
+  }
+  .creds-list {
+    margin-top: 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+  .cred {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px 0;
+    border-top: 1px solid var(--line);
+  }
+  .cred:first-child { border-top: none; }
+  .cred .ic {
+    flex: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cred svg {
+    width: 22px;
+    height: 22px;
+    stroke: var(--ink);
+    fill: none;
+    stroke-width: 1.8;
+  }
+  .cred b {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 19px;
+  }
+  .cred p {
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin-top: 3px;
+  }
+</style>
