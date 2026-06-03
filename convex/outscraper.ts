@@ -18,6 +18,27 @@ import { action, internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { requireAuth } from "./lib/auth";
 import type { Id } from "./_generated/dataModel";
+import { bucketCategory } from "./lib/quality";
+import { latLngToH3Cells } from "./lib/h3";
+
+/**
+ * Wrapper around `bucketCategory` that returns `null` instead of "other"
+ * for unknown categories. Used by the pool-aware path so we DON'T pool-
+ * query the "other" bucket (which is rarely seeded and would force a
+ * scrape every time on a miss). Known categories still get pool-checked.
+ */
+function mapCategoryToBucket(categoryRaw: string): string | null {
+    const b = bucketCategory(categoryRaw);
+    return b && b !== "other" ? b : null;
+}
+
+// ── Async-batch mode constants (per spec §"Async batch mode") ────────
+// Same values as convex/scrape.ts — duplicated here because the legacy
+// scrapeNearby path used to be sync-mode and is now async-batch too.
+const ASYNC_POLL_INTERVAL_MS = 5000;
+const ASYNC_POLL_MAX_ATTEMPTS = 60; // 5 min total — Convex action timeout is 10 min, leaves 5 min headroom
+const MAX_LIMIT = 400;
+const DEFAULT_LIMIT = 400;
 
 // Outscraper response is loosely typed — keep this flexible.
 interface OutscraperPlace {
@@ -129,7 +150,78 @@ export const scrapeNearby = action({
             );
         }
 
-        const limit = Math.min(args.limit ?? 20, 200);
+        // ── REVISED 2026-06: pool-aware scrape (on-demand only) ──────
+        // Before hitting Outscraper, check whether the prospect pool
+        // already has enough rows for this area + category. If yes,
+        // return them in the businesses shape — zero API cost, instant.
+        //
+        // Pool sufficiency = ≥ 10 available prospects in the user's
+        // res-7 cell + matching categoryBucket. Below that we fall
+        // through to the async-batch scrape path so the pool grows.
+        //
+        // The pool check + ingest only run when `args.location` is a
+        // parseable "lat,lng" coordinate string. Free-text location
+        // (city/neighbourhood) still uses the legacy single-shot
+        // sync-mode scrape path further down — those should be rare
+        // now that mobile always sends GPS coords.
+        const __poolCoordMatch = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.exec(
+            args.location.trim(),
+        );
+        const userCategoryRaw = args.query.trim().toLowerCase();
+        // Map the free-text query to one of the seeded category buckets.
+        // The mapping mirrors lib/quality.ts#bucketCategory exactly so
+        // the ingest path (in prospects.ingestScrapeResults) groups new
+        // rows into the same bucket the pool check just queried.
+        const __categoryBucket = mapCategoryToBucket(userCategoryRaw);
+        if (__poolCoordMatch && __categoryBucket) {
+            const lat = Number(__poolCoordMatch[1]);
+            const lng = Number(__poolCoordMatch[2]);
+            const poolRows = (await ctx.runQuery(
+                internal.prospects.searchNearbyInternal,
+                {
+                    lat,
+                    lng,
+                    radiusKm: Math.max(0.5, args.radiusKm ?? 5),
+                    categoryBucket: __categoryBucket,
+                    limit: 200,
+                },
+            )) as any[];
+            console.log(
+                `[outscraper] pool check: found ${poolRows.length} existing prospects in (${lat},${lng}) bucket="${__categoryBucket}"`,
+            );
+            if (poolRows.length >= 10) {
+                console.log(
+                    `[outscraper] pool sufficient — skipping Outscraper, serving from pool`,
+                );
+                const businessesFromPool = poolRows.map((p) => ({
+                    placeId: p.googlePlaceId,
+                    businessName: p.businessName,
+                    businessAddress: p.address ?? null,
+                    businessCity: p.city ?? null,
+                    businessCategory: p.category ?? p.categoryBucket ?? null,
+                    businessWebsite: p.website ?? null,
+                    businessPhone: p.phone ?? null,
+                    businessLatitude: p.latitude ?? null,
+                    businessLongitude: p.longitude ?? null,
+                    businessRating: p.rating ?? null,
+                    businessReviewCount: p.reviewCount ?? null,
+                }));
+                return {
+                    inserted: 0,
+                    skipped: 0,
+                    total: businessesFromPool.length,
+                    businesses: businessesFromPool,
+                };
+            }
+            // Pool insufficient → fall through to async-batch scrape.
+            // The ingest at the bottom will stock the pool with results.
+        }
+
+        // Revised 2026-06: bumped from 20/200 → DEFAULT_LIMIT/MAX_LIMIT
+        // so async-batch mode returns up to 400 results per call (vs ~50
+        // in the prior sync-mode). 8× pool growth per scrape; same cost
+        // per result (~$0.001), so cost-per-future-creator drops ~5×.
+        const limit = Math.min(args.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
         const radiusKm = Math.max(0.5, args.radiusKm ?? 5);
 
         // Query-format history (per WEB-BUILD-CRM.md):
@@ -154,46 +246,116 @@ export const scrapeNearby = action({
         const userCategory = args.query.trim() || "businesses";
         const coordinates = args.location.trim();
 
-        const url = new URL("https://api.outscraper.com/maps/search-v3");
-        url.searchParams.set("query", userCategory);
-        url.searchParams.set("coordinates", coordinates);
-        url.searchParams.set("zoom", String(zoom));
-        url.searchParams.set("limit", String(limit));
-        url.searchParams.set("language", "en");
-        url.searchParams.set("region", "PH");
-        url.searchParams.set("async", "false");
+        // ── REVISED 2026-06: async-batch mode with inline polling ────
+        // The legacy path was a single-shot sync fetch (async=false,
+        // ~50 results, 5-30s). The revised path submits an async job
+        // and polls every 5s inline for up to 5 min. Trade-off:
+        //   - User waits 30-90s on a fresh scrape (was 5-30s)
+        //   - But one async call returns up to 400 results (vs ~50)
+        //   - Pool grows 8× faster per scrape → 5× cheaper per future creator
+        // See spec §"Async batch mode" for the full rationale.
+        const submitUrl = new URL("https://api.outscraper.com/maps/search-v3");
+        submitUrl.searchParams.set("query", userCategory);
+        submitUrl.searchParams.set("coordinates", coordinates);
+        submitUrl.searchParams.set("zoom", String(zoom));
+        submitUrl.searchParams.set("limit", String(limit));
+        submitUrl.searchParams.set("language", "en");
+        submitUrl.searchParams.set("region", "PH");
+        submitUrl.searchParams.set("async", "true");
 
         console.log(
-            `[outscraper] scrapeNearby → query="${userCategory}" coords=${coordinates} zoom=${zoom} (limit=${limit}, radiusKm=${radiusKm})`,
+            `[outscraper] scrapeNearby (async batch) → query="${userCategory}" coords=${coordinates} zoom=${zoom} (limit=${limit}, radiusKm=${radiusKm})`,
         );
 
-        let payload: any;
+        // Submit the async job.
+        let outscraperJobId: string;
         try {
-            const res = await fetch(url.toString(), {
+            const submitRes = await fetch(submitUrl.toString(), {
                 method: "GET",
                 headers: { "X-API-KEY": apiKey, Accept: "application/json" },
             });
-            if (!res.ok) {
-                const body = await res.text();
+            if (!submitRes.ok) {
+                const body = await submitRes.text();
                 throw new Error(
-                    `Outscraper HTTP ${res.status}: ${body.slice(0, 300)}`,
+                    `Outscraper submit HTTP ${submitRes.status}: ${body.slice(0, 300)}`,
                 );
             }
-            payload = await res.json();
+            const submitPayload = (await submitRes.json()) as {
+                id?: string;
+                status?: string;
+            };
+            if (!submitPayload.id) {
+                throw new Error(
+                    `Outscraper submit returned no job id: ${JSON.stringify(submitPayload).slice(0, 200)}`,
+                );
+            }
+            outscraperJobId = submitPayload.id;
+            console.log(
+                `[outscraper] async job submitted → outscraperJobId=${outscraperJobId}`,
+            );
         } catch (err: any) {
-            throw new Error(`Outscraper request failed: ${err?.message ?? err}`);
+            throw new Error(`Outscraper submit failed: ${err?.message ?? err}`);
         }
 
-        // Guard against async fallback — if Outscraper couldn't satisfy the
-        // request synchronously and returned a pending job descriptor, we
-        // surface that rather than silently report "0 businesses found"
-        // (which used to mask the original query-format bug).
-        if (
-            payload?.status === "Pending" ||
-            (payload?.id && !payload?.data)
-        ) {
+        // Poll inline until the job completes or the budget expires.
+        let payload: any = null;
+        for (let attempt = 1; attempt <= ASYNC_POLL_MAX_ATTEMPTS; attempt++) {
+            await new Promise((resolve) =>
+                setTimeout(resolve, ASYNC_POLL_INTERVAL_MS),
+            );
+            let pollPayload: any;
+            try {
+                const pollRes = await fetch(
+                    `https://api.outscraper.com/requests/${outscraperJobId}`,
+                    {
+                        headers: {
+                            "X-API-KEY": apiKey,
+                            Accept: "application/json",
+                        },
+                    },
+                );
+                if (!pollRes.ok) {
+                    // Transient HTTP failure — keep polling.
+                    console.warn(
+                        `[outscraper] poll HTTP ${pollRes.status} (attempt ${attempt}/${ASYNC_POLL_MAX_ATTEMPTS}) — retrying`,
+                    );
+                    continue;
+                }
+                pollPayload = await pollRes.json();
+            } catch (err: any) {
+                console.warn(
+                    `[outscraper] poll fetch failed (attempt ${attempt}/${ASYNC_POLL_MAX_ATTEMPTS}): ${err?.message ?? err}`,
+                );
+                continue;
+            }
+            const status = String(pollPayload?.status ?? "").toLowerCase();
+            if (status === "success") {
+                console.log(
+                    `[outscraper] async job complete after ${attempt} poll(s) (~${attempt * 5}s)`,
+                );
+                payload = pollPayload;
+                break;
+            }
+            if (status === "failed" || status === "error") {
+                const errMsg =
+                    pollPayload?.error_message ??
+                    pollPayload?.message ??
+                    status;
+                throw new Error(
+                    `Outscraper async job ${outscraperJobId} ${status}: ${errMsg}`,
+                );
+            }
+            // "pending" / "inprogress" / unknown — keep looping.
+            if (attempt % 6 === 0) {
+                console.log(
+                    `[outscraper] async still pending (attempt ${attempt}/${ASYNC_POLL_MAX_ATTEMPTS}, status=${pollPayload?.status ?? "unknown"})`,
+                );
+            }
+        }
+
+        if (!payload) {
             throw new Error(
-                "Outscraper fell back to async mode for this query — try a smaller radius or a more specific category.",
+                `Outscraper async job ${outscraperJobId} timed out after ${ASYNC_POLL_MAX_ATTEMPTS * ASYNC_POLL_INTERVAL_MS / 1000}s`,
             );
         }
 
@@ -484,6 +646,56 @@ export const scrapeNearby = action({
             // Non-fatal — never let a Places failure break the scrape.
             console.warn(
                 `[outscraper] Places hyper-local merge failed (non-fatal): ${err?.message ?? err}`,
+            );
+        }
+
+        // ── REVISED 2026-06: pool ingest ─────────────────────────────
+        // Archive every business (Outscraper + Places merged) into the
+        // prospects table. Subsequent requests in this area get served
+        // from the pool for free. Non-fatal — a failed ingest just
+        // means the next creator will pay for a fresh scrape, the
+        // current creator still gets their results back.
+        try {
+            if (__poolCoordMatch && __categoryBucket && businesses.length > 0) {
+                // Record a synthetic scrape_history row so the ingest
+                // mutation can look up locale defaults for quality
+                // scoring + bump the inventory.lastScrapedAt telemetry.
+                const ingestJobId = `legacy-scrapeNearby-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                const lat = Number(__poolCoordMatch[1]);
+                const lng = Number(__poolCoordMatch[2]);
+                const cells = latLngToH3Cells(lat, lng);
+                await ctx.runMutation(internal.prospects.recordScrapeStart, {
+                    jobId: ingestJobId,
+                    h3CellRes7: cells.res7,
+                    categoryBucket: __categoryBucket,
+                    country: "PH",
+                    outscraperQuery: userCategory,
+                    outscraperCoordinates: coordinates,
+                    outscraperZoom: zoom,
+                    outscraperLimit: limit,
+                });
+                const ingest = (await ctx.runMutation(
+                    internal.prospects.ingestScrapeResults,
+                    {
+                        jobId: ingestJobId,
+                        businesses,
+                        country: "PH",
+                    },
+                )) as { inserted: number; updated: number; skipped: number };
+                await ctx.runMutation(internal.prospects.recordScrapeComplete, {
+                    jobId: ingestJobId,
+                    rawResultCount: businesses.length,
+                    insertedCount: ingest.inserted,
+                    dedupedCount: ingest.updated + ingest.skipped,
+                    hitLimitCap: businesses.length >= MAX_LIMIT,
+                });
+                console.log(
+                    `[outscraper] pool ingest: ${ingest.inserted} new prospects added to global pool (updated=${ingest.updated}, skipped=${ingest.skipped})`,
+                );
+            }
+        } catch (err: any) {
+            console.warn(
+                `[outscraper] pool ingest failed (non-fatal): ${err?.message ?? err}`,
             );
         }
 
