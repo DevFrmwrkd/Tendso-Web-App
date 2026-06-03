@@ -356,11 +356,14 @@ function DiscoverInner() {
         );
     }, [allMappableProspects, userLoc, radiusKm]);
 
-    // Fallback: when the radius filter rules everything out but we DO have
-    // mappable prospects elsewhere, show them all rather than blank canvas.
-    // Surface a banner so the creator understands the relaxation.
+    // Field-test fix #3 (2026-06-04): hard distance filter. The previous
+    // behaviour silently relaxed to "show all" when the radius excluded
+    // every prospect; creators reported confusing pins 2-3km away on a
+    // "1km" search. Now we strictly honor radiusKm. The banner below still
+    // shows when there are out-of-radius prospects so creators understand
+    // why the map looks empty — but the pin set itself is no longer relaxed.
     const usingRadiusFallback = withinRadius.length === 0 && allMappableProspects.length > 0;
-    const pinsUnsorted = usingRadiusFallback ? allMappableProspects : withinRadius;
+    const pinsUnsorted = withinRadius;
 
     const pins = useMemo(() => {
         const arr = [...pinsUnsorted];

@@ -237,7 +237,13 @@ export const scrapeNearby = action({
         //     → Matches Outscraper's documented API.
         //
         // Zoom derivation per the spec's radius→zoom mapping for PH latitudes:
+        // Field-test fix #3 (2026-06-04): added zoom 16 case for ≤0.5km.
+        // Zoom 16 forces Outscraper to favor block-level results, which
+        // surfaces informal businesses ("PARES SA GARAHE" class) ahead
+        // of the popular far-away places Google's relevance ranking
+        // otherwise pushes to the top.
         const zoom =
+            radiusKm <= 0.5 ? 16 :
             radiusKm <= 1 ? 15 :
             radiusKm <= 3 ? 14 :
             radiusKm <= 5 ? 13 :
