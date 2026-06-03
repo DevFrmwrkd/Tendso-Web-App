@@ -747,6 +747,10 @@ function DiscoverInner() {
 function CategoryPins({ pins }: { pins: any[] }) {
     const [selected, setSelected] = useState<any | null>(null);
     const claim = useMutation(api.outscraper.claimProspect);
+    // P2: prospects.reserve for pool-sourced pins (replaces the old hint chip).
+    // `(api as any)` cast keeps web buildable when codegen hasn't refreshed yet;
+    // drops to `api.prospects.reserve` once everyone's local codegen catches up.
+    const reservePool = useMutation((api as any).prospects?.reserve);
     return (
         <>
             {pins.map((pin) => (
@@ -839,19 +843,30 @@ function CategoryPins({ pins }: { pins: any[] }) {
                                 </button>
                             )}
                             {selected.__source === "pool" && !selected.claimedBy && (
-                                <span
-                                    title="Reserve flow ships in P2 — for now, pool pins are read-only."
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        try {
+                                            await reservePool({ prospectId: selected._id });
+                                            toast.success("Reserved — it's yours for the next 24h.");
+                                            setSelected(null);
+                                        } catch (e: any) {
+                                            toast.error(e?.message ?? "Couldn't reserve.");
+                                        }
+                                    }}
                                     style={{
                                         fontSize: 11,
                                         fontWeight: 600,
                                         padding: "4px 10px",
                                         borderRadius: 999,
-                                        background: "#EFEBE0",
-                                        color: "#7A7E8A",
+                                        background: "#1B1C24",
+                                        color: "#FCFAF5",
+                                        border: "none",
+                                        cursor: "pointer",
                                     }}
                                 >
-                                    Pool · reserve coming soon
-                                </span>
+                                    I&apos;ll interview this
+                                </button>
                             )}
                             <a
                                 href={`https://www.google.com/maps/search/?api=1&query=${selected.lat},${selected.lng}`}
