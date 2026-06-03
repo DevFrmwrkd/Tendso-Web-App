@@ -28,7 +28,10 @@ import {
 
 type Phase = "idle" | "locating" | "searching" | "saving";
 
-const RADIUS_OPTIONS = [1, 3, 5, 10] as const;
+// Field-test fix #3 (2026-06-04): added 0.5km (rendered as "500 m") for
+// hyper-local searches. Mobile defaults to 1km so that's the new web
+// default too — see useState below.
+const RADIUS_OPTIONS = [0.5, 1, 3, 5, 10] as const;
 
 const PHASE_META: Record<Exclude<Phase, "idle">, { caption: string; doorLabel: string; hint: string }> = {
     locating: {
@@ -80,7 +83,7 @@ export default function FindLocalBusinessModal({
     const scrapeNearby = useAction(api.outscraper.scrapeNearby);
 
     const [category, setCategory] = useState("");
-    const [radius, setRadius] = useState<number>(5);
+    const [radius, setRadius] = useState<number>(1);
     const [phase, setPhase] = useState<Phase>("idle");
     const [permissionError, setPermissionError] = useState<string | null>(null);
     const activeRef = useRef(false);
@@ -294,9 +297,14 @@ export default function FindLocalBusinessModal({
 
                             {/* Radius */}
                             <div className="mb-4">
-                                <div className="grid grid-cols-4 gap-2">
+                                <div className="grid grid-cols-5 gap-2">
                                     {RADIUS_OPTIONS.map((r) => {
                                         const isActive = radius === r;
+                                        // Sub-1km options render as "500 m" rather than "0.5 km"
+                                        // for readability — matches mobile's label.
+                                        const isSubKm = r < 1;
+                                        const label = isSubKm ? String(Math.round(r * 1000)) : String(r);
+                                        const unit = isSubKm ? 'm' : 'km';
                                         return (
                                             <button
                                                 key={r}
@@ -310,7 +318,7 @@ export default function FindLocalBusinessModal({
                                                 }}
                                             >
                                                 <div style={{ fontFamily: "var(--ed-serif)", fontSize: 22, lineHeight: 1.05 }}>
-                                                    {r}
+                                                    {label}
                                                 </div>
                                                 <div
                                                     className="text-[9px] mt-0.5"
@@ -321,7 +329,7 @@ export default function FindLocalBusinessModal({
                                                         opacity: 0.7,
                                                     }}
                                                 >
-                                                    km
+                                                    {unit}
                                                 </div>
                                             </button>
                                         );

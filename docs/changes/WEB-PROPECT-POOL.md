@@ -394,6 +394,113 @@
 >
 > **Adaptive subdivision cost:** if a 400-result scrape hits the cap, the action schedules 7 child scrapes (one per H3 res-8 hex). Worst case: 8 × $0.40 = $3.20 for one super-dense area. The pool gain is correspondingly large (~3,200 prospects), so it still amortizes well. Only triggers on truly dense urban cores (Makati CBD, BGC, etc.).
 >
+> ### 🛠 Field-test fixes (2026-06-04)
+>
+> After the first APK rebuild against the revised architecture, three issues surfaced in real use. All three were fixed mobile-side; **the fixes below need to be ported to web for parity.**
+>
+> **Fix #1 — "(business unavailable)" labels on team feed cards**
+>
+> The `leads.listForMobileCRM` query was rendering "(business unavailable)" for every lead that didn't have a linked submission. The lead row itself carries `lead.businessName` (populated by Outscraper-source leads and by `markConverted` from a reserved prospect), but the query was only checking `submission?.businessName`.
+>
+> Port this change to web's `convex/leads.ts` `listForMobileCRM` query, in the enrichment map block:
+>
+> ```typescript
+> // BEFORE — only checked submission
+> businessName: submission?.businessName ?? "(business unavailable)",
+> businessType: submission?.businessType ?? null,
+> businessCity: submission?.city ?? null,
+> businessAddress: submission?.address ?? null,
+>
+> // AFTER — fall back to the lead row's own fields
+> businessName:
+>   submission?.businessName ??
+>   lead.businessName ??
+>   "(business unavailable)",
+> businessType: submission?.businessType ?? lead.businessCategory ?? null,
+> businessCity: submission?.city ?? lead.businessCity ?? null,
+> businessAddress: submission?.address ?? lead.businessAddress ?? null,
+> ```
+>
+> Existing leads in production with the bug will display their real business names after the web redeploy. No data migration needed — the data was always there, the query just wasn't reading it.
+>
+> **Fix #2 — New `listMyReservations` query (powers the "Reserved" filter chip)**
+>
+> Mobile's leads page now has a `Reserved` filter chip between `All` and `New`. Selecting it shows the creator their active reservations — prospects they've reserved but haven't yet interviewed, with a countdown timer until the 24h expiry.
+>
+> Port this new public query to web's `convex/prospects.ts`, right after `searchNearbyInternal`:
+>
+> ```typescript
+> export const listMyReservations = query({
+>   args: {},
+>   handler: async (ctx) => {
+>     const identity = await requireAuth(ctx);
+>     const creator = await ctx.db
+>       .query("creators")
+>       .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+>       .first();
+>     if (!creator) return [];
+>
+>     const now = Date.now();
+>     const all = await ctx.db
+>       .query("prospects")
+>       .withIndex("by_reserved_creator", (q) => q.eq("reservedByCreatorId", creator._id))
+>       .collect();
+>
+>     // Filter expired reservations — lazy release means they're claimable
+>     // again by anyone, so they shouldn't show in the creator's "yours" view
+>     const active = all.filter(
+>       (p) =>
+>         p.state === "reserved" &&
+>         typeof p.reservationExpiresAt === "number" &&
+>         p.reservationExpiresAt > now,
+>     );
+>
+>     active.sort((a, b) => (b.reservedAt ?? 0) - (a.reservedAt ?? 0));
+>     return active;
+>   },
+> });
+> ```
+>
+> Uses the existing `by_reserved_creator` index from the prospects table schema — no new index needed. Returns the full prospect rows; mobile renders timer + business name + tap-to-open-in-Maps button.
+>
+> The web Creators page should also surface this query in its own equivalent UI — recommended: a "Reserved" tab/filter on the web `/creators/leads` page showing the same data. Web's existing lead list already groups by status; just add a new group/filter "Reserved" that calls `prospects.listMyReservations` and renders the prospect data shape instead of the lead data shape.
+>
+> **Fix #3 — Hyper-local distance tightening**
+>
+> Creators reported the scrape returning businesses 1-1.5km away even when they asked for a 1km radius. Three changes land:
+>
+> 1. **Mobile-side hard distance filter** — `discover.tsx` now drops any business where `haversineKm(userGps, business) > radiusKm`. **Web's equivalent discover map should do the same.** The merge response from `outscraper.scrapeNearby` can include businesses slightly beyond the requested radius (Outscraper's relevance ranking + Places returning 20 nearest regardless of distance hint). Filter client-side so the header copy stays honest.
+>
+> 2. **New 0.5km radius option** — added a "500 m" pill alongside the existing 1/3/5/10 km options. Web's equivalent radius picker should add the same option.
+>
+> 3. **Outscraper zoom bump for sub-1km radii** — port this change to web's `convex/outscraper.ts` `scrapeNearby`:
+>
+>    ```typescript
+>    // BEFORE
+>    let zoom = 13;
+>    if (radiusKm <= 1) zoom = 15;
+>    else if (radiusKm <= 3) zoom = 14;
+>    // ...
+>
+>    // AFTER — added 0.5km → zoom 16 (block-level)
+>    let zoom = 13;
+>    if (radiusKm <= 0.5) zoom = 16;
+>    else if (radiusKm <= 1) zoom = 15;
+>    else if (radiusKm <= 3) zoom = 14;
+>    // ...
+>    ```
+>
+> Zoom 16 forces Outscraper to favor block-level results, which is how informal businesses (the "PARES SA GARAHE" class of leads) surface ahead of the popular far-away restaurants Google's relevance ranking otherwise pushes to the top.
+>
+> Mobile also bumped the default `scrapeRadiusKm` from 5km to **1km** so out-of-the-box behavior is hyper-local. Web should do the same on its discover page default.
+>
+> **Files in this revision (already written mobile-side, ready to port):**
+> - `ndm/convex/leads.ts` — `listForMobileCRM` enrichment block (Fix #1)
+> - `ndm/convex/prospects.ts` — new `listMyReservations` query (Fix #2)
+> - `ndm/convex/outscraper.ts` — zoom 16 for 0.5km radius (Fix #3)
+> - `ndm/app/(app)/leads/index.tsx` — Reserved chip + ReservedCard + 0.5km radius pill + default radius 1km (mobile-only, no web port)
+> - `ndm/app/(app)/leads/discover.tsx` — hard distance filter + 500m header label (mobile-only, web should mirror the filter in its own discover map)
+>
 > ### Hard rules — what you MUST NOT do (still)
 >
 > - ❌ Mobile must not run `npx convex deploy`. Same rule, every deploy.
