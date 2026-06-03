@@ -44,6 +44,7 @@ import type * as prospects from "../prospects.js";
 import type * as prospectsMigration from "../prospectsMigration.js";
 import type * as r2 from "../r2.js";
 import type * as referrals from "../referrals.js";
+import type * as scrape from "../scrape.js";
 import type * as settings from "../settings.js";
 import type * as storage from "../storage.js";
 import type * as submissions from "../submissions.js";
@@ -94,6 +95,7 @@ declare const fullApi: ApiFromModules<{
   prospectsMigration: typeof prospectsMigration;
   r2: typeof r2;
   referrals: typeof referrals;
+  scrape: typeof scrape;
   settings: typeof settings;
   storage: typeof storage;
   submissions: typeof submissions;

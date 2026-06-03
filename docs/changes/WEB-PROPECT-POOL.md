@@ -157,6 +157,398 @@
 > - ❌ Fetching business phone/website via Places Details API (extra cost ~$0.017/call × 20 results = $0.34/scrape — only do if creators report missing phone/website on hyper-local businesses)
 > - ❌ Pagination beyond the first 20 Places results (Places caps at 60 total, but each extra page costs and adds latency)
 > - ❌ Separate `source: 'outscraper' | 'places'` field on returned businesses (proposed for P-B.5 if web UI wants to badge them differently)
+>
+> ---
+>
+> ## ⚡ REVISED 2026-06 — On-demand only, NO crons
+>
+> **Project owner revised the architecture.** Per the updated spec, the platform must operate on a purely on-demand model — NO scheduled jobs, NO background replenishment, NO time-based refresh. Mobile has reworked the spec to match. **Web agent: deploy this revision instead of the original P4 cron-driven design.**
+>
+> ### What changed vs the pre-revision spec
+>
+> | Component | Pre-revision (cron-driven) | Revised (on-demand) |
+> |---|---|---|
+> | Scrape trigger | `replenishLowInventoryCells` cron every 30 min | Triggered only by creator's tap on Find Local Business, only if pool is insufficient |
+> | Reservation expiry | `releaseExpiredReservations` cron every 60 min | Lazy filter in `searchNearby` + reclaim-on-reserve in `reserve` mutation |
+> | Outscraper mode | Async (queue + poll, cron-driven) | Async BATCH MODE with inline polling — user waits 30-90s for a 400-result scrape (8× more results per call than sync) |
+> | Cost model | Predictable daily budget | Zero scrapes when pool serves the request, scrape only when needed |
+> | `crons.ts` entries added | 2 | **0** |
+>
+> ### Explicit restrictions (per the revised spec, do NOT implement)
+>
+> - ❌ Cron jobs
+> - ❌ Scheduled jobs
+> - ❌ Nightly / hourly scraping
+> - ❌ Automatic inventory replenishment
+> - ❌ Time-based refresh logic
+> - ❌ Background scraping without a creator request
+>
+> ### 🔥 Async batch mode (2026-06, later revision)
+>
+> Earlier revision used Outscraper's **sync mode** (`async=false`, ~50 results per call, 5-30s response). After review, the project owner requested **async batch mode** (per spec item #4: "Use async batch requests") to minimize total Outscraper API calls.
+>
+> **The change in one paragraph:** scrapeNearby and scrapeOnDemandSync now submit jobs to Outscraper's async endpoint (`async=true`), then poll the `/requests/{jobId}` endpoint every 5 seconds inside the same action for up to 5 minutes. When the job completes (typically 30-90s), results are parsed and ingested as before. The action stays within Convex's 10-minute budget. The user IS waiting — they see a 30-90s loading state instead of 5-30s — but the trade-off is worth it because **one async call returns up to 400 results (vs ~50 in sync mode)**, so the pool grows 8× faster per scrape.
+>
+> **Why this is cheaper at steady state:**
+>
+> Per-result cost from Outscraper is identical between sync and async (~$0.001 per business). But the unit economics are different:
+>
+> | Mode | Results / call | Cost / call | Pool growth | Future creators served by one scrape |
+> |---|---|---|---|---|
+> | Sync (prior) | ~50 | ~$0.05 | +50 prospects | ~5-10 |
+> | Async batch (current) | ~400 | ~$0.40 | +400 prospects | ~50-100 |
+>
+> The cost-per-future-creator drops by ~5×. One async-batch scrape stocks the area's pool for 10× longer than a sync scrape would.
+>
+> **What the code change looks like (porting checklist):**
+>
+> When porting `ndm/convex/scrape.ts` (Step 3 below) and `ndm/convex/outscraper.ts` (Step 4 below), port these exact additions:
+>
+> 1. **Constants** — both files declare:
+>    ```typescript
+>    const ASYNC_POLL_INTERVAL_MS = 5000;
+>    const ASYNC_POLL_MAX_ATTEMPTS = 60;  // 5 minutes total
+>    // scrape.ts also has:
+>    const ASYNC_SCRAPE_LIMIT = 400;       // was SYNC_SCRAPE_LIMIT = 50
+>    const ASYNC_SCRAPE_ZOOM = 14;
+>    // outscraper.ts has:
+>    const MAX_LIMIT = 400;                 // was 50
+>    const DEFAULT_LIMIT = 400;             // was 20
+>    ```
+>
+> 2. **Submit params** — `async: "true"` (was `"false"`)
+>
+> 3. **Poll loop** — added INLINE inside the action, runs after the submit POST:
+>    ```typescript
+>    for (let attempt = 1; attempt <= ASYNC_POLL_MAX_ATTEMPTS; attempt++) {
+>      await new Promise((resolve) => setTimeout(resolve, ASYNC_POLL_INTERVAL_MS));
+>      const pollRes = await fetch(`https://api.outscraper.com/requests/${outscraperJobId}`, ...);
+>      const pollPayload = await pollRes.json();
+>      const status = (pollPayload.status ?? "").toLowerCase();
+>      if (status === "success") { /* parse data, break */ }
+>      if (status === "failed" || status === "error") { /* throw */ }
+>      // else still pending — keep looping
+>    }
+>    ```
+>
+> 4. **Error handling** — distinguish HTTP failure (transient, keep retrying) from Outscraper-reported failure (terminal, abort with recordScrapeFailed)
+>
+> 5. **Convex action timeout headroom** — keep the poll budget at 5 minutes (60 × 5s). Convex actions have a 10-minute hard timeout. Leave 5 minutes of headroom for the ingestScrapeResults mutation + adaptive subdivision scheduling.
+>
+> **UX implication for mobile:**
+>
+> The 3-stage scrape loader on `discover.tsx` now shows for 30-90s instead of 5-30s. Mobile DID NOT change loader copy in this revision — the existing copy ("Finding businesses nearby…" etc.) is still accurate. If creators complain about the longer wait, consider adding a "Stocking the local database…" stage. For now, mobile considers it acceptable because:
+> - Creators tap once and walk to a business — the wait happens while they're moving
+> - Subsequent taps in the same area serve from the pool **instantly** (no Outscraper call)
+> - The pool grows enough on first scrape that the wait usually only happens once per area
+>
+> ### What you'll do (high level)
+>
+> 1. Port `ndm/convex/prospects.ts` — 6 reservation mutations + 6 internal helpers (no cron handler, no findLowInventoryCells)
+> 2. Port `ndm/convex/scrape.ts` — **async-batch-mode** `scrapeOnDemandSync` action with inline polling + adaptive subdivision (no cron, polling is INLINE inside the action)
+> 3. Port `ndm/convex/outscraper.ts` — `scrapeNearby` is now POOL-AWARE: pool check first, async batch scrape if insufficient (400-result limit), inserts results to prospects table
+> 4. `convex/crons.ts` — add NO new crons. The 2 entries from the pre-revision spec must NOT be added.
+> 5. `npx convex deploy --prod`
+> 6. Verify end-to-end
+>
+> ### Step-by-step
+>
+> **Step 1 — Port reservation mutations to web's `convex/prospects.ts`**
+>
+> Mobile added these exports to `ndm/convex/prospects.ts`. Copy verbatim:
+>
+> - `reserve(prospectId)` — available → reserved; **also accepts lazy-expired reservations** (state=reserved, expiry passed) and reclaims them. This replaces the cron-based release.
+> - `markContacted(prospectId)` — reserved → contacted
+> - `markQualified(prospectId)` — contacted → qualified
+> - `markConverted(prospectId, submissionId)` — any → converted, links submission
+> - `markLost(prospectId, reason?)` — any non-terminal → lost
+> - `releaseReservation(prospectId)` — reserved → available (voluntary)
+>
+> **Step 2 — Port the read-side helpers to `convex/prospects.ts`**
+>
+> - `searchNearby` (public query) — same as P1 but now **lazy-filters expired reservations** in the result set so they appear as available without writing state back
+> - `searchNearbyInternal` (internal query) — same logic, callable from actions. Used by `outscraper.scrapeNearby` for the pool check.
+> - `countAvailableInCell` (internal query) — counts available prospects in a single (cell, category) pair
+> - `getLocaleConfig` (internal query) — fetches category_locales row
+> - `recordScrapeStart`, `recordScrapeAsyncId`, `recordScrapeComplete`, `recordScrapeFailed` — scrape_history tracking (kept for audit even though scrape is now on-demand)
+> - `ingestScrapeResults` — the 4-layer dedup + quality scoring + inventory aggregation mutation (unchanged from pre-revision)
+> - `adjustInventory` — atomic inventory counter (unchanged)
+>
+> **What you will NOT see in mobile's `prospects.ts` (and must NOT port):**
+> - ❌ `releaseExpiredReservations` — was the cron handler. Lazy filter replaces it.
+> - ❌ `findLowInventoryCells` — was for the cron. The pool-aware `scrapeNearby` doesn't need it.
+>
+> **Step 3 — Port `convex/scrape.ts`** (NEW FILE — replaces the pre-revision version)
+>
+> Port verbatim from `ndm/convex/scrape.ts`. Contains:
+>
+> - `scrapeOnDemandSync` (internal action) — **NOTE: name is legacy. Implementation is now async-batch mode with inline polling.** Submits a 400-result Outscraper async job, polls every 5s for up to 5 min, ingests into prospects. Called only from on-demand flows.
+> - `subdivideAndScrape` (internal action) — P5 adaptive subdivision when an async scrape hits the 400-result cap. Still on-demand (parent action triggered it).
+> - `getJob` (internal query) — fetches scrape_history rows for traceability
+>
+> **What was REMOVED from scrape.ts in the revision (must NOT port):**
+> - ❌ `replenishLowInventoryCells` — was the cron handler. Gone.
+> - ❌ `countScrapesLast24h` — was for the cron's daily budget guard. Gone.
+> - ❌ `pollAndIngest` as a separate scheduled action — polling is now INLINE inside `scrapeOnDemandSync` since the user is waiting. Don't port `pollAndIngest` as a free-standing action.
+> - ❌ `scrapeAndStore` (cron-mode async version) — replaced by `scrapeOnDemandSync`
+>
+> **Step 4 — Port `convex/outscraper.ts` `scrapeNearby` (POOL-AWARE + ASYNC BATCH)**
+>
+> The existing `scrapeNearby` action now has THREE blocks bolted on (one of them new in this revision):
+>
+> 1. **Pool check at the top.** Before any Outscraper call, it queries `prospects.searchNearbyInternal` for the user's area + category. If pool has ≥ 10 available prospects, it converts them to the businesses array shape and returns immediately — **zero API cost, instant response.**
+>
+> 2. **🔥 NEW — Async-batch Outscraper submission + inline polling.** When the pool is insufficient, the action:
+>    - Submits a 400-result Outscraper job with `async=true`
+>    - Polls the `/requests/{jobId}` endpoint every 5s for up to 5 min
+>    - When the job reaches "Success" status, parses the data
+>    - This replaces the prior sync-mode single-shot fetch
+>    - **The function's external return signature is unchanged** — mobile callers see the same businesses array shape, just with up to 400 items instead of ~50, after a 30-90s wait instead of 5-30s
+>
+> 3. **Pool ingest at the bottom.** After the async results + Places merge produce the final `businesses` array, ALL of those businesses are inserted into the `prospects` table via `ingestScrapeResults`. Subsequent requests to the same area get served from the pool for free.
+>
+> The function's external signature is unchanged. Mobile callers continue to use it. The behavior shift is internal: pool-first, async-batch-scrape-as-fallback, always-archive.
+>
+> **Step 5 — `convex/crons.ts` should have NO new entries**
+>
+> If your `convex/crons.ts` has any of these, DELETE them now:
+>
+> ```typescript
+> // ❌ DELETE — these were from the pre-revision spec
+> crons.interval("replenish low inventory cells", { minutes: 30 }, internal.scrape.replenishLowInventoryCells);
+> crons.interval("release expired prospect reservations", { minutes: 60 }, internal.prospects.releaseExpiredReservations);
+> ```
+>
+> The only cron in `crons.ts` should be the existing `aggregate monthly stats` daily entry. Nothing else from this architecture.
+>
+> **Step 6 — Convex env vars**
+>
+> NO new env vars are required by the revision. Specifically, these from the pre-revision spec are NOT needed:
+>
+> - ❌ `MAX_SCRAPES_PER_CRON_TICK` — no cron
+> - ❌ `MAX_SCRAPES_PER_DAY` — no cron
+> - ❌ `MONTHLY_SCRAPE_BUDGET_USD` — no scheduled spend to cap
+>
+> Existing env vars stay:
+> - ✅ `OUTSCRAPER_API_KEY`
+> - ✅ `GOOGLE_PLACES_API_KEY` (for Path B hyper-local merge)
+> - ✅ `ADMIN_CLERK_IDS`
+>
+> **Step 7 — Deploy**
+>
+> ```bash
+> npx convex deploy --prod
+> ```
+>
+> **Step 8 — Verify (after deploy)**
+>
+> | Check | How |
+> |---|---|
+> | No new crons appear | Convex dashboard → Schedules tab — should show ONLY the pre-existing `aggregate monthly stats` |
+> | First Find Local Business tap triggers Outscraper async | Watch Convex logs for `[outscraper] pool check: found 0 existing prospects` followed by `[outscraper] scrapeNearby (async batch) → query=...` then `[outscraper] async job submitted → outscraperJobId=...` |
+> | Inline polling progresses | Logs show `[outscraper] async still pending (attempt 6/60, status=Pending)` lines every ~30s while waiting |
+> | Async completes within budget | Logs show `[outscraper] async job complete after N poll(s) (~Xs)` typically within 30-90s |
+> | Second tap in the same area serves from pool | Tap Find Local Business again with the same location/category → logs show `[outscraper] pool sufficient — skipping Outscraper, serving from pool` (instant response, no async polling) |
+> | Prospects accumulate in pool | After each scrape, watch `prospects` table grow — async mode means ~400 new rows per fresh scrape (vs ~50 in the prior sync version) + `[outscraper] pool ingest: N new prospects added to global pool` |
+> | Cap-hit triggers subdivision | If a single area returns 400 results (cap hit), logs show `[scrape] hit cap of 400, scheduling on-demand subdivision for jobId=...` followed by 7 child scrapes |
+> | Lazy reservation release works | Reserve a prospect, manually patch `reservationExpiresAt` to past in Convex Data tab. Next searchNearby surfaces it; next reserve call from a different creator succeeds. |
+>
+> **Step 9 — Mobile UI is ready to consume immediately**
+>
+> Mobile's `discover.tsx` already has the **"I'll interview this"** Door from the P2 work and consumes `prospects.reserve`. No further mobile UI changes for the revision. Just rebuild the APK after web deploys.
+>
+> **Files in the revised spec (already written, ready to port):**
+> - `ndm/convex/prospects.ts` — reservation mutations + lazy-release in searchNearby + countAvailableInCell + ingestScrapeResults + helpers (NO cron handler)
+> - `ndm/convex/scrape.ts` — `scrapeOnDemandSync` + `subdivideAndScrape` + `getJob` (NO cron, NO async polling)
+> - `ndm/convex/outscraper.ts` — `scrapeNearby` now pool-aware (pool check + pool ingest blocks)
+> - `ndm/convex/crons.ts` — pristine, only the pre-existing `aggregate monthly stats` cron
+> - `ndm/app/(app)/leads/discover.tsx` — already has the reserve button from P2 work
+>
+> ### Cost outlook under the revised on-demand + async-batch model
+>
+> Outscraper cost is bounded by **actual creator demand**, not a scheduled job. Each creator request either:
+>
+> - Hits the pool → **$0**
+> - Pool is empty for that area/category → triggers one Outscraper **async batch** call → ~$0.40 per call (up to 400 results × $0.001)
+>
+> The pool only grows. The first creator in a new area pays the async-batch cost. Every subsequent creator in that area gets free pool results (the data is permanent — no refresh schedule).
+>
+> **Why async batch is cheaper at steady state despite higher per-call cost:**
+>
+> One 400-result async call costs $0.40 and stocks the pool for ~50-100 future creator requests in that area. Compare to the prior sync mode where one 50-result call cost $0.05 and stocked the pool for only ~5-10 future requests.
+>
+> | Mode | Cost / call | Pool growth / call | Future creators served / scrape | Effective cost / creator served |
+> |---|---|---|---|---|
+> | Sync (prior) | $0.05 | +50 | 5-10 | ~$0.005-$0.010 |
+> | Async batch (current) | $0.40 | +400 | 50-100 | ~$0.004-$0.008 |
+>
+> Async batch is **20-50% cheaper per creator served** because the larger batch defrays the cost across more pool hits.
+>
+> At 100 creators each making 5 unique-area scrapes/week:
+> - First week: ~500 area-touches; ~80% hit the pool after week 1's bootstrap. Bootstrap ~30 fresh scrapes × $0.40 = $12 → covered by $30 AppSumo → **$0**
+> - Week 2+: most requests hit the pool, maybe 10-20 fresh scrapes/week × $0.40 = $4-8/week → **$15-30/month, mostly covered by AppSumo**
+>
+> At 1,000 creators: similar steady-state cost because creators search overlapping areas already in the pool.
+>
+> At 10K-50K creators: cost stays roughly flat because the pool saturates after ~30 days of activity. Estimated $30-80/month, mostly covered by AppSumo.
+>
+> **Adaptive subdivision cost:** if a 400-result scrape hits the cap, the action schedules 7 child scrapes (one per H3 res-8 hex). Worst case: 8 × $0.40 = $3.20 for one super-dense area. The pool gain is correspondingly large (~3,200 prospects), so it still amortizes well. Only triggers on truly dense urban cores (Makati CBD, BGC, etc.).
+>
+> ### Hard rules — what you MUST NOT do (still)
+>
+> - ❌ Mobile must not run `npx convex deploy`. Same rule, every deploy.
+> - ❌ Do NOT add ANY crons under this architecture. Spec is explicit.
+> - ❌ Do NOT remove the existing `outscraper.scrapeNearby`. It's the on-demand entry point now.
+> - ❌ Do NOT touch `migratedToProspectId` on leads until P8 cleanup (deferred).
+> - ❌ Do NOT seed prospects manually via dashboard — let the on-demand flow populate them through `ingestScrapeResults`.
+>
+> ---
+>
+> <details>
+> <summary><strong>📦 ARCHIVED — Pre-revision cron-driven architecture (do NOT implement)</strong></summary>
+>
+> The original P2-P8 spec called for `replenishLowInventoryCells` and `releaseExpiredReservations` crons running every 30 and 60 minutes respectively. The project owner revised the spec on 2026-06 to remove all scheduled scraping. The cron-driven design is preserved below for context but should NOT be deployed.
+>
+> ### What you'll do (high level)
+>
+> 1. Port `ndm/convex/prospects.ts` additions (6 new mutations + 1 cron handler + 5 P4 helpers + ingestScrapeResults with dedup layers)
+> 2. Port `ndm/convex/scrape.ts` verbatim (NEW FILE — 4 actions + 1 internal query)
+> 3. Register 2 new crons in `convex/crons.ts`
+> 4. Set 3 new env vars
+> 5. `npx convex deploy --prod`
+> 6. Verify end-to-end
+>
+> ### Step-by-step
+>
+> **Step 1 — Port reservation mutations to web's `convex/prospects.ts`**
+>
+> Mobile added these exports to `ndm/convex/prospects.ts`. Copy verbatim:
+>
+> - `reserve(prospectId)` — available → reserved, sets 24h expiry, updates inventory
+> - `markContacted(prospectId)` — reserved → contacted, clears expiry
+> - `markQualified(prospectId)` — contacted → qualified
+> - `markConverted(prospectId, submissionId)` — any → converted, links submission
+> - `markLost(prospectId, reason?)` — any non-terminal → lost
+> - `releaseReservation(prospectId)` — reserved → available (voluntary)
+> - `releaseExpiredReservations` — internal mutation, called by cron
+>
+> All state-change mutations enforce "only the reserving creator can advance state" (admin bypass not implemented — add if needed via `requireAdmin` check). Inventory deltas use the existing `adjustInventory` internal mutation from P1.
+>
+> **Step 2 — Port P4 helpers to `convex/prospects.ts`**
+>
+> Mobile added these supporting functions for the background scrape flow:
+>
+> - `getLocaleConfig(country, categoryBucket)` — fetches category_locales row
+> - `findLowInventoryCells(maxResults)` — returns neediest (cell, category) pairs, throttled to 2h since last scrape
+> - `recordScrapeStart(jobId, ...)` — inserts scrape_history row, status="pending"
+> - `recordScrapeAsyncId(jobId, outscraperJobId)` — updates to status="running" + saves Outscraper's async job ID
+> - `recordScrapeComplete(jobId, rawResultCount, insertedCount, dedupedCount?, hitLimitCap)` — finalizes, computes estimatedCost, updates prospect_inventory.lastScrapedAt
+> - `recordScrapeFailed(jobId, errorMessage)` — status="failed", logs reason
+> - `ingestScrapeResults(jobId, businesses, country?)` — **THE BIG ONE**: dedup layers 2/3/4, quality scoring, inventory aggregation, atomic batch insert
+>
+> **Step 3 — Create `convex/scrape.ts`** (NEW FILE)
+>
+> Port verbatim from `ndm/convex/scrape.ts`. Contains:
+>
+> - `replenishLowInventoryCells` (cron handler) — reads daily budget from env, calls findLowInventoryCells, schedules scrapeAndStore for each
+> - `countScrapesLast24h` (internal query) — used by the budget guard
+> - `scrapeAndStore` (internal action) — fires Outscraper async mode, schedules pollAndIngest 30s later
+> - `pollAndIngest` (internal action) — polls Outscraper requests endpoint, reschedules every 30s up to 20 attempts (10 min), ingests results, triggers subdivision if cap hit
+> - `subdivideAndScrape` (internal action) — P5: when res-7 scrape hits 400-result cap, splits into 7 res-8 children
+> - `getJob` (internal query) — fetches scrape_history row by jobId
+>
+> **Step 4 — Update `convex/crons.ts`** with two new entries:
+>
+> ```typescript
+> crons.interval(
+>   "replenish low inventory cells",
+>   { minutes: 30 },
+>   internal.scrape.replenishLowInventoryCells,
+> );
+>
+> crons.interval(
+>   "release expired prospect reservations",
+>   { minutes: 60 },
+>   internal.prospects.releaseExpiredReservations,
+> );
+> ```
+>
+> Don't touch the existing `aggregate monthly stats` cron.
+>
+> **Step 5 — Set Convex env vars (defaults are conservative — adjust as you observe usage)**
+>
+> ```bash
+> npx convex env set MAX_SCRAPES_PER_CRON_TICK 5 --prod
+> npx convex env set MAX_SCRAPES_PER_DAY 50 --prod
+> npx convex env set MONTHLY_SCRAPE_BUDGET_USD 300 --prod
+> ```
+>
+> The cron's daily-budget guard reads `MAX_SCRAPES_PER_DAY` and stops scheduling jobs once today's `scrape_history` count (completed + failed) hits the cap. The `MONTHLY_SCRAPE_BUDGET_USD` is informational for now — server-side enforcement comes in a follow-up if needed.
+>
+> **Step 6 — Deploy**
+>
+> ```bash
+> npx convex deploy --prod
+> ```
+>
+> **Step 7 — Verify (after deploy)**
+>
+> | Check | How |
+> |---|---|
+> | Crons scheduled | Convex dashboard → Schedules tab — should see both new crons with next-run time |
+> | First replenishment fires | Wait up to 30 min OR manually invoke `internal.scrape.replenishLowInventoryCells` from dashboard "Run function" panel |
+> | Scrape job recorded | Open `scrape_history` table — should see new row with status="pending" → "running" → "completed" over ~30-90 seconds |
+> | Prospects inserted | `prospects` table grows; check `ingestScrapeResults` log line: `inserted=N dedupedByPlaceId=X dedupedByPhone=Y dedupedByName=Z` |
+> | Inventory updates | `prospect_inventory` rows for that cell show updated `availableCount` and `lastScrapedAt` |
+> | Subdivision triggers (if applicable) | If a scrape returns 400 results, watch for child scrapes spawned with `h3CellRes8` populated |
+> | Reservation cron fires hourly | Reserve a prospect manually, wait until expiry passes (`Date.now() + 24h`), confirm it flips back to available |
+>
+> **Step 8 — Mobile UI is ready to consume immediately**
+>
+> Mobile's `discover.tsx` now renders an **"I'll interview this"** accent Door under the Directions/Call buttons when a card is active. Tapping it calls `prospects.reserve` and shows a confirmation alert. The button gracefully handles:
+> - Already reserved (someone else just took it)
+> - Auth expired
+> - URL-data businesses (not yet in pool — shown a hint to retry from main Leads tab)
+>
+> After your deploy, the button works for any prospect with a Convex `_id` (pool-backed). URL-data businesses (fresh scrape results) still don't have prospect rows — they'll get them once the next replenishment cron sweeps the area.
+>
+> **Files in mobile's P2-P8 spec (already written, ready to port):**
+> - `ndm/convex/prospects.ts` — 6 mutations, 1 cron handler, 7 internal helpers (added below the existing P1 code)
+> - `ndm/convex/scrape.ts` — NEW file, ~250 lines, full P4+P5 implementation
+> - `ndm/convex/crons.ts` — 2 new cron registrations
+> - `ndm/app/(app)/leads/discover.tsx` — reserve button + handler
+>
+> ### What's intentionally deferred (P-future, not in this batch)
+>
+> - **P3 admin inventory dashboard** — query exists (`findLowInventoryCells`), UI is web's call. Recommended: add a simple admin route showing inventory health per (cell, category) with a "manually trigger replenishment" button.
+> - **P6 stale-contact release cron** — 7-day idle release of contacted prospects. Add to `convex/crons.ts` later: `crons.interval("release stale prospect contacts", { hours: 24 }, internal.prospects.releaseStaleContacts);` Mutation can be modeled on `releaseExpiredReservations`.
+> - **P6 weekly refresh cron** — re-pull existing prospects from Outscraper monthly to keep `rating` / `reviewCount` / `website` fresh. Add when launching country #2.
+> - **P7 quality badges on prospect cards** — render the `qualityScore` field as a small badge on the discover map and detail pages. Pure web/mobile UI work.
+> - **P8 cutover + cleanup** — after 2 weeks of stable operation:
+>   1. Delete `leads` rows where `migratedToProspectId` is set
+>   2. Remove the deprecated `outscraper.scrapeNearby` action (mobile's discover map no longer needs it once the pool is fully populated)
+>   3. Remove the `migratedToProspectId` field from `leads` schema
+>   4. Remove the dual-read fallback in mobile's `discover.tsx`
+>
+> ### Cost outlook with full P2-P8 live
+>
+> | Coverage | Monthly Outscraper calls (replenishment only) | Monthly cost |
+> |---|---|---|
+> | Metro Manila (50 cells × 10 categories, ~30-day refresh) | ~500 | ~$100 |
+> | All major PH cities (5 cities × 50 cells × 10 categories) | ~2,500 | ~$500 |
+> | PH + ID + VN at full coverage | ~7,500 | ~$1,500 |
+>
+> Compare to current per-tap model at 5K creators: $2K+/month. The pool model is ~75% cheaper at small scale, ~95% cheaper at 50K creators.
+>
+> ### Hard rules — what you MUST NOT do (still)
+>
+> - ❌ Mobile must not run `npx convex deploy`. Same rule, every deploy.
+> - ❌ Do NOT remove the existing `outscraper.scrapeNearby` until P8 cleanup. The dual-read window keeps the discover map working during migration.
+> - ❌ Do NOT touch `migratedToProspectId` on leads until P8.
+> - ❌ Do NOT seed prospects manually via dashboard — let the backfill (P1) + replenishment (P4) populate them through the proper code paths.
+> - ❌ Do NOT raise `MAX_SCRAPES_PER_DAY` past 100 without checking the Outscraper bill first.
+>
+> </details>
 
 ---
 
