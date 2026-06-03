@@ -1,0 +1,60 @@
+---
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const loc = content.location || {};
+const tag = loc.tag || 'Find / call us';
+const headline = loc.headline || '';
+const address = loc.address || layout.contact?.address || 'Your address line 1\nYour city, state postal';
+const addressLines = address.split('\n');
+const phone = loc.phone || layout.contact?.phone || '+0 000 000 0000';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const hours = loc.hours || 'Mon–Sat · kept live on Google';
+const dirText = loc.directions?.text || 'Call for a quote';
+const dirHref = loc.directions?.href || `tel:${phoneDigits}`;
+const lat = loc.lat != null ? Number(loc.lat) : (layout.contact?.lat != null ? Number(layout.contact.lat) : null);
+const lng = loc.lng != null ? Number(loc.lng) : (layout.contact?.lng != null ? Number(layout.contact.lng) : null);
+const label = layout.businessName || 'Our location';
+const mapAria = `Map showing ${label} at ${address.replace(/\n/g, ', ')}`;
+---
+<section class="sec loc" id="visit">
+  <div class="wrap">
+    <span class="sec-tag reveal" data-field="location.tag">{tag}</span>
+    <h2 class="reveal" data-field="location.headline">{headline}</h2>
+    <div class="loc-wrap reveal">
+      <div id="map" role="img" aria-label={mapAria}></div>
+      <div class="napcard">
+        <div class="k">Yard / Office</div>
+        <div class="v" data-field="location.address">
+          {addressLines.map((line: string, i: number) => (<>{i > 0 && <br />}{line}</>))}
+        </div>
+        <div class="k">Phone</div>
+        <div class="v s">
+          <a href={`tel:${phoneDigits}`} data-field="location.phone" data-href-field="location.phone.href">{phone}</a>
+        </div>
+        <div class="k">Hours</div>
+        <div class="v s" data-field="location.hours">{hours}</div>
+        <a href={dirHref} class="btn btn-primary" data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
+      </div>
+    </div>
+  </div>
+</section>
+<script is:inline define:vars={{ lat, lng, label }}>
+  (function init(){ if (lat == null || lng == null) return; if (window.__genericInitMap) window.__genericInitMap(lat, lng, label); else setTimeout(init, 80); })();
+</script>
+<style>
+  .loc { background: var(--forest); color: var(--paper-2); }
+  .loc :global(.sec-tag) { background: var(--amber); color: var(--ink); }
+  .loc h2 { color: var(--paper-2); }
+  .loc-wrap { position: relative; margin-top: 46px; }
+  #map { width: 100%; height: 520px; border: 3px solid var(--ink); }
+  :global(.leaflet-container) { font-family: var(--sans); background: #21482f; }
+  .napcard { position: absolute; left: 30px; bottom: -30px; background: var(--ink); border: 2px solid var(--amber); box-shadow: 8px 8px 0 rgba(0, 0, 0, .45); padding: 30px; max-width: 360px; z-index: 500; }
+  .napcard .k { font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--amber); }
+  .napcard .v { font-family: var(--disp); font-size: 24px; margin-top: 4px; margin-bottom: 18px; }
+  .napcard .v.s { font-size: 20px; }
+  .napcard .btn { margin-top: 8px; }
+  @media (max-width: 680px) {
+    .napcard { position: relative; left: 0; bottom: 0; margin-top: 18px; max-width: none; }
+    #map { height: 340px; }
+  }
+</style>

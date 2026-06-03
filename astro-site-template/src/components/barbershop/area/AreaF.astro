@@ -1,0 +1,33 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const area = content.area || {};
+const tag = area.tag || '';
+const headline = area.headline || '';
+const sub = area.body || area.sub || '';
+const places: string[] = Array.isArray(area.places) ? area.places : [];
+---
+{places.length > 0 && (
+  <section class="pad-y area-sec">
+    <div class="wrap">
+      <div class="sect-head reveal" style="margin-bottom:0;">
+        <div>
+          {tag && <span class="kicker" data-field="area.tag">{tag}</span>}
+          {headline && <h2 class="h-sect" data-field="area.headline" set:html={headline}></h2>}
+        </div>
+        {sub && <p class="lead" data-field="area.body">{sub}</p>}
+      </div>
+      <div class="area-grid reveal">
+        {places.map((p, i) => (
+          <div class="area" data-field={`area.places.${i}`}>{p}</div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .area-sec { background: var(--paper-2); }
+  .area-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); margin-top: 48px; }
+  .area { background: var(--paper); padding: 22px 26px; display: flex; align-items: center; gap: 14px; font-family: var(--cond); text-transform: uppercase; letter-spacing: .08em; font-size: 15px; font-weight: 500; }
+  .area::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--brass); flex: 0 0 auto; }
+</style>

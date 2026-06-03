@@ -431,6 +431,206 @@ Return ONLY the JSON object, no markdown fence, no commentary.`
             return null  // graceful fall-through to per-business-type defaults
         }
     },
+
+    /**
+     * Generate the section-level content for the generic landing-page
+     * templates (PageA…PageE). The output shape matches the nested keys
+     * the Astro components read (hero.headlineLines[], services.items[],
+     * about.paragraphs[], etc.).
+     *
+     * Called from /api/generate-website when customizations.heroStyle is
+     * "generic:*". The result is shallow-merged into extractedContent so
+     * any admin edits already saved take precedence (extractedContent
+     * stays the source of truth; this function only fills GAPS).
+     *
+     * Returns null on any failure so the caller can still build a page
+     * (the components fall through to short generic placeholders).
+     */
+    async generateGenericSections(
+        transcript: string,
+        businessInfo: BusinessInfo,
+    ): Promise<GenericSections | null> {
+        try {
+            const prompt = `You are a senior copywriter for small local-business landing pages. Write the section content for a one-page website for this business, in the founder's voice, grounded in the interview transcript.
+
+INTERVIEW TRANSCRIPT:
+${transcript}
+
+BUSINESS:
+Name: ${businessInfo.name}
+Type: ${businessInfo.type}
+Location: ${businessInfo.location}
+Owner: ${businessInfo.owner}
+
+OUTPUT — return ONLY a JSON object with these exact keys:
+
+{
+  "marquee": { "text": "5-10 short words separated by spaces, no punctuation, evocative of this trade (e.g. 'Fresh roasted daily Single origin Pour over')" },
+  "hero": {
+    "kicker": "12-20 char tagline (location · trade descriptor)",
+    "headlineLines": ["line 1 (2-4 words)", "line 2 (2-4 words)", "line 3 (1-3 words; may include <em>highlight</em>)"],
+    "sub": "1-2 sentence elevator pitch in the founder's voice",
+    "cta1": { "text": "2-3 word button (e.g. 'Visit us')",        "href": "#visit" },
+    "cta2": { "text": "2-3 word secondary (e.g. 'See services')", "href": "#services" },
+    "meta1": "star line or rating ('★★★★★ rated on Google')",
+    "meta2": "second meta line ('open daily · address')"
+  },
+  "about": {
+    "tag": "2-3 word eyebrow ('Our story')",
+    "headline": "8-14 word headline; may include <em>highlight</em>",
+    "lead": "1-2 sentence lead paragraph in the founder's voice",
+    "signature": "5-9 word signature line (e.g. 'Pour by pour, since 2014.')",
+    "paragraphs": ["1-2 sentences", "1-2 sentences"]
+  },
+  "services": {
+    "tag": "What we offer / What we do",
+    "headline": "5-10 word section headline",
+    "items": [
+      { "title": "2-4 word service name", "desc": "1-2 sentence value prop", "note": "1-3 word meta (e.g. 'walk-in · to-go')" },
+      { "title": "...", "desc": "...", "note": "..." },
+      { "title": "...", "desc": "...", "note": "..." },
+      { "title": "...", "desc": "...", "note": "..." }
+    ]
+  },
+  "gallery": {
+    "tag": "2-3 word eyebrow ('Inside the shop')",
+    "headline": "3-6 word headline",
+    "items": [
+      { "caption": "2-4 word caption" },
+      { "caption": "..." },
+      { "caption": "..." },
+      { "caption": "..." },
+      { "caption": "..." }
+    ]
+  },
+  "area": {
+    "tag": "2-3 word eyebrow ('Where we serve')",
+    "headline": "4-8 word headline",
+    "body": "1 sentence describing the area",
+    "places": ["neighborhood/city 1", "neighborhood/city 2", "neighborhood/city 3", "neighborhood/city 4", "neighborhood/city 5", "neighborhood/city 6"]
+  },
+  "location": {
+    "tag": "2-3 word eyebrow ('Come by')",
+    "headline": "4-7 word headline"
+  },
+  "footer": {
+    "blurb": "1-2 sentence brand description for the footer",
+    "notes": ["© year + business name (we'll fill it in)", "5-9 word tagline"]
+  },
+  "navbar_links": [
+    { "label": "About",    "href": "#about" },
+    { "label": "Services", "href": "#services" },
+    { "label": "Why us",   "href": "#why" },
+    { "label": "Gallery",  "href": "#work" },
+    { "label": "Visit",    "href": "#visit" }
+  ],
+  "navCtaText": "2-3 word primary CTA in the navbar",
+  "navCtaHref": "#visit"
+}
+
+HARD RULES:
+- NEVER include prices, promos, discounts, or sale amounts.
+- NEVER mention staff names or specific dates other than 'since YYYY'.
+- NEVER reference operating hours (Google handles those).
+- Use real, opinionated copy. Avoid generic SaaS phrasing.
+- No emoji. No exclamation marks. Sparing <em>highlights</em> in headlines only.
+- Every claim must be supportable from the transcript.
+
+Return ONLY the JSON object, no markdown fence, no commentary.`
+
+            const groq = getGroqClient()
+            const completion = await groq.chat.completions.create({
+                messages: [{ role: 'user', content: prompt }],
+                model: 'llama-3.3-70b-versatile',
+                temperature: 0.55,
+                max_tokens: 3500,
+                response_format: { type: 'json_object' },
+            })
+
+            const content = completion.choices[0]?.message?.content || '{}'
+            const parsed = JSON.parse(content) as any
+            // Light shape validation — drop anything that doesn't look right.
+            const out: GenericSections = {}
+            if (parsed.marquee?.text) out.marquee = { text: String(parsed.marquee.text) }
+            if (parsed.hero && typeof parsed.hero === 'object') {
+                const h = parsed.hero
+                out.hero = {
+                    kicker: typeof h.kicker === 'string' ? h.kicker : undefined,
+                    headlineLines: Array.isArray(h.headlineLines) ? h.headlineLines.map(String) : undefined,
+                    sub: typeof h.sub === 'string' ? h.sub : undefined,
+                    cta1: h.cta1 && typeof h.cta1 === 'object' ? { text: String(h.cta1.text || ''), href: String(h.cta1.href || '#visit') } : undefined,
+                    cta2: h.cta2 && typeof h.cta2 === 'object' ? { text: String(h.cta2.text || ''), href: String(h.cta2.href || '#services') } : undefined,
+                    meta1: typeof h.meta1 === 'string' ? h.meta1 : undefined,
+                    meta2: typeof h.meta2 === 'string' ? h.meta2 : undefined,
+                }
+            }
+            if (parsed.about && typeof parsed.about === 'object') {
+                const a = parsed.about
+                out.about = {
+                    tag: typeof a.tag === 'string' ? a.tag : undefined,
+                    headline: typeof a.headline === 'string' ? a.headline : undefined,
+                    lead: typeof a.lead === 'string' ? a.lead : undefined,
+                    signature: typeof a.signature === 'string' ? a.signature : undefined,
+                    paragraphs: Array.isArray(a.paragraphs) ? a.paragraphs.map(String) : undefined,
+                }
+            }
+            if (parsed.services && typeof parsed.services === 'object') {
+                const sv = parsed.services
+                out.services = {
+                    tag: typeof sv.tag === 'string' ? sv.tag : undefined,
+                    headline: typeof sv.headline === 'string' ? sv.headline : undefined,
+                    items: Array.isArray(sv.items) ? sv.items.map((it: any) => ({
+                        title: String(it?.title || ''),
+                        desc: String(it?.desc || ''),
+                        note: typeof it?.note === 'string' ? it.note : undefined,
+                    })) : undefined,
+                }
+            }
+            if (parsed.gallery && typeof parsed.gallery === 'object') {
+                const g = parsed.gallery
+                out.gallery = {
+                    tag: typeof g.tag === 'string' ? g.tag : undefined,
+                    headline: typeof g.headline === 'string' ? g.headline : undefined,
+                    items: Array.isArray(g.items) ? g.items.map((it: any) => ({ caption: String(it?.caption || '') })) : undefined,
+                }
+            }
+            if (parsed.area && typeof parsed.area === 'object') {
+                const ar = parsed.area
+                out.area = {
+                    tag: typeof ar.tag === 'string' ? ar.tag : undefined,
+                    headline: typeof ar.headline === 'string' ? ar.headline : undefined,
+                    body: typeof ar.body === 'string' ? ar.body : undefined,
+                    places: Array.isArray(ar.places) ? ar.places.map(String) : undefined,
+                }
+            }
+            if (parsed.location && typeof parsed.location === 'object') {
+                const lo = parsed.location
+                out.location = {
+                    tag: typeof lo.tag === 'string' ? lo.tag : undefined,
+                    headline: typeof lo.headline === 'string' ? lo.headline : undefined,
+                }
+            }
+            if (parsed.footer && typeof parsed.footer === 'object') {
+                const f = parsed.footer
+                out.footer = {
+                    blurb: typeof f.blurb === 'string' ? f.blurb : undefined,
+                    notes: Array.isArray(f.notes) ? f.notes.map(String) : undefined,
+                }
+            }
+            if (Array.isArray(parsed.navbar_links)) {
+                out.navbar_links = parsed.navbar_links
+                    .filter((l: any) => l && typeof l === 'object')
+                    .map((l: any) => ({ label: String(l.label || ''), href: String(l.href || '#') }))
+            }
+            if (typeof parsed.navCtaText === 'string') out.navCtaText = parsed.navCtaText
+            if (typeof parsed.navCtaHref === 'string') out.navCtaHref = parsed.navCtaHref
+
+            return Object.keys(out).length > 0 ? out : null
+        } catch (error) {
+            console.error('Groq generic-section generation error:', error)
+            return null  // graceful fall-through
+        }
+    },
 }
 
 // Types
@@ -471,4 +671,56 @@ export interface BusinessInfo {
     type: string
     owner: string
     location: string
+}
+
+/**
+ * Section-level content for the generic landing-page templates.
+ * Returned by generateGenericSections() and shallow-merged into
+ * extractedContent before the Astro build runs. All fields optional.
+ */
+export interface GenericSections {
+    marquee?: { text: string }
+    hero?: {
+        kicker?: string
+        headlineLines?: string[]
+        sub?: string
+        cta1?: { text: string; href: string }
+        cta2?: { text: string; href: string }
+        meta1?: string
+        meta2?: string
+    }
+    about?: {
+        tag?: string
+        headline?: string
+        lead?: string
+        signature?: string
+        paragraphs?: string[]
+    }
+    services?: {
+        tag?: string
+        headline?: string
+        items?: { title: string; desc: string; note?: string }[]
+    }
+    gallery?: {
+        tag?: string
+        headline?: string
+        items?: { caption: string }[]
+    }
+    area?: {
+        tag?: string
+        headline?: string
+        body?: string
+        places?: string[]
+    }
+    location?: {
+        tag?: string
+        headline?: string
+    }
+    footer?: {
+        blurb?: string
+        notes?: string[]
+    }
+    navbar_links?: { label: string; href: string }[]
+    navCtaText?: string
+    navCtaHref?: string
 }

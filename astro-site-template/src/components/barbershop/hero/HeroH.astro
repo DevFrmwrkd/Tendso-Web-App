@@ -1,0 +1,136 @@
+---
+/**
+ * Forge Kinetic hero — giant ghost-stroke word behind a 2-col grid
+ * (copy + tilted card photo) over a bottom marquee.
+ * Same content.hero shape as HeroF — content stays portable across variants.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const locality = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || (layout.contact?.phone ? `tel:${String(layout.contact.phone).replace(/[^0-9+]/g, '')}` : '#');
+const ghostWord = (hero.ghostWord || (layout.businessName ? String(layout.businessName).split(/\s+/)[0] : 'BARBER')).toString().toUpperCase();
+const badge = hero.badge || (hero.rating?.label || '');
+const marqueeWords: string[] = Array.isArray(hero.marqueeWords) && hero.marqueeWords.length
+  ? hero.marqueeWords
+  : [];
+const marqueeDoubled = [...marqueeWords, ...marqueeWords];
+---
+<section class="heroK" id="top">
+  <div class="heroK-ghost" aria-hidden="true" data-field="hero.ghostWord">{ghostWord}</div>
+  <div class="wrap heroK-inner">
+    <div class="heroK-grid">
+      <div>
+        {locality && <div class="heroK-locality" data-field="hero.kicker">{locality}</div>}
+        <h1 class="heroK-title">
+          {headlineLines.map((line: string, i: number) => (
+            <span class={`w${i === 2 ? ' accent' : ''}`} data-field={`hero.headlineLines.${i}`} set:html={line}></span>
+          ))}
+        </h1>
+        {sub && <p class="heroK-sub" data-field="hero.sub">{sub}</p>}
+        <div class="heroK-actions">
+          {cta1Text && <a class="btn btn--brass" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+          {cta2Text && <a class="btn btn--ghost on-dark" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+        </div>
+      </div>
+      <div class="heroK-card">
+        <div class="bg-img" data-image-field="hero.image" style={heroImage ? `background-image:url('${heroImage}');` : ''}></div>
+        {badge && <span class="badge" data-field="hero.badge">{badge}</span>}
+      </div>
+    </div>
+  </div>
+  {marqueeWords.length > 0 && (
+    <div class="heroK-marq">
+      <div class="track">
+        {marqueeDoubled.map((w: string, i: number) => (
+          <>
+            <span data-field={`hero.marqueeWords.${i % marqueeWords.length}`}>{w}</span>
+            <span class="dot">✦</span>
+          </>
+        ))}
+      </div>
+    </div>
+  )}
+</section>
+<style>
+  .heroK { position: relative; min-height: 100svh; background: var(--ink); color: var(--paper); overflow: hidden; display: flex; align-items: center; }
+  .heroK-ghost {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    font-family: var(--display); font-size: 36vw; line-height: 1;
+    color: transparent; -webkit-text-stroke: 1px rgba(var(--paper-rgb), .06);
+    white-space: nowrap; z-index: 0; pointer-events: none;
+    animation: kDrift 28s ease-in-out infinite alternate;
+  }
+  .heroK-inner { position: relative; z-index: 3; width: 100%; padding-top: 150px; padding-bottom: 118px; }
+  .heroK-grid { display: grid; grid-template-columns: 1.32fr .68fr; gap: clamp(30px, 5vw, 72px); align-items: center; }
+  .heroK-locality {
+    font-family: var(--cond); text-transform: uppercase; letter-spacing: .42em; font-size: 12px;
+    color: var(--brass-bright); margin-bottom: 22px;
+    display: flex; align-items: center; gap: 12px;
+    opacity: 0; animation: kFade .8s ease .15s both;
+  }
+  .heroK-locality::before { content: ""; width: 36px; height: 1px; background: var(--brass); }
+  .heroK-title {
+    font-family: var(--display); text-transform: uppercase; font-weight: 400;
+    font-size: clamp(54px, 9vw, 134px); line-height: .84; margin: 0; letter-spacing: -.005em;
+    display: flex; flex-wrap: wrap; gap: 0 .26em;
+  }
+  .heroK-title .w {
+    display: inline-block; opacity: 0;
+    transform: translateY(34px) scale(.78); filter: blur(9px);
+    animation: kPop .85s cubic-bezier(.2,.8,.2,1) both;
+  }
+  .heroK-title .w:nth-child(1) { animation-delay: .3s; }
+  .heroK-title .w:nth-child(2) { animation-delay: .44s; }
+  .heroK-title .w:nth-child(3) { animation-delay: .58s; }
+  .heroK-title .w:nth-child(4) { animation-delay: .72s; }
+  .heroK-title :global(.accent) { color: var(--brass-bright); }
+  .heroK-sub {
+    max-width: 44ch; color: var(--muted-light);
+    font-size: clamp(16px, 1.4vw, 19px); margin: 30px 0 36px;
+    opacity: 0; animation: kFade 1s ease .98s both;
+  }
+  .heroK-actions { display: flex; gap: 14px; flex-wrap: wrap; opacity: 0; animation: kFade 1s ease 1.12s both; }
+  .heroK-card {
+    position: relative; aspect-ratio: 3 / 4;
+    border: 1px solid var(--line-light); overflow: hidden;
+    opacity: 0; transform: translateY(46px) rotate(4deg) scale(.88);
+    animation: kCard 1s cubic-bezier(.2,.8,.2,1) .7s both;
+  }
+  .heroK-card .bg-img { position: absolute; inset: 0; background-size: cover; background-position: center; }
+  .heroK-card .badge {
+    position: absolute; left: -16px; bottom: 26px; background: var(--brass); color: var(--ink);
+    font-family: var(--cond); text-transform: uppercase; letter-spacing: .16em; font-weight: 600;
+    font-size: 12px; padding: 10px 16px; z-index: 2;
+  }
+  .heroK-marq {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+    border-top: 1px solid var(--line-light); background: var(--ink-2);
+    overflow: hidden; opacity: 0; animation: kFade 1s ease 1.25s both;
+  }
+  .heroK-marq .track { display: flex; white-space: nowrap; width: max-content; animation: kMarquee 30s linear infinite; }
+  .heroK-marq .track :global(span) {
+    font-family: var(--cond); text-transform: uppercase; letter-spacing: .22em;
+    font-size: 13px; padding: 15px 0; color: var(--muted-light);
+  }
+  .heroK-marq .track :global(.dot) { color: var(--brass); padding: 0 26px; }
+  .heroK:hover .heroK-marq .track { animation-play-state: paused; }
+  @keyframes kPop { to { opacity: 1; transform: none; filter: blur(0); } }
+  @keyframes kFade { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes kCard { to { opacity: 1; transform: none; } }
+  @keyframes kDrift { from { transform: translate(-52%, -50%); } to { transform: translate(-48%, -50%); } }
+  @keyframes kMarquee { to { transform: translateX(-50%); } }
+  @media (max-width: 900px) {
+    .heroK-grid { grid-template-columns: 1fr; }
+    .heroK-card { max-width: 80%; margin: 0 auto; }
+  }
+  @media (prefers-reduced-motion: reduce) { .heroK * { animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; } }
+</style>

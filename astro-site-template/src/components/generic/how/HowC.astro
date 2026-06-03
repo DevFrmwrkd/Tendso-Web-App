@@ -1,0 +1,31 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const how = content.how || content.howItWorks || {};
+const tag = how.tag || 'How it works';
+const headline = how.headline || 'Three steps to a finished yard.';
+const steps = Array.isArray(how.steps) && how.steps.length > 0 ? how.steps : [];
+---
+<section class="sec" id="how" style="padding-top:0;">
+  <div class="wrap">
+    <span class="sec-tag reveal" data-field="how.tag">{tag}</span>
+    <h2 class="reveal" data-field="how.headline" set:html={headline}></h2>
+    <div class="how-grid">
+      {steps.map((s: any, i: number) => (
+        <div class="hcell reveal" style={i > 0 ? `transition-delay:.${i}s;` : ''}>
+          <div class="hn">{String(i + 1).padStart(2, '0')}</div>
+          <h3 data-field={`how.steps.${i}.title`}>{s.title}</h3>
+          <p data-field={`how.steps.${i}.body`}>{s.body || s.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .how-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 50px; }
+  .hcell { background: var(--ink); color: var(--paper-2); padding: 34px; position: relative; }
+  .hcell .hn { font-family: var(--disp); font-size: 90px; line-height: .8; color: var(--amber); }
+  .hcell h3 { font-size: 30px; margin-top: 14px; }
+  .hcell p { margin-top: 12px; color: rgba(var(--paper-rgb), .78); font-size: 16px; }
+  @media (max-width: 760px) { .how-grid { grid-template-columns: 1fr; } }
+</style>

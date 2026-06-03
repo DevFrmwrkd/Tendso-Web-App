@@ -1,0 +1,36 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const faq = content.faq || {};
+const tag = faq.tag || 'Good to know';
+const headline = faq.headline || 'Questions, answered.';
+const items = Array.isArray(faq.items) && faq.items.length ? faq.items : [];
+---
+<section class="sec" id="faq" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="sec-tag reveal" data-field="faq.tag">{tag}</p>
+      <h2 class="reveal" data-field="faq.headline" set:html={headline}></h2>
+    </div>
+    <div class="faq">
+      {items.map((it: any, i: number) => (
+        <details class="reveal">
+          <summary>
+            <span data-field={`faq.items.${i}.q`}>{it.q || it.question}</span>
+            <span class="pm">+</span>
+          </summary>
+          <div class="ans" data-field={`faq.items.${i}.a`}>{it.a || it.answer}</div>
+        </details>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .faq { max-width: 760px; margin: 50px auto 0; }
+  details { border-bottom: 1px solid var(--line); }
+  summary { list-style: none; cursor: pointer; padding: 28px 2px; display: flex; justify-content: space-between; gap: 20px; align-items: center; font-family: var(--serif); font-size: 30px; }
+  summary::-webkit-details-marker { display: none; }
+  summary .pm { font-size: 30px; color: var(--peach); transition: transform .3s; font-family: var(--sans); font-weight: 300; }
+  details[open] summary .pm { transform: rotate(45deg); }
+  details .ans { padding: 0 2px 28px; color: var(--ink-soft); }
+</style>

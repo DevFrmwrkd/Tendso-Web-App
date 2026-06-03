@@ -1,0 +1,156 @@
+---
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const locality = hero.kicker || hero.locality || '';
+const headlineLines = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const thin = hero.thin || hero.sub_kicker || '';
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || (layout.contact?.phone ? `tel:${layout.contact.phone.replace(/[^0-9+]/g, '')}` : '#');
+const ratingBig = hero.rating?.big || '';
+const ratingLabel = hero.rating?.label || '';
+const marqueeWords: string[] = Array.isArray(hero.marqueeWords) && hero.marqueeWords.length
+  ? hero.marqueeWords
+  : [];
+const marqueeDoubled = [...marqueeWords, ...marqueeWords];
+---
+
+<section class="hero" id="top">
+  <span class="hero-grain"></span>
+  <div class="hero-grid">
+    <div class="hero-copy">
+      {locality && <div class="hero-locality" data-field="hero.kicker">{locality}</div>}
+      <h1>
+        {headlineLines.map((line: string, i: number) => (
+          <span class="line"><span class={`inner${i === 1 ? ' accent' : ''}`} data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+        ))}
+        {thin && <span class="thin" data-field="hero.thin">{thin}</span>}
+      </h1>
+      {sub && <p class="hero-sub" data-field="hero.sub">{sub}</p>}
+      <div class="hero-actions">
+        {cta1Text && (
+          <a class="btn btn--brass" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>
+        )}
+        {cta2Text && (
+          <a class="btn btn--ghost on-dark" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>
+        )}
+      </div>
+    </div>
+    <div class="hero-media">
+      <span class="hero-pole"></span>
+      <div class="frame">
+        <div class="kb">
+          <div class="bg-img" data-image-field="hero.image" style={heroImage ? `background-image: url('${heroImage}');` : ''}></div>
+        </div>
+      </div>
+      <div class="hero-seal">
+        <svg class="ring" viewBox="0 0 120 120">
+          <defs><path id="sealpath-f" d="M60,60 m-44,0 a44,44 0 1,1 88,0 a44,44 0 1,1 -88,0" /></defs>
+          <text><textPath href="#sealpath-f" startOffset="0">Book a chair · Walk-ins welcome · </textPath></text>
+        </svg>
+        <div class="core">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M8.1 8.1L20 20M8.1 15.9L20 4M14 12l6 0" /></svg>
+        </div>
+      </div>
+      {(ratingBig || ratingLabel) && (
+        <div class="hero-tag">
+          {ratingBig && <div class="big" data-field="hero.rating.big">{ratingBig}</div>}
+          <div>
+            <span class="stars">★★★★★</span>
+            <div class="lbl" data-field="hero.rating.label" set:html={ratingLabel}></div>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+  {marqueeWords.length > 0 && (
+    <div class="hero-marquee">
+      <div class="track">
+        {marqueeDoubled.map((w: string, i: number) => (
+          <>
+            <span data-field={`hero.marqueeWords.${i % marqueeWords.length}`}>{w}</span>
+            <span class="dot">✦</span>
+          </>
+        ))}
+      </div>
+    </div>
+  )}
+</section>
+
+<style>
+  .hero { background: var(--ink); color: var(--paper); min-height: 100svh; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+  .hero::before {
+    content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background: radial-gradient(120% 90% at 78% 18%, rgba(var(--brass-rgb), .20), transparent 55%);
+  }
+  .hero-grain {
+    position: absolute; inset: 0; z-index: 6; pointer-events: none; opacity: .05; mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .hero-grid { flex: 1; display: grid; grid-template-columns: 1.04fr .96fr; width: 100%; position: relative; z-index: 2; }
+  .hero-copy { display: flex; flex-direction: column; justify-content: center; padding: 150px var(--pad) 72px; position: relative; }
+  .hero-pole {
+    position: absolute; top: 0; right: 0; width: 6px; height: 100%; z-index: 4; overflow: hidden;
+    background: repeating-linear-gradient(45deg, var(--brass) 0 10px, var(--ink-3) 10px 20px, var(--paper) 20px 30px, var(--ink-3) 30px 40px);
+    background-size: 100% 56.6px;
+    animation: poleScroll 2.2s linear infinite;
+  }
+  @media (max-width: 900px) { .hero-pole { display: none; } }
+  .hero-locality {
+    font-family: var(--cond); text-transform: uppercase; letter-spacing: .34em; font-size: 12px; color: var(--brass);
+    margin-bottom: 26px; display: flex; align-items: center; gap: 12px;
+  }
+  .hero-locality::before { content: ""; width: 34px; height: 1px; background: var(--brass); }
+  .hero h1 { font-family: var(--display); font-weight: 400; text-transform: uppercase; font-size: clamp(58px, 9vw, 140px); line-height: .84; letter-spacing: .01em; margin: 0; }
+  .hero h1 .line { display: block; overflow: hidden; padding-bottom: .04em; }
+  .hero h1 .line .inner { display: block; }
+  .hero h1 .line :global(.accent) { color: var(--brass-bright); }
+  .hero h1 .thin { display: block; font-family: var(--serif); font-style: italic; font-weight: 500; text-transform: none; color: var(--brass-bright); font-size: .4em; letter-spacing: 0; line-height: 1; margin-top: .22em; }
+  .hero-sub { font-size: clamp(16px, 1.4vw, 19px); color: var(--muted-light); max-width: 42ch; margin: 32px 0 38px; }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+  .hero-media { position: relative; overflow: hidden; }
+  .hero-media .frame { position: absolute; inset: 0; }
+  .hero-media .kb, .hero-media .bg-img { position: absolute; inset: 0; }
+  .hero-media .bg-img { background-size: cover; background-position: center; }
+  .hero-media .frame::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to right, var(--ink), transparent 22%); pointer-events: none; }
+  .hero-tag {
+    position: absolute; left: 24px; bottom: 28px; z-index: 5;
+    background: rgba(var(--ink-rgb), .82); backdrop-filter: blur(8px);
+    border: 1px solid var(--line-light);
+    padding: 16px 20px; display: flex; align-items: center; gap: 14px;
+  }
+  .hero-tag .big { font-family: var(--display); font-size: 34px; line-height: 1; color: var(--brass-bright); }
+  .hero-tag .lbl { font-family: var(--cond); text-transform: uppercase; letter-spacing: .18em; font-size: 11px; color: var(--muted-light); line-height: 1.4; }
+  .hero-tag .stars { color: var(--brass); font-size: 12px; letter-spacing: 2px; display: block; margin-bottom: 3px; }
+  .hero-seal { position: absolute; top: 120px; right: 34px; z-index: 5; width: 120px; height: 120px; }
+  .hero-seal .ring { width: 100%; height: 100%; animation: spin 22s linear infinite; }
+  .hero-seal text { font-family: var(--cond); font-size: 11.5px; letter-spacing: 3.2px; text-transform: uppercase; fill: var(--paper); }
+  .hero-seal .core { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  .hero-seal .core svg { width: 30px; height: 30px; color: var(--brass-bright); }
+  @media (max-width: 900px) { .hero-seal { display: none; } }
+  .hero-marquee {
+    position: relative; z-index: 3; border-top: 1px solid var(--line-light); border-bottom: 1px solid var(--line-light);
+    overflow: hidden; background: var(--ink-2);
+  }
+  .hero-marquee .track { display: flex; white-space: nowrap; width: max-content; animation: marquee 32s linear infinite; }
+  .hero-marquee .track :global(span) {
+    font-family: var(--cond); text-transform: uppercase; letter-spacing: .22em; font-weight: 500; font-size: 14px;
+    padding: 17px 0; color: var(--muted-light);
+  }
+  .hero-marquee .track :global(.dot) { color: var(--brass); padding: 0 28px; font-size: 9px; }
+  .hero:hover .hero-marquee .track { animation-play-state: paused; }
+  @keyframes poleScroll { to { background-position: 0 -56.6px; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-media { order: -1; min-height: 48svh; }
+    .hero-copy { padding-top: 124px; }
+  }
+</style>

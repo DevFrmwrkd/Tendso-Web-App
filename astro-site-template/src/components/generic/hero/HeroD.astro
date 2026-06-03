@@ -1,0 +1,81 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const hero = content.hero || {};
+const kicker = hero.kicker || '';
+const headlineLines = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0 ? hero.headlineLines : [];
+const sub = hero.sub || hero.description || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || 'See services';
+const cta2Href = hero.cta2?.href || '#services';
+const meta1 = hero.meta1 || '★★★★★ rated on Google';
+const meta2 = hero.meta2 || '&lt; 15 min avg. response · serving Austin';
+const termCmd = hero.term?.command || 'northpoint status --client acme-co';
+const termTitle = hero.term?.title || 'northpoint — status';
+const termLines: Array<{ text: string; status?: string }> = Array.isArray(hero.term?.lines) && hero.term.lines.length ? hero.term.lines : [];
+---
+<section class="hero">
+  <div class="wrap hero-in">
+    <div>
+      <p class="eyebrow" data-field="hero.kicker">{kicker}</p>
+      <h1 style="margin-top:18px;">
+        {headlineLines.map((line: string, i: number) => (
+          <span class="pop"><span style={`animation-delay:.${5 + (i * 8)}s;`} data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+        ))}
+      </h1>
+      <p class="hero-sub reveal" data-field="hero.sub">{sub}</p>
+      <div class="hero-cta reveal" style="transition-delay:.1s;">
+        <a href={cta1Href} class="btn btn-primary" data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>
+        <a href={cta2Href} class="btn btn-ghost" data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>
+      </div>
+      <div class="hero-meta reveal" style="transition-delay:.18s;">
+        <span data-field="hero.meta1" set:html={meta1}></span>
+        <span data-field="hero.meta2" set:html={meta2}></span>
+      </div>
+    </div>
+    <div class="term reveal" style="transition-delay:.12s;">
+      <div class="term-bar"><i class="r"></i><i class="y"></i><i class="g"></i><span class="tt" data-field="hero.term.title">{termTitle}</span></div>
+      <div class="term-body">
+        <div class="c">$ <span data-field="hero.term.command">{termCmd}</span></div>
+        {termLines.map((ln, i) => (
+          <div>
+            <span class="ok">✔</span>
+            <span class="v" data-field={`hero.term.lines.${i}.text`}>{ln.text}</span>
+            <span style="color:var(--muted);"> ... </span>
+            <span class="ok" data-field={`hero.term.lines.${i}.status`}>{ln.status || ''}</span>
+          </div>
+        ))}
+        <div class="c">$ <span class="cursor"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+  .hero::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px); background-size: 54px 54px; opacity: .4; mask-image: radial-gradient(ellipse 80% 70% at 30% 30%, #000 30%, transparent 80%); }
+  .hero-in { position: relative; z-index: 2; display: grid; grid-template-columns: 1.4fr .95fr; gap: 50px; align-items: center; padding: 84px 0 90px; }
+  .hero h1 { font-size: clamp(52px, 8vw, 118px); font-weight: 800; }
+  .hero h1 .pop { display: inline-block; }
+  .hero h1 .pop > span { display: inline-block; transform: translateY(0); opacity: 1; }
+  :global(body.reveal-on) .hero h1 .pop > span { animation: pop .7s cubic-bezier(.2, .85, .25, 1.15) both; }
+  @keyframes pop { from { transform: translateY(60%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .hero h1 :global(em) { font-style: normal; color: var(--lime); }
+  .hero-sub { margin-top: 26px; max-width: 42ch; font-size: 19px; color: var(--muted); }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 10px 24px; margin-top: 30px; font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+  .hero-meta :global(.stars) { color: var(--lime); }
+  .term { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: 0 24px 60px rgba(0, 0, 0, .5); }
+  .term-bar { display: flex; align-items: center; gap: 7px; padding: 13px 16px; border-bottom: 1px solid var(--line); background: var(--panel-2); }
+  .term-bar i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+  .term-bar .r { background: #FF5F57; } .term-bar .y { background: #FEBC2E; } .term-bar .g { background: #28C840; }
+  .term-bar .tt { margin-left: 10px; font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  .term-body { padding: 22px; font-family: var(--mono); font-size: 14px; line-height: 1.9; }
+  .term-body .c { color: var(--muted); }
+  .term-body .ok { color: var(--lime); }
+  .term-body .v { color: var(--ink); }
+  .term-body .cursor { display: inline-block; width: 9px; height: 16px; background: var(--lime); vertical-align: -2px; animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  @media (max-width: 880px) { .hero-in { grid-template-columns: 1fr; gap: 40px; } }
+</style>

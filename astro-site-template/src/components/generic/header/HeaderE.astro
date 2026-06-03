@@ -1,0 +1,37 @@
+---
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+const brand = layout.businessName || 'Your Business';
+const navLinks = (layout.navLinks && layout.navLinks.length) ? layout.navLinks : [];
+const phone = layout.contact?.phone || content.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const ctaText = content.navCtaText || 'Schedule pickup';
+const ctaHref = content.navCtaHref || '#visit';
+---
+<header class="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="brand"><span class="mk"></span><span data-field="nav.brand">{brand}</span></a>
+    <div class="nav-links">
+      {navLinks.map((link: any, i: number) => (
+        <a href={link.href} data-field={`nav.links.${i}.label`} data-href-field={`nav.links.${i}.href`}>{link.label}</a>
+      ))}
+    </div>
+    <div class="nav-right">
+      {phone && <a href={`tel:${phoneDigits}`} class="nav-phone" data-field="nav.phone" data-href-field="nav.phone.href">{phone}</a>}
+      <a href={ctaHref} class="btn btn-primary" data-field="nav.cta.text" data-href-field="nav.cta.href">{ctaText}</a>
+    </div>
+  </div>
+</header>
+<style>
+  header.nav { position: sticky; top: 0; z-index: 1000; background: rgba(var(--paper-rgb), .85); backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+  .nav-in { display: flex; align-items: center; justify-content: space-between; gap: 20px; height: 76px; }
+  .brand { font-family: var(--disp); font-size: 25px; font-weight: 800; display: flex; align-items: center; gap: 9px; letter-spacing: -.02em; }
+  .brand .mk { width: 30px; height: 30px; border-radius: 50%; background: var(--blue); position: relative; }
+  .brand .mk::after { content: ""; position: absolute; width: 11px; height: 11px; border-radius: 50%; background: var(--yellow); top: 6px; left: 6px; }
+  .nav-links { display: flex; gap: 26px; font-size: 15px; font-weight: 600; }
+  .nav-links a { position: relative; color: var(--ink-soft); padding: 4px 0; }
+  .nav-links a:hover { color: var(--blue); }
+  .nav-right { display: flex; align-items: center; gap: 16px; }
+  .nav-phone { font-weight: 700; font-size: 15px; }
+  @media (max-width: 980px) { .nav-links, .nav-phone { display: none; } }
+</style>

@@ -1,0 +1,80 @@
+---
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+const f = content.footer || {};
+const brand = f.brand || layout.businessName || 'Your Business';
+const blurb = f.blurb || f.brand_blurb || 'A brief one-line description of what this business does. Edit in the Footer section.';
+const phone = layout.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const visitLines: string[] = Array.isArray(f.visit?.lines) && f.visit.lines.length ? f.visit.lines : [];
+const explore: Array<{ text: string; href: string }> = Array.isArray(f.explore?.links) && f.explore.links.length ? f.explore.links : [];
+const hoursRows = Array.isArray(f.hours) && f.hours.length ? f.hours : [];
+const social: Array<{ platform: string; url: string }> = Array.isArray(f.social) && f.social.length ? f.social : (Array.isArray(layout.socialLinks) ? layout.socialLinks : []);
+const notes: string[] = Array.isArray(f.notes) && f.notes.length ? f.notes : [];
+---
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="brand"><span class="mk"></span><span data-field="footer.brand">{brand}</span></div>
+        <p class="blurb" data-field="footer.blurb">{blurb}</p>
+        {social.length > 0 && (
+          <div class="foot-social">
+            {social.map((s: any, i: number) => (
+              <a href={s.url} target="_blank" rel="noopener noreferrer" data-field={`footer.social.${i}.platform`} data-href-field={`footer.social.${i}.url`} data-platform-field={`footer.social.${i}.platform`}>{s.platform}</a>
+            ))}
+          </div>
+        )}
+      </div>
+      <div class="foot-col">
+        <h4>Contact</h4>
+        <ul>
+          {visitLines.map((line: string, i: number) => (
+            line === phone && phone
+              ? <li><a href={`tel:${phoneDigits}`} data-field={`footer.visit.lines.${i}`} data-href-field={`footer.visit.lines.${i}.href`}>{line}</a></li>
+              : <li data-field={`footer.visit.lines.${i}`}>{line}</li>
+          ))}
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h4>Services</h4>
+        <ul>
+          {explore.map((l: any, i: number) => (
+            <li><a href={l.href} data-field={`footer.explore.links.${i}.text`} data-href-field={`footer.explore.links.${i}.href`}>{l.text}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div class="foot-col foot-hours">
+        <h4>Hours · live on Google</h4>
+        {hoursRows.map((row: any, i: number) => (
+          <div>
+            <span data-field={`footer.hours.${i}.day`}>{row.day}</span>
+            <span data-field={`footer.hours.${i}.time`}>{row.time}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+    <div class="foot-note">
+      {notes.map((n: string, i: number) => (
+        <span data-field={`footer.notes.${i}`}>{n}</span>
+      ))}
+    </div>
+  </div>
+</footer>
+<style>
+  footer { background: var(--ink); color: var(--paper); padding: 74px 0 34px; }
+  .foot-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.3fr; gap: 36px; }
+  footer .brand { color: var(--paper-2); font-family: var(--disp); font-size: 26px; display: flex; align-items: center; gap: 10px; letter-spacing: .02em; }
+  footer .brand .mk { width: 14px; height: 24px; background: var(--amber); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  footer .blurb { margin-top: 16px; color: rgba(var(--paper-rgb), .6); max-width: 34ch; font-size: 15px; }
+  .foot-social { margin-top: 18px; display: flex; flex-wrap: wrap; gap: 14px; }
+  .foot-social a { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: rgba(var(--paper-rgb), .82); border: 2px solid rgba(var(--paper-rgb), .2); padding: 6px 12px; }
+  .foot-social a:hover { color: var(--amber); border-color: var(--amber); }
+  .foot-col h4 { font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; color: var(--amber); }
+  .foot-col ul { list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 9px; }
+  .foot-col a, .foot-col li { color: rgba(var(--paper-rgb), .82); font-size: 15px; }
+  .foot-col a:hover { color: var(--amber); }
+  .foot-hours div { display: flex; justify-content: space-between; font-size: 14px; color: rgba(var(--paper-rgb), .82); padding: 5px 0; border-bottom: 1px solid rgba(var(--paper-rgb), .12); }
+  .foot-note { margin-top: 46px; padding-top: 22px; border-top: 1px solid rgba(var(--paper-rgb), .14); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 12px; font-weight: 600; letter-spacing: .04em; color: rgba(var(--paper-rgb), .5); text-transform: uppercase; }
+  @media (max-width: 820px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+</style>

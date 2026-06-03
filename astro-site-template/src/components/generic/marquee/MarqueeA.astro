@@ -1,0 +1,51 @@
+---
+/**
+ * generic / MarqueeA — scrolling ink-band under the hero.
+ *
+ * Editable hooks:
+ *   marquee.text — single string; we mirror it for the seamless loop.
+ */
+interface Props {
+  content: any;
+}
+const { content } = Astro.props;
+
+const text = content.marquee?.text
+  || 'Quality ◆ Trusted ◆ Local ◆ Reliable';
+// Duplicate so the keyframe-translateX(-50%) trick keeps motion seamless.
+const doubled = `${text} ✺ ${text} ✺`;
+---
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span data-field="marquee.text">{doubled}</span>
+  </div>
+</div>
+
+<style>
+  .marquee {
+    background: var(--ink);
+    color: var(--paper-2);
+    overflow: hidden;
+  }
+  .marquee-track {
+    display: flex;
+    white-space: nowrap;
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 34px;
+    text-transform: uppercase;
+    letter-spacing: -.01em;
+    padding: 16px 0;
+    width: max-content;
+    animation: scrollx 24s linear infinite;
+  }
+  .marquee-track :global(i) {
+    margin: 0 1.5rem;
+    color: var(--gold);
+    font-style: normal;
+  }
+  @keyframes scrollx {
+    to { transform: translateX(-50%); }
+  }
+</style>

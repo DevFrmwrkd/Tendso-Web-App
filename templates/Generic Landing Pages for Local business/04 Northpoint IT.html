@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Northpoint IT — Managed IT, cybersecurity &amp; support in Austin, TX</title>
+<meta name="description" content="Northpoint IT keeps Austin small businesses running — managed IT, helpdesk, cybersecurity, cloud and on-site support with fast response times." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+:root{
+  --bg:#0C0F14; --bg-2:#111722; --panel:#141B27; --panel-2:#18212F;
+  --ink:#E8EDF3; --muted:#8A95A6; --line:#232E3D;
+  --lime:#C9F24E; --lime-2:#D9F87A; --blue:#5AA9FF;
+  --ink-rgb:232,237,243; --bg-rgb:12,15,20; --accent-rgb:201,242,78;
+  --disp:"Bricolage Grotesque",system-ui,sans-serif; --sans:"Space Grotesk",system-ui,sans-serif; --mono:"JetBrains Mono",monospace;
+  --wrap:1280px;
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+img{max-width:100%;display:block;}
+a{color:inherit;text-decoration:none;}
+h1,h2,h3,h4{margin:0;font-family:var(--disp);font-weight:700;line-height:1;letter-spacing:-.02em;}
+p{margin:0;}
+.wrap{max-width:var(--wrap);margin:0 auto;padding:0 30px;}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--lime);}
+.mono{font-family:var(--mono);}
+section{position:relative;}
+.btn{display:inline-flex;align-items:center;gap:9px;font-family:var(--mono);font-size:13px;letter-spacing:.04em;padding:15px 24px;min-height:48px;border:1px solid var(--line);border-radius:8px;cursor:pointer;transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease;}
+.btn-primary{background:var(--lime);border-color:var(--lime);color:#0C0F14;font-weight:600;}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(var(--accent-rgb),.25);}
+.btn-ghost{background:transparent;color:var(--ink);}
+.btn-ghost:hover{border-color:var(--lime);color:var(--lime);transform:translateY(-3px);}
+
+.switcher{position:fixed;top:50%;right:14px;transform:translateY(-50%);z-index:1200;display:flex;flex-direction:column;gap:5px;background:var(--panel);border:1px solid var(--line);padding:7px 6px;border-radius:10px;}
+.switcher a{font-family:var(--mono);font-size:12px;color:var(--muted);width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:.15s;}
+.switcher a:hover{color:var(--ink);}
+.switcher a.active{background:var(--lime);color:#0C0F14;font-weight:600;}
+@media(max-width:680px){.switcher{top:auto;bottom:12px;right:50%;transform:translateX(50%);flex-direction:row;}}
+
+header.nav{position:sticky;top:0;z-index:1000;background:rgba(var(--bg-rgb),.82);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+.nav-in{display:flex;align-items:center;justify-content:space-between;gap:20px;height:74px;}
+.brand{font-family:var(--disp);font-size:23px;font-weight:700;display:flex;align-items:center;gap:10px;letter-spacing:-.02em;}
+.brand .mk{width:16px;height:16px;background:var(--lime);border-radius:4px;transform:rotate(45deg);}
+.nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:13px;}
+.nav-links a{position:relative;color:var(--muted);padding:4px 0;}
+.nav-links a::after{content:"";position:absolute;left:0;bottom:0;height:1.5px;width:0;background:var(--lime);transition:.25s;}
+.nav-links a:hover{color:var(--ink);}
+.nav-links a:hover::after{width:100%;}
+.nav-right{display:flex;align-items:center;gap:16px;}
+.nav-status{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px;}
+.nav-status .d{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 0 rgba(var(--accent-rgb),.6);animation:pulse 2.4s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),.5);}70%{box-shadow:0 0 0 8px rgba(var(--accent-rgb),0);}100%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),0);}}
+@media(max-width:980px){.nav-links,.nav-status{display:none;}}
+
+/* HERO — kinetic asymmetric on grid */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line);}
+.hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:54px 54px;opacity:.4;mask-image:radial-gradient(ellipse 80% 70% at 30% 30%,#000 30%,transparent 80%);}
+.hero-in{position:relative;z-index:2;display:grid;grid-template-columns:1.4fr .95fr;gap:50px;align-items:center;padding:84px 0 90px;}
+.hero h1{font-size:clamp(52px,8vw,118px);font-weight:800;}
+.hero h1 .pop{display:inline-block;}
+.hero h1 .pop>span{display:inline-block;transform:translateY(0);opacity:1;}
+body.reveal-on .hero h1 .pop>span{animation:pop .7s cubic-bezier(.2,.85,.25,1.15) both;}
+@keyframes pop{from{transform:translateY(60%);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.hero h1 em{font-style:normal;color:var(--lime);}
+.hero-sub{margin-top:26px;max-width:42ch;font-size:19px;color:var(--muted);}
+.hero-cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px;}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px 24px;margin-top:30px;font-family:var(--mono);font-size:12.5px;color:var(--muted);}
+.hero-meta .stars{color:var(--lime);}
+/* terminal card */
+.term{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+.term-bar{display:flex;align-items:center;gap:7px;padding:13px 16px;border-bottom:1px solid var(--line);background:var(--panel-2);}
+.term-bar i{width:11px;height:11px;border-radius:50%;display:block;}
+.term-bar .r{background:#FF5F57;}.term-bar .y{background:#FEBC2E;}.term-bar .g{background:#28C840;}
+.term-bar .tt{margin-left:10px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+.term-body{padding:22px;font-family:var(--mono);font-size:14px;line-height:1.9;}
+.term-body .c{color:var(--muted);}
+.term-body .ok{color:var(--lime);}
+.term-body .v{color:var(--ink);}
+.term-body .cursor{display:inline-block;width:9px;height:16px;background:var(--lime);vertical-align:-2px;animation:blink 1.1s steps(1) infinite;}
+@keyframes blink{50%{opacity:0;}}
+@media(max-width:880px){.hero-in{grid-template-columns:1fr;gap:40px;}}
+
+.reveal{opacity:1;transform:none;}
+body.reveal-on .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.8,.2,1),transform .7s cubic-bezier(.2,.8,.2,1);}
+body.reveal-on .reveal.in{opacity:1;transform:none;}
+
+/* marquee */
+.marquee{background:var(--lime);overflow:hidden;}
+.marquee-track{display:flex;white-space:nowrap;font-family:var(--mono);font-size:15px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:14px 0;width:max-content;animation:scrollx 28s linear infinite;color:#0C0F14;}
+.marquee-track i{margin:0 1.4rem;font-style:normal;}
+@keyframes scrollx{to{transform:translateX(-50%);}}
+
+/* trust — terminal key-values */
+.trust{padding:64px 0;}
+.trust-grid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+.kv{padding:30px 28px;border-left:1px solid var(--line);background:var(--panel);}
+.kv:first-child{border-left:none;}
+.kv .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.kv .v{font-family:var(--disp);font-size:46px;font-weight:700;margin-top:8px;}
+.kv .v em{font-style:normal;color:var(--lime);}
+@media(max-width:820px){.trust-grid{grid-template-columns:1fr 1fr;}.kv:nth-child(3){border-left:none;}.kv:nth-child(n+3){border-top:1px solid var(--line);}}
+
+.sec{padding:100px 0;}
+.sec-tag{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--lime);margin-bottom:18px;}
+.sec-tag::before{content:"// ";color:var(--muted);}
+.sec h2{font-size:clamp(34px,4.6vw,60px);max-width:18ch;}
+.sec h2 em{font-style:normal;color:var(--lime);}
+.sec .lead{margin-top:18px;color:var(--muted);max-width:54ch;font-size:18px;}
+
+/* about — annotated */
+.about{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;}
+.about-img{position:relative;}
+.about-img image-slot{width:100%;height:440px;border:1px solid var(--line);border-radius:14px;}
+.about-img .tagcode{position:absolute;left:16px;bottom:16px;font-family:var(--mono);font-size:12px;color:var(--lime);background:rgba(var(--bg-rgb),.8);border:1px solid var(--line);padding:8px 12px;border-radius:8px;}
+.about-txt p{margin-top:20px;color:var(--muted);font-size:18px;max-width:48ch;}
+.about-txt .note{font-family:var(--mono);font-size:13px;color:var(--lime);margin-top:24px;}
+.about-txt .note::before{content:"# ";color:var(--muted);}
+@media(max-width:860px){.about{grid-template-columns:1fr;gap:40px;}.about-img image-slot{height:340px;}}
+
+/* services — bento */
+.bento{display:grid;grid-template-columns:repeat(6,1fr);grid-auto-rows:minmax(150px,auto);gap:18px;margin-top:50px;}
+.bcell{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px;transition:border-color .25s,transform .25s,background .25s;position:relative;overflow:hidden;}
+.bcell:hover{border-color:var(--lime);transform:translateY(-4px);}
+.bcell .bi{width:46px;height:46px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
+.bcell svg{width:24px;height:24px;stroke:var(--lime);fill:none;stroke-width:1.7;}
+.bcell h3{font-size:24px;margin-top:18px;}
+.bcell p{margin-top:10px;color:var(--muted);font-size:15px;}
+.bcell .tagn{position:absolute;top:22px;right:24px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+.b-lg{grid-column:span 3;}
+.b-md{grid-column:span 3;}
+.b-sm{grid-column:span 2;}
+.b-feat{grid-column:span 6;background:linear-gradient(120deg,var(--panel) 60%,rgba(var(--accent-rgb),.08));}
+.b-feat h3{font-size:30px;}
+@media(max-width:880px){.bento{grid-template-columns:1fr 1fr;}.b-lg,.b-md,.b-sm,.b-feat{grid-column:span 2;}}
+@media(max-width:560px){.bento{grid-template-columns:1fr;}.b-lg,.b-md,.b-sm,.b-feat{grid-column:span 1;}}
+
+/* why — mono list with ticks */
+.why{background:var(--bg-2);}
+.why-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px 40px;margin-top:46px;}
+.why-cell{display:flex;gap:18px;align-items:flex-start;padding:24px 0;border-top:1px solid var(--line);}
+.why-cell .tick{flex:none;width:30px;height:30px;border-radius:8px;background:rgba(var(--accent-rgb),.12);border:1px solid var(--lime);display:flex;align-items:center;justify-content:center;}
+.why-cell .tick svg{width:16px;height:16px;stroke:var(--lime);fill:none;stroke-width:2.4;}
+.why-cell h3{font-size:21px;}
+.why-cell p{margin-top:8px;color:var(--muted);font-size:15px;max-width:42ch;}
+@media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+/* how — command steps */
+.steps{display:flex;flex-direction:column;gap:16px;margin-top:50px;}
+.cstep{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px 30px;}
+.cstep .sn{font-family:var(--mono);font-size:15px;color:var(--lime);border:1px solid var(--lime);border-radius:8px;padding:8px 12px;white-space:nowrap;}
+.cstep h3{font-size:24px;}
+.cstep p{margin-top:6px;color:var(--muted);font-size:16px;}
+@media(max-width:620px){.cstep{grid-template-columns:1fr;gap:14px;}}
+
+/* testimonials */
+.testi-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:22px;margin-top:50px;}
+.tbig{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:42px;display:flex;flex-direction:column;justify-content:center;}
+.tbig .stars{color:var(--lime);font-size:20px;letter-spacing:2px;}
+.tbig p{margin-top:18px;font-family:var(--disp);font-size:clamp(24px,2.6vw,34px);font-weight:600;line-height:1.25;letter-spacing:-.01em;}
+.tbig .who{margin-top:22px;font-family:var(--mono);font-size:13px;color:var(--muted);}
+.tcol{display:flex;flex-direction:column;gap:22px;}
+.tsm{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;}
+.tsm .stars{color:var(--lime);letter-spacing:2px;}
+.tsm p{margin-top:12px;font-size:17px;line-height:1.5;}
+.tsm .who{margin-top:14px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+.tsrc{margin-top:28px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+@media(max-width:820px){.testi-grid{grid-template-columns:1fr;}}
+
+/* gallery — wide asymmetric */
+.gal{display:grid;grid-template-columns:repeat(8,1fr);gap:16px;margin-top:50px;}
+.gtile{position:relative;overflow:hidden;border-radius:14px;border:1px solid var(--line);background:var(--panel);}
+.gtile image-slot{width:100%;height:100%;transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+.gtile:hover image-slot{transform:scale(1.06);}
+.gtile .cap{position:absolute;left:0;right:0;bottom:0;padding:16px 18px;background:linear-gradient(to top,rgba(var(--bg-rgb),.92),transparent);display:flex;justify-content:space-between;align-items:flex-end;transform:translateY(8px);opacity:0;transition:.35s;}
+.gtile .cap .ct{font-family:var(--mono);font-size:12px;color:var(--ink);}
+.gtile .cap .cx{font-family:var(--mono);font-size:13px;color:var(--lime);}
+.gtile:hover .cap{transform:none;opacity:1;}
+.ga{grid-column:span 5;height:340px;}
+.gb{grid-column:span 3;height:340px;}
+.gc{grid-column:span 3;height:240px;}
+.gd{grid-column:span 5;height:240px;}
+@media(max-width:760px){.gal{grid-template-columns:1fr;}.ga,.gb,.gc,.gd{grid-column:span 1;height:220px;}}
+
+/* faq — terminal */
+.faq{margin-top:46px;border:1px solid var(--line);border-radius:14px;overflow:hidden;}
+details{border-top:1px solid var(--line);background:var(--panel);}
+details:first-child{border-top:none;}
+summary{list-style:none;cursor:pointer;padding:24px 28px;display:flex;justify-content:space-between;gap:20px;align-items:center;font-family:var(--disp);font-size:21px;font-weight:600;}
+summary::-webkit-details-marker{display:none;}
+summary .pm{font-family:var(--mono);font-size:22px;color:var(--lime);transition:transform .3s;}
+details[open] summary .pm{transform:rotate(45deg);}
+details .ans{padding:0 28px 24px;color:var(--muted);max-width:76ch;}
+details .ans::before{content:"$ ";font-family:var(--mono);color:var(--lime);}
+
+/* area + creds */
+.split2{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:start;}
+@media(max-width:820px){.split2{grid-template-columns:1fr;gap:46px;}}
+.area-tags{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;}
+.area-tags span{font-family:var(--mono);font-size:13px;border:1px solid var(--line);border-radius:8px;padding:9px 14px;color:var(--muted);}
+.area-tags span::before{content:"› ";color:var(--lime);}
+.cred-chips{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px;}
+.cred-chip{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:14px 18px;background:var(--panel);font-family:var(--mono);font-size:13px;}
+.cred-chip svg{width:18px;height:18px;stroke:var(--lime);fill:none;stroke-width:1.8;}
+
+/* location */
+.loc{background:var(--bg-2);}
+.loc-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:40px;align-items:stretch;margin-top:46px;}
+.nap{display:grid;grid-template-columns:1fr;gap:14px;}
+.naprow{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px 24px;}
+.naprow .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--lime);}
+.naprow .v{font-size:20px;margin-top:6px;}
+.naprow .v.s{font-size:18px;}
+#map{width:100%;min-height:440px;border:1px solid var(--line);border-radius:14px;}
+.leaflet-container{font-family:var(--sans);background:#0C0F14;}
+@media(max-width:820px){.loc-grid{grid-template-columns:1fr;}#map{min-height:320px;}}
+
+/* closing cta */
+.cta-band{text-align:center;padding:120px 0;position:relative;overflow:hidden;border-top:1px solid var(--line);}
+.cta-band::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:54px 54px;opacity:.35;mask-image:radial-gradient(ellipse 70% 80% at 50% 50%,#000 20%,transparent 75%);}
+.cta-band .in{position:relative;z-index:2;}
+.cta-band h2{font-size:clamp(42px,7vw,100px);}
+.cta-band h2 em{font-style:normal;color:var(--lime);}
+.cta-band .sub{margin-top:18px;font-family:var(--mono);font-size:13px;color:var(--muted);}
+.cta-band .btn{margin-top:34px;}
+
+.float-cta{position:fixed;left:20px;bottom:20px;z-index:1100;display:flex;gap:10px;}
+.float-cta a{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-family:var(--mono);font-size:12.5px;padding:14px 18px;border-radius:10px;box-shadow:0 10px 26px rgba(0,0,0,.5);transition:transform .25s,border-color .25s;}
+.float-cta a:hover{transform:translateY(-3px);border-color:var(--lime);}
+.float-cta a.alt{background:var(--lime);border-color:var(--lime);color:#0C0F14;font-weight:600;}
+.float-cta svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;}
+@media(max-width:680px){.float-cta a span{display:none;}.float-cta a{padding:14px;}}
+
+footer{background:var(--bg-2);border-top:1px solid var(--line);padding:74px 0 34px;}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1.3fr;gap:36px;}
+footer .blurb{margin-top:16px;color:var(--muted);max-width:34ch;font-size:15px;}
+.foot-col h4{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+.foot-col ul{list-style:none;padding:0;margin:14px 0 0;display:flex;flex-direction:column;gap:9px;}
+.foot-col a,.foot-col li{color:var(--ink);font-size:15px;}
+.foot-col a:hover{color:var(--lime);}
+.foot-hours div{display:flex;justify-content:space-between;font-family:var(--mono);font-size:13px;color:var(--ink);padding:6px 0;border-bottom:1px solid var(--line);}
+.foot-note{margin-top:48px;padding-top:22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+@media(max-width:820px){.foot-grid{grid-template-columns:1fr 1fr;}}
+
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;}
+  .reveal{opacity:1!important;transform:none!important;}
+  .hero h1 .pop>span{transform:none!important;opacity:1!important;}
+  html{scroll-behavior:auto;}
+}
+</style>
+</head>
+<body>
+
+<nav class="switcher" aria-label="Design switcher">
+  <a href="01 Ironwood Coffee.html">01</a>
+  <a href="02 Stillwater Studio.html">02</a>
+  <a href="03 Cedar &amp; Stone.html">03</a>
+  <a href="04 Northpoint IT.html" class="active">04</a>
+  <a href="05 Wash House.html">05</a>
+</nav>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <a href="#top" class="brand"><span class="mk"></span>Northpoint IT</a>
+    <div class="nav-links">
+      <a href="#about">about</a>
+      <a href="#services">services</a>
+      <a href="#why">why_us</a>
+      <a href="#work">work</a>
+      <a href="#visit">contact</a>
+    </div>
+    <div class="nav-right">
+      <span class="nav-status"><span class="d"></span>systems operational</span>
+      <a href="#visit" class="btn btn-primary">Get support</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-in">
+    <div>
+      <p class="eyebrow">Austin, TX · Managed IT for small business</p>
+      <h1 style="margin-top:18px;">
+        <span class="pop"><span style="animation-delay:.05s;">IT&nbsp;that</span></span>
+        <span class="pop"><span style="animation-delay:.13s;">just</span></span>
+        <span class="pop"><span style="animation-delay:.21s;"><em>works.</em></span></span>
+      </h1>
+      <p class="hero-sub reveal">We keep your computers, network, and data running so you can run the business. Fast helpdesk, proactive monitoring, and real humans who pick up the phone.</p>
+      <div class="hero-cta reveal" style="transition-delay:.1s;">
+        <a href="#visit" class="btn btn-primary">Book a free IT review</a>
+        <a href="#services" class="btn btn-ghost">See services</a>
+      </div>
+      <div class="hero-meta reveal" style="transition-delay:.18s;">
+        <span><span class="stars">★★★★★</span> rated on Google</span>
+        <span>&lt; 15 min avg. response · serving Austin</span>
+      </div>
+    </div>
+    <div class="term reveal" style="transition-delay:.12s;">
+      <div class="term-bar"><i class="r"></i><i class="y"></i><i class="g"></i><span class="tt">northpoint — status</span></div>
+      <div class="term-body">
+        <div class="c">$ northpoint status --client acme-co</div>
+        <div><span class="ok">✔</span> <span class="v">monitoring</span> ......... <span class="ok">active</span></div>
+        <div><span class="ok">✔</span> <span class="v">backups</span> ........... <span class="ok">verified 04:00</span></div>
+        <div><span class="ok">✔</span> <span class="v">endpoints</span> ......... <span class="ok">24 / 24 healthy</span></div>
+        <div><span class="ok">✔</span> <span class="v">uptime</span> ............ <span class="ok">99.98%</span></div>
+        <div class="c">$ <span class="cursor"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>MANAGED IT<i>/</i>CYBERSECURITY<i>/</i>HELPDESK<i>/</i>CLOUD &amp; BACKUP<i>/</i>NETWORKS<i>/</i>ON-SITE SUPPORT<i>/</i>MANAGED IT<i>/</i>CYBERSECURITY<i>/</i>HELPDESK<i>/</i>CLOUD &amp; BACKUP<i>/</i>NETWORKS<i>/</i>ON-SITE SUPPORT<i>/</i></span>
+  </div>
+</div>
+
+<!-- TRUST -->
+<section class="trust">
+  <div class="wrap trust-grid">
+    <div class="kv reveal"><div class="k">avg_response</div><div class="v"><em>&lt;15</em>m</div></div>
+    <div class="kv reveal" style="transition-delay:.08s;"><div class="k">uptime_sla</div><div class="v">99.9<em>%</em></div></div>
+    <div class="kv reveal" style="transition-delay:.16s;"><div class="k">businesses</div><div class="v">120<em>+</em></div></div>
+    <div class="kv reveal" style="transition-delay:.24s;"><div class="k">google_rating</div><div class="v">4.9<em>★</em></div></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="sec" id="about">
+  <div class="wrap about">
+    <div class="about-img reveal">
+      <image-slot id="np-about" shape="rounded" radius="14" placeholder="Drop a team / office photo"></image-slot>
+      <span class="tagcode">team@northpoint</span>
+    </div>
+    <div class="about-txt">
+      <p class="sec-tag reveal">about_us</p>
+      <h2 class="reveal">Your IT department, <em>on call.</em></h2>
+      <p class="reveal">Northpoint started because small businesses deserve the same reliable tech as the big firms — without hiring a full-time team. We become your IT department: monitoring quietly in the background and showing up fast when something breaks.</p>
+      <p class="reveal">No jargon, no condescension, no mystery invoices. Just steady systems and a number that a real technician answers.</p>
+      <p class="note reveal">Flat-rate plans. No surprise bills.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SERVICES — bento -->
+<section class="sec" id="services" style="padding-top:0;">
+  <div class="wrap">
+    <p class="sec-tag reveal">services</p>
+    <h2 class="reveal">Everything that keeps you <em>online.</em></h2>
+    <div class="bento">
+      <div class="bcell b-feat reveal"><span class="tagn">01</span><div class="bi"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></div><h3>Managed IT &amp; Monitoring</h3><p>We watch your systems around the clock, patch and update proactively, and fix most issues before you ever notice them. One flat monthly rate covers it.</p></div>
+      <div class="bcell b-lg reveal"><span class="tagn">02</span><div class="bi"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>Helpdesk &amp; Support</h3><p>Real technicians, fast. Call, email, or chat and get a human — not a ticket black hole.</p></div>
+      <div class="bcell b-md reveal" style="transition-delay:.08s;"><span class="tagn">03</span><div class="bi"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 5-4 7-8 8-4-1-8-3-8-8V7z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>Cybersecurity</h3><p>Endpoint protection, email filtering, MFA, and staff training to keep threats out.</p></div>
+      <div class="bcell b-sm reveal"><span class="tagn">04</span><div class="bi"><svg viewBox="0 0 24 24"><path d="M18 10a4 4 0 0 0-7.7-1.5A3.5 3.5 0 1 0 7 17h11a3 3 0 0 0 0-7z"/></svg></div><h3>Cloud &amp; Backup</h3><p>Automated, tested backups and smooth cloud migrations.</p></div>
+      <div class="bcell b-sm reveal" style="transition-delay:.08s;"><span class="tagn">05</span><div class="bi"><svg viewBox="0 0 24 24"><path d="M5 12h14M5 12a7 7 0 0 1 14 0M9 18h6"/></svg></div><h3>Networks &amp; WiFi</h3><p>Fast, secure wired and wireless networks that just reach.</p></div>
+      <div class="bcell b-sm reveal" style="transition-delay:.16s;"><span class="tagn">06</span><div class="bi"><svg viewBox="0 0 24 24"><path d="M3 21h18M6 21V8l6-4 6 4v13"/></svg></div><h3>On-Site Visits</h3><p>Boots on the ground in Austin when remote won't cut it.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="sec why" id="why">
+  <div class="wrap">
+    <p class="sec-tag reveal">why_northpoint</p>
+    <h2 class="reveal">Built for businesses, not buzzwords.</h2>
+    <div class="why-grid">
+      <div class="why-cell reveal"><div class="tick"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div><div><h3>Real humans answer</h3><p>Call and reach a technician who knows your setup — not a queue, not a script, not a chatbot.</p></div></div>
+      <div class="why-cell reveal"><div class="tick"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div><div><h3>Flat, predictable pricing</h3><p>One monthly rate per seat. No surprise invoices, no nickel-and-diming every support call.</p></div></div>
+      <div class="why-cell reveal"><div class="tick"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div><div><h3>Proactive, not reactive</h3><p>We catch failing drives, expiring certs, and threats early — most problems fixed before you feel them.</p></div></div>
+      <div class="why-cell reveal"><div class="tick"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></div><div><h3>Local &amp; on-call</h3><p>Austin-based team that can be on-site fast when a problem needs hands, not just a remote session.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="sec" id="how">
+  <div class="wrap">
+    <p class="sec-tag reveal">how_it_works</p>
+    <h2 class="reveal">Onboarding in three steps.</h2>
+    <div class="steps">
+      <div class="cstep reveal"><span class="sn">step_01</span><div><h3>Free IT review</h3><p>We audit your current setup — devices, network, backups, security — and show you exactly where the risks are, no obligation.</p></div></div>
+      <div class="cstep reveal" style="transition-delay:.08s;"><span class="sn">step_02</span><div><h3>We harden &amp; connect</h3><p>We deploy monitoring, lock down security, set up backups, and bring everything onto one managed plan — with zero downtime.</p></div></div>
+      <div class="cstep reveal" style="transition-delay:.16s;"><span class="sn">step_03</span><div><h3>We keep it running</h3><p>From there we monitor, maintain, and support. You get one number to call and a dashboard that's always green.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="sec" id="reviews" style="background:var(--bg-2);">
+  <div class="wrap">
+    <p class="sec-tag reveal">client_reviews</p>
+    <h2 class="reveal">Trusted by Austin businesses.</h2>
+    <div class="testi-grid">
+      <div class="tbig reveal"><div class="stars">★★★★★</div><p>"They migrated our whole office to the cloud over a weekend. Monday morning everything just worked — and when one laptop hiccupped, a tech had it fixed in ten minutes."</p><div class="who">// Review kept live on Google</div></div>
+      <div class="tcol">
+        <div class="tsm reveal"><div class="stars">★★★★★</div><p>"Finally an IT company that talks to us like people. Flat monthly bill, no surprises."</p><div class="who">// Review kept live on Google</div></div>
+        <div class="tsm reveal" style="transition-delay:.1s;"><div class="stars">★★★★★</div><p>"They caught a ransomware attempt before it spread. Worth every penny of the plan."</p><div class="who">// Review kept live on Google</div></div>
+      </div>
+    </div>
+    <p class="tsrc">// Ratings &amp; reviews kept live on our Google Business profile</p>
+  </div>
+</section>
+
+<!-- GALLERY -->
+<section class="sec" id="work">
+  <div class="wrap">
+    <p class="sec-tag reveal">in_the_field</p>
+    <h2 class="reveal">On the job around Austin.</h2>
+    <div class="gal">
+      <div class="gtile ga reveal"><image-slot id="np-g1" shape="rounded" radius="14" placeholder="Server / rack"></image-slot><div class="cap"><span class="ct">network buildout</span><span class="cx">01</span></div></div>
+      <div class="gtile gb reveal" style="transition-delay:.08s;"><image-slot id="np-g2" shape="rounded" radius="14" placeholder="Tech at work"></image-slot><div class="cap"><span class="ct">on-site support</span><span class="cx">02</span></div></div>
+      <div class="gtile gc reveal"><image-slot id="np-g3" shape="rounded" radius="14" placeholder="Office setup"></image-slot><div class="cap"><span class="ct">office rollout</span><span class="cx">03</span></div></div>
+      <div class="gtile gd reveal" style="transition-delay:.08s;"><image-slot id="np-g4" shape="rounded" radius="14" placeholder="Team / workspace"></image-slot><div class="cap"><span class="ct">the team</span><span class="cx">04</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="sec" id="faq" style="padding-top:0;">
+  <div class="wrap" style="max-width:980px;">
+    <p class="sec-tag reveal">faq</p>
+    <h2 class="reveal">Common questions.</h2>
+    <div class="faq">
+      <details class="reveal"><summary>How fast do you respond?<span class="pm">+</span></summary><div class="ans">Our average response time is under 15 minutes during business hours, with critical issues escalated immediately. Managed clients also get 24/7 monitoring that often fixes things before a ticket is even opened.</div></details>
+      <details class="reveal"><summary>How does pricing work?<span class="pm">+</span></summary><div class="ans">Managed plans are a flat monthly rate per user or device, so your IT cost is predictable. We'll scope a plan during your free review — no long lock-in contracts and no surprise charges per call.</div></details>
+      <details class="reveal"><summary>Do you only work remotely?<span class="pm">+</span></summary><div class="ans">Most issues we solve remotely in minutes, but we're an Austin-based team and come on-site whenever a problem needs hands-on work — new offices, hardware, cabling, or anything physical.</div></details>
+      <details class="reveal"><summary>What size businesses do you support?<span class="pm">+</span></summary><div class="ans">We specialize in small and mid-size businesses, typically from a handful of seats up to around 100. If you're outgrowing break-fix IT, that's exactly where we fit.</div></details>
+    </div>
+  </div>
+</section>
+
+<!-- AREA + CREDS -->
+<section class="sec" id="area">
+  <div class="wrap split2">
+    <div>
+      <p class="sec-tag reveal">coverage</p>
+      <h2 class="reveal" style="font-size:clamp(30px,3.6vw,46px);">Serving greater Austin.</h2>
+      <p class="lead reveal">Based downtown on Folsom St, we support businesses across the metro — remote in minutes, on-site same day.</p>
+      <div class="area-tags reveal"><span>Downtown</span><span>East Austin</span><span>South Congress</span><span>The Domain</span><span>Round Rock</span><span>Cedar Park</span><span>Pflugerville</span><span>Westlake</span></div>
+    </div>
+    <div>
+      <p class="sec-tag reveal">credentials</p>
+      <h2 class="reveal" style="font-size:clamp(30px,3.6vw,46px);">Certified &amp; vetted.</h2>
+      <p class="lead reveal">Our technicians hold current industry certifications and we carry full coverage.</p>
+      <div class="cred-chips reveal">
+        <span class="cred-chip"><svg viewBox="0 0 24 24"><path d="M12 3l8 4v6c0 5-4 7-8 8-4-1-8-3-8-8V7z"/></svg>CompTIA Certified</span>
+        <span class="cred-chip"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/></svg>Microsoft Partner</span>
+        <span class="cred-chip"><svg viewBox="0 0 24 24"><path d="M12 2l3 6 6 .5-4.5 4 1.5 6L12 15l-6 3.5 1.5-6L3 8.5 9 8z"/></svg>SOC 2 aligned</span>
+        <span class="cred-chip"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>Insured &amp; bonded</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section class="sec loc" id="visit">
+  <div class="wrap">
+    <p class="sec-tag reveal">find_us</p>
+    <h2 class="reveal">Downtown Austin office.</h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <div class="naprow reveal"><div class="k">address</div><div class="v">530 Folsom St<br />Austin, TX 78701</div></div>
+        <div class="naprow reveal" style="transition-delay:.06s;"><div class="k">phone</div><div class="v s"><a href="tel:+15125550190">(512) 555-0190</a></div></div>
+        <div class="naprow reveal" style="transition-delay:.12s;"><div class="k">hours</div><div class="v s">Mon–Fri · 24/7 monitoring · live on Google</div></div>
+        <div class="reveal" style="transition-delay:.18s;"><a href="#" class="btn btn-primary">Get directions</a></div>
+      </div>
+      <div id="map" class="reveal" role="img" aria-label="Map showing Northpoint IT at 530 Folsom St, Austin"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<section class="cta-band">
+  <div class="wrap in">
+    <h2 class="reveal">Stop fighting <em>your tech.</em></h2>
+    <p class="sub reveal">530 Folsom St, Austin · (512) 555-0190 · &lt; 15 min response</p>
+    <a href="#visit" class="btn btn-primary reveal">Book a free IT review</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="brand"><span class="mk"></span>Northpoint IT</div>
+        <p class="blurb">Managed IT, cybersecurity, and support that keeps Austin small businesses running.</p>
+      </div>
+      <div class="foot-col"><h4>contact</h4><ul><li>530 Folsom St</li><li>Austin, TX</li><li><a href="tel:+15125550190">(512) 555-0190</a></li></ul></div>
+      <div class="foot-col"><h4>services</h4><ul><li><a href="#services">Managed IT</a></li><li><a href="#services">Cybersecurity</a></li><li><a href="#work">Our work</a></li><li><a href="#faq">FAQ</a></li></ul></div>
+      <div class="foot-col foot-hours"><h4>hours · live on google</h4><div><span>Mon–Fri</span><span>8a – 6p</span></div><div><span>Monitoring</span><span>24 / 7</span></div><div><span>Emergency</span><span>On call</span></div></div>
+    </div>
+    <div class="foot-note">
+      <span>© 2026 Northpoint IT</span>
+      <span>// uptime is the product</span>
+    </div>
+  </div>
+</footer>
+
+<div class="float-cta">
+  <a href="tel:+15125550190" class="alt"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg><span>Call</span></a>
+  <a href="#visit"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Message</span></a>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="image-slot.js"></script>
+<script>
+(function(){
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(!reduce && !document.hidden){
+    document.body.classList.add('reveal-on');
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);} });
+    },{threshold:0.1,rootMargin:'0px 0px -8% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){io.observe(el);});
+  }
+  if(window.L){
+    var ll=[30.2649,-97.7427];
+    var map=L.map('map',{scrollWheelZoom:false}).setView(ll,15);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+      attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19
+    }).addTo(map);
+    var icon=L.divIcon({className:'',html:'<div style="width:20px;height:20px;background:#C9F24E;border:3px solid #0C0F14;border-radius:5px;transform:rotate(45deg);box-shadow:0 0 14px rgba(201,242,78,.7);"></div>',iconSize:[20,20],iconAnchor:[10,18]});
+    L.marker(ll,{icon:icon}).addTo(map).bindPopup('<b>Northpoint IT</b><br>530 Folsom St, Austin');
+  }
+})();
+</script>
+</body>
+</html>

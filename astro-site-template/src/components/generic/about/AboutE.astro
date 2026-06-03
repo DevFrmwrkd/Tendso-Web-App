@@ -1,0 +1,42 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const about = content.about || {};
+const tag = about.tag || 'Our story';
+const headline = about.headline || '';
+const paragraphs = Array.isArray(about.paragraphs) && about.paragraphs.length ? about.paragraphs : [];
+const bubbleN = about.bubbleN || "Since '12";
+const bubbleL = about.bubbleL || '';
+const aboutImage = about.image || (content.photos && content.photos[0]) || '';
+---
+<section class="sec" id="about">
+  <div class="wrap about">
+    <div class="about-art reveal">
+      <div class="img" data-image-field="about.image" style={aboutImage ? `background-image:url('${aboutImage}');` : ''}></div>
+      <div class="about-bubble">
+        <div class="n" data-field="about.bubbleN">{bubbleN}</div>
+        <div class="l" data-field="about.bubbleL">{bubbleL}</div>
+      </div>
+    </div>
+    <div class="about-txt">
+      <p class="sec-tag reveal" data-field="about.tag">{tag}</p>
+      <h2 class="reveal" data-field="about.headline" set:html={headline}></h2>
+      {paragraphs.map((p: string, i: number) => (
+        <p class="reveal" data-field={`about.paragraphs.${i}`}>{p}</p>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .about { display: grid; grid-template-columns: 1fr 1.1fr; gap: 60px; align-items: center; }
+  .about-art { position: relative; }
+  .about-art .img { width: 100%; height: 460px; border-radius: var(--r); background-size: cover; background-position: center; background-color: var(--blue-soft); }
+  .about-bubble { position: absolute; right: -18px; bottom: 30px; background: var(--yellow); border-radius: 22px; padding: 18px 24px; box-shadow: 0 14px 34px rgba(var(--ink-rgb), .18); }
+  .about-bubble .n { font-family: var(--disp); font-size: 30px; font-weight: 800; }
+  .about-bubble .l { font-size: 13px; font-weight: 600; }
+  .about-txt p { margin-top: 20px; color: var(--ink-soft); font-size: 18px; max-width: 48ch; }
+  @media (max-width: 860px) {
+    .about { grid-template-columns: 1fr; gap: 44px; }
+    .about-art .img { height: 340px; }
+  }
+</style>

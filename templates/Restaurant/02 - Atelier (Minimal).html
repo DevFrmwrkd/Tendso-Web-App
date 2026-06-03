@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sorrel — Seasonal live-fire cooking · Hayes Valley, SF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<style>
+  :root{
+    --paper:#FAFAF7; --paper-2:#F1F1EC; --ink:#15150F; --sage:#7E8B6A; --sage-deep:#5E6B4C; --muted:#8C8C84;
+    --paper-rgb:250,250,247; --ink-rgb:21,21,15; --sage-rgb:126,139,106;
+    --maxw:1180px; --gut:clamp(20px,5vw,80px);
+    --serif:"Cormorant Garamond",Georgia,serif; --body:"Jost",system-ui,sans-serif;
+    --line:rgba(var(--ink-rgb),.16);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-weight:400;font-size:17px;line-height:1.7;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3{font-family:var(--serif);font-weight:400;line-height:1.05;margin:0;letter-spacing:0;}
+  a{color:inherit;text-decoration:none;}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding-inline:var(--gut);}
+  .eyebrow{font-family:var(--body);font-weight:500;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--sage-deep);}
+  /* buttons — minimal */
+  .btn{display:inline-flex;align-items:center;gap:.7em;font-family:var(--body);font-weight:500;font-size:13px;letter-spacing:.16em;text-transform:uppercase;padding:16px 30px;min-height:48px;border:1px solid var(--ink);background:transparent;color:var(--ink);transition:background .35s,color .35s,letter-spacing .35s;cursor:pointer;}
+  .btn:hover{background:var(--ink);color:var(--paper);letter-spacing:.22em;}
+  .btn--fill{background:var(--ink);color:var(--paper);}
+  .btn--fill:hover{background:var(--sage-deep);border-color:var(--sage-deep);}
+  .link-u{font-family:var(--body);font-size:13px;letter-spacing:.16em;text-transform:uppercase;border-bottom:1px solid var(--ink);padding-bottom:3px;transition:opacity .3s;}
+  .link-u:hover{opacity:.55;}
+  /* header */
+  header.nav{position:sticky;top:0;z-index:40;background:rgba(var(--paper-rgb),.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px var(--gut);max-width:var(--maxw);margin:0 auto;}
+  .logo{font-family:var(--serif);font-size:30px;letter-spacing:.18em;text-transform:uppercase;}
+  .nav-links{display:flex;gap:34px;align-items:center;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;}
+  .nav-links a{position:relative;}
+  .nav-links a::after{content:"";position:absolute;left:0;bottom:-4px;width:0;height:1px;background:var(--ink);transition:width .35s;}
+  .nav-links a:hover::after{width:100%;}
+  .nav-right{display:flex;align-items:center;gap:22px;}
+  .nav-phone{font-size:13px;letter-spacing:.1em;}
+  .nav-toggle{display:none;background:none;border:0;font-size:22px;cursor:pointer;color:var(--ink);}
+  @media(max-width:900px){.nav-links,.nav-phone{display:none;}.nav-toggle{display:block;}}
+  /* hero — centered minimal */
+  .hero{padding:clamp(70px,12vw,150px) 0 clamp(50px,8vw,100px);text-align:center;}
+  .hero .eyebrow{margin-bottom:30px;}
+  .hero h1{font-size:clamp(54px,11vw,150px);font-weight:400;letter-spacing:-.01em;}
+  .hero h1 em{font-style:italic;color:var(--sage-deep);}
+  .hero-sub{max-width:50ch;margin:34px auto 40px;color:var(--muted);font-size:clamp(16px,1.9vw,19px);}
+  .hero-cta{display:flex;gap:20px;justify-content:center;align-items:center;flex-wrap:wrap;}
+  .hero-strip{display:flex;justify-content:center;gap:0;margin-top:70px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .hero-strip div{padding:22px clamp(18px,4vw,48px);border-left:1px solid var(--line);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);}
+  .hero-strip div:first-child{border-left:0;}
+  .hero-strip b{display:block;font-family:var(--serif);font-size:32px;letter-spacing:0;text-transform:none;color:var(--ink);margin-bottom:4px;}
+  .hero-img{margin-top:0;}
+  .hero-img img-slot{height:clamp(300px,46vw,560px);margin-top:64px;}
+  @media(max-width:680px){.hero-strip{flex-wrap:wrap;}.hero-strip div{flex:1 1 50%;border-top:1px solid var(--line);}}
+  /* image slot */
+  img-slot{position:relative;display:block;overflow:hidden;background:var(--paper-2);cursor:pointer;}
+  img-slot .is-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:18px;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);}
+  img-slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  img-slot.has-img .is-ph{display:none;}
+  img-slot.is-over{outline:1px solid var(--sage-deep);outline-offset:-8px;}
+  /* sections */
+  section{padding:clamp(64px,10vw,140px) 0;}
+  .ctr{text-align:center;}
+  .sec-label{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--sage-deep);margin-bottom:18px;}
+  h2.disp{font-size:clamp(38px,6vw,76px);font-weight:400;}
+  /* about — centered narrative w/ side notes */
+  .about{text-align:center;border-top:1px solid var(--line);}
+  .about .lede{font-family:var(--serif);font-size:clamp(26px,3.6vw,46px);line-height:1.28;max-width:24ch;margin:24px auto 0;}
+  .about-body{max-width:60ch;margin:32px auto 0;color:var(--muted);}
+  .about-notes{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:70px;background:var(--line);border:1px solid var(--line);}
+  .about-notes div{background:var(--paper);padding:34px 24px;}
+  .about-notes h3{font-size:30px;}
+  .about-notes p{font-size:13px;letter-spacing:.04em;color:var(--muted);margin:8px 0 0;}
+  @media(max-width:680px){.about-notes{grid-template-columns:1fr;}}
+  /* menu — zig-zag index */
+  .zig{display:flex;flex-direction:column;gap:clamp(40px,7vw,96px);}
+  .zig-row{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,72px);align-items:center;}
+  .zig-row:nth-child(even) .zig-media{order:2;}
+  .zig-media img-slot{height:clamp(280px,34vw,440px);}
+  .zig-num{font-family:var(--serif);font-size:clamp(40px,5vw,70px);color:var(--sage);line-height:1;}
+  .zig-text h3{font-size:clamp(30px,4vw,52px);margin:6px 0 14px;}
+  .zig-text .k{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--sage-deep);}
+  .zig-text p{color:var(--muted);max-width:42ch;}
+  @media(max-width:760px){.zig-row{grid-template-columns:1fr;}.zig-row:nth-child(even) .zig-media{order:0;}}
+  /* why — single-row hairline columns */
+  .why{border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+  .why-grid{display:grid;grid-template-columns:repeat(4,1fr);}
+  .why-cell{padding:48px 30px;border-left:1px solid var(--line);}
+  .why-cell:first-child{border-left:0;}
+  .why-cell .ico{width:30px;height:30px;color:var(--sage-deep);margin-bottom:24px;stroke-width:1.2;}
+  .why-cell h3{font-size:26px;margin-bottom:10px;}
+  .why-cell p{font-size:14.5px;color:var(--muted);margin:0;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr 1fr;}.why-cell{border-top:1px solid var(--line);}.why-cell:nth-child(-n+2){border-top:0;}.why-cell:nth-child(odd){border-left:0;}}
+  /* how — horizontal connected line */
+  .flow{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:30px;}
+  .flow::before{content:"";position:absolute;top:18px;left:8%;right:8%;height:1px;background:var(--line);}
+  .flow-step{text-align:center;position:relative;}
+  .flow-step .dot{width:38px;height:38px;border-radius:50%;border:1px solid var(--ink);background:var(--paper);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:20px;margin:0 auto 24px;position:relative;z-index:1;}
+  .flow-step h3{font-size:25px;margin-bottom:8px;}
+  .flow-step p{color:var(--muted);font-size:15px;max-width:30ch;margin:0 auto;}
+  @media(max-width:680px){.flow{grid-template-columns:1fr;}.flow::before{display:none;}}
+  /* marquee — outline letters */
+  .marquee{overflow:hidden;padding:clamp(30px,5vw,60px) 0;border-bottom:1px solid var(--line);}
+  .marquee-track{display:flex;width:max-content;white-space:nowrap;animation:scrollx 30s linear infinite;}
+  .marquee-track span{font-family:var(--serif);font-size:clamp(48px,9vw,120px);font-style:italic;padding-inline:40px;color:transparent;-webkit-text-stroke:1px var(--ink);text-stroke:1px var(--ink);}
+  @keyframes scrollx{to{transform:translateX(-50%);}}
+  /* testimonials — single large rotating quote */
+  .quote-big{text-align:center;border-top:1px solid var(--line);}
+  .quote-big blockquote{font-family:var(--serif);font-size:clamp(28px,4.4vw,58px);line-height:1.22;max-width:20ch;margin:30px auto;font-style:italic;min-height:3.6em;transition:opacity .5s;}
+  .quote-big .stars{color:var(--sage-deep);letter-spacing:6px;}
+  .quote-big .who{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-top:14px;}
+  .quote-dots{display:flex;gap:10px;justify-content:center;margin-top:38px;}
+  .quote-dots button{width:9px;height:9px;border-radius:50%;border:1px solid var(--ink);background:transparent;cursor:pointer;padding:0;transition:background .3s;}
+  .quote-dots button.on{background:var(--ink);}
+  /* gallery — uniform clean grid */
+  .gal{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);}
+  .gal img-slot{aspect-ratio:1/1;}
+  .gal .gcap{position:absolute;inset:auto 0 0 0;padding:14px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:linear-gradient(0deg,rgba(var(--ink-rgb),.65),transparent);opacity:0;transition:.4s;z-index:2;pointer-events:none;}
+  .gal img-slot.has-img:hover .gcap{opacity:1;}
+  .gal img-slot.has-img img{transition:transform .7s ease,filter .5s;filter:grayscale(.2);}
+  .gal img-slot.has-img:hover img{transform:scale(1.05);filter:grayscale(0);}
+  @media(max-width:680px){.gal{grid-template-columns:1fr 1fr;}}
+  /* faq — minimal thin */
+  .faq-wrap{max-width:760px;margin:0 auto;}
+  details.faq{border-top:1px solid var(--line);}
+  details.faq:last-of-type{border-bottom:1px solid var(--line);}
+  details.faq summary{list-style:none;cursor:pointer;padding:26px 0;display:flex;gap:24px;align-items:baseline;font-family:var(--serif);font-size:clamp(22px,2.6vw,30px);}
+  details.faq summary::-webkit-details-marker{display:none;}
+  details.faq summary .qn{font-size:13px;letter-spacing:.1em;color:var(--sage-deep);font-family:var(--body);flex:none;width:36px;}
+  details.faq .ans{padding:0 0 28px 60px;color:var(--muted);max-width:60ch;}
+  details.faq summary .pm{margin-left:auto;color:var(--sage-deep);transition:transform .3s;}
+  details.faq[open] summary .pm{transform:rotate(45deg);}
+  /* area + credentials */
+  .split2{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--line);}
+  .split2 > div{padding:clamp(40px,6vw,80px) clamp(28px,4vw,56px);}
+  .split2 > div:first-child{border-right:1px solid var(--line);}
+  .chips{display:flex;flex-wrap:wrap;gap:0;margin-top:20px;}
+  .chip{font-size:13px;letter-spacing:.08em;padding:10px 0;width:50%;border-bottom:1px solid var(--line);color:var(--muted);}
+  .creds{list-style:none;padding:0;margin:20px 0 0;}
+  .creds li{display:flex;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--line);font-size:15px;}
+  .creds li span{color:var(--sage-deep);font-family:var(--serif);}
+  @media(max-width:760px){.split2{grid-template-columns:1fr;}.split2 > div:first-child{border-right:0;border-bottom:1px solid var(--line);}}
+  /* location */
+  .loc{border-top:1px solid var(--line);}
+  .loc-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:0;border:1px solid var(--line);}
+  .loc-info{padding:clamp(34px,5vw,64px);border-right:1px solid var(--line);}
+  .loc-info .nap b{font-family:var(--serif);font-size:26px;display:block;margin-bottom:6px;}
+  .loc-info p{color:var(--muted);}
+  .hours{margin-top:28px;display:grid;gap:0;}
+  .hours div{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px;letter-spacing:.04em;}
+  #map{min-height:440px;height:100%;z-index:0;filter:grayscale(.15);}
+  @media(max-width:760px){.loc-grid{grid-template-columns:1fr;}.loc-info{border-right:0;border-bottom:1px solid var(--line);}#map{min-height:330px;}}
+  /* closing cta */
+  .cta-band{text-align:center;border-top:1px solid var(--line);background:var(--ink);color:var(--paper);}
+  .cta-band h2{font-size:clamp(44px,8vw,108px);font-weight:400;}
+  .cta-band h2 em{font-style:italic;color:var(--sage);}
+  .cta-band p{color:rgba(var(--paper-rgb),.7);max-width:46ch;margin:22px auto 36px;}
+  .cta-band .btn{border-color:var(--paper);color:var(--paper);}
+  .cta-band .btn:hover{background:var(--paper);color:var(--ink);}
+  /* footer */
+  footer{padding:70px 0 96px;border-top:1px solid var(--line);}
+  .foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:36px;}
+  .foot-grid h4{font-weight:500;letter-spacing:.24em;text-transform:uppercase;font-size:11px;color:var(--sage-deep);margin:0 0 18px;}
+  .foot-grid a,.foot-grid p{display:block;color:var(--muted);font-size:14px;margin-bottom:9px;letter-spacing:.04em;}
+  .foot-grid a:hover{color:var(--ink);}
+  .foot-logo{font-family:var(--serif);font-size:34px;letter-spacing:.16em;text-transform:uppercase;}
+  @media(max-width:760px){.foot-grid{grid-template-columns:1fr 1fr;}}
+  /* fab + switcher */
+  .fab{position:fixed;right:18px;bottom:74px;z-index:50;display:flex;flex-direction:column;gap:10px;}
+  .fab a{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--ink);background:var(--paper);color:var(--ink);transition:.25s;}
+  .fab a:hover{background:var(--ink);color:var(--paper);}
+  .switcher{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:60;display:flex;gap:2px;background:var(--paper);border:1px solid var(--ink);padding:4px;}
+  .switcher a{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:12px;letter-spacing:.06em;color:var(--muted);}
+  .switcher a:hover{color:var(--ink);}
+  .switcher a.cur{background:var(--ink);color:var(--paper);}
+  /* reveal */
+  [data-reveal]{opacity:0;transform:translateY(22px);transition:opacity 1s cubic-bezier(.2,.7,.2,1),transform 1s cubic-bezier(.2,.7,.2,1);}
+  [data-reveal].in{opacity:1;transform:none;}
+  /* hero mask-up entrance */
+  .mask{display:inline-block;overflow:hidden;vertical-align:bottom;}
+  .mask>span{display:inline-block;transform:translateY(110%);animation:maskUp 1s cubic-bezier(.16,1,.3,1) forwards;}
+  .mask:nth-child(2)>span{animation-delay:.14s;}
+  .fade-d{opacity:0;animation:fadeD 1s ease .5s forwards;}
+  @keyframes maskUp{to{transform:translateY(0);}}
+  @keyframes fadeD{from{transform:translateY(14px);}to{opacity:1;transform:none;}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;}[data-reveal]{opacity:1;transform:none;}.mask>span{transform:none;}.fade-d{opacity:1;}html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+<header class="nav">
+  <div class="nav-in">
+    <a class="logo" href="#top">Sorrel</a>
+    <nav class="nav-links">
+      <a href="#menu">Menu</a><a href="#about">Story</a><a href="#visit">Visit</a><a href="#reviews">Reviews</a><a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-right">
+      <a class="nav-phone" href="tel:+14155550148">(415) 555-0148</a>
+      <a class="btn btn--fill" href="#reserve">Reserve</a>
+      <button class="nav-toggle" aria-label="Menu" onclick="document.querySelector('.nav-links').style.display='flex'">≡</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<a id="top"></a>
+<!-- HERO centered minimal -->
+<section class="hero wrap">
+  <p class="eyebrow fade-d">Seasonal · Live fire · Hayes Valley</p>
+  <h1 aria-label="A quiet kind of fire">
+    <span class="mask"><span>A quiet</span></span><br/>
+    <span class="mask"><span>kind of <em>fire</em></span></span>
+  </h1>
+  <p class="hero-sub fade-d">Sorrel is a forty-two-seat restaurant cooking the day's market over oak and almond wood — paired with a short, considered list of natural wine.</p>
+  <div class="hero-cta fade-d">
+    <a class="btn btn--fill" href="#reserve">Reserve a table</a>
+    <a class="link-u" href="#menu">Read the menu</a>
+  </div>
+  <div class="hero-strip fade-d">
+    <div><b>4.8★</b>Live on Google</div>
+    <div><b>Tue–Sun</b>From 5pm</div>
+    <div><b>100mi</b>Sourcing radius</div>
+    <div><b>2019</b>Est.</div>
+  </div>
+  <div class="hero-img"><img-slot slot-id="sorrel-hero" placeholder="Drop hero photo — hearth / plated dish"></img-slot></div>
+</section>
+
+<!-- ABOUT centered -->
+<section class="about ctr" id="about">
+  <div class="wrap" data-reveal>
+    <p class="sec-label">Our story</p>
+    <p class="lede">A market stall and a borrowed grill, grown into a neighborhood table.</p>
+    <p class="about-body">We cook almost everything over live fire — the flavor a wood fire gives can't be faked. Bread is milled and baked in-house, vegetables arrive twice a week from growers we know, and we use the whole animal so nothing is wasted. No dress code, no theatre.</p>
+  </div>
+  <div class="wrap"><div class="about-notes" data-reveal>
+    <div><h3>Daily</h3><p>The menu is rewritten each morning</p></div>
+    <div><h3>In-house</h3><p>Milled, baked &amp; butchered on site</p></div>
+    <div><h3>Low-waste</h3><p>Whole-animal, root-to-leaf cooking</p></div>
+  </div></div>
+</section>
+
+<!-- MENU zig-zag index -->
+<section id="menu">
+  <div class="wrap ctr" data-reveal>
+    <p class="sec-label">The card, this week</p>
+    <h2 class="disp">Written by the market</h2>
+  </div>
+  <div class="wrap zig" style="margin-top:60px;">
+    <div class="zig-row" data-reveal>
+      <div class="zig-media"><img-slot slot-id="sorrel-g2" placeholder="Plated dish — pasta"></img-slot></div>
+      <div class="zig-text"><div class="zig-num">01</div><span class="k">Pasta</span><h3>Hand-cut tagliatelle</h3><p>A slow ragù of the day, brown butter, and whatever herbs came in the box this morning.</p></div>
+    </div>
+    <div class="zig-row" data-reveal>
+      <div class="zig-media"><img-slot slot-id="sorrel-g1" placeholder="Photo — whole fish on coals"></img-slot></div>
+      <div class="zig-text"><div class="zig-num">02</div><span class="k">From the fire</span><h3>Whole fish on the coals</h3><p>Line-caught and grilled over oak until the skin crackles. Salsa verde, lemon, sea salt.</p></div>
+    </div>
+    <div class="zig-row" data-reveal>
+      <div class="zig-media"><img-slot slot-id="sorrel-g5" placeholder="Photo — charred greens"></img-slot></div>
+      <div class="zig-text"><div class="zig-num">03</div><span class="k">Garden</span><h3>Charred little gems</h3><p>Anchovy, aged sheep's cheese, toasted breadcrumb. Simple, green, a little smoky.</p></div>
+    </div>
+  </div>
+  <div class="wrap ctr" style="margin-top:56px;" data-reveal><a class="btn" href="#reserve">Book the hearth menu</a></div>
+</section>
+
+<!-- WHY -->
+<section class="why">
+  <div class="wrap ctr" data-reveal style="margin-bottom:56px;">
+    <p class="sec-label">Why Sorrel</p><h2 class="disp">Four quiet convictions</h2>
+  </div>
+  <div class="why-grid">
+    <div class="why-cell" data-reveal><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2c1.5 3-1 5 0 8 1 .5 3-1 3-3 2 2 3 5 3 8a6 6 0 0 1-12 0c0-2 1-4 2-5 .5 2 2 2 1-1 1-2 0-4 0-7z"/></svg><h3>Live fire</h3><p>Oak &amp; almond wood, no gas line.</p></div>
+    <div class="why-cell" data-reveal><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 3v18M5 8c0-3 3-5 7-5M19 8c0-3-3-5-7-5M5 8c0 4 3 6 7 6M19 8c0 4-3 6-7 6"/></svg><h3>Market-led</h3><p>The menu changes with the harvest.</p></div>
+    <div class="why-cell" data-reveal><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M8 3h8l-1 6a4 4 0 0 1-6 0L8 3zM12 15v6M8 21h8"/></svg><h3>Natural wine</h3><p>A short, low-intervention list.</p></div>
+    <div class="why-cell" data-reveal><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6"/></svg><h3>Neighborhood</h3><p>Walk-ins welcome at the bar.</p></div>
+  </div>
+</section>
+
+<!-- HOW horizontal flow -->
+<section id="reserve">
+  <div class="wrap ctr" data-reveal><p class="sec-label">How a night works</p><h2 class="disp">Three small steps</h2></div>
+  <div class="wrap"><div class="flow" data-reveal>
+    <div class="flow-step"><div class="dot">1</div><h3>Reserve</h3><p>Book a table or counter seat online. Bar kept open for walk-ins.</p></div>
+    <div class="flow-step"><div class="dot">2</div><h3>Arrive</h3><p>Settle in with a glass. Tell us about any allergies.</p></div>
+    <div class="flow-step"><div class="dot">3</div><h3>Be fed</h3><p>Order à la carte or hand the night to the kitchen.</p></div>
+  </div></div>
+</section>
+
+<!-- MARQUEE outline -->
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <span>Wood-fired · Seasonal · Natural ·&nbsp;</span><span>Wood-fired · Seasonal · Natural ·&nbsp;</span>
+  </div>
+</div>
+
+<!-- TESTIMONIALS big rotating -->
+<section class="quote-big" id="reviews">
+  <div class="wrap" data-reveal>
+    <p class="sec-label">Kept live on Google · Resy · Yelp</p>
+    <div class="stars">★★★★★</div>
+    <blockquote id="qb">"The whole fish off the coals was the best thing I've eaten this year. You can taste the fire."</blockquote>
+    <div class="who" id="qw">Dana R. — Google Local Guide</div>
+    <div class="quote-dots" id="qdots"></div>
+  </div>
+</section>
+
+<!-- GALLERY uniform -->
+<section>
+  <div class="wrap ctr" data-reveal style="margin-bottom:48px;"><p class="sec-label">The room</p><h2 class="disp">Inside Sorrel</h2></div>
+  <div class="wrap"><div class="gal" data-reveal>
+    <img-slot slot-id="sorrel-g1" placeholder="The hearth"><span class="gcap">The hearth</span></img-slot>
+    <img-slot slot-id="sorrel-g2" placeholder="A plate"><span class="gcap">Tonight's pasta</span></img-slot>
+    <img-slot slot-id="sorrel-g3" placeholder="Dining room"><span class="gcap">The room</span></img-slot>
+    <img-slot slot-id="sorrel-g4" placeholder="Wine"><span class="gcap">Natural pours</span></img-slot>
+    <img-slot slot-id="sorrel-g5" placeholder="Produce"><span class="gcap">Morning box</span></img-slot>
+    <img-slot slot-id="sorrel-g6" placeholder="Detail"><span class="gcap">Detail</span></img-slot>
+    <img-slot slot-id="sorrel-g7" placeholder="Bar"><span class="gcap">The bar</span></img-slot>
+    <img-slot slot-id="sorrel-g8" placeholder="Bread"><span class="gcap">Levain</span></img-slot>
+  </div></div>
+</section>
+
+<!-- FAQ minimal -->
+<section id="faq">
+  <div class="wrap ctr" data-reveal style="margin-bottom:48px;"><p class="sec-label">Good to know</p><h2 class="disp">Questions</h2></div>
+  <div class="wrap"><div class="faq-wrap" data-reveal>
+    <details class="faq"><summary><span class="qn">01</span>Do you take walk-ins?<span class="pm">+</span></summary><div class="ans">Yes — the bar and a handful of counter seats are kept for walk-ins every night. The dining room books up, so reserve ahead for a table at a set time.</div></details>
+    <details class="faq"><summary><span class="qn">02</span>Allergies &amp; dietary needs?<span class="pm">+</span></summary><div class="ans">Always. Tell us when you book or sit down. Because we cook to the market we can flex most dishes, with strong vegetable and gluten-free options nightly.</div></details>
+    <details class="faq"><summary><span class="qn">03</span>Is there a tasting menu?<span class="pm">+</span></summary><div class="ans">Yes — the Hearth Menu is a chef's selection of the day's best, served family-style. Book the counter to watch it come together.</div></details>
+    <details class="faq"><summary><span class="qn">04</span>Do you do corkage?<span class="pm">+</span></summary><div class="ans">We do, for a per-bottle fee, on bottles not on our list. Share a taste with the team and it's on us.</div></details>
+    <details class="faq"><summary><span class="qn">05</span>Where should I park?<span class="pm">+</span></summary><div class="ans">Street parking around Hayes Valley plus the Civic Center garage two blocks east. Short walk from Van Ness Muni; a bike rack out front.</div></details>
+  </div></div>
+</section>
+
+<!-- AREA + CREDS -->
+<section style="padding-top:0;">
+  <div class="wrap"><div class="split2">
+    <div data-reveal>
+      <p class="sec-label">Private dining &amp; events</p>
+      <h2 class="disp" style="font-size:clamp(30px,4vw,46px);margin-top:8px;">We'll cook across the city</h2>
+      <p style="color:var(--muted);">Buy out the room or bring the hearth to you — dinners and events around the Bay:</p>
+      <div class="chips">
+        <span class="chip">Hayes Valley</span><span class="chip">NoPa</span><span class="chip">The Mission</span><span class="chip">Pacific Heights</span><span class="chip">Mission Bay</span><span class="chip">Oakland</span>
+      </div>
+    </div>
+    <div data-reveal>
+      <p class="sec-label">Credentials</p>
+      <h2 class="disp" style="font-size:clamp(30px,4vw,46px);margin-top:8px;">Run the right way</h2>
+      <ul class="creds">
+        <li><span>↳</span> SF DPH health rating: A</li>
+        <li><span>↳</span> Certified SF Green Business</li>
+        <li><span>↳</span> Fully licensed &amp; insured bar</li>
+        <li><span>↳</span> Member, Good Food Purchasing Alliance</li>
+      </ul>
+    </div>
+  </div></div>
+</section>
+
+<!-- LOCATION -->
+<section class="loc" id="visit">
+  <div class="wrap ctr" data-reveal style="margin-bottom:48px;"><p class="sec-label">Find us</p><h2 class="disp">580 Hayes Street</h2></div>
+  <div class="wrap"><div class="loc-grid" data-reveal>
+    <div class="loc-info">
+      <p class="nap"><b>Sorrel</b>580 Hayes Street<br/>San Francisco, CA 94102</p>
+      <p style="margin-top:14px;"><a class="link-u" href="tel:+14155550148">(415) 555-0148</a></p>
+      <div class="hours">
+        <div><span>Monday</span><span>Closed</span></div>
+        <div><span>Tue – Thu</span><span>5 – 10pm</span></div>
+        <div><span>Fri – Sat</span><span>5 – 11pm</span></div>
+        <div><span>Sunday</span><span>5 – 9pm</span></div>
+      </div>
+    </div>
+    <div id="map" aria-label="Map showing Sorrel at 580 Hayes Street, San Francisco"></div>
+  </div></div>
+</section>
+
+<!-- CTA -->
+<section class="cta-band">
+  <div class="wrap" data-reveal>
+    <h2>Come <em>sit</em> by the fire</h2>
+    <p>Reserve online in under a minute, or call and we'll find you a seat.</p>
+    <div style="display:flex;gap:18px;justify-content:center;flex-wrap:wrap;align-items:center;">
+      <a class="btn" href="#reserve">Reserve now</a>
+      <a class="link-u" style="border-color:var(--paper);color:var(--paper);" href="tel:+14155550148">(415) 555-0148</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap foot-grid">
+    <div><div class="foot-logo">Sorrel</div><p style="margin-top:14px;max-width:34ch;">Seasonal live-fire cooking in Hayes Valley, San Francisco.</p></div>
+    <div><h4>Visit</h4><p>580 Hayes Street<br/>San Francisco, CA 94102</p><a href="tel:+14155550148">(415) 555-0148</a></div>
+    <div><h4>Hours</h4><p>Tue–Thu 5–10<br/>Fri–Sat 5–11<br/>Sun 5–9<br/>Mon closed</p></div>
+    <div><h4>Explore</h4><a href="#menu">Menu</a><a href="#about">Story</a><a href="#reviews">Reviews</a><a href="#reserve">Reserve</a></div>
+  </div>
+</footer>
+
+<div class="fab">
+  <a href="sms:+14155550148" aria-label="Message us"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M21 11.5a8.4 8.4 0 0 1-12 7.6L3 21l1.9-6A8.5 8.5 0 1 1 21 11.5z"/></svg></a>
+  <a href="tel:+14155550148" aria-label="Call us"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 1.7 2z"/></svg></a>
+</div>
+
+<nav class="switcher" aria-label="Design variations">
+  <a href="01 — Harvest (Rustic).html">01</a>
+  <a class="cur" href="02 — Atelier (Minimal).html">02</a>
+  <a href="03 — Press (Bold).html">03</a>
+  <a href="04 — Ember (Cinematic).html">04</a>
+  <a href="05 — Garden (Playful).html">05</a>
+</nav>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+class ImgSlot extends HTMLElement{
+  connectedCallback(){
+    const id=this.getAttribute('slot-id');const ph=this.getAttribute('placeholder')||'Drop a photo';const inner=this.innerHTML;
+    this.innerHTML='<div class="is-ph">'+ph+'</div>'+inner;
+    let s=null;try{s=localStorage.getItem('imgslot:'+id);}catch(e){}if(s)this.setImg(s);
+    this.addEventListener('dragover',e=>{e.preventDefault();this.classList.add('is-over');});
+    this.addEventListener('dragleave',()=>this.classList.remove('is-over'));
+    this.addEventListener('drop',e=>{e.preventDefault();this.classList.remove('is-over');this.read(e.dataTransfer.files[0],id);});
+    this.addEventListener('click',()=>{const i=document.createElement('input');i.type='file';i.accept='image/*';i.onchange=()=>this.read(i.files[0],id);i.click();});
+  }
+  read(f,id){if(!f||!f.type.startsWith('image/'))return;const r=new FileReader();r.onload=()=>{try{localStorage.setItem('imgslot:'+id,r.result);}catch(e){}this.setImg(r.result);};r.readAsDataURL(f);}
+  setImg(src){let img=this.querySelector('img');if(!img){img=document.createElement('img');this.insertBefore(img,this.firstChild);}img.src=src;this.classList.add('has-img');}
+}
+customElements.define('img-slot',ImgSlot);
+
+(function(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;
+  const io=new IntersectionObserver((es)=>{es.forEach((e,i)=>{if(e.isIntersecting){e.target.style.transitionDelay=(Math.min(i,4)*70)+'ms';e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.14});
+  document.querySelectorAll('[data-reveal]').forEach(el=>io.observe(el));
+})();
+
+/* rotating quotes */
+(function(){
+  const data=[
+    ['"The whole fish off the coals was the best thing I\'ve eaten this year. You can taste the fire."','Dana R. — Google Local Guide'],
+    ['"Handed it to the kitchen and every plate was better than the last. Easy, warm, no fuss."','Marcus L. — Resy'],
+    ['"My new neighborhood spot. Sat at the bar on a whim, left a regular. The bread alone."','Priya S. — Yelp']
+  ];
+  const qb=document.getElementById('qb'),qw=document.getElementById('qw'),dots=document.getElementById('qdots');
+  if(!qb)return;let i=0;
+  data.forEach((_,n)=>{const b=document.createElement('button');if(n===0)b.className='on';b.onclick=()=>go(n);dots.appendChild(b);});
+  function go(n){i=n;qb.style.opacity=0;setTimeout(()=>{qb.textContent=data[n][0];qw.textContent=data[n][1];qb.style.opacity=1;[...dots.children].forEach((d,k)=>d.className=k===n?'on':'');},300);}
+  setInterval(()=>go((i+1)%data.length),5500);
+})();
+
+window.addEventListener('load',function(){
+  if(typeof L==='undefined')return;const el=document.getElementById('map');if(!el)return;
+  const map=L.map(el,{scrollWheelZoom:false}).setView([37.7767,-122.4256],15);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap, © CARTO',maxZoom:19,subdomains:'abcd'}).addTo(map);
+  const pin=L.divIcon({className:'',html:'<div style="width:18px;height:18px;border-radius:50%;background:#5E6B4C;border:3px solid #FAFAF7;box-shadow:0 2px 8px rgba(0,0,0,.4);"></div>',iconSize:[18,18],iconAnchor:[9,9]});
+  L.marker([37.7767,-122.4256],{icon:pin}).addTo(map).bindPopup('<b>Sorrel</b><br>580 Hayes St');
+});
+</script>
+</body>
+</html>

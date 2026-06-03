@@ -1,0 +1,127 @@
+---
+/**
+ * barbershop / PageF — Forge default.
+ * Paper + brass classic. Anton / Oswald / Cormorant Garamond.
+ * Palette tokens scoped to html[data-page="F"] so sister wrappers
+ * (G–J) imported by index.astro don't bleed their tokens here.
+ */
+import HeaderF from './header/HeaderF.astro';
+import HeroF from './hero/HeroF.astro';
+import TrustF from './trust/TrustF.astro';
+import AboutF from './about/AboutF.astro';
+import ServicesF from './services/ServicesF.astro';
+import WhyF from './why/WhyF.astro';
+import HowF from './how/HowF.astro';
+import TestimonialsF from './testimonials/TestimonialsF.astro';
+import GalleryF from './gallery/GalleryF.astro';
+import FaqF from './faq/FaqF.astro';
+import AreaF from './area/AreaF.astro';
+import CredentialsF from './credentials/CredentialsF.astro';
+import LocationF from './location/LocationF.astro';
+import MarqueeF from './marquee/MarqueeF.astro';
+import CtaBandF from './ctaBand/CtaBandF.astro';
+import FooterF from './footer/FooterF.astro';
+import BarbershopSpine from './BarbershopSpine.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+// skipAuto: per-variant palette wins when admin leaves Color Scheme on auto.
+const { scheme: __themeScheme, pairing: __themePairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="F">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500;1,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+  <style is:global>
+    html[data-page="F"] {
+      --ink: #100F0D; --ink-2: #181612; --ink-3: #221F1A;
+      --paper: #F3EFE7; --paper-2: #E8E1D3;
+      --ink-rgb: 16,15,13; --paper-rgb: 243,239,231; --brass-rgb: 194,149,78;
+      --brass: #C2954E; --brass-bright: #D8AE68;
+      --line: rgba(16,15,13,.14); --line-light: rgba(243,239,231,.16);
+      --muted: rgba(16,15,13,.62); --muted-light: rgba(243,239,231,.66);
+      /* Contrast tokens — text colors that stay legible on each background. */
+      --on-brass: #100F0D; --on-ink: #F3EFE7; --on-paper: #100F0D;
+      --display: "Anton", sans-serif;
+      --cond: "Oswald", sans-serif;
+      --serif: "Cormorant Garamond", serif;
+      --body: "Manrope", sans-serif;
+      --pad: clamp(20px, 5vw, 96px);
+      --maxw: 1280px;
+    }
+  </style>
+  <BarbershopSpine />
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <HeaderF layout={layout} content={content} />
+  <main id="top">
+    {visibility.heroSection !== false && <HeroF content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustF content={content} />}
+    {visibility.aboutSection !== false && <AboutF content={content} />}
+    {visibility.servicesSection !== false && <ServicesF content={content} />}
+    {visibility.whyUsBlock !== false && <WhyF content={content} />}
+    {visibility.howItWorksBlock !== false && <HowF content={content} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsF content={content} />}
+    {visibility.gallerySection !== false && <GalleryF content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqF content={content} />}
+    {visibility.serviceAreaBlock !== false && <AreaF content={content} />}
+    {visibility.credentialsBlock !== false && <CredentialsF content={content} />}
+    {visibility.locationBlock !== false && <LocationF content={content} layout={layout} />}
+    <MarqueeF content={content} />
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandF content={content} layout={layout} />}
+  <FooterF layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce && !document.hidden) {
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) {
+            if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
+        document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+      } else {
+        document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+      }
+      var hdr = document.querySelector('header.nav');
+      if (hdr) {
+        var onScroll = function () { if (window.scrollY > 16) hdr.classList.add('scrolled'); else hdr.classList.remove('scrolled'); };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+      window.__barbershopInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map'); if (!el) return;
+        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 15);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
+        var icon = L.divIcon({ className: '', html: '<div style="width:22px;height:22px;background:#C2954E;border:3px solid #100F0D;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 3px 8px rgba(0,0,0,.35);"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });
+        L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup('<b>' + label + '</b>');
+      };
+    })();
+  </script>
+</body>
+</html>

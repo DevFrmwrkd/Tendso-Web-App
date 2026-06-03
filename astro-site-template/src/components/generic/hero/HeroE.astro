@@ -1,0 +1,89 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const hero = content.hero || {};
+const kicker = hero.kicker || '';
+const headlineMain = hero.headlineMain || 'Laundry day, <em>handled.</em>';
+const headlineSub = hero.headlineSub || 'Skip the basket.';
+const sub = hero.sub || hero.description || '';
+const cta1Text = hero.cta1?.text || 'Schedule a pickup';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || 'See pricing & services';
+const cta2Href = hero.cta2?.href || '#services';
+const meta1 = hero.meta1 || '★★★★★ rated on Google';
+const meta2 = hero.meta2 || 'Free pickup & delivery in Seattle';
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const cardRating = hero.cardRating || '4.9';
+const cardRatingSub = hero.cardRatingSub || 'hundreds of reviews';
+const cardTurnTitle = hero.cardTurnTitle || 'Next-day turnaround';
+const cardTurnSub = hero.cardTurnSub || 'on most wash & fold';
+---
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow" data-field="hero.kicker">{kicker}</span>
+      <h1 style="margin-top:16px;">
+        <span data-field="hero.headlineMain" set:html={headlineMain}></span>
+        <span class="hl" data-field="hero.headlineSub">{headlineSub}</span>
+      </h1>
+      <p class="hero-sub reveal" data-field="hero.sub">{sub}</p>
+      <div class="hero-cta reveal" style="transition-delay:.08s;">
+        <a href={cta1Href} class="btn btn-primary" data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>
+        <a href={cta2Href} class="btn btn-ghost" data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>
+      </div>
+      <div class="hero-meta reveal" style="transition-delay:.16s;">
+        <span data-field="hero.meta1" set:html={meta1}></span>
+        <span data-field="hero.meta2" set:html={meta2}></span>
+      </div>
+    </div>
+    <div class="hero-art">
+      <div class="hero-img pop-card" style="transition-delay:.05s;">
+        <div class="img" data-image-field="hero.image" style={heroImage ? `background-image:url('${heroImage}');` : ''}></div>
+      </div>
+      <div class="card-float card-rating pop-card" style="transition-delay:.2s;">
+        <div class="big" data-field="hero.cardRating">{cardRating}</div>
+        <div>
+          <div class="stars">★★★★★</div>
+          <div class="sub" data-field="hero.cardRatingSub">{cardRatingSub}</div>
+        </div>
+      </div>
+      <div class="card-float card-turn pop-card" style="transition-delay:.32s;">
+        <div class="ic"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-3-6.7M21 4v5h-5"/></svg></div>
+        <div class="t">
+          <b data-field="hero.cardTurnTitle">{cardTurnTitle}</b>
+          <span data-field="hero.cardTurnSub">{cardTurnSub}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .hero { padding: 60px 0 80px; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 50px; align-items: center; }
+  .hero h1 { font-size: clamp(46px, 6.6vw, 92px); font-weight: 900; }
+  .hero h1 :global(em) { font-style: normal; color: var(--blue); }
+  .hero h1 .hl { position: relative; z-index: 0; white-space: nowrap; }
+  .hero h1 .hl::after { content: ""; position: absolute; left: -2px; right: -2px; bottom: .08em; height: .34em; background: var(--yellow); z-index: -1; border-radius: 6px; }
+  .hero-sub { margin-top: 24px; max-width: 40ch; font-size: 19px; color: var(--ink-soft); }
+  .hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 30px; }
+  .hero-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; margin-top: 28px; font-size: 14px; color: var(--ink-soft); }
+  .hero-meta :global(.stars) { color: var(--yellow); letter-spacing: 1px; -webkit-text-stroke: .5px var(--ink); }
+  .hero-art { position: relative; min-height: 520px; }
+  .hero-img { position: absolute; top: 0; right: 0; width: 78%; height: 440px; border-radius: var(--r); overflow: hidden; box-shadow: 0 26px 60px rgba(var(--ink-rgb), .2); }
+  .hero-img .img { width: 100%; height: 100%; background-size: cover; background-position: center; background-color: var(--blue-soft); }
+  .card-float { position: absolute; background: var(--paper-2); border-radius: 20px; box-shadow: 0 16px 40px rgba(var(--ink-rgb), .16); padding: 18px 22px; }
+  .card-rating { left: 0; top: 90px; display: flex; align-items: center; gap: 14px; }
+  .card-rating .big { font-family: var(--disp); font-size: 34px; font-weight: 800; }
+  .card-rating .stars { color: var(--yellow); -webkit-text-stroke: .6px var(--ink); font-size: 15px; }
+  .card-rating .sub { font-size: 12px; color: var(--ink-soft); }
+  .card-turn { left: 8%; bottom: 0; background: var(--mint); color: var(--ink); display: flex; align-items: center; gap: 12px; }
+  .card-turn .ic { width: 40px; height: 40px; border-radius: 50%; background: var(--paper-2); display: flex; align-items: center; justify-content: center; }
+  .card-turn svg { width: 22px; height: 22px; stroke: var(--ink); fill: none; stroke-width: 2; }
+  .card-turn .t b { font-family: var(--disp); font-size: 17px; display: block; }
+  .card-turn .t span { font-size: 12px; }
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 30px; }
+    .hero-art { min-height: 420px; margin-top: 10px; }
+    .hero-img { height: 340px; width: 82%; }
+  }
+</style>

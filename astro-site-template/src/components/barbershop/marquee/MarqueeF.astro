@@ -1,0 +1,27 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const text = content.marquee?.text || '';
+const doubled = text ? `${text} ✦ ${text} ✦` : '';
+---
+{doubled && (
+  <section class="rb-marq" aria-hidden="true">
+    <div class="rb-track">
+      <div class="rb-seg">
+        <span data-field="marquee.text">{doubled}</span>
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .rb-marq { overflow: hidden; border-top: 1px solid var(--line-light); border-bottom: 1px solid var(--line-light); background: var(--ink); }
+  .rb-track { display: flex; width: max-content; white-space: nowrap; animation: rbflow 28s linear infinite; }
+  .rb-marq:hover .rb-track { animation-play-state: paused; }
+  .rb-seg { display: inline-flex; align-items: center; }
+  .rb-seg :global(span) {
+    font-family: var(--display); font-size: clamp(38px, 7vw, 104px); line-height: 1;
+    padding: 20px 0; color: var(--paper); text-transform: uppercase; letter-spacing: .01em;
+  }
+  @keyframes rbflow { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .rb-track { animation: none; } }
+</style>

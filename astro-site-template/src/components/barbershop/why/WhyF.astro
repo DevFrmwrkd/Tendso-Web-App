@@ -1,0 +1,50 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const why = content.why || {};
+const tag = why.tag || '';
+const headline = why.headline || '';
+const sub = why.sub || '';
+const items = Array.isArray(why.items) ? why.items : [];
+const idx = (i: number) => String(i + 1).padStart(2, '0');
+---
+<section class="pad-y ink-sect">
+  <div class="wrap">
+    <div class="sect-head reveal" style="margin-bottom:0;">
+      <div>
+        {tag && <span class="kicker on-dark" data-field="why.tag">{tag}</span>}
+        {headline && <h2 class="h-sect" data-field="why.headline" set:html={headline}></h2>}
+      </div>
+      {sub && <p class="lead on-dark" data-field="why.sub">{sub}</p>}
+    </div>
+    {items.length > 0 && (
+      <div class="why-strip reveal">
+        {items.map((it: any, i: number) => (
+          <div class="wcol">
+            <span class="idx">{idx(i)}</span>
+            <h3 data-field={`why.items.${i}.title`}>{it.title}</h3>
+            <p data-field={`why.items.${i}.body`}>{it.body || it.description || ''}</p>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+<style>
+  .why-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 54px; }
+  .wcol { padding: 28px 28px 0; border-top: 2px solid var(--brass); }
+  .wcol + .wcol { border-left: 1px solid var(--line-light); }
+  .wcol .idx { font-family: var(--display); font-size: 42px; color: var(--brass-bright); line-height: 1; }
+  .wcol h3 { font-family: var(--cond); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; font-size: 18px; margin: 16px 0 10px; color: var(--paper); }
+  .wcol p { color: var(--muted-light); font-size: 14.5px; margin: 0; }
+  @media (max-width: 860px) {
+    .why-strip { grid-template-columns: 1fr 1fr; }
+    .wcol:nth-child(2n+1) { border-left: none; }
+    .wcol:nth-child(n+3) { margin-top: 30px; }
+  }
+  @media (max-width: 520px) {
+    .why-strip { grid-template-columns: 1fr; }
+    .wcol { border-left: none !important; margin-top: 0; }
+    .wcol + .wcol { margin-top: 30px; }
+  }
+</style>

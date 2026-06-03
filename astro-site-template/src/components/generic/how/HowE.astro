@@ -1,0 +1,35 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const how = content.how || content.howItWorks || {};
+const tag = how.tag || 'How it works';
+const headline = how.headline || 'Clean clothes in three easy steps.';
+const steps = Array.isArray(how.steps) && how.steps.length > 0 ? how.steps : [];
+---
+<section class="sec how-sec" id="how">
+  <div class="wrap">
+    <p class="sec-tag reveal" data-field="how.tag">{tag}</p>
+    <h2 class="reveal" data-field="how.headline" set:html={headline}></h2>
+    <div class="how">
+      {steps.map((s: any, i: number) => (
+        <div class="hstep reveal" style={i > 0 ? `transition-delay:.${i}s;` : ''}>
+          <div class="circ">{i + 1}</div>
+          <h3 data-field={`how.steps.${i}.title`}>{s.title}</h3>
+          <p data-field={`how.steps.${i}.body`}>{s.body || s.description}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+<style>
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 54px; position: relative; }
+  .hstep { text-align: center; position: relative; }
+  .hstep .circ { width: 84px; height: 84px; border-radius: 50%; background: var(--blue); color: #fff; font-family: var(--disp); font-size: 34px; font-weight: 800; display: flex; align-items: center; justify-content: center; margin: 0 auto 22px; box-shadow: 0 12px 28px rgba(var(--accent-rgb), .3); }
+  .hstep:nth-child(2) .circ { background: var(--mint); }
+  .hstep:nth-child(3) .circ { background: var(--yellow); color: var(--ink); }
+  .hstep h3 { font-size: 24px; }
+  .hstep p { margin-top: 10px; color: var(--ink-soft); font-size: 16px; max-width: 32ch; margin-left: auto; margin-right: auto; }
+  .hstep::after { content: ""; position: absolute; top: 42px; left: calc(50% + 60px); width: calc(100% - 120px); border-top: 3px dashed var(--line); }
+  .hstep:last-child::after { display: none; }
+  @media (max-width: 780px) { .how { grid-template-columns: 1fr; gap: 36px; } .hstep::after { display: none; } }
+</style>

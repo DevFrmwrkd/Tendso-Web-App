@@ -1,0 +1,23 @@
+---
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const band = content.ctaBand || {};
+const headline = band.headline || '';
+const sub = band.sub || band.body || `${layout.contact?.address || 'Your address line 1, Boulder'} · ${layout.contact?.phone || '+0 000 000 0000'}`;
+const ctaText = band.cta?.text || band.primaryLabel || '';
+const ctaHref = band.cta?.href || band.primaryLink || '#visit';
+---
+<section class="cta-band">
+  <div class="wrap">
+    <h2 class="reveal" data-field="ctaBand.headline" set:html={headline}></h2>
+    <p class="sub reveal" data-field="ctaBand.sub">{sub}</p>
+    <a href={ctaHref} class="btn btn-primary reveal" data-field="ctaBand.cta.text" data-href-field="ctaBand.cta.href">{ctaText}</a>
+  </div>
+</section>
+<style>
+  .cta-band { background: var(--forest); color: var(--paper-2); text-align: center; padding: 120px 0; border-top: 3px solid var(--ink); }
+  .cta-band h2 { font-size: clamp(52px, 9vw, 130px); }
+  .cta-band h2 :global(em) { font-style: normal; color: var(--amber); }
+  .cta-band .sub { margin-top: 18px; font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: rgba(var(--paper-rgb), .8); }
+  .cta-band .btn { margin-top: 34px; }
+</style>

@@ -1,0 +1,40 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const about = content.about || {};
+const tag = about.tag || 'about_us';
+const headline = about.headline || '';
+const paragraphs = Array.isArray(about.paragraphs) && about.paragraphs.length ? about.paragraphs : [];
+const note = about.note || 'Flat-rate plans. No surprise bills.';
+const aboutImage = about.image || (content.photos && content.photos[0]) || '';
+const aboutTag = about.tagCode || 'team@northpoint';
+---
+<section class="sec" id="about">
+  <div class="wrap about">
+    <div class="about-img reveal">
+      <div class="img" data-image-field="about.image" style={aboutImage ? `background-image:url('${aboutImage}');` : ''}></div>
+      <span class="tagcode" data-field="about.tagCode">{aboutTag}</span>
+    </div>
+    <div class="about-txt">
+      <p class="sec-tag reveal" data-field="about.tag">{tag}</p>
+      <h2 class="reveal" data-field="about.headline" set:html={headline}></h2>
+      {paragraphs.map((p: string, i: number) => (
+        <p class="reveal" data-field={`about.paragraphs.${i}`}>{p}</p>
+      ))}
+      <p class="note reveal" data-field="about.note">{note}</p>
+    </div>
+  </div>
+</section>
+<style>
+  .about { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; }
+  .about-img { position: relative; }
+  .about-img .img { width: 100%; height: 440px; border: 1px solid var(--line); border-radius: 14px; background-size: cover; background-position: center; background-color: var(--panel); }
+  .about-img .tagcode { position: absolute; left: 16px; bottom: 16px; font-family: var(--mono); font-size: 12px; color: var(--lime); background: rgba(var(--bg-rgb), .8); border: 1px solid var(--line); padding: 8px 12px; border-radius: 8px; }
+  .about-txt p { margin-top: 20px; color: var(--muted); font-size: 18px; max-width: 48ch; }
+  .about-txt .note { font-family: var(--mono); font-size: 13px; color: var(--lime); margin-top: 24px; }
+  .about-txt .note::before { content: "# "; color: var(--muted); }
+  @media (max-width: 860px) {
+    .about { grid-template-columns: 1fr; gap: 40px; }
+    .about-img .img { height: 340px; }
+  }
+</style>

@@ -1,0 +1,145 @@
+---
+/**
+ * generic / LocationA — NAP block + Leaflet map.
+ *
+ * Editable hooks:
+ *   location.tag, location.headline,
+ *   location.address (multi-line),
+ *   location.phone (text — also drives tel: href),
+ *   location.hours,
+ *   location.directions (text + href)
+ *
+ * The map itself initializes via window.__genericInitMap defined in PageA.
+ * lat/lng come from layout.contact.lat/lng or content.location.{lat,lng}.
+ */
+interface Props {
+  content: any;
+  layout: any;
+}
+const { content, layout } = Astro.props;
+const loc = content.location || {};
+
+const tag      = loc.tag      || 'Come by';
+const headline = loc.headline || '';
+
+const address = loc.address || layout.contact?.address || 'Your address line 1\nYour city, state postal';
+const addressLines = address.split('\n');
+
+const phone = loc.phone || layout.contact?.phone || '+0 000 000 0000';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+
+const hours = loc.hours || 'Open daily · hours kept live on Google';
+
+const dirText = loc.directions?.text || 'Get directions';
+const dirHref = loc.directions?.href || (loc.lat && loc.lng
+  ? `https://www.google.com/maps/?q=${loc.lat},${loc.lng}`
+  : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address.replace(/\n/g, ' '))}`);
+
+// Map coords — default to San Francisco Mission St if not supplied.
+const lat = loc.lat != null ? Number(loc.lat) : (layout.contact?.lat != null ? Number(layout.contact.lat) : null);
+const lng = loc.lng != null ? Number(loc.lng) : (layout.contact?.lng != null ? Number(layout.contact.lng) : null);
+const label = layout.businessName || 'Our location';
+const mapAria = `Map showing ${label} at ${address.replace(/\n/g, ', ')}`;
+---
+
+<section class="sec loc" id="visit">
+  <div class="wrap">
+    <p class="sec-tag reveal" data-field="location.tag">{tag}</p>
+    <h2 class="reveal" data-field="location.headline">{headline}</h2>
+    <div class="loc-grid" style="margin-top:42px;">
+      <div class="nap">
+        <div class="nap-block reveal">
+          <div class="k">Address</div>
+          <div class="v" data-field="location.address">
+            {addressLines.map((line: string, i: number) => (
+              <>
+                {i > 0 && <br />}{line}
+              </>
+            ))}
+          </div>
+        </div>
+        <div class="nap-block reveal">
+          <div class="k">Phone</div>
+          <div class="v small">
+            <a
+              href={`tel:${phoneDigits}`}
+              data-field="location.phone"
+              data-href-field="location.phone.href"
+            >{phone}</a>
+          </div>
+        </div>
+        <div class="nap-block reveal">
+          <div class="k">Hours</div>
+          <div class="v small" data-field="location.hours">{hours}</div>
+        </div>
+        <div class="nap-block reveal">
+          <a
+            href={dirHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn btn-primary"
+            style="margin-top:4px;"
+            data-field="location.directions.text"
+            data-href-field="location.directions.href"
+          >{dirText}</a>
+        </div>
+      </div>
+      <div id="map" class="reveal" role="img" aria-label={mapAria}></div>
+    </div>
+  </div>
+</section>
+
+<script is:inline define:vars={{ lat, lng, label }}>
+  // Defer until leaflet's CDN script loads.
+  (function init() {
+    if (window.__genericInitMap) {
+      window.__genericInitMap(lat, lng, label);
+    } else {
+      setTimeout(init, 80);
+    }
+  })();
+</script>
+
+<style>
+  .loc { background: var(--card); }
+  .loc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 44px;
+    align-items: stretch;
+  }
+  .nap {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  .nap-block .k {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--gold-deep);
+  }
+  .nap-block .v {
+    font-family: var(--disp);
+    font-weight: 700;
+    font-size: 23px;
+    margin-top: 6px;
+  }
+  .nap-block .v.small { font-size: 19px; }
+  #map {
+    width: 100%;
+    min-height: 440px;
+    border: 2px solid var(--ink);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+  :global(.leaflet-container) {
+    font-family: var(--sans);
+    background: var(--paper);
+  }
+  @media (max-width: 820px) {
+    .loc-grid { grid-template-columns: 1fr; }
+    #map { min-height: 320px; }
+  }
+</style>

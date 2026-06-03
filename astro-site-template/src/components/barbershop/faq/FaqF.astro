@@ -1,0 +1,50 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const faq = content.faq || {};
+const tag = faq.tag || '';
+const headline = faq.headline || '';
+const sub = faq.sub || '';
+const items: Array<{ q: string; a: string }> = Array.isArray(faq.items) ? faq.items : [];
+---
+{items.length > 0 && (
+  <section class="pad-y" id="faq">
+    <div class="wrap">
+      <div class="faq-grid">
+        <div class="reveal">
+          {tag && <span class="kicker" data-field="faq.tag">{tag}</span>}
+          {headline && <h2 class="h-sect" data-field="faq.headline" set:html={headline}></h2>}
+          {sub && <p class="lead" style="margin-top:22px;" data-field="faq.sub">{sub}</p>}
+        </div>
+        <div class="faq-list reveal">
+          {items.map((it, i) => (
+            <details class={`faq${i === 0 ? ' open' : ''}`} open={i === 0}>
+              <summary>
+                <span data-field={`faq.items.${i}.q`}>{it.q}</span>
+                <span class="pm"></span>
+              </summary>
+              <p data-field={`faq.items.${i}.a`}>{it.a}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .faq-grid { display: grid; grid-template-columns: .7fr 1.3fr; gap: clamp(36px, 5vw, 80px); align-items: start; }
+  .faq-list { border-top: 1px solid var(--line); }
+  details.faq { border-bottom: 1px solid var(--line); }
+  details.faq summary {
+    list-style: none; cursor: pointer; padding: 24px 0; display: flex; justify-content: space-between; align-items: center; gap: 20px;
+    font-family: var(--cond); text-transform: uppercase; letter-spacing: .03em; font-size: 18px; font-weight: 600;
+  }
+  details.faq summary::-webkit-details-marker { display: none; }
+  details.faq summary .pm { flex: 0 0 auto; width: 22px; height: 22px; position: relative; transition: transform .3s ease; }
+  details.faq summary .pm::before, details.faq summary .pm::after { content: ""; position: absolute; background: var(--brass); }
+  details.faq summary .pm::before { top: 10px; left: 0; width: 22px; height: 2px; }
+  details.faq summary .pm::after { top: 0; left: 10px; width: 2px; height: 22px; transition: transform .3s ease; }
+  details.faq[open] summary .pm::after { transform: rotate(90deg); }
+  details.faq p { color: var(--muted); margin: 0 0 24px; font-size: 15.5px; max-width: 62ch; }
+  @media (max-width: 840px) { .faq-grid { grid-template-columns: 1fr; } }
+</style>
