@@ -395,10 +395,17 @@ export const listForMobileCRM = query({
                     source: lead.source,
                     status: lead.status,
                     createdAt: lead.createdAt,
-                    businessName: submission?.businessName ?? '(business unavailable)',
-                    businessType: submission?.businessType ?? null,
-                    businessCity: submission?.city ?? null,
-                    businessAddress: submission?.address ?? null,
+                    // Per WEB-PROPECT-POOL.md §"Field-test fixes 2026-06-04" Fix #1:
+                    // when there's no submission linked, fall back to the lead
+                    // row's own business fields (populated by Outscraper-source
+                    // leads + by markConverted from a reserved prospect).
+                    businessName:
+                        submission?.businessName ??
+                        lead.businessName ??
+                        '(business unavailable)',
+                    businessType: submission?.businessType ?? lead.businessCategory ?? null,
+                    businessCity: submission?.city ?? lead.businessCity ?? null,
+                    businessAddress: submission?.address ?? lead.businessAddress ?? null,
                     ownerName: submission?.ownerName ?? null,
                     ownerPhone: submission?.ownerPhone ?? null,
                     interviewerCount,

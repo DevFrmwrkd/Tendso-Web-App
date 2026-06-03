@@ -178,6 +178,45 @@ export const searchNearbyInternal = internalQuery({
 });
 
 /**
+ * Field-test fix #2 (2026-06-04) — list the calling creator's active
+ * reservations, newest first. Powers the mobile "Reserved" filter chip
+ * and the web equivalent on /creators/leads.
+ *
+ * Filters lazy-expired reservations (state=reserved, expiry past) — those
+ * are claimable by anyone now and don't belong in this creator's view.
+ * Uses the existing `by_reserved_creator` index — no new index needed.
+ */
+export const listMyReservations = query({
+    args: {},
+    handler: async (ctx) => {
+        const identity = await requireAuth(ctx);
+        const creator = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
+            .first();
+        if (!creator) return [];
+
+        const now = Date.now();
+        const all = await ctx.db
+            .query('prospects')
+            .withIndex('by_reserved_creator', (q) =>
+                q.eq('reservedByCreatorId', creator._id),
+            )
+            .collect();
+
+        const active = all.filter(
+            (p) =>
+                p.state === 'reserved' &&
+                typeof p.reservationExpiresAt === 'number' &&
+                p.reservationExpiresAt > now,
+        );
+
+        active.sort((a, b) => (b.reservedAt ?? 0) - (a.reservedAt ?? 0));
+        return active;
+    },
+});
+
+/**
  * Count available prospects in a single (cell, category, country) bucket.
  * Used by `outscraper.scrapeNearby` for a coarse pool-sufficiency check
  * (≥ 10 → skip Outscraper). Cheap — caps at 20 reads.
