@@ -250,14 +250,6 @@ function DiscoverInner() {
         return arr.map((p: any) => ({ ...p, __source: "legacy" as const }));
     }, [fallbackProspects]);
 
-    // Per-source counts for the DEBUG strip — matches mobile's debug
-    // string so cross-platform support reads the same numbers.
-    const sourceCounts = useMemo(() => ({
-        url: urlBusinesses?.length ?? 0,
-        pool: poolArray.length,
-        legacy: fallbackArray?.length ?? 0,
-    }), [urlBusinesses, poolArray, fallbackArray]);
-
     // Merge sources with place_id dedup. Priority: url > pool > legacy.
     // Falls back to the legacy-only path when URL data is present (post-
     // scrape happy path) — pool + legacy still ride along so a partial
@@ -629,31 +621,10 @@ function DiscoverInner() {
                             Tap Find Local Business again with a wider radius or a different category to add more pins here.
                         </p>
 
-                        {/* DEBUG strip — per-source breakdown matching mobile's
-                            discover.tsx format for cross-platform support.
-                              direct=N      → pins from the URL ?data= param (post-scrape)
-                              pool=N        → pins from prospects.searchNearby (P1 pool)
-                              legacy=N      → pins from outscraper.listScrapedLeads (pre-P1)
-                              with-coords=N → final pin count after coord filtering */}
-                        <div
-                            className="rounded-md px-3 py-2 mb-4 text-[10px] inline-block"
-                            style={{
-                                background: "var(--ed-paper-2)",
-                                color: "var(--ed-ink-3)",
-                                border: "1px solid var(--ed-rule)",
-                                fontFamily: "var(--ed-mono)",
-                                letterSpacing: "0.08em",
-                            }}
-                        >
-                            DEBUG · direct={sourceCounts.url} · pool={sourceCounts.pool} · legacy={sourceCounts.legacy} · with-coords={
-                                (prospects ?? []).filter(
-                                    (p: any) =>
-                                        !p.submissionId &&
-                                        p.businessLatitude != null &&
-                                        p.businessLongitude != null,
-                                ).length
-                            }
-                        </div>
+                        {/* Field-test fix #5 (2026-06-04): debug strip removed.
+                            Dual-read fallback is stable; per-source counts no
+                            longer carry diagnostic value and were visible to
+                            creators. Matches mobile discover.tsx. */}
                         <Link
                             href="/leads"
                             className="inline-flex items-center justify-center gap-1.5 text-[12px] px-4 py-2.5 rounded-xl w-full"
