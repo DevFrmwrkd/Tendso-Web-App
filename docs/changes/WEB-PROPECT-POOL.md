@@ -494,12 +494,53 @@
 >
 > Mobile also bumped the default `scrapeRadiusKm` from 5km to **1km** so out-of-the-box behavior is hyper-local. Web should do the same on its discover page default.
 >
+> **Fix #4 — "Show direction" fallback CTA for phoneless leads**
+>
+> Many scraped leads (especially informal Filipino businesses) have no phone number on Google Maps. The team feed cards previously rendered an empty mono line where the phone would be, leaving creators with no obvious next action. The fix:
+>
+> - **Add three new fields to `listForMobileCRM`'s return shape** (web's `convex/leads.ts`):
+>
+>   ```typescript
+>   // Add to the existing return object inside the enrichment .map block:
+>   businessLatitude: lead.businessLatitude ?? null,
+>   businessLongitude: lead.businessLongitude ?? null,
+>   businessGooglePlaceId: lead.businessGooglePlaceId ?? null,
+>   ```
+>
+>   These already exist on the `leads` table schema; the query just wasn't returning them. No schema change required.
+>
+> - **Web's lead card UI should render a "Show direction" inline button** whenever `lead.phone` and `lead.email` are both empty AND any of (lat+lng, googlePlaceId, businessName) are present. Tapping it opens a Google Maps directions URL:
+>
+>   ```typescript
+>   function buildDirectionsUrl(lead) {
+>     if (lead.businessLatitude != null && lead.businessLongitude != null) {
+>       const placeQuery = lead.businessGooglePlaceId
+>         ? `&query_place_id=${encodeURIComponent(lead.businessGooglePlaceId)}`
+>         : '';
+>       return `https://www.google.com/maps/search/?api=1&query=${lead.businessLatitude},${lead.businessLongitude}${placeQuery}`;
+>     }
+>     if (lead.businessName && lead.businessName !== '(business unavailable)') {
+>       const q = encodeURIComponent(
+>         lead.businessCity ? `${lead.businessName} ${lead.businessCity}` : lead.businessName,
+>       );
+>       return `https://www.google.com/maps/search/?api=1&query=${q}`;
+>     }
+>     return null;
+>   }
+>   ```
+>
+>   When even the business name is missing (`"(business unavailable)"`), render "no contact on file" italic as a final fallback. Mobile uses the green accent pill style for the Show direction button; web can use its own equivalent.
+>
+> **Fix #5 — Removed debug strip from discover map empty state**
+>
+> The discover map's empty state previously rendered `DEBUG · direct=N · pool=M · legacy=K · with-coords=X` as a tiny mono line. The dual-read fallback is stable now, the per-source counts no longer carry diagnostic value, and it was visible to creators. Removed mobile-side; web's equivalent discover empty state should drop any similar debug line if present.
+>
 > **Files in this revision (already written mobile-side, ready to port):**
-> - `ndm/convex/leads.ts` — `listForMobileCRM` enrichment block (Fix #1)
+> - `ndm/convex/leads.ts` — `listForMobileCRM` enrichment block (Fix #1 + Fix #4 new fields)
 > - `ndm/convex/prospects.ts` — new `listMyReservations` query (Fix #2)
 > - `ndm/convex/outscraper.ts` — zoom 16 for 0.5km radius (Fix #3)
-> - `ndm/app/(app)/leads/index.tsx` — Reserved chip + ReservedCard + 0.5km radius pill + default radius 1km (mobile-only, no web port)
-> - `ndm/app/(app)/leads/discover.tsx` — hard distance filter + 500m header label (mobile-only, web should mirror the filter in its own discover map)
+> - `ndm/app/(app)/leads/index.tsx` — Reserved chip + ReservedCard + 0.5km radius pill + default radius 1km + Show direction fallback in CompactCard (mobile-only, web should mirror Fix #4 CTA on its own card component)
+> - `ndm/app/(app)/leads/discover.tsx` — hard distance filter + 500m header label + debug strip removed (Fix #5) (mobile-only, web should mirror)
 >
 > ### Hard rules — what you MUST NOT do (still)
 >

@@ -406,6 +406,14 @@ export const listForMobileCRM = query({
                     businessType: submission?.businessType ?? lead.businessCategory ?? null,
                     businessCity: submission?.city ?? lead.businessCity ?? null,
                     businessAddress: submission?.address ?? lead.businessAddress ?? null,
+                    // Per WEB-PROPECT-POOL.md §"Field-test fixes 2026-06-04" Fix #4:
+                    // expose coords + place_id so the card UI can render a
+                    // "Show direction" fallback CTA for phoneless leads.
+                    // These already exist on the leads table schema — the
+                    // query just wasn't returning them.
+                    businessLatitude: lead.businessLatitude ?? null,
+                    businessLongitude: lead.businessLongitude ?? null,
+                    businessGooglePlaceId: lead.businessGooglePlaceId ?? null,
                     ownerName: submission?.ownerName ?? null,
                     ownerPhone: submission?.ownerPhone ?? null,
                     interviewerCount,

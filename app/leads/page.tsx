@@ -42,6 +42,30 @@ const STATUS_PILL_STYLES: Record<string, { bg: string; ink: string }> = {
     lost:      { bg: "var(--ed-status-lost-bg, #F3D7CF)",      ink: "var(--ed-status-lost-ink, #B43A1F)" },
 };
 
+/**
+ * Per WEB-PROPECT-POOL.md §"Field-test fixes 2026-06-04" Fix #4:
+ * builds a Google Maps directions URL for a phoneless+emailless lead so
+ * the card can render a "Show direction" inline button as a fallback CTA.
+ *
+ * Returns null when the lead has neither coords nor a real business name —
+ * the card UI should render "no contact on file" italic in that case.
+ */
+function buildDirectionsUrl(lead: any): string | null {
+    if (lead.businessLatitude != null && lead.businessLongitude != null) {
+        const placeQuery = lead.businessGooglePlaceId
+            ? `&query_place_id=${encodeURIComponent(lead.businessGooglePlaceId)}`
+            : '';
+        return `https://www.google.com/maps/search/?api=1&query=${lead.businessLatitude},${lead.businessLongitude}${placeQuery}`;
+    }
+    if (lead.businessName && lead.businessName !== '(business unavailable)') {
+        const q = encodeURIComponent(
+            lead.businessCity ? `${lead.businessName} ${lead.businessCity}` : lead.businessName,
+        );
+        return `https://www.google.com/maps/search/?api=1&query=${q}`;
+    }
+    return null;
+}
+
 function timeAgo(ts: number | null | undefined): string {
     if (!ts) return "—";
     const diff = Date.now() - ts;
@@ -816,6 +840,44 @@ function LeadStandardCard({ lead }: { lead: any }) {
                     </div>
                 </div>
             )}
+
+            {/* Field-test fix #4 (2026-06-04): Show direction fallback CTA for
+                phoneless+emailless leads (common with scraped informal businesses).
+                Renders the directions button when we have coords/place_id/name;
+                falls through to "no contact on file" italic when even the
+                business name is missing. */}
+            {!lead.phone && !lead.email && (() => {
+                const directionsUrl = buildDirectionsUrl(lead);
+                if (!directionsUrl) {
+                    return (
+                        <div
+                            className="text-[11px] italic mb-3"
+                            style={{ color: "var(--ed-ink-3)", fontFamily: "var(--ed-serif)" }}
+                        >
+                            no contact on file
+                        </div>
+                    );
+                }
+                return (
+                    <a
+                        href={directionsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-full px-3 py-1.5 mb-3 transition-colors"
+                        style={{
+                            background: "var(--ed-accent, #10B981)",
+                            color: "#fff",
+                            textDecoration: "none",
+                            fontFamily: "var(--ed-mono)",
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
+                        }}
+                    >
+                        <MapPin className="w-3 h-3" /> Show direction
+                    </a>
+                );
+            })()}
 
             <hr className="border-t" style={{ borderColor: "var(--ed-rule)" }} />
 
