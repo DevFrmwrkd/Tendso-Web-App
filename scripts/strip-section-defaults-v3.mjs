@@ -17,6 +17,7 @@ const ROOT = path.resolve(__dirname, '..');
 const TARGET_DIRS = [
     path.join(ROOT, 'astro-site-template', 'src', 'components', 'generic'),
     path.join(ROOT, 'astro-site-template', 'src', 'components', 'barbershop'),
+    path.join(ROOT, 'astro-site-template', 'src', 'components', 'salonspa'),
 ];
 
 function findMatchingBracket(src, openIdx) {
@@ -89,7 +90,7 @@ async function main() {
     let totalChanges = 0;
     for (const file of files) {
         // Skip PageX wrappers — no defaults to strip.
-        if (/Page[A-J]\.astro$/.test(file)) continue;
+        if (/Page[A-O]\.astro$/.test(file)) continue;
         const orig = await fs.readFile(file, 'utf-8');
         const m = orig.match(/^---\r?\n([\s\S]*?)\r?\n---/);
         if (!m) continue;

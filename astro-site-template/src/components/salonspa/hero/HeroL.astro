@@ -1,0 +1,60 @@
+---
+/**
+ * Botanica hero — calm sage-toned variant. Vertical centered copy
+ * with a single hero image below (image as a band, not a split).
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const locality = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || (layout.contact?.phone ? `tel:${String(layout.contact.phone).replace(/[^0-9+]/g, '')}` : '#');
+---
+<section class="heroL" id="top">
+  <div class="wrap heroL-copy">
+    {locality && (
+      <div class="heroL-eyebrow"><span class="kicker" data-field="hero.kicker">{locality}</span></div>
+    )}
+    {headlineLines.length > 0 && (
+      <h1 class="heroL-headline">
+        {headlineLines.map((line: string, i: number) => (
+          <span class="hl-line" data-field={`hero.headlineLines.${i}`} set:html={line}></span>
+        ))}
+      </h1>
+    )}
+    {sub && <p class="heroL-sub" data-field="hero.sub">{sub}</p>}
+    <div class="heroL-cta">
+      {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+      {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+    </div>
+  </div>
+  {heroImage && (
+    <div class="heroL-strip">
+      <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+    </div>
+  )}
+</section>
+<style>
+  .heroL { padding-top: clamp(140px, 16vw, 200px); text-align: center; }
+  .heroL-eyebrow { display: flex; justify-content: center; margin-bottom: 24px; }
+  .heroL-headline {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(46px, 7vw, 98px); line-height: 1.04; letter-spacing: -.01em;
+    margin: 0 auto 28px; max-width: 18ch;
+  }
+  .heroL-headline .hl-line { display: block; }
+  .heroL-sub {
+    font-size: clamp(16px, 1.4vw, 19px); color: var(--muted, rgba(var(--ink-rgb), .7));
+    max-width: 52ch; margin: 0 auto 36px; line-height: 1.65;
+  }
+  .heroL-cta { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-bottom: clamp(60px, 8vw, 100px); }
+  .heroL-strip { width: 100%; aspect-ratio: 16 / 6; overflow: hidden; }
+  .heroL-strip .bg-img { width: 100%; height: 100%; background-size: cover; background-position: center; }
+  @media (max-width: 720px) { .heroL-strip { aspect-ratio: 4 / 3; } }
+</style>

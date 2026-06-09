@@ -1,0 +1,63 @@
+---
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+const brand = (content as any).footer?.brand || layout.businessName || 'Your Business';
+const navLinks: Array<{ href: string; label: string }> = (layout.navLinks && layout.navLinks.length)
+  ? layout.navLinks
+  : [];
+const phone = layout.contact?.phone || (content as any).contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const ctaText = (content as any).navCtaText || 'Book a visit';
+const ctaHref = (content as any).navCtaHref || '#visit';
+---
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a href="#top" class="brand" data-field="footer.brand">{brand}</a>
+    {navLinks.length > 0 && (
+      <div class="nav-links">
+        {navLinks.map((link, i) => (
+          <a href={link.href} data-field={`navbar_links.${i}.label`} data-href-field={`navbar_links.${i}.href`}>{link.label}</a>
+        ))}
+      </div>
+    )}
+    <div class="nav-cta">
+      {phone && (
+        <a href={`tel:${phoneDigits}`} class="nav-phone" data-field="contact.phone" data-href-field="contact.phone.href">{phone}</a>
+      )}
+      <a href={ctaHref} class="btn btn--accent" data-field="navCtaText" data-href-field="navCtaHref">{ctaText}</a>
+    </div>
+  </div>
+</header>
+<style>
+  header.nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    transition: background .3s ease, padding .3s ease, border-color .3s ease;
+    border-bottom: 1px solid transparent;
+  }
+  header.nav.scrolled {
+    background: rgba(var(--paper-rgb), .94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; padding-block: 18px;
+  }
+  .brand {
+    font-family: var(--serif); font-size: clamp(20px, 2vw, 28px);
+    color: var(--ink); letter-spacing: .01em;
+  }
+  .nav-links { display: flex; gap: 28px; align-items: center; }
+  .nav-links :global(a) {
+    font-family: var(--sans); text-transform: uppercase; letter-spacing: .18em;
+    font-size: 11.5px; color: var(--ink); opacity: .72; transition: opacity .2s, color .2s;
+  }
+  .nav-links :global(a:hover) { opacity: 1; color: var(--accent); }
+  .nav-cta { display: flex; align-items: center; gap: 16px; }
+  .nav-phone {
+    font-family: var(--sans); letter-spacing: .04em; font-size: 13.5px;
+    color: var(--ink); display: flex; align-items: center; gap: 8px;
+  }
+  @media (max-width: 980px) { .nav-links { display: none; } }
+  @media (max-width: 560px) { .nav-phone { display: none; } }
+</style>

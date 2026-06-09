@@ -34,6 +34,12 @@ const FAMILIES = [
         // Barbershop family reuses FooterF across all letter variants.
         footerImportFor: () => /(import FooterF from '\.\/footer\/FooterF\.astro';)/,
     },
+    {
+        dir: 'salonspa',
+        letters: ['K', 'L', 'M', 'N', 'O'],
+        // SalonSpa family reuses FooterK across all letter variants.
+        footerImportFor: () => /(import FooterK from '\.\/footer\/FooterK\.astro';)/,
+    },
 ];
 
 for (const fam of FAMILIES) {

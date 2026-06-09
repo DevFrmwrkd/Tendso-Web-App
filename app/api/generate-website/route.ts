@@ -5,6 +5,20 @@ import { api } from '@/convex/_generated/api'
 import { buildAstroSite } from '@/lib/astro-builder'
 import { groqService } from '@/lib/services/groq.service'
 
+/**
+ * Used when overriding a `contentWithContact` key that has two coexisting
+ * shapes — the legacy primitive form (e.g. `about` = string paragraph,
+ * `services` = flat array of {name, description}) and the wrapped object
+ * form branded families (Barbershop F–J, SalonSpa K–O) use (e.g.
+ * `about` = { tag, headline, paragraphs[], image }). Returns true only
+ * for the wrapped form, so the conditional spread above can override the
+ * legacy fallback without clobbering Generic A–E sites that still rely on
+ * the primitive shape.
+ */
+function isWrappedObject(v: any): boolean {
+    return v != null && typeof v === 'object' && !Array.isArray(v)
+}
+
 export async function POST(request: NextRequest) {
     try {
         // Check Clerk authentication
@@ -795,6 +809,38 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             faq: (extractedContent as any)?.faq,
             credentials: (extractedContent as any)?.credentials,
             ctaBand: (extractedContent as any)?.ctaBand,
+            // Branded-family nested-section content (Barbershop F–J, SalonSpa
+            // K–O). These wrappers consume `content.gallery.items[i].image`,
+            // `content.hero.image`, `content.about.image`, etc. — distinct
+            // from the legacy flat fields above (about_images, featured_images,
+            // hero_image_url). Without this pass-through, admin edits made
+            // through the click-to-edit / image picker UI land in Convex's
+            // extractedContent but never reach the builder — so the next
+            // regen falls back to derived defaults and admin's choice is
+            // silently discarded. Specifically discovered for gallery image
+            // picks; symptom applies to every wrapped section.
+            // See TEMPLATE-FAMILY-PLAYBOOK.md §"Common gotchas" for the
+            // schema mismatch detail.
+            // Each of these is a wrapped section object for branded families
+            // (e.g. content.about = { tag, headline, paragraphs[], image }
+            // for SalonSpa AboutK). Override the legacy flat field above
+            // ONLY when the admin draft stores the wrapped object shape —
+            // otherwise we'd clobber the string-shaped `about` / array-shaped
+            // `services` paths that Generic A–E still uses.
+            ...(isWrappedObject((extractedContent as any)?.about)
+                ? { about: (extractedContent as any).about } : {}),
+            ...(isWrappedObject((extractedContent as any)?.services)
+                ? { services: (extractedContent as any).services } : {}),
+            ...(isWrappedObject((extractedContent as any)?.hero)
+                ? { hero: (extractedContent as any).hero } : {}),
+            ...(isWrappedObject((extractedContent as any)?.gallery)
+                ? { gallery: (extractedContent as any).gallery } : {}),
+            ...(isWrappedObject((extractedContent as any)?.area)
+                ? { area: (extractedContent as any).area } : {}),
+            ...(isWrappedObject((extractedContent as any)?.marquee)
+                ? { marquee: (extractedContent as any).marquee } : {}),
+            navCtaText: (extractedContent as any)?.navCtaText,
+            navCtaHref: (extractedContent as any)?.navCtaHref,
         }
 
         const generatedHtml = await buildAstroSite(contentWithContact, finalCustomizations, photos)

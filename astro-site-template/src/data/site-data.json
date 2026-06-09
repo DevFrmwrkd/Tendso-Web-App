@@ -1,7 +1,7 @@
 {
   "layout": {
-    "businessName": "String and frets",
-    "tagline": "Hit the Right Note",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "tagline": "Everlasting Beauty Forever",
     "navLinks": [
       {
         "href": "#about",
@@ -21,29 +21,29 @@
       }
     ],
     "socialLinks": [],
-    "colorScheme": "black",
-    "fontPairing": "modern",
+    "colorScheme": "auto",
+    "fontPairing": "auto",
     "contact": {
-      "address": "435 Harmony Street, Quezon City",
-      "email": "azedge17@gmail.com",
-      "phone": "+639564564567"
+      "address": "Heritage homes, Marilao, Bulacan, Marilao",
+      "email": "josephinecarvajal110168@gmail.com",
+      "phone": "+639177871293"
     },
-    "navbarStyle": "barbershop:G"
+    "navbarStyle": "salonspa:L"
   },
   "customizations": {
-    "heroStyle": "barbershop:G",
-    "aboutStyle": "barbershop:G",
-    "servicesStyle": "barbershop:G",
-    "galleryStyle": "barbershop:G",
-    "contactStyle": "barbershop:G",
-    "trustStyle": "barbershop:G",
-    "whyUsStyle": "barbershop:G",
-    "howItWorksStyle": "barbershop:G",
-    "testimonialsStyle": "barbershop:G",
-    "faqStyle": "barbershop:G",
-    "serviceAreaStyle": "barbershop:G",
-    "credentialsStyle": "barbershop:G",
-    "ctaBandStyle": "barbershop:G",
+    "heroStyle": "salonspa:L",
+    "aboutStyle": "salonspa:L",
+    "servicesStyle": "salonspa:L",
+    "galleryStyle": "salonspa:L",
+    "contactStyle": "salonspa:L",
+    "trustStyle": "salonspa:L",
+    "whyUsStyle": "salonspa:L",
+    "howItWorksStyle": "salonspa:L",
+    "testimonialsStyle": "salonspa:L",
+    "faqStyle": "salonspa:L",
+    "serviceAreaStyle": "salonspa:L",
+    "credentialsStyle": "salonspa:L",
+    "ctaBandStyle": "salonspa:L",
     "clickToMessageStyle": "M1"
   },
   "visibility": {
@@ -92,24 +92,27 @@
     "ctaBandBlock": true
   },
   "hero": {
-    "businessName": "String and frets",
-    "headline": "Hit the Right Note",
-    "description": "String and Fretz is a premier guitar shop offering a wide range of instruments and customized solutions. With almost 10 years of experience, we cater to musicians' unique needs. Our expertise lies in crafting personalized guitars that exceed customer expectations.",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "headline": "Everlasting Beauty Forever",
+    "description": "Aloja Carvajal Aesthetic and Beauty Studio is a haven for personalized beauty services, providing tailored experiences to make each client feel confident and beautiful. With years of expertise, our studio focuses on understanding individual needs and delivering exceptional care. Our goal is to become a trusted name in the beauty industry, renowned for quality and customer care.",
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/f0e5ae32-ad81-436c-9ad1-992c43d41871"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/submission-photos/j971v4a6cam4shnar1np5ehyxh82h0y8/1779456468177.png"
     ],
     "services": [
       {
-        "description": "Explore our extensive collection of electric, acoustic, and specialty guitars",
-        "name": "Guitar Sales"
+        "description": "Customized haircuts and styling for all hair types",
+        "name": "Cut & Style"
       },
       {
-        "description": "Get a bespoke guitar tailored to your playing style and preferences",
-        "name": "Customization"
+        "description": "Professional hair coloring and highlighting services",
+        "name": "Couture Color"
       },
       {
-        "description": "Trust our skilled technicians to restore your instrument to its former glory",
-        "name": "Instrument Repair"
+        "description": "Expert makeup and hair styling for special occasions",
+        "name": "Bridal & Events"
       }
     ],
     "visibility": {
@@ -122,18 +125,19 @@
     }
   },
   "about": {
-    "businessName": "String and frets",
-    "description": "String and Fretz is a premier guitar shop offering a wide range of instruments and customized solutions. With almost 10 years of experience, we cater to musicians' unique needs. Our expertise lies in crafting personalized guitars that exceed customer expectations.",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "description": "Aloja Carvajal Aesthetic and Beauty Studio is a haven for personalized beauty services, providing tailored experiences to make each client feel confident and beautiful. With years of expertise, our studio focuses on understanding individual needs and delivering exceptional care. Our goal is to become a trusted name in the beauty industry, renowned for quality and customer care.",
     "headline": "About Us",
     "usps": [
-      "Customized Guitars",
-      "Wide Instrument Range",
-      "Personalized Service"
+      "Personalized care",
+      "Experienced professionals",
+      "Welcoming atmosphere",
+      "Customized services"
     ],
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/8b541428-b354-4fcc-b072-0d2807513794",
-      "https://diligent-ibex-454.convex.cloud/api/storage/ad4a9bf1-6bdc-4e6e-add6-28d6c99b9a0f",
-      "https://diligent-ibex-454.convex.cloud/api/storage/8df3006c-41ec-49c1-8343-5e57916167f2"
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
     ],
     "visibility": {
       "aboutBadge": true,
@@ -148,20 +152,32 @@
     "headline": "Our Services",
     "services": [
       {
-        "description": "Explore our extensive collection of electric, acoustic, and specialty guitars",
-        "name": "Guitar Sales"
+        "description": "Customized haircuts and styling for all hair types",
+        "name": "Cut & Style"
       },
       {
-        "description": "Get a bespoke guitar tailored to your playing style and preferences",
-        "name": "Customization"
+        "description": "Professional hair coloring and highlighting services",
+        "name": "Couture Color"
       },
       {
-        "description": "Trust our skilled technicians to restore your instrument to its former glory",
-        "name": "Instrument Repair"
+        "description": "Expert makeup and hair styling for special occasions",
+        "name": "Bridal & Events"
+      },
+      {
+        "description": "Nourishing facial treatments for radiant skin",
+        "name": "Glow Facials"
+      },
+      {
+        "description": "Precision brow shaping and lash enhancement services",
+        "name": "Brow & Lash"
+      },
+      {
+        "description": "Personalized skin care and rejuvenation treatments",
+        "name": "Skin Treatments"
       }
     ],
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/e6e70a95-6801-4f1b-97f6-1c8410875524"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf"
     ],
     "visibility": {
       "servicesBadge": true,
@@ -173,53 +189,58 @@
     }
   },
   "gallery": {
-    "headline": "Featured Products",
-    "subheadline": "Discover our handpicked selection of exceptional guitars",
+    "headline": "Featured Services",
+    "subheadline": "Experience the art of beauty with our expert services",
     "items": [
       {
-        "title": "Electric Dream",
-        "description": "This stunning electric guitar is designed for the modern player, with a sleek body and versatile pickups. Its rich, resonant tone is perfect for rock, pop, and beyond. With its comfortable neck and precise fretwork, you'll be playing like a pro in no time.",
-        "image": "https://diligent-ibex-454.convex.cloud/api/storage/f0e5ae32-ad81-436c-9ad1-992c43d41871",
+        "title": "Bridal Beauty Package",
+        "description": "Our bridal package includes a trial session, hair and makeup styling, and touch-ups throughout the event. Our team works closely with each bride to create a customized look that reflects her personal style and wedding theme. From classic elegance to modern glamour, we bring each bride's vision to life.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
         "tags": [
-          "Electric Guitar",
-          "6-8 weeks"
+          "Bridal",
+          "Full-day"
         ],
         "testimonial": {
-          "author": "Mark Reyes",
-          "quote": "I've never played a guitar that felt so right. The Electric Dream is my go-to instrument for gigs and recordings. The customization options were incredibly helpful in finding my perfect sound."
+          "author": "Maria Rodriguez",
+          "quote": "I felt like a princess on my wedding day, thanks to the talented team at Aloja Carvajal. They listened to my ideas and created a stunning look that exceeded my expectations. I highly recommend their bridal services to any bride-to-be!"
         }
       },
       {
-        "title": "Acoustic Masterpiece",
-        "description": "Experience the warmth and intimacy of our handcrafted acoustic guitar, featuring a solid wood body and delicate inlays. Its balanced tone and impressive projection make it ideal for folk, country, and singer-songwriter performances. Whether you're playing solo or with a band, this guitar is sure to impress.",
+        "title": "Customized Hair Color",
+        "description": "Our expert colorists work with each client to create a personalized hair color plan, taking into account their skin tone, hair type, and personal preferences. From subtle, natural-looking highlights to bold, vibrant colors, we use only the highest-quality products to achieve the desired result. Our goal is to enhance each client's natural beauty and leave them feeling confident and radiant.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
         "tags": [
-          "Acoustic Guitar",
-          "8-10 weeks"
+          "Hair Color",
+          "Half-day"
         ],
         "testimonial": {
-          "author": "Lia Santos",
-          "quote": "The Acoustic Masterpiece has become my trusted companion for songwriting and live shows. The attention to detail and craftsmanship are exceptional, and the sound is nothing short of breathtaking."
+          "author": "Samantha Lee",
+          "quote": "I've never been happier with my hair color! The team at Aloja Carvajal took the time to understand my needs and created a customized color plan that perfectly complements my skin tone and personal style."
         }
       },
       {
-        "title": "Bass Beauty",
-        "description": "Get ready to rumble with our powerful bass guitar, designed for the modern bassist. With its sleek design, active pickups, and versatile tone controls, you'll be able to craft the perfect low-end sound for any genre. From jazz to metal, this bass can handle it all.",
+        "title": "Glowing Skin Treatment",
+        "description": "Our signature facial treatment includes a thorough skin analysis, personalized product recommendations, and a rejuvenating treatment tailored to each client's specific skin concerns. From hydrating and nourishing to exfoliating and brightening, our facials leave skin looking and feeling its best. Our team is dedicated to helping each client achieve their skin goals and maintain a healthy, radiant glow.",
+        "image": "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
         "tags": [
-          "Bass Guitar",
-          "4-6 weeks"
+          "Facial",
+          "60-minute"
         ],
         "testimonial": {
-          "author": "Ryan Tan",
-          "quote": "I was blown away by the Bass Beauty's tone and playability. The customization process was seamless, and the result is an instrument that perfectly complements my playing style. It's now my primary bass for all my gigs and recordings."
+          "author": "Emily Chen",
+          "quote": "The glowing skin treatment at Aloja Carvajal was amazing! My skin felt so soft and refreshed after the treatment, and the products they recommended have really helped to improve my skin's texture and tone."
         }
       }
     ],
     "images": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/f0e5ae32-ad81-436c-9ad1-992c43d41871",
-      "https://diligent-ibex-454.convex.cloud/api/storage/5589fbfc-f1fb-4f35-9602-26781de7dba1"
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/submission-photos/j971v4a6cam4shnar1np5ehyxh82h0y8/1779456468177.png",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
     ],
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/f0e5ae32-ad81-436c-9ad1-992c43d41871"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/submission-photos/j971v4a6cam4shnar1np5ehyxh82h0y8/1779456468177.png"
     ],
     "visibility": {
       "galleryHeadline": true,
@@ -230,14 +251,17 @@
     }
   },
   "contact": {
-    "businessName": "String and frets",
-    "email": "azedge17@gmail.com",
-    "phone": "956 456 4567",
-    "address": "435 Harmony Street, Quezon City",
+    "businessName": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "email": "josephinecarvajal110168@gmail.com",
+    "phone": "9177871293",
+    "address": "Heritage homes, Marilao, Bulacan, Marilao",
     "description": "For any inquiries or to explore your vision further, we invite you to contact our professional team using the details provided below.",
     "socialLinks": [],
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/f0e5ae32-ad81-436c-9ad1-992c43d41871"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/submission-photos/j971v4a6cam4shnar1np5ehyxh82h0y8/1779456468177.png"
     ],
     "visibility": {
       "contactBadge": true,
@@ -248,113 +272,177 @@
     }
   },
   "location": {
-    "lat": 14.6514994,
-    "lng": 121.0028696,
-    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=435%20Harmony%20Street%2C%20Quezon%20City"
+    "lat": 14.7744099,
+    "lng": 121.012818,
+    "googleMapsUrl": "https://www.google.com/maps/search/?api=1&query=Heritage%20homes%2C%20Marilao%2C%20Bulacan%2C%20Marilao"
   },
   "serviceArea": {
     "heading": "Service area",
     "places": [
-      "Quezon City",
-      "Cubao",
-      "Diliman",
-      "Project 4",
-      "Novaliches"
+      "Marilao",
+      "Meycauayan",
+      "Bocaue",
+      "Sta. Maria",
+      "Bulacan"
     ]
   },
   "messaging": {
-    "whatsapp": "639564564567"
+    "whatsapp": "639177871293"
+  },
+  "trust": {
+    "licenses": [
+      "PRC cosmetology",
+      "DOH facility permit",
+      "Brand-trained colourist"
+    ],
+    "memberships": [
+      "Professional association membership",
+      "Training school affiliation"
+    ],
+    "years": "A house of beauty since 2018"
   },
   "why": {
-    "headline": "EVERY WEEK! ",
     "items": [
       {
-        "body": "Sale! ",
-        "title": "Stratocasters "
+        "body": "Our goal is to help our clients feel confident and beautiful by providing personalized beauty services that suit their individual needs. We cater to everyday beauty needs as well as special occasions like weddings, parties and events.",
+        "title": "Personalized Beauty"
       },
       {
-        "body": "Sale! ",
-        "title": "Telecasters"
+        "body": "With years of experience in the beauty industry, we focus on understanding and delivering what each client wants to help them achieve the look that best suits them. We also create a welcoming and comfortable environment where clients can relax and feel taken care of.",
+        "title": "Experienced Team"
       },
       {
-        "body": "Sale! ",
-        "title": "V-guitar"
+        "body": "We strive to continue improving our services and maintaining good relationships with our clients, marketing our business and reaching more potential customers.",
+        "title": "Committed to Excellence"
       }
-    ],
-    "tag": "New Guitars "
+    ]
   },
-  "how": [
-    {
-      "step": "01",
-      "title": "You message us",
-      "body": "Phone, WhatsApp, or the form — whichever is easiest."
-    },
-    {
-      "step": "02",
-      "title": "We confirm the details",
-      "body": "Quick reply with what we can do and when."
-    },
-    {
-      "step": "03",
-      "title": "We do the work",
-      "body": "On the agreed date and on time."
-    }
-  ],
+  "how": {
+    "steps": [
+      {
+        "body": "We start by understanding your individual needs and preferences to provide personalized beauty services.",
+        "step": "01",
+        "title": "Consultation"
+      },
+      {
+        "body": "Our experienced team delivers customized beauty services to help you achieve the look that best suits you.",
+        "step": "02",
+        "title": "Customized Service"
+      },
+      {
+        "body": "We create a welcoming and comfortable environment where you can relax and feel taken care of.",
+        "step": "03",
+        "title": "Relaxing Experience"
+      },
+      {
+        "body": "We follow up with our clients to ensure they are satisfied with our services and to maintain a good relationship.",
+        "step": "04",
+        "title": "Follow-up"
+      }
+    ]
+  },
   "testimonials": {
-    "bigQuote": "BUY NOW!!! ",
-    "headline": "Sales of New Guitars",
     "items": [
       {
-        "quote": "Can't believe my new guitar just arrived fast! ",
-        "who": "- john doe "
+        "context": "Regular client",
+        "name": "Maria G",
+        "quote": "I feel confident and beautiful after every visit.",
+        "role": "Regular client",
+        "who": "Maria G"
       },
       {
-        "quote": "Bass guitars are sleek! ",
-        "who": "- Peter evans "
+        "context": "New client",
+        "name": "John D",
+        "quote": "The staff is friendly and professional.",
+        "role": "New client",
+        "who": "John D"
+      },
+      {
+        "context": "Loyal client",
+        "name": "Emily T",
+        "quote": "I love the personalized service I receive.",
+        "role": "Loyal client",
+        "who": "Emily T"
       }
-    ],
-    "source": "5.5 Reviews on Google! ",
-    "tag": "1000+ "
+    ]
   },
-  "faq": [
-    {
-      "q": "How do I book?",
-      "a": "Phone, message, or walk in. We reply the same day."
-    },
-    {
-      "q": "Where are you?",
-      "a": "See the Location section below."
-    }
-  ],
-  "credentials": [],
+  "faq": {
+    "items": [
+      {
+        "a": "We offer a variety of services such as hair styling, hair color, makeup services, and other beauty treatments.",
+        "q": "What services do you offer"
+      },
+      {
+        "a": "Yes, we cater to special occasions like weddings, parties and events.",
+        "q": "Do you cater to special occasions"
+      },
+      {
+        "a": "We follow up with our clients to ensure they are satisfied with our services and to maintain a good relationship.",
+        "q": "How do you ensure client satisfaction"
+      },
+      {
+        "a": "The personalized care we give to every client and our focus on understanding and delivering what each client wants.",
+        "q": "What makes your business special"
+      },
+      {
+        "a": "We continue to improve our services and stay updated with the latest trends and techniques in the beauty industry.",
+        "q": "How do you stay up-to-date with industry trends"
+      }
+    ]
+  },
+  "credentials": {
+    "items": [
+      {
+        "detail": "PRC cosmetology",
+        "label": "Licensed"
+      },
+      {
+        "detail": "Brand-trained colourist",
+        "label": "Trained"
+      },
+      {
+        "detail": "Liability insurance",
+        "label": "Insured"
+      },
+      {
+        "detail": "Trusted beauty studio",
+        "label": "Awarded"
+      }
+    ]
+  },
   "ctaBand": {
-    "heading": "Ready when you are.",
-    "body": "Message us and we will get back to you the same day.",
-    "primaryLabel": "Get in touch",
-    "primaryLink": "#contact"
+    "body": "Visit us today and discover how our personalized beauty services can help you feel confident and beautiful.",
+    "heading": "Experience Personalized Beauty",
+    "primaryLabel": "Book Now",
+    "primaryLink": "#location",
+    "secondaryLabel": "Get Directions",
+    "secondaryLink": "#contact"
   },
   "content": {
-    "description": "String and Fretz is a premier guitar shop offering a wide range of instruments and customized solutions. With almost 10 years of experience, we cater to musicians' unique needs. Our expertise lies in crafting personalized guitars that exceed customer expectations.",
+    "description": "Aloja Carvajal Aesthetic and Beauty Studio is a haven for personalized beauty services, providing tailored experiences to make each client feel confident and beautiful. With years of expertise, our studio focuses on understanding individual needs and delivering exceptional care. Our goal is to become a trusted name in the beauty industry, renowned for quality and customer care.",
     "photos": [
-      "https://diligent-ibex-454.convex.cloud/api/storage/f0e5ae32-ad81-436c-9ad1-992c43d41871"
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf",
+      "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c",
+      "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/submission-photos/j971v4a6cam4shnar1np5ehyxh82h0y8/1779456468177.png"
     ],
     "contact": {
-      "address": "435 Harmony Street, Quezon City",
-      "email": "azedge17@gmail.com",
-      "phone": "+639564564567"
+      "address": "Heritage homes, Marilao, Bulacan, Marilao",
+      "email": "josephinecarvajal110168@gmail.com",
+      "phone": "+639177871293"
     },
     "marquee": {
       "text": "Quality ◆ Trusted ◆ Local ◆ Reliable"
     },
     "hero": {
-      "kicker": "Quezon City · Other",
-      "headline": "String and frets",
+      "kicker": "Marilao · Barber/Salon",
+      "headline": "Aloja Carvajal Aesthetic and Beauty Studio",
       "headlineLines": [
-        "String and frets",
+        "Aloja Carvajal Aesthetic and Beauty Studio",
         "",
         ""
       ],
-      "sub": "Hit the Right Note",
+      "sub": "Everlasting Beauty Forever",
       "cta1": {
         "text": "Get in touch",
         "href": "#visit"
@@ -364,13 +452,13 @@
         "href": "#services"
       },
       "meta1": "★★★★★ rated on Google",
-      "meta2": "Quezon City · open daily"
+      "meta2": "Marilao · open daily"
     },
     "about": {
       "tag": "About",
-      "headline": "About String and frets",
-      "lead": "String and frets is a other based in Quezon City.",
-      "signature": "String and frets",
+      "headline": "About Aloja Carvajal Aesthetic and Beauty Studio",
+      "lead": "Aloja Carvajal Aesthetic and Beauty Studio is a barber/salon based in Marilao.",
+      "signature": "Aloja Carvajal Aesthetic and Beauty Studio",
       "paragraphs": [
         "We focus on quality work, honest pricing, and customers who come back.",
         "Get in touch and we'll walk you through what we can do for you."
@@ -379,22 +467,22 @@
     "services": {
       "tag": "What we offer",
       "headline": "Services we provide",
-      "sub": "A quick look at what String and frets can help you with.",
+      "sub": "A quick look at what Aloja Carvajal Aesthetic and Beauty Studio can help you with.",
       "items": [
         {
-          "title": "Our Services",
-          "desc": "Learn more about what String and frets offers and how we can help.",
-          "note": "all customers"
+          "title": "Cut & Style",
+          "desc": "Classic and modern cuts tailored to the way you wear your hair.",
+          "note": "walk-in · booked"
         },
         {
-          "title": "Get in Touch",
-          "desc": "Reach out and we'll get back to you the same day.",
-          "note": "phone · email"
+          "title": "Beard Work",
+          "desc": "Trims, shapes, and hot-towel finishes that hold their line.",
+          "note": "add-on"
         },
         {
-          "title": "Visit Us",
-          "desc": "Drop by our location to see what we do in person.",
-          "note": "walk-in"
+          "title": "Kids & Seniors",
+          "desc": "Patient, low-fuss cuts for younger and older clients.",
+          "note": "family-friendly"
         }
       ]
     },
@@ -403,51 +491,53 @@
       "headline": "A look at our work",
       "items": [
         {
-          "image": "https://diligent-ibex-454.convex.cloud/api/storage/f0e5ae32-ad81-436c-9ad1-992c43d41871",
-          "caption": "Our space"
+          "image": "https://diligent-ibex-454.convex.cloud/api/storage/c1e7f8f5-1b6e-440c-a142-fcbb7f35aa8c"
+        },
+        {
+          "image": "https://diligent-ibex-454.convex.cloud/api/storage/6050a8dc-82cf-49c3-961f-9543a3c4ecbf"
+        },
+        {
+          "image": "https://pub-57b18c6cff15455aa3dec88f7581c5d7.r2.dev/images/1772959893360-27lz7b5c.jpg"
         }
       ]
     },
     "area": {
       "tag": "Service area",
-      "headline": "Serving Quezon City and nearby",
-      "body": "Based in Quezon City, we serve customers across the surrounding area.",
+      "headline": "Serving Marilao and nearby",
+      "body": "Based in Marilao, we serve customers across the surrounding area.",
       "places": [
-        "Quezon City"
+        "Marilao"
       ]
     },
     "location": {
-      "tag": "Come by",
-      "headline": "Visit our shop",
-      "directions": {
-        "href": "https://maps.google.com/?q=435%20Harmony%20Street%2C%20Quezon%20City",
-        "text": "Get directions Now!"
-      },
-      "lat": 14.6514994,
-      "lng": 121.0028696
+      "tag": "Visit",
+      "headline": "Where to find us",
+      "lat": 14.7744099,
+      "lng": 121.012818
     },
     "ctaBand": {
       "headline": "Ready when you are.",
-      "sub": "Reach out to String and frets and we'll get back to you the same day.",
+      "sub": "Reach out to Aloja Carvajal Aesthetic and Beauty Studio and we'll get back to you the same day.",
       "cta": {
         "text": "Get in touch",
         "href": "#visit"
-      }
+      },
+      "body": "Visit us today and discover how our personalized beauty services can help you feel confident and beautiful.",
+      "heading": "Experience Personalized Beauty",
+      "primaryLabel": "Book Now",
+      "primaryLink": "#location",
+      "secondaryLabel": "Get Directions",
+      "secondaryLink": "#contact"
     },
     "footer": {
-      "brand": "String and frets",
-      "blurb": "String and frets — a other serving Quezon City.",
+      "brand": "Aloja Carvajal Aesthetic and Beauty Studio",
+      "blurb": "Aloja Carvajal Aesthetic and Beauty Studio — a barber/salon serving Marilao.",
       "notes": [
-        "© 2026 String and frets",
+        "© 2026 Aloja Carvajal Aesthetic and Beauty Studio",
         "Quality work · trusted locally"
       ],
       "brand_blurb": "For any inquiries or to explore your vision further, we invite you to contact our professional team using the details provided below.",
-      "social_links": [],
-      "visit": {
-        "lines": [
-          "2000 viist "
-        ]
-      }
+      "social_links": []
     },
     "navCtaText": "Get in touch",
     "navCtaHref": "#visit",
@@ -470,77 +560,128 @@
       }
     ],
     "why": {
-      "headline": "EVERY WEEK! ",
       "items": [
         {
-          "body": "Sale! ",
-          "title": "Stratocasters "
+          "body": "Our goal is to help our clients feel confident and beautiful by providing personalized beauty services that suit their individual needs. We cater to everyday beauty needs as well as special occasions like weddings, parties and events.",
+          "title": "Personalized Beauty"
         },
         {
-          "body": "Sale! ",
-          "title": "Telecasters"
+          "body": "With years of experience in the beauty industry, we focus on understanding and delivering what each client wants to help them achieve the look that best suits them. We also create a welcoming and comfortable environment where clients can relax and feel taken care of.",
+          "title": "Experienced Team"
         },
         {
-          "body": "Sale! ",
-          "title": "V-guitar"
+          "body": "We strive to continue improving our services and maintaining good relationships with our clients, marketing our business and reaching more potential customers.",
+          "title": "Committed to Excellence"
         }
-      ],
-      "tag": "New Guitars "
+      ]
     },
     "how": {
-      "tag": "How it works",
-      "headline": "Three easy steps",
       "steps": [
         {
-          "title": "Reach out",
-          "body": "Send us a message, call, or stop by. We'll listen first."
+          "body": "We start by understanding your individual needs and preferences to provide personalized beauty services.",
+          "step": "01",
+          "title": "Consultation"
         },
         {
-          "title": "We confirm",
-          "body": "Quick reply with what we can do, when, and what it'll cost."
+          "body": "Our experienced team delivers customized beauty services to help you achieve the look that best suits you.",
+          "step": "02",
+          "title": "Customized Service"
         },
         {
-          "title": "We get it done",
-          "body": "On the agreed date — on time and on quote."
+          "body": "We create a welcoming and comfortable environment where you can relax and feel taken care of.",
+          "step": "03",
+          "title": "Relaxing Experience"
+        },
+        {
+          "body": "We follow up with our clients to ensure they are satisfied with our services and to maintain a good relationship.",
+          "step": "04",
+          "title": "Follow-up"
         }
       ]
+    },
+    "trust": {
+      "licenses": [
+        "PRC cosmetology",
+        "DOH facility permit",
+        "Brand-trained colourist"
+      ],
+      "memberships": [
+        "Professional association membership",
+        "Training school affiliation"
+      ],
+      "years": "A house of beauty since 2018"
     },
     "testimonials": {
-      "bigQuote": "BUY NOW!!! ",
-      "headline": "Sales of New Guitars",
       "items": [
         {
-          "quote": "Can't believe my new guitar just arrived fast! ",
-          "who": "- john doe "
+          "context": "Regular client",
+          "name": "Maria G",
+          "quote": "I feel confident and beautiful after every visit.",
+          "role": "Regular client",
+          "who": "Maria G"
         },
         {
-          "quote": "Bass guitars are sleek! ",
-          "who": "- Peter evans "
-        }
-      ],
-      "source": "5.5 Reviews on Google! ",
-      "tag": "1000+ "
-    },
-    "faq": {
-      "tag": "Good to know",
-      "headline": "Questions, answered",
-      "items": [
-        {
-          "q": "How do I get in touch?",
-          "a": "Call 956 456 4567, send us a message, or stop by our location."
+          "context": "New client",
+          "name": "John D",
+          "quote": "The staff is friendly and professional.",
+          "role": "New client",
+          "who": "John D"
         },
         {
-          "q": "Where are you located?",
-          "a": "435 Harmony Street, Quezon City"
-        },
-        {
-          "q": "What hours are you open?",
-          "a": "Hours kept live on our Google Business profile — click \"Hours on Google\" for the latest."
+          "context": "Loyal client",
+          "name": "Emily T",
+          "quote": "I love the personalized service I receive.",
+          "role": "Loyal client",
+          "who": "Emily T"
         }
       ]
     },
-    "business_name": "String and frets",
-    "business_type": "Other",
-    "business_city": "Quezon City"
+    "faq": {
+      "items": [
+        {
+          "a": "We offer a variety of services such as hair styling, hair color, makeup services, and other beauty treatments.",
+          "q": "What services do you offer"
+        },
+        {
+          "a": "Yes, we cater to special occasions like weddings, parties and events.",
+          "q": "Do you cater to special occasions"
+        },
+        {
+          "a": "We follow up with our clients to ensure they are satisfied with our services and to maintain a good relationship.",
+          "q": "How do you ensure client satisfaction"
+        },
+        {
+          "a": "The personalized care we give to every client and our focus on understanding and delivering what each client wants.",
+          "q": "What makes your business special"
+        },
+        {
+          "a": "We continue to improve our services and stay updated with the latest trends and techniques in the beauty industry.",
+          "q": "How do you stay up-to-date with industry trends"
+        }
+      ]
+    },
+    "credentials": {
+      "items": [
+        {
+          "detail": "PRC cosmetology",
+          "label": "Licensed"
+        },
+        {
+          "detail": "Brand-trained colourist",
+          "label": "Trained"
+        },
+        {
+          "detail": "Liability insurance",
+          "label": "Insured"
+        },
+        {
+          "detail": "Trusted beauty studio",
+          "label": "Awarded"
+        }
+      ]
+    },
+    "business_name": "Aloja Carvajal Aesthetic and Beauty Studio",
+    "business_type": "Barber/Salon",
+    "business_city": "Marilao"
   }
 }
