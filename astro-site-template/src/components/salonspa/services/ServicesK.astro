@@ -1,0 +1,65 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const services = content.services || {};
+const tag = services.tag || '';
+const headline = services.headline || '';
+const sub = services.sub || '';
+type Item = { title: string; desc?: string; price?: string; duration?: string };
+const items: Item[] = Array.isArray(services.items) ? services.items : (Array.isArray(services) ? services : []);
+---
+{items.length > 0 && (
+  <section class="pad-y services-sect" id="services">
+    <div class="wrap">
+      <div class="sect-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="services.tag">{tag}</span>}
+          {headline && <h2 class="h-sect" data-field="services.headline" set:html={headline}></h2>}
+        </div>
+        {sub && <p class="lead" data-field="services.sub">{sub}</p>}
+      </div>
+      <div class="services-grid">
+        {items.map((item, i) => (
+          <article class="service-card reveal">
+            <div class="service-head">
+              <h3 class="service-title" data-field={`services.items.${i}.title`}>{item.title}</h3>
+              {item.price && <div class="service-price" data-field={`services.items.${i}.price`}>{item.price}</div>}
+            </div>
+            {item.desc && <p class="service-desc" data-field={`services.items.${i}.desc`}>{item.desc}</p>}
+            {item.duration && <div class="service-dur" data-field={`services.items.${i}.duration`}>{item.duration}</div>}
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .services-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0; border-top: 1px solid var(--line);
+  }
+  .service-card {
+    padding: clamp(28px, 3vw, 44px) clamp(24px, 3vw, 40px);
+    border-bottom: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+  .service-card:nth-child(3n) { border-right: none; }
+  @media (max-width: 880px) {
+    .service-card { border-right: none; }
+  }
+  .service-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 12px; }
+  .service-title {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(20px, 2vw, 26px); color: var(--ink); margin: 0;
+    letter-spacing: -.005em;
+  }
+  .service-price {
+    font-family: var(--sans); font-size: 14px; color: var(--accent); font-weight: 600;
+    flex-shrink: 0;
+  }
+  .service-desc { color: var(--muted, rgba(var(--ink-rgb), .68)); font-size: 15px; line-height: 1.65; margin: 0 0 12px; }
+  .service-dur {
+    font-family: var(--sans); text-transform: uppercase; letter-spacing: .14em;
+    font-size: 11px; color: var(--muted, rgba(var(--ink-rgb), .55));
+  }
+</style>

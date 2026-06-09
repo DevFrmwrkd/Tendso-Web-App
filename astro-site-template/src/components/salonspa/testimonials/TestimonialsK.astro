@@ -1,0 +1,55 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const test = content.testimonials || {};
+const tag = test.tag || '';
+const headline = test.headline || '';
+// Canonical: `who` + `role` (set by normalizeBlock in lib/astro-builder.ts).
+// Accept legacy `author` / `name` / `context` for safety.
+type Item = { quote: string; who?: string; role?: string; author?: string; name?: string; context?: string };
+const items: Item[] = Array.isArray(test.items) ? test.items : (Array.isArray(test) ? test : []);
+---
+{items.length > 0 && (
+  <section class="pad-y test-sect" id="reviews">
+    <div class="wrap">
+      <div class="sect-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="testimonials.tag">{tag}</span>}
+          {headline && <h2 class="h-sect" data-field="testimonials.headline" set:html={headline}></h2>}
+        </div>
+      </div>
+      <div class="test-grid">
+        {items.map((item, i) => (
+          <figure class="test-card reveal">
+            <div class="test-mark">“</div>
+            <blockquote data-field={`testimonials.items.${i}.quote`}>{item.quote}</blockquote>
+            {(() => {
+              const who = item.who ?? item.author ?? item.name;
+              const role = item.role ?? item.context;
+              return (who || role) ? (
+                <figcaption>
+                  {who && <span class="t-author" data-field={`testimonials.items.${i}.who`}>{who}</span>}
+                  {role && <span class="t-role" data-field={`testimonials.items.${i}.role`}> · {role}</span>}
+                </figcaption>
+              ) : null;
+            })()}
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .test-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: clamp(28px, 3vw, 44px);
+  }
+  .test-card { padding: 0; }
+  .test-mark { font-family: var(--serif); font-size: 64px; line-height: .5; color: var(--accent); margin-bottom: 6px; }
+  .test-card blockquote {
+    font-family: var(--serif); font-size: clamp(18px, 1.6vw, 22px);
+    color: var(--ink); line-height: 1.55; margin: 0 0 20px; font-weight: 400;
+  }
+  .test-card figcaption { font-family: var(--sans); font-size: 12.5px; color: var(--muted, rgba(var(--ink-rgb), .65)); }
+  .t-author { font-weight: 600; color: var(--ink); }
+</style>

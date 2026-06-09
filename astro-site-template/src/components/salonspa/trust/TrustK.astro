@@ -1,0 +1,37 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const trust = content.trust || {};
+const cells: Array<{ num: string; label: string }> = Array.isArray(trust.cells) ? trust.cells : [];
+---
+{cells.length > 0 && (
+  <section class="trust">
+    <div class="wrap">
+      <div class="trust-grid">
+        {cells.map((cell, i) => (
+          <div class="trust-cell reveal">
+            <div class="num" data-field={`trust.cells.${i}.num`} set:html={cell.num}></div>
+            <div class="lbl" data-field={`trust.cells.${i}.label`}>{cell.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .trust { padding-block: clamp(40px, 5vw, 72px); border-block: 1px solid var(--line); }
+  .trust-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: clamp(24px, 3vw, 48px);
+  }
+  .trust-cell { text-align: center; }
+  .trust-cell .num {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(34px, 4vw, 52px); line-height: 1; color: var(--ink);
+  }
+  .trust-cell .lbl {
+    font-family: var(--sans); text-transform: uppercase; letter-spacing: .18em;
+    font-size: 11px; color: var(--muted, rgba(var(--ink-rgb), .6));
+    margin-top: 10px;
+  }
+</style>

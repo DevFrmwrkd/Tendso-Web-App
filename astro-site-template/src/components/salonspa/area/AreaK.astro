@@ -1,0 +1,45 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const area = content.area || {};
+const tag = area.tag || '';
+const headline = area.headline || '';
+const sub = area.sub || '';
+const places: string[] = Array.isArray(area.places) ? area.places : (Array.isArray(area.items) ? area.items : []);
+---
+{places.length > 0 && (
+  <section class="pad-y area-sect">
+    <div class="wrap">
+      <div class="sect-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="area.tag">{tag}</span>}
+          {headline && <h2 class="h-sect" data-field="area.headline" set:html={headline}></h2>}
+        </div>
+        {sub && <p class="lead" data-field="area.sub">{sub}</p>}
+      </div>
+      <div class="area-grid reveal">
+        {places.map((place, i) => (
+          <div class="area-chip">
+            <span class="area-dot"></span>
+            <span data-field={`area.places.${i}`}>{place}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .area-grid {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+  .area-chip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 18px; border: 1px solid var(--line);
+    font-family: var(--sans); font-size: 14px; color: var(--ink);
+  }
+  .area-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent); flex-shrink: 0;
+  }
+</style>

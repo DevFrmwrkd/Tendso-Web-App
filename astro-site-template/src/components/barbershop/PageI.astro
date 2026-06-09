@@ -118,7 +118,7 @@ const __fontHref = buildFontHref(__themePairing);
       }
       window.__barbershopInitMap = function (lat, lng, label) {
         if (!window.L) return;
-        var el = document.getElementById('map'); if (!el) return;
+        var el = document.getElementById('map'); if (!el) return; el.innerHTML = '';
         var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 15);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
         var icon = L.divIcon({ className: '', html: '<div style="width:22px;height:22px;background:#1A1A1A;border:3px solid #FAFAF8;border-radius:50% 50% 50% 0;transform:rotate(-45deg);"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });

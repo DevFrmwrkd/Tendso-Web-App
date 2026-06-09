@@ -1,0 +1,85 @@
+---
+/**
+ * SalonSpa default hero (Atelier-style) — split grid, copy left, photo right
+ * with corner tag overlay. Reads the same content.hero shape as
+ * the other variants so content stays portable when admin swaps.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const locality = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || (layout.contact?.phone ? `tel:${String(layout.contact.phone).replace(/[^0-9+]/g, '')}` : '#');
+const tagText = hero.tag || '';
+---
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      {locality && (
+        <div class="hero-eyebrow">
+          <span class="rule"></span>
+          <span class="kicker" data-field="hero.kicker">{locality}</span>
+        </div>
+      )}
+      {headlineLines.length > 0 && (
+        <h1 class="hero-headline">
+          {headlineLines.map((line: string, i: number) => (
+            <span class="hl-line" data-field={`hero.headlineLines.${i}`} set:html={line}></span>
+          ))}
+        </h1>
+      )}
+      {sub && <p class="hero-sub" data-field="hero.sub">{sub}</p>}
+      <div class="hero-cta">
+        {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+        {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+      </div>
+    </div>
+    <div class="hero-img">
+      {heroImage && <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>}
+      {tagText && <div class="hero-tag" data-field="hero.tag">{tagText}</div>}
+    </div>
+  </div>
+</section>
+<style>
+  .hero { padding: clamp(120px, 14vw, 180px) 0 clamp(72px, 9vw, 120px); position: relative; overflow: hidden; }
+  .hero-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 100px);
+    align-items: center;
+  }
+  .hero-eyebrow { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .hero-eyebrow .rule { width: 36px; height: 1px; background: var(--accent); }
+  .hero-headline {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(46px, 7vw, 96px); line-height: 1.02; letter-spacing: -.01em;
+    margin: 0 0 28px;
+  }
+  .hero-headline .hl-line { display: block; }
+  .hero-sub {
+    font-size: clamp(16px, 1.4vw, 19px); color: var(--muted, rgba(var(--ink-rgb), .68));
+    max-width: 46ch; margin: 0 0 36px; line-height: 1.6;
+  }
+  .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+  .hero-img {
+    position: relative; aspect-ratio: 4 / 5; overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  .hero-img .bg-img { width: 100%; height: 100%; background-size: cover; background-position: center; }
+  .hero-tag {
+    position: absolute; left: 18px; bottom: 18px;
+    background: rgba(var(--paper-rgb), .92); backdrop-filter: blur(6px);
+    padding: 10px 16px; font-family: var(--sans); font-size: 12px;
+    text-transform: uppercase; letter-spacing: .14em;
+    border: 1px solid var(--line);
+  }
+  @media (max-width: 880px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-img { aspect-ratio: 4 / 3; order: -1; }
+  }
+</style>

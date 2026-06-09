@@ -15,6 +15,11 @@
  *   "barbershop:H"  → Forge Kinetic (black + green)
  *   "barbershop:I"  → Forge Minimal (neutral)
  *   "barbershop:J"  → Forge Stacked (paper + dark red)
+ *   "salonspa:K"    → Atelier (pearl + brass · Cormorant Garamond + Jost)
+ *   "salonspa:L"    → Botanica (sage + cream · Spectral + Mulish)
+ *   "salonspa:M"    → Clinic (mist + teal · Tenor Sans + Karla)
+ *   "salonspa:N"    → Vogue (mauve pink · DM Serif Display + DM Sans)
+ *   "salonspa:O"    → Bloom (mauve + cream · Marcellus + Nunito Sans)
  *
  * Each PageX wrapper produces the full document (its own doctype, theme,
  * fonts, leaflet boot) so they do not compose with BaseLayout.
@@ -30,6 +35,11 @@ import PageG from '../components/barbershop/PageG.astro';
 import PageH from '../components/barbershop/PageH.astro';
 import PageI from '../components/barbershop/PageI.astro';
 import PageJ from '../components/barbershop/PageJ.astro';
+import PageK from '../components/salonspa/PageK.astro';
+import PageL from '../components/salonspa/PageL.astro';
+import PageM from '../components/salonspa/PageM.astro';
+import PageN from '../components/salonspa/PageN.astro';
+import PageO from '../components/salonspa/PageO.astro';
 import siteData from '../data/site-data.json';
 
 const layout = (siteData as any).layout ?? {};
@@ -41,7 +51,9 @@ const genericMatch = /^generic:([A-E])$/.exec(heroStyle);
 const genericLetter = genericMatch ? genericMatch[1] : null;
 const barbershopMatch = /^barbershop:([F-J])$/.exec(heroStyle);
 const barbershopLetter = barbershopMatch ? barbershopMatch[1] : null;
-const anyLetter = genericLetter || barbershopLetter;
+const salonspaMatch = /^salonspa:([K-O])$/.exec(heroStyle);
+const salonspaLetter = salonspaMatch ? salonspaMatch[1] : null;
+const anyLetter = genericLetter || barbershopLetter || salonspaLetter;
 ---
 
 {genericLetter === 'A' && <PageA siteData={siteData} />}
@@ -54,6 +66,11 @@ const anyLetter = genericLetter || barbershopLetter;
 {barbershopLetter === 'H' && <PageH siteData={siteData} />}
 {barbershopLetter === 'I' && <PageI siteData={siteData} />}
 {barbershopLetter === 'J' && <PageJ siteData={siteData} />}
+{salonspaLetter === 'K' && <PageK siteData={siteData} />}
+{salonspaLetter === 'L' && <PageL siteData={siteData} />}
+{salonspaLetter === 'M' && <PageM siteData={siteData} />}
+{salonspaLetter === 'N' && <PageN siteData={siteData} />}
+{salonspaLetter === 'O' && <PageO siteData={siteData} />}
 {!anyLetter && (
   <BaseLayout
     businessName={layout.businessName ?? ''}

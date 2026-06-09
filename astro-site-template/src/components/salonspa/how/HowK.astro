@@ -1,0 +1,50 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const how = content.how || {};
+const tag = how.tag || '';
+const headline = how.headline || '';
+// Canonical: `body` (set by normalizeBlock in lib/astro-builder.ts).
+// Accept `desc` / `description` for legacy/admin variability.
+type Step = { title: string; body?: string; desc?: string; description?: string };
+const steps: Step[] = Array.isArray(how.steps) ? how.steps : (Array.isArray(how.items) ? how.items : []);
+---
+{steps.length > 0 && (
+  <section class="pad-y how-sect">
+    <div class="wrap">
+      <div class="sect-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="how.tag">{tag}</span>}
+          {headline && <h2 class="h-sect" data-field="how.headline" set:html={headline}></h2>}
+        </div>
+      </div>
+      <div class="how-grid">
+        {steps.map((step, i) => (
+          <div class="how-step reveal">
+            <div class="how-dot">{i + 1}</div>
+            <h3 class="how-title" data-field={`how.steps.${i}.title`}>{step.title}</h3>
+            {(step.body ?? step.desc ?? step.description) && (
+              <p class="how-desc" data-field={`how.steps.${i}.body`}>{step.body ?? step.desc ?? step.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .how-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: clamp(32px, 4vw, 56px);
+  }
+  .how-step { text-align: left; }
+  .how-dot {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--accent); color: var(--on-accent, var(--paper));
+    font-family: var(--serif); font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 18px;
+  }
+  .how-title { font-family: var(--serif); font-weight: 500; font-size: clamp(20px, 2vw, 24px); color: var(--ink); margin: 0 0 10px; }
+  .how-desc { color: var(--muted, rgba(var(--ink-rgb), .7)); font-size: 15px; line-height: 1.65; margin: 0; }
+</style>

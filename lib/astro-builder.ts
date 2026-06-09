@@ -112,6 +112,75 @@ function mapStyleToLetter(numericStyle: string | undefined, fallback: string = '
     return map[numericStyle] || numericStyle // Pass through if already a letter
 }
 
+/**
+ * Normalize Why / How / Testimonials / FAQ / Credentials block shape so
+ * downstream Astro components can rely on a single consistent contract:
+ *   { tag?, headline?, items: [...] }
+ *
+ * The codebase has three historical shapes for these blocks, all of which
+ * land in `extractedContent` depending on origin:
+ *
+ *   A) Flat array straight from the AI / mobile pipeline:
+ *        [{ title, body }, ...]
+ *      OR
+ *        [{ quote, name, context }, ...]
+ *
+ *   B) Wrapped shape from admin edits via the Content tab:
+ *        { tag, headline, items: [{ title, body }, ...] }
+ *
+ *   C) `null` / `undefined` when no AI extraction + no admin edits.
+ *
+ * Components only read `(block).items` (or `.steps`). Shape A meant
+ * `.items` was undefined → empty array → `items.length > 0` gate hides
+ * the section entirely. That's why Why-Us, How-It-Works, and Testimonials
+ * had their visibility toggle ON but didn't render — the gate inside the
+ * component itself failed.
+ *
+ * `itemAliases` rewrites field names from the AI's naming (e.g. `name`)
+ * to the canonical name components consume (e.g. `who`). Only renames
+ * the alias key if it exists AND the canonical key doesn't — never
+ * destroys admin-edited data.
+ *
+ * `opts.itemsKey` lets the How block keep its `steps` array name.
+ */
+function normalizeBlock(
+    input: any,
+    itemsKey: 'items' | 'steps' = 'items',
+    itemAliases: Record<string, string> = {},
+    opts: { altItemsKey?: string } = {},
+): { tag?: string; headline?: string; items?: any[]; steps?: any[] } | undefined {
+    if (input == null) return undefined
+    // Find the array of items wherever it lives.
+    let arr: any[] | null = null
+    let wrapper: Record<string, any> = {}
+    if (Array.isArray(input)) {
+        arr = input
+    } else if (typeof input === 'object') {
+        wrapper = { ...input }
+        if (Array.isArray(input[itemsKey])) {
+            arr = input[itemsKey]
+        } else if (opts.altItemsKey && Array.isArray(input[opts.altItemsKey])) {
+            arr = input[opts.altItemsKey]
+        }
+    }
+    if (!arr) return undefined
+    // Apply field aliases per item. Never overwrite an existing canonical key.
+    const mappedItems = arr.map((it: any) => {
+        if (!it || typeof it !== 'object') return it
+        const out: Record<string, any> = { ...it }
+        for (const [from, to] of Object.entries(itemAliases)) {
+            if (out[from] != null && out[to] == null) {
+                out[to] = out[from]
+            }
+        }
+        return out
+    })
+    // Strip the original itemsKey from wrapper to avoid double-emit.
+    delete wrapper[itemsKey]
+    if (opts.altItemsKey) delete wrapper[opts.altItemsKey]
+    return { ...wrapper, [itemsKey]: mappedItems }
+}
+
 // Variant-code → category routing was removed when the template library was
 // wiped. `submission.business_type` is still passed through for whatever new
 // designs do with it (e.g. picking a default color palette).
@@ -136,6 +205,7 @@ function deriveDefaultsFor(content: ExtractedContent, photos: string[]) {
 export const AUTO_SCHEME_BY_BUSINESS_TYPE: Record<string, string> = {
     barber:    'brown',
     salon:     'pink',
+    spa:       'pink',
     auto:      'blue',
     restaurant:'orange',
     cafe:      'brown',
@@ -626,16 +696,22 @@ async function transformToAstroData(
                 navbar_links: Array.isArray(c.navbar_links) && c.navbar_links.length
                     ? c.navbar_links
                     : derived.navbar_links,
-                // Why / How — same 3-tier resolution. Admin > AI > derived.
-                why:          c.why          ?? derived.why,
-                how:          c.how          ?? derived.how,
-                // Conversion-cluster blocks — admin overrides win, else
-                // empty (NOT block-defaults.ts demo copy). Empty sections
-                // are hidden via visibility flags below.
-                trust:        c.trust        ?? d.trust,
-                testimonials: c.testimonials ?? undefined,
-                faq:          c.faq          ?? derived.faq,
-                credentials:  c.credentials  ?? undefined,
+                // Why / How / Testimonials / FAQ / Credentials — same 3-tier
+                // resolution (admin > AI > derived) PLUS a shape normalizer
+                // because the AI / legacy paths emit flat arrays
+                // ([{title, body}]) while Astro components read the wrapped
+                // shape ({tag, headline, items: [...]}). Without this every
+                // first-build site rendered empty Why/How/Testimonials
+                // sections — block toggle says ON but items.length === 0.
+                // See docs/changes/TEMPLATES-SALONSPA-PLAN.md for full
+                // context. Also remaps field aliases so components can
+                // read a single canonical name (body / who / role).
+                why:          normalizeBlock(c.why ?? derived.why, 'items', { description: 'body' }),
+                how:          normalizeBlock(c.how ?? derived.how, 'steps', { description: 'body' }, { altItemsKey: 'items' }),
+                trust:        c.trust ?? d.trust,
+                testimonials: normalizeBlock(c.testimonials ?? undefined, 'items', { name: 'who', author: 'who', context: 'role' }),
+                faq:          normalizeBlock(c.faq ?? derived.faq, 'items', { question: 'q', answer: 'a' }),
+                credentials:  normalizeBlock(c.credentials ?? undefined, 'items', { description: 'desc', body: 'desc' }),
                 // Carry over enhancedImages so the image picker modal can
                 // surface them from inside the iframe-rendered Astro output.
                 enhancedImages: c.enhancedImages,

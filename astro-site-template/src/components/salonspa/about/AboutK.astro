@@ -1,0 +1,48 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const about = content.about || {};
+const tag = about.tag || '';
+const headline = about.headline || '';
+const paragraphs: string[] = Array.isArray(about.paragraphs) ? about.paragraphs : (about.body ? [about.body] : []);
+const image = about.image || (Array.isArray(about.images) && about.images[0]) || '';
+const quote = about.quote || '';
+---
+<section class="pad-y about-sect" id="about">
+  <div class="wrap about-grid">
+    <div class="about-copy reveal">
+      {tag && <span class="kicker" data-field="about.tag">{tag}</span>}
+      {headline && <h2 class="h-sect" data-field="about.headline" set:html={headline}></h2>}
+      {paragraphs.map((p: string, i: number) => (
+        <p class="about-p" data-field={`about.paragraphs.${i}`} set:html={p}></p>
+      ))}
+      {quote && (
+        <blockquote class="about-quote" data-field="about.quote">"{quote}"</blockquote>
+      )}
+    </div>
+    {image && (
+      <div class="about-img reveal">
+        <div class="bg-img" data-image-field="about.image" style={`background-image:url('${image}');`}></div>
+      </div>
+    )}
+  </div>
+</section>
+<style>
+  .about-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 100px);
+    align-items: center;
+  }
+  .about-copy .h-sect { margin-bottom: 24px; }
+  .about-p { font-size: 16.5px; color: var(--muted, rgba(var(--ink-rgb), .72)); line-height: 1.75; margin: 0 0 18px; }
+  .about-quote {
+    font-family: var(--serif); font-style: italic; font-size: clamp(20px, 2vw, 26px);
+    color: var(--accent); line-height: 1.4; margin: 32px 0 0;
+    padding-left: 22px; border-left: 2px solid var(--accent);
+  }
+  .about-img { aspect-ratio: 4 / 5; overflow: hidden; border: 1px solid var(--line); }
+  .about-img .bg-img { width: 100%; height: 100%; background-size: cover; background-position: center; }
+  @media (max-width: 880px) {
+    .about-grid { grid-template-columns: 1fr; }
+    .about-img { aspect-ratio: 4 / 3; }
+  }
+</style>
