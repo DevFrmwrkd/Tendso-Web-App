@@ -11,8 +11,8 @@ import { api } from '@/convex/_generated/api'
  * bookmark to `/api/download-apk` keeps working.
  *
  * The filename problem ("downloaded as 1704812345678-a8b2c1d4.apk instead
- * of negosyo-digital.apk") is now solved at the upload layer in
- * convex/r2.ts: the APK is stored at a stable key `releases/negosyo-digital.apk`,
+ * of tendso.apk") is now solved at the upload layer in
+ * convex/r2.ts: the APK is stored at a stable key `releases/tendso.apk`,
  * so R2 derives the friendly filename from the storage key. No
  * Content-Disposition rewrites, no presigned URLs, no settings drift.
  */

@@ -52,7 +52,7 @@ const STATUS_COLORS: Record<string, string> = {
     new:       "bg-blue-50 text-blue-700 border-blue-200",
     contacted: "bg-amber-50 text-amber-700 border-amber-200",
     qualified: "bg-purple-50 text-purple-700 border-purple-200",
-    converted: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    converted: "bg-amber-50 text-amber-700 border-amber-200",
     lost:      "bg-rose-50 text-rose-700 border-rose-200",
 };
 
@@ -297,7 +297,7 @@ export default function ProspectsView() {
                                 >
                                     <span
                                         className="inline-block w-1.5 h-1.5 rounded-full"
-                                        style={{ background: "var(--ed-accent-solid, #10B981)" }}
+                                        style={{ background: "var(--ed-accent-solid, #E4B05E)" }}
                                     />
                                     Claimed by {p.claimedBy.displayName} · {timeAgo(p.claimedAt ?? null)}
                                 </div>

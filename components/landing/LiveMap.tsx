@@ -16,8 +16,8 @@ type Props = {
 // Custom SVG pin builders — shape carries meaning (a11y over color alone).
 function makeCreatorIcon(L: typeof import("leaflet")): DivIcon {
     const size = 30;
-    const fill = "oklch(45% 0.12 150)";
-    const stroke = "oklch(28% 0.08 150)";
+    const fill = "oklch(62% 0.115 80)";
+    const stroke = "oklch(38% 0.085 75)";
     const html = `
     <div class="pin-wrap" style="width:${size}px;height:${size}px;">
       <svg class="pin-svg" width="${size}" height="${size}" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">

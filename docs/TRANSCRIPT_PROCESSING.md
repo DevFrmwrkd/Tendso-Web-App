@@ -1,6 +1,6 @@
 # Transcript Processing Flow
 
-This document provides a comprehensive overview of how transcripts are processed in the Negosyo Digital application, including data sources, field names, extracted values, and the complete processing pipeline.
+This document provides a comprehensive overview of how transcripts are processed in the Tendso application, including data sources, field names, extracted values, and the complete processing pipeline.
 
 ## Table of Contents
 

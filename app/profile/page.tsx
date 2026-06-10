@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import Logo from "@/public/logo.png"
+import Logo from "@/public/tendso-logo.png"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -36,18 +36,15 @@ import { BottomNav } from "@/components/BottomNav"
 function CertificateCard({ name, date }: { name: string; date: string }) {
     return (
         <div className="w-full max-w-sm mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-zinc-100">
-            <div className="bg-emerald-500 py-4 px-6 text-center">
-                <div className="flex justify-center mb-1">
-                    <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                        <Image src={Logo} alt="Logo" width={20} height={20} className="opacity-90" />
-                    </div>
+            <div className="bg-amber-500 py-4 px-6 text-center">
+                <div className="flex justify-center">
+                    <Image src={Logo} alt="Tendso" width={130} height={23} />
                 </div>
-                <p className="text-white text-xs font-bold tracking-[0.2em] uppercase">Negosyo Digital</p>
             </div>
             <div className="px-6 py-8 text-center space-y-5">
                 <div className="flex justify-center">
-                    <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center">
-                        <Award className="w-7 h-7 text-emerald-500" />
+                    <div className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center">
+                        <Award className="w-7 h-7 text-amber-500" />
                     </div>
                 </div>
                 <div>
@@ -55,7 +52,7 @@ function CertificateCard({ name, date }: { name: string; date: string }) {
                     <h2 className="text-xl font-bold text-zinc-900">Certified Creator</h2>
                 </div>
                 <div className="flex justify-center">
-                    <div className="w-12 h-0.5 bg-emerald-400 rounded-full" />
+                    <div className="w-12 h-0.5 bg-amber-400 rounded-full" />
                 </div>
                 <div>
                     <p className="text-xs text-zinc-400 mb-2">This certifies that</p>
@@ -71,7 +68,7 @@ function CertificateCard({ name, date }: { name: string; date: string }) {
                     <p className="text-sm font-bold text-zinc-900">{date}</p>
                 </div>
             </div>
-            <div className="bg-emerald-500 py-3 text-center">
+            <div className="bg-amber-500 py-3 text-center">
                 <p className="text-white text-xs font-bold">You can now start earning!</p>
             </div>
         </div>
@@ -197,7 +194,7 @@ export default function ProfilePage() {
             label: "Show My Certificate",
             sublabel: "View your certification",
             icon: Award,
-            iconColor: "text-emerald-500",
+            iconColor: "text-amber-500",
             onClick: () => setShowCertModal(true),
         })
     }
@@ -490,7 +487,7 @@ export default function ProfilePage() {
                         color: "var(--ed-ink-3)",
                     }}
                 >
-                    Negosyo Digital · v1.0.0
+                    Tendso · v1.0.0
                 </p>
             </main>
 
@@ -517,10 +514,10 @@ export default function ProfilePage() {
 
                         {referralSuccess ? (
                             <div className="text-center py-4">
-                                <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                                    <BadgeCheck className="w-7 h-7 text-emerald-500" />
+                                <div className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <BadgeCheck className="w-7 h-7 text-amber-500" />
                                 </div>
-                                <p className="text-sm font-semibold text-emerald-600">Referral code applied!</p>
+                                <p className="text-sm font-semibold text-amber-600">Referral code applied!</p>
                             </div>
                         ) : (
                             <>
@@ -593,7 +590,7 @@ export default function ProfilePage() {
                         <div className="p-4 border-t border-zinc-100 space-y-2">
                             <Button
                                 onClick={handleDownloadCertificate}
-                                className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
+                                className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl flex items-center justify-center gap-2"
                             >
                                 <Download className="w-4 h-4" />
                                 Download Certificate

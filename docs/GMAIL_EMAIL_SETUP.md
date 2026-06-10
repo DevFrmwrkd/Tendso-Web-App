@@ -17,7 +17,7 @@ This guide will help you set up email notifications using Gmail and App Password
    - Scroll to "How you sign in to Google"
    - Click "App passwords" (or "2-Step Verification" → "App passwords")
    - Select "Mail" as the app
-   - Select "Other" as the device and name it "Negosyo Digital"
+   - Select "Other" as the device and name it "Tendso"
    - Click "Generate"
    - **Copy the 16-character password** (you won't see it again!)
 
@@ -42,7 +42,7 @@ NEXT_PUBLIC_PAYMENT_GCASH_NAME="Your Name or Business Name"
 GMAIL_USER=negosyodigital@gmail.com
 GMAIL_APP_PASSWORD=abcd efgh ijkl mnop
 NEXT_PUBLIC_PAYMENT_GCASH_NUMBER=09171234567
-NEXT_PUBLIC_PAYMENT_GCASH_NAME="Negosyo Digital"
+NEXT_PUBLIC_PAYMENT_GCASH_NAME="Tendso"
 ```
 
 ---

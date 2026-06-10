@@ -182,7 +182,7 @@ function CreatorsPageInner() {
     const getStatusBadge = (status: CreatorStatus | undefined) => {
         const safeStatus = status || 'pending'
         const config: Record<string, { bg: string; text: string }> = {
-            active: { bg: 'bg-green-50', text: 'text-green-700' },
+            active: { bg: 'bg-amber-50', text: 'text-amber-700' },
             pending: { bg: 'bg-amber-50', text: 'text-amber-700' },
             suspended: { bg: 'bg-red-50', text: 'text-red-700' },
             deleted: { bg: 'bg-gray-50', text: 'text-gray-700' },
@@ -207,7 +207,7 @@ function CreatorsPageInner() {
         }
         if (creator.certifiedAt) {
             return (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-50 text-amber-700">
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/></svg>
                     Certified
                 </span>
@@ -235,7 +235,7 @@ function CreatorsPageInner() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
             </div>
         )
     }
@@ -246,9 +246,9 @@ function CreatorsPageInner() {
         <AdminLayout>
             {/* Delete Result Banner */}
             {deleteResult && (
-                <div className={`-mx-4 sm:-mx-6 lg:-mx-8 -mt-6 lg:-mt-8 mb-6 border-b ${deleteResult.type === "success" ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
+                <div className={`-mx-4 sm:-mx-6 lg:-mx-8 -mt-6 lg:-mt-8 mb-6 border-b ${deleteResult.type === "success" ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200"}`}>
                     <div className="px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-                        <p className={`text-sm font-medium ${deleteResult.type === "success" ? "text-green-800" : "text-red-800"}`}>
+                        <p className={`text-sm font-medium ${deleteResult.type === "success" ? "text-amber-800" : "text-red-800"}`}>
                             {deleteResult.message}
                         </p>
                         <button onClick={() => setDeleteResult(null)} className="text-gray-400 hover:text-gray-600">
@@ -332,7 +332,7 @@ function CreatorsPageInner() {
                             type="button"
                             onClick={() => changeView(t.key as CreatorView)}
                             className={`relative px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap inline-flex items-center gap-2 ${
-                                active ? 'text-emerald-700' : 'text-gray-600 hover:text-gray-900'
+                                active ? 'text-amber-700' : 'text-gray-600 hover:text-gray-900'
                             }`}
                         >
                             {t.label}
@@ -348,7 +348,7 @@ function CreatorsPageInner() {
                                 </span>
                             )}
                             {active && (
-                                <span className="absolute -bottom-px left-3 right-3 h-0.5 bg-emerald-600 rounded-full" />
+                                <span className="absolute -bottom-px left-3 right-3 h-0.5 bg-amber-600 rounded-full" />
                             )}
                         </button>
                     )
@@ -364,7 +364,7 @@ function CreatorsPageInner() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 lg:mb-8">
                 <button
                     onClick={() => setStatusFilter('all')}
-                    className={`bg-white rounded-2xl p-5 border shadow-sm text-left transition-all cursor-pointer ${statusFilter === 'all' ? "border-green-400 ring-2 ring-green-100" : "border-emerald-500 hover:border-emerald-600"}`}
+                    className={`bg-white rounded-2xl p-5 border shadow-sm text-left transition-all cursor-pointer ${statusFilter === 'all' ? "border-amber-400 ring-2 ring-amber-100" : "border-amber-500 hover:border-amber-600"}`}
                 >
                     <p className="text-xs font-medium text-gray-500 mb-2">Total Creators</p>
                     <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
@@ -372,15 +372,15 @@ function CreatorsPageInner() {
 
                 <button
                     onClick={() => setStatusFilter(statusFilter === 'active' ? 'all' : 'active')}
-                    className={`bg-white rounded-2xl p-5 border shadow-sm text-left transition-all cursor-pointer ${statusFilter === 'active' ? "border-green-400 ring-2 ring-green-100" : "border-emerald-500 hover:border-emerald-600"}`}
+                    className={`bg-white rounded-2xl p-5 border shadow-sm text-left transition-all cursor-pointer ${statusFilter === 'active' ? "border-amber-400 ring-2 ring-amber-100" : "border-amber-500 hover:border-amber-600"}`}
                 >
                     <p className="text-xs font-medium text-gray-500 mb-2">Active</p>
-                    <p className="text-3xl font-bold text-green-600">{stats.active}</p>
+                    <p className="text-3xl font-bold text-amber-600">{stats.active}</p>
                 </button>
 
                 <button
                     onClick={() => setStatusFilter(statusFilter === 'pending' ? 'all' : 'pending')}
-                    className={`bg-white rounded-2xl p-5 border shadow-sm text-left transition-all cursor-pointer ${statusFilter === 'pending' ? "border-amber-400 ring-2 ring-amber-100" : "border-emerald-500 hover:border-emerald-600"}`}
+                    className={`bg-white rounded-2xl p-5 border shadow-sm text-left transition-all cursor-pointer ${statusFilter === 'pending' ? "border-amber-400 ring-2 ring-amber-100" : "border-amber-500 hover:border-amber-600"}`}
                 >
                     <p className="text-xs font-medium text-gray-500 mb-2">Pending</p>
                     <p className="text-3xl font-bold text-amber-600">{stats.pending}</p>
@@ -388,7 +388,7 @@ function CreatorsPageInner() {
 
                 <button
                     onClick={() => setStatusFilter(statusFilter === 'suspended' ? 'all' : 'suspended')}
-                    className={`bg-white rounded-2xl p-5 border shadow-sm text-left transition-all cursor-pointer ${statusFilter === 'suspended' ? "border-red-400 ring-2 ring-red-100" : "border-emerald-500 hover:border-emerald-600"}`}
+                    className={`bg-white rounded-2xl p-5 border shadow-sm text-left transition-all cursor-pointer ${statusFilter === 'suspended' ? "border-red-400 ring-2 ring-red-100" : "border-amber-500 hover:border-amber-600"}`}
                 >
                     <p className="text-xs font-medium text-gray-500 mb-2">Suspended</p>
                     <p className="text-3xl font-bold text-red-600">{stats.suspended}</p>
@@ -396,7 +396,7 @@ function CreatorsPageInner() {
             </div>
 
             {/* Nav Filter + Search */}
-            <div className="bg-white rounded-2xl border border-emerald-500 shadow-sm p-4 sm:p-5 mb-4 sm:mb-6">
+            <div className="bg-white rounded-2xl border border-amber-500 shadow-sm p-4 sm:p-5 mb-4 sm:mb-6">
                 {/* Role Filter Tabs */}
                 <div className="flex items-center gap-1 mb-4 border-b border-gray-100 pb-3">
                     {[
@@ -409,7 +409,7 @@ function CreatorsPageInner() {
                             onClick={() => setRoleFilter(tab.key as typeof roleFilter)}
                             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
                                 roleFilter === tab.key
-                                    ? 'bg-green-50 text-green-700'
+                                    ? 'bg-amber-50 text-amber-700'
                                     : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                             }`}
                         >
@@ -452,7 +452,7 @@ function CreatorsPageInner() {
                             </svg>
                             Sort
                             {sortBy !== 'newest' && (
-                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
                             )}
                         </button>
                         {showSortDropdown && (
@@ -474,7 +474,7 @@ function CreatorsPageInner() {
                                             onClick={() => { setSortBy(option.key); setShowSortDropdown(false) }}
                                             className={`w-full text-left px-4 py-2 text-sm transition-colors ${
                                                 sortBy === option.key
-                                                    ? 'bg-green-50 text-green-700 font-medium'
+                                                    ? 'bg-amber-50 text-amber-700 font-medium'
                                                     : 'text-gray-700 hover:bg-gray-50'
                                             }`}
                                         >
@@ -489,7 +489,7 @@ function CreatorsPageInner() {
             </div>
 
             {/* Creators Table */}
-            <div className="bg-white rounded-2xl border border-emerald-500 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-amber-500 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
@@ -522,8 +522,8 @@ function CreatorsPageInner() {
                                     >
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center shrink-0">
-                                                    <span className="text-xs font-bold text-green-700">
+                                                <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center shrink-0">
+                                                    <span className="text-xs font-bold text-amber-700">
                                                         {getInitials(creator.firstName, creator.lastName)}
                                                     </span>
                                                 </div>
@@ -562,7 +562,7 @@ function CreatorsPageInner() {
                                             <div className="flex items-center gap-2">
                                                 <Link
                                                     href={`/admin/creators/${creator._id}`}
-                                                    className="text-gray-400 hover:text-green-600 transition-colors"
+                                                    className="text-gray-400 hover:text-amber-600 transition-colors"
                                                     title="View details"
                                                 >
                                                     <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>

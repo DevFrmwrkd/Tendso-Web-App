@@ -18,7 +18,7 @@ function getPasswordStrength(pw: string): { level: number; label: string; color:
     const hasNumber = /\d/.test(pw)
     const hasSpecial = /[^A-Za-z0-9]/.test(pw)
     const mixedCase = hasUpper && hasLower
-    if (mixedCase && hasNumber && hasSpecial) return { level: 4, label: "Strong", color: "bg-emerald-500" }
+    if (mixedCase && hasNumber && hasSpecial) return { level: 4, label: "Strong", color: "bg-amber-500" }
     if ((mixedCase && hasNumber) || (mixedCase && hasSpecial)) return { level: 3, label: "Good", color: "bg-yellow-500" }
     return { level: 2, label: "Fair", color: "bg-orange-500" }
 }
@@ -82,7 +82,7 @@ export default function ChangePasswordPage() {
     if (!isLoaded || creator === undefined) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
             </div>
         )
     }
@@ -100,7 +100,7 @@ export default function ChangePasswordPage() {
 
             <main className="px-4">
                 {success && (
-                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-600 text-sm font-medium mb-4 flex items-center gap-2">
+                    <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl text-amber-600 text-sm font-medium mb-4 flex items-center gap-2">
                         <Check className="w-4 h-4" /> Password updated successfully
                     </div>
                 )}
@@ -153,7 +153,7 @@ export default function ChangePasswordPage() {
                         {confirmPw.length > 0 && (
                             <div className="flex items-center gap-1 text-xs">
                                 {passwordsMatch ? (
-                                    <><Check className="w-3.5 h-3.5 text-emerald-500" /><span className="text-emerald-600">Passwords match</span></>
+                                    <><Check className="w-3.5 h-3.5 text-amber-500" /><span className="text-amber-600">Passwords match</span></>
                                 ) : (
                                     <><X className="w-3.5 h-3.5 text-red-500" /><span className="text-red-600">Passwords do not match</span></>
                                 )}

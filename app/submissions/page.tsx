@@ -50,10 +50,10 @@ export default function SubmissionsPage() {
     const getStatusBadge = (sub: any) => {
         const s = sub.status?.toLowerCase()
         const badges: Record<string, { bg: string; text: string }> = {
-            completed: { bg: 'bg-emerald-100 text-emerald-700', text: 'Completed' },
-            deployed: { bg: 'bg-emerald-100 text-emerald-700', text: 'Live' },
-            paid: { bg: 'bg-emerald-100 text-emerald-700', text: 'Paid' },
-            website_generated: { bg: 'bg-emerald-100 text-emerald-700', text: 'Website Ready' },
+            completed: { bg: 'bg-amber-100 text-amber-700', text: 'Completed' },
+            deployed: { bg: 'bg-amber-100 text-amber-700', text: 'Live' },
+            paid: { bg: 'bg-amber-100 text-amber-700', text: 'Paid' },
+            website_generated: { bg: 'bg-amber-100 text-amber-700', text: 'Website Ready' },
             approved: { bg: 'bg-blue-100 text-blue-700', text: 'Approved' },
             rejected: { bg: 'bg-red-100 text-red-700', text: 'Revision' },
             revision: { bg: 'bg-red-100 text-red-700', text: 'Revision' },
@@ -69,8 +69,8 @@ export default function SubmissionsPage() {
 
     const getStatusIcon = (sub: any) => {
         const s = sub.status?.toLowerCase()
-        if (s === 'completed' || s === 'deployed') return <Globe className="w-5 h-5 text-emerald-500" />
-        if (s === 'approved' || s === 'paid' || s === 'website_generated') return <CheckCircle className="w-5 h-5 text-green-500" />
+        if (s === 'completed' || s === 'deployed') return <Globe className="w-5 h-5 text-amber-500" />
+        if (s === 'approved' || s === 'paid' || s === 'website_generated') return <CheckCircle className="w-5 h-5 text-amber-500" />
         if (s === 'rejected' || s === 'revision') return <AlertCircle className="w-5 h-5 text-red-500" />
         if (s === 'draft' || isIncomplete(sub)) return <Clock className="w-5 h-5 text-zinc-400" />
         return <Store className="w-5 h-5 text-orange-500" />
@@ -78,8 +78,8 @@ export default function SubmissionsPage() {
 
     const getStatusBg = (sub: any) => {
         const s = sub.status?.toLowerCase()
-        if (s === 'completed' || s === 'deployed') return 'bg-emerald-50'
-        if (s === 'approved' || s === 'paid' || s === 'website_generated') return 'bg-green-50'
+        if (s === 'completed' || s === 'deployed') return 'bg-amber-50'
+        if (s === 'approved' || s === 'paid' || s === 'website_generated') return 'bg-amber-50'
         if (s === 'rejected' || s === 'revision') return 'bg-red-50'
         if (s === 'draft' || isIncomplete(sub)) return 'bg-zinc-50'
         return 'bg-orange-50'
@@ -103,7 +103,7 @@ export default function SubmissionsPage() {
 
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-zinc-900 leading-tight">
-                        My <span className="text-emerald-500">Submissions</span>
+                        My <span className="text-amber-500">Submissions</span>
                     </h1>
                     <p className="text-zinc-500 text-sm mt-1">Track your business onboardings.</p>
                 </div>
@@ -162,7 +162,7 @@ export default function SubmissionsPage() {
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
                 <Link
                     href="/submit/info"
-                    className="group flex items-center gap-0 bg-emerald-500 rounded-full text-white shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/50 transition-all duration-300 ease-out overflow-hidden"
+                    className="group flex items-center gap-0 bg-amber-500 rounded-full text-white shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-300 ease-out overflow-hidden"
                 >
                     <div className="w-14 h-14 flex items-center justify-center shrink-0">
                         <Plus className="w-8 h-8 group-hover:rotate-90 transition-transform duration-300" />

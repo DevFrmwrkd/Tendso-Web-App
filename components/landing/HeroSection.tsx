@@ -45,14 +45,17 @@ function IssueDate() {
     return <>{label ?? " "}</>;
 }
 
-// English-only strings — page-level i18n lives at the next refactor.
+// Tendso campaign: Hands Full. The Thinking Ends Here. So the work doesn't.
+// Voice: respect for the doer; the page is built around the work, not the
+// other way around. Per docs/changes/TENDSO-REBRAND-LANDING-COPY.md (the
+// Tend "Hands Full" treatment PDF).
 const T = {
-    hero_main: ["No business", "left ", "offline", "."] as const,
-    hero_main_em: "Real shops. Real websites. Real fast.",
+    hero_main: ["Some hands", "don't get to ", "sit still", "."] as const,
+    hero_main_em: "The Thinking Ends Here. So the work doesn't.",
     hero_lede:
-        "A trained creator visits your shop, shoots world-class photos, writes your story, and ships a fully functional website — hosting, domain, copy, everything — in 48 hours. You don't touch a keyboard once.",
+        "Your hands are full of customers, orders, tools, dough, kids. The internet asks you to stop and design. We built around that — a creator visits, asks a few questions, photographs the work, and your page forms around it. Live in 48 hours. No template. No design tab. No blank page.",
     door_business: "I own a business",
-    door_business_sub: "Find a creator near me",
+    door_business_sub: "Page built around my work",
     door_creator: "I want to earn",
     door_creator_sub: "Become a certified creator",
     counter_creators: "creators",
@@ -175,10 +178,10 @@ export default function HeroSection() {
                         </p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 28 }}>
                             {[
-                                "Real photographer",
-                                "Written copy",
-                                "Hosting + domain",
-                                "You don't lift a finger",
+                                "Photo. Answers. Live page.",
+                                "No template",
+                                "No blank screen",
+                                "Built around the work",
                                 "Live in 48 hours",
                             ].map((p) => (
                                 <span
@@ -227,14 +230,14 @@ export default function HeroSection() {
                             href="/for-business"
                             sub={T.door_business_sub}
                             title={T.door_business}
-                            note="See exactly what we deliver — photos, copy, domain, hosting — and find a creator within 10 km of your shop."
+                            note="Keep cutting, kneading, packing, answering. A creator handles the rest and shows up at your shop within 10 km."
                         />
                         <DoorButton
                             kind="creator"
                             href="/for-creators"
                             sub={T.door_creator_sub}
                             title={T.door_creator}
-                            note="See how much creators actually earn, how referrals stack up, and how to get certified this week."
+                            note="Help owners who can't stop working. ₱500 per video, ₱300 per audio, ₱1,000 per referral. Paid in 48 hours."
                         />
                     </div>
                     <div

@@ -237,8 +237,8 @@ export default function LinkPopover({ open, initial, onClose, onSave }: LinkPopo
                         type="submit"
                         style={{
                             padding: '9px 16px',
-                            border: '1px solid #10b981',
-                            background: '#10b981',
+                            border: '1px solid #E4B05E',
+                            background: '#E4B05E',
                             color: '#fff',
                             borderRadius: 8,
                             fontSize: 13,

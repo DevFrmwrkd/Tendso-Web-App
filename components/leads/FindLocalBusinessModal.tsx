@@ -367,7 +367,7 @@ export default function FindLocalBusinessModal({
                                 onClick={handleSubmit}
                                 className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-[14px] font-semibold mb-2"
                                 style={{
-                                    background: "var(--ed-accent-solid, #10B981)",
+                                    background: "var(--ed-accent-solid, #E4B05E)",
                                     color: "#fff",
                                 }}
                             >
@@ -406,7 +406,7 @@ function ActivePanel({ phase }: { phase: Exclude<Phase, "idle"> }) {
                     <div
                         className="absolute inset-0 rounded-full leads-modal-halo"
                         style={{
-                            background: "var(--ed-accent-solid, #10B981)",
+                            background: "var(--ed-accent-solid, #E4B05E)",
                             opacity: 0.25,
                             transform: "scale(1)",
                             animation: "leadsModalHalo 1800ms ease-in-out infinite",
@@ -417,7 +417,7 @@ function ActivePanel({ phase }: { phase: Exclude<Phase, "idle"> }) {
                     <div
                         className="relative w-16 h-16 rounded-full inline-flex items-center justify-center"
                         style={{
-                            background: "var(--ed-accent-solid, #10B981)",
+                            background: "var(--ed-accent-solid, #E4B05E)",
                             color: "#fff",
                             zIndex: 1,
                         }}
@@ -445,9 +445,9 @@ function ActivePanel({ phase }: { phase: Exclude<Phase, "idle"> }) {
                                 background: isActive
                                     ? "var(--ed-paper-3)"
                                     : isDone
-                                        ? "var(--ed-accent-bg, #D1FAE5)"
+                                        ? "var(--ed-accent-bg, #F5E4C0)"
                                         : "var(--ed-paper-2)",
-                                border: isActive ? "1.5px solid var(--ed-accent-solid, #10B981)" : "1px solid var(--ed-rule)",
+                                border: isActive ? "1.5px solid var(--ed-accent-solid, #E4B05E)" : "1px solid var(--ed-rule)",
                                 color: isActive ? "var(--ed-ink)" : isDone ? "var(--ed-ink-2)" : "var(--ed-ink-3)",
                             }}
                         >
@@ -455,12 +455,12 @@ function ActivePanel({ phase }: { phase: Exclude<Phase, "idle"> }) {
                                 className="w-5 h-5 rounded-full inline-flex items-center justify-center flex-shrink-0 mt-0.5"
                                 style={{
                                     background: isDone
-                                        ? "var(--ed-accent-solid, #10B981)"
+                                        ? "var(--ed-accent-solid, #E4B05E)"
                                         : isActive
                                             ? "transparent"
                                             : "transparent",
                                     border: isActive
-                                        ? "1.5px solid var(--ed-accent-solid, #10B981)"
+                                        ? "1.5px solid var(--ed-accent-solid, #E4B05E)"
                                         : isDone
                                             ? "none"
                                             : "1px solid var(--ed-rule-strong, #B7AC95)",
@@ -471,7 +471,7 @@ function ActivePanel({ phase }: { phase: Exclude<Phase, "idle"> }) {
                                 {isActive && (
                                     <Loader2
                                         className="w-3 h-3 animate-spin"
-                                        style={{ color: "var(--ed-accent-solid, #10B981)" }}
+                                        style={{ color: "var(--ed-accent-solid, #E4B05E)" }}
                                     />
                                 )}
                                 {!isDone && !isActive && (

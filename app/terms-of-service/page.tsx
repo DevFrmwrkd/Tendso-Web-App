@@ -13,7 +13,7 @@ const termsSections = [
         icon: Scale,
         title: "Acceptance of Terms",
         content:
-            "By accessing or using the Negosyo Digital platform (including our mobile app and web portal), you agree to be strictly bound by these Terms of Service. Users of all ages are welcome, including students and young entrepreneurs.",
+            "By accessing or using the Tendso platform (including our mobile app and web portal), you agree to be strictly bound by these Terms of Service. Users of all ages are welcome, including students and young entrepreneurs.",
     },
     {
         marker: "§ 02",
@@ -41,7 +41,7 @@ const termsSections = [
         icon: Users,
         title: "Intellectual Property",
         content:
-            "By uploading media to Negosyo Digital, you grant us a worldwide, non-exclusive license to use, display, transcribe (via AI), and deploy the content to generate websites for the respective businesses.",
+            "By uploading media to Tendso, you grant us a worldwide, non-exclusive license to use, display, transcribe (via AI), and deploy the content to generate websites for the respective businesses.",
     },
     {
         marker: "§ 06",
@@ -118,7 +118,7 @@ export default function TermsOfServicePage() {
                             fontSize: "clamp(1.1rem, 1.6vw, 1.4rem)",
                         }}
                     >
-                        The operational guidelines governing your use of the Negosyo Digital Creator Network.
+                        The operational guidelines governing your use of the Tendso Creator Network.
                     </p>
                     <div className="w-px h-20 bg-gradient-to-b from-[var(--rust)] to-transparent mx-auto mt-12" />
                 </motion.div>

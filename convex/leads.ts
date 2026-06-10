@@ -997,7 +997,7 @@ export const geocodePendingSubmissions = action({
                     headers: {
                         // Nominatim ToS requires a User-Agent that
                         // identifies the application.
-                        'User-Agent': 'NegosyoDigital/1.0 (frmwrkd.media@gmail.com)',
+                        'User-Agent': 'Tendso/1.0 (frmwrkd.media@gmail.com)',
                         Accept: 'application/json',
                     },
                 });

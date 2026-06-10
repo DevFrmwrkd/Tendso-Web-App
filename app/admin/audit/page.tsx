@@ -35,7 +35,7 @@ const ACTION_LABELS: Record<AuditAction, string> = {
 }
 
 const ACTION_COLORS: Record<AuditAction, { bg: string; text: string }> = {
-    submission_approved: { bg: 'bg-green-50', text: 'text-green-700' },
+    submission_approved: { bg: 'bg-amber-50', text: 'text-amber-700' },
     submission_rejected: { bg: 'bg-red-50', text: 'text-red-700' },
     website_generated: { bg: 'bg-purple-50', text: 'text-purple-700' },
     website_deployed: { bg: 'bg-blue-50', text: 'text-blue-700' },
@@ -101,7 +101,7 @@ export default function AuditLogsPage() {
     if (authLoading || auditLogs === undefined) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
             </div>
         )
     }
@@ -118,29 +118,29 @@ export default function AuditLogsPage() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mb-6 lg:mb-8">
-                <div className="bg-white rounded-2xl p-5 border border-emerald-500 shadow-sm">
+                <div className="bg-white rounded-2xl p-5 border border-amber-500 shadow-sm">
                     <p className="text-xs font-medium text-gray-500 mb-2">Total Events</p>
                     <p className="text-3xl font-bold text-gray-900">{logStats.total}</p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 border border-emerald-500 shadow-sm">
+                <div className="bg-white rounded-2xl p-5 border border-amber-500 shadow-sm">
                     <p className="text-xs font-medium text-gray-500 mb-2">Approvals</p>
-                    <p className="text-3xl font-bold text-green-600">{logStats.approvals}</p>
+                    <p className="text-3xl font-bold text-amber-600">{logStats.approvals}</p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 border border-emerald-500 shadow-sm">
+                <div className="bg-white rounded-2xl p-5 border border-amber-500 shadow-sm">
                     <p className="text-xs font-medium text-gray-500 mb-2">Rejections</p>
                     <p className="text-3xl font-bold text-red-600">{logStats.rejections}</p>
                 </div>
 
-                <div className="bg-white rounded-2xl p-5 border border-emerald-500 shadow-sm">
+                <div className="bg-white rounded-2xl p-5 border border-amber-500 shadow-sm">
                     <p className="text-xs font-medium text-gray-500 mb-2">Payments</p>
                     <p className="text-3xl font-bold text-orange-600">{logStats.payments}</p>
                 </div>
             </div>
 
             {/* Filter Tabs */}
-            <div className="bg-white rounded-2xl border border-emerald-500 shadow-sm p-4 sm:p-5 mb-4 sm:mb-6">
+            <div className="bg-white rounded-2xl border border-amber-500 shadow-sm p-4 sm:p-5 mb-4 sm:mb-6">
                 <div className="flex gap-2 overflow-x-auto">
                     {FILTER_TABS.map((tab) => (
                         <button
@@ -148,7 +148,7 @@ export default function AuditLogsPage() {
                             onClick={() => setActiveFilter(tab.key)}
                             className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors ${
                                 activeFilter === tab.key
-                                    ? 'bg-green-500 text-white'
+                                    ? 'bg-amber-500 text-white'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
@@ -159,7 +159,7 @@ export default function AuditLogsPage() {
             </div>
 
             {/* Audit Logs Table */}
-            <div className="bg-white rounded-2xl border border-emerald-500 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-amber-500 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
@@ -204,7 +204,7 @@ export default function AuditLogsPage() {
                                                 {log.targetType === 'submission' && (
                                                     <Link
                                                         href={`/admin/submissions/${log.targetId}`}
-                                                        className="inline-flex text-gray-400 hover:text-green-600 transition-colors"
+                                                        className="inline-flex text-gray-400 hover:text-amber-600 transition-colors"
                                                         title="View submission"
                                                     >
                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
@@ -330,7 +330,7 @@ export default function AuditLogsPage() {
                                 {selectedLog.targetType === 'submission' && (
                                     <Link
                                         href={`/admin/submissions/${selectedLog.targetId}`}
-                                        className="block w-full text-center px-4 py-2.5 bg-green-500 text-white rounded-xl font-medium text-sm hover:bg-green-600 transition-colors"
+                                        className="block w-full text-center px-4 py-2.5 bg-amber-500 text-white rounded-xl font-medium text-sm hover:bg-amber-600 transition-colors"
                                     >
                                         View Submission
                                     </Link>

@@ -1,8 +1,8 @@
-# Mobile App Overview — Negosyo Digital
+# Mobile App Overview — Tendso
 
 ## What Is This App?
 
-Negosyo Digital is a React Native mobile app that helps Filipino "creators" (field agents) digitize local businesses. Creators visit a small business, collect information (photos, video/audio interview, business details), and submit it through the app. The platform then generates a website for the business, deploys it, and tracks leads — the creator earns a payout for each successful submission.
+Tendso is a React Native mobile app that helps Filipino "creators" (field agents) digitize local businesses. Creators visit a small business, collect information (photos, video/audio interview, business details), and submit it through the app. The platform then generates a website for the business, deploys it, and tracks leads — the creator earns a payout for each successful submission.
 
 ---
 
@@ -409,7 +409,7 @@ Each section has an uppercase gray title label and a white rounded card (20px ra
 - Shows spinner and "Signing out..." text while processing
 
 **App Version:**
-- "Negosyo Digital Mobile v1.0.0" text centered at the bottom in light gray
+- "Tendso Mobile v1.0.0" text centered at the bottom in light gray
 
 **Referral Code Modal (bottom sheet):**
 - Triggered by tapping "Enter Referral Code" in the Account menu
@@ -459,7 +459,7 @@ Each section has an uppercase gray title label and a white rounded card (20px ra
 - Referral code displayed in large green text (`#34d399`, 28px, weight 800, letter-spacing 4) on a dark inner card (`#27272a`)
 - Two action buttons side by side:
   - **Copy Code** — dark button (`#27272a`), toggles to dark green (`#065f46`) with checkmark icon and "Copied!" text for 2.5 seconds after tap. Uses `expo-clipboard` (`Clipboard.setStringAsync`)
-  - **Share** — green button (`#10b981`), opens native share sheet via `Share.share()` with message: "Join Negosyo Digital and digitalize your business! Use my referral code: {CODE}"
+  - **Share** — green button (`#10b981`), opens native share sheet via `Share.share()` with message: "Join Tendso and digitalize your business! Use my referral code: {CODE}"
 
 **Stats Row (3 cards):**
 - Three equal-width white cards with colored circular icons:
@@ -1732,7 +1732,7 @@ The submission detail page (`app/admin/submissions/[id]/page.tsx`) now includes 
 | `R2_ACCOUNT_ID` | Cloudflare R2 account ID |
 | `R2_ACCESS_KEY_ID` | R2 access key for uploads |
 | `R2_SECRET_ACCESS_KEY` | R2 secret key for uploads |
-| `R2_BUCKET_NAME` | R2 bucket name (default: `negosyo-digital`) |
+| `R2_BUCKET_NAME` | R2 bucket name (default: `tendso`) |
 | `AIRTABLE_API_KEY` | Airtable API key for AI content pipeline |
 | `AIRTABLE_BASE_ID` | Airtable base ID |
 | `AIRTABLE_TABLE_ID` | Airtable table ID |

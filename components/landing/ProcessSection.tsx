@@ -3,23 +3,23 @@
 const STEPS = [
     {
         k: "01",
-        h: "Creator visits the shop",
-        sub: "A trained Negosyo creator walks in with a phone and a checklist. 30 minutes of questions, coffee on you.",
+        h: "A photo",
+        sub: "A trained Tendso creator visits your shop. They photograph what you'd photograph if you had time. The work, the hands, the place.",
     },
     {
         k: "02",
-        h: "Photos get processed",
-        sub: "Their shots go through our auto-grading pipeline. Color, crop, exposure — leveled to a national standard.",
+        h: "A few answers",
+        sub: "Short questions about your business, asked while you keep working. No essays, no design vocabulary. Just what you'd tell a customer.",
     },
     {
         k: "03",
-        h: "Copy gets written",
-        sub: "Your story, in your voice, shaped by our editors. Translated automatically into every locale you serve.",
+        h: "A guided page",
+        sub: "Your photos, your words, your hours, your services — gathered, structured, drafted as a real coded page. You don't pick a template.",
     },
     {
         k: "04",
-        h: "Your Online Kit ships",
-        sub: "Website. Domain. Hosting. SEO. Social-ready assets. Auto-generated menu and price list. Not a homepage — a full kit.",
+        h: "Reviewed and live",
+        sub: "A quick review pass. You adjust one thing, or nothing. Your page goes live. The hands go back to work.",
     },
 ];
 
@@ -68,10 +68,10 @@ export default function ProcessSection() {
                     <div className="eyebrow">§ Process</div>
                     <div>
                         <h2 className="display-2">
-                            We don&apos;t ship websites. <em style={{ fontStyle: "italic" }}>We ship Online Kits.</em>
+                            The page comes <em style={{ fontStyle: "italic" }}>from the work</em>.
                         </h2>
                         <p className="lede" style={{ marginTop: 12 }}>
-                            Four moves, one outcome. The business owner answers questions. Everything else happens off-stage.
+                            Four small moves. None of them require you to put the work down.
                         </p>
                     </div>
                 </div>

@@ -27,7 +27,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     new: { label: "New", color: "bg-blue-100 text-blue-700" },
     contacted: { label: "Contacted", color: "bg-amber-100 text-amber-700" },
     qualified: { label: "Qualified", color: "bg-purple-100 text-purple-700" },
-    converted: { label: "Converted", color: "bg-green-100 text-green-700" },
+    converted: { label: "Converted", color: "bg-amber-100 text-amber-700" },
     lost: { label: "Lost", color: "bg-red-100 text-red-700" },
 }
 
@@ -90,7 +90,7 @@ export default function AdminLeadsPage() {
         return (
             <AdminLayout>
                 <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500" />
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
                 </div>
             </AdminLayout>
         )
@@ -250,7 +250,7 @@ export default function AdminLeadsPage() {
                     {activeTab === "customers" && (
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold text-sm hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-500/20"
+                            className="flex items-center gap-2 px-4 py-2.5 bg-amber-600 text-white rounded-xl font-semibold text-sm hover:bg-amber-700 transition-colors shadow-lg shadow-amber-500/20"
                         >
                             <Plus size={18} />
                             Add Lead
@@ -332,12 +332,12 @@ export default function AdminLeadsPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search by name, phone, email, or business..."
-                        className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                     />
                 </div>
 
                 {/* Leads Table */}
-                <div className="bg-white rounded-2xl border border-emerald-500 overflow-hidden">
+                <div className="bg-white rounded-2xl border border-amber-500 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
@@ -491,7 +491,7 @@ export default function AdminLeadsPage() {
                                 <div>
                                     <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Link to Business <span className="text-gray-400 normal-case font-normal">(optional)</span></label>
                                     {selectedSubmission ? (
-                                        <div className="mt-1 flex items-center justify-between px-3 py-2.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+                                        <div className="mt-1 flex items-center justify-between px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
                                             <div>
                                                 <p className="text-sm font-semibold text-gray-900">{selectedSubmission.businessName}</p>
                                                 <p className="text-xs text-gray-500">{selectedSubmission.city} · {selectedSubmission.businessType}</p>
@@ -507,7 +507,7 @@ export default function AdminLeadsPage() {
                                                 type="text"
                                                 value={businessSearch}
                                                 onChange={(e) => setBusinessSearch(e.target.value)}
-                                                className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                                className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                                                 placeholder="Search business name..."
                                             />
                                             {businessSearch && filteredSubmissions.length > 0 && (
@@ -543,7 +543,7 @@ export default function AdminLeadsPage() {
                                             type="text"
                                             value={newLead.name}
                                             onChange={(e) => { setNewLead({ ...newLead, name: e.target.value }); setAddErrors((p) => ({ ...p, name: '' })) }}
-                                            className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${addErrors.name ? 'border-red-400' : 'border-gray-200'}`}
+                                            className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${addErrors.name ? 'border-red-400' : 'border-gray-200'}`}
                                             placeholder="Contact name"
                                         />
                                         {addErrors.name && <p className="text-xs text-red-500 mt-1">{addErrors.name}</p>}
@@ -554,7 +554,7 @@ export default function AdminLeadsPage() {
                                             type="text"
                                             value={newLead.phone}
                                             onChange={(e) => { setNewLead({ ...newLead, phone: e.target.value }); setAddErrors((p) => ({ ...p, phone: '' })) }}
-                                            className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${addErrors.phone ? 'border-red-400' : 'border-gray-200'}`}
+                                            className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${addErrors.phone ? 'border-red-400' : 'border-gray-200'}`}
                                             placeholder="+63 9XX XXX XXXX"
                                         />
                                         {addErrors.phone && <p className="text-xs text-red-500 mt-1">{addErrors.phone}</p>}
@@ -566,7 +566,7 @@ export default function AdminLeadsPage() {
                                         type="email"
                                         value={newLead.email}
                                         onChange={(e) => { setNewLead({ ...newLead, email: e.target.value }); setAddErrors((p) => ({ ...p, email: '' })) }}
-                                        className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${addErrors.email ? 'border-red-400' : 'border-gray-200'}`}
+                                        className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${addErrors.email ? 'border-red-400' : 'border-gray-200'}`}
                                         placeholder="Optional"
                                     />
                                     {addErrors.email && <p className="text-xs text-red-500 mt-1">{addErrors.email}</p>}
@@ -576,7 +576,7 @@ export default function AdminLeadsPage() {
                                     <textarea
                                         value={newLead.message}
                                         onChange={(e) => setNewLead({ ...newLead, message: e.target.value })}
-                                        className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none h-20"
+                                        className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none h-20"
                                         placeholder="Optional notes"
                                     />
                                 </div>
@@ -591,7 +591,7 @@ export default function AdminLeadsPage() {
                                 <button
                                     onClick={handleAddLead}
                                     disabled={!newLead.name || !newLead.phone}
-                                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold text-sm hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                                    className="px-5 py-2.5 bg-amber-600 text-white rounded-xl font-semibold text-sm hover:bg-amber-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                                 >
                                     Add Lead
                                 </button>
@@ -623,7 +623,7 @@ export default function AdminLeadsPage() {
                                             type="text"
                                             value={editForm.name}
                                             onChange={(e) => { setEditForm({ ...editForm, name: e.target.value }); setEditErrors((p) => ({ ...p, name: '' })) }}
-                                            className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${editErrors.name ? 'border-red-400' : 'border-gray-200'}`}
+                                            className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${editErrors.name ? 'border-red-400' : 'border-gray-200'}`}
                                         />
                                         {editErrors.name && <p className="text-xs text-red-500 mt-1">{editErrors.name}</p>}
                                     </div>
@@ -633,7 +633,7 @@ export default function AdminLeadsPage() {
                                             type="text"
                                             value={editForm.phone}
                                             onChange={(e) => { setEditForm({ ...editForm, phone: e.target.value }); setEditErrors((p) => ({ ...p, phone: '' })) }}
-                                            className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${editErrors.phone ? 'border-red-400' : 'border-gray-200'}`}
+                                            className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${editErrors.phone ? 'border-red-400' : 'border-gray-200'}`}
                                         />
                                         {editErrors.phone && <p className="text-xs text-red-500 mt-1">{editErrors.phone}</p>}
                                     </div>
@@ -644,7 +644,7 @@ export default function AdminLeadsPage() {
                                         type="email"
                                         value={editForm.email}
                                         onChange={(e) => { setEditForm({ ...editForm, email: e.target.value }); setEditErrors((p) => ({ ...p, email: '' })) }}
-                                        className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 ${editErrors.email ? 'border-red-400' : 'border-gray-200'}`}
+                                        className={`w-full mt-1 px-3 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 ${editErrors.email ? 'border-red-400' : 'border-gray-200'}`}
                                     />
                                     {editErrors.email && <p className="text-xs text-red-500 mt-1">{editErrors.email}</p>}
                                 </div>
@@ -653,7 +653,7 @@ export default function AdminLeadsPage() {
                                     <textarea
                                         value={editForm.message}
                                         onChange={(e) => setEditForm({ ...editForm, message: e.target.value })}
-                                        className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none h-20"
+                                        className="w-full mt-1 px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none h-20"
                                     />
                                 </div>
                             </div>
@@ -664,7 +664,7 @@ export default function AdminLeadsPage() {
                                 <button
                                     onClick={handleEditLead}
                                     disabled={!editForm.name || !editForm.phone}
-                                    className="px-5 py-2.5 bg-emerald-600 text-white rounded-xl font-semibold text-sm hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                                    className="px-5 py-2.5 bg-amber-600 text-white rounded-xl font-semibold text-sm hover:bg-amber-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                                 >
                                     Save Changes
                                 </button>

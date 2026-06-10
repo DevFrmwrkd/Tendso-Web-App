@@ -266,7 +266,7 @@ export default function UploadPhotosPage() {
             {/* Progress Bar */}
             <div className="px-4 mb-6">
                 <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500 rounded-full" style={{ width: '50%' }}></div>
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '50%' }}></div>
                 </div>
             </div>
 
@@ -298,7 +298,7 @@ export default function UploadPhotosPage() {
                                 disabled={loading || totalCount >= 10}
                             />
                             <div className="space-y-2">
-                                <div className="mx-auto w-12 h-12 bg-green-100 text-green-500 rounded-full flex items-center justify-center">
+                                <div className="mx-auto w-12 h-12 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center">
                                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
@@ -320,7 +320,7 @@ export default function UploadPhotosPage() {
                                 const isValidUrl = resolvedUrl && !resolvedUrl.startsWith('convex:')
 
                                 return (
-                                    <div key={originalUrl} className="relative aspect-square bg-green-50 rounded-lg overflow-hidden group border border-green-200">
+                                    <div key={originalUrl} className="relative aspect-square bg-amber-50 rounded-lg overflow-hidden group border border-amber-200">
                                         {isValidUrl ? (
                                             <img
                                                 src={resolvedUrl}
@@ -342,7 +342,7 @@ export default function UploadPhotosPage() {
                                             </svg>
                                         </button>
                                         <div className="absolute bottom-1 left-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <span className="text-xs text-white font-medium bg-green-600/80 px-2 py-0.5 rounded">Saved</span>
+                                            <span className="text-xs text-white font-medium bg-amber-600/80 px-2 py-0.5 rounded">Saved</span>
                                         </div>
                                     </div>
                                 )
@@ -372,7 +372,7 @@ export default function UploadPhotosPage() {
                         {/* Count Info */}
                         <div className="flex justify-between text-sm text-gray-500">
                             <span>{totalCount} of 10 photos total</span>
-                            <span className={totalCount < 3 ? "text-amber-500" : "text-green-500"}>
+                            <span className={totalCount < 3 ? "text-amber-500" : "text-amber-500"}>
                                 {totalCount < 3 ? "Need at least 3" : "Good to go!"}
                             </span>
                         </div>
@@ -381,7 +381,7 @@ export default function UploadPhotosPage() {
                         <Button
                             onClick={handleNext}
                             disabled={loading || totalCount < 3}
-                            className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors mt-8"
+                            className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors mt-8"
                         >
                             {loading ? (
                                 <span className="flex items-center gap-2">

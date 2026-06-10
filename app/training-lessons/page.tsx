@@ -107,7 +107,7 @@ export default function TrainingLessonsPage() {
                                     <ul className="space-y-2">
                                         {lesson.tips.map((tip, j) => (
                                             <li key={j} className="flex gap-2 text-sm text-zinc-600">
-                                                <span className="text-emerald-500 font-bold shrink-0">•</span>
+                                                <span className="text-amber-500 font-bold shrink-0">•</span>
                                                 {tip}
                                             </li>
                                         ))}
@@ -125,7 +125,7 @@ export default function TrainingLessonsPage() {
                 <div className="pt-4">
                     <Button
                         onClick={() => router.push("/certification-quiz")}
-                        className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/20"
+                        className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/20"
                     >
                         Start Certification Quiz
                         <ArrowRight className="w-4 h-4 ml-2" />

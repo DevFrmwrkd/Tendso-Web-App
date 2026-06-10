@@ -121,7 +121,7 @@ export default function TopActionBar({
         {/* Back + title */}
         <Link
           href="/admin"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-700 hover:text-emerald-700 px-3 py-2 rounded-xl border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors shrink-0"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-700 hover:text-amber-700 px-3 py-2 rounded-xl border border-neutral-200 hover:border-amber-300 hover:bg-amber-50 transition-colors shrink-0"
         >
           <ArrowLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Back</span>
@@ -276,7 +276,7 @@ function PrimaryBtn({
   tone?: "emerald" | "amber" | "indigo";
 }) {
   const tones: Record<string, string> = {
-    emerald: "bg-emerald-600 hover:bg-emerald-700 text-white",
+    emerald: "bg-amber-600 hover:bg-amber-700 text-white",
     amber: "bg-amber-500 hover:bg-amber-600 text-white",
     indigo: "bg-indigo-600 hover:bg-indigo-700 text-white",
   };
@@ -307,7 +307,7 @@ function SecondaryBtn({
 }) {
   const cls = danger
     ? "bg-white border border-rose-200 hover:bg-rose-50 hover:border-rose-300 text-rose-700"
-    : "bg-white border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 text-neutral-800 hover:text-emerald-800";
+    : "bg-white border border-neutral-200 hover:border-amber-300 hover:bg-amber-50 text-neutral-800 hover:text-amber-800";
   return (
     <button
       onClick={onClick}

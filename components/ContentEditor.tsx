@@ -1118,7 +1118,7 @@ export const StylePreviewBadge = ({ style, type, colorScheme = 'blue' }: { style
     // Dynamic colors based on scheme
     const themeColors: Record<string, string> = {
         'blue': 'bg-blue-600',
-        'green': 'bg-emerald-600',
+        'green': 'bg-amber-600',
         'purple': 'bg-indigo-600',
         'orange': 'bg-orange-600',
         'dark': 'bg-gray-900',
@@ -1356,7 +1356,7 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
                         <div
                             key={cat.key}
                             className={`border rounded-lg overflow-hidden transition-colors ${
-                                isActiveCat ? 'border-emerald-400' : 'border-gray-200'
+                                isActiveCat ? 'border-amber-400' : 'border-gray-200'
                             }`}
                         >
                             {/* Category header */}
@@ -1364,7 +1364,7 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
                                 type="button"
                                 onClick={() => toggleSection(sectionKey)}
                                 className={`w-full flex items-center gap-3 p-3 text-left transition-colors ${
-                                    isActiveCat ? 'bg-emerald-50' : 'bg-gray-50 hover:bg-gray-100'
+                                    isActiveCat ? 'bg-amber-50' : 'bg-gray-50 hover:bg-gray-100'
                                 }`}
                             >
                                 <span className="text-xl shrink-0 leading-none">{cat.emoji}</span>
@@ -1372,7 +1372,7 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
                                     <div className="flex items-center gap-2">
                                         <span className="font-medium text-gray-900">{cat.label}</span>
                                         {isActiveCat && (
-                                            <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100 rounded-full px-1.5 py-0.5">
+                                            <span className="text-[9px] font-bold uppercase tracking-wider text-amber-700 bg-amber-100 rounded-full px-1.5 py-0.5">
                                                 Active
                                             </span>
                                         )}
@@ -1425,7 +1425,7 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
                                                                 className={`
                                                                     group relative flex flex-col p-2.5 rounded-2xl border transition-all text-left
                                                                     ${isSelected
-                                                                        ? 'bg-emerald-50/50 border-emerald-300 ring-2 ring-emerald-50 ring-offset-0'
+                                                                        ? 'bg-amber-50/50 border-amber-300 ring-2 ring-amber-50 ring-offset-0'
                                                                         : isAvailable
                                                                             ? 'bg-white border-gray-100 hover:border-gray-300 hover:bg-gray-50 hover:shadow-md'
                                                                             : 'bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed'}
@@ -1440,12 +1440,12 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
                                                                 <div className="flex-1 min-w-0 px-0.5">
                                                                     <div className="flex items-center gap-1.5">
                                                                         <span className={`text-[10px] font-black uppercase tracking-tight truncate ${
-                                                                            isSelected ? 'text-emerald-700' : isAvailable ? 'text-gray-900' : 'text-gray-400'
+                                                                            isSelected ? 'text-amber-700' : isAvailable ? 'text-gray-900' : 'text-gray-400'
                                                                         }`}>
                                                                             {v.label}
                                                                         </span>
                                                                         {isSelected && (
-                                                                            <div className="w-3 h-3 bg-emerald-500 rounded-full flex items-center justify-center shrink-0">
+                                                                            <div className="w-3 h-3 bg-amber-500 rounded-full flex items-center justify-center shrink-0">
                                                                                 <Check size={7} className="text-white" strokeWidth={4} />
                                                                             </div>
                                                                         )}
@@ -1466,7 +1466,7 @@ export default function ContentEditor({ initialCustomizations, onUpdate, disable
                                                                 {isSelected && (
                                                                     <motion.div
                                                                         layoutId={`variant-selected-${sectionId}`}
-                                                                        className="absolute inset-0 border-2 border-emerald-500 rounded-2xl pointer-events-none z-20"
+                                                                        className="absolute inset-0 border-2 border-amber-500 rounded-2xl pointer-events-none z-20"
                                                                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                                                                     />
                                                                 )}

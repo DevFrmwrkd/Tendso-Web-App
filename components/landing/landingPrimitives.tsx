@@ -26,32 +26,24 @@ export function useTickUp(target: number | null | undefined, duration = 1200): n
     return v;
 }
 
+/**
+ * Tendso wordmark. The asset (/tendso-logo.png, 494×89) is WHITE on
+ * transparent — renders as-is on dark surfaces (`inverted`), and gets a
+ * CSS invert (white→black ink) on the default light paper surfaces.
+ */
 export function Logo({ inverted = false }: { inverted?: boolean }) {
     return (
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-            <span
-                style={{
-                    fontFamily: "var(--neo-serif)",
-                    fontStyle: "italic",
-                    fontSize: 22,
-                    letterSpacing: "-.02em",
-                    color: inverted ? "var(--neo-paper)" : "var(--neo-ink)",
-                }}
-            >
-                Negosyo
-            </span>
-            <span
-                style={{
-                    fontFamily: "var(--neo-mono)",
-                    fontSize: 11,
-                    letterSpacing: ".18em",
-                    textTransform: "uppercase",
-                    color: "var(--neo-ink-3)",
-                }}
-            >
-                Digital
-            </span>
-        </div>
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+            src="/tendso-logo.png"
+            alt="Tendso"
+            width={128}
+            height={23}
+            style={{
+                display: "block",
+                filter: inverted ? "none" : "invert(1)",
+            }}
+        />
     );
 }
 

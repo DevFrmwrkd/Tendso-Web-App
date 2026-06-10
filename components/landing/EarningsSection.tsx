@@ -44,10 +44,10 @@ export default function EarningsSection() {
                                 style={{
                                     padding: "32px 28px",
                                     background: featured
-                                        ? "oklch(45% 0.12 150 / .15)"
+                                        ? "oklch(62% 0.115 80 / .15)"
                                         : "oklch(20% 0.015 260)",
                                     border: featured
-                                        ? "1px solid oklch(45% 0.12 150 / .5)"
+                                        ? "1px solid oklch(62% 0.115 80 / .5)"
                                         : "1px solid oklch(40% 0.015 260)",
                                     borderRadius: "var(--neo-r-lg)",
                                     display: "flex",
@@ -105,7 +105,7 @@ export default function EarningsSection() {
                                 className="label"
                                 style={{
                                     marginBottom: 12,
-                                    color: c.highlight ? "oklch(95% 0.05 150)" : "oklch(72% 0.008 85)",
+                                    color: c.highlight ? "oklch(95% 0.04 85)" : "oklch(72% 0.008 85)",
                                 }}
                             >
                                 {c.label}
@@ -116,7 +116,7 @@ export default function EarningsSection() {
                             <div
                                 style={{
                                     fontSize: 13,
-                                    color: c.highlight ? "oklch(95% 0.05 150)" : "oklch(70% 0.010 85)",
+                                    color: c.highlight ? "oklch(95% 0.04 85)" : "oklch(70% 0.010 85)",
                                 }}
                             >
                                 {c.n}

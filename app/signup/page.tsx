@@ -3,7 +3,7 @@
 import { SignUp } from "@clerk/nextjs";
 import Image from "next/image";
 import Link from "next/link";
-import Logo from "@/public/logo.png";
+import Logo from "@/public/tendso-logo.png";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -56,9 +56,7 @@ export default function SignupPage() {
                 </div>
 
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden border border-[var(--ink)]/15 bg-[var(--khaki-deep)] p-1 flex items-center justify-center mb-5 shadow-md shadow-[var(--rust)]/15">
-                        <Image src={Logo} alt="" width={56} height={56} className="rounded-xl" />
-                    </div>
+                    <Image src={Logo} alt="Tendso" width={170} height={31} className="mb-6 invert" />
                     <h1
                         style={{
                             fontFamily: "var(--font-playfair)",

@@ -173,7 +173,7 @@ export default function DetailsSidebar({
             <p className="text-[10px] uppercase tracking-widest font-bold text-neutral-500 mb-1">Creator payout</p>
             <p
               style={{ fontFamily: "var(--font-fraunces)" }}
-              className="text-xl font-bold text-emerald-700"
+              className="text-xl font-bold text-amber-700"
             >
               ₱{(submission.creator_payout ?? 0).toLocaleString()}
             </p>
@@ -231,7 +231,7 @@ export default function DetailsSidebar({
         isOpen={isOpen("quality")}
         onToggle={() => toggle("quality")}
         badge={
-          <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
             {completedCount}/{checklistItems.length}
           </span>
         }
@@ -240,7 +240,7 @@ export default function DetailsSidebar({
           {checklistItems.map((item) => (
             <li key={item.label} className="flex items-center gap-2 text-sm">
               <Check
-                className={`w-3.5 h-3.5 shrink-0 ${item.done ? "text-emerald-600" : "text-neutral-300"}`}
+                className={`w-3.5 h-3.5 shrink-0 ${item.done ? "text-amber-600" : "text-neutral-300"}`}
                 strokeWidth={3}
               />
               <span className={item.done ? "text-neutral-800" : "text-neutral-400"}>{item.label}</span>
@@ -293,7 +293,7 @@ export default function DetailsSidebar({
                 <button
                   key={i}
                   onClick={() => onOpenLightbox(i)}
-                  className="relative aspect-square bg-neutral-100 rounded-xl overflow-hidden border border-neutral-200 hover:border-emerald-300 transition-colors group"
+                  className="relative aspect-square bg-neutral-100 rounded-xl overflow-hidden border border-neutral-200 hover:border-amber-300 transition-colors group"
                 >
                   <Image
                     src={resolvedUrl}
@@ -317,7 +317,7 @@ export default function DetailsSidebar({
         onToggle={() => toggle("interview")}
         badge={
           submission.transcript ? (
-            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
               Generated
             </span>
           ) : undefined
@@ -384,7 +384,7 @@ function IconBtn({
       onClick={onClick}
       disabled={disabled}
       title={title}
-      className="p-1.5 text-neutral-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-50"
+      className="p-1.5 text-neutral-400 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition-colors disabled:opacity-50"
     >
       {children}
     </button>

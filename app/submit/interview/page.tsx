@@ -561,7 +561,7 @@ export default function InterviewUploadPage() {
                             <button
                                 onClick={() => { setMode('record'); stopCamera(); setRecordingState('idle'); }}
                                 className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${mode === 'record'
-                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30'
+                                    ? 'bg-gradient-to-r from-amber-500 to-amber-500 text-white shadow-lg shadow-amber-500/30'
                                     : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                             >
@@ -575,7 +575,7 @@ export default function InterviewUploadPage() {
                             <button
                                 onClick={() => { setMode('upload'); stopCamera(); setRecordingState('idle'); }}
                                 className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all ${mode === 'upload'
-                                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30'
+                                    ? 'bg-gradient-to-r from-amber-500 to-amber-500 text-white shadow-lg shadow-amber-500/30'
                                     : 'text-gray-600 hover:bg-gray-50'
                                     }`}
                             >
@@ -600,12 +600,12 @@ export default function InterviewUploadPage() {
                                 className={`relative rounded-2xl p-5 cursor-pointer transition-all transform hover:scale-105 ${recordedPreviewUrl && interviewType === 'audio'
                                     ? 'opacity-50 cursor-not-allowed'
                                     : interviewType === 'video'
-                                        ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-500 shadow-lg shadow-green-500/20'
+                                        ? 'bg-gradient-to-br from-amber-50 to-amber-50 border-2 border-amber-500 shadow-lg shadow-amber-500/20'
                                         : 'bg-white border-2 border-gray-200 hover:border-gray-300 shadow-sm'
                                     }`}
                             >
                                 <div className="flex flex-col items-center text-center space-y-3">
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${interviewType === 'video' ? 'bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg' : 'bg-gray-100'
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${interviewType === 'video' ? 'bg-gradient-to-br from-amber-500 to-amber-500 shadow-lg' : 'bg-gray-100'
                                         }`}>
                                         <svg className={`w-7 h-7 ${interviewType === 'video' ? 'text-white' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -613,12 +613,12 @@ export default function InterviewUploadPage() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-gray-900">Video</p>
-                                        <p className="text-sm text-green-600 font-bold">₱500</p>
+                                        <p className="text-sm text-amber-600 font-bold">₱500</p>
                                     </div>
                                 </div>
                                 {interviewType === 'video' && (
                                     <div className="absolute top-2 right-2">
-                                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                         </svg>
                                     </div>
@@ -635,12 +635,12 @@ export default function InterviewUploadPage() {
                                 className={`relative rounded-2xl p-5 cursor-pointer transition-all transform hover:scale-105 ${recordedPreviewUrl && interviewType === 'video'
                                     ? 'opacity-50 cursor-not-allowed'
                                     : interviewType === 'audio'
-                                        ? 'bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-500 shadow-lg shadow-green-500/20'
+                                        ? 'bg-gradient-to-br from-amber-50 to-amber-50 border-2 border-amber-500 shadow-lg shadow-amber-500/20'
                                         : 'bg-white border-2 border-gray-200 hover:border-gray-300 shadow-sm'
                                     }`}
                             >
                                 <div className="flex flex-col items-center text-center space-y-3">
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${interviewType === 'audio' ? 'bg-gradient-to-br from-green-500 to-emerald-500 shadow-lg' : 'bg-gray-100'
+                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${interviewType === 'audio' ? 'bg-gradient-to-br from-amber-500 to-amber-500 shadow-lg' : 'bg-gray-100'
                                         }`}>
                                         <svg className={`w-7 h-7 ${interviewType === 'audio' ? 'text-white' : 'text-gray-600'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
@@ -648,12 +648,12 @@ export default function InterviewUploadPage() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-gray-900">Audio</p>
-                                        <p className="text-sm text-green-600 font-bold">₱300</p>
+                                        <p className="text-sm text-amber-600 font-bold">₱300</p>
                                     </div>
                                 </div>
                                 {interviewType === 'audio' && (
                                     <div className="absolute top-2 right-2">
-                                        <svg className="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <svg className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                         </svg>
                                     </div>
@@ -668,7 +668,7 @@ export default function InterviewUploadPage() {
                         {/* Show Preview if recording exists */}
                         {hasRecordedPreview && (
                             <div className="space-y-4">
-                                <div className="bg-white rounded-2xl p-4 border-2 border-green-200">
+                                <div className="bg-white rounded-2xl p-4 border-2 border-amber-200">
                                     <div className="flex items-center justify-between mb-3">
                                         <h3 className="font-bold text-gray-900">Your Recording</h3>
                                         <span className="text-xs text-gray-500">{formatTime(recordingTime)}</span>
@@ -738,7 +738,7 @@ export default function InterviewUploadPage() {
                                                             )}
 
                                                             {lightingQuality === 'good' && (
-                                                                <div className="flex items-center gap-2 px-3 py-2 bg-green-500/95 backdrop-blur-sm text-white rounded-full text-xs font-semibold">
+                                                                <div className="flex items-center gap-2 px-3 py-2 bg-amber-500/95 backdrop-blur-sm text-white rounded-full text-xs font-semibold">
                                                                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                                                     </svg>
@@ -849,7 +849,7 @@ export default function InterviewUploadPage() {
                                                         {[...Array(20)].map((_, i) => (
                                                             <div
                                                                 key={i}
-                                                                className="w-2 bg-gradient-to-t from-green-500 to-emerald-400 rounded-full"
+                                                                className="w-2 bg-gradient-to-t from-amber-500 to-amber-400 rounded-full"
                                                                 style={{
                                                                     height: `${20 + Math.random() * 80}%`,
                                                                     animation: 'pulse 0.8s ease-in-out infinite',
@@ -933,7 +933,7 @@ export default function InterviewUploadPage() {
                                         <>
                                             <button
                                                 onClick={resumeRecording}
-                                                className="w-16 h-16 rounded-full bg-green-500 hover:bg-green-600 flex items-center justify-center shadow-xl"
+                                                className="w-16 h-16 rounded-full bg-amber-500 hover:bg-amber-600 flex items-center justify-center shadow-xl"
                                             >
                                                 <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                                                     <path d="M8 5v14l11-7z" />
@@ -954,7 +954,7 @@ export default function InterviewUploadPage() {
                         {/* Upload Mode */}
                         {mode === 'upload' && !hasRecordedPreview && (
                             <div className="space-y-4">
-                                <div className="border-2 border-dashed border-gray-300 rounded-3xl p-12 text-center hover:border-green-400 transition-all relative bg-white shadow-sm">
+                                <div className="border-2 border-dashed border-gray-300 rounded-3xl p-12 text-center hover:border-amber-400 transition-all relative bg-white shadow-sm">
                                     <input
                                         type="file"
                                         accept={interviewType === 'video' ? "video/mp4,video/quicktime" : "audio/mpeg,audio/mp4,audio/wav"}
@@ -963,8 +963,8 @@ export default function InterviewUploadPage() {
                                         disabled={loading}
                                     />
                                     {file ? (
-                                        <div className="flex flex-col items-center gap-3 text-green-600">
-                                            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                                        <div className="flex flex-col items-center gap-3 text-amber-600">
+                                            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center">
                                                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                 </svg>
@@ -973,12 +973,12 @@ export default function InterviewUploadPage() {
                                         </div>
                                     ) : existingFileUrl ? (
                                         <div className="space-y-3">
-                                            <div className="mx-auto w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center">
+                                            <div className="mx-auto w-16 h-16 bg-amber-100 text-amber-500 rounded-full flex items-center justify-center">
                                                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                 </svg>
                                             </div>
-                                            <p className="text-green-600 font-semibold">File already uploaded</p>
+                                            <p className="text-amber-600 font-semibold">File already uploaded</p>
                                             <p className="text-xs text-gray-400">Click to replace</p>
                                         </div>
                                     ) : (
@@ -1004,7 +1004,7 @@ export default function InterviewUploadPage() {
                         <Button
                             onClick={handleNext}
                             disabled={loading || (mode === 'upload' && !file && !existingFileUrl) || (mode === 'record' && recordedChunks.length === 0 && !existingFileUrl)}
-                            className="w-full h-14 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold rounded-2xl transition-all disabled:opacity-50 shadow-lg shadow-green-500/30"
+                            className="w-full h-14 bg-gradient-to-r from-amber-500 to-amber-500 hover:from-amber-600 hover:to-amber-600 text-white font-bold rounded-2xl transition-all disabled:opacity-50 shadow-lg shadow-amber-500/30"
                         >
                             {loading ? (
                                 <span className="flex items-center justify-center gap-2">
@@ -1027,7 +1027,7 @@ export default function InterviewUploadPage() {
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
                         <div className="text-center mb-6">
-                            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                 </svg>
@@ -1038,8 +1038,8 @@ export default function InterviewUploadPage() {
 
                         <div className="space-y-4 mb-6">
                             <div className="flex gap-3">
-                                <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <div className="flex-shrink-0 w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                                    <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
                                 </div>
@@ -1050,8 +1050,8 @@ export default function InterviewUploadPage() {
                             </div>
 
                             <div className="flex gap-3">
-                                <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <div className="flex-shrink-0 w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                                    <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
                                 </div>
@@ -1062,8 +1062,8 @@ export default function InterviewUploadPage() {
                             </div>
 
                             <div className="flex gap-3">
-                                <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <div className="flex-shrink-0 w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                                    <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
                                 </div>
@@ -1074,8 +1074,8 @@ export default function InterviewUploadPage() {
                             </div>
 
                             <div className="flex gap-3">
-                                <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                    <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <div className="flex-shrink-0 w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                                    <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                                     </svg>
                                 </div>
@@ -1088,7 +1088,7 @@ export default function InterviewUploadPage() {
 
                         <button
                             onClick={handleReminderClose}
-                            className="w-full py-3 px-4 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-green-500/30"
+                            className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-500 hover:from-amber-600 hover:to-amber-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-amber-500/30"
                         >
                             Got it!
                         </button>

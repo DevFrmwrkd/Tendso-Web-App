@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import Logo from "@/public/logo.png"
+import Logo from "@/public/tendso-logo.png"
 import { motion } from "framer-motion"
 import { Phone, Loader2, User, ArrowRight } from "lucide-react"
 import { Bricolage_Grotesque, Outfit } from 'next/font/google';
@@ -138,11 +138,11 @@ export default function OnboardingPage() {
     }
 
     return (
-        <div className={`min-h-screen w-full flex bg-black text-white selection:bg-[#00FF66] selection:text-black overflow-x-hidden relative ${outfit.className}`}>
+        <div className={`min-h-screen w-full flex bg-black text-white selection:bg-[#E4B05E] selection:text-black overflow-x-hidden relative ${outfit.className}`}>
             {/* BACKGROUND EFFECTS */}
             <div className="fixed inset-0 z-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
             <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-[#00F0FF] rounded-full mix-blend-screen filter blur-[200px] opacity-20 animate-pulse pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[40%] h-[60%] bg-[#00FF66] rounded-full mix-blend-screen filter blur-[250px] opacity-10 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[40%] h-[60%] bg-[#E4B05E] rounded-full mix-blend-screen filter blur-[250px] opacity-10 pointer-events-none" />
 
             <div className="relative z-10 w-full flex flex-col items-center justify-center p-6 min-h-screen py-20">
                 
@@ -153,9 +153,7 @@ export default function OnboardingPage() {
                     className="w-full max-w-md"
                 >
                     <div className="flex flex-col items-center mb-10">
-                        <div className="w-20 h-20 rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(29,0,255,0.4)] mb-6 border border-white/10 bg-black/50 p-1 flex items-center justify-center backdrop-blur-md relative">
-                            <Image src={Logo} alt="Logo" width={64} height={64} className="rounded-2xl" />
-                        </div>
+                        <Image src={Logo} alt="Tendso" width={190} height={34} className="mb-6" />
                         <h1 className={`text-4xl md:text-5xl font-black uppercase tracking-tighter text-center mb-3 ${bricolage.className}`}>
                             Initialize <span className="text-[#00F0FF]">Agent</span>
                         </h1>

@@ -8,7 +8,7 @@ export const getPaymentConfig = () => {
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL ||
     process.env.VERCEL_URL ||
-    'https://negosyo-digital.vercel.app'
+    'https://tendso.vercel.app'
 
   // Ensure no trailing slash
   const normalizedUrl = appUrl.endsWith('/') ? appUrl.slice(0, -1) : appUrl

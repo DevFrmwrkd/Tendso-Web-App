@@ -176,7 +176,7 @@ export default function WalletPage() {
         switch (status) {
             case "completed":
                 return (
-                    <span className="flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-md uppercase">
+                    <span className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-md uppercase">
                         <CheckCircle className="w-3 h-3" /> Completed
                     </span>
                 )
@@ -528,8 +528,8 @@ export default function WalletPage() {
                     <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 pb-10 animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
-                                <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
-                                    <Mail className="w-4 h-4 text-emerald-600" />
+                                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+                                    <Mail className="w-4 h-4 text-amber-600" />
                                 </div>
                                 <h2 className="text-lg font-bold text-zinc-900">Set up Wise payouts</h2>
                             </div>
@@ -560,23 +560,23 @@ export default function WalletPage() {
                                     placeholder="you@example.com"
                                     value={wiseEmailInput}
                                     onChange={(e) => setWiseEmailInput(e.target.value)}
-                                    className="mt-1 rounded-xl border-zinc-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                    className="mt-1 rounded-xl border-zinc-200 focus:border-amber-500 focus:ring-amber-500"
                                 />
                             </div>
 
-                            <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-xs text-zinc-700 space-y-2">
-                                <p className="font-semibold text-emerald-700">
+                            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-xs text-zinc-700 space-y-2">
+                                <p className="font-semibold text-amber-700">
                                     Don&apos;t have a Wise account yet?
                                 </p>
                                 <p>
-                                    Wise is free. Sign up with our referral link — you and Negosyo Digital
+                                    Wise is free. Sign up with our referral link — you and Tendso
                                     both get a bonus when your first payout clears.
                                 </p>
                                 <a
                                     href={WISE_REFERRAL_URL}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:text-emerald-800"
+                                    className="inline-flex items-center gap-1 font-semibold text-amber-700 hover:text-amber-800"
                                 >
                                     Sign up on Wise <ExternalLink className="w-3 h-3" />
                                 </a>
@@ -592,7 +592,7 @@ export default function WalletPage() {
                             <Button
                                 onClick={handleSaveWiseEmail}
                                 disabled={isSubmitting}
-                                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl h-12 shadow-lg shadow-emerald-500/20"
+                                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl h-12 shadow-lg shadow-amber-500/20"
                             >
                                 {isSubmitting ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -640,7 +640,7 @@ export default function WalletPage() {
                                     placeholder="Any positive amount"
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
-                                    className="mt-1 rounded-xl border-zinc-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                    className="mt-1 rounded-xl border-zinc-200 focus:border-amber-500 focus:ring-amber-500"
                                 />
                             </div>
 
@@ -654,7 +654,7 @@ export default function WalletPage() {
                                     placeholder="you@example.com"
                                     value={wiseEmailInput}
                                     onChange={(e) => setWiseEmailInput(e.target.value)}
-                                    className="mt-1 rounded-xl border-zinc-200 focus:border-emerald-500 focus:ring-emerald-500"
+                                    className="mt-1 rounded-xl border-zinc-200 focus:border-amber-500 focus:ring-amber-500"
                                 />
                                 <p className="text-[11px] text-zinc-500 mt-1">
                                     Must match the email on your Wise account. If you don&apos;t have one,{" "}
@@ -662,7 +662,7 @@ export default function WalletPage() {
                                         href={WISE_REFERRAL_URL}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="font-semibold text-emerald-600 hover:text-emerald-700 underline"
+                                        className="font-semibold text-amber-600 hover:text-amber-700 underline"
                                     >
                                         sign up with our referral link
                                     </a>{" "}
@@ -678,7 +678,7 @@ export default function WalletPage() {
                             <Button
                                 onClick={handleWithdraw}
                                 disabled={isSubmitting}
-                                className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl h-12 shadow-lg shadow-emerald-500/20"
+                                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl h-12 shadow-lg shadow-amber-500/20"
                             >
                                 {isSubmitting ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />

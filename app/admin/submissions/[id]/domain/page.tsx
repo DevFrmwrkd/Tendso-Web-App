@@ -57,7 +57,7 @@ const STATUS_BADGES: Record<string, StatusBadge> = {
     registering: { label: 'Registering', color: 'bg-blue-50 text-blue-700 border-blue-200', icon: Loader2 },
     configuring_dns: { label: 'Configuring DNS', color: 'bg-blue-50 text-blue-700 border-blue-200', icon: Loader2 },
     provisioning_ssl: { label: 'Provisioning SSL', color: 'bg-indigo-50 text-indigo-700 border-indigo-200', icon: Loader2 },
-    live: { label: 'Live', color: 'bg-green-50 text-green-700 border-green-200', icon: CheckCircle2 },
+    live: { label: 'Live', color: 'bg-amber-50 text-amber-700 border-amber-200', icon: CheckCircle2 },
     failed: { label: 'Failed', color: 'bg-red-50 text-red-700 border-red-200', icon: XCircle },
 }
 
@@ -175,8 +175,8 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                         Back to submission
                     </Link>
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200">
-                            <Globe className="text-emerald-600" size={24} />
+                        <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200">
+                            <Globe className="text-amber-600" size={24} />
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-gray-900">Custom Domain</h1>
@@ -190,12 +190,12 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                 {/* Hostinger Payment Method Widget */}
                 <div className={`mb-4 p-4 rounded-2xl border flex items-center justify-between ${
                     paymentStatus?.connected
-                        ? 'bg-white border-emerald-500'
+                        ? 'bg-white border-amber-500'
                         : 'bg-red-50 border-red-300'
                 }`}>
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${paymentStatus?.connected ? 'bg-emerald-50' : 'bg-red-100'}`}>
-                            <CreditCard className={paymentStatus?.connected ? 'text-emerald-600' : 'text-red-600'} size={18} />
+                        <div className={`p-2 rounded-lg ${paymentStatus?.connected ? 'bg-amber-50' : 'bg-red-100'}`}>
+                            <CreditCard className={paymentStatus?.connected ? 'text-amber-600' : 'text-red-600'} size={18} />
                         </div>
                         <div>
                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hostinger Payment Method</p>
@@ -210,7 +210,7 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                     </div>
                     <span className={`px-2 py-1 rounded-full text-[10px] font-bold ${
                         paymentStatus?.connected
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-amber-100 text-amber-700'
                             : 'bg-red-100 text-red-700'
                     }`}>
                         {paymentStatus?.connected ? '✓ Active' : '✗ Inactive'}
@@ -218,7 +218,7 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                 </div>
 
                 {/* Current Status Card */}
-                <div className="bg-white rounded-2xl border border-emerald-500 p-6 mb-6">
+                <div className="bg-white rounded-2xl border border-amber-500 p-6 mb-6">
                     <div className="flex items-start justify-between mb-4">
                         <div>
                             <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Current Status</p>
@@ -232,7 +232,7 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                                 href={`https://${domainInfo.requestedDomain}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-600 hover:text-emerald-700"
+                                className="inline-flex items-center gap-1.5 text-sm font-semibold text-amber-600 hover:text-amber-700"
                             >
                                 Visit <ExternalLink size={14} />
                             </a>
@@ -275,7 +275,7 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
 
                 {/* Domain Search Section */}
                 {(currentStatus === 'not_requested' || currentStatus === 'failed' || currentStatus === 'pending_payment') && (
-                    <div className="bg-white rounded-2xl border border-emerald-500 p-6 mb-6">
+                    <div className="bg-white rounded-2xl border border-amber-500 p-6 mb-6">
                         <h2 className="text-lg font-bold text-gray-900 mb-4">Check Domain Availability</h2>
 
                         <div className="flex gap-3 mb-4">
@@ -286,7 +286,7 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                                     onChange={(e) => setDomainInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && handleCheck()}
                                     placeholder="e.g. juansbakery.com"
-                                    className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                    className="w-full px-4 py-3 pr-10 border border-gray-200 rounded-xl font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                                     disabled={checking || purchasing}
                                 />
                                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -294,7 +294,7 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                             <button
                                 onClick={() => handleCheck()}
                                 disabled={checking || !domainInput.trim() || purchasing}
-                                className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                                className="px-6 py-3 bg-amber-600 text-white rounded-xl font-semibold hover:bg-amber-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
                             >
                                 {checking ? <Loader2 className="animate-spin" size={18} /> : 'Check'}
                             </button>
@@ -311,15 +311,15 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                                 )}
 
                                 {result.valid && result.available && (
-                                    <div className="p-4 bg-green-50 border border-green-200 rounded-xl">
+                                    <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
                                         <div className="flex items-start justify-between">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <CheckCircle2 className="text-green-600" size={20} />
-                                                    <span className="font-bold text-green-900">{result.domain}</span>
-                                                    <span className="text-xs font-bold px-2 py-0.5 bg-green-100 text-green-700 rounded-full">Available</span>
+                                                    <CheckCircle2 className="text-amber-600" size={20} />
+                                                    <span className="font-bold text-amber-900">{result.domain}</span>
+                                                    <span className="text-xs font-bold px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">Available</span>
                                                 </div>
-                                                <p className="text-sm text-green-700">
+                                                <p className="text-sm text-amber-700">
                                                     Cost: <span className="font-bold">₱{result.pricePHP}</span> (${result.priceUSD?.toFixed(2)} USD)
                                                     {!result.withinBudget && (
                                                         <span className="ml-2 text-amber-700 font-semibold">⚠ Over ₱500 budget</span>
@@ -329,7 +329,7 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                                             <button
                                                 onClick={handlePurchase}
                                                 disabled={purchasing}
-                                                className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 disabled:bg-gray-300 transition-colors"
+                                                className="px-4 py-2 bg-amber-600 text-white rounded-lg font-semibold text-sm hover:bg-amber-700 disabled:bg-gray-300 transition-colors"
                                             >
                                                 {purchasing ? (
                                                     <span className="flex items-center gap-2">
@@ -365,12 +365,12 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                                                     onClick={() => handleCheck(sug.domain)}
                                                     disabled={checking || !sug.withinBudget}
                                                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border text-left transition-all ${sug.withinBudget
-                                                            ? 'bg-white hover:border-emerald-400 border-gray-200 hover:shadow-sm'
+                                                            ? 'bg-white hover:border-amber-400 border-gray-200 hover:shadow-sm'
                                                             : 'bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed'
                                                         }`}
                                                 >
                                                     <span className="font-mono font-semibold text-gray-900">{sug.domain}</span>
-                                                    <span className={`text-xs font-semibold ${sug.withinBudget ? 'text-green-700' : 'text-amber-700'}`}>
+                                                    <span className={`text-xs font-semibold ${sug.withinBudget ? 'text-amber-700' : 'text-amber-700'}`}>
                                                         ₱{sug.pricePHP} {sug.withinBudget ? '✓' : '(over budget)'}
                                                     </span>
                                                 </button>
@@ -403,7 +403,7 @@ export default function CustomDomainPage({ params }: { params: Promise<{ id: str
                 {message && (
                     <div
                         className={`p-4 rounded-xl border text-sm font-semibold ${message.type === 'success'
-                                ? 'bg-green-50 border-green-200 text-green-800'
+                                ? 'bg-amber-50 border-amber-200 text-amber-800'
                                 : 'bg-red-50 border-red-200 text-red-800'
                             }`}
                     >

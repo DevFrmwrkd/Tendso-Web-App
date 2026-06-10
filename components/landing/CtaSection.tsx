@@ -27,11 +27,11 @@ export default function CtaSection() {
                             color: "var(--neo-paper)",
                         }}
                     >
-                        A website
+                        The Thinking
                         <br />
-                        for <em style={{ fontStyle: "italic", color: "var(--neo-creator)" }}>every shop</em>
+                        Ends Here.
                         <br />
-                        on Earth.
+                        <em style={{ fontStyle: "italic", color: "var(--neo-creator)" }}>So the work doesn&apos;t.</em>
                     </h2>
                     <p
                         className="lede"
@@ -44,7 +44,7 @@ export default function CtaSection() {
                             fontSize: 18,
                         }}
                     >
-                        Pick the door that&apos;s yours. The app does the rest.
+                        Pick the door that&apos;s yours. Your hands stay where they are.
                     </p>
                 </div>
                 <div
@@ -80,7 +80,7 @@ export default function CtaSection() {
                             I own a business.
                         </span>
                         <span style={{ fontSize: 13, opacity: 0.8, marginTop: 20 }}>
-                            See what we deliver, find a creator near you, get your shop online.
+                            A page built around the work. A creator visits, you keep going, the site goes live.
                         </span>
                     </Link>
                     <Link
@@ -109,7 +109,7 @@ export default function CtaSection() {
                             I want to earn.
                         </span>
                         <span style={{ fontSize: 13, opacity: 0.8, marginTop: 20 }}>
-                            See real earnings, the referral loop, and how to apply this week.
+                            Help owners who can't stop working. Real earnings, real referrals, paid in 48 hours.
                         </span>
                     </Link>
                 </div>

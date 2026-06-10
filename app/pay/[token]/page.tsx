@@ -39,7 +39,7 @@ export default function PaymentPage() {
     if (!paymentToken && paymentToken !== null) {
         return (
             <div className="min-h-screen bg-white flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600"></div>
             </div>
         )
     }
@@ -58,7 +58,7 @@ export default function PaymentPage() {
                         </p>
                         <Link
                             href="/"
-                            className="inline-block px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium"
+                            className="inline-block px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium"
                         >
                             Back to Home
                         </Link>
@@ -73,7 +73,7 @@ export default function PaymentPage() {
             <div className="max-w-2xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link href="/" className="text-emerald-600 hover:text-emerald-700 font-medium text-sm mb-4 inline-block">
+                    <Link href="/" className="text-amber-600 hover:text-amber-700 font-medium text-sm mb-4 inline-block">
                         ← Back
                     </Link>
                     <h1 className="text-4xl font-bold text-zinc-900 mb-2">Complete Payment</h1>
@@ -84,11 +84,11 @@ export default function PaymentPage() {
 
                 {/* Status alerts */}
                 {isUsed && (
-                    <div className="mb-8 p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex gap-3">
-                        <CheckCircle className="w-6 h-6 text-emerald-600 flex-shrink-0 mt-0.5" />
+                    <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-lg flex gap-3">
+                        <CheckCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
                         <div>
-                            <h3 className="font-semibold text-emerald-900 mb-1">Payment Already Received</h3>
-                            <p className="text-emerald-700 text-sm">
+                            <h3 className="font-semibold text-amber-900 mb-1">Payment Already Received</h3>
+                            <p className="text-amber-700 text-sm">
                                 Your payment has been confirmed. Your website is now live!
                             </p>
                         </div>
@@ -111,9 +111,9 @@ export default function PaymentPage() {
                     {/* Left: Payment Details */}
                     <div className="md:col-span-2">
                         {/* Amount */}
-                        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-8 mb-8 border border-emerald-200">
-                            <p className="text-emerald-700 text-sm font-semibold uppercase tracking-wider mb-2">Total Amount</p>
-                            <p className="text-5xl font-bold text-emerald-900">
+                        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-2xl p-8 mb-8 border border-amber-200">
+                            <p className="text-amber-700 text-sm font-semibold uppercase tracking-wider mb-2">Total Amount</p>
+                            <p className="text-5xl font-bold text-amber-900">
                                 ₱{paymentToken.amount.toLocaleString("en-PH")}
                             </p>
                         </div>
@@ -134,7 +134,7 @@ export default function PaymentPage() {
                                         </div>
                                         <button
                                             onClick={() => copyToClipboard(wiseEmail)}
-                                            className="px-4 py-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg transition-colors font-medium flex items-center gap-2"
+                                            className="px-4 py-3 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg transition-colors font-medium flex items-center gap-2"
                                         >
                                             <Copy className="w-4 h-4" />
                                         </button>
@@ -152,7 +152,7 @@ export default function PaymentPage() {
                                         </div>
                                         <button
                                             onClick={() => copyToClipboard(`₱${paymentToken.amount.toLocaleString("en-PH")}`)}
-                                            className="px-4 py-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg transition-colors font-medium flex items-center gap-2"
+                                            className="px-4 py-3 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg transition-colors font-medium flex items-center gap-2"
                                         >
                                             <Copy className="w-4 h-4" />
                                         </button>
@@ -168,12 +168,12 @@ export default function PaymentPage() {
                                         ⚠️ Always include this code when sending payment so we can match it to your account.
                                     </p>
                                     <div className="flex gap-3">
-                                        <div className="flex-1 bg-white border-2 border-emerald-200 rounded-lg px-4 py-3 font-mono text-lg font-bold text-emerald-600">
+                                        <div className="flex-1 bg-white border-2 border-amber-200 rounded-lg px-4 py-3 font-mono text-lg font-bold text-amber-600">
                                             {paymentToken.referenceCode}
                                         </div>
                                         <button
                                             onClick={() => copyToClipboard(paymentToken.referenceCode)}
-                                            className="px-4 py-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-lg transition-colors font-medium flex items-center gap-2 whitespace-nowrap"
+                                            className="px-4 py-3 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-lg transition-colors font-medium flex items-center gap-2 whitespace-nowrap"
                                         >
                                             <Copy className="w-4 h-4" />
                                             {copied ? "Copied!" : "Copy"}
@@ -234,7 +234,7 @@ export default function PaymentPage() {
                                 {/* Step 1 */}
                                 <div className="flex gap-4">
                                     <div className="flex flex-col items-center">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isValid ? "bg-emerald-100 text-emerald-700" : "bg-zinc-200 text-zinc-500"}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isValid ? "bg-amber-100 text-amber-700" : "bg-zinc-200 text-zinc-500"}`}>
                                             ✓
                                         </div>
                                         <div className="w-1 h-12 bg-zinc-200 my-1"></div>
@@ -248,7 +248,7 @@ export default function PaymentPage() {
                                 {/* Step 2 */}
                                 <div className="flex gap-4">
                                     <div className="flex flex-col items-center">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isUsed ? "bg-emerald-100 text-emerald-700" : "bg-zinc-200 text-zinc-500"}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isUsed ? "bg-amber-100 text-amber-700" : "bg-zinc-200 text-zinc-500"}`}>
                                             {isUsed ? "✓" : "2"}
                                         </div>
                                         <div className="w-1 h-12 bg-zinc-200 my-1"></div>
@@ -264,7 +264,7 @@ export default function PaymentPage() {
                                 {/* Step 3 */}
                                 <div className="flex gap-4">
                                     <div className="flex flex-col items-center">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isUsed ? "bg-emerald-100 text-emerald-700" : "bg-zinc-200 text-zinc-500"}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${isUsed ? "bg-amber-100 text-amber-700" : "bg-zinc-200 text-zinc-500"}`}>
                                             {isUsed ? "✓" : "3"}
                                         </div>
                                     </div>
@@ -280,8 +280,8 @@ export default function PaymentPage() {
                             {/* Expiry warning */}
                             {isPending && !isExpired && (
                                 <div className="mt-6 pt-6 border-t border-zinc-200">
-                                    <p className="text-xs text-emerald-700 font-semibold mb-2">⏰ TIME REMAINING</p>
-                                    <p className="text-sm font-bold text-emerald-900">
+                                    <p className="text-xs text-amber-700 font-semibold mb-2">⏰ TIME REMAINING</p>
+                                    <p className="text-sm font-bold text-amber-900">
                                         {Math.ceil((paymentToken.expiresAt - Date.now()) / (1000 * 60 * 60))} hours left
                                     </p>
                                 </div>
@@ -292,7 +292,7 @@ export default function PaymentPage() {
                                 <p className="text-xs text-zinc-600 mb-2">Need help?</p>
                                 <a
                                     href="mailto:frmwrkd.media@gmail.com"
-                                    className="text-emerald-600 hover:text-emerald-700 font-semibold text-sm"
+                                    className="text-amber-600 hover:text-amber-700 font-semibold text-sm"
                                 >
                                     Contact Support
                                 </a>
@@ -308,7 +308,7 @@ export default function PaymentPage() {
                             href={`https://wise.com/send?recipient=${encodeURIComponent(wiseEmail)}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-block px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors"
+                            className="inline-block px-8 py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition-colors"
                         >
                             Open Wise App to Send →
                         </a>
