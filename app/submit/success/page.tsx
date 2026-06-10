@@ -125,8 +125,8 @@ export default function SubmissionSuccessPage() {
             <div className="max-w-md w-full text-center space-y-8">
                 {/* Success Animation/Icon */}
                 <div className="relative">
-                    <div className="w-24 h-24 bg-green-100 rounded-full mx-auto flex items-center justify-center animate-in zoom-in duration-500">
-                        <svg className="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="w-24 h-24 bg-amber-100 rounded-full mx-auto flex items-center justify-center animate-in zoom-in duration-500">
+                        <svg className="w-12 h-12 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
@@ -143,7 +143,7 @@ export default function SubmissionSuccessPage() {
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
                     <div className="pb-4 border-b border-gray-100">
                         <p className="text-sm text-gray-500 uppercase font-medium tracking-wide">Expected Payout</p>
-                        <p className="text-3xl font-bold text-green-600 mt-1">
+                        <p className="text-3xl font-bold text-amber-600 mt-1">
                             ₱{payout || '---'}
                         </p>
                     </div>
@@ -152,7 +152,7 @@ export default function SubmissionSuccessPage() {
                         {/* Transcription Status */}
                         {(transcribing || transcriptionComplete || transcriptionError) && (
                             <div className={`flex items-start gap-3 p-3 rounded-lg ${transcribing ? 'bg-blue-50' :
-                                transcriptionComplete ? 'bg-green-50' :
+                                transcriptionComplete ? 'bg-amber-50' :
                                     'bg-red-50'
                                 }`}>
                                 <div className="flex-shrink-0 mt-0.5">
@@ -160,7 +160,7 @@ export default function SubmissionSuccessPage() {
                                         <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
                                     )}
                                     {transcriptionComplete && (
-                                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
                                     )}
@@ -172,7 +172,7 @@ export default function SubmissionSuccessPage() {
                                 </div>
                                 <div className="flex-1">
                                     <p className={`text-sm font-medium ${transcribing ? 'text-blue-900' :
-                                        transcriptionComplete ? 'text-green-900' :
+                                        transcriptionComplete ? 'text-amber-900' :
                                             'text-red-900'
                                         }`}>
                                         {transcribing && 'AI is transcribing your interview...'}

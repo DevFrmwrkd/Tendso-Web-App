@@ -133,7 +133,7 @@ export default function TestGroqPage() {
                     </div>
 
                     {/* Test 2: Content Extraction */}
-                    <div className="mb-8 p-6 bg-green-50 rounded-xl">
+                    <div className="mb-8 p-6 bg-amber-50 rounded-xl">
                         <h2 className="text-xl font-bold text-gray-900 mb-4">2. Test Content Extraction</h2>
                         <div className="space-y-4">
                             <div>
@@ -148,7 +148,7 @@ export default function TestGroqPage() {
                             <Button
                                 onClick={testContentExtraction}
                                 disabled={loading}
-                                className="w-full bg-green-600 hover:bg-green-700"
+                                className="w-full bg-amber-600 hover:bg-amber-700"
                             >
                                 {loading ? 'Extracting...' : 'Extract Business Content'}
                             </Button>

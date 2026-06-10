@@ -96,16 +96,16 @@ export const BUSINESS_TIERS = [
         slug: "standard",
         name: "Standard",
         price: 1000,
-        tagline: "Your business website, live in 48 hours.",
+        tagline: "A page built around the work, not the other way around.",
         ctaLabel: "Get Started",
         ctaHref: "/login",
         featured: false,
         features: [
-            "Real coded website (not Wix or template)",
-            "Free subdomain: yourbusiness.negosyodigital.ph",
-            "AI-enhanced photos from your phone shots",
-            "Mobile-optimized — works on every device",
-            "Hosted with SSL, fast loading",
+            "Real coded website — not a template you have to fill in",
+            "Free subdomain: yourbusiness.tendso.ph",
+            "Built from your photos, your words, your business",
+            "Mobile-first — your customers find you on their phones",
+            "Live in 48 hours, hosted with SSL",
             "Free edits within 7 days of launch",
         ],
     },
@@ -113,7 +113,7 @@ export const BUSINESS_TIERS = [
         slug: "custom-domain",
         name: "With Custom Domain",
         price: 1500,
-        tagline: "Your own .com — fully owned by you.",
+        tagline: "Your own .com — fully owned, never tied to us.",
         ctaLabel: "Get a Custom Domain",
         ctaHref: "/login",
         featured: true,
@@ -123,7 +123,7 @@ export const BUSINESS_TIERS = [
             "Year 1 of the domain included free",
             "You own the domain — we never auto-renew",
             "30-day reminder before renewal",
-            "Same 24–48 hour deployment",
+            "Same 48-hour deployment",
         ],
     },
 ] as const;
@@ -359,35 +359,36 @@ export const REGIONS: Region[] = [
 
 // ── Testimonials (current marketing) ───────────────────────────────────────
 export const TESTIMONIALS: Testimonial[] = [
-    { name: "Janelle", city: "Cebu", claim: "My first paid submission cleared in 48 hours. The platform pays before the next rent is due.", initial: "J", hue: 18 },
-    { name: "Mark", city: "Cebu", claim: "My referral cut paid more than my first three sites combined.", initial: "M", hue: 35 },
-    { name: "Aira", city: "Makati", claim: "I work from cafés. The app tells me which shops need me next.", initial: "A", hue: 5 },
+    { name: "Janelle", city: "Cebu", claim: "I never had to stop kneading. They asked questions, took photos, and the site was live by the next morning.", initial: "J", hue: 18 },
+    { name: "Mark", city: "Cebu", claim: "I don't sit down to design. I cut hair. They built the page around the work, not the other way.", initial: "M", hue: 35 },
+    { name: "Aira", city: "Makati", claim: "My hands are full. Tendso doesn't ask me to put anything down.", initial: "A", hue: 5 },
 ];
 
 // ── FAQ ────────────────────────────────────────────────────────────────────
 export const FAQ_CREATOR: FaqEntry[] = [
-    { q: "How do I get paid?", a: "Direct deposit to GCash, Maya, or any local bank. The app handles invoices, taxes, and receipts. You don't touch a spreadsheet." },
+    { q: "How do I get paid?", a: "Straight to your Wise account. The app handles invoices, taxes, and receipts. You don't touch a spreadsheet." },
     { q: "When do I get paid?", a: "Within 48 hours of the business owner approving their site. Faster on weekends — we don't sit on your money." },
-    { q: "Do I need experience?", a: "No. The guided capture inside the app walks you through every interview, every photo, every step. If you can use TikTok, you can use this." },
-    { q: "What if my English isn't strong?", a: "The app speaks Tagalog, Cebuano, Hiligaynon, and Ilocano. Interview prompts come pre-translated. Your customers stay in their language." },
+    { q: "Do I need experience?", a: "No. The guided capture walks you through every interview, every photo, every step. If you can use TikTok, you can use this." },
+    { q: "What if my English isn't strong?", a: "The app speaks Tagalog, Cebuano, Hiligaynon, and Ilocano. Interview prompts come pre-translated. Your owner stays in their language." },
     { q: "Do I need a smartphone?", a: "Yes — anything from the last four years works. iOS 15+ or Android 10+." },
     { q: "Can I work part-time?", a: "Most creators start that way. You pick the jobs, you set the pace. There's no minimum." },
 ];
 
 export const FAQ_BUSINESS: FaqEntry[] = [
-    { q: "How long does it take?", a: "Most sites are live within 48–72 hours of your interview. The interview itself is around 30 minutes — over coffee, at your shop." },
-    { q: "Do I have to prepare anything?", a: "No. The creator brings everything. You just answer questions about your business while they photograph what matters." },
+    { q: "Will I need to learn design?", a: "No. You won't choose a template, pick a font, or stare at a blank page. A creator visits, asks a few questions, takes photos, and your site forms from that." },
+    { q: "How long does it take?", a: "Live in 48 hours from the interview. The interview itself is around 30 minutes — at your shop, while you keep working." },
+    { q: "Do I have to prepare anything?", a: "No. The creator brings the camera, the questions, and the patience. You answer between customers." },
     { q: "What if I don't like it?", a: "You don't pay until the site is live and you've approved it. If you reject the draft, the creator revises it once for free." },
     { q: "Can I update it later?", a: "Yes — message your creator through the app. Small edits are included for the first year. After that, a flat fee per change." },
     { q: "Who owns the website?", a: "You do. The domain, the photos, the copy — all yours. You can take it elsewhere any time, no penalty." },
-    { q: "How much does it cost?", a: "₱1,000 for a Negosyo subdomain site, ₱1,500 if you want a custom domain (.com included for year 1). One-time fee — no monthly hosting bills." },
+    { q: "How much does it cost?", a: "₱1,000 for a Tendso subdomain site, ₱1,500 if you want a custom domain (.com included for year 1). One-time fee — no monthly hosting bills." },
 ];
 
 // ── Knowledge base seed ────────────────────────────────────────────────────
 export const KNOWLEDGE_BASE: KnowledgeEntry[] = [
-    { id: "kb-1", category: "Getting started", title: "What happens in the 30-minute interview?", read: "3 min", excerpt: "A creator visits your shop with a phone and a checklist. You answer questions about your story. They photograph what matters. That's the whole thing." },
+    { id: "kb-1", category: "Getting started", title: "What happens in the 30-minute interview?", read: "3 min", excerpt: "A creator visits your shop with a phone and a checklist. You keep working. They ask, they photograph, the site forms around it. The thinking ends there." },
     { id: "kb-2", category: "For creators", title: "Your first week as a certified creator", read: "6 min", excerpt: "Day-by-day map of what to expect: certification, your first match, your first interview, your first payout." },
-    { id: "kb-3", category: "Payouts", title: "How GCash, Maya, and bank payouts work", read: "4 min", excerpt: "Pick a payout rail in the app. Funds land within 48 hours of a site going live. No paperwork." },
+    { id: "kb-3", category: "Payouts", title: "How Wise payouts work", read: "4 min", excerpt: "Link your Wise account in the app. Funds land within 48 hours of a site going live. No paperwork." },
     { id: "kb-4", category: "Photography", title: "Shooting a small shop — the 12-shot list", read: "5 min", excerpt: "Front, side, sign, hands at work, hero product, two close-ups, two wide, three portraits. The app prompts you, in order." },
     { id: "kb-5", category: "For businesses", title: "What happens if you don't like the result?", read: "2 min", excerpt: "You don't pay until you approve. If you reject the draft, the creator revises once — free. Then it's yours or it's nothing." },
     { id: "kb-6", category: "Referrals", title: "How the ₱1,000 friend bonus actually works", read: "3 min", excerpt: "Share your link. Your friend signs up and lands their first paid submission. You earn ₱1,000 the day that submission is approved." },

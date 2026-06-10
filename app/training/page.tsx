@@ -61,8 +61,8 @@ export default function TrainingPage() {
                 <div
                     className={`text-center py-8 transition-all duration-700 ease-out ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
                 >
-                    <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Camera className="w-10 h-10 text-emerald-500" />
+                    <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Camera className="w-10 h-10 text-amber-500" />
                     </div>
                     <h1 className="text-2xl font-bold text-zinc-900 mb-2">Become a Certified Creator</h1>
                     <p className="text-sm text-zinc-500 max-w-xs mx-auto">
@@ -95,7 +95,7 @@ export default function TrainingPage() {
                 >
                     <Button
                         onClick={() => router.push("/training-lessons")}
-                        className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/20"
+                        className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/20"
                     >
                         Start Training
                         <ArrowRight className="w-4 h-4 ml-2" />

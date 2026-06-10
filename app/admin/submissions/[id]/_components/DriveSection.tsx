@@ -100,7 +100,7 @@ export default function DriveSection({
 
             <p className="ed-body-sm mt-3" style={{ color: "var(--ed-ink-2)", maxWidth: "56ch" }}>
                 {!status || status === "pending"
-                    ? "Hit Sync to copy this submission's transcript, photos, video, and audio into a structured folder under the shared Negosyo Digital Drive."
+                    ? "Hit Sync to copy this submission's transcript, photos, video, and audio into a structured folder under the shared Tendso Drive."
                     : isCreating
                         ? "Folder + subfolders are being assembled. This usually takes 20–60 seconds depending on photo/video count."
                         : isSynced

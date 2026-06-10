@@ -61,7 +61,7 @@ export const getDueForFollowUp = internalQuery({
 export const sendOneFollowUp = internalAction({
     args: { submissionId: v.id('submissions') },
     handler: async (_ctx, args) => {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SITE_URL || 'https://negosyo-digital.vercel.app'
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SITE_URL || 'https://tendso.vercel.app'
         const internalSecret = process.env.INTERNAL_API_SECRET || ''
 
         if (!internalSecret) {

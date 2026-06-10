@@ -1,4 +1,4 @@
-# Negosyo Digital - Authentication Setup Guide
+# Tendso - Authentication Setup Guide
 
 ## 🎯 Overview
 

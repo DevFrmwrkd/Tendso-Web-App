@@ -730,7 +730,7 @@ export const sendStatusEmailAction = internalAction({
         submittedAt: v.number(),
     },
     handler: async (ctx, args) => {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SITE_URL || 'https://negosyo-digital.vercel.app'
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SITE_URL || 'https://tendso.vercel.app'
         const internalSecret = process.env.INTERNAL_API_SECRET || ''
 
         try {

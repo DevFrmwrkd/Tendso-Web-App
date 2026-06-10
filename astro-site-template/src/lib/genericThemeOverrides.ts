@@ -303,6 +303,10 @@ export function buildOverrideCss(scheme: string, pairing: string): string {
         lines.push(`  --brass: ${palette.primary} !important;`);
         lines.push(`  --brass-bright: ${palette.accent} !important;`);
         lines.push(`  --brass-rgb: ${palette.accentRgb} !important;`);
+        // SalonSpa family (PageK–PageO) uses --accent / --accent-rgb for the
+        // primary accent across all 5 variants.
+        lines.push(`  --accent: ${palette.primary} !important;`);
+        lines.push(`  --accent-rgb: ${palette.accentRgb} !important;`);
         // Northpoint uses --bg / --bg-2 / --panel — alias them too.
         lines.push(`  --bg: ${palette.paper} !important;`);
         lines.push(`  --bg-2: ${palette.paper2} !important;`);

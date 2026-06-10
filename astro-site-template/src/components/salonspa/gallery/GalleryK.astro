@@ -1,0 +1,54 @@
+---
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+const gallery = content.gallery || {};
+const tag = gallery.tag || '';
+const headline = gallery.headline || '';
+const sub = gallery.sub || '';
+type Tile = { image?: string; caption?: string };
+const rawItems: Tile[] = Array.isArray(gallery.items) ? gallery.items : (Array.isArray(content.gallery) ? content.gallery : []);
+const items = rawItems.filter((it: Tile) => it && it.image);
+---
+{items.length > 0 && (
+  <section class="pad-y gallery-sect" id="gallery">
+    <div class="wrap">
+      <div class="sect-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="gallery.tag">{tag}</span>}
+          {headline && <h2 class="h-sect" data-field="gallery.headline" set:html={headline}></h2>}
+        </div>
+        {sub && <p class="lead" data-field="gallery.sub">{sub}</p>}
+      </div>
+      <div class="gallery-grid reveal">
+        {items.map((item, i) => (
+          <figure class="g-tile">
+            <div class="bg-img" data-image-field={`gallery.items.${i}.image`} style={`background-image:url('${item.image}');`}></div>
+            {item.caption && <figcaption data-field={`gallery.items.${i}.caption`}>{item.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .gallery-grid {
+    display: grid; gap: clamp(8px, 1vw, 16px);
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .g-tile {
+    position: relative; aspect-ratio: 4 / 5; margin: 0;
+    overflow: hidden; border: 1px solid var(--line);
+  }
+  .g-tile .bg-img {
+    width: 100%; height: 100%;
+    background-size: cover; background-position: center;
+    transition: transform .8s ease;
+  }
+  .g-tile:hover .bg-img { transform: scale(1.04); }
+  .g-tile figcaption {
+    position: absolute; left: 12px; bottom: 12px;
+    background: rgba(var(--paper-rgb), .92); padding: 6px 12px;
+    font-family: var(--sans); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+</style>

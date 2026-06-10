@@ -3,7 +3,7 @@
 /**
  * SandboxEditor — admin submission page editor, 1:1 port of the v01
  * sandbox.html design (Landing Pages v01/sandbox.html), wired into
- * the Negosyo Digital data model.
+ * the Tendso data model.
  *
  * Live edit roundtrip:
  *   iframe → parent : { type: 'ed:click', field } (click-to-focus input)
@@ -66,8 +66,22 @@ const BARBERSHOP_TEMPLATES = [
     { letter: 'J', code: 'barbershop:J', label: 'Stacked',   tagline: 'Stone + dark red · bold serif',      preview: '/template-previews/j.html' },
 ] as const;
 
-type TemplateFamily = 'generic' | 'barbershop';
-const ALL_TEMPLATES = [...GENERIC_TEMPLATES, ...BARBERSHOP_TEMPLATES] as readonly { letter: string; code: string; label: string; tagline: string; preview: string }[];
+// ── SALONSPA · 5 letter variants K–O ─────────────────────────────────
+// Codes map to `customizations.heroStyle = "salonspa:<letter>"` which the
+// Astro router resolves to PageK…PageO. Each variant has a hand-tuned
+// serif/sans pairing + accent palette. Shared section components from
+// letter K; per-variant heroes (HeroK/L/M/N/O) match the source
+// 01–05 SalonSpa HTMLs' distinct hero structures.
+const SALONSPA_TEMPLATES = [
+    { letter: 'K', code: 'salonspa:K', label: 'Atelier',  tagline: 'Pearl + brass · refined salon',         preview: '/template-previews/k.html' },
+    { letter: 'L', code: 'salonspa:L', label: 'Botanica', tagline: 'Sage + cream · botanical spa',          preview: '/template-previews/l.html' },
+    { letter: 'M', code: 'salonspa:M', label: 'Clinic',   tagline: 'Mist + teal · clinical aesthetic',      preview: '/template-previews/m.html' },
+    { letter: 'N', code: 'salonspa:N', label: 'Vogue',    tagline: 'Mauve pink · editorial beauty',         preview: '/template-previews/n.html' },
+    { letter: 'O', code: 'salonspa:O', label: 'Bloom',    tagline: 'Mauve + cream · romantic',              preview: '/template-previews/o.html' },
+] as const;
+
+type TemplateFamily = 'generic' | 'barbershop' | 'salonspa';
+const ALL_TEMPLATES = [...GENERIC_TEMPLATES, ...BARBERSHOP_TEMPLATES, ...SALONSPA_TEMPLATES] as readonly { letter: string; code: string; label: string; tagline: string; preview: string }[];
 
 // ── BUCKETS · pick-one categories ────────────────────────────────────
 // `business_type` carries forward, but the variant-prefix routing was
@@ -255,9 +269,60 @@ export default function SandboxEditor(props: SandboxEditorProps) {
         panelBodyRef.current?.scrollTo({ top: 0, behavior: "smooth" });
     };
 
-    const [draft, setDraft] = useState<any>(content ?? {});
+    // Normalize Why / How / Testimonials / FAQ / Credentials when loading
+    // content into the editor draft. The AI extraction emits flat arrays
+    // with field names like `name` + `context`; the ContentFieldsAuto schema
+    // expects `{items[]}` wrappers + canonical field names (`who`, `role`).
+    // Mirrors lib/astro-builder.ts#normalizeBlock so the editor sidebar shows
+    // the same content the rendered iframe shows. See the fix-thread in
+    // docs/changes/TEMPLATES-SALONSPA-PLAN.md for full context.
+    const normalizeBlockEditor = (
+        input: any,
+        itemsKey: 'items' | 'steps' = 'items',
+        aliases: Record<string, string> = {},
+        altItemsKey?: string,
+    ): any => {
+        if (input == null) return input;
+        let arr: any[] | null = null;
+        let wrapper: Record<string, any> = {};
+        if (Array.isArray(input)) {
+            arr = input;
+        } else if (typeof input === 'object') {
+            wrapper = { ...input };
+            if (Array.isArray(input[itemsKey])) {
+                arr = input[itemsKey];
+            } else if (altItemsKey && Array.isArray(input[altItemsKey])) {
+                arr = input[altItemsKey];
+            }
+        }
+        if (!arr) return input;
+        const mapped = arr.map((it: any) => {
+            if (!it || typeof it !== 'object') return it;
+            const out: Record<string, any> = { ...it };
+            for (const [from, to] of Object.entries(aliases)) {
+                if (out[from] != null && out[to] == null) out[to] = out[from];
+            }
+            return out;
+        });
+        delete wrapper[itemsKey];
+        if (altItemsKey) delete wrapper[altItemsKey];
+        return { ...wrapper, [itemsKey]: mapped };
+    };
+    const normalizeDraft = (raw: any): any => {
+        if (!raw || typeof raw !== 'object') return raw ?? {};
+        return {
+            ...raw,
+            why: normalizeBlockEditor(raw.why, 'items', { description: 'body' }),
+            how: normalizeBlockEditor(raw.how, 'steps', { description: 'body' }, 'items'),
+            testimonials: normalizeBlockEditor(raw.testimonials, 'items', { name: 'who', author: 'who', context: 'role' }),
+            faq: normalizeBlockEditor(raw.faq, 'items', { question: 'q', answer: 'a' }),
+            credentials: normalizeBlockEditor(raw.credentials, 'items', { description: 'desc', body: 'desc' }),
+        };
+    };
+
+    const [draft, setDraft] = useState<any>(() => normalizeDraft(content));
     useEffect(() => {
-        setDraft(content ?? {});
+        setDraft(normalizeDraft(content));
     }, [content]);
 
     const [selectedBucket, setSelectedBucket] = useState<string>(() => {
@@ -339,15 +404,18 @@ export default function SandboxEditor(props: SandboxEditorProps) {
     // originals + AI-enhanced for the clicked slot.
     const [linkPopover, setLinkPopover] = useState<LinkPopoverData | null>(null);
     const [imagePicker, setImagePicker] = useState<string | null>(null);
-    // Template-tab accordions — Modern Designs (Generic) + Barbershop.
+    // Template-tab accordions — Modern Designs (Generic) + Barbershop + SalonSpa.
     // Each defaults open if no template selected OR the active selection
     // belongs to that family; collapsed otherwise (still expandable).
     const __initStyle = String((customizations as any)?.heroStyle ?? "");
     const [templateAccordionOpen, setTemplateAccordionOpen] = useState<boolean>(
-        () => /^generic:[A-E]$/.test(__initStyle) || !/^(generic|barbershop):/.test(__initStyle),
+        () => /^generic:[A-E]$/.test(__initStyle) || !/^(generic|barbershop|salonspa):/.test(__initStyle),
     );
     const [barbershopAccordionOpen, setBarbershopAccordionOpen] = useState<boolean>(
         () => /^barbershop:[F-J]$/.test(__initStyle),
+    );
+    const [salonspaAccordionOpen, setSalonspaAccordionOpen] = useState<boolean>(
+        () => /^salonspa:[K-O]$/.test(__initStyle),
     );
 
     // Click-to-focus: iframe sends ed:click → either focus a text input
@@ -772,27 +840,54 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                             }
                             const tpl = ALL_TEMPLATES.find((t) => t.code === code);
                             const letter = tpl?.letter ?? "A";
-                            setPendingCustomizations((prev: any) => ({
-                                ...(prev ?? customizations ?? {}),
-                                heroStyle: code,
-                                aboutStyle: code,
-                                servicesStyle: code,
-                                galleryStyle: code,
-                                contactStyle: code,
-                                trustStyle: code,
-                                whyUsStyle: code,
-                                howItWorksStyle: code,
-                                testimonialsStyle: code,
-                                faqStyle: code,
-                                serviceAreaStyle: code,
-                                credentialsStyle: code,
-                                ctaBandStyle: code,
-                                navbarStyle: letter,
-                            }));
+                            // Branded families (Barbershop F–J, SalonSpa K–O) are
+                            // hand-tuned palettes + serif/sans pairings — picking
+                            // one means "show me THIS variant's identity." Any
+                            // leftover explicit colorScheme / fontPairing from a
+                            // prior pick would stomp the variant's tokens via the
+                            // html:root !important override block in
+                            // genericThemeOverrides.ts. Reset both to 'auto' on
+                            // branded-family picks so the variant identity wins.
+                            // Generic templates (A–E) are recolor-ready shells —
+                            // leave any explicit admin pick alone for them.
+                            // See TEMPLATE-FAMILY-PLAYBOOK.md §"Branded-family
+                            // picks reset theme picks" for full context.
+                            const isBranded = BARBERSHOP_TEMPLATES.some((t) => t.code === code)
+                                || SALONSPA_TEMPLATES.some((t) => t.code === code);
+                            setPendingCustomizations((prev: any) => {
+                                const base = prev ?? customizations ?? {};
+                                return {
+                                    ...base,
+                                    heroStyle: code,
+                                    aboutStyle: code,
+                                    servicesStyle: code,
+                                    galleryStyle: code,
+                                    contactStyle: code,
+                                    trustStyle: code,
+                                    whyUsStyle: code,
+                                    howItWorksStyle: code,
+                                    testimonialsStyle: code,
+                                    faqStyle: code,
+                                    serviceAreaStyle: code,
+                                    credentialsStyle: code,
+                                    ctaBandStyle: code,
+                                    navbarStyle: letter,
+                                    ...(isBranded ? {
+                                        colorScheme: 'auto',
+                                        colorSchemeId: 'auto',
+                                        fontPairing: 'auto',
+                                        fontPairingId: 'auto',
+                                    } : {}),
+                                };
+                            });
                         };
                         const activeTpl = ALL_TEMPLATES.find((t) => t.code === currentHeroStyle);
                         const activeFamily: TemplateFamily | null = activeTpl
-                            ? (BARBERSHOP_TEMPLATES.some((t) => t.code === activeTpl.code) ? 'barbershop' : 'generic')
+                            ? (BARBERSHOP_TEMPLATES.some((t) => t.code === activeTpl.code)
+                                ? 'barbershop'
+                                : SALONSPA_TEMPLATES.some((t) => t.code === activeTpl.code)
+                                    ? 'salonspa'
+                                    : 'generic')
                             : null;
                         return (
                             <div className="space-y-3">
@@ -1155,6 +1250,174 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                                     </details>
                                 </div>
 
+                                {/* ── SALONSPA family ───────────────────────── */}
+                                <div className={s.section}>
+                                    <details
+                                        open={salonspaAccordionOpen}
+                                        onToggle={(e) => setSalonspaAccordionOpen((e.target as HTMLDetailsElement).open)}
+                                        style={{
+                                            borderRadius: 10,
+                                            overflow: "hidden",
+                                            background: "var(--sx-panel-2)",
+                                            border: "1px solid var(--sx-rule)",
+                                        }}
+                                    >
+                                        <summary
+                                            style={{
+                                                listStyle: "none",
+                                                cursor: "pointer",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                padding: "12px 14px",
+                                                color: "var(--sx-ink)",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+                                                <div
+                                                    style={{
+                                                        fontFamily: "var(--sx-mono)",
+                                                        fontSize: 10,
+                                                        fontWeight: 700,
+                                                        letterSpacing: "0.16em",
+                                                        textTransform: "uppercase",
+                                                        color: "var(--sx-accent)",
+                                                    }}
+                                                >
+                                                    Salon & Spa
+                                                </div>
+                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                    {activeFamily === 'salonspa' && activeTpl ? activeTpl.label : "SalonSpa family · 5 variants"}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: "var(--sx-ink-soft)",
+                                                        whiteSpace: "nowrap",
+                                                        overflow: "hidden",
+                                                        textOverflow: "ellipsis",
+                                                    }}
+                                                >
+                                                    {activeFamily === 'salonspa' && activeTpl ? activeTpl.tagline : "Click to browse salon & spa designs"}
+                                                </div>
+                                            </div>
+                                            <ChevronDown
+                                                style={{
+                                                    width: 14,
+                                                    height: 14,
+                                                    color: "var(--sx-ink-soft)",
+                                                    transition: "transform .18s",
+                                                    transform: salonspaAccordionOpen ? "rotate(180deg)" : "none",
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        </summary>
+                                        <div
+                                            style={{
+                                                padding: "8px 12px 14px",
+                                                borderTop: "1px solid var(--sx-rule)",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            {SALONSPA_TEMPLATES.map((tpl) => {
+                                                const isActive = currentHeroStyle === tpl.code;
+                                                return (
+                                                    <button
+                                                        key={tpl.code}
+                                                        type="button"
+                                                        onClick={() => onPickTemplate(tpl.code)}
+                                                        style={{
+                                                            display: "block",
+                                                            width: "100%",
+                                                            textAlign: "left",
+                                                            padding: 0,
+                                                            background: isActive ? "rgba(16, 185, 129, 0.08)" : "var(--sx-panel)",
+                                                            border: isActive ? "1.5px solid var(--sx-accent)" : "1px solid var(--sx-rule)",
+                                                            borderRadius: 10,
+                                                            overflow: "hidden",
+                                                            cursor: "pointer",
+                                                            transition: "border-color .15s, transform .15s",
+                                                            fontFamily: "var(--sx-sans)",
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                width: "100%",
+                                                                aspectRatio: "16 / 10",
+                                                                background: "#fff",
+                                                                borderBottom: "1px solid var(--sx-rule)",
+                                                                position: "relative",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            <iframe
+                                                                src={tpl.preview}
+                                                                title={`${tpl.label} preview`}
+                                                                loading="lazy"
+                                                                sandbox=""
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: "300%",
+                                                                    height: "300%",
+                                                                    border: 0,
+                                                                    transform: "scale(0.333)",
+                                                                    transformOrigin: "top left",
+                                                                    pointerEvents: "none",
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div style={{ padding: "10px 14px 12px" }}>
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    gap: 8,
+                                                                    justifyContent: "space-between",
+                                                                }}
+                                                            >
+                                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                                    {tpl.label}
+                                                                </div>
+                                                                {isActive && (
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: 9,
+                                                                            fontWeight: 700,
+                                                                            textTransform: "uppercase",
+                                                                            letterSpacing: "0.1em",
+                                                                            color: "var(--sx-accent)",
+                                                                            background: "rgba(16, 185, 129, 0.18)",
+                                                                            borderRadius: 999,
+                                                                            padding: "2px 7px",
+                                                                            fontFamily: "var(--sx-mono)",
+                                                                        }}
+                                                                    >
+                                                                        Active
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: "var(--sx-ink-soft)",
+                                                                    marginTop: 4,
+                                                                }}
+                                                            >
+                                                                {tpl.tagline}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </details>
+                                </div>
+
                                 <div
                                     style={{
                                         padding: 14,
@@ -1188,7 +1451,7 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                     })()}
 
                     {/* ── CONTENT ──────────────────────────────── */}
-                    {tab === "content" && /^(generic:[A-E]|barbershop:[F-J])$/.test(String((effectiveCustomizations as any)?.heroStyle ?? "")) && (() => {
+                    {tab === "content" && /^(generic:[A-E]|barbershop:[F-J]|salonspa:[K-O])$/.test(String((effectiveCustomizations as any)?.heroStyle ?? "")) && (() => {
                         // Derive the same "tier-3" fallback the build pipeline
                         // uses so inputs always show what the iframe shows. The
                         // editor's getValue() chain becomes:
@@ -2152,7 +2415,7 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                                     textTransform: "uppercase",
                                 }}
                             >
-                                <Loader2 style={{ width: 28, height: 28, color: "#10b981" }} className="animate-spin" />
+                                <Loader2 style={{ width: 28, height: 28, color: "#E4B05E" }} className="animate-spin" />
                                 Regenerating site…
                                 <span style={{ fontSize: 10, opacity: 0.6, letterSpacing: "0.12em" }}>
                                     Astro build · usually 30–60s
@@ -2220,7 +2483,7 @@ function ChipList({
                                 padding: "5px 9px",
                                 background: "rgba(16, 185, 129, 0.1)",
                                 border: "1px solid rgba(16, 185, 129, 0.3)",
-                                color: "#10b981",
+                                color: "#E4B05E",
                                 borderRadius: 999,
                                 fontFamily: "var(--sx-mono, ui-monospace)",
                                 fontSize: 11,
@@ -2234,7 +2497,7 @@ function ChipList({
                                 style={{
                                     background: "transparent",
                                     border: 0,
-                                    color: "#10b981",
+                                    color: "#E4B05E",
                                     cursor: "pointer",
                                     padding: 0,
                                     lineHeight: 1,
@@ -2274,7 +2537,7 @@ function ChipList({
                         padding: "6px 12px",
                         background: "rgba(16, 185, 129, 0.15)",
                         border: "1px solid rgba(16, 185, 129, 0.4)",
-                        color: "#10b981",
+                        color: "#E4B05E",
                         borderRadius: 6,
                         cursor: "pointer",
                         fontSize: 12,

@@ -73,19 +73,63 @@ const mapAria = `Map showing ${label}`;
         </div>
       </div>
       <div id="map" role="img" aria-label={mapAria}>
-        {!(lat != null && lng != null) && (
-          <div class="map-fallback">Address-based map will appear here after geocoding.</div>
+        {!(lat != null && lng != null) && !address && (
+          <div class="map-fallback">No address on file yet.</div>
+        )}
+        {!(lat != null && lng != null) && address && (
+          <div class="map-fallback" id="map-fallback">Loading map…</div>
         )}
       </div>
     </div>
   </div>
 </section>
+{/* Map render path A: build-time coords ready. */}
 {lat != null && lng != null && (
   <script is:inline define:vars={{ lat, lng, label }}>
     (function init() {
       if (lat == null || lng == null) return;
       if (window.__barbershopInitMap) window.__barbershopInitMap(lat, lng, label);
       else setTimeout(init, 80);
+    })();
+  </script>
+)}
+{/* Map render path B: no build-time coords but address present — try
+    client-side Nominatim. Fixes the "map empty on local + Vercel when
+    build-time geocoding silently failed" bug. Non-fatal. */}
+{!(lat != null && lng != null) && address && (
+  <script is:inline define:vars={{ address, label }}>
+    (function geocodeThenInit() {
+      function tryInit(lat, lng) {
+        var attempt = 0;
+        (function loop() {
+          if (window.__barbershopInitMap) {
+            window.__barbershopInitMap(lat, lng, label);
+          } else if (attempt++ < 25) {
+            setTimeout(loop, 80);
+          }
+        })();
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query;
+        fetch(url, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) {
+              var el = document.getElementById('map-fallback');
+              if (el) el.textContent = 'Map preview unavailable — use the directions button.';
+              return;
+            }
+            var lat = parseFloat(results[0].lat);
+            var lng = parseFloat(results[0].lon);
+            if (isNaN(lat) || isNaN(lng)) return;
+            tryInit(lat, lng);
+          })
+          .catch(function () {
+            var el = document.getElementById('map-fallback');
+            if (el) el.textContent = 'Map preview unavailable — use the directions button.';
+          });
+      } catch (e) { /* never block render */ }
     })();
   </script>
 )}

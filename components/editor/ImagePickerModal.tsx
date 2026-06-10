@@ -140,7 +140,7 @@ export default function ImagePickerModal({ open, field, originals, enhanced, onC
                                     fontWeight: isActive ? 700 : 500,
                                     fontSize: 13,
                                     cursor: 'pointer',
-                                    borderBottom: isActive ? '2px solid #10b981' : '2px solid transparent',
+                                    borderBottom: isActive ? '2px solid #E4B05E' : '2px solid transparent',
                                     marginBottom: -1,
                                 }}
                             >
@@ -186,7 +186,7 @@ export default function ImagePickerModal({ open, field, originals, enhanced, onC
                                         transition: 'transform .15s, border-color .15s',
                                     }}
                                     onMouseEnter={(e) => {
-                                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#10b981';
+                                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#E4B05E';
                                         (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.02)';
                                     }}
                                     onMouseLeave={(e) => {

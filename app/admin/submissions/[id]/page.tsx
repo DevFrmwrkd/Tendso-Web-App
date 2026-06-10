@@ -769,7 +769,7 @@ export default function SubmissionDetailPage() {
     if (authLoading || dataLoading) {
         return (
             <div className="min-h-screen bg-white flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+                <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
             </div>
         );
     }
@@ -794,7 +794,7 @@ export default function SubmissionDetailPage() {
                     <button
                         type="button"
                         onClick={() => router.back()}
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-700 hover:text-emerald-700 transition-colors"
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-700 hover:text-amber-700 transition-colors"
                     >
                         <ChevronLeft className="w-4 h-4" /> Back
                     </button>
@@ -871,7 +871,7 @@ export default function SubmissionDetailPage() {
                                             onClick={() => setActiveTab(tab.key)}
                                             className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap ${
                                                 active
-                                                    ? "bg-white text-emerald-700 shadow-sm"
+                                                    ? "bg-white text-amber-700 shadow-sm"
                                                     : "text-neutral-500 hover:text-neutral-900"
                                             }`}
                                         >
@@ -889,7 +889,7 @@ export default function SubmissionDetailPage() {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         title={websitePublishedUrl}
-                                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1.5 rounded-lg border border-emerald-600 hover:border-emerald-700 transition-colors whitespace-nowrap shadow-sm"
+                                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 px-2.5 py-1.5 rounded-lg border border-amber-600 hover:border-amber-700 transition-colors whitespace-nowrap shadow-sm"
                                     >
                                         <Globe className="w-3.5 h-3.5" />
                                         View Deployed
@@ -899,7 +899,7 @@ export default function SubmissionDetailPage() {
                                     href={`/api/preview/${submissionId}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-emerald-700 px-2.5 py-1.5 rounded-lg border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-amber-700 px-2.5 py-1.5 rounded-lg border border-neutral-200 hover:border-amber-300 hover:bg-amber-50 transition-colors whitespace-nowrap"
                                 >
                                     <ExternalLink className="w-3.5 h-3.5" />
                                     Open in New Tab
@@ -909,7 +909,7 @@ export default function SubmissionDetailPage() {
                                         setSidebarManuallyToggled(true);
                                         setSidebarOpen(!sidebarOpen);
                                     }}
-                                    className="hidden xl:inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-emerald-700 px-2.5 py-1.5 rounded-lg border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 transition-colors whitespace-nowrap"
+                                    className="hidden xl:inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-amber-700 px-2.5 py-1.5 rounded-lg border border-neutral-200 hover:border-amber-300 hover:bg-amber-50 transition-colors whitespace-nowrap"
                                     title={sidebarOpen ? "Hide details panel" : "Show details panel"}
                                     aria-label={sidebarOpen ? "Hide details panel" : "Show details panel"}
                                     aria-pressed={sidebarOpen}
@@ -944,9 +944,9 @@ export default function SubmissionDetailPage() {
                             <div
                                 className="rounded-2xl px-5 py-4 flex items-start gap-3"
                                 style={{
-                                    background: "var(--ed-accent-bg, #D1FAE5)",
+                                    background: "var(--ed-accent-bg, #F5E4C0)",
                                     border: "1px solid var(--ed-accent)",
-                                    color: "var(--ed-accent-ink, #064E3B)",
+                                    color: "var(--ed-accent-ink, #5C3A0F)",
                                 }}
                             >
                                 <Palette className="w-5 h-5 flex-shrink-0 mt-0.5" />
@@ -999,7 +999,7 @@ export default function SubmissionDetailPage() {
                     {/* Generating spinner */}
                     {generatingWebsite && (
                         <div className="bg-white rounded-2xl border border-neutral-200 p-12 text-center">
-                            <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mx-auto mb-4" />
+                            <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
                             <h4
                                 style={{ fontFamily: "var(--font-fraunces)" }}
                                 className="text-xl font-semibold text-neutral-900 mb-1"
@@ -1139,12 +1139,12 @@ export default function SubmissionDetailPage() {
                             <div
                                 className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
                                     modalType === "success"
-                                        ? "bg-emerald-50 border-2 border-emerald-200"
+                                        ? "bg-amber-50 border-2 border-amber-200"
                                         : "bg-rose-50 border-2 border-rose-200"
                                 }`}
                             >
                                 {modalType === "success" ? (
-                                    <Check className="w-8 h-8 text-emerald-600" strokeWidth={3} />
+                                    <Check className="w-8 h-8 text-amber-600" strokeWidth={3} />
                                 ) : (
                                     <X className="w-8 h-8 text-rose-600" strokeWidth={3} />
                                 )}
@@ -1160,7 +1160,7 @@ export default function SubmissionDetailPage() {
                                 onClick={() => setShowModal(false)}
                                 className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-colors min-h-[44px] ${
                                     modalType === "success"
-                                        ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                                        ? "bg-amber-600 hover:bg-amber-700 text-white"
                                         : "bg-neutral-900 hover:bg-black text-white"
                                 }`}
                             >
@@ -1181,9 +1181,9 @@ export default function SubmissionDetailPage() {
                             Confirm payment received
                         </h3>
                         <p className="text-neutral-600 mb-4 text-sm">Are you sure you want to mark this submission as paid?</p>
-                        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-4">
-                            <p className="text-sm font-semibold text-emerald-900 mb-2">This will:</p>
-                            <ul className="text-sm text-emerald-800 space-y-1 list-disc list-inside">
+                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+                            <p className="text-sm font-semibold text-amber-900 mb-2">This will:</p>
+                            <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
                                 <li>Update submission status to &quot;Paid&quot;</li>
                                 <li>Add ₱{(submission.creator_payout ?? 0).toLocaleString()} to creator&apos;s balance</li>
                                 <li>Update creator&apos;s total earnings</li>
@@ -1196,7 +1196,7 @@ export default function SubmissionDetailPage() {
                             </div>
                             <div className="flex justify-between text-sm">
                                 <span className="text-neutral-600">Creator payout</span>
-                                <span className="font-bold text-emerald-700">₱{(submission.creator_payout ?? 0).toLocaleString()}</span>
+                                <span className="font-bold text-amber-700">₱{(submission.creator_payout ?? 0).toLocaleString()}</span>
                             </div>
                         </div>
                         <div className="flex gap-2">
@@ -1210,7 +1210,7 @@ export default function SubmissionDetailPage() {
                             <button
                                 onClick={handleMarkAsPaid}
                                 disabled={markingPaid}
-                                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors disabled:opacity-50 min-h-[44px] text-sm inline-flex items-center justify-center gap-2"
+                                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-amber-600 hover:bg-amber-700 text-white transition-colors disabled:opacity-50 min-h-[44px] text-sm inline-flex items-center justify-center gap-2"
                             >
                                 {markingPaid && <Loader2 className="w-4 h-4 animate-spin" />}
                                 {markingPaid ? "Processing…" : "Confirm payment"}

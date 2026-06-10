@@ -80,7 +80,7 @@ export default function EditableText({
                 <div className="absolute -right-20 top-0 flex gap-1">
                     <button
                         onClick={handleSave}
-                        className="p-1 bg-green-500 text-white rounded hover:bg-green-600"
+                        className="p-1 bg-amber-500 text-white rounded hover:bg-amber-600"
                         title="Save"
                     >
                         <Check className="w-4 h-4" />

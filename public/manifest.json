@@ -1,14 +1,14 @@
 {
-  "name": "Negosyo Digital",
-  "short_name": "Negosyo Digital",
-  "description": "Digitize MSMEs. Get Paid.",
+  "name": "Tendso",
+  "short_name": "Tendso",
+  "description": "The Thinking Ends Here. So the work doesn't.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",
-  "theme_color": "#00FF66",
+  "theme_color": "#E4B05E",
   "icons": [
     {
-      "src": "/logo.png",
+      "src": "/tendso-icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

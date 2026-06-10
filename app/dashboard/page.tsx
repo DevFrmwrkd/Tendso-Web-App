@@ -162,7 +162,7 @@ export default function DashboardPage() {
                         >
                             <Bell className="w-5 h-5" />
                             {(unreadCount ?? 0) > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                                     {unreadCount! > 9 ? '9+' : unreadCount}
                                 </span>
                             )}
@@ -414,16 +414,16 @@ export default function DashboardPage() {
                             const isDraft = sub.status === 'draft' || isIncomplete
 
                             const getStatusBg = () => {
-                                if (sub.status === 'approved') return 'bg-emerald-100 text-emerald-600'
+                                if (sub.status === 'approved') return 'bg-amber-100 text-amber-600'
                                 if (sub.status === 'rejected') return 'bg-red-100 text-red-600'
                                 if (isDraft) return 'bg-zinc-100 text-zinc-500'
                                 return 'bg-yellow-100 text-yellow-600'
                             }
 
                             const getStatusBadge = () => {
-                                if (sub.status === 'completed') return { bg: 'bg-emerald-100 text-emerald-700', text: 'Completed' }
-                                if (sub.status === 'paid') return { bg: 'bg-emerald-100 text-emerald-700', text: 'Paid' }
-                                if (sub.status === 'deployed') return { bg: 'bg-emerald-100 text-emerald-700', text: 'Live' }
+                                if (sub.status === 'completed') return { bg: 'bg-amber-100 text-amber-700', text: 'Completed' }
+                                if (sub.status === 'paid') return { bg: 'bg-amber-100 text-amber-700', text: 'Paid' }
+                                if (sub.status === 'deployed') return { bg: 'bg-amber-100 text-amber-700', text: 'Live' }
                                 if (sub.status === 'approved') return { bg: 'bg-blue-100 text-blue-700', text: 'Approved' }
                                 if (sub.status === 'rejected') return { bg: 'bg-red-100 text-red-700', text: 'Rejected' }
                                 if (sub.status === 'submitted' || sub.status === 'in_review') return { bg: 'bg-yellow-100 text-yellow-700', text: 'In Review' }

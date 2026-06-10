@@ -1,10 +1,10 @@
-# Creator Marketing Playbook — Negosyo Digital
+# Creator Marketing Playbook — Tendso
 
 > Knowledge base for **Certified Creators** (field agents). Read this end-to-end before your first pitch. Every number, fee, and timeline below is taken directly from how the app actually works — don't quote anything not in here.
 
 ---
 
-## 1. What Negosyo Digital is
+## 1. What Tendso is
 
 **One-sentence pitch:** We turn small Filipino businesses into real, on-the-internet businesses — and we pay creators like you to make it happen.
 
@@ -47,7 +47,7 @@ The **business owner** — the kuya, ate, tito, tita, or family running:
 
 Three lines. Memorize this and adapt the wording:
 
-> *"Po, may pang-business kayo na website na po ba kayo? Hindi naman po Facebook page — yung sariling .com address na pwedeng hanapin sa Google. Kami po sa Negosyo Digital, gumagawa kami ng professional website para sa local businesses tulad niyo. ₱1,000 lang po — isang bayad, hindi monthly. Kasama na ang website, hosting, at lahat ng kakailanganin."*
+> *"Po, may pang-business kayo na website na po ba kayo? Hindi naman po Facebook page — yung sariling .com address na pwedeng hanapin sa Google. Kami po sa Tendso, gumagawa kami ng professional website para sa local businesses tulad niyo. ₱1,000 lang po — isang bayad, hindi monthly. Kasama na ang website, hosting, at lahat ng kakailanganin."*
 
 Then if they're interested:
 
@@ -68,7 +68,7 @@ Two tiers. **Pick one with the owner during the interview**, then mark it on the
 
 | Package | Price (one-time, paid by business owner) | What's included |
 |---|---|---|
-| **Standard** | **₱1,000** | Professional website on a free Negosyo subdomain (e.g. `juansbakery.negosyo-digital.com`) |
+| **Standard** | **₱1,000** | Professional website on a free Tendso subdomain (e.g. `juansbakery.tendso.com`) |
 | **With Custom Domain** | **₱1,500** | Everything above + their own domain (`juansbakery.com`) for **year 1**, fully owned by them |
 
 **Critical talking points on the custom domain tier:**
@@ -115,7 +115,7 @@ The creator's payout depends on the interview format you capture. **Same payout 
 **Withdrawal flow** (Wallet tab → Withdraw Funds):
 - Paid via **Wise** to your email — works with any Philippine bank, GCash, or even kept as PHP balance on Wise.
 - **No minimum withdrawal.** Withdraw any positive amount you have.
-- **You receive the full requested amount.** Wise transfer fees are paid by Negosyo Digital — not deducted from your payout.
+- **You receive the full requested amount.** Wise transfer fees are paid by Tendso — not deducted from your payout.
 - First-time payouts: if you don't have a Wise account, the email becomes a 7-day claim invitation. Sign up free at wise.com (or use the referral link in the app for a bonus).
 
 ---
@@ -269,7 +269,7 @@ A: Yes — that's the easiest first submission. Family business, friend's tindah
 A: No hard cap, but quality matters more than volume (see §9). Most active creators submit 1–3/week.
 
 **Q: What if the business owner asks if it's legit?**
-A: Show your **Certificate of Completion** in the Profile tab (proof you're a Certified Creator with Negosyo Digital). Direct them to a live example site.
+A: Show your **Certificate of Completion** in the Profile tab (proof you're a Certified Creator with Tendso). Direct them to a live example site.
 
 **Q: Does the website have to be in English?**
 A: No. The AI handles Filipino and Taglish. The interview can be in any language the owner is comfortable in — the AI transcribes and the resulting site uses the same language tone.
@@ -321,7 +321,7 @@ A: No, but the businesses are. You need to be in the Philippines and able to do 
 ## 14. Final reminders
 
 - **Be honest.** Don't pitch businesses you haven't talked to. Our team checks.
-- **Be respectful.** You represent Negosyo Digital. Treat owners like family.
+- **Be respectful.** You represent Tendso. Treat owners like family.
 - **Quality first.** A clean ₱500 submission paid in 3 days beats 3 rejected ones.
 - **Use the referral code.** It's the highest-leverage earning on the platform.
 - **Stay certified.** If you skip training, your submissions get held longer.

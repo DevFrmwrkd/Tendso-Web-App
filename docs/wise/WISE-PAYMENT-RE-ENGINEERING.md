@@ -553,7 +553,7 @@ WISE_WEBHOOK_PUBLIC_KEY=<RSA public key from Wise dashboard>
 
 # Wise email for incoming payments (NEW context)
 WISE_EMAIL=<platform's Wise email — receives business owner payments>
-WISE_ACCOUNT_NAME=Negosyo Digital
+WISE_ACCOUNT_NAME=Tendso
 
 # Email sending (existing)
 GMAIL_USER=<gmail address>

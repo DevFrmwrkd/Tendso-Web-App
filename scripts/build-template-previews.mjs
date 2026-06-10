@@ -40,6 +40,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
 const GENERIC_SOURCE_DIR = path.join(ROOT, 'templates', 'Generic Landing Pages for Local business');
 const BARBERSHOP_SOURCE_DIR = path.join(ROOT, 'templates', 'Barbershop');
+const SALONSPA_SOURCE_DIR = path.join(ROOT, 'templates', 'SalonSpa');
 const OUT_DIR = path.join(ROOT, 'public', 'template-previews');
 
 const TEMPLATES = [
@@ -53,6 +54,11 @@ const TEMPLATES = [
     { letter: 'h', dir: BARBERSHOP_SOURCE_DIR, file: 'forge-kinetic.html',        label: 'Forge Kinetic'     },
     { letter: 'i', dir: BARBERSHOP_SOURCE_DIR, file: 'forge-minimal.html',        label: 'Forge Minimal'     },
     { letter: 'j', dir: BARBERSHOP_SOURCE_DIR, file: 'forge-stacked.html',        label: 'Forge Stacked'     },
+    { letter: 'k', dir: SALONSPA_SOURCE_DIR,   file: '01-Atelier.html',           label: 'Atelier'           },
+    { letter: 'l', dir: SALONSPA_SOURCE_DIR,   file: '02-Botanica.html',          label: 'Botanica'          },
+    { letter: 'm', dir: SALONSPA_SOURCE_DIR,   file: '03-Clinic.html',            label: 'Clinic'            },
+    { letter: 'n', dir: SALONSPA_SOURCE_DIR,   file: '04-Vogue.html',             label: 'Vogue'             },
+    { letter: 'o', dir: SALONSPA_SOURCE_DIR,   file: '05-Bloom.html',             label: 'Bloom'             },
 ];
 
 function sanitize(html, label) {

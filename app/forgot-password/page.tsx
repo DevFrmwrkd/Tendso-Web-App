@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2, Mail, Lock, Eye, EyeOff, Check, X } from "lucide-react";
-import Logo from "@/public/logo.png";
+import Logo from "@/public/tendso-logo.png";
 
 function getPasswordStrength(pw: string): { level: number; label: string; color: string } {
     if (pw.length < 8) return { level: 1, label: "Weak", color: "bg-red-500" };
@@ -191,9 +191,7 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 <div className="flex flex-col items-center mb-8">
-                    <div className="w-16 h-16 rounded-2xl overflow-hidden border border-[var(--ink)]/15 bg-[var(--khaki-deep)] p-1 flex items-center justify-center mb-5 shadow-md shadow-[var(--rust)]/15">
-                        <Image src={Logo} alt="" width={56} height={56} className="rounded-xl" />
-                    </div>
+                    <Image src={Logo} alt="Tendso" width={170} height={31} className="mb-6 invert" />
                     <h1
                         style={{
                             fontFamily: "var(--font-playfair)",

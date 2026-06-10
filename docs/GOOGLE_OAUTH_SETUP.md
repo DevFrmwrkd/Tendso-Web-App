@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide will walk you through setting up Google Sign-In for your Negosyo Digital authentication system.
+This guide will walk you through setting up Google Sign-In for your Tendso authentication system.
 
 ## 🔧 Supabase Dashboard Setup
 
@@ -15,7 +15,7 @@ This guide will walk you through setting up Google Sign-In for your Negosyo Digi
 2. **Create a New Project** (if needed)
    - Click "Select a project" at the top
    - Click "New Project"
-   - Name it: `Negosyo Digital` (or your preferred name)
+   - Name it: `Tendso` (or your preferred name)
    - Click "Create"
 
 3. **Enable Google+ API**
@@ -28,7 +28,7 @@ This guide will walk you through setting up Google Sign-In for your Negosyo Digi
    - Choose **User Type**: External
    - Click **"Create"**
    - Fill in required fields:
-     - **App name**: Negosyo Digital
+     - **App name**: Tendso
      - **User support email**: Your email
      - **Developer contact**: Your email
    - Click **"Save and Continue"**
@@ -40,7 +40,7 @@ This guide will walk you through setting up Google Sign-In for your Negosyo Digi
    - Go to: **APIs & Services** → **Credentials**
    - Click **"+ Create Credentials"** → **"OAuth client ID"**
    - Choose **Application type**: Web application
-   - **Name**: Negosyo Digital Web Client
+   - **Name**: Tendso Web Client
    - **Authorized JavaScript origins**:
      - Add: `http://localhost:3000` (for local development)
      - Add: `https://yourdomain.com` (for production, if you have it)
@@ -59,7 +59,7 @@ This guide will walk you through setting up Google Sign-In for your Negosyo Digi
 
 1. **Go to Supabase Dashboard**
    - Visit: https://supabase.com/dashboard
-   - Select your **Negosyo Digital** project
+   - Select your **Tendso** project
 
 2. **Navigate to Authentication Providers**
    ```
@@ -89,7 +89,7 @@ This guide will walk you through setting up Google Sign-In for your Negosyo Digi
    - Go to: **APIs & Services** → **Credentials**
 
 2. **Edit Your OAuth 2.0 Client**
-   - Click on your **Web client** (Negosyo Digital Web Client)
+   - Click on your **Web client** (Tendso Web Client)
    - Scroll to **Authorized redirect URIs**
    - Click **"+ Add URI"**
    - Paste the Supabase callback URL you copied:

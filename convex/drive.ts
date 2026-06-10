@@ -4,7 +4,7 @@
  * Google Drive folder sync.
  *
  * When an admin approves a submission, this module creates a per-submission
- * folder under the "Negosyo Digital" parent Drive folder, with subfolders for
+ * folder under the "Tendso" parent Drive folder, with subfolders for
  * photos / video / audio / transcript / generated-site, and uploads the assets
  * the creator submitted.
  *
@@ -23,7 +23,7 @@
  *   GOOGLE_DRIVE_OAUTH_CLIENT_ID       — OAuth 2.0 client ID from GCP
  *   GOOGLE_DRIVE_OAUTH_CLIENT_SECRET   — OAuth 2.0 client secret from GCP
  *   GOOGLE_DRIVE_USER_REFRESH_TOKEN    — refresh token for frmwrkd.media@gmail.com
- *   GOOGLE_DRIVE_PARENT_FOLDER_ID      — the "Negosyo Digital" parent folder ID
+ *   GOOGLE_DRIVE_PARENT_FOLDER_ID      — the "Tendso" parent folder ID
  *
  * The old GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON env is no longer read. Leave it set
  * for rollback safety; the code path that used it has been deleted.

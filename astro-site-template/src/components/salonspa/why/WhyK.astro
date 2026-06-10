@@ -1,0 +1,50 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const why = content.why || {};
+const tag = why.tag || '';
+const headline = why.headline || '';
+// Read `body` (canonical from normalizeBlock in lib/astro-builder.ts), fall
+// back to legacy `desc` / `description` shapes for safety.
+const items: Array<{ title: string; body?: string; desc?: string; description?: string }> =
+  Array.isArray(why.items) ? why.items : [];
+---
+{items.length > 0 && (
+  <section class="pad-y why-sect">
+    <div class="wrap">
+      <div class="sect-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="why.tag">{tag}</span>}
+          {headline && <h2 class="h-sect" data-field="why.headline" set:html={headline}></h2>}
+        </div>
+      </div>
+      <div class="why-grid">
+        {items.map((item, i) => (
+          <div class="why-cell reveal">
+            <div class="why-num">0{i + 1}</div>
+            <h3 class="why-title" data-field={`why.items.${i}.title`}>{item.title}</h3>
+            {(item.body ?? item.desc ?? item.description) && (
+              <p class="why-desc" data-field={`why.items.${i}.body`}>{item.body ?? item.desc ?? item.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .why-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: clamp(32px, 4vw, 56px);
+  }
+  .why-cell { }
+  .why-num {
+    font-family: var(--serif); color: var(--accent); font-size: 24px;
+    margin-bottom: 14px; font-weight: 500;
+  }
+  .why-title {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(20px, 2vw, 26px); color: var(--ink); margin: 0 0 12px;
+  }
+  .why-desc { color: var(--muted, rgba(var(--ink-rgb), .7)); font-size: 15px; line-height: 1.7; margin: 0; }
+</style>

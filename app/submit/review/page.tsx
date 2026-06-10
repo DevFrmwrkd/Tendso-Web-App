@@ -214,7 +214,7 @@ export default function ReviewSubmissionPage() {
             {/* Progress Bar */}
             <div className="px-4 mb-6">
                 <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500 rounded-full" style={{ width: '100%' }}></div>
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '100%' }}></div>
                 </div>
             </div>
 
@@ -238,7 +238,7 @@ export default function ReviewSubmissionPage() {
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                             <h3 className="font-semibold text-gray-900">Business Info</h3>
-                            <Link href="/submit/info" className="text-sm text-green-600 font-medium hover:text-green-700">
+                            <Link href="/submit/info" className="text-sm text-amber-600 font-medium hover:text-amber-700">
                                 Edit
                             </Link>
                         </div>
@@ -268,7 +268,7 @@ export default function ReviewSubmissionPage() {
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                             <h3 className="font-semibold text-gray-900">Photos</h3>
-                            <Link href="/submit/photos" className="text-sm text-green-600 font-medium hover:text-green-700">
+                            <Link href="/submit/photos" className="text-sm text-amber-600 font-medium hover:text-amber-700">
                                 Edit
                             </Link>
                         </div>
@@ -300,13 +300,13 @@ export default function ReviewSubmissionPage() {
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                         <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
                             <h3 className="font-semibold text-gray-900">Interview</h3>
-                            <Link href="/submit/interview" className="text-sm text-green-600 font-medium hover:text-green-700">
+                            <Link href="/submit/interview" className="text-sm text-amber-600 font-medium hover:text-amber-700">
                                 Edit
                             </Link>
                         </div>
                         <div className="p-4 space-y-4">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-green-50 text-green-600 rounded-lg">
+                                <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
                                     {hasVideo ? (
                                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -325,7 +325,7 @@ export default function ReviewSubmissionPage() {
                                     <p className="font-medium text-gray-900">
                                         {hasVideo ? 'Video Interview' : hasAudio ? 'Audio Interview' : 'No interview uploaded'}
                                     </p>
-                                    <p className="text-sm text-green-600 font-bold">
+                                    <p className="text-sm text-amber-600 font-bold">
                                         Payout: ₱{payout}
                                     </p>
                                 </div>
@@ -365,7 +365,7 @@ export default function ReviewSubmissionPage() {
                                         <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
                                             AI Transcript
                                         </h4>
-                                        <span className="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                                        <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
                                             Generated
                                         </span>
                                     </div>
@@ -388,10 +388,10 @@ export default function ReviewSubmissionPage() {
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                         <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                                <Globe size={18} className="text-emerald-600" />
+                                <Globe size={18} className="text-amber-600" />
                                 Custom Domain (Optional)
                             </h3>
-                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${wantsCustomDomain ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                            <span className={`text-xs font-bold px-2 py-1 rounded-full ${wantsCustomDomain ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
                                 {wantsCustomDomain ? '₱1,500 total' : 'Not included'}
                             </span>
                         </div>
@@ -407,13 +407,13 @@ export default function ReviewSubmissionPage() {
                                         value={domainInput}
                                         onChange={(e) => setDomainInput(e.target.value)}
                                         placeholder="e.g. yourbusiness.com (leave blank for standard)"
-                                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg font-mono text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                        className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg font-mono text-sm text-gray-900 placeholder-gray-400 bg-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
                                     />
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2">
                                         {checkingDomain ? (
                                             <Loader2 className="animate-spin text-gray-400" size={18} />
                                         ) : domainCheck?.available && domainCheck?.withinBudget ? (
-                                            <CheckCircle2 className="text-green-600" size={18} />
+                                            <CheckCircle2 className="text-amber-600" size={18} />
                                         ) : domainCheck && !domainCheck.available ? (
                                             <XCircle className="text-red-600" size={18} />
                                         ) : (
@@ -427,7 +427,7 @@ export default function ReviewSubmissionPage() {
                             {wantsCustomDomain && domainCheck && !checkingDomain && (
                                 <div className="text-xs">
                                     {domainCheck.available && domainCheck.withinBudget && (
-                                        <p className="text-green-700 font-semibold">
+                                        <p className="text-amber-700 font-semibold">
                                             ✓ Available — included in the ₱1,500 business-owner fee.
                                         </p>
                                     )}
@@ -489,14 +489,14 @@ export default function ReviewSubmissionPage() {
                                                     disabled={!sug.withinBudget}
                                                     className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg border text-left text-xs transition-all ${
                                                         sug.withinBudget
-                                                            ? 'bg-white hover:border-emerald-400 border-gray-200 text-gray-900'
+                                                            ? 'bg-white hover:border-amber-400 border-gray-200 text-gray-900'
                                                             : 'bg-gray-50 border-gray-100 opacity-60 cursor-not-allowed text-gray-500'
                                                     }`}
                                                 >
                                                     <span className="font-mono font-semibold text-gray-900 truncate">{sug.domain}</span>
                                                     <span
                                                         className={`font-semibold shrink-0 ${
-                                                            sug.withinBudget ? 'text-emerald-600' : 'text-amber-700'
+                                                            sug.withinBudget ? 'text-amber-600' : 'text-amber-700'
                                                         }`}
                                                     >
                                                         {sug.isFallback ? 'Check' : sug.withinBudget ? 'Available ✓' : 'Over budget'}
@@ -523,16 +523,16 @@ export default function ReviewSubmissionPage() {
                     </div>
 
                     {/* Total amount summary */}
-                    <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-xl">
+                    <div className="flex items-center justify-between p-4 bg-amber-50 border border-amber-200 rounded-xl">
                         <span className="text-sm font-semibold text-gray-700">Total business owner fee</span>
-                        <span className="text-2xl font-black text-emerald-700">₱{totalAmount.toLocaleString()}</span>
+                        <span className="text-2xl font-black text-amber-700">₱{totalAmount.toLocaleString()}</span>
                     </div>
 
                     {/* Terms */}
                     <div className="flex items-start gap-3 p-4 bg-gray-100 rounded-xl">
                         <Checkbox
                             id="terms"
-                            className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600 data-[state=checked]:text-white"
+                            className="data-[state=checked]:bg-amber-600 data-[state=checked]:border-amber-600 data-[state=checked]:text-white"
                             checked={agreed}
                             onCheckedChange={(checked) => setAgreed(checked as boolean)}
                         />
@@ -550,7 +550,7 @@ export default function ReviewSubmissionPage() {
                     <Button
                         onClick={handleSubmit}
                         disabled={submitting || !agreed}
-                        className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition-colors shadow-lg shadow-green-500/20"
+                        className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors shadow-lg shadow-amber-500/20"
                     >
                         {submitting ? (
                             <span className="flex items-center gap-2">

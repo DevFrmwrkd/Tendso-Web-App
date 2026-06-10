@@ -48,7 +48,7 @@ const STATUS_TABS: Array<{ key: WithdrawalStatus; label: string }> = [
 
 function statusPill(status: WithdrawalRecord['status']) {
     const map: Record<WithdrawalRecord['status'], { bg: string; text: string; Icon: typeof CheckCircle; label: string }> = {
-        completed: { bg: 'bg-emerald-50', text: 'text-emerald-700', Icon: CheckCircle, label: 'Completed' },
+        completed: { bg: 'bg-amber-50', text: 'text-amber-700', Icon: CheckCircle, label: 'Completed' },
         processing: { bg: 'bg-blue-50', text: 'text-blue-700', Icon: Loader2, label: 'Processing' },
         pending: { bg: 'bg-amber-50', text: 'text-amber-700', Icon: Clock, label: 'Pending' },
         failed: { bg: 'bg-red-50', text: 'text-red-700', Icon: AlertCircle, label: 'Failed' },
@@ -121,7 +121,7 @@ export default function PayoutsPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
             </div>
         )
     }
@@ -167,7 +167,7 @@ export default function PayoutsPage() {
             </div>
 
             {/* Filter Tabs */}
-            <div className="bg-white rounded-2xl border border-emerald-500 shadow-sm p-4 sm:p-5 mb-4 sm:mb-6">
+            <div className="bg-white rounded-2xl border border-amber-500 shadow-sm p-4 sm:p-5 mb-4 sm:mb-6">
                 <div className="flex gap-2 flex-wrap">
                     {STATUS_TABS.map((tab) => {
                         const active = statusFilter === tab.key
@@ -177,7 +177,7 @@ export default function PayoutsPage() {
                                 key={tab.key}
                                 onClick={() => setStatusFilter(tab.key)}
                                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors inline-flex items-center gap-2 ${active
-                                    ? 'bg-green-500 text-white'
+                                    ? 'bg-amber-500 text-white'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                     }`}
                             >
@@ -197,7 +197,7 @@ export default function PayoutsPage() {
             </div>
 
             {/* Transactions Table */}
-            <div className="bg-white rounded-2xl border border-emerald-500 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-amber-500 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
@@ -228,8 +228,8 @@ export default function PayoutsPage() {
                                         <tr key={w._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center shrink-0">
-                                                        <span className="text-xs font-bold text-green-700">
+                                                    <div className="w-9 h-9 bg-amber-50 rounded-lg flex items-center justify-center shrink-0">
+                                                        <span className="text-xs font-bold text-amber-700">
                                                             {(w.creatorName || '?').split(' ').map((p) => p.charAt(0)).slice(0, 2).join('').toUpperCase() || '?'}
                                                         </span>
                                                     </div>
@@ -240,7 +240,7 @@ export default function PayoutsPage() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className="text-base font-bold text-green-600">
+                                                <span className="text-base font-bold text-amber-600">
                                                     ₱{w.amount.toLocaleString()}
                                                 </span>
                                             </td>
@@ -269,7 +269,7 @@ export default function PayoutsPage() {
                                             <td className="px-6 py-4 text-right">
                                                 <button
                                                     onClick={() => setSelected(w)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors"
                                                 >
                                                     <Eye className="w-3.5 h-3.5" />
                                                     View
@@ -308,12 +308,12 @@ function StatCard({
     accent: 'emerald' | 'amber' | 'red'
 }) {
     const accentMap: Record<typeof accent, string> = {
-        emerald: 'text-green-600',
+        emerald: 'text-amber-600',
         amber: 'text-amber-600',
         red: 'text-red-600',
     }
     return (
-        <div className="bg-white rounded-2xl p-5 border border-emerald-500 shadow-sm">
+        <div className="bg-white rounded-2xl p-5 border border-amber-500 shadow-sm">
             <p className="text-xs font-medium text-gray-500 mb-2">{label}</p>
             <p className={`text-3xl font-bold ${accentMap[accent]}`}>{value}</p>
             <p className="text-[11px] text-gray-400 mt-1">{sub}</p>
@@ -330,9 +330,9 @@ function TransactionDetailModal({ w, onClose }: { w: WithdrawalRecord; onClose: 
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
-                <div className="sticky top-0 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-6 flex items-center justify-between">
+                <div className="sticky top-0 bg-gradient-to-r from-amber-500 to-amber-600 text-white p-6 flex items-center justify-between">
                     <div className="min-w-0">
-                        <p className="text-xs uppercase tracking-wider text-emerald-100">Transaction</p>
+                        <p className="text-xs uppercase tracking-wider text-amber-100">Transaction</p>
                         <p className="text-lg font-bold truncate">{w.reference || w.wiseTransferId || w._id}</p>
                     </div>
                     <button
@@ -353,9 +353,9 @@ function TransactionDetailModal({ w, onClose }: { w: WithdrawalRecord; onClose: 
 
                     <Section title="Transaction">
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="bg-green-50 p-4 rounded-xl border border-green-200">
+                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-200">
                                 <p className="text-xs text-gray-600 mb-1">Amount</p>
-                                <p className="text-2xl font-bold text-green-700">₱{w.amount.toLocaleString()}</p>
+                                <p className="text-2xl font-bold text-amber-700">₱{w.amount.toLocaleString()}</p>
                             </div>
                             <div className={`p-4 rounded-xl border ${pill.bg} ${pill.text} border-current/30`}>
                                 <p className="text-xs text-gray-600 mb-1">Status</p>

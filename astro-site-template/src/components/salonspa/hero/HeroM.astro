@@ -1,0 +1,79 @@
+---
+/**
+ * Clinic hero — clinical mist-toned variant. Two-column with copy
+ * on the left + photo right, with a "trust strip" above the headline.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const locality = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || (layout.contact?.phone ? `tel:${String(layout.contact.phone).replace(/[^0-9+]/g, '')}` : '#');
+const ratingBig = hero.rating?.big || '';
+const ratingLabel = hero.rating?.label || '';
+---
+<section class="heroM" id="top">
+  <div class="wrap heroM-grid">
+    <div class="heroM-copy">
+      {locality && (
+        <div class="heroM-strip"><span class="kicker" data-field="hero.kicker">{locality}</span></div>
+      )}
+      {headlineLines.length > 0 && (
+        <h1 class="heroM-headline">
+          {headlineLines.map((line: string, i: number) => (
+            <span class="hl-line" data-field={`hero.headlineLines.${i}`} set:html={line}></span>
+          ))}
+        </h1>
+      )}
+      {sub && <p class="heroM-sub" data-field="hero.sub">{sub}</p>}
+      <div class="heroM-cta">
+        {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+        {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+      </div>
+      {(ratingBig || ratingLabel) && (
+        <div class="heroM-rating">
+          {ratingBig && <b data-field="hero.rating.big">{ratingBig}</b>}
+          <span class="stars">★★★★★</span>
+          {ratingLabel && <span data-field="hero.rating.label">{ratingLabel}</span>}
+        </div>
+      )}
+    </div>
+    <div class="heroM-img">
+      {heroImage && <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>}
+    </div>
+  </div>
+</section>
+<style>
+  .heroM { padding-top: clamp(120px, 14vw, 180px); padding-bottom: clamp(60px, 8vw, 100px); }
+  .heroM-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(36px, 5vw, 88px); align-items: center; }
+  .heroM-strip { margin-bottom: 18px; }
+  .heroM-headline {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(42px, 6.5vw, 86px); line-height: 1.05; letter-spacing: -.005em;
+    margin: 0 0 24px;
+  }
+  .heroM-headline .hl-line { display: block; }
+  .heroM-sub {
+    font-size: clamp(16px, 1.4vw, 19px); color: var(--muted, rgba(var(--ink-rgb), .68));
+    max-width: 46ch; margin: 0 0 32px; line-height: 1.65;
+  }
+  .heroM-cta { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 28px; }
+  .heroM-rating {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-family: var(--sans); font-size: 13.5px; color: var(--muted, rgba(var(--ink-rgb), .7));
+  }
+  .heroM-rating b { font-family: var(--serif); font-weight: 500; font-size: 22px; color: var(--accent); }
+  .heroM-rating .stars { color: var(--accent); letter-spacing: 2px; font-size: 13px; }
+  .heroM-img { aspect-ratio: 4 / 5; overflow: hidden; border: 1px solid var(--line); }
+  .heroM-img .bg-img { width: 100%; height: 100%; background-size: cover; background-position: center; }
+  @media (max-width: 880px) {
+    .heroM-grid { grid-template-columns: 1fr; }
+    .heroM-img { aspect-ratio: 4 / 3; order: -1; }
+  }
+</style>

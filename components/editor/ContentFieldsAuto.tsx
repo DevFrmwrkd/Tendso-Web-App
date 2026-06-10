@@ -170,7 +170,7 @@ function GroupRender({ group, isOpen, onToggle, getValue, setValue, openImagePic
                         fontFamily: "var(--sx-mono, ui-monospace, monospace)",
                         letterSpacing: "0.14em",
                         textTransform: "uppercase",
-                        color: "var(--sx-accent, #10b981)",
+                        color: "var(--sx-accent, #E4B05E)",
                         marginRight: 8,
                     }}>{group.id}</span>
                     <span style={{ fontSize: 13, fontWeight: 700 }}>{group.title}</span>
@@ -421,7 +421,7 @@ function ListField({ spec, getValue, setValue, openImagePicker, onTextChange }: 
                             padding: '3px 8px',
                             background: 'rgba(16, 185, 129, 0.15)',
                             border: '1px solid rgba(16, 185, 129, 0.4)',
-                            color: '#10b981',
+                            color: '#E4B05E',
                             borderRadius: 4,
                             cursor: 'pointer',
                             letterSpacing: '0.04em',

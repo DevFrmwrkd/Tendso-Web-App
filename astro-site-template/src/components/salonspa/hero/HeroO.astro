@@ -1,0 +1,77 @@
+---
+/**
+ * Bloom hero — mauve + cream romantic variant. Asymmetric grid with
+ * a portrait photo offset by a smaller secondary image stack.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const heroImage2 = hero.image2 || (Array.isArray(hero.photos) && hero.photos[1]) || (Array.isArray(content.photos) && content.photos[1]) || '';
+const locality = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || (layout.contact?.phone ? `tel:${String(layout.contact.phone).replace(/[^0-9+]/g, '')}` : '#');
+---
+<section class="heroO" id="top">
+  <div class="wrap heroO-grid">
+    <div class="heroO-copy">
+      {locality && <div class="heroO-eyebrow"><span class="kicker" data-field="hero.kicker">{locality}</span></div>}
+      {headlineLines.length > 0 && (
+        <h1 class="heroO-headline">
+          {headlineLines.map((line: string, i: number) => (
+            <span class="hl-line" data-field={`hero.headlineLines.${i}`} set:html={line}></span>
+          ))}
+        </h1>
+      )}
+      {sub && <p class="heroO-sub" data-field="hero.sub">{sub}</p>}
+      <div class="heroO-cta">
+        {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+        {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+      </div>
+    </div>
+    <div class="heroO-stack">
+      {heroImage && (
+        <div class="heroO-img heroO-img-big">
+          <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+        </div>
+      )}
+      {heroImage2 && (
+        <div class="heroO-img heroO-img-small">
+          <div class="bg-img" data-image-field="hero.image2" style={`background-image:url('${heroImage2}');`}></div>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+<style>
+  .heroO { padding-top: clamp(130px, 15vw, 200px); padding-bottom: clamp(60px, 8vw, 110px); }
+  .heroO-grid { display: grid; grid-template-columns: 1fr 1.05fr; gap: clamp(40px, 6vw, 90px); align-items: center; }
+  .heroO-eyebrow { margin-bottom: 22px; }
+  .heroO-headline {
+    font-family: var(--serif); font-weight: 400;
+    font-size: clamp(48px, 7vw, 104px); line-height: 1.04; letter-spacing: -.01em;
+    margin: 0 0 28px;
+  }
+  .heroO-headline .hl-line { display: block; }
+  .heroO-sub {
+    font-size: clamp(16px, 1.4vw, 19px); color: var(--muted, rgba(var(--ink-rgb), .72));
+    max-width: 46ch; margin: 0 0 36px; line-height: 1.65;
+  }
+  .heroO-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+  .heroO-stack { position: relative; height: min(74vh, 620px); }
+  .heroO-img { position: absolute; overflow: hidden; border: 1px solid var(--line); }
+  .heroO-img .bg-img { width: 100%; height: 100%; background-size: cover; background-position: center; }
+  .heroO-img-big { width: 75%; height: 88%; top: 0; right: 0; }
+  .heroO-img-small { width: 50%; height: 50%; left: 0; bottom: 0; }
+  @media (max-width: 880px) {
+    .heroO-grid { grid-template-columns: 1fr; }
+    .heroO-stack { height: 60vh; }
+    .heroO-img-big { width: 100%; }
+    .heroO-img-small { display: none; }
+  }
+</style>

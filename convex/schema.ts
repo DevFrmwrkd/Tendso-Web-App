@@ -139,7 +139,7 @@ export default defineSchema({
 
         // ==================== GOOGLE DRIVE SYNC ====================
         // Folder structure (transcript, photos, video, audio) is auto-created
-        // in the shared "Negosyo Digital" Drive when the admin approves the
+        // in the shared "Tendso" Drive when the admin approves the
         // submission. Status tracks the async job's lifecycle so the admin UI
         // can show progress + retry on failure.
         driveFolderId: v.optional(v.string()),

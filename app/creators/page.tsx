@@ -7,7 +7,7 @@ import CreatorEarningFlow from "@/components/landing/CreatorEarningFlow";
 import { Camera, Sparkles, Users, ArrowRight } from "lucide-react";
 
 export const metadata = {
-  title: "Earn as a Creator — Negosyo Digital",
+  title: "Earn as a Creator — Tendso",
   description: "Get paid to digitize local Filipino businesses. ₱300–₱500 per submission, plus ₱1,000 referral bonus. Direct payouts via Wise.",
 };
 
@@ -31,28 +31,28 @@ const flow = [
 
 export default function CreatorsPage() {
   return (
-    <div className="min-h-screen bg-white text-neutral-900 selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+    <div className="min-h-screen bg-white text-neutral-900 selection:bg-amber-500 selection:text-white overflow-x-hidden">
       <Navbar />
 
       <main className="relative z-10 w-full flex flex-col items-center">
         {/* HERO */}
         <section className="relative w-full pt-28 pb-16 sm:pt-32 sm:pb-20 px-6 overflow-hidden bg-white">
-          <div className="absolute -top-32 -right-20 w-[480px] h-[480px] bg-emerald-50 rounded-full filter blur-[120px] opacity-80 pointer-events-none" />
-          <div className="absolute -bottom-40 -left-32 w-[520px] h-[520px] bg-emerald-100/60 rounded-full filter blur-[140px] opacity-70 pointer-events-none" />
+          <div className="absolute -top-32 -right-20 w-[480px] h-[480px] bg-amber-50 rounded-full filter blur-[120px] opacity-80 pointer-events-none" />
+          <div className="absolute -bottom-40 -left-32 w-[520px] h-[520px] bg-amber-100/60 rounded-full filter blur-[140px] opacity-70 pointer-events-none" />
 
           <div className="relative z-10 max-w-4xl mx-auto text-center">
-            <p className="text-xs uppercase tracking-widest font-bold text-emerald-700 mb-4">
+            <p className="text-xs uppercase tracking-widest font-bold text-amber-700 mb-4">
               For students, side-hustlers, content creators
             </p>
             <h1
               style={{ fontFamily: "var(--font-fraunces)" }}
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-semibold text-neutral-900 leading-[1.05] mb-6 tracking-tight"
             >
-              Get paid to bring local businesses{" "}
-              <span className="italic text-emerald-700">online.</span>
+              Help owners whose hands are{" "}
+              <span className="italic text-amber-700">full.</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-neutral-700 max-w-2xl mx-auto mb-9 leading-relaxed">
-              All you need is a smartphone and hustle. Find a business, record a short interview, and submit through the Negosyo Digital app. Earn <span className="font-semibold text-neutral-900">₱300–₱500 per submission</span> — straight to your Wise account.
+              Visit a shop where someone is already working. Photograph the work. Ask a few questions. Submit through the Tendso app. Earn <span className="font-semibold text-neutral-900">₱300–₱500 per submission</span> — straight to your Wise account.
             </p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
               <Link
@@ -64,7 +64,7 @@ export default function CreatorsPage() {
               </Link>
               <Link
                 href="/"
-                className="flex items-center justify-center gap-2 bg-white border border-neutral-200 hover:border-emerald-300 text-neutral-900 px-7 py-4 rounded-full font-semibold text-base transition-colors min-h-[52px]"
+                className="flex items-center justify-center gap-2 bg-white border border-neutral-200 hover:border-amber-300 text-neutral-900 px-7 py-4 rounded-full font-semibold text-base transition-colors min-h-[52px]"
               >
                 I&apos;m a business owner
               </Link>
@@ -75,14 +75,14 @@ export default function CreatorsPage() {
         {/* HOW IT WORKS (creator flow) */}
         <section className="w-full py-16 sm:py-20 px-6 max-w-7xl mx-auto">
           <div className="max-w-2xl mx-auto text-center mb-12">
-            <p className="text-xs uppercase tracking-widest font-bold text-emerald-700 mb-3">
+            <p className="text-xs uppercase tracking-widest font-bold text-amber-700 mb-3">
               How it works for creators
             </p>
             <h2
               style={{ fontFamily: "var(--font-fraunces)" }}
               className="text-3xl sm:text-4xl md:text-5xl font-semibold text-neutral-900 leading-[1.1] mb-4"
             >
-              Three steps. <span className="italic text-emerald-700">Real income.</span>
+              Three steps. <span className="italic text-amber-700">Real income.</span>
             </h2>
           </div>
 
@@ -92,17 +92,17 @@ export default function CreatorsPage() {
               return (
                 <li
                   key={step.title}
-                  className="rounded-3xl bg-white border border-neutral-200 hover:border-emerald-300 hover:shadow-lg hover:shadow-emerald-900/5 transition-all p-7"
+                  className="rounded-3xl bg-white border border-neutral-200 hover:border-amber-300 hover:shadow-lg hover:shadow-amber-900/5 transition-all p-7"
                 >
                   <div className="flex items-center justify-between mb-5">
                     <span
                       style={{ fontFamily: "var(--font-fraunces)" }}
-                      className="text-4xl font-semibold text-emerald-100"
+                      className="text-4xl font-semibold text-amber-100"
                     >
                       0{idx + 1}
                     </span>
-                    <div className="w-11 h-11 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-emerald-700" />
+                    <div className="w-11 h-11 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center">
+                      <Icon className="w-5 h-5 text-amber-700" />
                     </div>
                   </div>
                   <h3

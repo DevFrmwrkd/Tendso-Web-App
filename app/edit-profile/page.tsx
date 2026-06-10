@@ -143,7 +143,7 @@ export default function EditProfilePage() {
                         <button
                             onClick={() => fileRef.current?.click()}
                             disabled={uploading}
-                            className="absolute bottom-0 right-0 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg"
+                            className="absolute bottom-0 right-0 w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center text-white shadow-lg"
                         >
                             {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
                         </button>
@@ -152,7 +152,7 @@ export default function EditProfilePage() {
                 </div>
 
                 {success && (
-                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-600 text-sm font-medium mb-4 flex items-center gap-2">
+                    <div className="p-4 bg-amber-50 border border-amber-100 rounded-xl text-amber-600 text-sm font-medium mb-4 flex items-center gap-2">
                         <Check className="w-4 h-4" /> Profile updated successfully
                     </div>
                 )}
