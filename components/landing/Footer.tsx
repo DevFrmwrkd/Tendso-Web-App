@@ -53,27 +53,15 @@ export default function Footer({
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[2fr_1fr_1fr_1fr] gap-8 sm:gap-10 lg:gap-12 items-start">
                     <div>
                         <div style={{ marginBottom: 24 }}>
-                            <span
-                                style={{
-                                    fontFamily: "var(--neo-serif)",
-                                    fontStyle: "italic",
-                                    fontSize: 36,
-                                    letterSpacing: "-.02em",
-                                }}
-                            >
-                                Negosyo
-                            </span>{" "}
-                            <span
-                                className="mono"
-                                style={{
-                                    letterSpacing: ".18em",
-                                    textTransform: "uppercase",
-                                    fontSize: 13,
-                                    color: "oklch(70% 0.010 85)",
-                                }}
-                            >
-                                Digital
-                            </span>
+                            {/* White wordmark — footer is a dark surface, no invert needed.
+                                eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                                src="/tendso-logo.png"
+                                alt="Tendso"
+                                width={200}
+                                height={36}
+                                style={{ display: "block" }}
+                            />
                         </div>
                         <p
                             style={{
@@ -90,8 +78,8 @@ export default function Footer({
                         {apkUrl ? (
                             // Direct R2 public URL. The download filename
                             // comes from the R2 storage key, which the
-                            // upload pipeline pins to "negosyo-digital.apk".
-                            <a href={apkUrl} download="negosyo-digital.apk">
+                            // upload pipeline pins to "tendso.apk".
+                            <a href={apkUrl} download="tendso.apk">
                                 Android · Direct APK
                             </a>
                         ) : (
@@ -140,7 +128,7 @@ export default function Footer({
                         color: "oklch(60% 0.010 85)",
                     }}
                 >
-                    <span className="label">© Negosyo Digital · {new Date().getFullYear()}</span>
+                    <span className="label">© Tendso · {new Date().getFullYear()}</span>
                     <span className="label">Map data: OpenStreetMap · CARTO</span>
                 </div>
             </div>

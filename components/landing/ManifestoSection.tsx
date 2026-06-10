@@ -25,29 +25,29 @@ export default function ManifestoSection() {
                                 letterSpacing: "-.02em",
                             }}
                         >
-                            The internet was built for the{" "}
-                            <em style={{ fontStyle: "italic" }}>top one percent</em> of businesses.
+                            They did not come here to become{" "}
+                            <em style={{ fontStyle: "italic" }}>designers</em>.
                             <br />
-                            <span style={{ color: "var(--neo-creator)" }}>We&apos;re building it for the other ninety-nine.</span>
+                            <span style={{ color: "var(--neo-creator)" }}>They came here to keep the business moving.</span>
                         </p>
                         <div
                             className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8 pt-8"
                             style={{ borderTop: "1px solid var(--neo-rule)" }}
                         >
                             <Beat
-                                label="Who we serve"
-                                big="The 99%"
-                                sub="Sari-sari stores. Salons. Barangay clinics. The shops nobody else builds for."
+                                label="What we respect"
+                                big="The work"
+                                sub="Sari-sari stores, salons, barangay clinics — the shops where someone is already kneading, cutting, or fixing while you read this."
                             />
                             <Beat
                                 label="How fast"
-                                big="48–72 hrs"
-                                sub="From the day a creator walks into your shop to the day your site is live and indexed."
+                                big="48 hrs"
+                                sub="From the day a creator walks into your shop to the day your page is live. You keep working through all of it."
                             />
                             <Beat
-                                label="What it takes"
-                                big="Zero skill"
-                                sub="You don't open a laptop. You don't pick a template. You answer questions about your business."
+                                label="What it takes from you"
+                                big="A photo"
+                                sub="A few answers. A guided review. That's the whole ask. We built the rest around the work."
                             />
                         </div>
                     </div>

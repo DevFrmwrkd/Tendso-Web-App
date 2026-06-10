@@ -170,7 +170,7 @@ export default function BusinessInfoPage() {
             {/* Progress Bar */}
             <div className="px-4 mb-6">
                 <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500 rounded-full" style={{ width: '25%' }}></div>
+                    <div className="h-full bg-amber-500 rounded-full" style={{ width: '25%' }}></div>
                 </div>
             </div>
 
@@ -205,7 +205,7 @@ export default function BusinessInfoPage() {
                                 onChange={(e) => setBusinessName(e.target.value)}
                                 required
                                 disabled={loading}
-                                className="h-12 bg-white border-gray-200 focus:border-green-500 focus:ring-green-500"
+                                className="h-12 bg-white border-gray-200 focus:border-amber-500 focus:ring-amber-500"
                             />
                         </div>
 
@@ -220,7 +220,7 @@ export default function BusinessInfoPage() {
                                 onChange={(e) => setBusinessType(e.target.value)}
                                 required
                                 disabled={loading}
-                                className="w-full h-12 text-black px-3 bg-white border border-gray-200 rounded-lg focus:border-green-500 focus:ring-green-500 focus:outline-none"
+                                className="w-full h-12 text-black px-3 bg-white border border-gray-200 rounded-lg focus:border-amber-500 focus:ring-amber-500 focus:outline-none"
                             >
                                 <option value="">Select business type</option>
                                 {BUSINESS_TYPES.map((type) => (
@@ -242,7 +242,7 @@ export default function BusinessInfoPage() {
                                 onChange={(e) => setOwnerName(e.target.value)}
                                 required
                                 disabled={loading}
-                                className="h-12 bg-white border-gray-200 focus:border-green-500 focus:ring-green-500"
+                                className="h-12 bg-white border-gray-200 focus:border-amber-500 focus:ring-amber-500"
                             />
                         </div>
 
@@ -265,7 +265,7 @@ export default function BusinessInfoPage() {
                                     onChange={(e) => setOwnerPhone(e.target.value.replace(/\D/g, ''))}
                                     required
                                     disabled={loading}
-                                    className="flex-1 h-12 bg-white border-gray-200 focus:border-green-500 focus:ring-green-500"
+                                    className="flex-1 h-12 bg-white border-gray-200 focus:border-amber-500 focus:ring-amber-500"
                                 />
                             </div>
                         </div>
@@ -282,7 +282,7 @@ export default function BusinessInfoPage() {
                                 value={ownerEmail}
                                 onChange={(e) => setOwnerEmail(e.target.value)}
                                 disabled={loading}
-                                className="h-12 bg-white border-gray-200 focus:border-green-500 focus:ring-green-500"
+                                className="h-12 bg-white border-gray-200 focus:border-amber-500 focus:ring-amber-500"
                             />
                         </div>
 
@@ -299,7 +299,7 @@ export default function BusinessInfoPage() {
                                 onChange={(e) => setAddress(e.target.value)}
                                 required
                                 disabled={loading}
-                                className="h-12 bg-white border-gray-200 focus:border-green-500 focus:ring-green-500"
+                                className="h-12 bg-white border-gray-200 focus:border-amber-500 focus:ring-amber-500"
                             />
                         </div>
 
@@ -316,7 +316,7 @@ export default function BusinessInfoPage() {
                                 onChange={(e) => setCity(e.target.value)}
                                 required
                                 disabled={loading}
-                                className="h-12 bg-white border-gray-200 focus:border-green-500 focus:ring-green-500"
+                                className="h-12 bg-white border-gray-200 focus:border-amber-500 focus:ring-amber-500"
                             />
                         </div>
 
@@ -324,7 +324,7 @@ export default function BusinessInfoPage() {
                         <Button
                             type="submit"
                             disabled={loading}
-                            className="w-full h-12 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors mt-8"
+                            className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors mt-8"
                         >
                             {loading ? (
                                 <span className="flex items-center gap-2">

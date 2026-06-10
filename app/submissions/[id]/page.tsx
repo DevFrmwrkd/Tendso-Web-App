@@ -69,7 +69,7 @@ export default function SubmissionDetailPage() {
     if (!isLoaded || !isSignedIn || creator === undefined || submission === undefined) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
-                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-amber-600" />
             </div>
         )
     }
@@ -80,7 +80,7 @@ export default function SubmissionDetailPage() {
             <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
                 <h1 className="text-2xl font-bold text-gray-900 mb-2">Submission not found</h1>
                 <p className="text-gray-500 mb-6">This submission doesn't exist or you don't have access to it.</p>
-                <Link href="/dashboard" className="text-emerald-600 hover:text-emerald-700 font-medium">
+                <Link href="/dashboard" className="text-amber-600 hover:text-amber-700 font-medium">
                     Back to Dashboard
                 </Link>
             </div>
@@ -108,10 +108,10 @@ export default function SubmissionDetailPage() {
     const getStatusBadge = () => {
         const s = submission.status?.toLowerCase()
         const badges: Record<string, { bg: string; text: string }> = {
-            completed: { bg: 'bg-emerald-100 text-emerald-800', text: 'Completed' },
-            deployed: { bg: 'bg-emerald-100 text-emerald-800', text: 'Live' },
-            paid: { bg: 'bg-emerald-100 text-emerald-800', text: 'Paid' },
-            website_generated: { bg: 'bg-emerald-100 text-emerald-800', text: 'Website Generated' },
+            completed: { bg: 'bg-amber-100 text-amber-800', text: 'Completed' },
+            deployed: { bg: 'bg-amber-100 text-amber-800', text: 'Live' },
+            paid: { bg: 'bg-amber-100 text-amber-800', text: 'Paid' },
+            website_generated: { bg: 'bg-amber-100 text-amber-800', text: 'Website Generated' },
             approved: { bg: 'bg-blue-100 text-blue-800', text: 'Approved' },
             rejected: { bg: 'bg-red-100 text-red-800', text: 'Rejected' },
             submitted: { bg: 'bg-yellow-100 text-yellow-800', text: 'In Review' },
@@ -237,7 +237,7 @@ export default function SubmissionDetailPage() {
                                         <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
                                             AI Transcript
                                         </h3>
-                                        <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">
+                                        <span className="text-xs bg-amber-100 text-amber-700 px-2 py-1 rounded-full font-medium">
                                             Generated
                                         </span>
                                     </div>
@@ -303,7 +303,7 @@ export default function SubmissionDetailPage() {
                                 </div>
                                 <div>
                                     <label className="text-xs text-gray-500 uppercase font-medium">Creator Payout</label>
-                                    <p className="text-2xl font-bold text-green-600">₱{submission.creatorPayout || 0}</p>
+                                    <p className="text-2xl font-bold text-amber-600">₱{submission.creatorPayout || 0}</p>
                                 </div>
                                 <div>
                                     <label className="text-xs text-gray-500 uppercase font-medium">Created On</label>
@@ -314,13 +314,13 @@ export default function SubmissionDetailPage() {
 
                         {/* Website URL */}
                         {latestWebsiteUrl && (
-                            <div className="bg-emerald-50 rounded-xl p-6 border border-emerald-200">
+                            <div className="bg-amber-50 rounded-xl p-6 border border-amber-200">
                                 <h2 className="text-lg font-bold text-gray-900 mb-3">Generated Website</h2>
                                 <a
                                     href={latestWebsiteUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-5 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl transition-colors"
+                                    className="inline-flex items-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition-colors"
                                 >
                                     <Globe className="w-4 h-4" />
                                     Visit Live Website
@@ -334,7 +334,7 @@ export default function SubmissionDetailPage() {
                             <h2 className="text-lg font-bold text-gray-900 mb-4">Submission Checklist</h2>
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${submission.photos && submission.photos.length > 0 ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${submission.photos && submission.photos.length > 0 ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'}`}>
                                         {submission.photos && submission.photos.length > 0 ? (
                                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -350,7 +350,7 @@ export default function SubmissionDetailPage() {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${hasInterview ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${hasInterview ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'}`}>
                                         {hasInterview ? (
                                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -366,7 +366,7 @@ export default function SubmissionDetailPage() {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${submission.transcript ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${submission.transcript ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'}`}>
                                         {submission.transcript ? (
                                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -382,7 +382,7 @@ export default function SubmissionDetailPage() {
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${(submission.businessName && submission.businessType) ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${(submission.businessName && submission.businessType) ? 'bg-amber-100 text-amber-600' : 'bg-gray-100 text-gray-400'}`}>
                                         {(submission.businessName && submission.businessType) ? (
                                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                                 <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -404,7 +404,7 @@ export default function SubmissionDetailPage() {
                         {isDraft && (
                             <Link
                                 href="/submit/info"
-                                className="block w-full text-center bg-emerald-500 hover:bg-emerald-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
+                                className="block w-full text-center bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 px-4 rounded-xl transition-colors"
                             >
                                 Continue Draft
                             </Link>

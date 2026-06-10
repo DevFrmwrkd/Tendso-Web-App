@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import Logo from "@/public/logo.png"
+import Logo from "@/public/tendso-logo.png"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, CheckCircle, XCircle, Trophy, RotateCcw, Award } from "lucide-react"
 
@@ -55,21 +55,18 @@ function CertificateCard({ name, date }: { name: string; date: string }) {
     return (
         <div className="w-full max-w-sm mx-auto bg-white rounded-2xl shadow-xl overflow-hidden border border-zinc-100">
             {/* Green top banner */}
-            <div className="bg-emerald-500 py-4 px-6 text-center">
-                <div className="flex justify-center mb-1">
-                    <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                        <Image src={Logo} alt="Logo" width={20} height={20} className="opacity-90" />
-                    </div>
+            <div className="bg-amber-500 py-4 px-6 text-center">
+                <div className="flex justify-center">
+                    <Image src={Logo} alt="Tendso" width={130} height={23} />
                 </div>
-                <p className="text-white text-xs font-bold tracking-[0.2em] uppercase">Negosyo Digital</p>
             </div>
 
             {/* Certificate body */}
             <div className="px-6 py-8 text-center space-y-5">
                 {/* Badge icon */}
                 <div className="flex justify-center">
-                    <div className="w-14 h-14 bg-emerald-50 rounded-full flex items-center justify-center">
-                        <Award className="w-7 h-7 text-emerald-500" />
+                    <div className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center">
+                        <Award className="w-7 h-7 text-amber-500" />
                     </div>
                 </div>
 
@@ -81,7 +78,7 @@ function CertificateCard({ name, date }: { name: string; date: string }) {
 
                 {/* Divider */}
                 <div className="flex justify-center">
-                    <div className="w-12 h-0.5 bg-emerald-400 rounded-full" />
+                    <div className="w-12 h-0.5 bg-amber-400 rounded-full" />
                 </div>
 
                 {/* Name */}
@@ -105,7 +102,7 @@ function CertificateCard({ name, date }: { name: string; date: string }) {
             </div>
 
             {/* Green bottom banner */}
-            <div className="bg-emerald-500 py-3 text-center">
+            <div className="bg-amber-500 py-3 text-center">
                 <p className="text-white text-xs font-bold">You can now start earning!</p>
             </div>
         </div>
@@ -197,11 +194,11 @@ export default function CertificationQuizPage() {
                 <div
                     className={`text-center mb-8 transition-all duration-700 ease-out ${passAnimated ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
                 >
-                    <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Trophy className="w-8 h-8 text-emerald-500" />
+                    <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Trophy className="w-8 h-8 text-amber-500" />
                     </div>
                     <h1 className="text-2xl font-bold text-zinc-900 mb-1">Congratulations!</h1>
-                    <p className="text-zinc-500 text-sm">You passed with a score of <span className="font-bold text-emerald-600">{finalScore}/5</span></p>
+                    <p className="text-zinc-500 text-sm">You passed with a score of <span className="font-bold text-amber-600">{finalScore}/5</span></p>
                 </div>
 
                 {/* Certificate */}
@@ -219,7 +216,7 @@ export default function CertificationQuizPage() {
                 >
                     <Button
                         onClick={() => router.push("/dashboard")}
-                        className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl shadow-lg shadow-emerald-500/20"
+                        className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/20"
                     >
                         Go to Dashboard
                     </Button>
@@ -269,7 +266,7 @@ export default function CertificationQuizPage() {
                 {/* Progress bar */}
                 <div className="w-full bg-zinc-100 rounded-full h-2">
                     <div
-                        className="bg-emerald-500 h-2 rounded-full transition-all duration-300"
+                        className="bg-amber-500 h-2 rounded-full transition-all duration-300"
                         style={{ width: `${((currentQ + 1) / QUIZ_QUESTIONS.length) * 100}%` }}
                     />
                 </div>
@@ -288,10 +285,10 @@ export default function CertificationQuizPage() {
                     {q.options.map((opt, i) => {
                         let style = "bg-white border-zinc-200 hover:border-zinc-300"
                         if (answered) {
-                            if (i === q.correctIndex) style = "bg-emerald-50 border-emerald-300"
+                            if (i === q.correctIndex) style = "bg-amber-50 border-amber-300"
                             else if (i === selected && i !== q.correctIndex) style = "bg-red-50 border-red-300"
                         } else if (i === selected) {
-                            style = "bg-emerald-50 border-emerald-400 ring-1 ring-emerald-400"
+                            style = "bg-amber-50 border-amber-400 ring-1 ring-amber-400"
                         }
 
                         return (
@@ -305,7 +302,7 @@ export default function CertificationQuizPage() {
                                     {LETTERS[i]}
                                 </span>
                                 <span className="text-sm text-zinc-800">{opt}</span>
-                                {answered && i === q.correctIndex && <CheckCircle className="w-5 h-5 text-emerald-500 ml-auto shrink-0" />}
+                                {answered && i === q.correctIndex && <CheckCircle className="w-5 h-5 text-amber-500 ml-auto shrink-0" />}
                                 {answered && i === selected && i !== q.correctIndex && <XCircle className="w-5 h-5 text-red-500 ml-auto shrink-0" />}
                             </button>
                         )
@@ -324,7 +321,7 @@ export default function CertificationQuizPage() {
                     <Button
                         onClick={handleNext}
                         disabled={certifying}
-                        className="w-full h-12 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl"
+                        className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl"
                     >
                         {certifying ? <Loader2 className="h-5 w-5 animate-spin" /> : currentQ < QUIZ_QUESTIONS.length - 1 ? "Next Question" : "See Results"}
                     </Button>

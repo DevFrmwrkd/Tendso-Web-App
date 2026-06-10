@@ -17,7 +17,7 @@
  */
 
 const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
-const UA = 'NegosyoDigital/1.0 (frmwrkd.media@gmail.com)';
+const UA = 'Tendso/1.0 (frmwrkd.media@gmail.com)';
 
 export interface GeocodeResult {
     lat: number;

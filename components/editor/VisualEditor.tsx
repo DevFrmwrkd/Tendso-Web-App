@@ -783,7 +783,7 @@ export default function VisualEditor({
                     changed = true
                 }
                 if (!next.footer_headline) {
-                    next.footer_headline = `Experience ${prev.business_name || 'Negosyo Digital'}`
+                    next.footer_headline = `Experience ${prev.business_name || 'Tendso'}`
                     changed = true
                 }
                 if (!next.footer_days) {
@@ -4776,10 +4776,10 @@ export default function VisualEditor({
                         </p>
                     </div>
                     <span
-                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] uppercase tracking-wider font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] uppercase tracking-wider font-medium bg-amber-50 text-amber-700 border border-amber-200"
                         style={{ fontFamily: "ui-monospace, monospace" }}
                     >
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                         Live
                     </span>
                 </div>

@@ -242,11 +242,11 @@ export default function EmailsSentPage() {
                                     <div className="flex items-start gap-3">
                                         <div className={`mt-0.5 w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
                                             email.type === 'payment_confirmation' || email.type === 'completed_website'
-                                                ? 'bg-emerald-100'
+                                                ? 'bg-amber-100'
                                                 : 'bg-indigo-100'
                                         }`}>
                                             {email.type === 'payment_confirmation' || email.type === 'completed_website' ? (
-                                                <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <svg className="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                 </svg>
                                             ) : (
@@ -260,7 +260,7 @@ export default function EmailsSentPage() {
                                                 <h2 className="text-base font-semibold text-gray-900">{email.label}</h2>
                                                 <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                                                     email.type === 'payment_confirmation' || email.type === 'completed_website'
-                                                        ? 'bg-emerald-50 text-emerald-700'
+                                                        ? 'bg-amber-50 text-amber-700'
                                                         : 'bg-indigo-50 text-indigo-700'
                                                 }`}>
                                                     Email {index + 1} of {emails.length}
@@ -268,7 +268,7 @@ export default function EmailsSentPage() {
                                             </div>
                                             <p className="text-sm text-gray-500 mt-0.5">{email.description}</p>
                                             {sendResult?.type === email.type && (
-                                                <p className={`text-xs mt-2 font-medium ${sendResult.ok ? 'text-emerald-700' : 'text-red-700'}`}>
+                                                <p className={`text-xs mt-2 font-medium ${sendResult.ok ? 'text-amber-700' : 'text-red-700'}`}>
                                                     {sendResult.ok ? '✓ ' : '✗ '}{sendResult.message}
                                                 </p>
                                             )}

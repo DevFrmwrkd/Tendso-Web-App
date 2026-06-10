@@ -83,7 +83,7 @@ export default function ReferralsPage() {
         switch (status) {
             case "qualified":
                 return (
-                    <span className="px-2 py-1 bg-emerald-100 text-emerald-700 text-[10px] font-bold rounded-md uppercase">
+                    <span className="px-2 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-md uppercase">
                         Qualified
                     </span>
                 )
@@ -401,7 +401,7 @@ export default function ReferralsPage() {
                     </h2>
                     <div className="space-y-4">
                         {[
-                            { n: "01", title: "Share your code", body: "Give your code to fellow creators who want to join Negosyo Digital." },
+                            { n: "01", title: "Share your code", body: "Give your code to fellow creators who want to join Tendso." },
                             { n: "02", title: "They sign up & submit", body: "Your referral signs up using your code and submits their first business." },
                             { n: "03", title: "Earn your bonus", body: "Once their first submission is paid, ₱1,000 lands in your wallet." },
                         ].map((step) => (

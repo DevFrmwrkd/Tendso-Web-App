@@ -105,7 +105,7 @@ export default function CreatorDetailPage() {
     const getStatusBadge = (status: string | undefined) => {
         const safeStatus = status || 'pending'
         const styles: Record<string, string> = {
-            active: 'bg-green-100 text-green-800 border-green-200',
+            active: 'bg-amber-100 text-amber-800 border-amber-200',
             pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
             suspended: 'bg-red-100 text-red-800 border-red-200',
             deleted: 'bg-gray-100 text-gray-800 border-gray-200',
@@ -122,10 +122,10 @@ export default function CreatorDetailPage() {
             draft: 'bg-gray-100 text-gray-600',
             submitted: 'bg-blue-100 text-blue-700',
             in_review: 'bg-yellow-100 text-yellow-700',
-            approved: 'bg-green-100 text-green-700',
+            approved: 'bg-amber-100 text-amber-700',
             rejected: 'bg-red-100 text-red-700',
             website_generated: 'bg-purple-100 text-purple-700',
-            published: 'bg-emerald-100 text-emerald-700',
+            published: 'bg-amber-100 text-amber-700',
         }
         return (
             <span className={`px-2 py-1 text-xs font-medium rounded-full ${styles[status] || 'bg-gray-100 text-gray-600'}`}>
@@ -137,7 +137,7 @@ export default function CreatorDetailPage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
             </div>
         )
     }
@@ -198,7 +198,7 @@ export default function CreatorDetailPage() {
                                 <Button
                                     onClick={() => openConfirmModal('reactivate')}
                                     disabled={updating}
-                                    className="bg-green-500 hover:bg-green-600 text-white"
+                                    className="bg-amber-500 hover:bg-amber-600 text-white"
                                 >
                                     {updating ? 'Updating...' : 'Reactivate Creator'}
                                 </Button>
@@ -230,7 +230,7 @@ export default function CreatorDetailPage() {
                         {/* Profile Card */}
                         <div className="bg-white rounded-xl p-6 border border-gray-200">
                             <div className="flex items-center gap-4 mb-6">
-                                <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-green-700 text-xl font-bold">
+                                <div className="w-16 h-16 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 text-xl font-bold">
                                     {(creator.firstName || 'U').charAt(0)}{(creator.lastName || '').charAt(0)}
                                 </div>
                                 <div>
@@ -296,7 +296,7 @@ export default function CreatorDetailPage() {
                             </div>
                             <div className="bg-white rounded-xl p-6 border border-gray-200">
                                 <p className="text-sm text-gray-500 mb-1">Current Balance</p>
-                                <p className="text-2xl font-bold text-green-600">
+                                <p className="text-2xl font-bold text-amber-600">
                                     ₱{(creator.balance || 0).toLocaleString()}
                                 </p>
                             </div>
@@ -334,7 +334,7 @@ export default function CreatorDetailPage() {
                                             </div>
                                             <div className="mt-2 flex items-center gap-4 text-sm">
                                                 <span className="text-gray-500">
-                                                    Payout: <span className="text-green-600 font-medium">₱{submission.creatorPayout}</span>
+                                                    Payout: <span className="text-amber-600 font-medium">₱{submission.creatorPayout}</span>
                                                 </span>
                                                 <span className="text-gray-500">
                                                     {submission.city}
@@ -376,7 +376,7 @@ export default function CreatorDetailPage() {
                             <Button
                                 onClick={handleStatusChange}
                                 disabled={updating}
-                                className={pendingAction === 'suspend' ? 'bg-red-600 hover:bg-red-700' : 'bg-green-500 hover:bg-green-600'}
+                                className={pendingAction === 'suspend' ? 'bg-red-600 hover:bg-red-700' : 'bg-amber-500 hover:bg-amber-600'}
                             >
                                 {updating ? 'Processing...' : pendingAction === 'suspend' ? 'Suspend' : 'Reactivate'}
                             </Button>

@@ -55,8 +55,8 @@ const onest = Onest({
 });
 
 export const metadata: Metadata = {
-  title: "Negosyo Digital — Your business, online in 48 hours",
-  description: "Real coded websites for Filipino local businesses. ₱1,000 one-time. No monthly fees. From barber shops to restaurants, salons to auto repair — live in 48 hours.",
+  title: "Tendso — The Thinking Ends Here. So the work doesn't.",
+  description: "A business page built around the work, not the other way around. A creator visits, asks a few questions, photographs your shop, and your page goes live in 48 hours. No template, no blank screen. ₱1,000 one-time. For Filipino local businesses whose hands are full.",
 };
 
 export default function RootLayout({
@@ -67,13 +67,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" href="/logo.png" />
+        <link rel="icon" href="/tendso-icon.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#10b981" />
+        <meta name="theme-color" content="#E4B05E" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Negosyo Digital" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <meta name="apple-mobile-web-app-title" content="Tendso" />
+        <link rel="apple-touch-icon" href="/tendso-icon.png" />
       </head>
       <body
         className={`${fraunces.variable} ${plusJakarta.variable} ${playfair.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} ${onest.variable} antialiased`}

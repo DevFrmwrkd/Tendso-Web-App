@@ -8,7 +8,7 @@ type Msg = { role: "bot" | "user"; text: string };
 export default function ChatBot() {
     const [open, setOpen] = useState(false);
     const [messages, setMessages] = useState<Msg[]>([
-        { role: "bot", text: "Hi — I'm trained on the Negosyo knowledge base. Ask me anything." },
+        { role: "bot", text: "Hi — I'm trained on the Tendso knowledge base. Ask me anything." },
         { role: "bot", text: "Try: \"How much do I earn?\" or \"How fast can I get a site?\"" },
     ]);
     const [input, setInput] = useState("");
@@ -79,7 +79,7 @@ export default function ChatBot() {
                                         letterSpacing: "-.01em",
                                     }}
                                 >
-                                    Ask Negosyo
+                                    Ask Tendso
                                 </span>
                             </div>
                             <div className="label" style={{ marginTop: 4 }}>Powered by our knowledge base</div>

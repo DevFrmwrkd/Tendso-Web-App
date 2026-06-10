@@ -29,7 +29,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 # Your Wise account email (shown to customers)
 WISE_EMAIL=your-wise-email@example.com
 NEXT_PUBLIC_WISE_EMAIL=your-wise-email@example.com
-WISE_ACCOUNT_NAME=Negosyo Digital
+WISE_ACCOUNT_NAME=Tendso
 
 # ==================== GMAIL SMTP (Email Service) ====================
 GMAIL_USER=your-gmail@gmail.com
@@ -44,8 +44,8 @@ CLOUDFLARE_ACCOUNT_ID=your_account_id
 GROQ_API_KEY=gsk_...
 
 # ==================== APP CONFIGURATION ====================
-NEXT_PUBLIC_SITE_URL=https://negosyo-digital.vercel.app
-NEXT_PUBLIC_APP_URL=https://negosyo-digital.vercel.app  # For payment links
+NEXT_PUBLIC_SITE_URL=https://tendso.vercel.app
+NEXT_PUBLIC_APP_URL=https://tendso.vercel.app  # For payment links
 ```
 
 ### **Payment Gateway Options** (GCash/Maya - Optional for now)
@@ -114,7 +114,7 @@ NEXT_PUBLIC_PAYMENT_GCASH_NAME="Your Business Name"
 
 ### **Current Domain**
 ```
-Production: https://negosyo-digital.vercel.app
+Production: https://tendso.vercel.app
 ```
 
 ### **Custom Domain (Optional - if you own one)**
@@ -193,14 +193,14 @@ Copy all variables from checklist section 1
 ```bash
 git push origin develop  # Deploy to preview
 # Wait for Vercel build to complete
-# Test on preview.negosyo-digital.vercel.app
+# Test on preview.tendso.vercel.app
 ```
 
 ### **Step 3: Promote to Production**
 ```bash
 git push origin main  # Deploy to production
 # Wait for build completion
-# Production now live at: negosyo-digital.vercel.app
+# Production now live at: tendso.vercel.app
 ```
 
 ### **Step 4: Post-Deployment Verification**
@@ -289,7 +289,7 @@ Once everything is tested and verified in the checklist above, you're ready for 
 git push origin main
 
 # Monitor in Vercel dashboard
-# Check app at: https://negosyo-digital.vercel.app
+# Check app at: https://tendso.vercel.app
 ```
 
 **Estimated setup time:** 30-45 minutes

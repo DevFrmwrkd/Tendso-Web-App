@@ -82,7 +82,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     return (
         <div
-            className="editorial min-h-screen flex font-sans selection:bg-green-100 selection:text-green-900"
+            className="editorial min-h-screen flex font-sans selection:bg-amber-100 selection:text-amber-900"
             style={{
                 background: "var(--ed-paper)",
                 color: "var(--ed-ink)",
@@ -115,37 +115,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }}
             >
                 <div className="px-6 py-8 flex items-center justify-between mb-2">
-                    <Link href="/admin" className="flex items-center gap-3 group">
-                        <div className="relative w-10 h-10 transition-transform duration-500 group-hover:scale-110">
-                            <Image
-                                src="/logo.png"
-                                alt="Negosyo Digital Logo"
-                                fill
-                                className="object-contain"
-                                priority
-                            />
-                        </div>
-                        <div className="flex flex-col">
-                            <span
-                                className="text-2xl tracking-tight leading-none transition-colors italic"
-                                style={{
-                                    fontFamily: "var(--ed-serif)",
-                                    color: "var(--ed-paper-3)",
-                                }}
-                            >
-                                Negosyo
-                            </span>
-                            <span
-                                className="text-[10px] uppercase mt-1"
-                                style={{
-                                    fontFamily: "var(--ed-mono)",
-                                    letterSpacing: "0.18em",
-                                    color: "var(--ed-accent-solid)",
-                                }}
-                            >
-                                Digital · Admin
-                            </span>
-                        </div>
+                    <Link href="/admin" className="flex flex-col gap-2 group">
+                        {/* White wordmark — sidebar is the dark --ed-ink surface */}
+                        <Image
+                            src="/tendso-logo.png"
+                            alt="Tendso"
+                            width={150}
+                            height={27}
+                            className="transition-transform duration-500 group-hover:scale-105"
+                            priority
+                        />
+                        <span
+                            className="text-[10px] uppercase"
+                            style={{
+                                fontFamily: "var(--ed-mono)",
+                                letterSpacing: "0.18em",
+                                color: "var(--ed-accent-solid)",
+                            }}
+                        >
+                            Admin
+                        </span>
                     </Link>
                     <button
                         onClick={() => setSidebarOpen(false)}
@@ -361,7 +350,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         color: "var(--ed-ink-3)",
                     }}
                 >
-                    &copy; {new Date().getFullYear()} Negosyo Digital &bull; Admin
+                    &copy; {new Date().getFullYear()} Tendso &bull; Admin
                 </footer>
             </main>
         </div>

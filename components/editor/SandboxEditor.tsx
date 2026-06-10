@@ -3,7 +3,7 @@
 /**
  * SandboxEditor — admin submission page editor, 1:1 port of the v01
  * sandbox.html design (Landing Pages v01/sandbox.html), wired into
- * the Negosyo Digital data model.
+ * the Tendso data model.
  *
  * Live edit roundtrip:
  *   iframe → parent : { type: 'ed:click', field } (click-to-focus input)
@@ -2415,7 +2415,7 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                                     textTransform: "uppercase",
                                 }}
                             >
-                                <Loader2 style={{ width: 28, height: 28, color: "#10b981" }} className="animate-spin" />
+                                <Loader2 style={{ width: 28, height: 28, color: "#E4B05E" }} className="animate-spin" />
                                 Regenerating site…
                                 <span style={{ fontSize: 10, opacity: 0.6, letterSpacing: "0.12em" }}>
                                     Astro build · usually 30–60s
@@ -2483,7 +2483,7 @@ function ChipList({
                                 padding: "5px 9px",
                                 background: "rgba(16, 185, 129, 0.1)",
                                 border: "1px solid rgba(16, 185, 129, 0.3)",
-                                color: "#10b981",
+                                color: "#E4B05E",
                                 borderRadius: 999,
                                 fontFamily: "var(--sx-mono, ui-monospace)",
                                 fontSize: 11,
@@ -2497,7 +2497,7 @@ function ChipList({
                                 style={{
                                     background: "transparent",
                                     border: 0,
-                                    color: "#10b981",
+                                    color: "#E4B05E",
                                     cursor: "pointer",
                                     padding: 0,
                                     lineHeight: 1,
@@ -2537,7 +2537,7 @@ function ChipList({
                         padding: "6px 12px",
                         background: "rgba(16, 185, 129, 0.15)",
                         border: "1px solid rgba(16, 185, 129, 0.4)",
-                        color: "#10b981",
+                        color: "#E4B05E",
                         borderRadius: 6,
                         cursor: "pointer",
                         fontSize: 12,

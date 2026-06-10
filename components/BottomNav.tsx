@@ -13,7 +13,7 @@ export function BottomNav({ active }: BottomNavProps) {
     const itemClass = (key: NavKey) =>
         `flex flex-col items-center gap-0.5 py-1.5 px-2 transition-colors ${
             active === key
-                ? "text-emerald-500"
+                ? "text-amber-500"
                 : "text-zinc-500 hover:text-zinc-900"
         }`
 
@@ -30,7 +30,7 @@ export function BottomNav({ active }: BottomNavProps) {
                 </Link>
                 <Link
                     href="/submit/info"
-                    className="w-14 h-14 -mt-6 bg-emerald-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/50 transition-all shrink-0"
+                    className="w-14 h-14 -mt-6 bg-amber-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all shrink-0"
                 >
                     <Plus className="w-7 h-7" />
                 </Link>

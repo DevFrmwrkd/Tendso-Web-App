@@ -53,7 +53,7 @@ type CategoryKey = "salon" | "food" | "store" | "auto" | "medical" | "other";
 const CATEGORY_META: Record<CategoryKey, { color: string; label: string; Icon: typeof Scissors }> = {
     salon:   { color: "#7C3AED", label: "Barbershop · Salon",    Icon: Scissors },
     food:    { color: "#C68A12", label: "Restaurant · Cafe",     Icon: Utensils },
-    store:   { color: "#10B981", label: "Sari-sari · Grocery",   Icon: ShoppingBag },
+    store:   { color: "#E4B05E", label: "Sari-sari · Grocery",   Icon: ShoppingBag },
     auto:    { color: "#1F3654", label: "Auto · Mechanic",       Icon: Car },
     medical: { color: "#B43A1F", label: "Pharmacy · Clinic",     Icon: Stethoscope },
     other:   { color: "#3C3F4A", label: "Other",                 Icon: Building2 },
@@ -881,7 +881,7 @@ function CategoryPins({ pins }: { pins: any[] }) {
                                     fontWeight: 600,
                                     padding: "4px 10px",
                                     borderRadius: 999,
-                                    background: "#10B981",
+                                    background: "#E4B05E",
                                     color: "#fff",
                                     textDecoration: "none",
                                 }}

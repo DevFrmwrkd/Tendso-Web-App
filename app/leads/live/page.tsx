@@ -316,8 +316,8 @@ function LiveBusinessesInner() {
                     <div
                         className="rounded-xl px-3 py-2 mb-5 text-[12px] flex items-center gap-2"
                         style={{
-                            background: "var(--ed-accent-bg, #D1FAE5)",
-                            color: "var(--ed-accent-ink, #064E3B)",
+                            background: "var(--ed-accent-bg, #F5E4C0)",
+                            color: "var(--ed-accent-ink, #5C3A0F)",
                             border: "1px solid var(--ed-accent)",
                         }}
                     >
@@ -434,9 +434,9 @@ function LiveBusinessesInner() {
                                 >
                                     <div
                                         className="w-10 h-10 rounded-xl inline-flex items-center justify-center flex-shrink-0"
-                                        style={{ background: "var(--ed-accent-bg, #D1FAE5)" }}
+                                        style={{ background: "var(--ed-accent-bg, #F5E4C0)" }}
                                     >
-                                        <Globe className="w-5 h-5" style={{ color: "var(--ed-accent-ink, #064E3B)" }} />
+                                        <Globe className="w-5 h-5" style={{ color: "var(--ed-accent-ink, #5C3A0F)" }} />
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="text-[15px] font-semibold truncate" style={{ color: "var(--ed-ink)" }}>
@@ -517,7 +517,7 @@ function LivePins({ pins }: { pins: any[] }) {
                                         fontWeight: 600,
                                         padding: "4px 10px",
                                         borderRadius: 999,
-                                        background: "#10B981",
+                                        background: "#E4B05E",
                                         color: "#fff",
                                         textDecoration: "none",
                                     }}
@@ -568,7 +568,7 @@ function EmeraldDroplet() {
         <svg width={32} height={40} viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
             <path
                 d="M16 0C7.16 0 0 7.16 0 16c0 11 16 24 16 24s16-13 16-24C32 7.16 24.84 0 16 0z"
-                fill="#10B981"
+                fill="#E4B05E"
                 stroke="#FFFFFF"
                 strokeWidth={2}
             />

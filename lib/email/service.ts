@@ -10,7 +10,7 @@
  * Env vars:
  *   - RESEND_API_KEY     — required. Format `re_xxxxxxxxxxxx…`.
  *   - RESEND_FROM_EMAIL  — optional. Default falls back to
- *     `Negosyo Digital <onboarding@resend.dev>` (Resend's test sender,
+ *     `Tendso <onboarding@resend.dev>` (Resend's test sender,
  *     works without DNS verification). Swap to a verified domain
  *     address by setting this env var only — no code redeploy needed.
  *   - RESEND_REPLY_TO    — optional. When set, every outgoing email
@@ -37,7 +37,7 @@ import {
 
 // ── Transport ─────────────────────────────────────────────────────────
 
-const DEFAULT_FROM = 'Negosyo Digital <onboarding@resend.dev>';
+const DEFAULT_FROM = 'Tendso <onboarding@resend.dev>';
 
 // Lazy-init the Resend client so unit tests / build-time imports don't
 // require the env var to exist. The client is cheap to construct;

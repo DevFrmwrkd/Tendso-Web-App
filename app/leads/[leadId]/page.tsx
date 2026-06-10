@@ -29,7 +29,7 @@ const STATUS_PILL_STYLES: Record<string, { bg: string; ink: string }> = {
     new:       { bg: "var(--ed-status-new-bg, #E4E9F0)",       ink: "var(--ed-status-new-ink, #1F3654)" },
     contacted: { bg: "var(--ed-status-contacted-bg, #FBE9C4)", ink: "var(--ed-status-contacted-ink, #C68A12)" },
     qualified: { bg: "var(--ed-status-qualified-bg, #EDE9FE)", ink: "var(--ed-status-qualified-ink, #6D28D9)" },
-    converted: { bg: "var(--ed-status-converted-bg, #D1FAE5)", ink: "var(--ed-status-converted-ink, #064E3B)" },
+    converted: { bg: "var(--ed-status-converted-bg, #F5E4C0)", ink: "var(--ed-status-converted-ink, #5C3A0F)" },
     lost:      { bg: "var(--ed-status-lost-bg, #F3D7CF)",      ink: "var(--ed-status-lost-ink, #B43A1F)" },
 };
 
@@ -434,7 +434,7 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                                     href={`tel:${lead.phone.replace(/[^0-9+]/g, "")}`}
                                     className="inline-flex items-center justify-center gap-2 text-[13px] font-semibold px-3 py-2.5 rounded-xl transition-opacity hover:opacity-95"
                                     style={{
-                                        background: "var(--ed-accent-solid, #10B981)",
+                                        background: "var(--ed-accent-solid, #E4B05E)",
                                         color: "#fff",
                                     }}
                                 >
@@ -625,7 +625,7 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                                 {interviewers.map((i: any) => {
                                     const rejected = i.submissionStatus === "rejected";
                                     const rowBg = i.isMine
-                                        ? "var(--ed-accent-bg, #D1FAE5)"
+                                        ? "var(--ed-accent-bg, #F5E4C0)"
                                         : "var(--ed-paper-2)";
                                     const opacity = rejected && !i.isMine ? 0.6 : 1;
                                     return (
@@ -651,7 +651,7 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                                                         className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] flex-shrink-0"
                                                         style={{
                                                             background: i.isMine
-                                                                ? "var(--ed-accent-solid, #10B981)"
+                                                                ? "var(--ed-accent-solid, #E4B05E)"
                                                                 : "var(--ed-ink-3)",
                                                             color: "#fff",
                                                             fontFamily: "var(--ed-serif)",
@@ -668,7 +668,7 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
                                                     <span
                                                         className="text-[9px] font-bold tracking-wider px-1.5 py-0.5 rounded flex-shrink-0"
                                                         style={{
-                                                            background: "var(--ed-accent-solid, #10B981)",
+                                                            background: "var(--ed-accent-solid, #E4B05E)",
                                                             color: "#fff",
                                                             fontFamily: "var(--ed-mono)",
                                                             letterSpacing: "0.1em",
@@ -1269,13 +1269,13 @@ function ProspectDetail({ data, creator }: { data: any; creator: any }) {
                             <div
                                 className="rounded-2xl p-4 flex items-center gap-3"
                                 style={{
-                                    background: "var(--ed-accent-bg, #D1FAE5)",
+                                    background: "var(--ed-accent-bg, #F5E4C0)",
                                     border: "1px solid var(--ed-accent)",
                                 }}
                             >
-                                <UserCheck className="w-5 h-5 flex-shrink-0" style={{ color: "var(--ed-accent-ink, #064E3B)" }} />
+                                <UserCheck className="w-5 h-5 flex-shrink-0" style={{ color: "var(--ed-accent-ink, #5C3A0F)" }} />
                                 <div>
-                                    <div className="text-[14px] font-semibold" style={{ color: "var(--ed-accent-ink, #064E3B)" }}>
+                                    <div className="text-[14px] font-semibold" style={{ color: "var(--ed-accent-ink, #5C3A0F)" }}>
                                         You claimed this {formatRelative(lead.claimedAt)}.
                                     </div>
                                     <div className="text-[12px]" style={{ color: "var(--ed-ink-2)" }}>
@@ -1417,7 +1417,7 @@ function ProspectDetail({ data, creator }: { data: any; creator: any }) {
                                     <Link
                                         href={startInterviewHref}
                                         className="w-full inline-flex items-center justify-center gap-2 text-[14px] font-semibold px-3 py-2.5 rounded-xl"
-                                        style={{ background: "var(--ed-accent-solid, #10B981)", color: "#fff" }}
+                                        style={{ background: "var(--ed-accent-solid, #E4B05E)", color: "#fff" }}
                                     >
                                         Start interview <ArrowRight className="w-4 h-4" />
                                     </Link>

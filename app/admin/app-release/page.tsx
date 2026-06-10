@@ -98,7 +98,7 @@ export default function AppReleasePage() {
             const url = URL.createObjectURL(blob)
             const a = document.createElement("a")
             a.href = url
-            a.download = "Negosyo-Digital.apk"
+            a.download = "Tendso.apk"
             document.body.appendChild(a)
             a.click()
             document.body.removeChild(a)
@@ -139,7 +139,7 @@ export default function AppReleasePage() {
         return (
             <AdminLayout>
                 <div className="flex items-center justify-center h-64">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500" />
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
                 </div>
             </AdminLayout>
         )
@@ -164,21 +164,21 @@ export default function AppReleasePage() {
                 </p>
 
                 {/* Current APK Status */}
-                <div className="bg-white rounded-2xl border border-emerald-500 shadow-sm p-6 mb-6">
+                <div className="bg-white rounded-2xl border border-amber-500 shadow-sm p-6 mb-6">
                     <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">Current Release</h2>
 
                     {apkUrl ? (
                         <div className="space-y-3">
-                            <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border border-green-100">
-                                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="flex items-center gap-3 p-4 bg-amber-50 rounded-lg border border-amber-100">
+                                <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                     </svg>
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-semibold text-green-800 truncate">{apkFileName}</p>
+                                    <p className="text-sm font-semibold text-amber-800 truncate">{apkFileName}</p>
                                     {apkUploadedAt && (
-                                        <p className="text-xs text-green-600">
+                                        <p className="text-xs text-amber-600">
                                             Uploaded {new Date(apkUploadedAt).toLocaleDateString("en-US", {
                                                 year: "numeric", month: "short", day: "numeric",
                                                 hour: "2-digit", minute: "2-digit",
@@ -224,7 +224,7 @@ export default function AppReleasePage() {
                 </div>
 
                 {/* Upload Section */}
-                <div className="bg-white rounded-2xl border border-emerald-500 shadow-sm p-6">
+                <div className="bg-white rounded-2xl border border-amber-500 shadow-sm p-6">
                     <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-4">
                         {apkUrl ? "Replace APK" : "Upload APK"}
                     </h2>
@@ -233,12 +233,12 @@ export default function AppReleasePage() {
                         className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
                             uploading
                                 ? "border-gray-200 bg-gray-50 cursor-not-allowed"
-                                : "border-gray-300 hover:border-green-400 hover:bg-green-50/50"
+                                : "border-gray-300 hover:border-amber-400 hover:bg-amber-50/50"
                         }`}
                     >
                         {uploading ? (
                             <div className="flex flex-col items-center gap-2">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500" />
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500" />
                                 <p className="text-sm text-gray-500">Uploading...</p>
                             </div>
                         ) : (
@@ -247,7 +247,7 @@ export default function AppReleasePage() {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                 </svg>
                                 <p className="text-sm text-gray-500">
-                                    <span className="font-semibold text-green-600">Click to upload</span> or drag and drop
+                                    <span className="font-semibold text-amber-600">Click to upload</span> or drag and drop
                                 </p>
                                 <p className="text-xs text-gray-400">APK files only, max 200MB</p>
                             </div>
@@ -268,7 +268,7 @@ export default function AppReleasePage() {
                     )}
 
                     {success && (
-                        <div className="mt-4 p-3 bg-green-50 border border-green-100 rounded-lg text-sm text-green-600">
+                        <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-lg text-sm text-amber-600">
                             {success}
                         </div>
                     )}

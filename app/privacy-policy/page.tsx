@@ -27,7 +27,7 @@ const policySections = [
         content: (
             <>
                 <p className="mb-4">
-                    We collect information that you provide directly to us when using the Negosyo Digital app.
+                    We collect information that you provide directly to us when using the Tendso app.
                 </p>
                 <ul className="list-disc pl-5 space-y-2">
                     <li>
@@ -165,7 +165,7 @@ const policySections = [
         title: "Philippine DPA Compliance",
         content: (
             <p>
-                Negosyo Digital is committed to complying with Republic Act No. 10173 (Data Privacy Act of 2012) and its
+                Tendso is committed to complying with Republic Act No. 10173 (Data Privacy Act of 2012) and its
                 Implementing Rules and Regulations. We process personal data based on legitimate interest and consent,
                 maintain appropriate organizational and technical security measures, and have designated a Data Protection
                 Officer to oversee compliance. We ensure all data processing activities are conducted in accordance with
@@ -180,7 +180,7 @@ const policySections = [
         title: "Open Platform for All Ages",
         content: (
             <p>
-                Negosyo Digital is open to users of all ages — including students, young entrepreneurs, and anyone who
+                Tendso is open to users of all ages — including students, young entrepreneurs, and anyone who
                 wants to help digitize local businesses and earn from it. There are no age restrictions to use the
                 platform or register as a Creator. We believe in empowering the next generation of Filipino digital
                 entrepreneurs.
@@ -263,7 +263,7 @@ export default function PrivacyPolicy() {
                             fontSize: "clamp(1.1rem, 1.6vw, 1.4rem)",
                         }}
                     >
-                        Your privacy matters to us. How Negosyo Digital collects, uses, and protects your personal information.
+                        Your privacy matters to us. How Tendso collects, uses, and protects your personal information.
                     </p>
 
                     <div className="w-px h-16 bg-gradient-to-b from-[var(--rust)] to-transparent mx-auto mt-12" aria-hidden />

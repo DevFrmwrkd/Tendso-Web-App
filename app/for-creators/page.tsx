@@ -16,7 +16,7 @@ import { ArrowUpRightIcon } from "@/components/landing/landingPrimitives";
 
 const APPLY_STEPS = [
     { n: "01", h: "Tap \"I want to earn\"", sub: "Sign up from this page. The full flow lives in the app.", meta: "30 seconds" },
-    { n: "02", h: "Verify your phone & ID", sub: "GCash-grade KYC inside the app. Selfie + a valid ID. We hold your data for payouts only.", meta: "5 minutes" },
+    { n: "02", h: "Verify your phone & ID", sub: "Bank-grade KYC inside the app. Selfie + a valid ID. We hold your data for payouts only.", meta: "5 minutes" },
     { n: "03", h: "Take the certification", sub: "Twelve short videos. A photo quiz. An interview rehearsal with a fake shop owner. You can retry as many times as you need.", meta: "20 minutes" },
     { n: "04", h: "Pin yourself on the map", sub: "You show up on the landing page, in front of every business owner in your area looking for a creator.", meta: "instant" },
     { n: "05", h: "Accept your first booking", sub: "Either a business taps you, or you pick one from your queue. Bring a phone, bring patience. The app guides every step.", meta: "same day" },
@@ -110,7 +110,7 @@ function CreatorHero() {
                             ["Video interview", "₱500"],
                             ["Audio-only submission", "₱300"],
                             ["Referral bonus", "₱1,000"],
-                            ["Payout via Wise / GCash / Maya / bank", "—"],
+                            ["Payout via Wise", "—"],
                             ["Time to first payout", "48 hr"],
                         ].map(([label, v], i) => (
                             <div

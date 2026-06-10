@@ -226,8 +226,8 @@ export const deleteFile = action({
 /**
  * Generate a presigned URL for uploading an APK to R2.
  *
- * Uses a STABLE storage key — `releases/negosyo-digital.apk` — so the
- * downloaded file is always named "negosyo-digital.apk" without any
+ * Uses a STABLE storage key — `releases/tendso.apk` — so the
+ * downloaded file is always named "tendso.apk" without any
  * Content-Disposition rewrites or route-level indirection. R2 derives
  * the download filename from the storage key, and re-uploads simply
  * overwrite the previous file at the same key.
@@ -236,7 +236,7 @@ export const deleteFile = action({
  * If we ever need historical releases, snapshot apk_uploaded_at +
  * archive the bytes elsewhere; don't pollute the storage key.
  */
-const APK_STABLE_KEY = 'releases/negosyo-digital.apk';
+const APK_STABLE_KEY = 'releases/tendso.apk';
 
 export const generateApkUploadUrl = action({
     args: {

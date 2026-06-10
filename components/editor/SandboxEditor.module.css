@@ -5,7 +5,7 @@
    ordering issues, no Tailwind v4 layer surprises).
 
    Color note: the original sandbox.html uses amber (#ffd24a). Per
-   product direction we use green (#10b981) here for brand
+   product direction we use green (#E4B05E) here for brand
    consistency with the rest of the admin Editorial Paper system.
    ────────────────────────────────────────────────────────────── */
 
@@ -18,10 +18,10 @@
     --sx-ink: #e9ecf2;
     --sx-ink-soft: #8a93a8;
     --sx-ink-mute: #5d667a;
-    --sx-accent: #10b981;        /* emerald — replaces sandbox.html's #ffd24a amber */
+    --sx-accent: #E4B05E;        /* Tendso warm gold (Hands Full rebrand) */
     --sx-accent-soft: rgba(16, 185, 129, 0.08);
-    --sx-accent-strong: #34d399;
-    --sx-good: #10b981;
+    --sx-accent-strong: #E8C078;
+    --sx-good: #E4B05E;
     --sx-bad: #f87171;
     --sx-sans: "Inter Tight", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --sx-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -738,7 +738,7 @@
 }
 
 .btnAccent:hover:not(:disabled) {
-    background: #34d399;
+    background: #E8C078;
     color: #052e1f;
 }
 

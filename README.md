@@ -1,4 +1,4 @@
-# Negosyo Digital
+# Tendso
 
 A platform that digitalizes Filipino micro, small, and medium enterprises (MSMEs) by generating AI-powered business websites from creator-submitted interviews, photos, and business information.
 

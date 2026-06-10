@@ -22,8 +22,8 @@ const GROUPS: FaqGroup[] = [
         title: "Getting Started",
         items: [
             {
-                q: "What is Negosyo Digital?",
-                a: "Negosyo Digital is a platform that helps Filipino creators digitize local businesses. As a creator, you visit small businesses, collect their information through photos and interviews, and submit it through the app. We then generate a professional website for the business.",
+                q: "What is Tendso?",
+                a: "Tendso is a platform that helps Filipino creators digitize local businesses. As a creator, you visit small businesses, collect their information through photos and interviews, and submit it through the app. We then generate a professional website for the business.",
             },
             {
                 q: "How do I get certified?",

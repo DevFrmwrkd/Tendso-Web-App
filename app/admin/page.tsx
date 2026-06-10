@@ -281,13 +281,13 @@ export default function AdminDashboard() {
             draft: { bg: "bg-gray-100", text: "text-gray-700", label: "Draft" },
             submitted: { bg: "bg-blue-50", text: "text-blue-700", label: "Submitted" },
             in_review: { bg: "bg-amber-50", text: "text-amber-700", label: "In Review" },
-            approved: { bg: "bg-green-50", text: "text-green-700", label: "Approved" },
+            approved: { bg: "bg-amber-50", text: "text-amber-700", label: "Approved" },
             rejected: { bg: "bg-red-50", text: "text-red-700", label: "Rejected" },
             deployed: { bg: "bg-cyan-50", text: "text-cyan-700", label: "Deployed" },
             pending_payment: { bg: "bg-orange-50", text: "text-orange-700", label: "Pending Payment" },
-            paid: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Paid" },
+            paid: { bg: "bg-amber-50", text: "text-amber-700", label: "Paid" },
             unpublished: { bg: "bg-rose-50", text: "text-rose-700", label: "Unpublished" },
-            completed: { bg: "bg-emerald-50", text: "text-emerald-700", label: "Completed" },
+            completed: { bg: "bg-amber-50", text: "text-amber-700", label: "Completed" },
             website_generated: { bg: "bg-teal-50", text: "text-teal-700", label: "Generated" },
         }
         return config[status] || { bg: "bg-gray-100", text: "text-gray-700", label: status }
@@ -296,7 +296,7 @@ export default function AdminDashboard() {
     if (authLoading || submissionsLoading) {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-500"></div>
             </div>
         )
     }
@@ -322,9 +322,9 @@ export default function AdminDashboard() {
         <AdminLayout>
             {/* Delete Result Banner */}
             {deleteResult && (
-                <div className={`-mx-4 sm:-mx-6 lg:-mx-8 -mt-6 lg:-mt-8 mb-6 border-b ${deleteResult.type === "success" ? "bg-green-50 border-green-200" : "bg-red-50 border-red-200"}`}>
+                <div className={`-mx-4 sm:-mx-6 lg:-mx-8 -mt-6 lg:-mt-8 mb-6 border-b ${deleteResult.type === "success" ? "bg-amber-50 border-amber-200" : "bg-red-50 border-red-200"}`}>
                     <div className="px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-                        <p className={`text-sm font-medium ${deleteResult.type === "success" ? "text-green-800" : "text-red-800"}`}>
+                        <p className={`text-sm font-medium ${deleteResult.type === "success" ? "text-amber-800" : "text-red-800"}`}>
                             {deleteResult.message}
                         </p>
                         <button onClick={() => setDeleteResult(null)} className="text-gray-400 hover:text-gray-600">
@@ -389,9 +389,9 @@ export default function AdminDashboard() {
             {/* Stats Cards (3 widgets, read-only) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                 {/* Widget 1: Total Earnings */}
-                <div className="relative overflow-hidden bg-white p-6 rounded-[24px] border border-emerald-500 hover:shadow-xl hover:shadow-gray-200/40 hover:-translate-y-1 transition-all duration-300 group">
-                    <div className="p-2.5 rounded-xl bg-green-50/50 w-fit mb-4 group-hover:scale-110 transition-transform duration-300">
-                        <TrendingUp className="text-green-600" size={20} />
+                <div className="relative overflow-hidden bg-white p-6 rounded-[24px] border border-amber-500 hover:shadow-xl hover:shadow-gray-200/40 hover:-translate-y-1 transition-all duration-300 group">
+                    <div className="p-2.5 rounded-xl bg-amber-50/50 w-fit mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <TrendingUp className="text-amber-600" size={20} />
                     </div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Earnings (Net)</p>
                     <div className="flex items-baseline gap-2">
@@ -406,7 +406,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Widget 2: Submissions (total + pending review combined) */}
-                <div className="relative overflow-hidden bg-white p-6 rounded-[24px] border border-emerald-500 hover:shadow-xl hover:shadow-gray-200/40 hover:-translate-y-1 transition-all duration-300 group">
+                <div className="relative overflow-hidden bg-white p-6 rounded-[24px] border border-amber-500 hover:shadow-xl hover:shadow-gray-200/40 hover:-translate-y-1 transition-all duration-300 group">
                     <div className="p-2.5 rounded-xl bg-blue-50/50 w-fit mb-4 group-hover:scale-110 transition-transform duration-300">
                         <AlertCircle className="text-blue-600" size={20} />
                     </div>
@@ -424,16 +424,16 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Widget 3: Reviewed (accepted + rejected combined) */}
-                <div className="relative overflow-hidden bg-white p-6 rounded-[24px] border border-emerald-500 hover:shadow-xl hover:shadow-gray-200/40 hover:-translate-y-1 transition-all duration-300 group">
-                    <div className="p-2.5 rounded-xl bg-emerald-50/50 w-fit mb-4 group-hover:scale-110 transition-transform duration-300">
-                        <CheckCircle2 className="text-emerald-600" size={20} />
+                <div className="relative overflow-hidden bg-white p-6 rounded-[24px] border border-amber-500 hover:shadow-xl hover:shadow-gray-200/40 hover:-translate-y-1 transition-all duration-300 group">
+                    <div className="p-2.5 rounded-xl bg-amber-50/50 w-fit mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <CheckCircle2 className="text-amber-600" size={20} />
                     </div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Reviewed</p>
                     <div className="flex items-baseline gap-2">
                         <p className="text-3xl font-black text-gray-900 tracking-tight">{reviewedCount.toLocaleString()}</p>
                     </div>
                     <div className="flex items-center gap-3 mt-2 text-[10px] font-bold">
-                        <span className="text-green-600 flex items-center gap-1">
+                        <span className="text-amber-600 flex items-center gap-1">
                             <CheckCircle2 size={11} /> {approvedCount} approved
                         </span>
                         <span className="text-red-600 flex items-center gap-1">
@@ -447,21 +447,21 @@ export default function AdminDashboard() {
             <motion.div 
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-white rounded-[32px] border border-emerald-500 shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-6 sm:p-8 mb-8 relative overflow-hidden"
+                className="bg-white rounded-[32px] border border-amber-500 shadow-[0_8px_30px_rgb(0,0,0,0.02)] p-6 sm:p-8 mb-8 relative overflow-hidden"
             >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-green-50/30 blur-[100px] -mr-32 -mt-32 rounded-full pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50/30 blur-[100px] -mr-32 -mt-32 rounded-full pointer-events-none" />
                 
                 <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 relative z-10">
                     <div>
                         <div className="flex items-center gap-2 mb-1">
-                            <div className="w-1.5 h-6 bg-green-500 rounded-full" />
+                            <div className="w-1.5 h-6 bg-amber-500 rounded-full" />
                             <h3 className="text-xl font-black text-gray-900 tracking-tight">Revenue Analytics</h3>
                         </div>
                         <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.1em]">Performance overview &bull; Last 30 days</p>
                     </div>
                     <div className="flex items-center gap-6 px-5 py-2.5 bg-gray-50 rounded-2xl border border-gray-100">
                         <div className="flex items-center gap-2">
-                            <span className="w-2.5 h-2.5 bg-green-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
+                            <span className="w-2.5 h-2.5 bg-amber-500 rounded-full shadow-[0_0_10px_rgba(34,197,94,0.5)]"></span>
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Gross Revenue</span>
                         </div>
                     </div>
@@ -497,7 +497,7 @@ export default function AdminDashboard() {
                                 Pending reviews require immediate action to maintain SLA.
                             </p>
                             {backfillResult && (
-                                <p className="text-xs text-green-700 mt-1">
+                                <p className="text-xs text-amber-700 mt-1">
                                     Backfill done: {backfillResult.updatedSubmissions} submission(s), {backfillResult.updatedWebsites} website(s) updated.
                                 </p>
                             )}
@@ -507,7 +507,7 @@ export default function AdminDashboard() {
                         <button
                             onClick={handleBackfill}
                             disabled={backfilling}
-                            className="px-4 py-2 text-sm font-semibold text-white bg-green-500 hover:bg-green-600 rounded-lg transition-colors disabled:opacity-50 shrink-0"
+                            className="px-4 py-2 text-sm font-semibold text-white bg-amber-500 hover:bg-amber-600 rounded-lg transition-colors disabled:opacity-50 shrink-0"
                         >
                             {backfilling ? "Running..." : "Run Backfill"}
                         </button>
@@ -524,7 +524,7 @@ export default function AdminDashboard() {
                         placeholder="Search by business, owner, or category..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 h-12 bg-white border-gray-100 rounded-2xl text-sm font-medium focus:ring-green-100 focus:border-green-400 transition-all shadow-sm"
+                        className="w-full pl-12 pr-4 h-12 bg-white border-gray-100 rounded-2xl text-sm font-medium focus:ring-amber-100 focus:border-amber-400 transition-all shadow-sm"
                     />
                 </div>
                 
@@ -532,11 +532,11 @@ export default function AdminDashboard() {
                     <div className="relative group/sort">
                         <button
                             onClick={() => setShowSortDropdown(!showSortDropdown)}
-                            className="flex items-center gap-2.5 px-5 h-12 bg-white border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 hover:border-green-400 transition-all shadow-sm whitespace-nowrap"
+                            className="flex items-center gap-2.5 px-5 h-12 bg-white border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 hover:border-amber-400 transition-all shadow-sm whitespace-nowrap"
                         >
-                            <ArrowUpDown size={16} className="text-gray-400 group-hover/sort:text-green-500 transition-colors" />
+                            <ArrowUpDown size={16} className="text-gray-400 group-hover/sort:text-amber-500 transition-colors" />
                             <span>Sort By</span>
-                            <div className={`w-1.5 h-1.5 rounded-full bg-green-500 transition-all ${sortBy !== "newest" ? "scale-100 opacity-100" : "scale-0 opacity-0"}`} />
+                            <div className={`w-1.5 h-1.5 rounded-full bg-amber-500 transition-all ${sortBy !== "newest" ? "scale-100 opacity-100" : "scale-0 opacity-0"}`} />
                         </button>
                         <AnimatePresence>
                             {showSortDropdown && (
@@ -568,7 +568,7 @@ export default function AdminDashboard() {
                                                 className={`
                                                     w-full text-left px-4 py-2.5 text-xs font-bold uppercase tracking-tight rounded-xl transition-all
                                                     ${sortBy === option.key
-                                                        ? "bg-green-50 text-green-700"
+                                                        ? "bg-amber-50 text-amber-700"
                                                         : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"}
                                                 `}
                                             >
@@ -584,7 +584,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Submissions Table */}
-            <div className="bg-white rounded-2xl border border-emerald-500 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-2xl border border-amber-500 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
@@ -620,7 +620,7 @@ export default function AdminDashboard() {
                                         >
                                                 <td className="px-6 py-5">
                                                     <div className="flex flex-col">
-                                                        <span className="text-sm font-bold text-gray-900 group-hover:text-green-600 transition-colors uppercase tracking-tight">{submission.business_name}</span>
+                                                        <span className="text-sm font-bold text-gray-900 group-hover:text-amber-600 transition-colors uppercase tracking-tight">{submission.business_name}</span>
                                                         <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">{submission.business_type}</span>
                                                     </div>
                                                 </td>
@@ -660,7 +660,7 @@ export default function AdminDashboard() {
                                                     <div className="flex items-center justify-end gap-1.5">
                                                         <Link
                                                             href={`/admin/submissions/${submission.id}`}
-                                                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                                                            className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
                                                         >
                                                             <ArrowRight size={18} />
                                                         </Link>
@@ -709,7 +709,7 @@ export default function AdminDashboard() {
                                         onClick={() => setCurrentPage(page as number)}
                                         className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
                                             currentPage === page
-                                                ? "bg-green-500 text-white"
+                                                ? "bg-amber-500 text-white"
                                                 : "text-gray-600 hover:bg-gray-100"
                                         }`}
                                     >
