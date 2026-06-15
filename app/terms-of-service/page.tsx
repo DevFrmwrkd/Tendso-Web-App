@@ -34,7 +34,7 @@ const termsSections = [
         icon: Banknote,
         title: "Payouts & Economics",
         content:
-            "Creators earn PHP 500 for a successful video interview submission, and PHP 300 for audio-only submissions. Referral bonuses of PHP 1,000 are credited when a referred Creator completes their first paid submission. The minimum withdrawal threshold is PHP 100, processed securely via Wise API direct to local Philippine bank accounts.",
+            "Creators earn 50% of the website sale price (₱500 at the ₱999 base price, scaling up to ₱2,500 as higher price tiers unlock). Referral bonuses of PHP 1,000 are credited when a referred Creator completes their first paid submission. The minimum withdrawal threshold is PHP 100, processed securely via Wise API direct to local Philippine bank accounts.",
     },
     {
         marker: "§ 05",

@@ -31,9 +31,9 @@ export default function EarningsSection() {
                     </div>
                 </div>
 
-                {/* Payout rates — current marketing values */}
+                {/* Payout rates — 50%-of-sale model + referral bonus (see lib/pricing.ts) */}
                 <div
-                    className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12"
                     style={{}}
                 >
                     {CREATOR_EARNINGS.map((rate) => {

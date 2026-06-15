@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Loader2, Globe, CheckCircle2, XCircle, Search } from "lucide-react"
+import { BASE_PRICE, STANDARD_PRICE, CUSTOM_DOMAIN_PRICE, CUSTOM_DOMAIN_ADDON, PRICE_CEILING, UNLOCK_THRESHOLD, ownerTotal, commissionFor, formatPHP } from "@/lib/pricing"
 
 interface DomainCheckResult {
     valid: boolean
@@ -35,12 +36,14 @@ export default function ReviewSubmissionPage() {
 
     // Custom domain state — tier is auto-derived from whether the input has content
     const [domainInput, setDomainInput] = useState('')
+    // Creator-set sell price, clamped to the creator's band (see lib/pricing.ts)
+    const [sellPrice, setSellPrice] = useState<number>(BASE_PRICE)
     const [domainCheck, setDomainCheck] = useState<DomainCheckResult | null>(null)
     const [checkingDomain, setCheckingDomain] = useState(false)
     // Auto-derived: if user typed something, tier is "with_custom_domain"
     const wantsCustomDomain = domainInput.trim().length > 0
     const tier: 'standard' | 'with_custom_domain' = wantsCustomDomain ? 'with_custom_domain' : 'standard'
-    const totalAmount = wantsCustomDomain ? 1500 : 1000
+    const totalAmount = ownerTotal(sellPrice, tier)
 
     // Get creator from Convex
     const creator = useQuery(
@@ -104,7 +107,7 @@ export default function ReviewSubmissionPage() {
                 const response = await fetch('/api/check-domain', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ domain: domainInput.trim().toLowerCase(), maxBudgetPHP: 500 }),
+                    body: JSON.stringify({ domain: domainInput.trim().toLowerCase(), maxBudgetPHP: CUSTOM_DOMAIN_ADDON }),
                 })
                 const data = await response.json()
                 setDomainCheck(data)
@@ -122,6 +125,12 @@ export default function ReviewSubmissionPage() {
         if (submission) {
             const subAny = submission as any
             if (subAny.requestedDomain) setDomainInput(subAny.requestedDomain)
+            // Re-derive the saved website sell price (amount = sellPrice + domain
+            // add-on when a custom domain was chosen).
+            if (typeof subAny.amount === 'number' && subAny.amount > 0) {
+                const addon = subAny.submissionType === 'with_custom_domain' ? CUSTOM_DOMAIN_ADDON : 0
+                setSellPrice(Math.max(subAny.amount - addon, BASE_PRICE))
+            }
         }
     }, [submission])
 
@@ -148,7 +157,7 @@ export default function ReviewSubmissionPage() {
         // If user typed a domain, it must be valid + within budget
         if (wantsCustomDomain) {
             if (!domainCheck?.available || !domainCheck?.withinBudget) {
-                setError('The custom domain you typed is not available or exceeds the ₱500 budget. Either pick a different domain or clear the field to submit without a custom domain.')
+                setError(`The custom domain you typed is not available or exceeds the ${formatPHP(CUSTOM_DOMAIN_ADDON)} budget. Either pick a different domain or clear the field to submit without a custom domain.`)
                 return
             }
         }
@@ -162,6 +171,7 @@ export default function ReviewSubmissionPage() {
                 id: submissionId as Id<"submissions">,
                 submissionType: tier,
                 requestedDomain: wantsCustomDomain ? domainInput.trim().toLowerCase() : undefined,
+                sellPrice,
             })
 
             // Update status to submitted
@@ -187,11 +197,16 @@ export default function ReviewSubmissionPage() {
 
     if (!submission) return null
 
-    // Determine interview type and payout
+    // Creator's allowed price band — priceCeiling unlocks from BASE_PRICE to
+    // PRICE_CEILING after UNLOCK_THRESHOLD approved submissions (see lib/pricing.ts).
+    const priceCeiling = ((creator as any)?.priceCeiling as number | undefined) ?? BASE_PRICE
+    const canSetPrice = priceCeiling > BASE_PRICE
+
+    // Determine interview type and payout (50% of the chosen sell price)
     // Check both R2 URLs (new) and storage IDs (legacy)
     const hasVideo = !!submission.videoUrl || !!submission.videoStorageId
     const hasAudio = !!submission.audioUrl || !!submission.audioStorageId
-    const payout = hasVideo ? 500 : (hasAudio ? 300 : 0)
+    const payout = (hasVideo || hasAudio) ? commissionFor(sellPrice) : 0
 
     return (
         <div
@@ -384,7 +399,7 @@ export default function ReviewSubmissionPage() {
                         </div>
                     </div>
 
-                    {/* Custom Domain (optional) — typing here auto-flags submission as ₱1,500 */}
+                    {/* Custom Domain (optional) — typing here auto-flags the custom-domain tier (₱1,499) */}
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                         <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                             <h3 className="font-semibold text-gray-900 flex items-center gap-2">
@@ -392,12 +407,12 @@ export default function ReviewSubmissionPage() {
                                 Custom Domain (Optional)
                             </h3>
                             <span className={`text-xs font-bold px-2 py-1 rounded-full ${wantsCustomDomain ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
-                                {wantsCustomDomain ? '₱1,500 total' : 'Not included'}
+                                {wantsCustomDomain ? `${formatPHP(CUSTOM_DOMAIN_PRICE)} total` : 'Not included'}
                             </span>
                         </div>
                         <div className="p-4 space-y-3">
                             <p className="text-xs text-gray-500">
-                                Leave this blank for the standard package (₱1,000, free subdomain). Type a domain to add a custom domain — your fee automatically becomes ₱1,500 and includes year 1 of the domain.
+                                Leave this blank for the standard package ({formatPHP(STANDARD_PRICE)}, free subdomain). Type a domain to add a custom domain — your fee automatically becomes {formatPHP(CUSTOM_DOMAIN_PRICE)} and includes year 1 of the domain.
                             </p>
 
                             <div>
@@ -428,7 +443,7 @@ export default function ReviewSubmissionPage() {
                                 <div className="text-xs">
                                     {domainCheck.available && domainCheck.withinBudget && (
                                         <p className="text-amber-700 font-semibold">
-                                            ✓ Available — included in the ₱1,500 business-owner fee.
+                                            ✓ Available — included in the {formatPHP(CUSTOM_DOMAIN_PRICE)} business-owner fee.
                                         </p>
                                     )}
                                     {domainCheck.available && !domainCheck.withinBudget && (
@@ -518,6 +533,41 @@ export default function ReviewSubmissionPage() {
                                         30 days before expiry.
                                     </p>
                                 </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Your price — creator-set band (see lib/pricing.ts) */}
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <div className="p-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                            <h3 className="font-semibold text-gray-900">Your price</h3>
+                            <span className="text-xs font-bold px-2 py-1 rounded-full bg-amber-100 text-amber-700">
+                                You earn {formatPHP(payout)}
+                            </span>
+                        </div>
+                        <div className="p-4 space-y-3">
+                            {canSetPrice ? (
+                                <>
+                                    <p className="text-xs text-gray-500">
+                                        You&apos;ve unlocked higher pricing. Set the website price between {formatPHP(BASE_PRICE)} and {formatPHP(priceCeiling)} — you keep 50%.
+                                    </p>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="range"
+                                            min={BASE_PRICE}
+                                            max={priceCeiling}
+                                            step={100}
+                                            value={sellPrice}
+                                            onChange={(e) => setSellPrice(Math.min(Math.max(Number(e.target.value), BASE_PRICE), priceCeiling))}
+                                            className="flex-1 accent-amber-600"
+                                        />
+                                        <span className="text-lg font-black text-amber-700 w-24 text-right">{formatPHP(sellPrice)}</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <p className="text-xs text-gray-500">
+                                    The website price is {formatPHP(BASE_PRICE)}. Land {UNLOCK_THRESHOLD} approved submissions to unlock setting your own price up to {formatPHP(PRICE_CEILING)}.
+                                </p>
                             )}
                         </div>
                     </div>

@@ -59,7 +59,7 @@ const GROUPS: FaqGroup[] = [
         items: [
             {
                 q: "How much do I earn per submission?",
-                a: "You earn ₱500 for video submissions and ₱300 for audio-only submissions once the business owner pays.",
+                a: "You earn ₱500 per submission (50% of the sale price) once the business owner pays.",
             },
             {
                 q: "How do referral bonuses work?",

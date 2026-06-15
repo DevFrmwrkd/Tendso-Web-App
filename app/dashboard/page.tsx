@@ -2,6 +2,7 @@
 
 import { useUser } from "@clerk/nextjs"
 import { useQuery, useMutation } from "convex/react"
+import { PRICE_CEILING, formatPHP } from "@/lib/pricing"
 import { api } from "@/convex/_generated/api"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
@@ -22,6 +23,12 @@ export default function DashboardPage() {
     // Get submissions from Convex
     const submissions = useQuery(
         api.submissions.getByCreatorId,
+        creator?._id ? { creatorId: creator._id } : "skip"
+    )
+
+    // Price-tier progress: approved-submission count + whether higher pricing is unlocked
+    const pricing = useQuery(
+        api.submissions.getPricingContext,
         creator?._id ? { creatorId: creator._id } : "skip"
     )
 
@@ -183,6 +190,46 @@ export default function DashboardPage() {
             </header>
 
             <main className="px-4 space-y-5">
+                {/* Price-tier progress — unlock higher pricing (see lib/pricing.ts) */}
+                {pricing && !pricing.unlocked && (
+                    <div
+                        className="rounded-2xl p-4"
+                        style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                    >
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="ed-label">Unlock higher pricing</span>
+                            <span className="text-sm font-bold" style={{ color: "var(--ed-accent)" }}>
+                                {pricing.approvedCount}/{pricing.threshold}
+                            </span>
+                        </div>
+                        <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "var(--ed-rule)" }}>
+                            <div
+                                className="h-full rounded-full transition-all"
+                                style={{
+                                    width: `${Math.min(100, Math.round((pricing.approvedCount / pricing.threshold) * 100))}%`,
+                                    background: "var(--ed-accent)",
+                                }}
+                            />
+                        </div>
+                        <p className="text-xs mt-2" style={{ color: "var(--ed-ink-3)" }}>
+                            {pricing.threshold - pricing.approvedCount > 0
+                                ? `${pricing.threshold - pricing.approvedCount} more approved ${pricing.threshold - pricing.approvedCount === 1 ? "submission" : "submissions"} to set your own price up to ${formatPHP(PRICE_CEILING)}.`
+                                : `You can now set your own price up to ${formatPHP(PRICE_CEILING)}.`}
+                        </p>
+                    </div>
+                )}
+                {pricing && pricing.unlocked && (
+                    <div
+                        className="rounded-2xl p-4 flex items-center justify-between"
+                        style={{ background: "var(--ed-paper-3)", border: "1px solid var(--ed-rule)" }}
+                    >
+                        <span className="ed-label">Pricing unlocked</span>
+                        <span className="text-sm font-bold" style={{ color: "var(--ed-accent)" }}>
+                            Set up to {formatPHP(pricing.priceCeiling)}
+                        </span>
+                    </div>
+                )}
+
                 {/* Balance Card — ink surface with serif amount */}
                 <div
                     className="rounded-3xl p-6 relative overflow-hidden"
