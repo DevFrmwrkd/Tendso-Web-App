@@ -3,6 +3,7 @@ import { internalAction, internalMutation } from './_generated/server'
 import { internal } from './_generated/api'
 import { extractReferenceFromText } from '../lib/payments/referenceCode'
 import { determinePaymentStatus } from '../lib/payments/webhookParser'
+import { REFERRAL_BONUS } from '../lib/pricing'
 
 // ==================== SHARED CREDIT LOGIC ====================
 // Used by both admin.markPaid (manual) and auto-payment (webhook)
@@ -113,7 +114,7 @@ export const creditCreatorForPayment = internalMutation({
             if (paidSubmissions.length <= 1) {
                 await ctx.scheduler.runAfter(0, internal.referrals.qualifyByCreator, {
                     referredId: submission.creatorId,
-                    bonusAmount: 1000,
+                    bonusAmount: REFERRAL_BONUS,
                 })
             }
         }

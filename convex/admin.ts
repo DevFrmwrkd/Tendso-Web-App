@@ -1,6 +1,13 @@
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
 import { internal } from './_generated/api';
+import { PRICE_CEILING, UNLOCK_THRESHOLD } from '../lib/pricing';
+
+// Submission statuses that count as "approved or beyond" for the price-tier
+// unlock — i.e. the creator proved out a real, accepted submission.
+const APPROVED_OR_LATER = new Set<string>([
+    'approved', 'deployed', 'pending_payment', 'paid', 'completed', 'website_generated', 'unpublished',
+]);
 
 // ==================== QUERIES ====================
 
@@ -155,6 +162,28 @@ export const approveSubmission = mutation({
             reviewedBy: args.adminId,
             reviewedAt: Date.now(),
         });
+
+        // Creator-set pricing: unlock the higher price ceiling once the creator
+        // reaches UNLOCK_THRESHOLD approved submissions. Idempotent (only fires
+        // once, guarded by priceUnlockedAt) and additive. See lib/pricing.ts.
+        // `as any`: priceCeiling/priceUnlockedAt are new schema fields; the
+        // committed _generated types lag until `npx convex dev` re-codegens.
+        // This matches the repo's existing cross-deploy `as any` idiom.
+        const creator: any = await ctx.db.get(submission.creatorId);
+        if (creator && !creator.priceUnlockedAt) {
+            const creatorSubs = await ctx.db
+                .query('submissions')
+                .withIndex('by_creator_id', (q) => q.eq('creatorId', submission.creatorId))
+                .collect();
+            const approvedCount = creatorSubs.filter((s) => APPROVED_OR_LATER.has(s.status as string)).length;
+            if (approvedCount >= UNLOCK_THRESHOLD) {
+                await ctx.db.patch(submission.creatorId, {
+                    priceCeiling: PRICE_CEILING,
+                    priceUnlockedAt: Date.now(),
+                    tierChangedBy: args.adminId,
+                } as any);
+            }
+        }
 
         // Audit log
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {

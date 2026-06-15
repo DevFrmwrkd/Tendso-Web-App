@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { query, mutation, internalQuery, internalMutation, internalAction } from './_generated/server';
 import { internal } from './_generated/api';
+import { BASE_PRICE, STANDARD_PRICE, UNLOCK_THRESHOLD, COMMISSION_RATE, CUSTOM_DOMAIN_ADDON, commissionFor, ownerTotal, domainAddOnFor } from '../lib/pricing';
 
 // ==================== QUERIES ====================
 
@@ -177,6 +178,100 @@ export const getByStatus = query({
     },
 });
 
+/**
+ * Pricing context for a creator: how many approved submissions they have, and
+ * whether that unlocks the higher price ceiling. Used by the dashboard progress
+ * meter and the review-page price picker. Keep the status set in sync with
+ * admin.ts APPROVED_OR_LATER.
+ */
+export const getPricingContext = query({
+    args: { creatorId: v.id('creators') },
+    handler: async (ctx, args) => {
+        const approvedStatuses = ['approved', 'deployed', 'pending_payment', 'paid', 'completed', 'website_generated', 'unpublished'];
+        const creator: any = await ctx.db.get(args.creatorId);
+        const subs = await ctx.db
+            .query('submissions')
+            .withIndex('by_creator_id', (q) => q.eq('creatorId', args.creatorId))
+            .collect();
+        const approvedCount = subs.filter((s) => approvedStatuses.includes(s.status)).length;
+        const ceiling = creator?.priceCeiling ?? BASE_PRICE;
+        return {
+            approvedCount,
+            priceCeiling: ceiling,
+            unlocked: !!creator?.priceUnlockedAt || ceiling > BASE_PRICE,
+            threshold: UNLOCK_THRESHOLD,
+            basePrice: BASE_PRICE,
+        };
+    },
+});
+
+/**
+ * Per-creator pricing summary for the admin creator detail page.
+ * Shows what a creator is charging businesses, per submission + aggregates.
+ *
+ * Theo's model stores `amount` (owner total) and `creatorPayout` (50% of sell
+ * price) on each submission; the sell price is derived as amount − domain add-on
+ * (exact, no rounding drift). Domain add-on is the frozen real cost when present,
+ * else the flat CUSTOM_DOMAIN_ADDON for the custom-domain tier.
+ */
+export const getCreatorPricingSummary = query({
+    args: { creatorId: v.id('creators') },
+    handler: async (ctx, args) => {
+        const subs = await ctx.db
+            .query('submissions')
+            .withIndex('by_creator_id', (q) => q.eq('creatorId', args.creatorId))
+            .collect();
+
+        const paidStatuses = ['paid', 'completed'];
+
+        const rows = subs
+            .filter((s) => s.amount !== undefined || s.creatorPayout !== undefined)
+            .map((s) => {
+                const isWithDomain = (s as any).submissionType === 'with_custom_domain';
+                const domainAddOn = isWithDomain
+                    ? (s.domainCostPHP ?? CUSTOM_DOMAIN_ADDON)
+                    : 0;
+                const amount = s.amount ?? 0;
+                // Prefer deriving from amount (exact); fall back to creatorPayout.
+                const sellPrice = amount > 0
+                    ? Math.max(0, amount - domainAddOn)
+                    : Math.round((s.creatorPayout ?? 0) / COMMISSION_RATE);
+                const discountPct = sellPrice > 0
+                    ? Math.max(0, Math.round((1 - sellPrice / 4999) * 100))
+                    : 0;
+                return {
+                    submissionId: s._id,
+                    businessName: s.businessName,
+                    sellPrice,
+                    domainAddOn,
+                    discountPct,
+                    creatorPayout: s.creatorPayout ?? commissionFor(sellPrice),
+                    ownerTotal: amount,
+                    status: s.status,
+                    createdAt: s._creationTime,
+                };
+            })
+            .sort((a, b) => b.createdAt - a.createdAt);
+
+        const paidRows = rows.filter((r) => paidStatuses.includes(r.status));
+        const sellPrices = rows.map((r) => r.sellPrice).filter((n) => n > 0);
+        const avgSellPrice = sellPrices.length
+            ? Math.round(sellPrices.reduce((a, b) => a + b, 0) / sellPrices.length)
+            : 0;
+        const lifetimeEarned = paidRows.reduce((a, r) => a + r.creatorPayout, 0);
+
+        return {
+            rows,
+            avgSellPrice,
+            minSellPrice: sellPrices.length ? Math.min(...sellPrices) : 0,
+            maxSellPrice: sellPrices.length ? Math.max(...sellPrices) : 0,
+            lifetimeEarned,
+            paidCount: paidRows.length,
+            totalCount: rows.length,
+        };
+    },
+});
+
 // ==================== MUTATIONS ====================
 
 /**
@@ -239,8 +334,8 @@ export const create = mutation({
             audioStorageId: args.audioStorageId,
             transcript: args.transcript,
             status: args.status ?? 'draft',
-            amount: args.amount ?? 1000,
-            creatorPayout: args.creatorPayout ?? 500,
+            amount: args.amount ?? STANDARD_PRICE,
+            creatorPayout: args.creatorPayout ?? commissionFor(BASE_PRICE),
         });
 
         // Increment creator's submissionCount and lastActiveAt
@@ -348,6 +443,11 @@ export const setDomainTier = mutation({
         id: v.id('submissions'),
         submissionType: v.union(v.literal('standard'), v.literal('with_custom_domain')),
         requestedDomain: v.optional(v.string()),
+        // Creator-chosen sell price. Clamped server-side to the creator's band.
+        sellPrice: v.optional(v.number()),
+        // The domain's REAL registrar price (PHP), as fetched by /api/check-domain.
+        // Frozen onto domainCostPHP so the payment link/email/webhook all match.
+        domainPricePHP: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.id);
@@ -359,15 +459,32 @@ export const setDomainTier = mutation({
             throw new Error('Custom domain is required for the with_custom_domain tier');
         }
 
+        // Clamp the creator-chosen sell price to their allowed band
+        // [BASE_PRICE, creator.priceCeiling]. Owner pays sellPrice + the domain
+        // add-on; creator commission is 50% of the sell price (the domain is a
+        // registrar pass-through, not commissioned). See lib/pricing.ts.
+        const creator: any = await ctx.db.get(submission.creatorId);
+        const ceiling = creator?.priceCeiling ?? BASE_PRICE;
+        const sellPrice = Math.min(Math.max(Math.round(args.sellPrice ?? BASE_PRICE), BASE_PRICE), ceiling);
+
+        // Resolve the domain add-on from the REAL registrar price when present,
+        // else fall back to the flat CUSTOM_DOMAIN_ADDON. domainAddOnFor returns
+        // 0 for the standard tier.
+        const domainAddOn = domainAddOnFor(args.submissionType, args.domainPricePHP);
+
         const updates: any = {
             submissionType: args.submissionType,
-            amount: isWithDomain ? 1500 : 1000,
+            amount: sellPrice + domainAddOn,
+            creatorPayout: commissionFor(sellPrice),
             domainStatus: isWithDomain ? 'pending_payment' : 'not_requested',
         };
         if (isWithDomain) {
             updates.requestedDomain = args.requestedDomain!.trim().toLowerCase();
+            // Freeze the quoted domain price so downstream payment matches it.
+            updates.domainCostPHP = domainAddOn;
         } else {
             updates.requestedDomain = undefined;
+            updates.domainCostPHP = undefined;
         }
 
         await ctx.db.patch(args.id, updates);
@@ -417,11 +534,16 @@ export const submit = mutation({
         }
 
         // 1. Update submission status
-        // Preserve tier-based amount set by setDomainTier (₱1,500 for with_custom_domain, ₱1,000 for standard).
-        const hasCustomDomain = (submission as any).submissionType === 'with_custom_domain';
+        // Preserve tier-based amount set by setDomainTier (base + domain add-on
+        // for with_custom_domain, base only for standard). See lib/pricing.ts.
+        const tier = (submission as any).submissionType === 'with_custom_domain'
+            ? 'with_custom_domain'
+            : 'standard';
         await ctx.db.patch(args.id, {
             status: 'submitted',
-            amount: hasCustomDomain ? 1500 : 1000,
+            // Preserve the creator-set amount (from setDomainTier / create);
+            // only fall back to the base tier price if it was never set.
+            amount: submission.amount ?? ownerTotal(BASE_PRICE, tier),
             airtableSyncStatus: 'pending_push',
         });
 

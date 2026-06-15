@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api"
 import { Id } from "@/convex/_generated/dataModel"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
+import { BASE_PRICE, commissionFor } from "@/lib/pricing"
 
 const INTERVIEW_QUESTIONS = [
     "What does your business do and who are your customers?",
@@ -485,12 +486,14 @@ export default function InterviewUploadPage() {
                 throw new Error('Failed to upload interview')
             }
 
-            // Update submission with R2 URL and payout
+            // Update submission with R2 URL. Payout is 50% of the website sell
+            // price (set when the price is finalized on the review page); we no
+            // longer hardcode a per-capture-type rate here. See lib/pricing.ts.
             await updateSubmission({
                 id: submissionId as Id<"submissions">,
                 ...(interviewType === 'video'
-                    ? { videoUrl: publicUrl, creatorPayout: 500 }
-                    : { audioUrl: publicUrl, creatorPayout: 300 }
+                    ? { videoUrl: publicUrl, creatorPayout: commissionFor(BASE_PRICE) }
+                    : { audioUrl: publicUrl, creatorPayout: commissionFor(BASE_PRICE) }
                 ),
             })
 
@@ -648,7 +651,7 @@ export default function InterviewUploadPage() {
                                     </div>
                                     <div>
                                         <p className="font-bold text-gray-900">Audio</p>
-                                        <p className="text-sm text-amber-600 font-bold">₱300</p>
+                                        <p className="text-sm text-amber-600 font-bold">₱500</p>
                                     </div>
                                 </div>
                                 {interviewType === 'audio' && (

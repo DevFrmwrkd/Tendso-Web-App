@@ -4,6 +4,7 @@
  */
 
 import { getPaymentConfig } from '@/lib/payment/config'
+import { CUSTOM_DOMAIN_ADDON, formatPHP } from '@/lib/pricing'
 
 const paymentConfig = getPaymentConfig()
 
@@ -241,7 +242,7 @@ export function getPaymentLinkEmailHtml(params: {
                                                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                                         <tr>
                                                             <td style="font-size:14px;color:#374151;">Website Package</td>
-                                                            <td align="right" style="font-size:14px;color:#111827;font-weight:700;">₱1,000</td>
+                                                            <td align="right" style="font-size:14px;color:#111827;font-weight:700;">${formatPHP(amount - CUSTOM_DOMAIN_ADDON)}</td>
                                                         </tr>
                                                     </table>
                                                 </td>
@@ -251,7 +252,7 @@ export function getPaymentLinkEmailHtml(params: {
                                                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                                         <tr>
                                                             <td style="font-size:14px;color:#374151;">Custom Domain: <strong style="color:#C89548;">${customDomain}</strong></td>
-                                                            <td align="right" style="font-size:14px;color:#111827;font-weight:700;">₱500</td>
+                                                            <td align="right" style="font-size:14px;color:#111827;font-weight:700;">${formatPHP(CUSTOM_DOMAIN_ADDON)}</td>
                                                         </tr>
                                                     </table>
                                                 </td>

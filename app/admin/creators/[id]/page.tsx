@@ -37,6 +37,12 @@ export default function CreatorDetailPage() {
         isAdmin && creator ? { creatorId: creator._id } : "skip"
     )
 
+    // Per-creator pricing summary — what this creator charges businesses.
+    const pricingSummary = useQuery(
+        api.submissions.getCreatorPricingSummary,
+        isAdmin && creator ? { creatorId: creator._id } : "skip"
+    )
+
     // Mutation to update status
     const updateStatus = useMutation(api.creators.updateStatus)
 
@@ -221,6 +227,54 @@ export default function CreatorDetailPage() {
                 {error && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
                         {error}
+                    </div>
+                )}
+
+                {/* Pricing this creator charges businesses */}
+                {pricingSummary && pricingSummary.rows.length > 0 && (
+                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+                        <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex flex-wrap items-center justify-between gap-2">
+                            <h3 className="font-semibold text-gray-900">Pricing charged to businesses</h3>
+                            <span className="text-xs text-gray-500">
+                                Avg ₱{pricingSummary.avgSellPrice.toLocaleString()}
+                                {pricingSummary.minSellPrice > 0 && (
+                                    <> · Range ₱{pricingSummary.minSellPrice.toLocaleString()}–₱{pricingSummary.maxSellPrice.toLocaleString()}</>
+                                )}
+                                {' '}· Lifetime earned ₱{pricingSummary.lifetimeEarned.toLocaleString()} · {pricingSummary.paidCount} paid
+                            </span>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="text-left text-xs text-gray-500 border-b border-gray-100">
+                                        <th className="px-6 py-2 font-medium">Business</th>
+                                        <th className="px-4 py-2 font-medium">Sell price</th>
+                                        <th className="px-4 py-2 font-medium">Discount</th>
+                                        <th className="px-4 py-2 font-medium">Domain</th>
+                                        <th className="px-4 py-2 font-medium">Owner total</th>
+                                        <th className="px-4 py-2 font-medium">Creator earned</th>
+                                        <th className="px-4 py-2 font-medium">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {pricingSummary.rows.map((r) => (
+                                        <tr
+                                            key={r.submissionId}
+                                            className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-colors"
+                                            onClick={() => router.push(`/admin/submissions/${r.submissionId}`)}
+                                        >
+                                            <td className="px-6 py-3 text-gray-900">{r.businessName}</td>
+                                            <td className="px-4 py-3 text-gray-900">₱{r.sellPrice.toLocaleString()}</td>
+                                            <td className="px-4 py-3 text-gray-600">{r.discountPct > 0 ? `${r.discountPct}% off` : '—'}</td>
+                                            <td className="px-4 py-3 text-gray-600">{r.domainAddOn > 0 ? `₱${r.domainAddOn.toLocaleString()}` : '—'}</td>
+                                            <td className="px-4 py-3 text-gray-600">₱{r.ownerTotal.toLocaleString()}</td>
+                                            <td className="px-4 py-3 font-medium text-amber-700">₱{r.creatorPayout.toLocaleString()}</td>
+                                            <td className="px-4 py-3 text-gray-600 capitalize">{r.status}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
 

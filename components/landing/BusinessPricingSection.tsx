@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { BUSINESS_TIERS } from "./landingData";
 import { ArrowUpRightIcon } from "./landingPrimitives";
+import { BASE_PRICE, formatPHP } from "@/lib/pricing";
 
 export default function BusinessPricingSection() {
     return (
@@ -12,7 +13,7 @@ export default function BusinessPricingSection() {
                     <div className="eyebrow">§ 04 — The price</div>
                     <div>
                         <h2 className="display-2">
-                            ₱1,000 once. <em style={{ fontStyle: "italic", color: "var(--neo-creator)" }}>Live forever.</em>
+                            {formatPHP(BASE_PRICE)} once. <em style={{ fontStyle: "italic", color: "var(--neo-creator)" }}>Live forever.</em>
                         </h2>
                         <p className="lede" style={{ marginTop: 12 }}>
                             One-time payment. No monthly fees. No contracts. You only pay once your website is live and you&apos;ve approved it.
