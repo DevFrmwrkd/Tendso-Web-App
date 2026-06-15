@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { action, internalAction, type ActionCtx } from './_generated/server';
 import { internal } from './_generated/api';
+import { decryptSecret } from './lib/encryption';
 import type { Doc, Id } from './_generated/dataModel';
 
 /**
@@ -126,7 +127,14 @@ type PickedKey = { id?: Id<'aiKeys'>; key: string };
 
 async function pickGeminiKey(ctx: ActionCtx): Promise<PickedKey | null> {
     const pooled = await ctx.runQuery(internal.aiKeys.pickActiveKey, { provider: 'gemini' });
-    if (pooled) return { id: pooled.id, key: pooled.key };
+    if (pooled) {
+        // pooled.key is ciphertext for new rows (plaintext for legacy ones).
+        // decryptSecret passes legacy plaintext through unchanged.
+        const secret = process.env.KEY_ENCRYPTION_SECRET;
+        if (!secret) throw new Error('Server is missing KEY_ENCRYPTION_SECRET — cannot decrypt pooled keys.');
+        const key = await decryptSecret(pooled.key, secret);
+        return { id: pooled.id, key };
+    }
     const env = process.env.GEMINI_API_KEY;
     return env ? { key: env } : null;
 }

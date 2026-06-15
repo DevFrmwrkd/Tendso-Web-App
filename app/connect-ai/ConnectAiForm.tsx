@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
 /**
  * Creator-facing form to add / replace / remove their own Gemini key.
  * Server-side, convex/aiKeys.addMyGeminiKey requires an authenticated creator,
- * and listMyGeminiKeys returns masked keys only — the raw key never leaves the
- * server. This page is also gated to logged-in users by middleware.ts.
+ * encrypts the key at rest (AES-256-GCM), and listMyGeminiKeys returns masked
+ * keys only — the raw key never leaves the server. addMyGeminiKey is an action
+ * (encryption needs a random IV, which mutations can't do). This page is also
+ * gated to logged-in users by middleware.ts.
  */
 export default function ConnectAiForm() {
     const keys = useQuery(api.aiKeys.listMyGeminiKeys, {});
-    const addKey = useMutation(api.aiKeys.addMyGeminiKey);
+    const addKey = useAction(api.aiKeys.addMyGeminiKey);
     const removeKey = useMutation(api.aiKeys.removeMyGeminiKey);
 
     const [value, setValue] = useState("");

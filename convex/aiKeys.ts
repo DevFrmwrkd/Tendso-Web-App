@@ -1,6 +1,8 @@
 import { v } from 'convex/values';
-import { query, mutation, internalQuery, internalMutation, type QueryCtx, type MutationCtx } from './_generated/server';
+import { query, mutation, action, internalQuery, internalMutation, type QueryCtx, type MutationCtx } from './_generated/server';
+import { internal } from './_generated/api';
 import { requireAuth } from './lib/auth';
+import { encryptSecret, isEncrypted } from './lib/encryption';
 import type { Doc } from './_generated/dataModel';
 
 /**
@@ -38,14 +40,45 @@ async function getCreator(ctx: QueryCtx | MutationCtx): Promise<Doc<'creators'> 
 
 // ==================== CREATOR-FACING ====================
 
-/** Add (or replace) the caller's own Gemini key in the pool. */
-export const addMyGeminiKey = mutation({
+/**
+ * Add (or replace) the caller's own Gemini key in the pool.
+ *
+ * An ACTION (not a mutation) because AES-GCM encryption uses a random IV, which
+ * Convex's deterministic mutations disallow. The action encrypts here, then
+ * hands the ciphertext + the (plaintext-derived) masked label to an internal
+ * mutation that does the auth'd upsert. The raw key never lands in the DB.
+ */
+export const addMyGeminiKey = action({
     args: { key: v.string() },
+    handler: async (ctx, args): Promise<{ ok: boolean; label: string; replaced: boolean }> => {
+        // Auth is enforced again in the internal mutation (by clerk identity);
+        // we just need a non-empty, plausible key before spending crypto on it.
+        await requireAuth(ctx);
+        const key = args.key.trim();
+        if (key.length < 20) throw new Error('That does not look like a valid Gemini API key.');
+
+        const secret = process.env.KEY_ENCRYPTION_SECRET;
+        if (!secret) throw new Error('Server is missing KEY_ENCRYPTION_SECRET — cannot store keys securely.');
+
+        const encrypted = await encryptSecret(key, secret);
+        const label = mask(key); // masked tail from the PLAINTEXT (storage stays encrypted)
+
+        return await ctx.runMutation(internal.aiKeys.upsertMyGeminiKey, {
+            encryptedKey: encrypted,
+            label,
+        });
+    },
+});
+
+/**
+ * Internal upsert for the encrypted key — does the auth'd creator lookup and
+ * writes the ciphertext. Only callable from addMyGeminiKey (server-side).
+ */
+export const upsertMyGeminiKey = internalMutation({
+    args: { encryptedKey: v.string(), label: v.string() },
     handler: async (ctx, args) => {
         const me = await getCreator(ctx);
         if (!me) throw new Error('Creator profile not found.');
-        const key = args.key.trim();
-        if (key.length < 20) throw new Error('That does not look like a valid Gemini API key.');
 
         const existing = await ctx.db
             .query('aiKeys')
@@ -55,19 +88,19 @@ export const addMyGeminiKey = mutation({
 
         const fields = {
             provider: 'gemini',
-            key,
+            key: args.encryptedKey, // ciphertext at rest
             creatorId: me._id,
-            label: mask(key),
+            label: args.label,
             active: true,
             failureCount: 0,
             cooldownUntil: undefined,
         };
         if (mineForGemini) {
             await ctx.db.patch(mineForGemini._id, fields);
-            return { ok: true, label: fields.label, replaced: true };
+            return { ok: true, label: args.label, replaced: true };
         }
         await ctx.db.insert('aiKeys', { ...fields, createdAt: Date.now() });
-        return { ok: true, label: fields.label, replaced: false };
+        return { ok: true, label: args.label, replaced: false };
     },
 });
 
@@ -84,7 +117,9 @@ export const listMyGeminiKeys = query({
         return keys.map((k) => ({
             _id: k._id,
             provider: k.provider,
-            label: k.label ?? mask(k.key),
+            // Prefer the stored masked label. Only fall back to masking k.key for
+            // legacy PLAINTEXT rows — never mask ciphertext (it's meaningless).
+            label: k.label ?? (isEncrypted(k.key) ? '…••••' : mask(k.key)),
             active: k.active,
             onCooldown: !!(k.cooldownUntil && k.cooldownUntil > Date.now()),
             lastUsedAt: k.lastUsedAt,
@@ -106,7 +141,11 @@ export const removeMyGeminiKey = mutation({
 
 // ==================== INTERNAL (used by the RAG action) ====================
 
-/** Pick the least-recently-used active key for a provider that isn't on cooldown. */
+/**
+ * Pick the least-recently-used active key for a provider that isn't on cooldown.
+ * Returns the key AS STORED (ciphertext for new rows, plaintext for legacy ones);
+ * the calling action decrypts via decryptSecret() before use.
+ */
 export const pickActiveKey = internalQuery({
     args: { provider: v.string() },
     handler: async (ctx, args) => {
