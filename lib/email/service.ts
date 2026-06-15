@@ -138,7 +138,7 @@ interface PaymentLinkEmailData {
     paymentLink: string;
     referenceCode: string;
     platformEmail?: string;
-    customDomain?: string; // If set, template shows breakdown (website ₱1,000 + domain ₱500)
+    customDomain?: string; // If set, template shows breakdown (website ₱999 + domain ₱500)
 }
 
 export async function sendPaymentLinkEmail(data: PaymentLinkEmailData) {

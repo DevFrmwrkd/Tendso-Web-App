@@ -56,7 +56,7 @@ const onest = Onest({
 
 export const metadata: Metadata = {
   title: "Tendso — The Thinking Ends Here. So the work doesn't.",
-  description: "A business page built around the work, not the other way around. A creator visits, asks a few questions, photographs your shop, and your page goes live in 48 hours. No template, no blank screen. ₱1,000 one-time. For Filipino local businesses whose hands are full.",
+  description: "A business page built around the work, not the other way around. A creator visits, asks a few questions, photographs your shop, and your page goes live in 48 hours. No template, no blank screen. ₱999 one-time. For Filipino local businesses whose hands are full.",
 };
 
 export default function RootLayout({

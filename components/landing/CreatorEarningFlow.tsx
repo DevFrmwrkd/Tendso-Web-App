@@ -7,7 +7,7 @@ const flowSteps = [
   {
     icon: Search,
     label: "Find a business",
-    desc: "Walk into a local barber shop, restaurant, salon, or auto repair. Pitch the ₱1,000 website.",
+    desc: "Walk into a local barber shop, restaurant, salon, or auto repair. Pitch the ₱999 website.",
   },
   {
     icon: Send,
@@ -22,12 +22,12 @@ const flowSteps = [
   {
     icon: BadgeCheck,
     label: "Client approves & pays",
-    desc: "Owner reviews the live website. They pay ₱1,000 only when they accept it.",
+    desc: "Owner reviews the live website. They pay ₱999 only when they accept it.",
   },
   {
     icon: Wallet,
     label: "You get paid",
-    desc: "₱300 for audio · ₱500 for video. Direct to your Wise wallet, usually within 24 hours.",
+    desc: "₱500 per submission (50% of every sale). Direct to your Wise wallet, usually within 24 hours.",
   },
 ];
 
@@ -139,7 +139,7 @@ export default function CreatorEarningFlow() {
       {/* Money breakdown panel */}
       <div className="mt-14 sm:mt-16 max-w-3xl mx-auto rounded-3xl bg-neutral-900 text-white p-7 sm:p-10 border border-neutral-800 shadow-xl shadow-neutral-900/15">
         <p className="text-xs uppercase tracking-widest font-bold text-amber-400 mb-3">
-          Where the ₱1,000 goes
+          Where the ₱999 goes
         </p>
         <h3
           style={{ fontFamily: "var(--font-fraunces)" }}
@@ -150,13 +150,8 @@ export default function CreatorEarningFlow() {
 
         <ul className="space-y-3">
           <li className="flex items-center gap-4 py-3 border-b border-white/10">
-            <span className="text-amber-400 font-bold text-sm w-12 shrink-0">₱300</span>
-            <span className="flex-1 text-white/85 text-sm sm:text-base">You earn — audio interview submission</span>
-            <ArrowRight className="w-4 h-4 text-white/40" aria-hidden />
-          </li>
-          <li className="flex items-center gap-4 py-3 border-b border-white/10">
             <span className="text-amber-400 font-bold text-sm w-12 shrink-0">₱500</span>
-            <span className="flex-1 text-white/85 text-sm sm:text-base">You earn — video interview submission</span>
+            <span className="flex-1 text-white/85 text-sm sm:text-base">You earn — 50% of every website you sell (₱500 at the starter price, up to ₱2,500 as you unlock higher pricing)</span>
             <ArrowRight className="w-4 h-4 text-white/40" aria-hidden />
           </li>
           <li className="flex items-center gap-4 py-3 border-b border-white/10">
@@ -165,8 +160,8 @@ export default function CreatorEarningFlow() {
             <ArrowRight className="w-4 h-4 text-white/40" aria-hidden />
           </li>
           <li className="flex items-center gap-4 py-3">
-            <span className="text-white/50 font-bold text-sm w-12 shrink-0">Rest</span>
-            <span className="flex-1 text-white/65 text-sm sm:text-base">AI build cost, hosting, and platform — keeps the system running</span>
+            <span className="text-white/50 font-bold text-sm w-12 shrink-0">50%</span>
+            <span className="flex-1 text-white/65 text-sm sm:text-base">Platform share — AI build cost, hosting, and platform keeps the system running</span>
           </li>
         </ul>
       </div>

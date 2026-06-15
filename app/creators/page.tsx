@@ -8,7 +8,7 @@ import { Camera, Sparkles, Users, ArrowRight } from "lucide-react";
 
 export const metadata = {
   title: "Earn as a Creator — Tendso",
-  description: "Get paid to digitize local Filipino businesses. ₱300–₱500 per submission, plus ₱1,000 referral bonus. Direct payouts via Wise.",
+  description: "Get paid to digitize local Filipino businesses. ₱500 per submission (50% of every sale), plus ₱1,000 referral bonus. Direct payouts via Wise.",
 };
 
 const flow = [
@@ -19,7 +19,7 @@ const flow = [
   },
   {
     icon: Sparkles,
-    title: "Pitch ₱1,000 service",
+    title: "Pitch ₱999 service",
     desc: "Collect business info, take photos, record a short audio or video interview using the app.",
   },
   {
@@ -52,7 +52,7 @@ export default function CreatorsPage() {
               <span className="italic text-amber-700">full.</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-neutral-700 max-w-2xl mx-auto mb-9 leading-relaxed">
-              Visit a shop where someone is already working. Photograph the work. Ask a few questions. Submit through the Tendso app. Earn <span className="font-semibold text-neutral-900">₱300–₱500 per submission</span> — straight to your Wise account.
+              Visit a shop where someone is already working. Photograph the work. Ask a few questions. Submit through the Tendso app. Earn <span className="font-semibold text-neutral-900">₱500 per submission (50% of every sale)</span> — straight to your Wise account.
             </p>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
               <Link

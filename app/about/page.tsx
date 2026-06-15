@@ -20,7 +20,7 @@ const PHONE_TEL = "tel:+639671455245";
 export const metadata = {
   title: "About — Tendso",
   description:
-    "Tendso pays Filipinos to digitize local businesses. We use AI to build real coded websites in 48 hours. Local businesses get online for ₱1,000. Creators earn ₱300–₱500 per submission.",
+    "Tendso pays Filipinos to digitize local businesses. We use AI to build real coded websites in 48 hours. Local businesses get online for ₱999. Creators earn ₱500 per submission (50% of every sale).",
 };
 
 const businessSteps = [
@@ -37,7 +37,7 @@ const businessSteps = [
   {
     icon: Globe,
     title: "Live in 24–48 hours",
-    desc: "AI builds your real coded website on a free subdomain. You pay ₱1,000 only when it's live.",
+    desc: "AI builds your real coded website on a free subdomain. You pay ₱999 only when it's live.",
   },
 ];
 
@@ -60,7 +60,7 @@ const creatorSteps = [
   {
     icon: Wallet,
     title: "You get paid",
-    desc: "₱300 for audio · ₱500 for video. Direct to your Wise wallet. ₱1,000 referral bonus for inviting other creators.",
+    desc: "₱500 per submission (50% of every sale). Direct to your Wise wallet. ₱1,000 referral bonus for inviting other creators.",
   },
 ];
 
@@ -87,8 +87,8 @@ export default function AboutPage() {
               <span className="italic text-amber-700">online.</span>
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-neutral-700 leading-relaxed">
-              Two sides, one platform. Local businesses get a real coded website in 48 hours for ₱1,000.
-              Creators earn ₱300–₱500 per submission for finding businesses and capturing their story.
+              Two sides, one platform. Local businesses get a real coded website in 48 hours for ₱999.
+              Creators earn 50% of every website they sell — ₱500 to start, up to ₱2,500 as they unlock higher pricing.
               AI does the building in between.
             </p>
           </div>
@@ -109,7 +109,7 @@ export default function AboutPage() {
               </h2>
               <p className="text-neutral-700 leading-relaxed mb-5">
                 Real coded website (not Wix or template), mobile-optimized, hosted on a free subdomain.
-                One-time ₱1,000. No monthly fees. You only pay when it&apos;s live.
+                One-time ₱999. No monthly fees. You only pay when it&apos;s live.
               </p>
               <a
                 href={PHONE_TEL}
@@ -131,7 +131,7 @@ export default function AboutPage() {
                 Get paid to digitize businesses.
               </h2>
               <p className="text-white/75 leading-relaxed mb-5">
-                Students, content creators, anyone with a smartphone and hustle. Earn ₱300–₱500 per submission.
+                Students, content creators, anyone with a smartphone and hustle. Earn 50% of every website you sell — ₱500 to start, up to ₱2,500 as you unlock higher pricing.
                 Direct payouts via Wise. ₱1,000 referral bonus for inviting other creators.
               </p>
               <Link
@@ -269,7 +269,7 @@ export default function AboutPage() {
         <section className="w-full py-16 sm:py-20 px-6 max-w-7xl mx-auto">
           <div className="max-w-2xl mx-auto text-center mb-12">
             <p className="text-xs uppercase tracking-widest font-bold text-amber-700 mb-3">
-              What ₱1,000 gets you
+              What ₱999 gets you
             </p>
             <h2
               style={{ fontFamily: "var(--font-fraunces)" }}
@@ -289,7 +289,7 @@ export default function AboutPage() {
               "Hosted with SSL · Fast loading",
               "Free edits within 7 days of launch",
               "Live in 24–48 hours",
-              "One-time ₱1,000 — no monthly fees",
+              "One-time ₱999 — no monthly fees",
             ].map((item) => (
               <li
                 key={item}
