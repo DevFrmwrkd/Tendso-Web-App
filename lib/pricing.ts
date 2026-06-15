@@ -77,9 +77,25 @@ export function commissionFor(sellPrice: number): number {
     return Math.round(sellPrice * COMMISSION_RATE);
 }
 
-/** Total the business owner pays = sell price + optional custom-domain add-on. */
-export function ownerTotal(sellPrice: number, tier: SubmissionTier): number {
-    return sellPrice + (tier === 'with_custom_domain' ? CUSTOM_DOMAIN_ADDON : 0);
+/**
+ * Total the business owner pays = sell price + the custom-domain add-on.
+ *
+ * The add-on is the domain's REAL registrar price when known (passed in as
+ * `domainPricePHP` — the value /api/check-domain returns), falling back to the
+ * flat CUSTOM_DOMAIN_ADDON only when a real price isn't available. The domain is
+ * a registrar pass-through and is NEVER part of the 50% commission (see
+ * commissionFor, which takes the sell price only).
+ */
+export function domainAddOnFor(tier: SubmissionTier, domainPricePHP?: number | null): number {
+    if (tier !== 'with_custom_domain') return 0;
+    if (typeof domainPricePHP === 'number' && Number.isFinite(domainPricePHP) && domainPricePHP > 0) {
+        return Math.round(domainPricePHP);
+    }
+    return CUSTOM_DOMAIN_ADDON;
+}
+
+export function ownerTotal(sellPrice: number, tier: SubmissionTier, domainPricePHP?: number | null): number {
+    return sellPrice + domainAddOnFor(tier, domainPricePHP);
 }
 
 /**

@@ -43,7 +43,11 @@ export default function ReviewSubmissionPage() {
     // Auto-derived: if user typed something, tier is "with_custom_domain"
     const wantsCustomDomain = domainInput.trim().length > 0
     const tier: 'standard' | 'with_custom_domain' = wantsCustomDomain ? 'with_custom_domain' : 'standard'
-    const totalAmount = ownerTotal(sellPrice, tier)
+    // Real registrar price for the typed domain (from /api/check-domain). 0 until resolved.
+    const domainPricePHP = (wantsCustomDomain && domainCheck?.available && typeof domainCheck.pricePHP === 'number')
+        ? domainCheck.pricePHP
+        : 0
+    const totalAmount = ownerTotal(sellPrice, tier, domainPricePHP || undefined)
 
     // Get creator from Convex
     const creator = useQuery(
@@ -107,7 +111,7 @@ export default function ReviewSubmissionPage() {
                 const response = await fetch('/api/check-domain', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ domain: domainInput.trim().toLowerCase(), maxBudgetPHP: CUSTOM_DOMAIN_ADDON }),
+                    body: JSON.stringify({ domain: domainInput.trim().toLowerCase(), maxBudgetPHP: PRICE_CEILING }),
                 })
                 const data = await response.json()
                 setDomainCheck(data)
@@ -126,9 +130,12 @@ export default function ReviewSubmissionPage() {
             const subAny = submission as any
             if (subAny.requestedDomain) setDomainInput(subAny.requestedDomain)
             // Re-derive the saved website sell price (amount = sellPrice + domain
-            // add-on when a custom domain was chosen).
+            // add-on when a custom domain was chosen). Prefer the frozen real
+            // domain price (domainCostPHP); fall back to the flat addon.
             if (typeof subAny.amount === 'number' && subAny.amount > 0) {
-                const addon = subAny.submissionType === 'with_custom_domain' ? CUSTOM_DOMAIN_ADDON : 0
+                const addon = subAny.submissionType === 'with_custom_domain'
+                    ? (typeof subAny.domainCostPHP === 'number' && subAny.domainCostPHP > 0 ? subAny.domainCostPHP : CUSTOM_DOMAIN_ADDON)
+                    : 0
                 setSellPrice(Math.max(subAny.amount - addon, BASE_PRICE))
             }
         }
@@ -154,10 +161,11 @@ export default function ReviewSubmissionPage() {
     const handleSubmit = async () => {
         if (!submission || !agreed || !submissionId) return
 
-        // If user typed a domain, it must be valid + within budget
+        // If user typed a domain, it must be available and priced within the
+        // allowed ceiling (real registrar price — no flat ₱500 cap anymore).
         if (wantsCustomDomain) {
             if (!domainCheck?.available || !domainCheck?.withinBudget) {
-                setError(`The custom domain you typed is not available or exceeds the ${formatPHP(CUSTOM_DOMAIN_ADDON)} budget. Either pick a different domain or clear the field to submit without a custom domain.`)
+                setError(`The custom domain you typed is not available or is priced above the ${formatPHP(PRICE_CEILING)} limit. Either pick a different domain or clear the field to submit without a custom domain.`)
                 return
             }
         }
@@ -166,12 +174,14 @@ export default function ReviewSubmissionPage() {
         setError(null)
 
         try {
-            // Save tier + domain choice (auto-derived from input)
+            // Save tier + domain choice + the creator's chosen sell price + the
+            // domain's REAL registrar price (frozen server-side as domainCostPHP).
             await setDomainTier({
                 id: submissionId as Id<"submissions">,
                 submissionType: tier,
                 requestedDomain: wantsCustomDomain ? domainInput.trim().toLowerCase() : undefined,
                 sellPrice,
+                domainPricePHP: wantsCustomDomain ? domainPricePHP : undefined,
             })
 
             // Update status to submitted
