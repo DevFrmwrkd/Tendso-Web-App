@@ -165,9 +165,24 @@ function FieldAgentHero() {
                             >
                                 Join the Discord
                             </Link>
+                            <Link
+                                href="/knowledge?ws=wiki"
+                                className="door door-ghost"
+                                style={{ textDecoration: "none", display: "inline-flex" }}
+                            >
+                                Field guides
+                            </Link>
                         </div>
                         <p className="label" style={{ marginTop: 16, color: "var(--neo-ink-3)" }}>
                             Free to apply · No experience needed · Paid via Wise
+                        </p>
+                        <p className="label" style={{ marginTop: 8, color: "var(--neo-ink-3)" }}>
+                            Got a question in the field? Type <strong>/ask</strong> in Discord and Tendso AI answers from the
+                            field-agent wiki. Power it with your own free key —{" "}
+                            <Link href="/connect-ai" style={{ color: "var(--neo-creator-ink)", textDecoration: "underline" }}>
+                                connect Gemini
+                            </Link>
+                            .
                         </p>
                     </div>
 

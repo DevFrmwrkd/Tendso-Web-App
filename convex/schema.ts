@@ -892,11 +892,14 @@ export default defineSchema({
         .index('by_slug', ['slug'])
         .index('by_workspace_status', ['workspace', 'status'])
         .index('by_category', ['categoryId'])
-        .index('by_workspace_popular', ['workspace', 'popular'])
+        // Vector search filters on `workspace` only (Convex allows equality on a
+        // single filter field). `status` is intentionally NOT a filter field —
+        // drafts can surface in raw hits and are dropped by the load-bearing
+        // `status === 'published'` post-filter in convex/knowledgeAI.ts.
         .vectorIndex('by_embedding', {
             vectorField: 'embedding',
             dimensions: 768,
-            filterFields: ['workspace', 'status'],
+            filterFields: ['workspace'],
         }),
 
     // ==================== KNOWLEDGE BASE — FAQS ====================
@@ -908,6 +911,26 @@ export default defineSchema({
         order: v.optional(v.number()),
     })
         .index('by_workspace', ['workspace']),
+
+    // ==================== AI KEY POOL (BYOK) ====================
+    // Creators contribute their OWN free Google Gemini API keys (~500 req/day
+    // each). The RAG action rotates across the active pool so the platform pays
+    // nothing and scales with the creator base. Keys are server-only — never
+    // returned to the client (queries mask them). `cooldownUntil` backs off a
+    // key that hit its daily quota; `active=false` retires an invalid key.
+    aiKeys: defineTable({
+        provider: v.string(),                 // "gemini"
+        key: v.string(),                       // raw API key (server-only)
+        creatorId: v.optional(v.id('creators')),
+        label: v.optional(v.string()),         // masked tail for display, e.g. "…aF3k"
+        active: v.boolean(),
+        lastUsedAt: v.optional(v.number()),
+        failureCount: v.optional(v.number()),
+        cooldownUntil: v.optional(v.number()), // quota backoff (skip until this time)
+        createdAt: v.number(),
+    })
+        .index('by_provider_active', ['provider', 'active'])
+        .index('by_creator', ['creatorId']),
 
     // ==================== KNOWLEDGE BASE — AI QUERY LOG ====================
     // Every grounded AI answer (web search box, landing ChatBot, Discord /ask)

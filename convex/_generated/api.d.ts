@@ -9,12 +9,14 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as aiKeys from "../aiKeys.js";
 import type * as airtable from "../airtable.js";
 import type * as analytics from "../analytics.js";
 import type * as analyticsJobs from "../analyticsJobs.js";
 import type * as auditLogs from "../auditLogs.js";
 import type * as creators from "../creators.js";
 import type * as crons from "../crons.js";
+import type * as discord from "../discord.js";
 import type * as domains from "../domains.js";
 import type * as drive from "../drive.js";
 import type * as driveHelpers from "../driveHelpers.js";
@@ -23,6 +25,9 @@ import type * as files from "../files.js";
 import type * as followUp from "../followUp.js";
 import type * as generatedWebsites from "../generatedWebsites.js";
 import type * as http from "../http.js";
+import type * as knowledge from "../knowledge.js";
+import type * as knowledgeAI from "../knowledgeAI.js";
+import type * as knowledgeSeed from "../knowledgeSeed.js";
 import type * as leadNotes from "../leadNotes.js";
 import type * as leads from "../leads.js";
 import type * as lib_auth from "../lib/auth.js";
@@ -60,12 +65,14 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  aiKeys: typeof aiKeys;
   airtable: typeof airtable;
   analytics: typeof analytics;
   analyticsJobs: typeof analyticsJobs;
   auditLogs: typeof auditLogs;
   creators: typeof creators;
   crons: typeof crons;
+  discord: typeof discord;
   domains: typeof domains;
   drive: typeof drive;
   driveHelpers: typeof driveHelpers;
@@ -74,6 +81,9 @@ declare const fullApi: ApiFromModules<{
   followUp: typeof followUp;
   generatedWebsites: typeof generatedWebsites;
   http: typeof http;
+  knowledge: typeof knowledge;
+  knowledgeAI: typeof knowledgeAI;
+  knowledgeSeed: typeof knowledgeSeed;
   leadNotes: typeof leadNotes;
   leads: typeof leads;
   "lib/auth": typeof lib_auth;
