@@ -1,8 +1,73 @@
 import { httpRouter } from 'convex/server';
 import { httpAction } from './_generated/server';
 import { internal } from './_generated/api';
+import nacl from 'tweetnacl';
 
 const http = httpRouter();
+
+// ---- Discord Ed25519 request-signature verification ----
+function hexToBytes(hex: string): Uint8Array {
+    const bytes = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < bytes.length; i++) {
+        bytes[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
+    }
+    return bytes;
+}
+
+function verifyDiscordSignature(rawBody: string, signature: string, timestamp: string, publicKey: string): boolean {
+    try {
+        const message = new TextEncoder().encode(timestamp + rawBody);
+        return nacl.sign.detached.verify(message, hexToBytes(signature), hexToBytes(publicKey));
+    } catch {
+        return false;
+    }
+}
+
+const jsonResponse = (body: unknown, status = 200) =>
+    new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
+
+// POST /discord/interactions
+// Discord slash-command webhook. Verifies the signature, answers PING, and for
+// the /ask command defers (type 5) and hands off to internal.discord.answerInteraction.
+http.route({
+    path: '/discord/interactions',
+    method: 'POST',
+    handler: httpAction(async (ctx, request) => {
+        const signature = request.headers.get('X-Signature-Ed25519');
+        const timestamp = request.headers.get('X-Signature-Timestamp');
+        const publicKey = process.env.DISCORD_PUBLIC_KEY;
+
+        // Must read the RAW body — signature is computed over (timestamp + raw bytes).
+        const raw = await request.text();
+
+        if (!signature || !timestamp || !publicKey || !verifyDiscordSignature(raw, signature, timestamp, publicKey)) {
+            return new Response('invalid request signature', { status: 401 });
+        }
+
+        const body = JSON.parse(raw);
+
+        // PING → PONG (endpoint verification + Discord health checks)
+        if (body.type === 1) {
+            return jsonResponse({ type: 1 });
+        }
+
+        // APPLICATION_COMMAND
+        if (body.type === 2 && body.data?.name === 'ask') {
+            const options: { name: string; value?: unknown }[] = body.data.options ?? [];
+            const question = options.find((o) => o.name === 'question')?.value ?? '';
+            const discordUserId = body.member?.user?.id ?? body.user?.id;
+            await ctx.scheduler.runAfter(0, internal.discord.answerInteraction, {
+                interactionToken: body.token,
+                query: String(question),
+                discordUserId,
+            });
+            // DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE — we edit this reply once RAG completes.
+            return jsonResponse({ type: 5 });
+        }
+
+        return jsonResponse({ type: 4, data: { content: 'Unsupported interaction.' } });
+    }),
+});
 
 // POST /airtable-webhook
 // Supplements the polling mechanism — Airtable calls this when AI generation completes
@@ -136,7 +201,7 @@ http.route({
                 status: 200,
                 headers: { 'Content-Type': 'application/json' },
             });
-        } catch (error: any) {
+        } catch (error) {
             console.error('[WISE-DEPOSIT] Error:', error);
             return new Response(JSON.stringify({ error: 'Internal error' }), {
                 status: 200, // Return 200 to prevent Wise from retrying
