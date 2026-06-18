@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useT, type Lang } from "./i18n";
 
 const footColStyle: React.CSSProperties = {
     display: "flex",
@@ -35,17 +36,8 @@ function FootCol({ title, children }: { title: string; children: React.ReactNode
     );
 }
 
-export default function Footer({
-    lang = "en",
-    country = "PH",
-    onLangChange,
-    onCountryChange,
-}: {
-    lang?: string;
-    country?: string;
-    onLangChange?: (v: string) => void;
-    onCountryChange?: (v: string) => void;
-} = {}) {
+export default function Footer() {
+    const { lang, setLang } = useT();
     const apkUrl = useQuery(api.settings.get, { key: "apk_download_url" }) as string | null | undefined;
     return (
         <footer className="neo-footer">
@@ -94,21 +86,10 @@ export default function Footer({
                         <Link href="/terms-of-service">Terms</Link>
                         <Link href="/contact">Contact</Link>
                     </FootCol>
-                    <FootCol title="Region">
-                        <select
-                            value={country}
-                            onChange={(e) => onCountryChange?.(e.target.value)}
-                            style={footSelStyle}
-                            aria-label="Country"
-                        >
-                            <option value="PH">🇵🇭 Philippines</option>
-                            <option value="ID">🇮🇩 Indonesia</option>
-                            <option value="MX">🇲🇽 Mexico</option>
-                            <option value="VN">🇻🇳 Vietnam</option>
-                        </select>
+                    <FootCol title="Language">
                         <select
                             value={lang}
-                            onChange={(e) => onLangChange?.(e.target.value)}
+                            onChange={(e) => setLang(e.target.value as Lang)}
                             style={footSelStyle}
                             aria-label="Language"
                         >
