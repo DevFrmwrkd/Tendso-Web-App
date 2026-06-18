@@ -3,19 +3,22 @@
 import Link from "next/link";
 import { BUSINESS_TIERS } from "./landingData";
 import { ArrowUpRightIcon } from "./landingPrimitives";
+import { BASE_PRICE, formatPHP } from "@/lib/pricing";
+import { useT } from "./i18n";
 
 export default function BusinessPricingSection() {
+    const { t } = useT();
     return (
         <section id="for-business" style={{ background: "var(--neo-paper)" }}>
             <div className="container-wide">
                 <div className="sect-h">
-                    <div className="eyebrow">§ 04 — The price</div>
+                    <div className="eyebrow">{t("price.eyebrow")}</div>
                     <div>
                         <h2 className="display-2">
-                            ₱1,000 once. <em style={{ fontStyle: "italic", color: "var(--neo-creator)" }}>Live forever.</em>
+                            {formatPHP(BASE_PRICE)} once. <em style={{ fontStyle: "italic", color: "var(--neo-creator)" }}>{t("price.liveForever")}</em>
                         </h2>
                         <p className="lede" style={{ marginTop: 12 }}>
-                            One-time payment. No monthly fees. No contracts. You only pay once your website is live and you&apos;ve approved it.
+                            {t("price.lede")}
                         </p>
                     </div>
                 </div>
@@ -100,7 +103,7 @@ export default function BusinessPricingSection() {
                                         color: featured ? "oklch(72% 0.008 85)" : "var(--neo-ink-3)",
                                     }}
                                 >
-                                    One-time · pay only when live
+                                    {t("price.oneTime")}
                                 </div>
 
                                 <ul
@@ -166,7 +169,7 @@ export default function BusinessPricingSection() {
                         color: "var(--neo-ink-3)",
                     }}
                 >
-                    No card on file. No fine print. No charges later. ◆ International pricing matches PH until local launch.
+                    {t("price.footnote")}
                 </div>
             </div>
         </section>

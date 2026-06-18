@@ -4,6 +4,8 @@ import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { ConvexClerkProvider } from "@/components/providers/ConvexClerkProvider";
 import CustomCursor from "@/components/landing/CustomCursor";
+import { JsonLd } from "@/components/JsonLd";
+import { organizationGraph, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -55,8 +57,19 @@ const onest = Onest({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "Tendso — The Thinking Ends Here. So the work doesn't.",
-  description: "A business page built around the work, not the other way around. A creator visits, asks a few questions, photographs your shop, and your page goes live in 48 hours. No template, no blank screen. ₱1,000 one-time. For Filipino local businesses whose hands are full.",
+  description: "A business page built around the work, not the other way around. A creator visits, asks a few questions, photographs your shop, and your page goes live in 48 hours. No template, no blank screen. ₱999 one-time. For Filipino local businesses whose hands are full.",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "Tendso",
+    locale: "en_PH",
+    url: SITE_URL,
+    title: "Tendso — The Thinking Ends Here. So the work doesn't.",
+    description: "Filipino local businesses get online in 48 hours. ₱999 one-time. Built around the work, not the other way around.",
+  },
+  twitter: { card: "summary_large_image", title: "Tendso", description: "Filipino local businesses get online in 48 hours." },
 };
 
 export default function RootLayout({
@@ -74,6 +87,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Tendso" />
         <link rel="apple-touch-icon" href="/tendso-icon.png" />
+        {/* Platform entity graph — read by AI crawlers from the initial HTML */}
+        <JsonLd data={organizationGraph()} />
       </head>
       <body
         className={`${fraunces.variable} ${plusJakarta.variable} ${playfair.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} ${onest.variable} antialiased`}

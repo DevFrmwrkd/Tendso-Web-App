@@ -23,9 +23,10 @@
  *  │  Counter seed values              │  COUNTERS_GROWTH                    │
  *  └──────────────────────────────────────────────────────────────────────────┘
  *
- *  Pricing values mirror the existing landing page (NOT NEO LAB's mock data):
- *    - Business website: ₱1,000 (Standard) / ₱1,500 (With Custom Domain)
- *    - Creator earnings: ₱500 video / ₱300 audio / ₱1,000 referral bonus
+ *  Pricing values mirror the canonical model in lib/pricing.ts (imported below):
+ *    - Business website: ₱999 (Standard) / ₱1,499 (With Custom Domain)
+ *    - Creator earnings: 50% of every sale — ₱500 at the ₱999 base price,
+ *      up to ₱2,500 as higher pricing unlocks · ₱1,000 referral bonus
  *
  *  ADD A NEW LIVE WEBSITE = paste one object into SHOWCASE_SITES below.
  *    - Required: slug, name, tag, category, lat, lng, city
@@ -36,6 +37,8 @@
  *    - Counter increments only when src+url are present (live sites only).
  *    - Drop the screenshot at /public/Pages/<slug>.png.
  */
+
+import { BASE_PRICE, CUSTOM_DOMAIN_PRICE, REFERRAL_BONUS, commissionFor } from "@/lib/pricing";
 
 export type Creator = {
     id: string;
@@ -95,7 +98,7 @@ export const BUSINESS_TIERS = [
     {
         slug: "standard",
         name: "Standard",
-        price: 1000,
+        price: BASE_PRICE,
         tagline: "A page built around the work, not the other way around.",
         ctaLabel: "Get Started",
         ctaHref: "/login",
@@ -112,7 +115,7 @@ export const BUSINESS_TIERS = [
     {
         slug: "custom-domain",
         name: "With Custom Domain",
-        price: 1500,
+        price: CUSTOM_DOMAIN_PRICE,
         tagline: "Your own .com — fully owned, never tied to us.",
         ctaLabel: "Get a Custom Domain",
         ctaHref: "/login",
@@ -130,23 +133,16 @@ export const BUSINESS_TIERS = [
 
 export const CREATOR_EARNINGS = [
     {
-        slug: "video",
-        title: "Video Interview",
-        amount: 500,
-        desc: "Earn directly to your Wise wallet for a successful video interview and 3–5 location photos.",
-        featured: false,
-    },
-    {
-        slug: "audio",
-        title: "Audio Only",
-        amount: 300,
-        desc: "Perfect for camera-shy owners. Record high-quality audio plus 3–5 photos to earn.",
+        slug: "per-submission",
+        title: "Per Submission",
+        amount: commissionFor(BASE_PRICE),
+        desc: "Earn 50% of every website you sell, paid straight to your Wise wallet — ₱500 at the starter price, up to ₱2,500 as you unlock higher pricing. Video or audio capture, same rate.",
         featured: false,
     },
     {
         slug: "referral",
         title: "Referral Bonus",
-        amount: 1000,
+        amount: REFERRAL_BONUS,
         desc: "Invite another creator. When they complete their first paid submission, you get the bonus.",
         featured: true,
     },
@@ -381,7 +377,7 @@ export const FAQ_BUSINESS: FaqEntry[] = [
     { q: "What if I don't like it?", a: "You don't pay until the site is live and you've approved it. If you reject the draft, the creator revises it once for free." },
     { q: "Can I update it later?", a: "Yes — message your creator through the app. Small edits are included for the first year. After that, a flat fee per change." },
     { q: "Who owns the website?", a: "You do. The domain, the photos, the copy — all yours. You can take it elsewhere any time, no penalty." },
-    { q: "How much does it cost?", a: "₱1,000 for a Tendso subdomain site, ₱1,500 if you want a custom domain (.com included for year 1). One-time fee — no monthly hosting bills." },
+    { q: "How much does it cost?", a: "₱999 for a Tendso subdomain site, ₱1,499 if you want a custom domain (.com included for year 1). One-time fee — no monthly hosting bills." },
 ];
 
 // ── Knowledge base seed ────────────────────────────────────────────────────

@@ -26,6 +26,8 @@
 
 # misc
 .DS_Store
+# macOS AppleDouble files (created on non-native volumes like exFAT/SMB)
+._*
 *.pem
 
 # debug

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 
+import { LanguageProvider } from "@/components/landing/i18n";
 import Navbar from "@/components/landing/Navbar";
 import Footer from "@/components/landing/Footer";
 import ScrollToTop from "@/components/landing/ScrollToTop";
@@ -29,6 +30,7 @@ export default function Home() {
     const [selectedBusiness, setSelectedBusiness] = useState<LiveBusiness | null>(null);
 
     return (
+        <LanguageProvider>
         <div className="neo min-h-screen overflow-x-hidden">
             <Navbar />
 
@@ -72,5 +74,6 @@ export default function Home() {
             <BusinessSheet business={selectedBusiness} onClose={() => setSelectedBusiness(null)} />
             <ScrollToTop />
         </div>
+        </LanguageProvider>
     );
 }

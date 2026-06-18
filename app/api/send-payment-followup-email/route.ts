@@ -4,6 +4,7 @@ import { fetchQuery, fetchMutation } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { sendPaymentFollowUpEmail } from '@/lib/email/service'
+import { BASE_PRICE } from '@/lib/pricing'
 
 /**
  * Send the payment follow-up email to a business owner.
@@ -82,7 +83,7 @@ export async function POST(request: NextRequest) {
         const deadline = (submission.sentEmailAt || submission._creationTime) + THREE_DAYS_MS
         const hoursLeft = Math.max(1, Math.round((deadline - Date.now()) / (60 * 60 * 1000)))
 
-        const amount = (submission as any).amount || 1000
+        const amount = (submission as any).amount || BASE_PRICE
         const referenceCode = (submission as any).paymentReference
 
         await sendPaymentFollowUpEmail({

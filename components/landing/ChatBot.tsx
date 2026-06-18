@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { KNOWLEDGE_BASE } from "./landingData";
+import { useAction } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-type Msg = { role: "bot" | "user"; text: string };
+type Msg = { role: "bot" | "user"; text: string; sources?: { slug: string; title: string }[] };
 
 export default function ChatBot() {
     const [open, setOpen] = useState(false);
@@ -14,37 +15,40 @@ export default function ChatBot() {
     const [input, setInput] = useState("");
     const [busy, setBusy] = useState(false);
     const scrollRef = useRef<HTMLDivElement | null>(null);
+    const askAI = useAction(api.knowledgeAI.ask);
 
     useEffect(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, [messages, open]);
 
-    // Naive local matcher — picks the most-relevant KB entry by shared word count.
-    // (Server-side AI integration can replace this later via /api/chat.)
-    const ask = () => {
+    // Grounded answer from the Tendso knowledge base (Convex + Gemini RAG),
+    // scoped to the public Help Center workspace.
+    const ask = async () => {
         const q = input.trim();
         if (!q || busy) return;
+        // Snapshot the conversation so far (excluding the two opening greetings)
+        // so the assistant can resolve follow-up questions. Keep it short.
+        const history = messages
+            .filter((m, i) => !(m.role === "bot" && i < 2))
+            .map((m) => ({ role: m.role === "bot" ? ("assistant" as const) : ("user" as const), text: m.text }))
+            .slice(-6);
         setInput("");
         setMessages((m) => [...m, { role: "user", text: q }]);
         setBusy(true);
-
-        setTimeout(() => {
-            const qw = q.toLowerCase().split(/\s+/).filter((w) => w.length > 2);
-            const scored = KNOWLEDGE_BASE.map((k) => {
-                const hay = (k.title + " " + k.excerpt + " " + k.category).toLowerCase();
-                const hits = qw.reduce((acc, w) => acc + (hay.includes(w) ? 1 : 0), 0);
-                return { k, hits };
-            }).sort((a, b) => b.hits - a.hits);
-
-            const best = scored[0];
-            const reply =
-                best && best.hits > 0
-                    ? `${best.k.excerpt} (More in "${best.k.title}" — ${best.k.read} read.)`
-                    : "I don't have an entry for that yet — grab the app and ask in-app, the support team there can answer anything.";
-
-            setMessages((m) => [...m, { role: "bot", text: reply }]);
+        try {
+            const res = await askAI({ query: q, workspace: "help", source: "chatbot", history });
+            setMessages((m) => [...m, { role: "bot", text: res.answer, sources: res.sources }]);
+        } catch {
+            setMessages((m) => [
+                ...m,
+                {
+                    role: "bot",
+                    text: "I couldn't reach the knowledge base just now — try again in a moment, or grab the app to ask in-app.",
+                },
+            ]);
+        } finally {
             setBusy(false);
-        }, 600);
+        }
     };
 
     const suggestions = [
@@ -132,6 +136,23 @@ export default function ChatBot() {
                                 }}
                             >
                                 {m.text}
+                                {m.role === "bot" && m.sources && m.sources.length > 0 && (
+                                    <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+                                        {m.sources.map((s) => (
+                                            <a
+                                                key={s.slug}
+                                                href={`/knowledge?ws=help&article=${encodeURIComponent(s.slug)}`}
+                                                style={{
+                                                    fontSize: 12,
+                                                    color: "var(--neo-creator-ink)",
+                                                    textDecoration: "underline",
+                                                }}
+                                            >
+                                                → {s.title}
+                                            </a>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         ))}
                         {busy && (

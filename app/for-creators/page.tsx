@@ -107,8 +107,7 @@ function CreatorHero() {
                     <div className="surface" style={{ padding: 24 }}>
                         <div className="label" style={{ marginBottom: 16 }}>What you earn</div>
                         {[
-                            ["Video interview", "₱500"],
-                            ["Audio-only submission", "₱300"],
+                            ["Per submission (50% of sale)", "₱500"],
                             ["Referral bonus", "₱1,000"],
                             ["Payout via Wise", "—"],
                             ["Time to first payout", "48 hr"],

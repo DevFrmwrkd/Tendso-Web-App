@@ -73,7 +73,7 @@ export default function SignupPage() {
                             fontSize: "1.05rem",
                         }}
                     >
-                        Earn ₱300–₱500 per submission. Direct payouts via Wise.
+                        Earn ₱500 per submission (50% of every sale). Direct payouts via Wise.
                     </p>
                 </div>
 

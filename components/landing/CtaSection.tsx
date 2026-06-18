@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { ArrowUpRightIcon } from "./landingPrimitives";
+import { useT } from "./i18n";
 
 export default function CtaSection() {
+    const { t } = useT();
     return (
         <section
             style={{
@@ -77,7 +79,7 @@ export default function CtaSection() {
                                 letterSpacing: "-.02em",
                             }}
                         >
-                            I own a business.
+                            {t("cta.business")}
                         </span>
                         <span style={{ fontSize: 13, opacity: 0.8, marginTop: 20 }}>
                             A page built around the work. A creator visits, you keep going, the site goes live.
@@ -106,7 +108,7 @@ export default function CtaSection() {
                                 letterSpacing: "-.02em",
                             }}
                         >
-                            I want to earn.
+                            {t("cta.creator")}
                         </span>
                         <span style={{ fontSize: 13, opacity: 0.8, marginTop: 20 }}>
                             Help owners who can't stop working. Real earnings, real referrals, paid in 48 hours.

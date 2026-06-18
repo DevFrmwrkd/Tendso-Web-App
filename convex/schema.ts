@@ -1,6 +1,21 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
+// ==================== KNOWLEDGE BASE ====================
+// Article body is a sequence of typed blocks (mirrors the Claude Design
+// handoff content model in app/knowledge). Keep this in sync with the
+// <Block> renderer in app/knowledge/_components/views.tsx.
+const kbBlock = v.union(
+    v.object({ t: v.literal('p'), text: v.string() }),
+    v.object({ t: v.literal('h2'), text: v.string() }),
+    v.object({ t: v.literal('ul'), items: v.array(v.string()) }),
+    v.object({ t: v.literal('ol'), items: v.array(v.string()) }),
+    v.object({ t: v.literal('callout'), kind: v.string(), text: v.string() }), // kind: "note" | "warn"
+    v.object({ t: v.literal('code'), lang: v.string(), text: v.string() }),
+    v.object({ t: v.literal('quote'), text: v.string(), who: v.string() }),
+    v.object({ t: v.literal('image'), caption: v.string() }),
+);
+
 export default defineSchema({
     // Creators table (users - both creators and admins)
     creators: defineTable({
@@ -14,6 +29,13 @@ export default defineSchema({
         totalEarnings: v.optional(v.number()),
         totalWithdrawn: v.optional(v.number()),
         submissionCount: v.optional(v.number()),
+        // Creator-set pricing band (see lib/pricing.ts). priceCeiling is the max
+        // sell price this creator may charge; it starts at BASE_PRICE and unlocks
+        // to PRICE_CEILING after UNLOCK_THRESHOLD approved submissions.
+        // priceUnlockedAt + tierChangedBy are for audit / admin override.
+        priceCeiling: v.optional(v.number()),
+        priceUnlockedAt: v.optional(v.number()),
+        tierChangedBy: v.optional(v.string()),
         createdAt: v.optional(v.number()),
         updatedAt: v.optional(v.number()),
         lastActiveAt: v.optional(v.number()),
@@ -826,4 +848,103 @@ export default defineSchema({
         windowStart: v.number(),
     })
         .index('by_key', ['key']),
+
+    // ==================== KNOWLEDGE BASE — CATEGORIES ====================
+    // Browse-by-topic groupings. `workspace` splits the public customer Help
+    // Center ("help") from the gated internal field-agent Wiki ("wiki").
+    // `icon` is an icon-name string resolved by app/knowledge Icon component;
+    // `hue` is one of clay|sage|indigo|slate|amber|plum (chip color).
+    knowledgeCategories: defineTable({
+        slug: v.string(),
+        title: v.string(),
+        description: v.string(),
+        icon: v.string(),
+        hue: v.string(),
+        workspace: v.union(v.literal('help'), v.literal('wiki')),
+        order: v.optional(v.number()),
+    })
+        .index('by_slug', ['slug'])
+        .index('by_workspace', ['workspace']),
+
+    // ==================== KNOWLEDGE BASE — ARTICLES ====================
+    knowledgeArticles: defineTable({
+        slug: v.string(),
+        title: v.string(),
+        summary: v.string(),
+        categoryId: v.id('knowledgeCategories'),
+        workspace: v.union(v.literal('help'), v.literal('wiki')),
+        body: v.array(kbBlock),
+        keywords: v.array(v.string()),
+        author: v.string(),
+        readMin: v.number(),
+        popular: v.optional(v.boolean()),
+        status: v.union(v.literal('draft'), v.literal('published')),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+        // Article-helpfulness counters (incremented by recordFeedback)
+        helpfulYes: v.optional(v.number()),
+        helpfulNo: v.optional(v.number()),
+        // RAG: Gemini text-embedding-004 → 768-dim vector. Optional so articles
+        // are insertable before the embedding backfill runs.
+        embedding: v.optional(v.array(v.float64())),
+        embeddingUpdatedAt: v.optional(v.number()),
+    })
+        .index('by_slug', ['slug'])
+        .index('by_workspace_status', ['workspace', 'status'])
+        .index('by_category', ['categoryId'])
+        // Vector search filters on `workspace` only (Convex allows equality on a
+        // single filter field). `status` is intentionally NOT a filter field —
+        // drafts can surface in raw hits and are dropped by the load-bearing
+        // `status === 'published'` post-filter in convex/knowledgeAI.ts.
+        .vectorIndex('by_embedding', {
+            vectorField: 'embedding',
+            dimensions: 768,
+            filterFields: ['workspace'],
+        }),
+
+    // ==================== KNOWLEDGE BASE — FAQS ====================
+    knowledgeFaqs: defineTable({
+        workspace: v.union(v.literal('help'), v.literal('wiki')),
+        question: v.string(),
+        answer: v.string(),
+        linkArticleSlug: v.optional(v.string()),
+        order: v.optional(v.number()),
+    })
+        .index('by_workspace', ['workspace']),
+
+    // ==================== AI KEY POOL (BYOK) ====================
+    // Creators contribute their OWN free Google Gemini API keys (~500 req/day
+    // each). The RAG action rotates across the active pool so the platform pays
+    // nothing and scales with the creator base. Keys are server-only — never
+    // returned to the client (queries mask them). `cooldownUntil` backs off a
+    // key that hit its daily quota; `active=false` retires an invalid key.
+    aiKeys: defineTable({
+        provider: v.string(),                 // "gemini"
+        key: v.string(),                       // raw API key (server-only)
+        creatorId: v.optional(v.id('creators')),
+        label: v.optional(v.string()),         // masked tail for display, e.g. "…aF3k"
+        active: v.boolean(),
+        lastUsedAt: v.optional(v.number()),
+        failureCount: v.optional(v.number()),
+        cooldownUntil: v.optional(v.number()), // quota backoff (skip until this time)
+        createdAt: v.number(),
+    })
+        .index('by_provider_active', ['provider', 'active'])
+        .index('by_creator', ['creatorId']),
+
+    // ==================== KNOWLEDGE BASE — AI QUERY LOG ====================
+    // Every grounded AI answer (web search box, landing ChatBot, Discord /ask)
+    // is logged here for analytics + content-gap discovery.
+    knowledgeQueries: defineTable({
+        source: v.union(v.literal('web'), v.literal('discord'), v.literal('chatbot')),
+        workspace: v.union(v.literal('help'), v.literal('wiki')),
+        query: v.string(),
+        answer: v.string(),
+        sourceArticleIds: v.array(v.id('knowledgeArticles')),
+        userId: v.optional(v.string()),        // Clerk subject, when signed in
+        discordUserId: v.optional(v.string()),
+        createdAt: v.number(),
+    })
+        .index('by_source', ['source'])
+        .index('by_createdAt', ['createdAt']),
 });
