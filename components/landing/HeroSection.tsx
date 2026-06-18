@@ -6,6 +6,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useTickUp, ArrowDownIcon, ArrowUpRightIcon } from "./landingPrimitives";
 import { fmt, COUNTERS_GROWTH, HARDCODED_LIVE_SITE_COUNT } from "./landingData";
+import { useT } from "./i18n";
 
 // Live clock that only renders post-mount to avoid SSR/CSR hydration mismatch.
 // The server has no way to know the client's "now" within the same minute, so
@@ -45,24 +46,6 @@ function IssueDate() {
     return <>{label ?? " "}</>;
 }
 
-// Tendso campaign: Hands Full. The Thinking Ends Here. So the work doesn't.
-// Voice: respect for the doer; the page is built around the work, not the
-// other way around. Per docs/changes/TENDSO-REBRAND-LANDING-COPY.md (the
-// Tend "Hands Full" treatment PDF).
-const T = {
-    hero_main: ["Some hands", "don't get to ", "sit still", "."] as const,
-    hero_main_em: "The Thinking Ends Here. So the work doesn't.",
-    hero_lede:
-        "Your hands are full of customers, orders, tools, dough, kids. The internet asks you to stop and design. We built around that — a creator visits, asks a few questions, photographs the work, and your page forms around it. Live in 48 hours. No template. No design tab. No blank page.",
-    door_business: "I own a business",
-    door_business_sub: "Page built around my work",
-    door_creator: "I want to earn",
-    door_creator_sub: "Become a certified creator",
-    counter_creators: "creators",
-    counter_businesses: "live sites",
-    counter_cities: "cities",
-    counter_countries: "countries",
-};
 
 function CounterRow({ value, label, last }: { value: number; label: string; last?: boolean }) {
     return (
@@ -129,6 +112,22 @@ export default function HeroSection() {
     // from the SHOWCASE_SITES list in landingData.ts (single source of truth).
     const liveCreators = useQuery(api.creators.count, {}) as number | undefined;
 
+    const { t } = useT();
+    // Localized copy, shaped to match the field names the JSX below already uses.
+    const T = {
+        hero_main: [t("hero.h1a"), t("hero.h1b"), t("hero.h1c"), "."] as const,
+        hero_main_em: t("hero.em"),
+        hero_lede: t("hero.lede"),
+        door_business: t("hero.doorBusiness"),
+        door_business_sub: t("hero.doorBusinessSub"),
+        door_creator: t("hero.doorCreator"),
+        door_creator_sub: t("hero.doorCreatorSub"),
+        counter_creators: t("hero.counterCreators"),
+        counter_businesses: t("hero.counterBusinesses"),
+        counter_cities: t("hero.counterCities"),
+        counter_countries: t("hero.counterCountries"),
+    };
+
     const creators = useTickUp(liveCreators ?? COUNTERS_GROWTH.creators);
     const businesses = useTickUp(HARDCODED_LIVE_SITE_COUNT);
     const cities = useTickUp(COUNTERS_GROWTH.cities);
@@ -154,7 +153,7 @@ export default function HeroSection() {
                             }}
                         >
                             <span className="live-dot"></span>
-                            Issue No. 01 · <IssueDate />
+                            {t("hero.issue")} · <IssueDate />
                         </div>
                         <h1 className="display">
                             {hm[0]}
@@ -178,11 +177,11 @@ export default function HeroSection() {
                         </p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 28 }}>
                             {[
-                                "Photo. Answers. Live page.",
-                                "No template",
-                                "No blank screen",
-                                "Built around the work",
-                                "Live in 48 hours",
+                                t("hero.tag1"),
+                                t("hero.tag2"),
+                                t("hero.tag3"),
+                                t("hero.tag4"),
+                                t("hero.tag5"),
                             ].map((p) => (
                                 <span
                                     key={p}
@@ -223,21 +222,21 @@ export default function HeroSection() {
                 </div>
 
                 <div className="pt-8" style={{ borderTop: "1px solid var(--neo-rule-strong)" }}>
-                    <div className="label" style={{ marginBottom: 16 }}>Pick a door</div>
+                    <div className="label" style={{ marginBottom: 16 }}>{t("hero.pickDoor")}</div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                         <DoorButton
                             kind="business"
                             href="/for-business"
                             sub={T.door_business_sub}
                             title={T.door_business}
-                            note="Keep cutting, kneading, packing, answering. A creator handles the rest and shows up at your shop within 10 km."
+                            note={t("hero.doorBusinessNote")}
                         />
                         <DoorButton
                             kind="creator"
                             href="/for-creators"
                             sub={T.door_creator_sub}
                             title={T.door_creator}
-                            note="Help owners who can't stop working. ₱500 per video, ₱300 per audio, ₱1,000 per referral. Paid in 48 hours."
+                            note={t("hero.doorCreatorNote")}
                         />
                     </div>
                     <div
@@ -251,7 +250,7 @@ export default function HeroSection() {
                         }}
                     >
                         <ArrowDownIcon />
-                        <span>Or scroll — find creators near you on the map below.</span>
+                        <span>{t("hero.scroll")}</span>
                     </div>
                 </div>
             </div>

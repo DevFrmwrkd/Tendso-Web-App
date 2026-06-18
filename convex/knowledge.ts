@@ -92,6 +92,43 @@ export const listArticles = query({
     },
 });
 
+/**
+ * One published article by slug (for the SSR /knowledge/[slug] route).
+ * Returns null for missing/draft articles, or for a gated wiki article the
+ * current viewer can't read. Never ships the embedding vector.
+ */
+export const getArticleBySlug = query({
+    args: { slug: v.string() },
+    handler: async (ctx, args) => {
+        const article = await ctx.db
+            .query('knowledgeArticles')
+            .withIndex('by_slug', (q) => q.eq('slug', args.slug))
+            .first();
+        if (!article || article.status !== 'published') return null;
+        if (!(await ensureWorkspaceReadable(ctx, article.workspace))) return null;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { embedding, embeddingUpdatedAt, ...rest } = article;
+        return rest;
+    },
+});
+
+/**
+ * Slugs of all published HELP articles — for generateStaticParams on the SSR
+ * route. Help workspace only (wiki is gated and must not be statically built).
+ */
+export const listPublishedHelpSlugs = query({
+    args: {},
+    handler: async (ctx) => {
+        const articles = await ctx.db
+            .query('knowledgeArticles')
+            .withIndex('by_workspace_status', (q) =>
+                q.eq('workspace', 'help').eq('status', 'published'),
+            )
+            .collect();
+        return articles.map((a) => ({ slug: a.slug, updatedAt: a.updatedAt }));
+    },
+});
+
 /** FAQs in a workspace, ordered. Wiki gated. */
 export const listFaqs = query({
     args: { workspace: workspaceArg },

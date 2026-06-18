@@ -529,6 +529,8 @@ creatorPayout = commissionFor(sellPrice)              // 50% of sellPrice ONLY �
 
 **Custom domain:** charge the **real registrar price** (from the domain-availability check), not a flat ₱500. The flat `CUSTOM_DOMAIN_ADDON` is only a fallback when no real price is available. The domain is a registrar pass-through — **never** part of the 50% commission.
 
+**⚠️ Audio rate changed — remove the old ₱300/₱500 split from mobile:** payout is now `commissionFor(sellPrice)` (50% of the sell price) **regardless of interview type**. The old flat **₱500 video / ₱300 audio** rates are GONE. An audio submission at the ₱999 base now earns ₱500 (same as video), not ₱300. Any mobile screen that displays "₱300 audio / ₱500 video" must be updated to show the 50%-of-sale model. (Confirm with the client that equal audio pay is intended — flagged as a possible one-line revert.)
+
 **Earnings timing (Phase 3):** `creatorPayout` is frozen at submit and credited to the creator's balance on the existing **paid** transition (`payments.creditCreatorForPayment`), not at approval — already shared, so mobile gets it automatically with no APK change.
 
 

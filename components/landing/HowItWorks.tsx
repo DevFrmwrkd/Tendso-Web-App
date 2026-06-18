@@ -79,7 +79,7 @@ export default function HowItWorks({ door = null }: { door?: "business" | "creat
         "Download the app and verify your phone.",
         "Get certified — free, fast, in 20 minutes.",
         "Visit local businesses with guided capture.",
-        "Earn ₱500 per video · ₱300 audio · ₱1,000 referral.",
+        "Keep 50% of every sale — ₱500 to ₱2,500 per site · ₱1,000 referral.",
     ];
     const businessFirst = door !== "creator";
 

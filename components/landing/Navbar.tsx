@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Logo, ArrowUpRightIcon } from "./landingPrimitives";
+import { useT, type Lang } from "./i18n";
 
 const selectStyle: React.CSSProperties = {
     appearance: "none",
@@ -19,17 +20,8 @@ const selectStyle: React.CSSProperties = {
     borderRadius: 8,
 };
 
-export default function Navbar({
-    lang = "en",
-    country = "PH",
-    onLangChange,
-    onCountryChange,
-}: {
-    lang?: string;
-    country?: string;
-    onLangChange?: (v: string) => void;
-    onCountryChange?: (v: string) => void;
-} = {}) {
+export default function Navbar() {
+    const { lang, setLang, t } = useT();
     // Direct APK download URL (admin uploads via /admin/app-release).
     // Falls back to /signup if no APK is currently uploaded. The URL points
     // straight at the R2 public URL — R2 derives the download filename from
@@ -49,36 +41,25 @@ export default function Navbar({
                     <Link href="/" style={{ textDecoration: "none" }} className="flex-shrink-0">
                         <Logo />
                     </Link>
-                    {/* "Live in Philippines · expanding" — hide on <md to avoid wrap/overflow */}
+                    {/* Region label — hide on <md to avoid wrap/overflow. (Region
+                        dropdown removed: PH-only for now; this label states it.) */}
                     <div className="label items-center gap-2 hidden md:flex">
                         <span className="live-dot"></span>
-                        Live in Philippines · expanding
+                        {t("nav.live")}
                     </div>
                 </div>
 
-                {/* Right cluster — selects hide on phones, Get-the-app always visible */}
+                {/* Right cluster — language switch hides on phones, Get-the-app always visible */}
                 <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                     <select
                         value={lang}
-                        onChange={(e) => onLangChange?.(e.target.value)}
+                        onChange={(e) => setLang(e.target.value as Lang)}
                         style={selectStyle}
                         aria-label="Language"
                         className="hidden sm:inline-block"
                     >
                         <option value="en">EN</option>
                         <option value="tl">Tagalog</option>
-                    </select>
-                    <select
-                        value={country}
-                        onChange={(e) => onCountryChange?.(e.target.value)}
-                        style={selectStyle}
-                        aria-label="Country"
-                        className="hidden md:inline-block"
-                    >
-                        <option value="PH">🇵🇭 Philippines</option>
-                        <option value="ID">🇮🇩 Indonesia</option>
-                        <option value="MX">🇲🇽 Mexico</option>
-                        <option value="VN">🇻🇳 Vietnam</option>
                     </select>
                     <a
                         href={downloadHref}
@@ -88,7 +69,7 @@ export default function Navbar({
                         className="store-btn whitespace-nowrap"
                         style={{ textDecoration: "none", padding: "10px 14px" }}
                     >
-                        <span>Get the app</span>
+                        <span>{t("nav.getApp")}</span>
                         <span style={{ opacity: 0.6 }}>
                             <ArrowUpRightIcon />
                         </span>

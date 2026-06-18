@@ -32,6 +32,7 @@ import type * as leadNotes from "../leadNotes.js";
 import type * as leads from "../leads.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_cloudflare from "../lib/cloudflare.js";
+import type * as lib_encryption from "../lib/encryption.js";
 import type * as lib_fxRate from "../lib/fxRate.js";
 import type * as lib_h3 from "../lib/h3.js";
 import type * as lib_hostinger from "../lib/hostinger.js";
@@ -88,6 +89,7 @@ declare const fullApi: ApiFromModules<{
   leads: typeof leads;
   "lib/auth": typeof lib_auth;
   "lib/cloudflare": typeof lib_cloudflare;
+  "lib/encryption": typeof lib_encryption;
   "lib/fxRate": typeof lib_fxRate;
   "lib/h3": typeof lib_h3;
   "lib/hostinger": typeof lib_hostinger;
