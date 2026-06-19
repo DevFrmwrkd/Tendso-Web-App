@@ -38,7 +38,7 @@
  *    - Drop the screenshot at /public/Pages/<slug>.png.
  */
 
-import { BASE_PRICE, CUSTOM_DOMAIN_PRICE, REFERRAL_BONUS, commissionFor } from "@/lib/pricing";
+import { BASE_PRICE, PRICE_CEILING, UNLOCK_THRESHOLD, CUSTOM_DOMAIN_PRICE, REFERRAL_BONUS, commissionFor, formatPHP } from "@/lib/pricing";
 
 export type Creator = {
     id: string;
@@ -362,6 +362,7 @@ export const TESTIMONIALS: Testimonial[] = [
 
 // ── FAQ ────────────────────────────────────────────────────────────────────
 export const FAQ_CREATOR: FaqEntry[] = [
+    { q: "How much can I charge — and earn?", a: `You start at the ${formatPHP(BASE_PRICE)} launch price and keep 50% (${formatPHP(commissionFor(BASE_PRICE))} per site). After your first ${UNLOCK_THRESHOLD} successful submissions you unlock price-setting: charge anywhere up to ${formatPHP(PRICE_CEILING)} and still keep half — up to ${formatPHP(commissionFor(PRICE_CEILING))} per site. The more you charge, the more you earn.` },
     { q: "How do I get paid?", a: "Straight to your Wise account. The app handles invoices, taxes, and receipts. You don't touch a spreadsheet." },
     { q: "When do I get paid?", a: "Within 48 hours of the business owner approving their site. Faster on weekends — we don't sit on your money." },
     { q: "Do I need experience?", a: "No. The guided capture walks you through every interview, every photo, every step. If you can use TikTok, you can use this." },
