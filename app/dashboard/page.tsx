@@ -9,6 +9,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { Wallet, Store, Clock, Loader2, Bell, User, Users, ChevronRight } from "lucide-react"
 import { BottomNav } from "@/components/BottomNav"
+import { creatorRedirect } from "@/lib/creatorGate"
 
 export default function DashboardPage() {
     const router = useRouter()
@@ -67,10 +68,11 @@ export default function DashboardPage() {
         }
     }, [isLoaded, isSignedIn, creator, router])
 
-    // Redirect uncertified creators to training
+    // Route uncertified creators by lifecycle state (pending / rejected / training).
     useEffect(() => {
-        if (isLoaded && isSignedIn && creator && creator.role !== 'admin' && !creator.certifiedAt) {
-            router.replace("/training")
+        if (isLoaded && isSignedIn && creator) {
+            const dest = creatorRedirect(creator)
+            if (dest) router.replace(dest)
         }
     }, [isLoaded, isSignedIn, creator, router])
 

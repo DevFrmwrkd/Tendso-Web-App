@@ -113,7 +113,10 @@ export default function CertificationQuizPage() {
     const router = useRouter()
     const { user, isLoaded } = useUser()
     const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip")
-    const certify = useMutation(api.creators.certify)
+    // Passing the quiz now marks the creator as quiz-passed (awaiting admin
+    // approval), matching mobile — NOT auto-certified. Admin approves in
+    // /admin/pending-approvals, which sets certifiedAt and releases the gate.
+    const markQuizPassed = useMutation(api.creators.markQuizPassed)
 
     const [currentQ, setCurrentQ] = useState(0)
     const [selected, setSelected] = useState<number | null>(null)
@@ -166,9 +169,9 @@ export default function CertificationQuizPage() {
             if (score >= 4) {
                 setCertifying(true)
                 try {
-                    if (creator?._id) await certify({ id: creator._id })
+                    if (creator?._id) await markQuizPassed({ id: creator._id })
                 } catch (e) {
-                    console.error("Certification failed:", e)
+                    console.error("Marking quiz passed failed:", e)
                 }
                 setCertifying(false)
                 setPhase("pass")
@@ -197,8 +200,8 @@ export default function CertificationQuizPage() {
                     <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Trophy className="w-8 h-8 text-amber-500" />
                     </div>
-                    <h1 className="text-2xl font-bold text-zinc-900 mb-1">Congratulations!</h1>
-                    <p className="text-zinc-500 text-sm">You passed with a score of <span className="font-bold text-amber-600">{finalScore}/5</span></p>
+                    <h1 className="text-2xl font-bold text-zinc-900 mb-1">Quiz passed!</h1>
+                    <p className="text-zinc-500 text-sm">Score of <span className="font-bold text-amber-600">{finalScore}/5</span> — your application is now under review.</p>
                 </div>
 
                 {/* Certificate */}
@@ -215,10 +218,10 @@ export default function CertificationQuizPage() {
                     style={{ transitionDelay: '600ms' }}
                 >
                     <Button
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => router.push("/pending")}
                         className="w-full h-12 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl shadow-lg shadow-amber-500/20"
                     >
-                        Go to Dashboard
+                        Continue
                     </Button>
                 </div>
             </div>
