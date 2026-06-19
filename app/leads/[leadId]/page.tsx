@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { creatorRedirect } from "@/lib/creatorGate";
 import type { Id } from "@/convex/_generated/dataModel";
 import { toast } from "sonner";
 import {
@@ -65,8 +66,9 @@ export default function CreatorLeadDetailPage({
         if (isLoaded && isSignedIn && creator === null) router.push("/onboarding");
     }, [isLoaded, isSignedIn, creator, router]);
     useEffect(() => {
-        if (isLoaded && isSignedIn && creator && creator.role !== "admin" && !creator.certifiedAt) {
-            router.replace("/training");
+        if (isLoaded && isSignedIn && creator) {
+            const dest = creatorRedirect(creator);
+            if (dest) router.replace(dest);
         }
     }, [isLoaded, isSignedIn, creator, router]);
 
