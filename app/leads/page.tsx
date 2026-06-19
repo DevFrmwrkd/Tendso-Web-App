@@ -21,6 +21,7 @@ import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
+import { creatorRedirect } from "@/lib/creatorGate";
 import type { Id } from "@/convex/_generated/dataModel";
 import { BottomNav } from "@/components/BottomNav";
 import {
@@ -124,8 +125,9 @@ function CreatorLeadsInner() {
         if (isLoaded && isSignedIn && creator && creator.role === "admin") router.push("/admin");
     }, [isLoaded, isSignedIn, creator, router]);
     useEffect(() => {
-        if (isLoaded && isSignedIn && creator && creator.role !== "admin" && !creator.certifiedAt) {
-            router.replace("/training");
+        if (isLoaded && isSignedIn && creator) {
+            const dest = creatorRedirect(creator);
+            if (dest) router.replace(dest);
         }
     }, [isLoaded, isSignedIn, creator, router]);
 
