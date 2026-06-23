@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
             referenceCode: paymentToken.referenceCode,
             platformEmail: process.env.WISE_EMAIL,
             customDomain: (submission as any).requestedDomain || undefined,
+            domainCostPHP: (submission as any).domainCostPHP || undefined,
         })
 
         // Record email sent timestamp
