@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
                 referenceCode,
                 platformEmail: process.env.WISE_EMAIL,
                 customDomain,
+                domainCostPHP: (submission as any).domainCostPHP || undefined,
             })
         } else if (type === 'domain_setup_progress') {
             const submissionAny = submission as any
