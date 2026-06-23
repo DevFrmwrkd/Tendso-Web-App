@@ -14,6 +14,7 @@ import type * as airtable from "../airtable.js";
 import type * as analytics from "../analytics.js";
 import type * as analyticsJobs from "../analyticsJobs.js";
 import type * as auditLogs from "../auditLogs.js";
+import type * as businessOwners from "../businessOwners.js";
 import type * as creators from "../creators.js";
 import type * as crons from "../crons.js";
 import type * as discord from "../discord.js";
@@ -71,6 +72,7 @@ declare const fullApi: ApiFromModules<{
   analytics: typeof analytics;
   analyticsJobs: typeof analyticsJobs;
   auditLogs: typeof auditLogs;
+  businessOwners: typeof businessOwners;
   creators: typeof creators;
   crons: typeof crons;
   discord: typeof discord;

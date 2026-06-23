@@ -139,6 +139,7 @@ interface PaymentLinkEmailData {
     referenceCode: string;
     platformEmail?: string;
     customDomain?: string; // If set, template shows breakdown (website ₱999 + domain ₱500)
+    editMyWebsiteUrl?: string; // Owner-portal claim link → "Edit my website" button
 }
 
 export async function sendPaymentLinkEmail(data: PaymentLinkEmailData) {
@@ -151,6 +152,7 @@ export async function sendPaymentLinkEmail(data: PaymentLinkEmailData) {
             referenceCode: data.referenceCode,
             platformEmail: data.platformEmail,
             customDomain: data.customDomain,
+            editMyWebsiteUrl: data.editMyWebsiteUrl,
         });
         return await sendEmail({
             to: data.businessOwnerEmail,

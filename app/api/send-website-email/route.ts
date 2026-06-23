@@ -90,6 +90,21 @@ export async function POST(request: NextRequest) {
         const paymentConfig = getPaymentConfig()
         const paymentLink = paymentConfig.getPaymentLink(paymentToken.token)
 
+        // Mint an owner claim token → "Edit my website" link (Phase 1 owner portal).
+        // Best-effort: if it fails, still send the payment email (claim is additive).
+        let editMyWebsiteUrl: string | undefined
+        try {
+            const claim = await fetchMutation(api.businessOwners.issueClaimTokenForEmail, {
+                submissionId: submissionId as Id<"submissions">,
+            })
+            const base = process.env.NEXT_PUBLIC_SITE_URL?.startsWith('https://')
+                ? process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
+                : 'https://tendso.com'
+            editMyWebsiteUrl = `${base}/my-business/claim?token=${claim.token}`
+        } catch (e) {
+            console.error('Failed to mint owner claim token (non-fatal):', e)
+        }
+
         // Send payment link email (includes custom domain breakdown if applicable)
         await sendPaymentLinkEmail({
             businessName: submission.businessName,
@@ -100,6 +115,7 @@ export async function POST(request: NextRequest) {
             referenceCode: paymentToken.referenceCode,
             platformEmail: process.env.WISE_EMAIL,
             customDomain: (submission as any).requestedDomain || undefined,
+            editMyWebsiteUrl,
         })
 
         // Record email sent timestamp
