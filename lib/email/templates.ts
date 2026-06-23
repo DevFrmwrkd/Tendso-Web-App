@@ -183,9 +183,16 @@ export function getPaymentLinkEmailHtml(params: {
     referenceCode: string
     platformEmail?: string
     customDomain?: string
-    editMyWebsiteUrl?: string // Owner-portal claim link
+    // The REAL frozen domain price (submissions.domainCostPHP). Used to split the
+    // itemized breakdown correctly. Falls back to the flat CUSTOM_DOMAIN_ADDON
+    // only for legacy submissions that predate real-domain pricing.
+    domainCostPHP?: number
+    editMyWebsiteUrl?: string // Owner-portal claim link → "Edit my website" button
 }): string {
-    const { businessName, businessOwnerName, amount, referenceCode, platformEmail, customDomain, editMyWebsiteUrl } = params
+    const { businessName, businessOwnerName, amount, referenceCode, platformEmail, customDomain, domainCostPHP, editMyWebsiteUrl } = params
+    // Real domain charge for the line-item split; the website-package line is the remainder.
+    const domainLine = domainCostPHP && domainCostPHP > 0 ? domainCostPHP : CUSTOM_DOMAIN_ADDON
+    const websiteLine = amount - domainLine
     const wiseEmail = platformEmail || paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com'
 
     return `
@@ -243,7 +250,7 @@ export function getPaymentLinkEmailHtml(params: {
                                                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                                         <tr>
                                                             <td style="font-size:14px;color:#374151;">Website Package</td>
-                                                            <td align="right" style="font-size:14px;color:#111827;font-weight:700;">${formatPHP(amount - CUSTOM_DOMAIN_ADDON)}</td>
+                                                            <td align="right" style="font-size:14px;color:#111827;font-weight:700;">${formatPHP(websiteLine)}</td>
                                                         </tr>
                                                     </table>
                                                 </td>
@@ -253,7 +260,7 @@ export function getPaymentLinkEmailHtml(params: {
                                                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                                         <tr>
                                                             <td style="font-size:14px;color:#374151;">Custom Domain: <strong style="color:#C89548;">${customDomain}</strong></td>
-                                                            <td align="right" style="font-size:14px;color:#111827;font-weight:700;">${formatPHP(CUSTOM_DOMAIN_ADDON)}</td>
+                                                            <td align="right" style="font-size:14px;color:#111827;font-weight:700;">${formatPHP(domainLine)}</td>
                                                         </tr>
                                                     </table>
                                                 </td>
