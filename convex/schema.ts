@@ -812,6 +812,48 @@ export default defineSchema({
 
     // ==================== PAYMENT TOKENS ====================
     // Cryptographic tokens for secure payment links (one-time use, expiring)
+    // ==================== BUSINESS OWNER PORTAL (Phase 1 — additive) ====================
+    // Owners are a SEPARATE audience from creators (different table, passwordless
+    // Clerk magic-link). See docs/changes/OWNER-PORTAL-PRICING-PLAN.md §1.1.
+    businessOwners: defineTable({
+        clerkId: v.string(),                 // Clerk user id (passwordless / magic-link)
+        email: v.string(),                   // verified email — the identity anchor
+        name: v.optional(v.string()),
+        phone: v.optional(v.string()),
+        createdAt: v.number(),
+    })
+        .index('by_clerk_id', ['clerkId'])
+        .index('by_email', ['email']),
+
+    // Links an owner to the website(s) they've claimed. One owner → many sites.
+    websiteOwnerships: defineTable({
+        businessOwnerId: v.id('businessOwners'),
+        submissionId: v.id('submissions'),
+        role: v.string(),                    // "owner" (room for "manager" later)
+        claimedAt: v.number(),
+    })
+        .index('by_owner', ['businessOwnerId'])
+        .index('by_submission', ['submissionId']),
+
+    // Single-use claim tokens carried by the "Edit my website" email button.
+    // Mirrors the paymentTokens pattern (64-char hex, expiry, status).
+    ownerClaimTokens: defineTable({
+        submissionId: v.id('submissions'),
+        token: v.string(),                   // 64-char hex (lib/ownerClaim.generateClaimToken)
+        email: v.string(),                   // the on-file ownerEmail this token was issued to
+        status: v.union(
+            v.literal('pending'),
+            v.literal('consumed'),
+            v.literal('expired'),
+            v.literal('cancelled'),
+        ),
+        createdAt: v.number(),
+        expiresAt: v.number(),               // createdAt + 7 days
+        consumedAt: v.optional(v.number()),
+    })
+        .index('by_token', ['token'])
+        .index('by_submission', ['submissionId']),
+
     paymentTokens: defineTable({
         submissionId: v.id('submissions'),
         token: v.string(),                              // 64-char hex token (32 random bytes)
