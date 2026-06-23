@@ -140,6 +140,7 @@ interface PaymentLinkEmailData {
     platformEmail?: string;
     customDomain?: string; // If set, template shows a website + domain breakdown
     domainCostPHP?: number; // Real frozen domain price (submissions.domainCostPHP) for the breakdown split
+    editMyWebsiteUrl?: string; // Owner-portal claim link → "Edit my website" button
 }
 
 export async function sendPaymentLinkEmail(data: PaymentLinkEmailData) {
@@ -153,6 +154,7 @@ export async function sendPaymentLinkEmail(data: PaymentLinkEmailData) {
             platformEmail: data.platformEmail,
             customDomain: data.customDomain,
             domainCostPHP: data.domainCostPHP,
+            editMyWebsiteUrl: data.editMyWebsiteUrl,
         });
         return await sendEmail({
             to: data.businessOwnerEmail,

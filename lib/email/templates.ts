@@ -187,8 +187,9 @@ export function getPaymentLinkEmailHtml(params: {
     // itemized breakdown correctly. Falls back to the flat CUSTOM_DOMAIN_ADDON
     // only for legacy submissions that predate real-domain pricing.
     domainCostPHP?: number
+    editMyWebsiteUrl?: string // Owner-portal claim link → "Edit my website" button
 }): string {
-    const { businessName, businessOwnerName, amount, referenceCode, platformEmail, customDomain, domainCostPHP } = params
+    const { businessName, businessOwnerName, amount, referenceCode, platformEmail, customDomain, domainCostPHP, editMyWebsiteUrl } = params
     // Real domain charge for the line-item split; the website-package line is the remainder.
     const domainLine = domainCostPHP && domainCostPHP > 0 ? domainCostPHP : CUSTOM_DOMAIN_ADDON
     const websiteLine = amount - domainLine
@@ -393,7 +394,16 @@ export function getPaymentLinkEmailHtml(params: {
                             </table>
                         </td>
                     </tr>
-
+                    ${editMyWebsiteUrl ? `
+                    <!-- Edit my website (owner portal claim link) -->
+                    <tr>
+                        <td style="padding:8px 40px 24px;text-align:center;">
+                            <p style="margin:0 0 12px;font-size:14px;color:#374151;">Want to update your text, photos, or details yourself?</p>
+                            <a href="${editMyWebsiteUrl}" style="display:inline-block;padding:12px 28px;background:#ffffff;border:2px solid #E4B05E;color:#92400e;font-size:15px;font-weight:700;text-decoration:none;border-radius:10px;">✏️ Edit my website</a>
+                            <p style="margin:10px 0 0;font-size:12px;color:#9ca3af;">Signs you in with this email — no password needed.</p>
+                        </td>
+                    </tr>
+                    ` : ''}
                     <!-- Footer -->
                     <tr>
                         <td style="padding:24px 40px;border-top:1px solid #e5e7eb;text-align:center;">
