@@ -2,6 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import { Search, Send, Sparkles, BadgeCheck, Wallet, ArrowRight } from "lucide-react";
+import { BASE_PRICE, PRICE_CEILING, UNLOCK_THRESHOLD, commissionFor, formatPHP } from "@/lib/pricing";
 
 const flowSteps = [
   {
@@ -27,7 +28,7 @@ const flowSteps = [
   {
     icon: Wallet,
     label: "You get paid",
-    desc: "₱500 per submission (50% of every sale). Direct to your Wise wallet, usually within 24 hours.",
+    desc: `Keep 50% of every sale, straight to your Wise wallet (usually within 24 hours). You start at the ${formatPHP(BASE_PRICE)} launch price (${formatPHP(commissionFor(BASE_PRICE))} to you). After ${UNLOCK_THRESHOLD} successful submissions you unlock price-setting — charge up to ${formatPHP(PRICE_CEILING)} and keep half (up to ${formatPHP(commissionFor(PRICE_CEILING))}).`,
   },
 ];
 
