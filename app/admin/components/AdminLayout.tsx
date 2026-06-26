@@ -14,6 +14,7 @@ import {
     CreditCard,
     History,
     Download,
+    Sparkles,
     FileText,
     LogOut,
     Menu,
@@ -51,6 +52,11 @@ const navItems = [
         label: "App Release",
         href: "/admin/app-release",
         icon: Download,
+    },
+    {
+        label: "Train AI",
+        href: "/admin/knowledge",
+        icon: Sparkles,
     },
 ]
 
