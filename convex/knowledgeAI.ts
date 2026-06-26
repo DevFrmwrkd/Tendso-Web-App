@@ -22,7 +22,11 @@ import type { Doc, Id } from './_generated/dataModel';
  */
 
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
-const EMBED_MODEL = () => process.env.GEMINI_EMBEDDING_MODEL || 'text-embedding-004';
+// Google retired text-embedding-004 on v1beta (404 NOT_FOUND). gemini-embedding-001
+// is the successor; we request outputDimensionality: 768 (Matryoshka truncation) so
+// vectors still fit the existing 768-dim `by_embedding` index without a schema/re-embed
+// migration. Override with GEMINI_EMBEDDING_MODEL if Google moves the model again.
+const EMBED_MODEL = () => process.env.GEMINI_EMBEDDING_MODEL || 'gemini-embedding-001';
 // Generation model fallback chain: STRONGEST first, weakest last. Each model has
 // its own per-key quota bucket, so when a strong model is exhausted (429) or
 // unavailable on a key's tier we drop to the next — gemini-2.0-flash is the
@@ -78,7 +82,15 @@ async function geminiEmbed(text: string, taskType: 'RETRIEVAL_DOCUMENT' | 'RETRI
     const res = await fetch(`${GEMINI_BASE}/models/${model}:embedContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: `models/${model}`, content: { parts: [{ text }] }, taskType }),
+        body: JSON.stringify({
+            model: `models/${model}`,
+            content: { parts: [{ text }] },
+            taskType,
+            // Ask for 768 dims so the result fits the existing vector index.
+            // No-op on legacy text-embedding-004 (already 768); required on
+            // gemini-embedding-001 (defaults to 3072).
+            outputDimensionality: EMBED_DIMS,
+        }),
     });
     if (!res.ok) throw geminiError('embed', res.status, await res.text().catch(() => ''));
     const json = await res.json();
@@ -86,7 +98,18 @@ async function geminiEmbed(text: string, taskType: 'RETRIEVAL_DOCUMENT' | 'RETRI
     if (values.length !== EMBED_DIMS) {
         throw new Error(`Gemini embed returned ${values.length} dims, expected ${EMBED_DIMS}`);
     }
-    return values;
+    // gemini-embedding-001 only L2-normalizes at the full 3072 dims; a truncated
+    // (Matryoshka) vector must be re-normalized for cosine similarity to behave.
+    // Harmless for already-unit-length vectors (text-embedding-004).
+    return normalize(values);
+}
+
+/** L2-normalize a vector to unit length (safe no-op if already normalized). */
+function normalize(v: number[]): number[] {
+    let sum = 0;
+    for (const x of v) sum += x * x;
+    const norm = Math.sqrt(sum);
+    return norm > 0 ? v.map((x) => x / norm) : v;
 }
 
 // A single conversational turn in Gemini's wire format ('model' = assistant).

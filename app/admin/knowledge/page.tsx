@@ -11,7 +11,7 @@ import { useAction, useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useAdminAuth } from "@/hooks/useAdmin";
 import AdminLayout from "../components/AdminLayout";
-import { Loader2, Sparkles, CheckCircle2, AlertTriangle, Trash2, ArrowRight } from "lucide-react";
+import { Loader2, Sparkles, CheckCircle2, AlertTriangle, Trash2, ArrowRight, KeyRound, RefreshCw } from "lucide-react";
 
 type Workspace = "help" | "wiki";
 type TrainResult = { question: string; answer: string; grounded: boolean };
@@ -22,12 +22,60 @@ export default function AdminTrainAiPage() {
     const trained = useQuery(api.knowledgeTraining.listTrainingQA, isAdmin ? {} : "skip");
     const unanswered = useQuery(api.knowledgeTraining.listUnansweredQueries, isAdmin ? {} : "skip");
     const remove = useMutation(api.knowledgeTraining.deleteTrainingQA);
+    const purgeAll = useMutation(api.knowledgeTraining.purgeAllTrainedQA);
+
+    // AI-key health: the page can't run the AI without a usable Gemini key.
+    const poolStats = useQuery(api.aiKeys.poolStats, isAdmin ? {} : "skip");
+    const addKey = useAction(api.aiKeys.addMyGeminiKey);
+    const clearCooldowns = useMutation(api.aiKeys.clearGeminiCooldowns);
 
     const [text, setText] = useState("");
     const [workspace, setWorkspace] = useState<Workspace>("help");
     const [running, setRunning] = useState(false);
     const [results, setResults] = useState<TrainResult[] | null>(null);
     const [error, setError] = useState<string | null>(null);
+
+    // Key-setup card state
+    const [keyInput, setKeyInput] = useState("");
+    const [savingKey, setSavingKey] = useState(false);
+    const [keyMsg, setKeyMsg] = useState<string | null>(null);
+    const [keyErr, setKeyErr] = useState<string | null>(null);
+
+    const hasUsableKey = poolStats ? poolStats.usableNow > 0 : undefined; // undefined while loading
+
+    const handleSaveKey = async () => {
+        const key = keyInput.trim();
+        if (key.length < 20) {
+            setKeyErr("That does not look like a valid Gemini API key.");
+            return;
+        }
+        setSavingKey(true);
+        setKeyErr(null);
+        setKeyMsg(null);
+        try {
+            const res = await addKey({ key });
+            setKeyMsg(`Key ${res.label} saved. The AI is ready.`);
+            setKeyInput("");
+        } catch (e) {
+            setKeyErr(e instanceof Error ? e.message : "Could not save the key.");
+        } finally {
+            setSavingKey(false);
+        }
+    };
+
+    const handleClearCooldowns = async () => {
+        setSavingKey(true);
+        setKeyErr(null);
+        setKeyMsg(null);
+        try {
+            const res = await clearCooldowns({});
+            setKeyMsg(res.cleared > 0 ? `Reactivated ${res.cleared} key(s).` : "No keys needed clearing.");
+        } catch (e) {
+            setKeyErr(e instanceof Error ? e.message : "Could not clear cooldowns.");
+        } finally {
+            setSavingKey(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -46,6 +94,10 @@ export default function AdminTrainAiPage() {
 
     const handleTrain = async () => {
         if (questions.length === 0) return;
+        if (hasUsableKey === false) {
+            setError("No usable Gemini key — add one below before training, or the AI can't answer.");
+            return;
+        }
         setRunning(true);
         setError(null);
         setResults(null);
@@ -73,6 +125,62 @@ export default function AdminTrainAiPage() {
                     </p>
                 </div>
 
+                {/* AI-key setup — only when there's no usable key. The page can't
+                    answer without one; surfacing the input here keeps it self-contained
+                    so an admin never has to hunt through the Convex dashboard. */}
+                {hasUsableKey === false && (
+                    <div className="bg-red-50 border border-red-200 rounded-xl p-5 space-y-3">
+                        <div className="flex items-center gap-2">
+                            <KeyRound className="h-5 w-5 text-red-600" />
+                            <h2 className="text-sm font-semibold text-red-800">The AI has no usable key</h2>
+                        </div>
+                        <p className="text-sm text-red-700">
+                            Training needs a working Google Gemini API key. Paste one below — it&apos;s encrypted at
+                            rest and shared by the chatbot, Discord <code>/ask</code>, and this page. Get a free key at{" "}
+                            <a
+                                href="https://aistudio.google.com/apikey"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="underline font-medium"
+                            >
+                                aistudio.google.com/apikey
+                            </a>
+                            .
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-2">
+                            <input
+                                type="password"
+                                value={keyInput}
+                                onChange={(e) => setKeyInput(e.target.value)}
+                                placeholder="AIza…"
+                                className="flex-1 px-3 py-2 border border-red-300 rounded-lg text-gray-900 font-mono text-sm bg-white"
+                            />
+                            <button
+                                onClick={handleSaveKey}
+                                disabled={savingKey || keyInput.trim().length < 20}
+                                className="inline-flex items-center justify-center gap-2 h-10 px-5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-lg disabled:opacity-50"
+                            >
+                                {savingKey ? <Loader2 className="h-4 w-4 animate-spin" /> : <KeyRound className="h-4 w-4" />}
+                                Save key
+                            </button>
+                        </div>
+                        {/* When the only key(s) are on cooldown (rate-limited, not invalid),
+                            offer a one-click reactivate instead of forcing a new key. */}
+                        {poolStats && poolStats.onCooldown > 0 && (
+                            <button
+                                onClick={handleClearCooldowns}
+                                disabled={savingKey}
+                                className="inline-flex items-center gap-1.5 text-xs text-red-700 hover:text-red-900 underline disabled:opacity-50"
+                            >
+                                <RefreshCw className="h-3.5 w-3.5" />
+                                {poolStats.onCooldown} key(s) on cooldown — reactivate now
+                            </button>
+                        )}
+                        {keyMsg && <p className="text-sm text-green-700">{keyMsg}</p>}
+                        {keyErr && <p className="text-sm text-red-700">{keyErr}</p>}
+                    </div>
+                )}
+
                 {/* Paste box */}
                 <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
                     <div className="flex items-center gap-3">
@@ -97,7 +205,8 @@ export default function AdminTrainAiPage() {
                         <span className="text-xs text-gray-400">{questions.length} question{questions.length === 1 ? "" : "s"}</span>
                         <button
                             onClick={handleTrain}
-                            disabled={running || questions.length === 0}
+                            disabled={running || questions.length === 0 || hasUsableKey === false}
+                            title={hasUsableKey === false ? "Add a Gemini key above first" : undefined}
                             className="inline-flex items-center gap-2 h-11 px-6 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl disabled:opacity-50"
                         >
                             {running ? <><Loader2 className="h-5 w-5 animate-spin" /> Teaching the AI…</> : <><Sparkles className="h-5 w-5" /> Train</>}
@@ -123,7 +232,7 @@ export default function AdminTrainAiPage() {
                                         <p className="text-sm text-gray-600 mt-1">{r.answer}</p>
                                         {!r.grounded && (
                                             <p className="text-xs text-amber-600 mt-1">
-                                                ⚠️ The AI couldn&apos;t ground this from existing knowledge — review &amp; improve this answer in the article editor.
+                                                ⚠️ The AI couldn&apos;t ground this in existing knowledge, so it was <strong>not saved</strong> (a guessed answer would poison the KB). Write a real article for this topic, then re-train.
                                             </p>
                                         )}
                                     </div>
@@ -155,7 +264,21 @@ export default function AdminTrainAiPage() {
 
                 {/* Already-trained Q&A */}
                 <div>
-                    <h2 className="text-sm font-semibold text-gray-700 mb-3">Trained questions</h2>
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-sm font-semibold text-gray-700">Trained questions</h2>
+                        {trained && trained.length > 0 && (
+                            <button
+                                onClick={async () => {
+                                    if (confirm("Delete ALL trained Q&A? This removes every question the AI learned here (hand-written articles are untouched). Use this to wipe a bad batch.")) {
+                                        await purgeAll({});
+                                    }
+                                }}
+                                className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-600"
+                            >
+                                <Trash2 className="h-3.5 w-3.5" /> Clear all
+                            </button>
+                        )}
+                    </div>
                     {trained === undefined ? (
                         <Loader2 className="h-5 w-5 animate-spin text-amber-500" />
                     ) : trained.length === 0 ? (

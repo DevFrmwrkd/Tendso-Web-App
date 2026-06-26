@@ -75,9 +75,8 @@ export const saveTrainedQA = internalMutation({
             popular: false,
             status: 'published',
             source: 'qa',
-            // Unanswered ones are saved as draft-quality: published so the answer
-            // (even if weak) is searchable, but flagged needsReview via grounded=false
-            // in the return so the admin knows to revisit.
+            // Only grounded answers reach this mutation (trainFromQuestions filters
+            // ungrounded ones out), so it's safe to publish + embed directly.
             createdAt: now,
             updatedAt: now,
         });
@@ -119,15 +118,20 @@ export const trainFromQuestions = action({
                 workspace: args.workspace,
                 source: 'web',
             });
-            // Persist + embed (even ungrounded ones are saved so the gap is visible;
-            // grounded:false tells the admin to give it a better answer).
-            await ctx.runMutation(internal.knowledgeTraining.saveTrainedQA, {
-                question,
-                answer: rag.answer,
-                workspace: args.workspace,
-                categorySlug: args.categorySlug,
-                grounded: rag.grounded,
-            });
+            // Only save + embed answers the AI could GROUND in existing knowledge.
+            // An ungrounded answer is a generic/hallucinated fallback — embedding it
+            // would poison the KB (the RAG would then "retrieve" its own bad guess on
+            // the next ask). We still return it with grounded:false so the admin sees
+            // the gap and can author a real article, but it never enters retrieval.
+            if (rag.grounded) {
+                await ctx.runMutation(internal.knowledgeTraining.saveTrainedQA, {
+                    question,
+                    answer: rag.answer,
+                    workspace: args.workspace,
+                    categorySlug: args.categorySlug,
+                    grounded: true,
+                });
+            }
             results.push({ question, answer: rag.answer, grounded: rag.grounded });
         }
         return results;
@@ -162,6 +166,23 @@ export const deleteTrainingQA = mutation({
         const row = await ctx.db.get(args.id);
         if (row && row.source === 'qa') await ctx.db.delete(args.id);
         return { ok: true };
+    },
+});
+
+/**
+ * Admin: delete ALL trained Q&A rows in one shot. Used to wipe a poisoned batch
+ * (e.g. answers saved while the Gemini key was dead and every answer was an
+ * ungrounded fallback). Only touches source:'qa' rows — hand-authored articles
+ * are never affected. Returns the count removed.
+ */
+export const purgeAllTrainedQA = mutation({
+    args: {},
+    handler: async (ctx) => {
+        await requireAdmin(ctx);
+        const all = await ctx.db.query('knowledgeArticles').collect();
+        const qa = all.filter((a) => a.source === 'qa');
+        for (const a of qa) await ctx.db.delete(a._id);
+        return { removed: qa.length };
     },
 });
 
