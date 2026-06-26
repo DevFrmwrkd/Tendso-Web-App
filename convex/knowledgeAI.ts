@@ -406,6 +406,7 @@ async function runRag(
         sourceArticleIds: sources.map((s) => s._id),
         userId: args.userId,
         discordUserId: args.discordUserId,
+        grounded,
     });
 
     return { answer, sources: sources.map((s) => ({ slug: s.slug, title: s.title })), grounded };

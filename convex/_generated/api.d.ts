@@ -29,6 +29,7 @@ import type * as http from "../http.js";
 import type * as knowledge from "../knowledge.js";
 import type * as knowledgeAI from "../knowledgeAI.js";
 import type * as knowledgeSeed from "../knowledgeSeed.js";
+import type * as knowledgeTraining from "../knowledgeTraining.js";
 import type * as leadNotes from "../leadNotes.js";
 import type * as leads from "../leads.js";
 import type * as lib_auth from "../lib/auth.js";
@@ -87,6 +88,7 @@ declare const fullApi: ApiFromModules<{
   knowledge: typeof knowledge;
   knowledgeAI: typeof knowledgeAI;
   knowledgeSeed: typeof knowledgeSeed;
+  knowledgeTraining: typeof knowledgeTraining;
   leadNotes: typeof leadNotes;
   leads: typeof leads;
   "lib/auth": typeof lib_auth;
