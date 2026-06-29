@@ -577,8 +577,9 @@ export const submit = mutation({
             delta: 1,
         });
 
-        // 4. Trigger Airtable AI pipeline
-        await ctx.scheduler.runAfter(0, internal.airtable.pushToAirtableInternal, {
+        // 4. Trigger Tendso Studio (Hyperagent) render — replaces the Airtable AI step.
+        // airtable.ts stays wired as the rollback (revert this one line to restore it).
+        await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
             submissionId: args.id,
         });
     },
