@@ -23,8 +23,9 @@ Read this whole file once, then follow §3 in order. Load a `references/` file o
 6. **1K resolution, one image per slot. Default 6 renders/submission (one per role); up to 12** if you add a second variant (`_v2`) for the strongest gallery slots — never beyond 12. Combine inputs only when a slot genuinely needs it. If you'd exceed the ceiling, stop and post to Slack — don't spend.
    - **Conditional spend — render fewer when the submission warrants fewer (this is the main cost lever).** The ceiling is a *max*, not a target. Skip a slot whose source photo is **unusable** (badly blurred, near-duplicate of another slot, subject not visible, finger over lens) — do **not** spend a render polishing a photo no template slot will show. A 3-good-photo submission should cost 3 renders, not be padded to 6. Image generation is ~95% of cost, so fewer-but-right renders is how you go *below* the ~$0.42 target.
    - **`_v2` variants are opt-in, never default.** Render a `_v2` only when a slot is a hero/gallery anchor **and** its first render came back strong. Most submissions need none; 12 is the rare exception.
-7. **Copy is capped JSON, grounded in the transcript.** No prose, no fabricated facts. If the transcript doesn't support a field, omit it.
-8. **One submission per run. Stay on rails.** Don't reason about layout, styling, colors, or "the website." That's the template's job.
+7. **Image URLs must be Convex-fetchable.** Every image URL you record (and push) MUST come from `GenerateTempExternalDownloadUrl` — never the Image Generation tool's internal `viewUrl`. A `viewUrl` cannot be downloaded by Convex, so the images silently never save and the site ships photo-less. This is the single most common way a run looks "done" but delivers no images.
+8. **Copy is capped JSON, grounded in the transcript.** No prose, no fabricated facts. If the transcript doesn't support a field, omit it.
+9. **One submission per run. Stay on rails.** Don't reason about layout, styling, colors, or "the website." That's the template's job.
 
 ---
 
@@ -89,7 +90,10 @@ For each slot you're keeping (max 6), in this order — headshot, interior_1, in
    - `prompt`: exactly what the script returned (you may have already injected your ≤1-line hint via `--hint`).
    - `images`: the **original URL(s)** for this slot (the source role, plus the combine source if any). Never the thumbnail.
    - `model`: **Gemini Flash** · `resolution`: **1K** · `aspect_ratio`: per `references/image-roles.md` (portrait headshot 4:5, hero/exterior 16:9, interiors/products 4:3).
-3. Record the resulting public image URL against the slot's `enhancedImages` key (`enhanced_headshot`, `enhanced_interior_1`, …).
+3. **Get a fetchable URL — REQUIRED, do not skip.** The Image Generation tool returns an internal **`viewUrl`** that Convex **cannot download** (the callback will silently store zero images and the website ships with no photos). For every rendered image you MUST convert it to a machine-accessible URL before recording it:
+   - Call **`GenerateTempExternalDownloadUrl`** on the rendered image and use the URL it returns.
+   - **Never** record a `viewUrl` (anything that is an internal viewer/preview link). Only the external download URL goes into `work/images.json`.
+4. Record that **external download URL** against the slot's `enhancedImages` key (`enhanced_headshot`, `enhanced_interior_1`, …) in `work/images.json`.
 
 If a render comes back unfaithful (face/products/signage changed), re-run **once** with the recipe's reinforcement line. If it fails twice, skip the slot and flag it in Step 6 — don't keep spending.
 
@@ -177,5 +181,6 @@ Next run, the Memory loads automatically — so you never ask the same thing twi
 
 ## Changelog
 
+- **1.2.0** (2026-06-30) — images must use `GenerateTempExternalDownloadUrl`, never the internal `viewUrl` (Convex can't fetch a viewUrl → images silently never save). Added as hard rule 7 + an explicit Step 3 conversion + a `build_payload.py` guard that fails loudly on a viewUrl.
 - **1.1.0** (2026-06-29) — conditional spend: skip unusable photo slots (don't pad to the ceiling); `_v2` variants made explicitly opt-in. Cost now scales down with submission photo quality rather than flat-rate per role.
 - **1.0.0** (2026-06-25) — initial release: faithful i2i rendering on Gemini Flash @1K, capped copy, Convex write-back, Slack iteration loop.

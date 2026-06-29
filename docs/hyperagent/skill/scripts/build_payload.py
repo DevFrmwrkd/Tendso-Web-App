@@ -166,6 +166,15 @@ def main():
         if not is_url(url):
             warn(f"image '{key}' value is not a URL; dropped.")
             continue
+        # Guard: reject internal viewUrls — Convex cannot fetch them, so they would
+        # silently store zero images. The skill must convert each rendered image via
+        # GenerateTempExternalDownloadUrl first (SKILL.md Step 3 / hard rule 7).
+        low = url.lower()
+        if "viewurl" in low or "/view/" in low or low.rstrip("/").endswith("/view"):
+            fail(
+                f"image '{key}' looks like an internal viewUrl ({url}). Convex cannot "
+                f"download it. Convert it with GenerateTempExternalDownloadUrl and re-run."
+            )
         images[key] = url
     if not images:
         warn("no valid image URLs — Convex will store copy only.")
