@@ -352,6 +352,7 @@ export const logQuery = internalMutation({
         sourceArticleIds: v.array(v.id('knowledgeArticles')),
         userId: v.optional(v.string()),
         discordUserId: v.optional(v.string()),
+        grounded: v.optional(v.boolean()),
     },
     handler: async (ctx, args) => {
         await ctx.db.insert('knowledgeQueries', { ...args, createdAt: Date.now() });

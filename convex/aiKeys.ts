@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { query, mutation, action, internalQuery, internalMutation, type QueryCtx, type MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
-import { requireAuth } from './lib/auth';
+import { requireAuth, requireAdmin } from './lib/auth';
 import { encryptSecret, isEncrypted } from './lib/encryption';
 import type { Doc } from './_generated/dataModel';
 
@@ -218,5 +218,28 @@ export const poolStats = query({
             onCooldown: gemini.filter((k) => k.active && k.cooldownUntil && k.cooldownUntil > now).length,
             retired: gemini.filter((k) => !k.active).length,
         };
+    },
+});
+
+/**
+ * Admin: reactivate every Gemini key and clear its cooldown. Use when a key was
+ * rate-limited (quota) or flapped on transient errors but is actually still
+ * valid — instead of waiting out the 12h cooldown. Does NOT add a key; if a key
+ * was retired as truly invalid, clearing it just lets it fail again on next use.
+ * Returns how many rows were touched so the UI can confirm.
+ */
+export const clearGeminiCooldowns = mutation({
+    args: {},
+    handler: async (ctx) => {
+        await requireAdmin(ctx);
+        const gemini = (await ctx.db.query('aiKeys').collect()).filter((k) => k.provider === 'gemini');
+        let cleared = 0;
+        for (const k of gemini) {
+            if (!k.active || k.cooldownUntil || (k.failureCount ?? 0) > 0) {
+                await ctx.db.patch(k._id, { active: true, cooldownUntil: undefined, failureCount: 0 });
+                cleared += 1;
+            }
+        }
+        return { cleared };
     },
 });

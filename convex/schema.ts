@@ -261,6 +261,13 @@ export default defineSchema({
         socialLinks: v.optional(v.any()),
         // Enhanced images
         enhancedImages: v.optional(v.any()),
+        // --- SEO layer (added for Tendso Studio / Hyperagent) ---
+        seoTitle: v.optional(v.string()),          // title tag, ≤60 chars: "[service] in [city] | [name]"
+        metaDescription: v.optional(v.string()),   // meta description, ≤155 chars
+        seoKeywords: v.optional(v.any()),          // string[]
+        structuredData: v.optional(v.any()),       // LocalBusiness JSON-LD object
+        gbpDescription: v.optional(v.string()),    // Google Business Profile description (250–750 chars)
+        imageAlt: v.optional(v.any()),             // { [enhancedImageKey]: altText }
         // Tracking
         updatedAt: v.optional(v.number()),
         airtableSyncedAt: v.optional(v.number()),
@@ -921,6 +928,11 @@ export default defineSchema({
         readMin: v.number(),
         popular: v.optional(v.boolean()),
         status: v.union(v.literal('draft'), v.literal('published')),
+        // Origin of the article. "article" = full hand-written/seeded doc;
+        // "qa" = an admin-trained Q&A (paste-a-question → AI-drafted answer),
+        // see docs/changes/ADMIN-KB-TRAINING-PLAN.md. Both are embedded + retrieved
+        // identically by the RAG; this flag is only for admin display / filtering.
+        source: v.optional(v.string()),
         createdAt: v.number(),
         updatedAt: v.number(),
         // Article-helpfulness counters (incremented by recordFeedback)
@@ -985,6 +997,9 @@ export default defineSchema({
         sourceArticleIds: v.array(v.id('knowledgeArticles')),
         userId: v.optional(v.string()),        // Clerk subject, when signed in
         discordUserId: v.optional(v.string()),
+        // Whether the AI could ground an answer. false = a content gap the admin
+        // can fill from the "train AI" page (turn the unanswered question into a Q&A).
+        grounded: v.optional(v.boolean()),
         createdAt: v.number(),
     })
         .index('by_source', ['source'])
