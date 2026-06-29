@@ -109,7 +109,9 @@ export const triggerStudioRender = internalAction({
         try {
             const res = await fetch(webhookUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                // Hyperagent's webhook expects the trigger token in this header
+                // (not Authorization: Bearer).
+                headers: { 'Content-Type': 'application/json', 'X-Hyperagent-Webhook-Secret': token },
                 body: JSON.stringify(payload),
             });
             if (!res.ok) throw new Error(`webhook ${res.status}: ${await res.text()}`);
