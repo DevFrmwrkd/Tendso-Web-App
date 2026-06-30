@@ -63,3 +63,5 @@ logs/security/
 # Python bytecode
 __pycache__/
 *.pyc
+
+deploy.log

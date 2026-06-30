@@ -412,17 +412,26 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                     // Extract base field name, removing "enhanced_" prefix and version suffix (_v1, _v2, etc.)
                     let baseKey = entry.key.replace(/^enhanced_/, '').replace(/_v\d+$/, '')
 
-                    // Categorize for section-specific mapping
-                    if (baseKey.startsWith('interior') || baseKey === 'headshot') {
+                    // Categorize for section-specific mapping.
+                    // Two key families are supported:
+                    //  - Legacy role keys: headshot, interior_*, exterior, product_*
+                    //  - Tendso Studio v0.2 placement keys: hero, portrait, gallery_<N>
+                    //    (a 6-12 image "photoshoot" set keyed by where they go, not source role)
+
+                    // about: people + interiors + portrait + the gallery pool
+                    if (baseKey.startsWith('interior') || baseKey === 'headshot' || baseKey === 'portrait' || baseKey.startsWith('gallery')) {
                         ;(enhancedImagesByCategory.about ??= []).push(url)
                     }
-                    if (baseKey.startsWith('product')) {
+                    // featured: products + the gallery pool (gallery is the general set)
+                    if (baseKey.startsWith('product') || baseKey.startsWith('gallery')) {
                         ;(enhancedImagesByCategory.featured ??= []).push(url)
                     }
-                    if (baseKey === 'exterior' || baseKey === 'headshot') {
+                    // hero: the lead image (placement 'hero'), else exterior/headshot/portrait
+                    if (baseKey === 'hero' || baseKey === 'exterior' || baseKey === 'headshot' || baseKey === 'portrait') {
                         ;(enhancedImagesByCategory.hero ??= []).push(url)
                     }
-                    if (baseKey.startsWith('interior') || baseKey === 'exterior') {
+                    // services: interiors, exterior, and the gallery pool
+                    if (baseKey.startsWith('interior') || baseKey === 'exterior' || baseKey.startsWith('gallery')) {
                         ;(enhancedImagesByCategory.services ??= []).push(url)
                     }
 
