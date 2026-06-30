@@ -1,0 +1,50 @@
+---
+/**
+ * SeoHead.astro — drop-in <head> SEO partial for the generated business sites.
+ *
+ * Place this inside the <head> of astro-site-template/src/layouts/BaseLayout.astro
+ * (replace the existing <title> if there is one), and pass the values through from
+ * your site-data. The Studio SEO fields map straight in:
+ *   seoTitle        → title
+ *   metaDescription → description
+ *   seoKeywords     → keywords
+ *   structuredData  → jsonLd   (the LocalBusiness JSON-LD object)
+ *   layout.ogImage / enhanced exterior → image
+ *
+ * Example in BaseLayout.astro:
+ *   <SeoHead
+ *     title={data.seo?.seoTitle ?? `${data.layout.businessName} | ${data.layout.tagline}`}
+ *     description={data.seo?.metaDescription}
+ *     keywords={data.seo?.seoKeywords}
+ *     canonical={Astro.url.href}
+ *     image={data.layout.ogImage}
+ *     jsonLd={data.seo?.structuredData}
+ *   />
+ */
+interface Props {
+  title: string;
+  description?: string;
+  keywords?: string[];
+  canonical?: string;
+  image?: string;
+  jsonLd?: Record<string, unknown>;
+}
+const { title, description, keywords = [], canonical, image, jsonLd } = Astro.props;
+---
+<title>{title}</title>
+{description && <meta name="description" content={description} />}
+{keywords.length > 0 && <meta name="keywords" content={keywords.join(", ")} />}
+{canonical && <link rel="canonical" href={canonical} />}
+
+<meta property="og:title" content={title} />
+{description && <meta property="og:description" content={description} />}
+<meta property="og:type" content="website" />
+{canonical && <meta property="og:url" content={canonical} />}
+{image && <meta property="og:image" content={image} />}
+
+<meta name="twitter:card" content={image ? "summary_large_image" : "summary"} />
+<meta name="twitter:title" content={title} />
+{description && <meta name="twitter:description" content={description} />}
+{image && <meta name="twitter:image" content={image} />}
+
+{jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />}
