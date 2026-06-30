@@ -16,7 +16,7 @@
  *   R2_PUBLIC_URL             (already set) used to resolve photo paths
  */
 import { v } from 'convex/values';
-import { internalAction, internalMutation, internalQuery } from './_generated/server';
+import { internalAction, internalMutation, internalQuery, mutation } from './_generated/server';
 import { internal } from './_generated/api';
 
 // Tendso's fixed photo order → roles. Products only when hasProducts.
@@ -40,6 +40,24 @@ export const setSyncStatus = internalMutation({
     args: { submissionId: v.id('submissions'), status: v.string() },
     handler: async (ctx, args) => {
         await ctx.db.patch(args.submissionId, { airtableSyncStatus: args.status });
+    },
+});
+
+/**
+ * Public trigger for the admin "Enhance Images" button. Schedules the Studio
+ * render (Hyperagent) — the replacement for the old airtable.triggerAirtablePush.
+ * Mirrors that mutation's contract so the admin UI can swap to it directly.
+ */
+export const triggerStudioRenderPublic = mutation({
+    args: { submissionId: v.id('submissions') },
+    handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission) throw new Error('Submission not found');
+        await ctx.db.patch(args.submissionId, { airtableSyncStatus: 'pending_push' });
+        await ctx.scheduler.runAfter(0, internal.hyperagent.triggerStudioRender, {
+            submissionId: args.submissionId,
+        });
+        return { success: true };
     },
 });
 
@@ -204,31 +222,76 @@ export const ingestStudioResult = internalAction({
  * Write copy + enhanced images into generatedWebsites (patch or insert).
  * Whitelists copy keys so only schema fields are written.
  */
+// Map alternate copy key spellings the agent sometimes emits (Airtable-style
+// snake_case, or a single nested blob) → the flat camelCase keys the schema +
+// templates expect. Without this, e.g. heroHeadline arrives as a JSON object
+// {hero_headline, about_content, ...} and the template can't read it.
+const COPY_ALIASES: Record<string, string> = {
+    hero_headline: 'heroHeadline',
+    hero_subheadline: 'heroSubHeadline',
+    about_content: 'aboutDescription',
+    about_description: 'aboutDescription',
+    services_description: 'servicesDescription',
+    contact_cta: 'contactCta',
+};
+
+function normalizeCopy(raw: Record<string, unknown>): Record<string, unknown> {
+    const out: Record<string, unknown> = { ...raw };
+    // If heroHeadline came in as a nested object (the snake_case blob), lift its
+    // fields up to the top level via the alias map.
+    const hh = raw['heroHeadline'];
+    if (hh && typeof hh === 'object' && !Array.isArray(hh)) {
+        for (const [k, dest] of Object.entries(COPY_ALIASES)) {
+            const val = (hh as Record<string, unknown>)[k];
+            if (val !== undefined && out[dest] === undefined) out[dest] = val;
+        }
+        delete out['heroHeadline'];
+        // re-apply the lifted heroHeadline if present
+        if ((hh as Record<string, unknown>)['hero_headline']) {
+            out['heroHeadline'] = (hh as Record<string, unknown>)['hero_headline'];
+        }
+    }
+    // Also lift any top-level snake_case aliases.
+    for (const [k, dest] of Object.entries(COPY_ALIASES)) {
+        if (raw[k] !== undefined && out[dest] === undefined) out[dest] = raw[k];
+    }
+    return out;
+}
+
 export const saveStudioContent = internalMutation({
     args: { submissionId: v.id('submissions'), enhancedImages: v.any(), content: v.any() },
     handler: async (ctx, args) => {
-        const content = (args.content || {}) as Record<string, unknown>;
+        const content = normalizeCopy((args.content || {}) as Record<string, unknown>);
         const copy: Record<string, unknown> = {};
         for (const key of COPY_KEYS) {
-            if (content[key] !== undefined && content[key] !== null && content[key] !== '') {
-                copy[key] = content[key];
+            const val = content[key];
+            // Only accept string/array/object scalars the schema expects; never a
+            // nested copy blob (which would have been lifted by normalizeCopy).
+            if (val !== undefined && val !== null && val !== '') {
+                copy[key] = val;
             }
         }
-
-        // generatedWebsites holds copy + images. NOTE: airtableSyncStatus lives on
-        // the *submissions* table (not generatedWebsites), matching the original
-        // Airtable path (airtable.ts updateSyncStatus) — set it separately below.
-        const fields = {
-            ...copy,
-            enhancedImages: args.enhancedImages,
-            airtableSyncedAt: Date.now(),
-            updatedAt: Date.now(),
-        };
 
         const existing = await ctx.db
             .query('generatedWebsites')
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
             .first();
+
+        // GUARD: never clobber a previously-saved image set with an empty one. A push
+        // that arrives with no images (agent skipped the image step, or a copy-only
+        // re-push) must NOT wipe images a prior render already stored.
+        const incoming = (args.enhancedImages || {}) as Record<string, unknown>;
+        const hasIncomingImages = Object.keys(incoming).length > 0;
+        const enhancedImages = hasIncomingImages
+            ? incoming
+            : ((existing as { enhancedImages?: unknown })?.enhancedImages ?? {});
+
+        const fields = {
+            ...copy,
+            enhancedImages,
+            airtableSyncedAt: Date.now(),
+            updatedAt: Date.now(),
+        };
 
         if (existing) {
             await ctx.db.patch(existing._id, fields);
