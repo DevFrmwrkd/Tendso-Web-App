@@ -189,7 +189,8 @@ export default function SubmissionDetailPage() {
     const markDeployedMutation = useMutation(api.admin.markDeployed);
     const logTranscriptionRegeneratedMutation = useMutation(api.admin.logTranscriptionRegenerated);
     const logImagesEnhancedMutation = useMutation(api.admin.logImagesEnhanced);
-    const triggerAirtablePushMutation = useMutation(api.airtable.triggerAirtablePush);
+    // Enhance Images now routes to Hyperagent (Tendso Studio), not Airtable.
+    const triggerAirtablePushMutation = useMutation(api.hyperagent.triggerStudioRenderPublic);
 
     const authLoading = !isLoaded || (user && currentCreator === undefined);
     const dataLoading = isAdmin && submissionData === undefined;
@@ -413,11 +414,11 @@ export default function SubmissionDetailPage() {
                 }
             }
             setModalType("success");
-            setModalMessage("Airtable enhancement triggered. Enhanced images will be available shortly.");
+            setModalMessage("Image enhancement triggered. Optimized images will be available shortly.");
             setShowModal(true);
         } catch (error: any) {
             setModalType("error");
-            setModalMessage(error.message || "Failed to trigger Airtable enhancement");
+            setModalMessage(error.message || "Failed to trigger image enhancement");
             setShowModal(true);
         } finally {
             setEnhancing(false);
