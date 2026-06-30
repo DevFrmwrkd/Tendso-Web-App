@@ -1,0 +1,27 @@
+{
+  "submissionId": "REPLACE_WITH_REAL_SUBMISSION_ID",
+  "business": {
+    "name": "Tony's Cuts",
+    "type": "barber",
+    "owner": "Tony Reyes",
+    "city": "Cebu City",
+    "address": "123 Colon Street, Cebu City",
+    "phone": "+63 917 555 0142",
+    "email": "tonyscuts.cebu@gmail.com",
+    "hasProducts": false
+  },
+  "photos": [
+    { "role": "headshot", "url": "https://picsum.photos/seed/tony-head/1024" },
+    { "role": "interior_1", "url": "https://picsum.photos/seed/tony-int1/1024" },
+    { "role": "interior_2", "url": "https://picsum.photos/seed/tony-int2/1024" },
+    { "role": "exterior", "url": "https://picsum.photos/seed/tony-ext/1024" }
+  ],
+  "transcript": "I'm Tony Reyes and this is Tony's Cuts here in Cebu City, along Colon Street. We're a walk-in barbershop — fresh fades, classic cuts, beard trims and hot-towel shaves. I've been cutting hair for about twelve years now, started in my dad's old shop and opened this place six years ago. What makes us special? We take our time, we talk to every customer, and nobody leaves the chair until the cut is right. We do skin fades, scissor cuts, line-ups, beard grooming, and the hot-towel shave is the favorite. My dream is to grow Tony's Cuts into a few branches around Cebu and train young barbers who need a start, the way I got mine.",
+  "qa": [
+    { "q": "Tell us about your business. What do you do?", "a": "Walk-in barbershop in Cebu City — fresh fades, classic cuts, beard trims and hot-towel shaves." },
+    { "q": "How long have you been operating?", "a": "Cutting hair about twelve years; opened this shop six years ago." },
+    { "q": "What makes your business special?", "a": "We take our time and talk to every customer; nobody leaves until the cut is right." },
+    { "q": "What services or products do you offer?", "a": "Skin fades, scissor cuts, line-ups, beard grooming, hot-towel shave." },
+    { "q": "What's your dream for this business?", "a": "Grow into a few branches around Cebu and train young barbers." }
+  ]
+}

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-build_skill_json.py — package the skill/ folder into a Hyperagent import file.
+build_skill_json.py - package the skill/ folder into a Hyperagent import file.
 
 Hyperagent skills import as a single JSON envelope:
   { "version": 1, "type": "skill", "exportedAt": "...", "data": { ... } }
@@ -26,31 +26,12 @@ TAGS = [
 ]
 
 # Exact field shape Hyperagent's "Manage Credential Fields" dialog uses:
-# { name, label, hint, required, sensitive }. Earlier crashes came from using
-# `type`/`description`/`secret` instead of `label`/`hint`/`sensitive` — the page
-# does .toLowerCase() on fields it expects in THIS shape.
+# { name, label, hint, required, sensitive }. The old {key,label,required,secret}
+# object shape crashes the skill page (.toLowerCase() on a missing field).
 CREDENTIAL_SCHEMA = [
-    {
-        "name": "CONVEX_CALLBACK_URL",
-        "label": "Convex callback URL",
-        "hint": "https://<deployment>.convex.site/hyperagent-callback",
-        "required": True,
-        "sensitive": False,
-    },
-    {
-        "name": "TENDSO_CALLBACK_SECRET",
-        "label": "Convex callback secret",
-        "hint": "Must match Convex TENDSO_CALLBACK_SECRET",
-        "required": True,
-        "sensitive": True,
-    },
-    {
-        "name": "SLACK_WEBHOOK_URL",
-        "label": "Slack webhook URL",
-        "hint": "Incoming webhook for #tendso-studio (optional)",
-        "required": False,
-        "sensitive": True,
-    },
+    {"name": "CONVEX_CALLBACK_URL", "label": "Convex callback URL", "hint": "https://<deployment>.convex.site/hyperagent-callback", "required": True, "sensitive": False},
+    {"name": "TENDSO_CALLBACK_SECRET", "label": "Convex callback secret", "hint": "Must match Convex TENDSO_CALLBACK_SECRET", "required": True, "sensitive": True},
+    {"name": "SLACK_WEBHOOK_URL", "label": "Slack webhook URL", "hint": "Incoming webhook for #tendso-studio (optional)", "required": False, "sensitive": True},
 ]
 
 
@@ -83,11 +64,11 @@ def main():
         skill_text = f.read()
     meta, body = parse_frontmatter(skill_text)
 
-    # References → inline appendix (guaranteed visible on Hyperagent) + structured list
+    # References -> inline appendix (guaranteed visible on Hyperagent) + structured list
     ref_files = sorted(glob.glob(os.path.join(SKILL_DIR, "references", "*.md")))
     references = []
-    appendix = ["\n\n---\n\n# Appendix — reference material (bundled with this skill)\n",
-                "These are the `references/…` files referenced above, inlined so they load with the skill.\n"]
+    appendix = ["\n\n---\n\n# Appendix - reference material (bundled with this skill)\n",
+                "These are the `references/...` files referenced above, inlined so they load with the skill.\n"]
     for path in ref_files:
         name = os.path.basename(path)
         with open(path) as f:
@@ -97,7 +78,7 @@ def main():
 
     documentation = body + "".join(appendix)
 
-    # Scripts → structured array
+    # Scripts -> structured array
     script_files = sorted(glob.glob(os.path.join(SKILL_DIR, "scripts", "*.py")))
     scripts = []
     for path in script_files:
@@ -113,12 +94,12 @@ def main():
     data = {
         "name": meta.get("name", "tendso-studio"),
         "description": meta.get("description", ""),
-        "icon": "sparkles",  # string, not null — the viewer page calls .toLowerCase() on it
+        "icon": None,
         "documentation": documentation,
         "tags": json.dumps(TAGS),                 # stringified JSON
         "whenToUse": meta.get("whenToUse", ""),
         "authType": "apiKey",
-        "credentialSchema": json.dumps(CREDENTIAL_SCHEMA),  # stringified JSON (importer expects a string)
+        "credentialSchema": json.dumps(CREDENTIAL_SCHEMA),  # stringified array (importer expects a string)
         "skillMdBody": body,
         "scripts": json.dumps(scripts),           # stringified JSON
         "references": json.dumps(references),     # stringified JSON

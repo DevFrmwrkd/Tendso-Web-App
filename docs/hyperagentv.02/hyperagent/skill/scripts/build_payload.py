@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-build_payload.py — validate the agent's copy + image URLs and assemble the exact
+build_payload.py - validate the agent's copy + image URLs and assemble the exact
 Convex callback payload.
 
 It enforces the copy contract (required keys, word caps, key names) so nothing
@@ -14,7 +14,7 @@ Usage:
   content.json : the copy JSON the agent wrote
   images.json  : { "enhanced_headshot": "https://...", ... }
   payload.json : the original submission (for submissionId)
-  result.json  : written output → { submissionId, content, images }
+  result.json  : written output -> { submissionId, content, images }
 """
 import argparse
 import json
@@ -40,6 +40,10 @@ OPTIONAL_STR = {
 }
 TONE_VALUES = {"warm", "professional", "playful", "calm"}
 IMAGE_KEYS = {
+    # placement keys (preferred)
+    "enhanced_hero",
+    "enhanced_portrait",
+    # legacy role keys (still accepted for back-compat)
     "enhanced_headshot",
     "enhanced_interior_1",
     "enhanced_interior_2",
@@ -47,6 +51,13 @@ IMAGE_KEYS = {
     "enhanced_product_1",
     "enhanced_product_2",
 }
+
+
+def valid_image_key(base):
+    # placement/legacy keys, or any enhanced_gallery_<N>
+    if base in IMAGE_KEYS:
+        return True
+    return base.startswith("enhanced_gallery_") and base[len("enhanced_gallery_"):].isdigit()
 
 warnings = []
 
@@ -95,7 +106,7 @@ def main():
 
     content = {}
 
-    # Required — must be present AND within cap. Fail (don't trim) so the model
+    # Required - must be present AND within cap. Fail (don't trim) so the model
     # rewrites a clean line instead of shipping a truncated fragment.
     for key, cap in REQUIRED.items():
         val = content_in.get(key)
@@ -160,15 +171,15 @@ def main():
     images = {}
     for key, url in images_in.items():
         base = key[:-3] if key.endswith("_v2") else key
-        if base not in IMAGE_KEYS:
+        if not valid_image_key(base):
             warn(f"image key '{key}' is not a recognized slot; dropped.")
             continue
         if not is_url(url):
             warn(f"image '{key}' value is not a URL; dropped.")
             continue
-        # Guard: reject internal viewUrls — Convex cannot fetch them, so they would
+        # Guard: reject internal viewUrls - Convex cannot fetch them, so they would
         # silently store zero images. The skill must convert each rendered image via
-        # GenerateTempExternalDownloadUrl first (SKILL.md Step 3 / hard rule 7).
+        # GenerateTempExternalDownloadUrl first (SKILL.md Step 3 / hard rule 8).
         low = url.lower()
         if "viewurl" in low or "/view/" in low or low.rstrip("/").endswith("/view"):
             fail(
@@ -177,7 +188,7 @@ def main():
             )
         images[key] = url
     if not images:
-        warn("no valid image URLs — Convex will store copy only.")
+        warn("no valid image URLs - Convex will store copy only.")
 
     # Image alt text (SEO + accessibility), <=125 chars per key
     alt_in = content_in.get("imageAlt") or {}
@@ -185,7 +196,7 @@ def main():
     if isinstance(alt_in, dict):
         for k, v in alt_in.items():
             base = k[:-3] if k.endswith("_v2") else k
-            if base in IMAGE_KEYS and str(v).strip():
+            if valid_image_key(base) and str(v).strip():
                 image_alt[k] = " ".join(str(v).split())[:125].rstrip(" .,;:")
     if image_alt:
         content["imageAlt"] = image_alt

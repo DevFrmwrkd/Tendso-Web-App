@@ -105,20 +105,22 @@ export default function SubmissionDetailPage() {
             if (!imageUrl) continue;
             if (imageUrl.includes("airtableusercontent.com")) continue;
             allUrls.push(imageUrl);
+            // Supports legacy role keys (headshot/interior/exterior/product) AND
+            // Tendso Studio v0.2 placement keys (hero/portrait/gallery_N).
             const lowerKey = key.toLowerCase();
-            if (lowerKey.includes("interior") || lowerKey.includes("headshot")) {
+            if (lowerKey.includes("interior") || lowerKey.includes("headshot") || lowerKey.includes("portrait") || lowerKey.includes("gallery")) {
                 categories.about = categories.about || [];
                 categories.about.push(imageUrl);
             }
-            if (lowerKey.includes("product")) {
+            if (lowerKey.includes("product") || lowerKey.includes("gallery")) {
                 categories.featured = categories.featured || [];
                 categories.featured.push(imageUrl);
             }
-            if (lowerKey.includes("exterior") || lowerKey.includes("headshot")) {
+            if (lowerKey.includes("hero") || lowerKey.includes("exterior") || lowerKey.includes("headshot") || lowerKey.includes("portrait")) {
                 categories.hero = categories.hero || [];
                 categories.hero.push(imageUrl);
             }
-            if (lowerKey.includes("interior") || lowerKey.includes("exterior")) {
+            if (lowerKey.includes("interior") || lowerKey.includes("exterior") || lowerKey.includes("gallery")) {
                 categories.services = categories.services || [];
                 categories.services.push(imageUrl);
             }

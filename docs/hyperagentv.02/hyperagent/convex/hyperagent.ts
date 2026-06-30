@@ -101,18 +101,18 @@ export const triggerStudioRender = internalAction({
             qa: (submission as any).interviewQa || [],
         };
 
-        // The Hyperagent webhook receives the ENTIRE JSON body as the agent's user
-        // message ("POST any JSON payload to the URL — the agent receives it as the
-        // user message"). The standing instruction ("use the tendso-studio skill…")
-        // lives in the endpoint's own Prompt field, so we POST the raw submission
-        // payload object directly — no { message: ... } wrapper.
+        // The webhook body becomes the agent's first user turn. Field name may be
+        // 'message' | 'prompt' | 'input' depending on your agent's webhook config —
+        // confirm in Hyperagent and adjust if needed.
+        const firstTurn =
+            'New Tendso submission to render. Use the tendso-studio skill and follow it exactly. Payload:\n\n' +
+            JSON.stringify(payload);
+
         try {
             const res = await fetch(webhookUrl, {
                 method: 'POST',
-                // Hyperagent's webhook expects the trigger token in this header
-                // (not Authorization: Bearer).
-                headers: { 'Content-Type': 'application/json', 'X-Hyperagent-Webhook-Secret': token },
-                body: JSON.stringify(payload),
+                headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                body: JSON.stringify({ message: firstTurn }),
             });
             if (!res.ok) throw new Error(`webhook ${res.status}: ${await res.text()}`);
             await ctx.runMutation(internal.hyperagent.setSyncStatus, {
@@ -134,63 +134,25 @@ export const triggerStudioRender = internalAction({
  * Ingest the agent's result: download each generated image into Convex storage,
  * then persist copy + images. Called from the /hyperagent-callback route.
  */
-// Base keys the website builder (app/api/generate-website) maps to page sections.
-// Two families: legacy role keys, and Tendso Studio v0.2 placement keys
-// (hero / portrait / gallery_<N>). An image whose base key is NOT here saves to
-// storage but never renders on the site, so we normalize + warn on anything off-contract.
-const BUILDER_IMAGE_BASES = [
-    // legacy role keys
-    'headshot', 'interior_1', 'interior_2', 'exterior', 'product_1', 'product_2',
-    // v0.2 placement keys
-    'hero', 'portrait',
-];
-
-// Normalize an agent-supplied image key to the builder's expected shape:
-// enforce the `enhanced_` prefix and tolerate `_vN` variants (the builder strips
-// `enhanced_` and `_vN`). Returns null for keys the builder can't map.
-function normalizeImageKey(rawKey: string): string | null {
-    let k = rawKey.trim();
-    if (!k.startsWith('enhanced_')) k = `enhanced_${k}`;
-    const base = k.replace(/^enhanced_/, '').replace(/_v\d+$/, '');
-    // gallery_<N> is an open-ended set the builder maps by prefix.
-    if (/^gallery_\d+$/.test(base)) return k;
-    return BUILDER_IMAGE_BASES.includes(base) ? k : null;
-}
-
 export const ingestStudioResult = internalAction({
     args: { submissionId: v.id('submissions'), content: v.any(), images: v.any() },
     handler: async (ctx, args) => {
         const enhancedImages: Record<string, { url: string | null; storageId: string }> = {};
         const images = (args.images || {}) as Record<string, string>;
 
-        for (const [rawKey, sourceUrl] of Object.entries(images)) {
+        for (const [key, sourceUrl] of Object.entries(images)) {
             if (typeof sourceUrl !== 'string' || !sourceUrl.startsWith('http')) continue;
-
-            // Map the key to the builder's contract. Keep an unmapped image (don't
-            // lose work) but log loudly — it won't show on the site until renamed.
-            const key = normalizeImageKey(rawKey);
-            if (!key) {
-                console.warn(
-                    `[STUDIO] image key '${rawKey}' is not a builder slot ` +
-                    `(${BUILDER_IMAGE_BASES.join(', ')}); storing as-is but it won't render on the website.`,
-                );
-            }
-            const storeKey = key ?? rawKey;
-
             try {
                 const resp = await fetch(sourceUrl);
                 if (!resp.ok) throw new Error(`fetch ${resp.status}`);
                 const blob = await resp.blob();
                 const storageId = await ctx.storage.store(blob);
                 const url = await ctx.storage.getUrl(storageId);
-                enhancedImages[storeKey] = { url, storageId };
+                enhancedImages[key] = { url, storageId };
             } catch (e) {
-                console.warn(`[STUDIO] could not store image ${storeKey}: ${e}`);
+                console.warn(`[STUDIO] could not store image ${key}: ${e}`);
             }
         }
-
-        const mapped = Object.keys(enhancedImages).filter((k) => normalizeImageKey(k));
-        console.log(`[STUDIO] stored ${Object.keys(enhancedImages).length} images, ${mapped.length} builder-mappable`);
 
         await ctx.runMutation(internal.hyperagent.saveStudioContent, {
             submissionId: args.submissionId,
@@ -215,12 +177,10 @@ export const saveStudioContent = internalMutation({
             }
         }
 
-        // generatedWebsites holds copy + images. NOTE: airtableSyncStatus lives on
-        // the *submissions* table (not generatedWebsites), matching the original
-        // Airtable path (airtable.ts updateSyncStatus) — set it separately below.
         const fields = {
             ...copy,
             enhancedImages: args.enhancedImages,
+            airtableSyncStatus: 'synced',
             airtableSyncedAt: Date.now(),
             updatedAt: Date.now(),
         };
@@ -235,9 +195,5 @@ export const saveStudioContent = internalMutation({
         } else {
             await ctx.db.insert('generatedWebsites', { submissionId: args.submissionId, ...fields });
         }
-
-        // Mark the submission synced (status field is on submissions, where the
-        // existing status UI / by_airtable_sync index read it).
-        await ctx.db.patch(args.submissionId, { airtableSyncStatus: 'synced' });
     },
 });
