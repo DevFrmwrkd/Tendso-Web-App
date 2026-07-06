@@ -1004,4 +1004,24 @@ export default defineSchema({
     })
         .index('by_source', ['source'])
         .index('by_createdAt', ['createdAt']),
+
+    // ==================== KNOWLEDGE TRAINING JOBS ====================
+    // One row per pasted question. The admin "Train AI" page enqueues these
+    // (fast mutation) and the scheduler processes them one at a time server-side,
+    // so a large batch can't time out the client action ("Connection lost").
+    knowledgeTrainingJobs: defineTable({
+        question: v.string(),
+        workspace: v.union(v.literal('help'), v.literal('wiki')),
+        categorySlug: v.optional(v.string()),
+        status: v.string(),                 // 'queued' | 'processing' | 'done' | 'error'
+        grounded: v.optional(v.boolean()),  // set when processed
+        answer: v.optional(v.string()),     // the drafted answer (for the UI)
+        error: v.optional(v.string()),
+        batchId: v.string(),                // groups a paste; lets the UI show batch progress
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index('by_status', ['status'])
+        .index('by_batch', ['batchId'])
+        .index('by_createdAt', ['createdAt']),
 });

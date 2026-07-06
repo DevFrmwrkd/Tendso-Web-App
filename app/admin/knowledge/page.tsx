@@ -12,17 +12,27 @@ import { api } from "@/convex/_generated/api";
 import { useAdminAuth } from "@/hooks/useAdmin";
 import AdminLayout from "../components/AdminLayout";
 import { Loader2, Sparkles, CheckCircle2, AlertTriangle, Trash2, ArrowRight, KeyRound, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 
 type Workspace = "help" | "wiki";
 type TrainResult = { question: string; answer: string; grounded: boolean };
 
 export default function AdminTrainAiPage() {
     const { isAdmin, loading } = useAdminAuth();
-    const train = useAction(api.knowledgeTraining.trainFromQuestions);
+    // Enqueue (fast) — server processes questions one at a time so a big batch
+    // can't time out the client ("Connection lost while action was in flight").
+    const enqueueTraining = useMutation(api.knowledgeTraining.enqueueTraining);
+    const trainQAPairs = useMutation(api.knowledgeTraining.trainQAPairs);
+    const resetDailyLimit = useMutation(api.knowledgeTraining.resetTrainingDailyLimit);
+    const trainingJobs = useQuery(api.knowledgeTraining.listTrainingJobs, isAdmin ? {} : "skip");
+    const clearJobs = useMutation(api.knowledgeTraining.clearFinishedTrainingJobs);
     const trained = useQuery(api.knowledgeTraining.listTrainingQA, isAdmin ? {} : "skip");
     const unanswered = useQuery(api.knowledgeTraining.listUnansweredQueries, isAdmin ? {} : "skip");
     const remove = useMutation(api.knowledgeTraining.deleteTrainingQA);
     const purgeAll = useMutation(api.knowledgeTraining.purgeAllTrainedQA);
+    const purgeUngrounded = useMutation(api.knowledgeTraining.purgeUngroundedQA);
+    const clearUnanswered = useMutation(api.knowledgeTraining.clearUnansweredQueries);
+    const reEmbedPending = useMutation(api.knowledgeTraining.reEmbedPendingQA);
 
     // AI-key health: the page can't run the AI without a usable Gemini key.
     const poolStats = useQuery(api.aiKeys.poolStats, isAdmin ? {} : "skip");
@@ -31,6 +41,9 @@ export default function AdminTrainAiPage() {
 
     const [text, setText] = useState("");
     const [workspace, setWorkspace] = useState<Workspace>("help");
+    // "pairs" = admin pastes "Question? Answer" lines, saved verbatim (no RAG, no
+    // daily limit). "generate" = paste questions, AI drafts answers from the KB.
+    const [mode, setMode] = useState<"pairs" | "generate">("pairs");
     const [running, setRunning] = useState(false);
     const [results, setResults] = useState<TrainResult[] | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -102,15 +115,42 @@ export default function AdminTrainAiPage() {
         setError(null);
         setResults(null);
         try {
-            const res = await train({ questions, workspace });
-            setResults(res);
-            setText("");
+            if (mode === "pairs") {
+                // Save admin-provided "Question? Answer" pairs verbatim. No RAG,
+                // no daily limit — instant, uses your exact answers.
+                const res = await trainQAPairs({ text, workspace });
+                if (res.saved === 0) {
+                    setError(res.skipped > 0
+                        ? `Nothing saved — all ${res.skipped} were duplicates.`
+                        : "No valid 'Question? Answer' pairs found. Each line needs a '?' then the answer.");
+                } else {
+                    setText("");
+                    toast.success(
+                        `${res.saved} answer${res.saved === 1 ? "" : "s"} learned!` +
+                        (res.skipped > 0 ? ` (${res.skipped} duplicate${res.skipped === 1 ? "" : "s"} skipped)` : ""),
+                        { description: "The AI is now studying them — they'll be ready to answer in a few seconds." }
+                    );
+                }
+            } else {
+                // Generate mode: enqueue questions; server drafts answers from the KB.
+                const res = await enqueueTraining({ questions, workspace });
+                setText("");
+                if (res.count === 0) {
+                    setError(res.note ?? "Nothing queued — all duplicates or a limit was hit.");
+                } else if (res.skipped > 0) {
+                    setError(`Queued ${res.count}. Skipped ${res.skipped} (duplicates or daily/queue limit).${res.note ? " " + res.note : ""}`);
+                }
+            }
         } catch (e) {
-            setError(e instanceof Error ? e.message : "Training failed.");
+            setError(e instanceof Error ? e.message : "Could not train.");
         } finally {
             setRunning(false);
         }
     };
+
+    // Live queue state derived from the jobs table.
+    const queuedCount = trainingJobs?.filter((j) => j.status === "queued" || j.status === "processing").length ?? 0;
+    const isProcessing = queuedCount > 0;
 
     return (
         <AdminLayout>
@@ -183,6 +223,26 @@ export default function AdminTrainAiPage() {
 
                 {/* Paste box */}
                 <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+                    {/* Mode toggle */}
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setMode("pairs")}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${mode === "pairs" ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-600"}`}
+                        >
+                            Q&A pairs (I provide answers)
+                        </button>
+                        <button
+                            onClick={() => setMode("generate")}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium ${mode === "generate" ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-600"}`}
+                        >
+                            AI generates answers
+                        </button>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                        {mode === "pairs"
+                            ? "One per line: the question, a “?”, then your answer. Saved exactly as written — instant, no AI answer-generation, no daily limit."
+                            : "One question per line. The AI drafts a grounded answer from the existing knowledge base (uses the daily AI budget)."}
+                    </p>
                     <div className="flex items-center gap-3">
                         <label className="text-sm font-medium text-gray-700">Workspace</label>
                         <select
@@ -191,29 +251,76 @@ export default function AdminTrainAiPage() {
                             className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm"
                         >
                             <option value="help">Help Center (public + chatbot + Discord)</option>
-                            <option value="wiki">Internal Wiki (field agents only)</option>
                         </select>
+                        <button
+                            onClick={async () => { const r = await resetDailyLimit({}); setError(`Daily AI limit reset (${r.reset} cleared).`); }}
+                            className="ml-auto text-xs text-gray-500 hover:text-amber-600 underline"
+                            title="Reset the daily AI answer-generation limit"
+                        >
+                            Reset daily limit
+                        </button>
                     </div>
                     <textarea
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         rows={8}
-                        placeholder={"How do I get paid?\nHow long does a website take to build?\nCan I use my own domain?"}
+                        placeholder={mode === "pairs"
+                            ? "How much does a website cost? ₱999, with an optional custom domain add-on.\nWhere does the business pay? Via a Wise payment link sent by email."
+                            : "How do I get paid?\nHow long does a website take to build?\nCan I use my own domain?"}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 font-mono text-sm"
                     />
                     <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-400">{questions.length} question{questions.length === 1 ? "" : "s"}</span>
+                        <span className="text-xs text-gray-400">{questions.length} line{questions.length === 1 ? "" : "s"}</span>
                         <button
                             onClick={handleTrain}
-                            disabled={running || questions.length === 0 || hasUsableKey === false}
-                            title={hasUsableKey === false ? "Add a Gemini key above first" : undefined}
+                            disabled={running || questions.length === 0 || (mode === "generate" && hasUsableKey === false)}
+                            title={mode === "generate" && hasUsableKey === false ? "Add a Gemini key above first" : undefined}
                             className="inline-flex items-center gap-2 h-11 px-6 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl disabled:opacity-50"
                         >
-                            {running ? <><Loader2 className="h-5 w-5 animate-spin" /> Teaching the AI…</> : <><Sparkles className="h-5 w-5" /> Train</>}
+                            {running
+                                ? <><Loader2 className="h-5 w-5 animate-spin" /> {mode === "pairs" ? "Saving…" : "Queuing…"}</>
+                                : <><Sparkles className="h-5 w-5" /> {mode === "pairs" ? "Save Q&A" : "Train"}</>}
                         </button>
                     </div>
                     {error && <p className="text-sm text-red-600">{error}</p>}
+                    {mode === "generate" && (
+                        <p className="text-xs text-gray-400">
+                            Questions are processed in the background one at a time — you can leave this page; results appear below as they finish.
+                        </p>
+                    )}
                 </div>
+
+                {/* Live processing queue */}
+                {trainingJobs && trainingJobs.length > 0 && (
+                    <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                {isProcessing ? <Loader2 className="h-4 w-4 animate-spin text-amber-500" /> : <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                                {isProcessing ? `Processing… ${queuedCount} left in queue` : "Queue idle"}
+                            </h2>
+                            <button onClick={() => clearJobs({})} className="text-xs text-gray-500 hover:text-red-600">Clear finished</button>
+                        </div>
+                        <div className="space-y-1 max-h-72 overflow-y-auto">
+                            {trainingJobs.map((j) => (
+                                <div key={j._id} className="flex items-start gap-2 text-sm py-1">
+                                    {j.status === "done" && j.grounded ? <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                                        : j.status === "done" ? <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                                        : j.status === "error" ? <AlertTriangle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                                        : <Loader2 className="h-4 w-4 text-gray-400 animate-spin shrink-0 mt-0.5" />}
+                                    <div className="min-w-0">
+                                        <p className="text-gray-900 truncate">{j.question}</p>
+                                        <p className="text-xs text-gray-500">
+                                            {j.status === "queued" ? "queued"
+                                                : j.status === "processing" ? "processing…"
+                                                : j.status === "error" ? `error: ${j.error}`
+                                                : j.grounded ? "learned ✓" : "not grounded — not saved"}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Results of the last run */}
                 {results && (
@@ -245,7 +352,15 @@ export default function AdminTrainAiPage() {
                 {/* Questions people asked that the AI couldn't answer */}
                 {unanswered && unanswered.length > 0 && (
                     <div className="bg-amber-50 border border-amber-200 rounded-xl p-5">
-                        <h2 className="text-sm font-semibold text-amber-800 mb-3">Questions the AI couldn&apos;t answer</h2>
+                        <div className="flex items-center justify-between mb-3">
+                            <h2 className="text-sm font-semibold text-amber-800">Questions the AI couldn&apos;t answer</h2>
+                            <button
+                                onClick={async () => { const r = await clearUnanswered({}); setError(`Cleared ${r.removed} unanswered question(s).`); }}
+                                className="inline-flex items-center gap-1.5 text-xs text-amber-700 hover:text-red-600"
+                            >
+                                <Trash2 className="h-3.5 w-3.5" /> Clear
+                            </button>
+                        </div>
                         <p className="text-xs text-amber-700 mb-3">Click to drop one into the box above, then Train.</p>
                         <div className="space-y-1">
                             {unanswered.map((u, i) => (
@@ -267,16 +382,43 @@ export default function AdminTrainAiPage() {
                     <div className="flex items-center justify-between mb-3">
                         <h2 className="text-sm font-semibold text-gray-700">Trained questions</h2>
                         {trained && trained.length > 0 && (
-                            <button
-                                onClick={async () => {
-                                    if (confirm("Delete ALL trained Q&A? This removes every question the AI learned here (hand-written articles are untouched). Use this to wipe a bad batch.")) {
-                                        await purgeAll({});
-                                    }
-                                }}
-                                className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-600"
-                            >
-                                <Trash2 className="h-3.5 w-3.5" /> Clear all
-                            </button>
+                            <div className="flex items-center gap-4">
+                                {/* Finish learning: retries any Q&A still stuck on "Learning…" */}
+                                {trained.some((t) => !t.embedded) && (
+                                    <button
+                                        onClick={async () => {
+                                            const r = await reEmbedPending({});
+                                            toast.success(`Resuming learning for ${r.retried} answer${r.retried === 1 ? "" : "s"}…`, {
+                                                description: "They'll be ready to answer shortly.",
+                                            });
+                                        }}
+                                        className="inline-flex items-center gap-1.5 text-xs text-amber-700 hover:text-amber-900"
+                                        title="Retry any answers still learning"
+                                    >
+                                        <RefreshCw className="h-3.5 w-3.5" /> Finish learning
+                                    </button>
+                                )}
+                                <button
+                                    onClick={async () => {
+                                        const r = await purgeUngrounded({});
+                                        toast.success(`Removed ${r.removed} unusable answer${r.removed === 1 ? "" : "s"}.`);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-amber-600"
+                                    title="Delete answers the AI couldn't actually answer"
+                                >
+                                    <AlertTriangle className="h-3.5 w-3.5" /> Remove unusable
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        if (confirm("Delete ALL trained Q&A? This removes every question the AI learned here (hand-written articles are untouched). Use this to wipe a bad batch.")) {
+                                            await purgeAll({});
+                                        }
+                                    }}
+                                    className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-600"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" /> Clear all
+                                </button>
+                            </div>
                         )}
                     </div>
                     {trained === undefined ? (
@@ -291,7 +433,7 @@ export default function AdminTrainAiPage() {
                                         <p className="text-sm font-medium text-gray-900">{t.question}</p>
                                         <p className="text-xs text-gray-500 mt-0.5">{t.answer}</p>
                                         <span className="text-[11px] mt-1 inline-block" style={{ color: t.embedded ? "#16a34a" : "#a16207" }}>
-                                            {t.embedded ? "● learned (embedded)" : "○ embedding…"} · {t.workspace}
+                                            {t.embedded ? "● Ready to answer" : "○ Learning…"} · {t.workspace}
                                         </span>
                                     </div>
                                     <button onClick={() => remove({ id: t._id })} className="text-gray-400 hover:text-red-600 shrink-0">
