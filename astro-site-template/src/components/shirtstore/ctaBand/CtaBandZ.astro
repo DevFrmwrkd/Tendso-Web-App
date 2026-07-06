@@ -1,0 +1,51 @@
+---
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const cta = content.ctaBand || content.closing || {};
+const tag = cta.tag || '';
+const headline = cta.heading || cta.headline || '';
+const sub = cta.body || cta.sub || '';
+const image = cta.image || (Array.isArray(cta.images) && cta.images[0]) || '';
+const cta1Text = cta.primary?.text || cta.cta1?.text || '';
+const cta1Href = cta.primary?.href || cta.cta1?.href || '#services';
+const cta2Text = cta.secondary?.text || cta.cta2?.text || '';
+const cta2Href = cta.secondary?.href || cta.cta2?.href || '#visit';
+const hasButtons = !!(cta1Text || cta2Text);
+---
+{(headline || hasButtons) && (
+  <section class="cta">
+    {image
+      ? <div class="cta-bg bg-img" data-image-field="ctaBand.image" style={`background-image:url('${image}');`}></div>
+      : <div class="cta-bg bg-img placeholder" data-image-field="ctaBand.image"></div>}
+    <div class="scrim"></div>
+    <div class="cta-in reveal">
+      {tag && <span class="eyebrow" data-field="ctaBand.tag">{tag}</span>}
+      {headline && <h2 data-field="ctaBand.heading" set:html={headline}></h2>}
+      {sub && <p class="cta-sub" data-field="ctaBand.body">{sub}</p>}
+      {hasButtons && (
+        <div class="cta-row">
+          {cta1Text && <a class="btn btn-fill" href={cta1Href} data-field="ctaBand.primary.text" data-href-field="ctaBand.primary.href">{cta1Text}</a>}
+          {cta2Text && <a class="btn btn-out" href={cta2Href} data-field="ctaBand.secondary.text" data-href-field="ctaBand.secondary.href">{cta2Text}</a>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .cta {
+    position: relative; min-height: min(82vh, 720px);
+    display: flex; align-items: center; justify-content: center; text-align: center; overflow: hidden;
+  }
+  .cta-bg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .scrim { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(26,23,20,.45), rgba(26,23,20,.62)); }
+  .cta-in { position: relative; z-index: 2; color: #fff; padding: 40px var(--pad); }
+  .cta .eyebrow { color: var(--accent-light, var(--accent)); }
+  .cta h2 { color: #fff; font-size: clamp(44px, 8vw, 128px); font-weight: 300; margin-top: 14px; }
+  .cta h2 :global(.it) { color: var(--accent-light, #E6CBB4); }
+  .cta-sub { color: rgba(255,255,255,.82); font-size: clamp(16px, 1.4vw, 19px); max-width: 52ch; margin: 20px auto 0; line-height: 1.6; }
+  .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 34px; }
+  .cta .btn-fill { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .cta .btn-fill:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cta .btn-out { color: #fff; border-color: rgba(255,255,255,.6); }
+  .cta .btn-out:hover { background: #fff; color: var(--ink); border-color: #fff; }
+</style>

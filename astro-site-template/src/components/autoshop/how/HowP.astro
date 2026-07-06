@@ -1,0 +1,50 @@
+---
+/**
+ * Autoshop / HowP — Foundry "how it works": 3 bordered steps in a hard-framed
+ * row with big outlined step numbers. Reads content.how.tag/headline/steps[]{step,title,body}.
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const how = content.how || {};
+const tag = how.tag || '';
+const headline = how.headline || '';
+type Step = { step?: string; title: string; body?: string; desc?: string; description?: string };
+const steps: Step[] = Array.isArray(how.steps) ? how.steps : (Array.isArray(how.items) ? how.items : []);
+---
+{steps.length > 0 && (
+  <section class="block" id="how">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="how.tag"><span class="dot"></span> {tag}</span>}
+          {headline && <h2 class="h-sect" data-field="how.headline" set:html={headline}></h2>}
+        </div>
+      </div>
+      <div class="steps">
+        {steps.map((step, i) => (
+          <div class="step reveal">
+            <span class="sn" data-field={`how.steps.${i}.step`}>{step.step || String(i + 1).padStart(2, '0')}</span>
+            <h3 data-field={`how.steps.${i}.title`}>{step.title}</h3>
+            {(step.body ?? step.desc ?? step.description) && (
+              <p data-field={`how.steps.${i}.body`}>{step.body ?? step.desc ?? step.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .block { padding-block: clamp(64px, 9vw, 120px); }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 2px solid var(--ink); }
+  .step { padding: 34px; border-right: 2px solid var(--ink); position: relative; }
+  .step:last-child { border-right: none; }
+  .step .sn { font-family: var(--display); font-size: 64px; color: var(--paper); -webkit-text-stroke: 2px var(--ink); line-height: 1; display: block; }
+  .step h3 { font-size: 22px; margin-top: 14px; }
+  .step p { margin-top: 10px; color: var(--muted); font-size: 15px; }
+  @media (max-width: 860px) {
+    .steps { grid-template-columns: 1fr; }
+    .step { border-right: none; border-bottom: 2px solid var(--ink); }
+    .step:last-child { border-bottom: none; }
+  }
+</style>

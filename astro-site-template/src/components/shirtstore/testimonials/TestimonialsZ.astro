@@ -1,0 +1,67 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const test = content.testimonials || {};
+const tag = test.tag || '';
+type Item = { quote: string; who?: string; role?: string; author?: string; name?: string; context?: string };
+const items: Item[] = Array.isArray(test.items) ? test.items : (Array.isArray(test) ? test : []);
+const norm = items.map((it) => ({
+  quote: it.quote,
+  by: [it.who ?? it.author ?? it.name, it.role ?? it.context].filter(Boolean).join(' · '),
+}));
+---
+{items.length > 0 && (
+  <section class="test" id="reviews">
+    <div class="wrap">
+      {tag && <span class="eyebrow" data-field="testimonials.tag">{tag}</span>}
+      <blockquote class="test-quote" id="tqZ" data-field="testimonials.items.0.quote" set:html={norm[0].quote}></blockquote>
+      <div class="test-by" id="tbZ" data-field="testimonials.items.0.who">{norm[0].by}</div>
+      {items.length > 1 && <div class="test-dots" id="tdZ"></div>}
+    </div>
+  </section>
+)}
+{items.length > 1 && (
+  <script is:inline define:vars={{ quotes: norm }}>
+    (function () {
+      var q = document.getElementById('tqZ'), b = document.getElementById('tbZ'), d = document.getElementById('tdZ');
+      if (!q || !b || !d) return;
+      var i = 0, timer;
+      quotes.forEach(function (_, n) {
+        var btn = document.createElement('button');
+        btn.setAttribute('aria-label', 'Review ' + (n + 1));
+        btn.addEventListener('click', function () { go(n); reset(); });
+        d.appendChild(btn);
+      });
+      function go(n) {
+        i = n; q.style.opacity = 0; b.style.opacity = 0;
+        q.style.transition = b.style.transition = 'opacity .35s';
+        setTimeout(function () {
+          q.innerHTML = quotes[n].quote; b.textContent = quotes[n].by;
+          q.style.opacity = 1; b.style.opacity = 1;
+          [].forEach.call(d.children, function (c, k) { c.setAttribute('aria-selected', k === n); });
+        }, 360);
+      }
+      function reset() { clearInterval(timer); timer = setInterval(function () { go((i + 1) % quotes.length); }, 5200); }
+      go(0); reset();
+    })();
+  </script>
+)}
+<style>
+  .test { padding: clamp(70px, 10vw, 150px) 0; text-align: center; background: var(--ink); color: var(--paper); }
+  .test .eyebrow { color: var(--accent-light, var(--accent)); }
+  .test-quote {
+    font-family: var(--serif); font-size: clamp(30px, 4.6vw, 62px); line-height: 1.14;
+    font-weight: 300; max-width: 20ch; margin: 28px auto 0; min-height: 2.3em; color: var(--paper);
+  }
+  .test-quote :global(.it) { color: var(--accent-light, var(--accent)); }
+  .test-by {
+    margin-top: 30px; font-family: var(--sans); font-size: 12px; letter-spacing: .18em;
+    text-transform: uppercase; color: rgba(var(--paper-rgb), .6);
+  }
+  .test-dots { display: flex; gap: 10px; justify-content: center; margin-top: 32px; }
+  .test-dots :global(button) {
+    width: 8px; height: 8px; border-radius: 50%; border: 1px solid rgba(var(--paper-rgb), .5);
+    background: transparent; cursor: pointer; padding: 0; transition: background .3s;
+  }
+  .test-dots :global(button[aria-selected="true"]) { background: var(--paper); }
+</style>

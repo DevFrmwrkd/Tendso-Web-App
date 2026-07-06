@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
 const isPublicRoute = createRouteMatcher([
     '/',
@@ -31,7 +32,17 @@ export default clerkMiddleware(async (auth, req) => {
     if (isPublicRoute(req)) {
         return;
     }
-    await auth.protect();
+    // Next.js 16 renamed middleware→proxy. In the proxy runtime, a bare
+    // auth.protect() resolves its redirect target to a 404 instead of the
+    // sign-in page (NEXT_PUBLIC_CLERK_SIGN_IN_URL isn't available there), so
+    // EVERY protected route 404'd. Redirect unauthenticated users to /login
+    // explicitly so protection works again.
+    const { userId } = await auth();
+    if (!userId) {
+        const signInUrl = new URL('/login', req.url);
+        signInUrl.searchParams.set('redirect_url', req.nextUrl.pathname);
+        return NextResponse.redirect(signInUrl);
+    }
 });
 
 export const config = {

@@ -1,0 +1,122 @@
+---
+/**
+ * autoshop / PageR — Volt.
+ * Clean light UI — electric blue on white, soft mist panels.
+ * Space Grotesk (display) + IBM Plex Sans (body).
+ * Palette tokens scoped to html[data-page="R"]. Reuses P-letter shared sections;
+ * ships its own centered floating-card hero (HeroR).
+ */
+import HeaderP from './header/HeaderP.astro';
+import HeroR from './hero/HeroR.astro';
+import TrustP from './trust/TrustP.astro';
+import AboutP from './about/AboutP.astro';
+import ServicesP from './services/ServicesP.astro';
+import WhyP from './why/WhyP.astro';
+import HowP from './how/HowP.astro';
+import TestimonialsP from './testimonials/TestimonialsP.astro';
+import GalleryP from './gallery/GalleryP.astro';
+import FaqP from './faq/FaqP.astro';
+import AreaP from './area/AreaP.astro';
+import CredentialsP from './credentials/CredentialsP.astro';
+import LocationP from './location/LocationP.astro';
+import CtaBandP from './ctaBand/CtaBandP.astro';
+import FooterP from './footer/FooterP.astro';
+import AutoshopSpine from './AutoshopSpine.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __themePairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="R">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+  <style is:global>
+    html[data-page="R"] {
+      --paper: #ffffff; --paper-2: #f3f5fb;
+      --ink: #0b1020; --ink-2: #33384a;
+      --paper-rgb: 255,255,255; --ink-rgb: 11,16,32;
+      --accent: #2f5bff; --accent-rgb: 47,91,255;
+      --line: #e4e8f2;
+      --muted: #5a6478; --muted-light: rgba(255,255,255, .68);
+      --display: "Space Grotesk", system-ui, sans-serif;
+      --sans: "IBM Plex Sans", system-ui, sans-serif;
+      --mono: "Space Grotesk", monospace;
+      --serif: "Space Grotesk", system-ui, sans-serif;
+      --pad: clamp(20px, 4.5vw, 72px); --maxw: 1200px;
+      --on-accent: #ffffff; --on-ink: #ffffff; --on-paper: #0b1020;
+    }
+  </style>
+  <AutoshopSpine />
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <HeaderP layout={layout} content={content} />
+  <main id="top">
+    {visibility.heroSection !== false && <HeroR content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustP content={content} />}
+    {visibility.aboutSection !== false && <AboutP content={content} />}
+    {visibility.servicesSection !== false && <ServicesP content={content} />}
+    {visibility.whyUsBlock !== false && <WhyP content={content} />}
+    {visibility.howItWorksBlock !== false && <HowP content={content} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsP content={content} />}
+    {visibility.gallerySection !== false && <GalleryP content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqP content={content} />}
+    {visibility.serviceAreaBlock !== false && <AreaP content={content} />}
+    {visibility.credentialsBlock !== false && <CredentialsP content={content} />}
+    {visibility.locationBlock !== false && <LocationP content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandP content={content} layout={layout} />}
+  <FooterP layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce && !document.hidden) {
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
+        document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+      } else {
+        document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+      }
+      var hdr = document.querySelector('header.site');
+      if (hdr) {
+        var onScroll = function () { if (window.scrollY > 16) hdr.classList.add('scrolled'); else hdr.classList.remove('scrolled'); };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+      window.__autoshopInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map'); if (!el) return;
+        el.innerHTML = '';
+        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 15);
+        L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
+        var icon = L.divIcon({ className: '', html: '<div style="width:20px;height:20px;border-radius:50% 50% 50% 0;background:#2f5bff;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 4px 12px rgba(47,91,255,.5);"></div>', iconSize: [20, 20], iconAnchor: [10, 18] });
+        L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup('<b>' + label + '</b>');
+      };
+    })();
+  </script>
+</body>
+</html>

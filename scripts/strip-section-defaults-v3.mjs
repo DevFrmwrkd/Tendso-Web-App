@@ -18,6 +18,9 @@ const TARGET_DIRS = [
     path.join(ROOT, 'astro-site-template', 'src', 'components', 'generic'),
     path.join(ROOT, 'astro-site-template', 'src', 'components', 'barbershop'),
     path.join(ROOT, 'astro-site-template', 'src', 'components', 'salonspa'),
+    path.join(ROOT, 'astro-site-template', 'src', 'components', 'autoshop'),
+    path.join(ROOT, 'astro-site-template', 'src', 'components', 'restaurant'),
+    path.join(ROOT, 'astro-site-template', 'src', 'components', 'shirtstore'),
 ];
 
 function findMatchingBracket(src, openIdx) {
@@ -89,8 +92,9 @@ async function main() {
     let totalFiles = 0;
     let totalChanges = 0;
     for (const file of files) {
-        // Skip PageX wrappers — no defaults to strip.
-        if (/Page[A-O]\.astro$/.test(file)) continue;
+        // Skip PageX wrappers — no defaults to strip. Covers single-letter
+        // A–O plus two-letter shirtstore wrappers (PageZ, PageAA…PageAD).
+        if (/Page(?:[A-Z]|A[A-D])\.astro$/.test(file)) continue;
         const orig = await fs.readFile(file, 'utf-8');
         const m = orig.match(/^---\r?\n([\s\S]*?)\r?\n---/);
         if (!m) continue;

@@ -1,0 +1,35 @@
+---
+/**
+ * Autoshop / TrustP — Foundry trust strip: 4-cell dark bar with big accent
+ * numbers over muted labels. Reads content.trust.cells[]{num,label}.
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const trust = content.trust || {};
+const cells: Array<{ num: string; label: string }> = Array.isArray(trust.cells) ? trust.cells : [];
+---
+{cells.length > 0 && (
+  <section class="trust">
+    <div class="trust-grid">
+      {cells.map((cell, i) => (
+        <div class="reveal">
+          <b data-field={`trust.cells.${i}.num`} set:html={cell.num}></b>
+          <span data-field={`trust.cells.${i}.label`}>{cell.label}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+<style>
+  .trust { background: var(--ink); color: var(--paper); }
+  .trust-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+  .trust-grid > div { padding: 30px var(--pad); border-right: 1px solid rgba(var(--paper-rgb), .18); }
+  .trust-grid > div:last-child { border-right: none; }
+  .trust-grid b { font-family: var(--display); font-size: clamp(30px, 4vw, 46px); display: block; line-height: 1; color: var(--accent); }
+  .trust-grid span { display: block; margin-top: 8px; font-size: 13px; color: rgba(var(--paper-rgb), .7); }
+  @media (max-width: 860px) {
+    .trust-grid { grid-template-columns: 1fr 1fr; }
+    .trust-grid > div:nth-child(2) { border-right: none; }
+    .trust-grid > div { border-bottom: 1px solid rgba(var(--paper-rgb), .18); }
+  }
+</style>

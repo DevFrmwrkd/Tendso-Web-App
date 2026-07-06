@@ -1,0 +1,67 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const about = content.about || {};
+const tag = about.tag || '';
+const headline = about.headline || '';
+const paragraphs: string[] = Array.isArray(about.paragraphs)
+  ? about.paragraphs
+  : (about.body ? [about.body] : []);
+const image = about.image || (Array.isArray(about.images) && about.images[0]) || '';
+const caption = about.caption || '';
+const sign = about.quote || about.sign || '';
+---
+<section class="phil" id="about">
+  <div class="wrap">
+    <div class="phil-grid">
+      <div class="phil-fig reveal">
+        {image
+          ? <div class="bg-img" data-image-field="about.image" style={`background-image:url('${image}');`}></div>
+          : <div class="bg-img placeholder" data-image-field="about.image"></div>}
+        {caption && <span class="cap" data-field="about.caption">{caption}</span>}
+      </div>
+      <div class="phil-body reveal">
+        {tag && <span class="kicker olive" data-field="about.tag">{tag}</span>}
+        {headline && <h2 data-field="about.headline" set:html={headline}></h2>}
+        {paragraphs.map((p: string, i: number) => (
+          <p class={i === 0 ? 'lead-p' : ''} data-field={`about.paragraphs.${i}`} set:html={p}></p>
+        ))}
+        {sign && <div class="phil-sign" data-field="about.quote">{sign}</div>}
+      </div>
+    </div>
+  </div>
+</section>
+<style>
+  .phil { padding-block: clamp(78px, 10vw, 160px); }
+  .phil-grid {
+    display: grid; grid-template-columns: 1.05fr .95fr;
+    gap: clamp(40px, 6vw, 100px); align-items: center;
+  }
+  .phil-fig { position: relative; }
+  .phil-fig .bg-img {
+    height: clamp(440px, 56vw, 660px); width: 100%;
+    background-size: cover; background-position: center; background-color: var(--paper-2);
+  }
+  .phil-fig .placeholder { background: repeating-linear-gradient(45deg, var(--paper-2) 0 14px, var(--paper) 14px 28px); }
+  .phil-fig .cap {
+    position: absolute; left: 0; bottom: -1px; background: var(--paper);
+    padding: 14px 24px 0 0; font-family: var(--sans); font-size: 11px;
+    letter-spacing: .2em; text-transform: uppercase; color: var(--stone, var(--muted));
+  }
+  .phil-body .kicker { margin-bottom: 28px; }
+  .phil-body h2 {
+    font-family: var(--serif); font-weight: 300;
+    font-size: clamp(34px, 4.6vw, 62px); margin-bottom: 30px; line-height: 1.04;
+  }
+  .phil-body h2 :global(em) { font-style: italic; color: var(--accent); }
+  .phil-body p { color: var(--ink); margin: 0 0 22px; max-width: 48ch; }
+  .phil-body p.lead-p { font-size: 21px; }
+  .phil-sign {
+    font-family: var(--serif); font-style: italic; font-size: 22px;
+    color: var(--olive-2); margin-top: 24px;
+  }
+  @media (max-width: 860px) {
+    .phil-grid { grid-template-columns: 1fr; }
+    .phil-fig .bg-img { height: 64vw; }
+  }
+</style>

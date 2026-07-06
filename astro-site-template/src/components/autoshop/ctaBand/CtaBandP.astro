@@ -1,0 +1,42 @@
+---
+/**
+ * Autoshop / CtaBandP — Foundry closing CTA: full-width accent band, big
+ * centered headline, and two buttons. Reads
+ * content.ctaBand.heading/body/primary{text,href}/secondary. Accepts
+ * headline/sub/cta1/cta2 aliases so the shape stays portable.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const cta = content.ctaBand || content.closing || {};
+const headline = cta.heading || cta.headline || '';
+const sub = cta.body || cta.sub || '';
+const primary = cta.primary || cta.cta1 || {};
+const secondary = cta.secondary || cta.cta2 || {};
+const cta1Text = primary.text || '';
+const cta1Href = primary.href || '#book';
+const cta2Text = secondary.text || '';
+const cta2Href = secondary.href || (layout.contact?.phone ? `tel:${String(layout.contact.phone).replace(/[^0-9+]/g, '')}` : '#top');
+const hasButtons = !!(cta1Text || cta2Text);
+---
+{(headline || hasButtons) && (
+  <section class="cta-band" id="book">
+    <div class="wrap reveal">
+      {headline && <h2 data-field="ctaBand.heading" set:html={headline}></h2>}
+      {sub && <p data-field="ctaBand.body">{sub}</p>}
+      {hasButtons && (
+        <div class="cta-actions">
+          {cta1Text && <a class="btn" href={cta1Href} data-field="ctaBand.primary.text" data-href-field="ctaBand.primary.href">{cta1Text}</a>}
+          {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="ctaBand.secondary.text" data-href-field="ctaBand.secondary.href">{cta2Text}</a>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .cta-band { background: var(--accent); color: var(--on-accent, var(--ink)); border-block: 2px solid var(--ink); text-align: center; padding-block: clamp(60px, 9vw, 120px); }
+  .cta-band h2 { font-size: clamp(40px, 7vw, 96px); color: var(--on-accent, var(--ink)); }
+  .cta-band p { max-width: 50ch; margin: 20px auto 0; font-size: 18px; color: var(--on-accent, var(--ink)); opacity: .82; }
+  .cta-actions { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 34px; }
+  .cta-band .btn--ghost { border-color: var(--ink); color: var(--ink); }
+  .cta-band .btn--ghost:hover { box-shadow: 6px 6px 0 var(--ink); background: var(--ink); color: var(--accent); }
+</style>

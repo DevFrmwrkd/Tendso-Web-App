@@ -80,8 +80,38 @@ const SALONSPA_TEMPLATES = [
     { letter: 'O', code: 'salonspa:O', label: 'Bloom',    tagline: 'Mauve + cream · romantic',              preview: '/template-previews/o.html' },
 ] as const;
 
-type TemplateFamily = 'generic' | 'barbershop' | 'salonspa';
-const ALL_TEMPLATES = [...GENERIC_TEMPLATES, ...BARBERSHOP_TEMPLATES, ...SALONSPA_TEMPLATES] as readonly { letter: string; code: string; label: string; tagline: string; preview: string }[];
+// ── AUTOSHOP · 5 letter variants P–T ─────────────────────────────────
+// Codes map to `customizations.heroStyle = "autoshop:<letter>"` → PageP…PageT.
+const AUTOSHOP_TEMPLATES = [
+    { letter: 'P', code: 'autoshop:P', label: 'Foundry',      tagline: 'Concrete + hazard orange · industrial', preview: '/template-previews/p.html' },
+    { letter: 'Q', code: 'autoshop:Q', label: 'Meridian',     tagline: 'Clean steel · precision service',       preview: '/template-previews/q.html' },
+    { letter: 'R', code: 'autoshop:R', label: 'Volt',         tagline: 'Electric accent · EV / modern',         preview: '/template-previews/r.html' },
+    { letter: 'S', code: 'autoshop:S', label: 'Redline',      tagline: 'Bold red · performance shop',            preview: '/template-previews/s.html' },
+    { letter: 'T', code: 'autoshop:T', label: 'Maple Street', tagline: 'Warm neighbourhood · trusted garage',    preview: '/template-previews/t.html' },
+] as const;
+
+// ── RESTAURANT · 5 letter variants U–Y ───────────────────────────────
+// Codes map to `customizations.heroStyle = "restaurant:<letter>"` → PageU…PageY.
+const RESTAURANT_TEMPLATES = [
+    { letter: 'U', code: 'restaurant:U', label: 'Harvest',  tagline: 'Rustic + olive · farm-to-table',      preview: '/template-previews/u.html' },
+    { letter: 'V', code: 'restaurant:V', label: 'Atelier',  tagline: 'Minimal · refined dining',            preview: '/template-previews/v.html' },
+    { letter: 'W', code: 'restaurant:W', label: 'Press',    tagline: 'Bold type · casual eatery',           preview: '/template-previews/w.html' },
+    { letter: 'X', code: 'restaurant:X', label: 'Ember',    tagline: 'Cinematic · fine dining',             preview: '/template-previews/x.html' },
+    { letter: 'Y', code: 'restaurant:Y', label: 'Garden',   tagline: 'Playful · cafe / brunch',             preview: '/template-previews/y.html' },
+] as const;
+
+// ── SHIRTSTORE · 5 letter variants Z, AA–AD ──────────────────────────
+// Codes map to `customizations.heroStyle = "shirtstore:<letter>"` → PageZ…PageAD.
+const SHIRTSTORE_TEMPLATES = [
+    { letter: 'Z',  code: 'shirtstore:Z',  label: 'Editorial',   tagline: 'Warm editorial · apparel brand',    preview: '/template-previews/z.html' },
+    { letter: 'AA', code: 'shirtstore:AA', label: 'Streetwear',  tagline: 'Bold urban · drops / merch',        preview: '/template-previews/aa.html' },
+    { letter: 'AB', code: 'shirtstore:AB', label: 'Artisan',     tagline: 'Handmade · small-batch',            preview: '/template-previews/ab.html' },
+    { letter: 'AC', code: 'shirtstore:AC', label: 'Modern',      tagline: 'Clean minimal · DTC store',         preview: '/template-previews/ac.html' },
+    { letter: 'AD', code: 'shirtstore:AD', label: 'Kinetic',     tagline: 'Energetic · statement tees',        preview: '/template-previews/ad.html' },
+] as const;
+
+type TemplateFamily = 'generic' | 'barbershop' | 'salonspa' | 'autoshop' | 'restaurant' | 'shirtstore';
+const ALL_TEMPLATES = [...GENERIC_TEMPLATES, ...BARBERSHOP_TEMPLATES, ...SALONSPA_TEMPLATES, ...AUTOSHOP_TEMPLATES, ...RESTAURANT_TEMPLATES, ...SHIRTSTORE_TEMPLATES] as readonly { letter: string; code: string; label: string; tagline: string; preview: string }[];
 
 // ── BUCKETS · pick-one categories ────────────────────────────────────
 // `business_type` carries forward, but the variant-prefix routing was
@@ -409,13 +439,22 @@ export default function SandboxEditor(props: SandboxEditorProps) {
     // belongs to that family; collapsed otherwise (still expandable).
     const __initStyle = String((customizations as any)?.heroStyle ?? "");
     const [templateAccordionOpen, setTemplateAccordionOpen] = useState<boolean>(
-        () => /^generic:[A-E]$/.test(__initStyle) || !/^(generic|barbershop|salonspa):/.test(__initStyle),
+        () => /^generic:[A-E]$/.test(__initStyle) || !/^(generic|barbershop|salonspa|autoshop|restaurant|shirtstore):/.test(__initStyle),
     );
     const [barbershopAccordionOpen, setBarbershopAccordionOpen] = useState<boolean>(
         () => /^barbershop:[F-J]$/.test(__initStyle),
     );
     const [salonspaAccordionOpen, setSalonspaAccordionOpen] = useState<boolean>(
         () => /^salonspa:[K-O]$/.test(__initStyle),
+    );
+    const [autoshopAccordionOpen, setAutoshopAccordionOpen] = useState<boolean>(
+        () => /^autoshop:[P-T]$/.test(__initStyle),
+    );
+    const [restaurantAccordionOpen, setRestaurantAccordionOpen] = useState<boolean>(
+        () => /^restaurant:[U-Y]$/.test(__initStyle),
+    );
+    const [shirtstoreAccordionOpen, setShirtstoreAccordionOpen] = useState<boolean>(
+        () => /^shirtstore:(Z|A[A-D])$/.test(__initStyle),
     );
 
     // Click-to-focus: iframe sends ed:click → either focus a text input
@@ -853,7 +892,10 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                             // See TEMPLATE-FAMILY-PLAYBOOK.md §"Branded-family
                             // picks reset theme picks" for full context.
                             const isBranded = BARBERSHOP_TEMPLATES.some((t) => t.code === code)
-                                || SALONSPA_TEMPLATES.some((t) => t.code === code);
+                                || SALONSPA_TEMPLATES.some((t) => t.code === code)
+                                || AUTOSHOP_TEMPLATES.some((t) => t.code === code)
+                                || RESTAURANT_TEMPLATES.some((t) => t.code === code)
+                                || SHIRTSTORE_TEMPLATES.some((t) => t.code === code);
                             setPendingCustomizations((prev: any) => {
                                 const base = prev ?? customizations ?? {};
                                 return {
@@ -887,7 +929,13 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                                 ? 'barbershop'
                                 : SALONSPA_TEMPLATES.some((t) => t.code === activeTpl.code)
                                     ? 'salonspa'
-                                    : 'generic')
+                                    : AUTOSHOP_TEMPLATES.some((t) => t.code === activeTpl.code)
+                                        ? 'autoshop'
+                                        : RESTAURANT_TEMPLATES.some((t) => t.code === activeTpl.code)
+                                            ? 'restaurant'
+                                            : SHIRTSTORE_TEMPLATES.some((t) => t.code === activeTpl.code)
+                                                ? 'shirtstore'
+                                                : 'generic')
                             : null;
                         return (
                             <div className="space-y-3">
@@ -1418,6 +1466,510 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                                     </details>
                                 </div>
 
+                                {/* ── AUTOSHOP family ───────────────────────── */}
+                                <div className={s.section}>
+                                    <details
+                                        open={autoshopAccordionOpen}
+                                        onToggle={(e) => setAutoshopAccordionOpen((e.target as HTMLDetailsElement).open)}
+                                        style={{
+                                            borderRadius: 10,
+                                            overflow: "hidden",
+                                            background: "var(--sx-panel-2)",
+                                            border: "1px solid var(--sx-rule)",
+                                        }}
+                                    >
+                                        <summary
+                                            style={{
+                                                listStyle: "none",
+                                                cursor: "pointer",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                padding: "12px 14px",
+                                                color: "var(--sx-ink)",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+                                                <div
+                                                    style={{
+                                                        fontFamily: "var(--sx-mono)",
+                                                        fontSize: 10,
+                                                        fontWeight: 700,
+                                                        letterSpacing: "0.16em",
+                                                        textTransform: "uppercase",
+                                                        color: "var(--sx-accent)",
+                                                    }}
+                                                >
+                                                    Auto Shop
+                                                </div>
+                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                    {activeFamily === 'autoshop' && activeTpl ? activeTpl.label : "Auto shop family · 5 variants"}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: "var(--sx-ink-soft)",
+                                                        whiteSpace: "nowrap",
+                                                        overflow: "hidden",
+                                                        textOverflow: "ellipsis",
+                                                    }}
+                                                >
+                                                    {activeFamily === 'autoshop' && activeTpl ? activeTpl.tagline : "Click to browse auto shop designs"}
+                                                </div>
+                                            </div>
+                                            <ChevronDown
+                                                style={{
+                                                    width: 14,
+                                                    height: 14,
+                                                    color: "var(--sx-ink-soft)",
+                                                    transition: "transform .18s",
+                                                    transform: autoshopAccordionOpen ? "rotate(180deg)" : "none",
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        </summary>
+                                        <div
+                                            style={{
+                                                padding: "8px 12px 14px",
+                                                borderTop: "1px solid var(--sx-rule)",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            {AUTOSHOP_TEMPLATES.map((tpl) => {
+                                                const isActive = currentHeroStyle === tpl.code;
+                                                return (
+                                                    <button
+                                                        key={tpl.code}
+                                                        type="button"
+                                                        onClick={() => onPickTemplate(tpl.code)}
+                                                        style={{
+                                                            display: "block",
+                                                            width: "100%",
+                                                            textAlign: "left",
+                                                            padding: 0,
+                                                            background: isActive ? "rgba(16, 185, 129, 0.08)" : "var(--sx-panel)",
+                                                            border: isActive ? "1.5px solid var(--sx-accent)" : "1px solid var(--sx-rule)",
+                                                            borderRadius: 10,
+                                                            overflow: "hidden",
+                                                            cursor: "pointer",
+                                                            transition: "border-color .15s, transform .15s",
+                                                            fontFamily: "var(--sx-sans)",
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                width: "100%",
+                                                                aspectRatio: "16 / 10",
+                                                                background: "#fff",
+                                                                borderBottom: "1px solid var(--sx-rule)",
+                                                                position: "relative",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            <iframe
+                                                                src={tpl.preview}
+                                                                title={`${tpl.label} preview`}
+                                                                loading="lazy"
+                                                                sandbox=""
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: "300%",
+                                                                    height: "300%",
+                                                                    border: 0,
+                                                                    transform: "scale(0.333)",
+                                                                    transformOrigin: "top left",
+                                                                    pointerEvents: "none",
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div style={{ padding: "10px 14px 12px" }}>
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    gap: 8,
+                                                                    justifyContent: "space-between",
+                                                                }}
+                                                            >
+                                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                                    {tpl.label}
+                                                                </div>
+                                                                {isActive && (
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: 9,
+                                                                            fontWeight: 700,
+                                                                            textTransform: "uppercase",
+                                                                            letterSpacing: "0.1em",
+                                                                            color: "var(--sx-accent)",
+                                                                            background: "rgba(16, 185, 129, 0.18)",
+                                                                            borderRadius: 999,
+                                                                            padding: "2px 7px",
+                                                                            fontFamily: "var(--sx-mono)",
+                                                                        }}
+                                                                    >
+                                                                        Active
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: "var(--sx-ink-soft)",
+                                                                    marginTop: 4,
+                                                                }}
+                                                            >
+                                                                {tpl.tagline}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </details>
+                                </div>
+
+                                {/* ── RESTAURANT family ─────────────────────── */}
+                                <div className={s.section}>
+                                    <details
+                                        open={restaurantAccordionOpen}
+                                        onToggle={(e) => setRestaurantAccordionOpen((e.target as HTMLDetailsElement).open)}
+                                        style={{
+                                            borderRadius: 10,
+                                            overflow: "hidden",
+                                            background: "var(--sx-panel-2)",
+                                            border: "1px solid var(--sx-rule)",
+                                        }}
+                                    >
+                                        <summary
+                                            style={{
+                                                listStyle: "none",
+                                                cursor: "pointer",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                padding: "12px 14px",
+                                                color: "var(--sx-ink)",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+                                                <div
+                                                    style={{
+                                                        fontFamily: "var(--sx-mono)",
+                                                        fontSize: 10,
+                                                        fontWeight: 700,
+                                                        letterSpacing: "0.16em",
+                                                        textTransform: "uppercase",
+                                                        color: "var(--sx-accent)",
+                                                    }}
+                                                >
+                                                    Restaurant
+                                                </div>
+                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                    {activeFamily === 'restaurant' && activeTpl ? activeTpl.label : "Restaurant family · 5 variants"}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: "var(--sx-ink-soft)",
+                                                        whiteSpace: "nowrap",
+                                                        overflow: "hidden",
+                                                        textOverflow: "ellipsis",
+                                                    }}
+                                                >
+                                                    {activeFamily === 'restaurant' && activeTpl ? activeTpl.tagline : "Click to browse restaurant designs"}
+                                                </div>
+                                            </div>
+                                            <ChevronDown
+                                                style={{
+                                                    width: 14,
+                                                    height: 14,
+                                                    color: "var(--sx-ink-soft)",
+                                                    transition: "transform .18s",
+                                                    transform: restaurantAccordionOpen ? "rotate(180deg)" : "none",
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        </summary>
+                                        <div
+                                            style={{
+                                                padding: "8px 12px 14px",
+                                                borderTop: "1px solid var(--sx-rule)",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            {RESTAURANT_TEMPLATES.map((tpl) => {
+                                                const isActive = currentHeroStyle === tpl.code;
+                                                return (
+                                                    <button
+                                                        key={tpl.code}
+                                                        type="button"
+                                                        onClick={() => onPickTemplate(tpl.code)}
+                                                        style={{
+                                                            display: "block",
+                                                            width: "100%",
+                                                            textAlign: "left",
+                                                            padding: 0,
+                                                            background: isActive ? "rgba(16, 185, 129, 0.08)" : "var(--sx-panel)",
+                                                            border: isActive ? "1.5px solid var(--sx-accent)" : "1px solid var(--sx-rule)",
+                                                            borderRadius: 10,
+                                                            overflow: "hidden",
+                                                            cursor: "pointer",
+                                                            transition: "border-color .15s, transform .15s",
+                                                            fontFamily: "var(--sx-sans)",
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                width: "100%",
+                                                                aspectRatio: "16 / 10",
+                                                                background: "#fff",
+                                                                borderBottom: "1px solid var(--sx-rule)",
+                                                                position: "relative",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            <iframe
+                                                                src={tpl.preview}
+                                                                title={`${tpl.label} preview`}
+                                                                loading="lazy"
+                                                                sandbox=""
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: "300%",
+                                                                    height: "300%",
+                                                                    border: 0,
+                                                                    transform: "scale(0.333)",
+                                                                    transformOrigin: "top left",
+                                                                    pointerEvents: "none",
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div style={{ padding: "10px 14px 12px" }}>
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    gap: 8,
+                                                                    justifyContent: "space-between",
+                                                                }}
+                                                            >
+                                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                                    {tpl.label}
+                                                                </div>
+                                                                {isActive && (
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: 9,
+                                                                            fontWeight: 700,
+                                                                            textTransform: "uppercase",
+                                                                            letterSpacing: "0.1em",
+                                                                            color: "var(--sx-accent)",
+                                                                            background: "rgba(16, 185, 129, 0.18)",
+                                                                            borderRadius: 999,
+                                                                            padding: "2px 7px",
+                                                                            fontFamily: "var(--sx-mono)",
+                                                                        }}
+                                                                    >
+                                                                        Active
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: "var(--sx-ink-soft)",
+                                                                    marginTop: 4,
+                                                                }}
+                                                            >
+                                                                {tpl.tagline}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </details>
+                                </div>
+
+                                {/* ── SHIRTSTORE family ─────────────────────── */}
+                                <div className={s.section}>
+                                    <details
+                                        open={shirtstoreAccordionOpen}
+                                        onToggle={(e) => setShirtstoreAccordionOpen((e.target as HTMLDetailsElement).open)}
+                                        style={{
+                                            borderRadius: 10,
+                                            overflow: "hidden",
+                                            background: "var(--sx-panel-2)",
+                                            border: "1px solid var(--sx-rule)",
+                                        }}
+                                    >
+                                        <summary
+                                            style={{
+                                                listStyle: "none",
+                                                cursor: "pointer",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "space-between",
+                                                padding: "12px 14px",
+                                                color: "var(--sx-ink)",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+                                                <div
+                                                    style={{
+                                                        fontFamily: "var(--sx-mono)",
+                                                        fontSize: 10,
+                                                        fontWeight: 700,
+                                                        letterSpacing: "0.16em",
+                                                        textTransform: "uppercase",
+                                                        color: "var(--sx-accent)",
+                                                    }}
+                                                >
+                                                    Shirt Store
+                                                </div>
+                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                    {activeFamily === 'shirtstore' && activeTpl ? activeTpl.label : "Shirt store family · 5 variants"}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontSize: 11,
+                                                        color: "var(--sx-ink-soft)",
+                                                        whiteSpace: "nowrap",
+                                                        overflow: "hidden",
+                                                        textOverflow: "ellipsis",
+                                                    }}
+                                                >
+                                                    {activeFamily === 'shirtstore' && activeTpl ? activeTpl.tagline : "Click to browse shirt store designs"}
+                                                </div>
+                                            </div>
+                                            <ChevronDown
+                                                style={{
+                                                    width: 14,
+                                                    height: 14,
+                                                    color: "var(--sx-ink-soft)",
+                                                    transition: "transform .18s",
+                                                    transform: shirtstoreAccordionOpen ? "rotate(180deg)" : "none",
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        </summary>
+                                        <div
+                                            style={{
+                                                padding: "8px 12px 14px",
+                                                borderTop: "1px solid var(--sx-rule)",
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 12,
+                                            }}
+                                        >
+                                            {SHIRTSTORE_TEMPLATES.map((tpl) => {
+                                                const isActive = currentHeroStyle === tpl.code;
+                                                return (
+                                                    <button
+                                                        key={tpl.code}
+                                                        type="button"
+                                                        onClick={() => onPickTemplate(tpl.code)}
+                                                        style={{
+                                                            display: "block",
+                                                            width: "100%",
+                                                            textAlign: "left",
+                                                            padding: 0,
+                                                            background: isActive ? "rgba(16, 185, 129, 0.08)" : "var(--sx-panel)",
+                                                            border: isActive ? "1.5px solid var(--sx-accent)" : "1px solid var(--sx-rule)",
+                                                            borderRadius: 10,
+                                                            overflow: "hidden",
+                                                            cursor: "pointer",
+                                                            transition: "border-color .15s, transform .15s",
+                                                            fontFamily: "var(--sx-sans)",
+                                                        }}
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                width: "100%",
+                                                                aspectRatio: "16 / 10",
+                                                                background: "#fff",
+                                                                borderBottom: "1px solid var(--sx-rule)",
+                                                                position: "relative",
+                                                                overflow: "hidden",
+                                                            }}
+                                                        >
+                                                            <iframe
+                                                                src={tpl.preview}
+                                                                title={`${tpl.label} preview`}
+                                                                loading="lazy"
+                                                                sandbox=""
+                                                                style={{
+                                                                    position: "absolute",
+                                                                    top: 0,
+                                                                    left: 0,
+                                                                    width: "300%",
+                                                                    height: "300%",
+                                                                    border: 0,
+                                                                    transform: "scale(0.333)",
+                                                                    transformOrigin: "top left",
+                                                                    pointerEvents: "none",
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        <div style={{ padding: "10px 14px 12px" }}>
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    gap: 8,
+                                                                    justifyContent: "space-between",
+                                                                }}
+                                                            >
+                                                                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--sx-ink)" }}>
+                                                                    {tpl.label}
+                                                                </div>
+                                                                {isActive && (
+                                                                    <span
+                                                                        style={{
+                                                                            fontSize: 9,
+                                                                            fontWeight: 700,
+                                                                            textTransform: "uppercase",
+                                                                            letterSpacing: "0.1em",
+                                                                            color: "var(--sx-accent)",
+                                                                            background: "rgba(16, 185, 129, 0.18)",
+                                                                            borderRadius: 999,
+                                                                            padding: "2px 7px",
+                                                                            fontFamily: "var(--sx-mono)",
+                                                                        }}
+                                                                    >
+                                                                        Active
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div
+                                                                style={{
+                                                                    fontSize: 11,
+                                                                    color: "var(--sx-ink-soft)",
+                                                                    marginTop: 4,
+                                                                }}
+                                                            >
+                                                                {tpl.tagline}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </details>
+                                </div>
+
                                 <div
                                     style={{
                                         padding: 14,
@@ -1451,7 +2003,7 @@ export default function SandboxEditor(props: SandboxEditorProps) {
                     })()}
 
                     {/* ── CONTENT ──────────────────────────────── */}
-                    {tab === "content" && /^(generic:[A-E]|barbershop:[F-J]|salonspa:[K-O])$/.test(String((effectiveCustomizations as any)?.heroStyle ?? "")) && (() => {
+                    {tab === "content" && /^(generic:[A-E]|barbershop:[F-J]|salonspa:[K-O]|autoshop:[P-T]|restaurant:[U-Y]|shirtstore:(Z|A[A-D]))$/.test(String((effectiveCustomizations as any)?.heroStyle ?? "")) && (() => {
                         // Derive the same "tier-3" fallback the build pipeline
                         // uses so inputs always show what the iframe shows. The
                         // editor's getValue() chain becomes:

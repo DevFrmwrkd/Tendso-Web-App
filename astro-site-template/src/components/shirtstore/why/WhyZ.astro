@@ -1,0 +1,55 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const why = content.why || {};
+const tag = why.tag || '';
+const headline = why.headline || '';
+const sub = why.sub || why.intro || '';
+const image = why.image || (Array.isArray(why.images) && why.images[0]) || '';
+const items: Array<{ title: string; body?: string; desc?: string; description?: string }> =
+  Array.isArray(why.items) ? why.items : [];
+---
+{items.length > 0 && (
+  <section class="why">
+    <div class="wrap why-grid">
+      <figure class="why-fig reveal">
+        {image
+          ? <div class="bg-img" data-image-field="why.image" style={`background-image:url('${image}');`}></div>
+          : <div class="bg-img placeholder" data-image-field="why.image"></div>}
+      </figure>
+      <div class="why-copy">
+        {tag && <p class="eyebrow reveal" data-field="why.tag">{tag}</p>}
+        {headline && <h2 class="reveal" data-field="why.headline" set:html={headline}></h2>}
+        {sub && <p class="why-intro reveal" data-field="why.sub">{sub}</p>}
+        {items.map((item, i) => (
+          <div class="why-item reveal">
+            <h3 data-field={`why.items.${i}.title`}>{item.title}</h3>
+            {(item.body ?? item.desc ?? item.description) && (
+              <p data-field={`why.items.${i}.body`}>{item.body ?? item.desc ?? item.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .why {
+    padding: clamp(56px, 8vw, 120px) 0; background: var(--paper-2);
+    border-block: 1px solid var(--line);
+  }
+  .why-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(30px, 5vw, 72px); align-items: center; }
+  .why-fig { margin: 0; overflow: hidden; }
+  .why-fig .bg-img { width: 100%; height: min(64vh, 560px); }
+  .why-copy .eyebrow { color: var(--accent); }
+  .why h2 { font-size: clamp(32px, 4.2vw, 58px); margin-bottom: 10px; margin-top: 8px; }
+  .why-intro { color: var(--ink-2, var(--muted)); max-width: 42ch; margin-bottom: 30px; }
+  .why-item { padding: 22px 0; border-top: 1px solid var(--line); }
+  .why-item:last-child { border-bottom: 1px solid var(--line); }
+  .why-item h3 { font-family: var(--serif); font-size: 25px; font-weight: 400; }
+  .why-item p { font-size: 15px; color: var(--ink-2, var(--muted)); margin-top: 4px; max-width: 50ch; line-height: 1.6; }
+  @media (max-width: 860px) {
+    .why-grid { grid-template-columns: 1fr; }
+    .why-fig { order: -1; }
+  }
+</style>

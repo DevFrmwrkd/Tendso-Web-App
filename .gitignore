@@ -65,3 +65,6 @@ __pycache__/
 *.pyc
 
 deploy.log
+.astro/
+.vite-cache/
+astro-site-template/.vite-cache/

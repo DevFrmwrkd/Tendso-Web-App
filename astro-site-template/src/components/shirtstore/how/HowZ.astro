@@ -1,0 +1,63 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const how = content.how || {};
+const tag = how.tag || '';
+const headline = how.headline || '';
+const image = how.image || (Array.isArray(how.images) && how.images[0]) || '';
+type Step = { title: string; body?: string; desc?: string; description?: string };
+const steps: Step[] = Array.isArray(how.steps) ? how.steps : (Array.isArray(how.items) ? how.items : []);
+---
+{steps.length > 0 && (
+  <section class="how" id="how">
+    <div class="wrap">
+      <div class="how-head reveal">
+        {tag && <p class="eyebrow" data-field="how.tag">{tag}</p>}
+        {headline && <h2 data-field="how.headline" set:html={headline}></h2>}
+      </div>
+      <div class="how-grid">
+        <div class="how-steps">
+          {steps.map((step, i) => {
+            const num = String(i + 1).padStart(2, '0');
+            return (
+              <div class="how-step reveal">
+                <div class="s">{num}</div>
+                <div>
+                  <h3 data-field={`how.steps.${i}.title`}>{step.title}</h3>
+                  {(step.body ?? step.desc ?? step.description) && (
+                    <p data-field={`how.steps.${i}.body`}>{step.body ?? step.desc ?? step.description}</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <figure class="how-fig reveal">
+          {image
+            ? <div class="bg-img" data-image-field="how.image" style={`background-image:url('${image}');`}></div>
+            : <div class="bg-img placeholder" data-image-field="how.image"></div>}
+        </figure>
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .how { padding: clamp(56px, 8vw, 120px) 0; }
+  .how-head { margin-bottom: clamp(30px, 4vw, 52px); }
+  .how-head .eyebrow { color: var(--accent); }
+  .how-head h2 { font-size: clamp(32px, 4.2vw, 58px); margin-top: 10px; }
+  .how-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(30px, 5vw, 72px); align-items: stretch; }
+  .how-steps { display: grid; align-content: center; gap: 0; }
+  .how-step { display: grid; grid-template-columns: auto 1fr; gap: 24px; padding: 26px 0; border-top: 1px solid var(--line); }
+  .how-step:last-child { border-bottom: 1px solid var(--line); }
+  .how-step .s { font-family: var(--serif); font-size: 34px; color: var(--accent); line-height: 1; }
+  .how-step h3 { font-family: var(--serif); font-size: 27px; font-weight: 400; }
+  .how-step p { font-size: 15px; color: var(--ink-2, var(--muted)); margin-top: 5px; max-width: 46ch; line-height: 1.6; }
+  .how-fig { margin: 0; overflow: hidden; }
+  .how-fig .bg-img { width: 100%; height: 100%; min-height: 380px; }
+  @media (max-width: 860px) {
+    .how-grid { grid-template-columns: 1fr; }
+    .how-fig { order: -1; }
+    .how-fig .bg-img { min-height: 54vh; }
+  }
+</style>

@@ -1,0 +1,90 @@
+---
+/**
+ * restaurant / HeroU — Harvest editorial split. Copy left, hero photo bleeds
+ * right with a slow ken-burns and an olive corner tag overlay. Reads the same
+ * content.hero shape as V–Y so content stays portable when admin swaps variant.
+ * Hero image comes from content.hero.image → Hyperagent enhanced image.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || '#services';
+const tagText = hero.tag || '';
+---
+<section class="hero" id="top">
+  <div class="hero-copy">
+    {kicker && <span class="label" data-field="hero.kicker">{kicker}</span>}
+    {headlineLines.length > 0 && (
+      <h1>
+        {headlineLines.map((line: string, i: number) => (
+          <span class="ln"><span data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+        ))}
+      </h1>
+    )}
+    {sub && <p class="hero-sub" data-field="hero.sub">{sub}</p>}
+    <div class="hero-cta">
+      {cta1Text && <a class="btn" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+      {cta2Text && <a class="ulink" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+    </div>
+  </div>
+  <div class="hero-media">
+    {heroImage
+      ? <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+      : <div class="bg-img placeholder" data-image-field="hero.image"></div>}
+    {tagText && <div class="hero-tag" data-field="hero.tag">{tagText}</div>}
+  </div>
+</section>
+<style>
+  .hero { display: grid; grid-template-columns: 1.02fr .98fr; min-height: 100vh; }
+  .hero-copy {
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 140px var(--pad) 70px; max-width: 760px; margin-left: auto; width: 100%;
+  }
+  .hero .label {
+    font-family: var(--sans); font-weight: 600; font-size: 11px;
+    letter-spacing: .38em; text-transform: uppercase; color: var(--accent);
+    margin-bottom: 30px; opacity: 0; animation: rfade 1.3s ease .3s forwards;
+  }
+  .hero h1 { font-size: clamp(50px, 6.4vw, 104px); font-weight: 300; line-height: 1; letter-spacing: -.02em; }
+  .hero h1 .ln { display: block; overflow: hidden; }
+  .hero h1 .ln > span { display: block; transform: translateY(112%); animation: rrise 1.25s cubic-bezier(.16,1,.3,1) forwards; }
+  .hero h1 .ln:nth-child(2) > span { animation-delay: .14s; }
+  .hero h1 .ln:nth-child(3) > span { animation-delay: .28s; }
+  .hero h1 :global(em) { font-style: italic; color: var(--accent); }
+  .hero-sub {
+    font-size: clamp(17px, 1.5vw, 20px); color: var(--stone, var(--muted));
+    max-width: 46ch; margin: 32px 0 40px; opacity: 0; animation: rfade 1.3s ease .8s forwards;
+  }
+  .hero-cta { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; opacity: 0; animation: rfade 1.3s ease 1s forwards; }
+  .hero-media { position: relative; overflow: hidden; background: var(--paper-2); }
+  .hero-media .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; animation: rken 28s ease-in-out infinite alternate; }
+  .hero-media .placeholder { background: repeating-linear-gradient(45deg, var(--paper-2) 0 14px, var(--paper) 14px 28px); animation: none; }
+  .hero-tag {
+    position: absolute; left: 0; bottom: 36px; z-index: 3;
+    background: var(--olive); color: var(--paper); padding: 14px 22px;
+    font-family: var(--serif); font-style: italic; font-size: 19px;
+    opacity: 0; animation: rfade 1.3s ease 1.2s forwards;
+  }
+  @keyframes rken { from { transform: scale(1.03); } to { transform: scale(1.14); } }
+  @keyframes rrise { to { transform: translateY(0); } }
+  @keyframes rfade { to { opacity: 1; } }
+  @media (max-width: 880px) {
+    .hero { grid-template-columns: 1fr; min-height: auto; }
+    .hero-copy { padding-top: 128px; padding-bottom: 56px; max-width: none; }
+    .hero-media { height: 78vw; min-height: 380px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero .label, .hero-sub, .hero-cta, .hero-tag { opacity: 1; }
+    .hero h1 .ln > span { transform: none; }
+    .hero-media .bg-img { animation: none; }
+  }
+</style>

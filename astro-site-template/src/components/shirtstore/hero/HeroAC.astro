@@ -1,0 +1,106 @@
+---
+/**
+ * shirtstore / HeroAC — "Modern" split, image-dominant. Copy left with a pill
+ * eyebrow, oversized Clash Display headline, rounded CTAs and a live-rating line;
+ * hero photo right (bigger column) with a glassmorphic corner tag overlay.
+ * Reads the shared content.hero shape (headlineLines[], kicker, sub,
+ * cta1{text,href}, cta2, image, rating, tag) so content stays portable when
+ * admin swaps to the Z default or any sister variant.
+ * Hero image comes from content.hero.image → Hyperagent enhanced image.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#services';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || (layout.contact?.phone ? `tel:${String(layout.contact.phone).replace(/[^0-9+]/g, '')}` : '#visit');
+const rating = hero.rating || '';
+const tagText = hero.tag || '';
+---
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      {kicker && <span class="hero-eyebrow" data-field="hero.kicker">{kicker}</span>}
+      {headlineLines.length > 0 && (
+        <h1 class="hero-headline">
+          {headlineLines.map((line: string, i: number) => (
+            <span class="hl-line" data-field={`hero.headlineLines.${i}`} set:html={line}></span>
+          ))}
+        </h1>
+      )}
+      {sub && <p class="hero-sub" data-field="hero.sub">{sub}</p>}
+      <div class="hero-cta">
+        {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+        {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+      </div>
+      {rating && (
+        <div class="hero-trust">
+          <span class="stars">★★★★★</span>
+          <span data-field="hero.rating">{rating}</span>
+        </div>
+      )}
+    </div>
+    <figure class="hero-fig">
+      {heroImage
+        ? <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+        : <div class="bg-img placeholder" data-image-field="hero.image"></div>}
+      {tagText && (
+        <figcaption class="hero-tag" data-field="hero.tag"><span class="d"></span>{tagText}</figcaption>
+      )}
+    </figure>
+  </div>
+</section>
+<style>
+  .hero { padding: clamp(34px, 5vw, 68px) 0 0; overflow: hidden; }
+  .hero-grid {
+    display: grid; grid-template-columns: .92fr 1.08fr; gap: clamp(28px, 4vw, 64px);
+    align-items: center;
+  }
+  .hero-eyebrow {
+    display: inline-block; margin-bottom: 20px;
+    font-family: var(--mono, var(--sans)); font-size: 12px; font-weight: 700;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--accent);
+  }
+  .hero-headline {
+    font-family: var(--display, var(--serif)); font-weight: 600;
+    font-size: clamp(46px, 6.6vw, 94px); line-height: 1.02; letter-spacing: -.02em; margin: 0;
+  }
+  .hero-headline .hl-line { display: block; }
+  .hero-sub {
+    font-size: clamp(17px, 1.4vw, 20px); color: var(--muted, rgba(var(--ink-rgb), .68));
+    max-width: 42ch; margin: 24px 0 30px; line-height: 1.6;
+  }
+  .hero-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+  .hero-trust {
+    display: flex; align-items: center; gap: 10px; margin-top: 26px;
+    font-size: 14px; color: var(--muted, rgba(var(--ink-rgb), .68));
+  }
+  .hero-trust .stars { color: var(--accent); letter-spacing: 1px; }
+  .hero-fig { position: relative; margin: 0; overflow: hidden; }
+  .hero-fig .bg-img {
+    width: 100%; height: min(82vh, 720px);
+    background-size: cover; background-position: center;
+  }
+  .hero-fig .placeholder {
+    background: repeating-linear-gradient(45deg, var(--paper-2, #f5f6f8) 0 14px, var(--paper, #fff) 14px 28px);
+  }
+  .hero-tag {
+    position: absolute; left: 18px; bottom: 18px;
+    background: rgba(var(--paper-rgb), .92); backdrop-filter: blur(8px);
+    padding: 12px 18px; font-size: 13px; font-weight: 600;
+    display: flex; align-items: center; gap: 10px; color: var(--ink);
+  }
+  .hero-tag .d { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+  @media (max-width: 820px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-fig { order: -1; }
+    .hero-fig .bg-img { height: 58vh; }
+  }
+</style>

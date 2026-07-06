@@ -1,0 +1,132 @@
+---
+/**
+ * shirtstore / HeroAB — Artisan editorial split.
+ *
+ * Structurally distinct from the shirtstore default (Z) hero: copy on the left,
+ * a three-image triptych on the right (one tall + two stacked) with a circular
+ * "Small batch" seal overlay. Ported from templates/Shirt Store/03 Artisan.html.
+ *
+ * Content shape matches the shared shirtstore hero (hero.headlineLines[],
+ * hero.kicker, hero.sub, hero.cta1{text,href}, hero.cta2, hero.image,
+ * hero.rating, hero.tag) so swapping variants preserves content. Extra triptych
+ * images fall back to the primary hero image / content.photos so a single
+ * enhanced image still fills the layout.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const photos: string[] = Array.isArray(content.photos) ? content.photos : [];
+const heroImage = hero.image || (Array.isArray(hero.photos) && hero.photos[0]) || photos[0] || '';
+const img2 = (Array.isArray(hero.photos) && hero.photos[1]) || photos[1] || heroImage;
+const img3 = (Array.isArray(hero.photos) && hero.photos[2]) || photos[2] || heroImage;
+const kicker = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#services';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || '#visit';
+const rating = hero.rating || '';
+const badge = hero.tag || '';
+---
+<section class="heroAB" id="top">
+  <div class="wrap heroAB-grid">
+    <div class="heroAB-copy">
+      {kicker && <span class="kicker line reveal" data-field="hero.kicker">{kicker}</span>}
+      {headlineLines.length > 0 && (
+        <h1 class="heroAB-headline reveal" style="--i:1">
+          {headlineLines.map((line: string, i: number) => (
+            <span class="hl-line" data-field={`hero.headlineLines.${i}`} set:html={line}></span>
+          ))}
+        </h1>
+      )}
+      {sub && <p class="heroAB-sub reveal" style="--i:2" data-field="hero.sub">{sub}</p>}
+      <div class="heroAB-cta reveal" style="--i:3">
+        {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+        {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+      </div>
+      {rating && (
+        <div class="heroAB-rate reveal" style="--i:4">
+          <span class="stars">★★★★★</span>
+          <span data-field="hero.rating">{rating}</span>
+        </div>
+      )}
+    </div>
+    <div class="heroAB-art">
+      <figure class="fig a">
+        {heroImage
+          ? <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+          : <div class="bg-img placeholder" data-image-field="hero.image"></div>}
+      </figure>
+      <figure class="fig b">
+        {img2
+          ? <div class="bg-img" style={`background-image:url('${img2}');`}></div>
+          : <div class="bg-img placeholder"></div>}
+      </figure>
+      <figure class="fig c">
+        {img3
+          ? <div class="bg-img" style={`background-image:url('${img3}');`}></div>
+          : <div class="bg-img placeholder"></div>}
+      </figure>
+      {badge && <span class="heroAB-seal" data-field="hero.tag">{badge}</span>}
+    </div>
+  </div>
+</section>
+<style>
+  .heroAB { padding: clamp(30px, 5vw, 68px) 0 clamp(44px, 6vw, 84px); }
+  .heroAB-grid {
+    display: grid; grid-template-columns: 1fr 1.08fr;
+    gap: clamp(30px, 5vw, 72px); align-items: center;
+  }
+  .heroAB-copy .kicker { margin-bottom: 20px; }
+  .kicker.line::before { content: ""; width: 30px; height: 1px; background: var(--accent); display: inline-block; }
+  .heroAB-headline {
+    font-family: var(--serif); font-weight: 300;
+    font-size: clamp(46px, 6.4vw, 108px); line-height: 1.02; letter-spacing: -.01em;
+  }
+  .heroAB-headline .hl-line { display: block; }
+  .heroAB-headline :global(em),
+  .heroAB-headline :global(.it) { font-style: italic; color: var(--accent); }
+  .heroAB-sub {
+    font-size: clamp(17px, 1.35vw, 20px); color: var(--muted, rgba(var(--ink-rgb), .7));
+    max-width: 36ch; margin: 26px 0 30px;
+  }
+  .heroAB-cta { display: flex; gap: 14px; flex-wrap: wrap; }
+  .heroAB-rate {
+    display: flex; align-items: center; gap: 12px; margin-top: 30px;
+    color: var(--muted, rgba(var(--ink-rgb), .7)); font-size: 14px;
+  }
+  .heroAB-rate .stars { color: var(--accent); letter-spacing: 2px; font-size: 16px; }
+
+  .heroAB-art {
+    position: relative; display: grid;
+    grid-template-columns: 1.28fr .82fr; grid-template-rows: 1fr 1fr;
+    gap: 16px; height: min(78vh, 660px);
+  }
+  .heroAB-art .fig {
+    overflow: hidden; border-radius: 24px; box-shadow: var(--sh, 0 18px 44px -16px rgba(var(--ink-rgb), .34));
+    margin: 0;
+  }
+  .heroAB-art .fig.a { grid-row: 1 / span 2; }
+  .heroAB-art .bg-img { width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform .8s cubic-bezier(.2,.8,.1,1); }
+  .heroAB-art .fig:hover .bg-img { transform: scale(1.05); }
+  .heroAB-art .placeholder {
+    background: repeating-linear-gradient(45deg, var(--paper-2, var(--paper)) 0 12px, var(--paper) 12px 24px);
+  }
+  .heroAB-seal {
+    position: absolute; top: 16px; left: 16px; width: 104px; height: 104px;
+    border-radius: 50%; background: var(--accent); color: var(--on-accent, #fff);
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-family: var(--serif); font-style: italic; font-size: 16px; line-height: 1.14;
+    box-shadow: var(--sh, 0 18px 44px -16px rgba(var(--ink-rgb), .34));
+    z-index: 3; border: 1.5px solid rgba(255,255,255,.5); padding: 10px;
+  }
+  @media (max-width: 860px) {
+    .heroAB-grid { grid-template-columns: 1fr; }
+    .heroAB-art { order: -1; height: auto; grid-template-rows: auto auto; }
+    .heroAB-art .fig.a { grid-row: auto; grid-column: 1 / -1; aspect-ratio: 16 / 10; }
+    .heroAB-art .fig.b, .heroAB-art .fig.c { aspect-ratio: 1 / 1; }
+  }
+</style>

@@ -1,0 +1,47 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const why = content.why || {};
+const tag = why.tag || '';
+const headline = why.headline || '';
+const items: Array<{ title: string; body?: string; desc?: string; description?: string }> =
+  Array.isArray(why.items) ? why.items : [];
+const numeral = ['i.', 'ii.', 'iii.', 'iv.', 'v.', 'vi.'];
+---
+{items.length > 0 && (
+  <section class="exp">
+    <div class="wrap">
+      <div class="exp-head reveal">
+        {tag && <span class="kicker" data-field="why.tag">{tag}</span>}
+        {headline && <h2 data-field="why.headline" set:html={headline}></h2>}
+      </div>
+      <div class="exp-grid">
+        {items.map((item, i) => (
+          <div class="exp-col reveal">
+            <div class="xn">{numeral[i] || `${i + 1}.`}</div>
+            <h3 data-field={`why.items.${i}.title`}>{item.title}</h3>
+            {(item.body ?? item.desc ?? item.description) && (
+              <p data-field={`why.items.${i}.body`}>{item.body ?? item.desc ?? item.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .exp { padding-block: clamp(78px, 10vw, 160px); }
+  .exp-head { text-align: center; margin-bottom: 70px; display: block; }
+  .exp-head h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(36px, 5vw, 68px); margin-top: 14px; }
+  .exp-head h2 :global(em) { font-style: italic; color: var(--accent); }
+  .exp-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; }
+  .exp-col { padding: 0 clamp(20px, 3vw, 48px); border-left: 1px solid var(--line); }
+  .exp-col:first-child { border-left: 0; padding-left: 0; }
+  .exp-col .xn { font-family: var(--serif); font-style: italic; font-size: 19px; color: var(--olive-2); margin-bottom: 14px; }
+  .exp-col h3 { font-family: var(--serif); font-weight: 300; font-size: clamp(25px, 2.6vw, 32px); margin-bottom: 14px; }
+  .exp-col p { color: var(--stone, var(--muted)); font-size: 16px; margin: 0; }
+  @media (max-width: 780px) {
+    .exp-grid { grid-template-columns: 1fr; gap: 46px; }
+    .exp-col { border-left: 0; padding: 0; }
+  }
+</style>

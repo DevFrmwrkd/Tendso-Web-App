@@ -1,0 +1,124 @@
+---
+/**
+ * Autoshop / HeroR — Volt centered minimal hero with floating cards.
+ * Centered kicker pill, big headline (last word accented), sub, two CTAs,
+ * live-rating micro line, and a wide hero-stage image overlaid with three
+ * floating status cards. Reads content.hero (shared shape across P–T so
+ * content stays portable when admin swaps variant).
+ * Hero image comes from content.hero.image → Hyperagent enhanced image.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || '#services';
+const rating = hero.rating || '';
+const badge = hero.tag || '';
+---
+<section class="hero-r" id="top">
+  <div class="wrap">
+    {kicker && (
+      <span class="hero-pill" data-field="hero.kicker"><span class="dot"></span> {kicker}</span>
+    )}
+    {headlineLines.length > 0 && (
+      <h1>
+        {headlineLines.map((line: string, i: number) => (
+          <span class="ln"><span data-field={`hero.headlineLines.${i}`} set:html={line}></span>{i === headlineLines.length - 1 ? '' : ' '}</span>
+        ))}
+      </h1>
+    )}
+    {sub && <p class="hero-sub" data-field="hero.sub">{sub}</p>}
+    <div class="hero-actions">
+      {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+      {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+    </div>
+    {rating && (
+      <div class="hero-micro">
+        <span class="stars">★★★★★</span>
+        <span data-field="hero.rating">{rating}</span>
+      </div>
+    )}
+    <div class="hero-stage">
+      {heroImage
+        ? <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+        : <div class="bg-img placeholder" data-image-field="hero.image"></div>}
+      <div class="fcard fc1"><span class="ic">✓</span><div><b>Quote approved</b><span>Photos attached</span></div></div>
+      <div class="fcard fc2"><span class="ic">⏱</span><div><b>Same-week slots</b><span>Book online</span></div></div>
+      {badge && (
+        <div class="fcard fc3"><span class="ic">⛨</span><div><b data-field="hero.tag">{badge}</b><span>Parts &amp; labor</span></div></div>
+      )}
+    </div>
+  </div>
+</section>
+<style>
+  .hero-r {
+    position: relative; text-align: center; overflow: hidden;
+    padding-block: clamp(56px, 8vw, 112px) clamp(40px, 6vw, 80px);
+    background: radial-gradient(120% 90% at 50% -10%, var(--paper-2) 0%, var(--paper) 55%);
+  }
+  .hero-pill {
+    display: inline-flex; align-items: center; gap: 9px; margin: 0 auto;
+    background: var(--paper-2); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 40px;
+    padding: 8px 16px; font-family: var(--display); font-weight: 600; font-size: 13px;
+  }
+  .hero-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .hero-r h1 {
+    font-family: var(--display); font-weight: 700; text-transform: none;
+    letter-spacing: -0.025em; line-height: 1.02;
+    font-size: clamp(44px, 7.4vw, 92px);
+    margin: 24px auto 0; max-width: 16ch;
+  }
+  .hero-r h1 .ln { display: inline; }
+  .hero-r h1 .ln:last-child > span { color: var(--accent); }
+  .hero-sub {
+    max-width: 60ch; margin: 22px auto 0; color: var(--muted);
+    font-size: clamp(17px, 1.5vw, 21px); line-height: 1.55;
+  }
+  .hero-actions { display: flex; gap: 14px; justify-content: center; margin-top: 30px; flex-wrap: wrap; }
+  .hero-micro {
+    margin-top: 18px; font-size: 14px; color: var(--muted);
+    display: flex; gap: 8px; justify-content: center; align-items: center;
+  }
+  .stars { color: #ffb020; letter-spacing: 1px; }
+  .hero-stage {
+    position: relative; max-width: 980px; margin: 54px auto 0; aspect-ratio: 16 / 8;
+  }
+  .hero-stage .bg-img {
+    width: 100%; height: 100%; border-radius: 24px;
+    background-size: cover; background-position: center;
+    box-shadow: 0 40px 90px rgba(var(--ink-rgb), .18);
+  }
+  .hero-stage .placeholder {
+    background: repeating-linear-gradient(45deg, var(--paper-2) 0 14px, var(--paper) 14px 28px);
+    border: 1px solid var(--line);
+  }
+  .fcard {
+    position: absolute; background: var(--paper); border: 1px solid var(--line);
+    border-radius: 16px; padding: 14px 18px; text-align: left;
+    box-shadow: 0 18px 40px rgba(var(--ink-rgb), .14);
+    display: flex; gap: 12px; align-items: center;
+  }
+  .fcard .ic {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(var(--accent-rgb), .1); color: var(--accent);
+    display: grid; place-items: center; font-size: 18px; flex: none;
+  }
+  .fcard b { font-family: var(--display); font-weight: 600; font-size: 15px; display: block; }
+  .fcard span { font-size: 12.5px; color: var(--muted); }
+  .fc1 { top: 14%; left: -18px; }
+  .fc2 { bottom: 16%; right: -14px; }
+  .fc3 { bottom: -22px; left: 30%; }
+  @media (max-width: 860px) {
+    .hero-stage { aspect-ratio: 16 / 10; margin-top: 40px; }
+    .fcard { display: none; }
+  }
+</style>

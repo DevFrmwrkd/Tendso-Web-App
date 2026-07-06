@@ -1,0 +1,36 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const trust = content.trust || {};
+const cells: Array<{ num: string; label: string }> = Array.isArray(trust.cells) ? trust.cells : [];
+---
+{cells.length > 0 && (
+  <section class="trust">
+    <div class="wrap">
+      <div class="trust-in">
+        {cells.map((cell, i) => (
+          <div class="reveal">
+            <div class="n" data-field={`trust.cells.${i}.num`} set:html={cell.num}></div>
+            <div class="k" data-field={`trust.cells.${i}.label`}>{cell.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .trust { background: var(--olive); color: var(--paper); padding-block: clamp(78px, 10vw, 160px); }
+  .trust-in {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: clamp(24px, 4vw, 60px); text-align: center;
+  }
+  .trust .n {
+    font-family: var(--serif); font-weight: 300;
+    font-size: clamp(38px, 5vw, 60px); line-height: 1;
+  }
+  .trust .k {
+    font-family: var(--sans); font-size: 11px; letter-spacing: .2em;
+    text-transform: uppercase; color: rgba(var(--paper-rgb), .72); margin-top: 12px;
+  }
+  @media (max-width: 680px) { .trust-in { grid-template-columns: 1fr 1fr; gap: 40px 20px; } }
+</style>

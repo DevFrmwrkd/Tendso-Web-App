@@ -1,0 +1,106 @@
+---
+/**
+ * Shirtstore spine — shared base CSS injected once per page.
+ *
+ * The 5 Shirtstore variants (PageZ + 4 siblings: Editorial, Streetwear,
+ * Artisan, Modern, Kinetic) each set their own palette + font tokens scoped
+ * to `html[data-page="<L>"]`, so this spine references those via var(--accent),
+ * var(--paper), etc. and works for every variant without bleed.
+ *
+ * Editorial fashion vocabulary from the source "01 Editorial.html": hairline
+ * rules, oversized display serif headings, italic accent runs (.it), thin
+ * uppercase eyebrows, and understated outline/fill buttons. Button text routes
+ * through --on-accent / --on-ink / --on-paper contrast tokens (playbook
+ * §"Contrast guarantee") so extreme schemes never produce invisible buttons.
+ */
+---
+<style is:global>
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+  h1, h2, h3 {
+    font-family: var(--serif);
+    font-weight: 300; line-height: 1; margin: 0;
+    letter-spacing: -.01em;
+  }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; text-decoration: none; }
+  section { position: relative; }
+  .wrap { max-width: var(--maxw, 1340px); margin: 0 auto; padding-inline: var(--pad, clamp(20px, 5vw, 80px)); }
+  .pad-y { padding-block: clamp(56px, 8vw, 120px); }
+
+  .it { font-style: italic; color: var(--accent); }
+
+  /* Eyebrow / kicker — thin uppercase clay label */
+  .kicker, .eyebrow {
+    font-family: var(--sans); text-transform: uppercase;
+    letter-spacing: .32em; font-weight: 600; font-size: 11px;
+    color: var(--accent);
+    display: inline-block;
+  }
+  .h-sect {
+    font-family: var(--serif); font-weight: 300;
+    font-size: clamp(34px, 4.4vw, 64px); line-height: 1;
+    letter-spacing: -.01em; margin: 14px 0 0;
+  }
+  .lead {
+    font-size: clamp(16px, 1.3vw, 18px);
+    color: var(--muted, rgba(var(--ink-rgb), .66));
+    max-width: 44ch; line-height: 1.6;
+  }
+
+  /* Buttons — outline / fill, subtle lift (editorial signature).
+     Text colors route through contrast tokens so extreme schemes stay legible. */
+  .btn {
+    display: inline-flex; align-items: center; gap: .55em;
+    font-family: var(--sans); font-weight: 600;
+    text-transform: uppercase; letter-spacing: .06em; font-size: 13px;
+    padding: 14px 26px; min-height: 48px; cursor: pointer;
+    border: 1px solid var(--ink); background: transparent; color: var(--on-paper, var(--ink));
+    transition: transform .35s cubic-bezier(.2,.8,.1,1), background .3s ease, color .3s ease, border-color .3s ease;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn--accent, .btn-fill {
+    background: var(--ink); color: var(--on-ink, var(--paper)); border-color: var(--ink);
+  }
+  .btn--accent:hover, .btn-fill:hover { background: var(--accent); border-color: var(--accent); color: var(--on-accent, var(--paper)); }
+  .btn--ghost, .btn-out { background: transparent; color: var(--on-paper, var(--ink)); border-color: var(--on-paper, var(--ink)); }
+  .btn--ghost:hover, .btn-out:hover { background: var(--ink); color: var(--on-ink, var(--paper)); border-color: var(--ink); }
+  .btn--ghost.on-dark { color: var(--on-ink, var(--paper)); border-color: rgba(var(--paper-rgb), .6); }
+  .btn--ghost.on-dark:hover { background: var(--paper); color: var(--on-paper, var(--ink)); border-color: var(--paper); }
+
+  /* Section head — flex title left, lead right */
+  .sect-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 30px; flex-wrap: wrap; margin-bottom: clamp(34px, 4vw, 56px);
+  }
+  .sect-head .lead { margin: 12px 0 0; }
+
+  /* Ink section helper */
+  .ink-sect { background: var(--ink); color: var(--paper); }
+  .ink-sect .h-sect, .ink-sect h2 { color: var(--paper); }
+  .ink-sect .kicker, .ink-sect .eyebrow { color: var(--accent-light, var(--accent)); }
+
+  /* Shared image slot fallback */
+  .bg-img { background-size: cover; background-position: center; }
+  .bg-img.placeholder, .placeholder {
+    background: repeating-linear-gradient(45deg, var(--paper-2) 0 14px, var(--paper) 14px 28px);
+  }
+
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity .8s ease, transform .8s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; transition: none; }
+    * { animation: none !important; }
+  }
+</style>
