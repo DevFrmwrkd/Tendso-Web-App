@@ -1,0 +1,90 @@
+---
+/**
+ * Autoshop / HeroP — Foundry editorial split. Copy left with a hard divider,
+ * hero photo right with an ink badge overlay. Reads content.hero (shared shape
+ * across P–T so content stays portable when admin swaps variant).
+ * Hero image comes from content.hero.image → Hyperagent enhanced image.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || '#services';
+const rating = hero.rating || '';
+const badge = hero.tag || '';
+---
+<section class="hero" id="top">
+  <div class="hero-grid">
+    <div class="hero-left">
+      {kicker && <span class="hero-tag mono" data-field="hero.kicker"><span class="dot"></span> {kicker}</span>}
+      {headlineLines.length > 0 && (
+        <h1>
+          {headlineLines.map((line: string, i: number) => (
+            <span class="ln"><span data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+          ))}
+        </h1>
+      )}
+      {sub && <p class="hero-sub" data-field="hero.sub">{sub}</p>}
+      <div class="hero-actions">
+        {cta1Text && <a class="btn" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+        {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+      </div>
+      {rating && (
+        <div class="hero-trust">
+          <span class="stars">★★★★★</span>
+          <span class="mono" data-field="hero.rating">{rating}</span>
+        </div>
+      )}
+    </div>
+    <div class="hero-right">
+      {heroImage
+        ? <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+        : <div class="bg-img placeholder" data-image-field="hero.image"></div>}
+      {badge && (
+        <div class="hero-badge">
+          <span class="mono">Available</span>
+          <b data-field="hero.tag">{badge}</b>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+<style>
+  .hero { border-bottom: 2px solid var(--ink); overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; }
+  .hero-left {
+    padding: clamp(40px, 6vw, 84px) var(--pad);
+    border-right: 2px solid var(--ink);
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .hero-tag { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 26px; color: var(--ink-2); }
+  .hero-tag .dot { width: 9px; height: 9px; background: var(--accent); border-radius: 50%; }
+  .hero h1 { font-size: clamp(46px, 7.2vw, 104px); }
+  .hero h1 .ln { display: block; overflow: hidden; }
+  .hero h1 .ln > span { display: block; }
+  .hero-sub { max-width: 46ch; margin: 26px 0 0; font-size: clamp(17px, 1.4vw, 20px); color: var(--ink-2); }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 34px; }
+  .hero-trust { margin-top: 30px; display: flex; align-items: center; gap: 14px; }
+  .stars { color: var(--accent); letter-spacing: 2px; font-size: 18px; }
+  .hero-right { position: relative; min-height: 420px; }
+  .hero-right .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; }
+  .hero-right .placeholder { background: repeating-linear-gradient(45deg, var(--paper-2) 0 12px, var(--paper) 12px 24px); }
+  .hero-badge {
+    position: absolute; left: 0; bottom: 0; background: var(--ink); color: var(--paper);
+    padding: 16px 22px; z-index: 2; border-top: 2px solid var(--ink); border-right: 2px solid var(--ink);
+  }
+  .hero-badge b { font-family: var(--display); font-size: 28px; display: block; line-height: 1; }
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-left { border-right: none; border-bottom: 2px solid var(--ink); }
+    .hero-right { min-height: 320px; order: -1; }
+  }
+</style>

@@ -1,0 +1,69 @@
+---
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+const brand = (content as any).footer?.brand || layout.businessName || 'Your Business';
+const navLinks: Array<{ href: string; label: string }> = (layout.navLinks && layout.navLinks.length)
+  ? layout.navLinks
+  : [];
+const phone = layout.contact?.phone || (content as any).contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const ctaText = (content as any).navCtaText || 'Shop';
+const ctaHref = (content as any).navCtaHref || '#services';
+---
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a href="#top" class="brand" data-field="footer.brand">{brand}<b>.</b></a>
+    {navLinks.length > 0 && (
+      <nav class="nav-links">
+        {navLinks.map((link, i) => (
+          <a href={link.href} data-field={`navbar_links.${i}.label`} data-href-field={`navbar_links.${i}.href`}>{link.label}</a>
+        ))}
+      </nav>
+    )}
+    <div class="nav-right">
+      {phone && (
+        <a href={`tel:${phoneDigits}`} class="nav-phone" data-field="contact.phone" data-href-field="contact.phone.href">{phone}</a>
+      )}
+      <a href={ctaHref} class="link" data-field="navCtaText" data-href-field="navCtaHref">{ctaText}</a>
+    </div>
+  </div>
+</header>
+<style>
+  header.nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    transition: background .3s ease, border-color .3s ease;
+    border-bottom: 1px solid transparent;
+  }
+  header.nav.scrolled {
+    background: rgba(var(--paper-rgb), .88);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; height: 72px;
+  }
+  .brand {
+    font-family: var(--serif); font-size: clamp(21px, 2vw, 25px); font-weight: 500;
+    color: var(--ink); letter-spacing: .02em;
+  }
+  .brand b { font-weight: 600; color: var(--accent); }
+  .nav-links { display: flex; gap: 34px; align-items: center; }
+  .nav-links :global(a) {
+    font-family: var(--sans); text-transform: uppercase; letter-spacing: .08em;
+    font-size: 12px; font-weight: 500; color: var(--ink-2, var(--muted)); transition: color .25s;
+  }
+  .nav-links :global(a:hover) { color: var(--ink); }
+  .nav-right { display: flex; align-items: center; gap: 22px; }
+  .nav-phone {
+    font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .06em;
+    color: var(--ink);
+  }
+  .link {
+    font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink);
+    border-bottom: 1px solid var(--line-2); padding-bottom: 3px; transition: border-color .3s;
+  }
+  .link:hover { border-color: var(--ink); }
+  @media (max-width: 900px) { .nav-links, .nav-phone { display: none; } }
+</style>

@@ -1,0 +1,104 @@
+---
+/**
+ * restaurant / ServicesY — Garden (Playful) bento menu grid.
+ * Structurally different from the default (U) services list: a mixed-span
+ * bento where the first item is a large feature tile and one cell is an
+ * image pulled from gallery.items[0]. Reads the SAME content.services shape
+ * ({tag, headline, sub, items[]{title, body|desc, price}}) so swapping
+ * variants preserves content.
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const services = content.services || {};
+const gallery = content.gallery || {};
+const galItems: any[] = Array.isArray(gallery.items) ? gallery.items : [];
+const menuImage = (galItems[4] && galItems[4].image) || (galItems[0] && galItems[0].image) || '';
+const tag = services.tag || '';
+const headline = services.headline || '';
+const sub = services.sub || '';
+const cta = services.cta || {};
+type Item = { title: string; body?: string; desc?: string; price?: string; tag?: string };
+const items: Item[] = Array.isArray(services.items) ? services.items : (Array.isArray(services) ? services : []);
+// Bento span classes cycle so any item count still tiles sensibly.
+const spanClasses = ['big', 's1', 's2', 's4', 's3', 's5'];
+---
+{items.length > 0 && (
+  <section class="pad-y servicesY" id="services">
+    <div class="wrap">
+      <div class="secY-head reveal">
+        {tag && <span class="eyebrow" data-field="services.tag">{tag}</span>}
+        {headline && <h2 data-field="services.headline" set:html={headline}></h2>}
+        {sub && <p data-field="services.sub">{sub}</p>}
+      </div>
+      <div class="bento reveal">
+        {items.map((item, i) => {
+          const body = item.body || item.desc || '';
+          const span = spanClasses[i % spanClasses.length];
+          return (
+            <article class={`b ${span}`}>
+              {item.tag && <span class="b-tag" data-field={`services.items.${i}.tag`}>{item.tag}</span>}
+              <div class="b-body">
+                <h3 data-field={`services.items.${i}.title`}>{item.title}</h3>
+                {body && <p data-field={`services.items.${i}.body`}>{body}</p>}
+              </div>
+              {item.price && <div class="b-price" data-field={`services.items.${i}.price`}>{item.price}</div>}
+            </article>
+          );
+        })}
+        <article class="b img">
+          {menuImage
+            ? <div class="bg-img" data-image-field="gallery.items.4.image" style={`background-image:url('${menuImage}');`}></div>
+            : <div class="bg-img placeholder" data-image-field="gallery.items.4.image"></div>}
+        </article>
+      </div>
+      {cta.text && (
+        <div class="secY-cta reveal">
+          <a class="btn btn--accent" href={cta.href || '#reserve'} data-field="services.cta.text" data-href-field="services.cta.href">{cta.text}</a>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .secY-head { text-align: center; max-width: 36ch; margin: 0 auto 50px; }
+  .secY-head .eyebrow {
+    display: block; margin-bottom: 14px; font-family: var(--sans);
+    font-weight: 700; font-size: 13px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  .secY-head h2 { font-family: var(--display); font-weight: 400; line-height: 1; font-size: clamp(38px, 6vw, 80px); }
+  .secY-head p { color: var(--muted, rgba(var(--ink-rgb), .75)); margin-top: 14px; font-family: var(--sans); }
+
+  .bento { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: minmax(150px, auto); gap: 18px; }
+  .b {
+    border: 2.5px solid var(--ink); border-radius: var(--r, 26px); padding: 24px;
+    box-shadow: 0 5px 0 var(--ink); display: flex; flex-direction: column;
+    justify-content: space-between; gap: 12px; transition: transform .2s;
+    background: var(--paper);
+  }
+  .b:hover { transform: translateY(-4px); }
+  .b-tag { font-family: var(--sans); font-weight: 700; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+  .b h3 { font-family: var(--display); font-weight: 400; font-size: clamp(20px, 2vw, 26px); margin: 8px 0; }
+  .b p { font-family: var(--sans); font-size: 14px; margin: 0; opacity: .85; }
+  .b-price { font-family: var(--display); font-size: 20px; }
+  .b.big { grid-column: span 2; grid-row: span 2; background: var(--accent); color: var(--on-accent, #fff); }
+  .b.s1 { background: var(--paper); grid-column: span 2; }
+  .b.s2 { background: var(--sun, var(--paper-2)); color: var(--ink); }
+  .b.s3 { background: var(--paper-2, var(--paper)); }
+  .b.s4 { background: var(--teal, var(--ink)); color: #fff; grid-column: span 2; }
+  .b.s5 { background: var(--paper-2, var(--paper)); }
+  .b.img { padding: 0; overflow: hidden; grid-column: span 2; }
+  .b.img .bg-img { width: 100%; height: 100%; min-height: 150px; background-size: cover; background-position: center; }
+  .b.img .placeholder { background: repeating-linear-gradient(45deg, var(--paper-2, var(--paper)) 0 12px, var(--paper) 12px 24px); }
+
+  .secY-cta { text-align: center; margin-top: 36px; }
+  @media (max-width: 860px) {
+    .bento { grid-template-columns: 1fr 1fr; }
+    .b.big, .b.s1, .b.s4, .b.img { grid-column: span 2; }
+    .b.big { grid-row: auto; }
+  }
+  @media (max-width: 520px) {
+    .bento { grid-template-columns: 1fr; }
+    .b.big, .b.s1, .b.s4, .b.img { grid-column: span 1; }
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+/**
+ * Autoshop / AboutP — Foundry about: lead paragraph + body copy left, an
+ * ink-bordered stat rail right. Reads content.about.tag/headline/body/image.
+ * Also supports paragraphs[] and a side stat list (about.stats[]{k,v}) so the
+ * shape stays portable with the sibling families.
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const about = content.about || {};
+const tag = about.tag || '';
+const headline = about.headline || '';
+const paragraphs: string[] = Array.isArray(about.paragraphs)
+  ? about.paragraphs
+  : (about.body ? [about.body] : []);
+const image = about.image || (Array.isArray(about.images) && about.images[0]) || '';
+type Stat = { k: string; v: string };
+const stats: Stat[] = Array.isArray(about.stats) ? about.stats : [];
+---
+<section class="block" id="about">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div>
+        {tag && <span class="kicker" data-field="about.tag"><span class="dot"></span> {tag}</span>}
+        {headline && <h2 class="h-sect" data-field="about.headline" set:html={headline}></h2>}
+      </div>
+    </div>
+    <div class="about-grid">
+      <div class="reveal">
+        {paragraphs.map((p: string, i: number) => (
+          <p class={i === 0 ? 'about-lead' : 'about-body'} data-field={`about.paragraphs.${i}`} set:html={p}></p>
+        ))}
+      </div>
+      {(stats.length > 0 || image) && (
+        <div class="about-side reveal">
+          {image && <div class="bg-img" data-image-field="about.image" style={`background-image:url('${image}');`}></div>}
+          {stats.map((s: Stat, i: number) => (
+            <div>
+              <div class="k" data-field={`about.stats.${i}.k`}>{s.k}</div>
+              <div class="v" data-field={`about.stats.${i}.v`}>{s.v}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+<style>
+  .block { padding-block: clamp(64px, 9vw, 120px); }
+  .about-grid { display: grid; grid-template-columns: 1.4fr .8fr; gap: 48px; }
+  .about-lead { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 2.4vw, 32px); line-height: 1.15; text-transform: none; letter-spacing: -.01em; margin: 0; }
+  .about-body { margin-top: 22px; color: var(--ink-2); max-width: 54ch; }
+  .about-side { border-left: 2px solid var(--ink); padding-left: 26px; display: flex; flex-direction: column; gap: 24px; }
+  .about-side .bg-img { width: 100%; aspect-ratio: 4 / 3; background-size: cover; background-position: center; border: 2px solid var(--ink); }
+  .about-side .k { font-family: var(--display); font-size: 34px; color: var(--accent); line-height: 1; }
+  .about-side .v { font-size: 14px; color: var(--muted); margin-top: 4px; }
+  @media (max-width: 860px) {
+    .about-grid { grid-template-columns: 1fr; }
+    .about-side { border-left: none; border-top: 2px solid var(--ink); padding-left: 0; padding-top: 24px; }
+  }
+</style>

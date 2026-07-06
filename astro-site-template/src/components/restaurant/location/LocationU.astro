@@ -1,0 +1,140 @@
+---
+/**
+ * Restaurant location — dark "Visit" grid: NAP + hours + contact left,
+ * Leaflet map right. Map strategy mirrors salonspa/LocationK:
+ *   1. build-time lat/lng → render directly via __restaurantInitMap
+ *   2. else address string → client-side Nominatim lookup, then render
+ *   3. else → graceful fallback tile.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const loc = content.location || {};
+const tag = loc.tag || '';
+const headline = loc.headline || '';
+const brand = (content as any).footer?.brand || layout.businessName || 'Our location';
+const address = loc.address || layout.contact?.address || '';
+const addressLines = address ? address.split('\n') : [];
+const phone = loc.phone || layout.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const email = loc.email || layout.contact?.email || '';
+const hours: Array<{ day: string; time: string }> = Array.isArray(loc.hours)
+  ? loc.hours
+  : (Array.isArray((content as any).footer?.hours) ? (content as any).footer.hours : []);
+const ctaText = loc.cta?.text || 'Reserve a table';
+const ctaHref = loc.cta?.href || (phoneDigits ? `tel:${phoneDigits}` : '#visit');
+const ctaNote = loc.ctaNote || '';
+const lat = loc.lat != null ? Number(loc.lat) : (layout.contact?.lat != null ? Number(layout.contact.lat) : null);
+const lng = loc.lng != null ? Number(loc.lng) : (layout.contact?.lng != null ? Number(layout.contact.lng) : null);
+const mapAria = `Map showing ${brand}`;
+const hasCoords = lat != null && lng != null && !isNaN(lat as number) && !isNaN(lng as number);
+const hasAddress = !!address;
+---
+<section class="visit" id="visit">
+  <div class="wrap">
+    <div class="visit-grid reveal">
+      <div class="visit-info">
+        {tag && <span class="kicker" data-field="location.tag">{tag}</span>}
+        {headline && <h2 data-field="location.headline" set:html={headline}></h2>}
+        <div class="visit-contact">
+          {phone && <a href={`tel:${phoneDigits}`} data-field="location.phone">{phone}</a>}
+          {email && <a href={`mailto:${email}`} data-field="location.email">{email}</a>}
+        </div>
+        {address && (
+          <p class="nap" data-field="location.address">
+            <b>{brand}</b>
+            {addressLines.map((line: string, i: number) => (<>{i > 0 && <br />}{line}</>))}
+          </p>
+        )}
+        {hours.length > 0 && (
+          <div class="hours">
+            {hours.map((row: any, i: number) => (
+              <div>
+                <span data-field={`location.hours.${i}.day`}>{row.day}</span>
+                <span data-field={`location.hours.${i}.time`}>{row.time}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <div class="visit-cta">
+          <a class="btn btn--ghost on-dark" href={ctaHref} data-field="location.cta.text" data-href-field="location.cta.href">{ctaText}</a>
+          {ctaNote && <span class="visit-note" data-field="location.ctaNote">{ctaNote}</span>}
+        </div>
+      </div>
+      <div id="map" role="img" aria-label={mapAria}>
+        {!hasCoords && !hasAddress && <div class="map-fallback">No address on file yet.</div>}
+        {!hasCoords && hasAddress && <div class="map-fallback" id="map-fallback">Loading map…</div>}
+      </div>
+    </div>
+  </div>
+</section>
+{hasCoords && (
+  <script is:inline define:vars={{ lat, lng, label: brand }}>
+    (function init() {
+      if (window.__restaurantInitMap) window.__restaurantInitMap(lat, lng, label);
+      else setTimeout(init, 80);
+    })();
+  </script>
+)}
+{!hasCoords && hasAddress && (
+  <script is:inline define:vars={{ address, label: brand }}>
+    (function geocodeThenInit() {
+      var attempt = 0;
+      function tryInit(lat, lng) {
+        if (window.__restaurantInitMap) {
+          window.__restaurantInitMap(lat, lng, label);
+        } else if (attempt++ < 25) {
+          setTimeout(function () { tryInit(lat, lng); }, 80);
+        }
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query;
+        fetch(url, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) {
+              var el = document.getElementById('map-fallback');
+              if (el) el.textContent = 'Map preview unavailable — use the directions button.';
+              return;
+            }
+            var lat = parseFloat(results[0].lat);
+            var lng = parseFloat(results[0].lon);
+            if (isNaN(lat) || isNaN(lng)) return;
+            tryInit(lat, lng);
+          })
+          .catch(function () {
+            var el = document.getElementById('map-fallback');
+            if (el) el.textContent = 'Map preview unavailable — use the directions button.';
+          });
+      } catch (e) { /* never block render */ }
+    })();
+  </script>
+)}
+<style>
+  .visit { background: var(--ink); color: var(--paper); padding-block: clamp(78px, 10vw, 160px); }
+  .visit-grid { display: grid; grid-template-columns: .92fr 1.08fr; gap: 0; border: 1px solid rgba(var(--paper-rgb), .16); }
+  .visit-info { padding: clamp(40px, 5vw, 68px); border-right: 1px solid rgba(var(--paper-rgb), .16); display: flex; flex-direction: column; }
+  .visit-info .kicker { margin-bottom: 26px; color: var(--accent); }
+  .visit-info h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(34px, 4.4vw, 56px); margin-bottom: 32px; color: var(--paper); }
+  .visit-info h2 :global(em) { font-style: italic; color: var(--accent); }
+  .visit-contact { display: flex; gap: 28px; flex-wrap: wrap; margin-bottom: 30px; }
+  .visit-contact a { color: var(--paper); border-bottom: 1px solid var(--accent); padding-bottom: 2px; font-size: 16px; }
+  .nap { color: rgba(var(--paper-rgb), .78); margin: 0; }
+  .nap b { font-family: var(--serif); font-size: 24px; display: block; color: var(--paper); margin-bottom: 2px; }
+  .hours { margin: 28px 0; display: grid; }
+  .hours div { display: flex; justify-content: space-between; padding: 13px 0; border-bottom: 1px solid rgba(var(--paper-rgb), .16); font-size: 14.5px; color: rgba(var(--paper-rgb), .82); }
+  .hours div span:first-child { font-family: var(--sans); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: rgba(var(--paper-rgb), .55); }
+  .visit-cta { margin-top: auto; padding-top: 14px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+  .visit-note { font-family: var(--sans); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: rgba(var(--paper-rgb), .5); }
+  #map { min-height: 520px; height: 100%; z-index: 0; background: rgba(var(--paper-rgb), .06); }
+  .map-fallback {
+    display: flex; align-items: center; justify-content: center; height: 100%; min-height: 520px;
+    color: rgba(var(--paper-rgb), .6); font-family: var(--sans); letter-spacing: .1em;
+    text-transform: uppercase; font-size: 12.5px; padding: 24px; text-align: center;
+  }
+  @media (max-width: 820px) {
+    .visit-grid { grid-template-columns: 1fr; }
+    .visit-info { border-right: 0; border-bottom: 1px solid rgba(var(--paper-rgb), .16); }
+    #map, .map-fallback { min-height: 340px; }
+  }
+</style>

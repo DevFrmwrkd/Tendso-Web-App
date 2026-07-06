@@ -1,0 +1,53 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const faq = content.faq || {};
+const tag = faq.tag || '';
+const headline = faq.headline || '';
+type Item = { q: string; a: string };
+const items: Item[] = Array.isArray(faq.items) ? faq.items : (Array.isArray(faq) ? faq : []);
+---
+{items.length > 0 && (
+  <section class="faq">
+    <div class="wrap faq-grid">
+      <div class="faq-head reveal">
+        {tag && <p class="eyebrow" data-field="faq.tag">{tag}</p>}
+        {headline && <h2 data-field="faq.headline" set:html={headline}></h2>}
+      </div>
+      <div class="faq-list">
+        {items.map((item, i) => (
+          <details class="qa reveal">
+            <summary>
+              <span class="faq-q" data-field={`faq.items.${i}.q`}>{item.q}</span>
+              <span class="sgn" aria-hidden="true">+</span>
+            </summary>
+            <div class="ans" data-field={`faq.items.${i}.a`} set:html={item.a}></div>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .faq { padding: clamp(56px, 8vw, 120px) 0; border-top: 1px solid var(--line); }
+  .faq-grid { display: grid; grid-template-columns: .55fr 1.45fr; gap: clamp(24px, 5vw, 72px); align-items: start; }
+  .faq-head { position: sticky; top: 110px; }
+  .faq-head .eyebrow { color: var(--accent); }
+  .faq h2 { font-size: clamp(32px, 4.2vw, 56px); margin-top: 8px; }
+  .faq-list { display: flex; flex-direction: column; }
+  details.qa { border-top: 1px solid var(--line); }
+  details.qa:last-child { border-bottom: 1px solid var(--line); }
+  details.qa summary {
+    list-style: none; cursor: pointer; display: flex; justify-content: space-between;
+    gap: 20px; align-items: center; padding: 24px 0;
+  }
+  details.qa summary::-webkit-details-marker { display: none; }
+  .faq-q { font-family: var(--serif); font-size: clamp(20px, 2.2vw, 28px); font-weight: 400; color: var(--ink); }
+  details.qa .sgn { font-family: var(--sans); font-size: 22px; color: var(--accent); transition: transform .3s; flex-shrink: 0; }
+  details.qa[open] .sgn { transform: rotate(45deg); }
+  details.qa .ans { padding: 0 0 26px; color: var(--ink-2, var(--muted)); max-width: 64ch; line-height: 1.7; }
+  @media (max-width: 860px) {
+    .faq-grid { grid-template-columns: 1fr; }
+    .faq-head { position: static; }
+  }
+</style>

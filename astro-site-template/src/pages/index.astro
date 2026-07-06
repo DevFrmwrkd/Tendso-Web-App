@@ -20,6 +20,21 @@
  *   "salonspa:M"    → Clinic (mist + teal · Tenor Sans + Karla)
  *   "salonspa:N"    → Vogue (mauve pink · DM Serif Display + DM Sans)
  *   "salonspa:O"    → Bloom (mauve + cream · Marcellus + Nunito Sans)
+ *   "autoshop:P"    → Foundry (concrete + hazard orange · Archivo + Spline Sans)
+ *   "autoshop:Q"    → Meridian
+ *   "autoshop:R"    → Volt
+ *   "autoshop:S"    → Redline
+ *   "autoshop:T"    → Maple Street
+ *   "restaurant:U"  → Harvest (rustic)
+ *   "restaurant:V"  → Atelier (minimal)
+ *   "restaurant:W"  → Press (bold)
+ *   "restaurant:X"  → Ember (cinematic)
+ *   "restaurant:Y"  → Garden (playful)
+ *   "shirtstore:Z"  → Editorial
+ *   "shirtstore:AA" → Streetwear
+ *   "shirtstore:AB" → Artisan
+ *   "shirtstore:AC" → Modern
+ *   "shirtstore:AD" → Kinetic
  *
  * Each PageX wrapper produces the full document (its own doctype, theme,
  * fonts, leaflet boot) so they do not compose with BaseLayout.
@@ -40,6 +55,21 @@ import PageL from '../components/salonspa/PageL.astro';
 import PageM from '../components/salonspa/PageM.astro';
 import PageN from '../components/salonspa/PageN.astro';
 import PageO from '../components/salonspa/PageO.astro';
+import PageP from '../components/autoshop/PageP.astro';
+import PageQ from '../components/autoshop/PageQ.astro';
+import PageR from '../components/autoshop/PageR.astro';
+import PageS from '../components/autoshop/PageS.astro';
+import PageT from '../components/autoshop/PageT.astro';
+import PageU from '../components/restaurant/PageU.astro';
+import PageV from '../components/restaurant/PageV.astro';
+import PageW from '../components/restaurant/PageW.astro';
+import PageX from '../components/restaurant/PageX.astro';
+import PageY from '../components/restaurant/PageY.astro';
+import PageZ from '../components/shirtstore/PageZ.astro';
+import PageAA from '../components/shirtstore/PageAA.astro';
+import PageAB from '../components/shirtstore/PageAB.astro';
+import PageAC from '../components/shirtstore/PageAC.astro';
+import PageAD from '../components/shirtstore/PageAD.astro';
 import siteData from '../data/site-data.json';
 
 const layout = (siteData as any).layout ?? {};
@@ -53,7 +83,14 @@ const barbershopMatch = /^barbershop:([F-J])$/.exec(heroStyle);
 const barbershopLetter = barbershopMatch ? barbershopMatch[1] : null;
 const salonspaMatch = /^salonspa:([K-O])$/.exec(heroStyle);
 const salonspaLetter = salonspaMatch ? salonspaMatch[1] : null;
-const anyLetter = genericLetter || barbershopLetter || salonspaLetter;
+const autoshopMatch = /^autoshop:([P-T])$/.exec(heroStyle);
+const autoshopLetter = autoshopMatch ? autoshopMatch[1] : null;
+const restaurantMatch = /^restaurant:([U-Y])$/.exec(heroStyle);
+const restaurantLetter = restaurantMatch ? restaurantMatch[1] : null;
+const shirtstoreMatch = /^shirtstore:(Z|A[A-D])$/.exec(heroStyle);
+const shirtstoreLetter = shirtstoreMatch ? shirtstoreMatch[1] : null;
+const anyLetter = genericLetter || barbershopLetter || salonspaLetter
+  || autoshopLetter || restaurantLetter || shirtstoreLetter;
 ---
 
 {genericLetter === 'A' && <PageA siteData={siteData} />}
@@ -71,6 +108,21 @@ const anyLetter = genericLetter || barbershopLetter || salonspaLetter;
 {salonspaLetter === 'M' && <PageM siteData={siteData} />}
 {salonspaLetter === 'N' && <PageN siteData={siteData} />}
 {salonspaLetter === 'O' && <PageO siteData={siteData} />}
+{autoshopLetter === 'P' && <PageP siteData={siteData} />}
+{autoshopLetter === 'Q' && <PageQ siteData={siteData} />}
+{autoshopLetter === 'R' && <PageR siteData={siteData} />}
+{autoshopLetter === 'S' && <PageS siteData={siteData} />}
+{autoshopLetter === 'T' && <PageT siteData={siteData} />}
+{restaurantLetter === 'U' && <PageU siteData={siteData} />}
+{restaurantLetter === 'V' && <PageV siteData={siteData} />}
+{restaurantLetter === 'W' && <PageW siteData={siteData} />}
+{restaurantLetter === 'X' && <PageX siteData={siteData} />}
+{restaurantLetter === 'Y' && <PageY siteData={siteData} />}
+{shirtstoreLetter === 'Z' && <PageZ siteData={siteData} />}
+{shirtstoreLetter === 'AA' && <PageAA siteData={siteData} />}
+{shirtstoreLetter === 'AB' && <PageAB siteData={siteData} />}
+{shirtstoreLetter === 'AC' && <PageAC siteData={siteData} />}
+{shirtstoreLetter === 'AD' && <PageAD siteData={siteData} />}
 {!anyLetter && (
   <BaseLayout
     businessName={layout.businessName ?? ''}

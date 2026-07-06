@@ -1,0 +1,63 @@
+---
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+const gallery = content.gallery || {};
+const tag = gallery.tag || '';
+const headline = gallery.headline || '';
+type Tile = { image?: string; caption?: string };
+const rawItems: Tile[] = Array.isArray(gallery.items) ? gallery.items : (Array.isArray(content.gallery) ? content.gallery : []);
+const items = rawItems.filter((it: Tile) => it && it.image);
+const spans = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'];
+---
+{items.length > 0 && (
+  <section class="gal-sect" id="gallery">
+    <div class="wrap">
+      <div class="gal-head reveal">
+        {tag && <span class="kicker" data-field="gallery.tag">{tag}</span>}
+        {headline && <h2 data-field="gallery.headline" set:html={headline}></h2>}
+      </div>
+      <div class="gal reveal">
+        {items.map((item, i) => (
+          <figure class={`g-tile ${spans[i % spans.length]}`}>
+            <div class="bg-img" data-image-field={`gallery.items.${i}.image`} style={`background-image:url('${item.image}');`}></div>
+            <span class="gidx">{String(i + 1).padStart(2, '0')}</span>
+            {item.caption && <figcaption class="gcap" data-field={`gallery.items.${i}.caption`}>{item.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .gal-sect { padding-block: clamp(78px, 10vw, 160px); }
+  .gal-head { text-align: center; margin-bottom: 62px; display: block; }
+  .gal-head h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(36px, 5vw, 72px); margin-top: 14px; }
+  .gal-head h2 :global(em) { font-style: italic; color: var(--accent); }
+  .gal {
+    display: grid; grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: clamp(86px, 10vw, 140px); gap: clamp(10px, 1.4vw, 18px);
+  }
+  .g-tile { position: relative; margin: 0; overflow: hidden; background: var(--paper-2); }
+  .g-tile .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform 1.1s cubic-bezier(.2,.7,.2,1); }
+  .g-tile:hover .bg-img { transform: scale(1.07); }
+  .g-tile .gidx { position: absolute; top: 14px; left: 16px; font-family: var(--serif); font-style: italic; font-size: 18px; color: #fff; z-index: 3; mix-blend-mode: difference; }
+  .g-tile .gcap {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: 18px;
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: #fff; z-index: 3;
+    background: linear-gradient(0deg, rgba(20,15,10,.7), transparent);
+    opacity: 0; transform: translateY(10px); transition: .55s; pointer-events: none;
+  }
+  .g-tile:hover .gcap { opacity: 1; transform: none; }
+  .p1 { grid-column: span 7; grid-row: span 3; }
+  .p2 { grid-column: span 5; grid-row: span 2; }
+  .p3 { grid-column: span 5; grid-row: span 1; }
+  .p4 { grid-column: span 4; grid-row: span 2; }
+  .p5 { grid-column: span 4; grid-row: span 2; }
+  .p6 { grid-column: span 4; grid-row: span 2; }
+  @media (max-width: 760px) {
+    .gal { grid-template-columns: repeat(2, 1fr); grid-auto-rows: 130px; }
+    .gal > * { grid-column: span 1 !important; grid-row: span 2 !important; }
+    .gal .p1 { grid-column: span 2 !important; }
+  }
+</style>

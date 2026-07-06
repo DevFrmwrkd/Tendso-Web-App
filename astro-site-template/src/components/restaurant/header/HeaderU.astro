@@ -1,0 +1,68 @@
+---
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+const brand = (content as any).footer?.brand || layout.businessName || 'Your Restaurant';
+const navLinks: Array<{ href: string; label: string }> = (layout.navLinks && layout.navLinks.length)
+  ? layout.navLinks
+  : [];
+const ctaText = (content as any).navCtaText || 'Reservations';
+const ctaHref = (content as any).navCtaHref || '#visit';
+---
+<header class="nav">
+  <div class="nav-in">
+    <a href="#top" class="brand" data-field="footer.brand">{brand}</a>
+    {navLinks.length > 0 && (
+      <nav class="nav-links">
+        {navLinks.map((link, i) => (
+          <a href={link.href} data-field={`navbar_links.${i}.label`} data-href-field={`navbar_links.${i}.href`}>{link.label}</a>
+        ))}
+      </nav>
+    )}
+    <div class="nav-right">
+      <a class="nav-resv" href={ctaHref} data-field="navCtaText" data-href-field="navCtaHref">{ctaText}</a>
+    </div>
+  </div>
+</header>
+<style>
+  header.nav {
+    position: fixed; inset: 0 0 auto 0; z-index: 50;
+    transition: background .5s, border-color .5s, padding .5s;
+    border-bottom: 1px solid transparent;
+  }
+  header.nav.scrolled {
+    background: rgba(var(--paper-rgb), .94);
+    backdrop-filter: blur(12px);
+    border-bottom-color: var(--line);
+  }
+  header.nav.scrolled .nav-in { padding-block: 15px; }
+  .nav-in {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 24px; max-width: var(--maxw); margin: 0 auto;
+    padding: 24px var(--pad); transition: padding .5s;
+  }
+  .brand {
+    font-family: var(--serif); font-weight: 400; font-size: 27px;
+    letter-spacing: .42em; text-transform: uppercase; padding-left: .42em;
+    color: var(--ink);
+  }
+  .nav-links {
+    display: flex; gap: 36px; align-items: center;
+    font-family: var(--sans); font-weight: 600; font-size: 12px;
+    letter-spacing: .16em; text-transform: uppercase;
+  }
+  .nav-links :global(a) { position: relative; padding: 3px 0; color: var(--ink); }
+  .nav-links :global(a::after) {
+    content: ""; position: absolute; left: 0; bottom: -3px;
+    width: 0; height: 1px; background: var(--accent); transition: width .4s;
+  }
+  .nav-links :global(a:hover::after) { width: 100%; }
+  .nav-right { display: flex; align-items: center; gap: 24px; }
+  .nav-resv {
+    font-family: var(--sans); font-weight: 600; font-size: 11px;
+    letter-spacing: .2em; text-transform: uppercase;
+    border: 1px solid var(--ink); padding: 12px 22px; color: var(--ink);
+    transition: background .45s, color .45s;
+  }
+  .nav-resv:hover { background: var(--ink); color: var(--paper); }
+  @media (max-width: 960px) { .nav-links { display: none; } }
+</style>

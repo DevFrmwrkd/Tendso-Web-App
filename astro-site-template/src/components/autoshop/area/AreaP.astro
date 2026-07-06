@@ -1,0 +1,42 @@
+---
+/**
+ * Autoshop / AreaP — Foundry service-area strip: dark section with bordered
+ * neighborhood tags that light up accent on hover. Reads
+ * content.area.tag/headline/sub/places[].
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const area = content.area || {};
+const tag = area.tag || '';
+const headline = area.headline || '';
+const sub = area.sub || '';
+const places: string[] = Array.isArray(area.places) ? area.places : (Array.isArray(area.items) ? area.items : []);
+---
+{places.length > 0 && (
+  <section class="area">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="area.tag"><span class="dot"></span> {tag}</span>}
+          {headline && <h2 class="h-sect" data-field="area.headline" set:html={headline}></h2>}
+          {sub && <p class="area-sub" data-field="area.sub">{sub}</p>}
+        </div>
+      </div>
+      <div class="area-tags reveal">
+        {places.map((place, i) => (
+          <span data-field={`area.places.${i}`}>{place}</span>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .area { background: var(--ink); color: var(--paper); border-block: 2px solid var(--ink); }
+  .area .wrap { padding-block: clamp(54px, 7vw, 90px); }
+  .area .h-sect { color: var(--paper); }
+  .area-sub { color: rgba(var(--paper-rgb), .72); margin: 14px 0 0; max-width: 56ch; }
+  .area-tags { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+  .area-tags span { border: 1px solid rgba(var(--paper-rgb), .35); padding: 10px 16px; font-family: var(--mono); font-size: 13px; letter-spacing: .06em; transition: color .2s, border-color .2s; }
+  .area-tags span:hover { border-color: var(--accent); color: var(--accent); }
+  @media (max-width: 860px) { .area .h-sect { font-size: clamp(30px, 8vw, 48px); } }
+</style>

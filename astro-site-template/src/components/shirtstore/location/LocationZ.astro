@@ -1,0 +1,146 @@
+---
+/**
+ * Shirtstore location — NAP card + Leaflet map (editorial split layout).
+ *
+ * Map rendering strategy mirrors salonspa/LocationK:
+ *   1. build-time lat/lng → render Leaflet directly.
+ *   2. address only → client-side Nominatim (OSM) lookup, then render.
+ *   3. neither → graceful fallback tile.
+ *
+ * Calls window.__shirtstoreInitMap(lat, lng, label) defined in PageZ.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const loc = content.location || {};
+const tag = loc.tag || '';
+const headline = loc.headline || '';
+const address = loc.address || layout.contact?.address || '';
+const addressLines = address ? address.split('\n') : [];
+const phone = loc.phone || layout.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const hours: Array<{ day: string; time: string }> = Array.isArray(loc.hours)
+  ? loc.hours
+  : (Array.isArray((content as any).footer?.hours) ? (content as any).footer.hours : []);
+const fittings = loc.fittings || loc.note || '';
+const lat = loc.lat != null
+  ? Number(loc.lat)
+  : (layout.contact?.lat != null ? Number(layout.contact.lat) : null);
+const lng = loc.lng != null
+  ? Number(loc.lng)
+  : (layout.contact?.lng != null ? Number(layout.contact.lng) : null);
+const label = layout.businessName || 'Our location';
+const mapAria = `Map showing ${label}`;
+const hasCoords = lat != null && lng != null && !isNaN(lat as number) && !isNaN(lng as number);
+const hasAddress = !!address;
+---
+<section class="loc" id="visit">
+  <div class="loc-info">
+    {tag && <p class="eyebrow reveal" data-field="location.tag">{tag}</p>}
+    {headline && <h2 class="reveal" data-field="location.headline" set:html={headline}></h2>}
+    <div class="reveal">
+      {address && (
+        <div class="loc-line">
+          <span class="k">Address</span>
+          <span data-field="location.address">
+            {addressLines.map((line: string, i: number) => (<>{i > 0 && <br />}{line}</>))}
+          </span>
+        </div>
+      )}
+      {hours.length > 0 && (
+        <div class="loc-line">
+          <span class="k">Hours</span>
+          <span class="loc-hours">
+            {hours.map((row: any, i: number) => (
+              <span class="hrow"><span data-field={`location.hours.${i}.day`}>{row.day}</span><span data-field={`location.hours.${i}.time`}>{row.time}</span></span>
+            ))}
+          </span>
+        </div>
+      )}
+      {phone && (
+        <div class="loc-line">
+          <span class="k">Phone</span>
+          <a href={`tel:${phoneDigits}`} data-field="location.phone">{phone}</a>
+        </div>
+      )}
+      {fittings && (
+        <div class="loc-line">
+          <span class="k">Fittings</span>
+          <span data-field="location.fittings">{fittings}</span>
+        </div>
+      )}
+    </div>
+  </div>
+  <div id="map" role="img" aria-label={mapAria}>
+    {!hasCoords && !hasAddress && (
+      <div class="map-fallback">No address on file yet.</div>
+    )}
+    {!hasCoords && hasAddress && (
+      <div class="map-fallback" id="map-fallback">Loading map…</div>
+    )}
+  </div>
+</section>
+{hasCoords && (
+  <script is:inline define:vars={{ lat, lng, label }}>
+    (function init() {
+      if (window.__shirtstoreInitMap) window.__shirtstoreInitMap(lat, lng, label);
+      else setTimeout(init, 80);
+    })();
+  </script>
+)}
+{!hasCoords && hasAddress && (
+  <script is:inline define:vars={{ address, label }}>
+    (function geocodeThenInit() {
+      var attempt = 0;
+      function tryInit(lat, lng) {
+        if (window.__shirtstoreInitMap) {
+          window.__shirtstoreInitMap(lat, lng, label);
+        } else if (attempt++ < 25) {
+          setTimeout(function () { tryInit(lat, lng); }, 80);
+        }
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query;
+        fetch(url, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) {
+              var el = document.getElementById('map-fallback');
+              if (el) el.textContent = 'Map preview unavailable — use the address above.';
+              return;
+            }
+            var lat = parseFloat(results[0].lat);
+            var lng = parseFloat(results[0].lon);
+            if (isNaN(lat) || isNaN(lng)) return;
+            tryInit(lat, lng);
+          })
+          .catch(function () {
+            var el = document.getElementById('map-fallback');
+            if (el) el.textContent = 'Map preview unavailable — use the address above.';
+          });
+      } catch (e) { /* never block render */ }
+    })();
+  </script>
+)}
+<style>
+  .loc { display: grid; grid-template-columns: 1fr 1.25fr; }
+  .loc-info { padding: clamp(44px, 6vw, 90px) var(--pad); }
+  .loc-info .eyebrow { color: var(--accent); }
+  .loc-info h2 { font-size: clamp(32px, 4.2vw, 58px); margin: 8px 0 24px; }
+  .loc-line { display: grid; grid-template-columns: 84px 1fr; gap: 14px; padding: 16px 0; border-top: 1px solid var(--line); font-size: 15px; }
+  .loc-line .k { font-family: var(--sans); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent); margin-top: 4px; }
+  .loc-line a { border-bottom: 1px solid var(--line-2); }
+  .loc-line a:hover { border-color: var(--ink); }
+  .loc-hours { display: flex; flex-direction: column; gap: 2px; }
+  .loc-hours .hrow { display: flex; justify-content: space-between; max-width: 260px; }
+  #map { min-height: 480px; height: 100%; width: 100%; background: var(--paper-2); filter: saturate(.72); }
+  .map-fallback {
+    display: flex; align-items: center; justify-content: center; height: 100%; min-height: 480px;
+    color: var(--ink-2, var(--muted)); font-family: var(--sans); letter-spacing: .1em;
+    text-transform: uppercase; font-size: 12.5px; padding: 24px; text-align: center;
+  }
+  @media (max-width: 860px) {
+    .loc { grid-template-columns: 1fr; }
+    #map, .map-fallback { min-height: 340px; }
+  }
+</style>

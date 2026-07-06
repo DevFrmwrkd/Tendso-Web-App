@@ -174,10 +174,13 @@ const FONT_PAIRINGS: Record<string, { heading: string; body: string; mono?: stri
 const AUTO_BY_BUSINESS_TYPE: Record<string, string> = {
     barber: 'brown', barbershop: 'brown',
     salon: 'pink', beauty: 'pink', spa: 'pink', nail: 'pink', hair: 'pink', aesthetic: 'pink',
-    auto: 'blue', automotive: 'blue', mechanic: 'blue', tire: 'blue', garage: 'blue', carshop: 'blue', carrepair: 'blue',
+    // Autoshop family (P–T) default = Foundry hazard orange.
+    auto: 'orange', autoshop: 'orange', automotive: 'orange', mechanic: 'orange', tire: 'orange', garage: 'orange', carshop: 'orange', carrepair: 'orange',
+    // Restaurant family (U–Y) default = Harvest rustic warm.
     restaurant: 'orange', diner: 'orange', eatery: 'orange', bistro: 'orange', food: 'orange',
-    cafe: 'brown', coffee: 'brown', roaster: 'brown', tea: 'brown',
-    retail: 'brown', store: 'brown', shop: 'brown', boutique: 'brown',
+    cafe: 'orange', coffee: 'brown', roaster: 'brown', tea: 'brown',
+    // Shirtstore family (Z, AA–AD) default = Editorial warm earthy.
+    retail: 'brown', store: 'brown', shop: 'brown', boutique: 'brown', apparel: 'brown', clothing: 'brown',
     clinic: 'green', dental: 'green', dentist: 'green', medical: 'green', doctor: 'green', veterinary: 'green', vet: 'green',
     fitness: 'red', gym: 'red', yoga: 'red', pilates: 'red', crossfit: 'red', martialarts: 'red',
     school: 'purple', tutor: 'purple', workshop: 'purple', academy: 'purple', education: 'purple', learning: 'purple',
@@ -303,10 +306,23 @@ export function buildOverrideCss(scheme: string, pairing: string): string {
         lines.push(`  --brass: ${palette.primary} !important;`);
         lines.push(`  --brass-bright: ${palette.accent} !important;`);
         lines.push(`  --brass-rgb: ${palette.accentRgb} !important;`);
-        // SalonSpa family (PageK–PageO) uses --accent / --accent-rgb for the
-        // primary accent across all 5 variants.
+        // SalonSpa family (PageK–PageO), Autoshop (P–T), Restaurant (U–Y),
+        // and Shirtstore (Z, AA–AD) all use --accent / --accent-rgb for the
+        // primary accent. Autoshop/Shirtstore also read --accent-light /
+        // --accent-deep / --accent-soft — alias them to the scheme's accent.
         lines.push(`  --accent: ${palette.primary} !important;`);
         lines.push(`  --accent-rgb: ${palette.accentRgb} !important;`);
+        lines.push(`  --accent-light: ${palette.accent} !important;`);
+        lines.push(`  --accent-soft: ${palette.accent} !important;`);
+        lines.push(`  --accent-deep: ${palette.primaryDeep} !important;`);
+        // Restaurant family (U–Y) uses --olive / --olive-2 / --olive-rgb as a
+        // dark section background + muted accent. Map --olive to the scheme's
+        // ink (dark band bg) and --olive-2 to the primary so explicit color
+        // picks recolor the ink-sect bands + hero CTA instead of leaving the
+        // native dark-green baked in.
+        lines.push(`  --olive: ${palette.ink} !important;`);
+        lines.push(`  --olive-2: ${palette.primary} !important;`);
+        lines.push(`  --olive-rgb: ${palette.inkRgb} !important;`);
         // Northpoint uses --bg / --bg-2 / --panel — alias them too.
         lines.push(`  --bg: ${palette.paper} !important;`);
         lines.push(`  --bg-2: ${palette.paper2} !important;`);

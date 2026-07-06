@@ -1,0 +1,54 @@
+---
+/**
+ * Autoshop / GalleryP — Foundry asymmetric hover grid. First tile spans big,
+ * third is tall; images zoom + reveal a caption on hover. Reads
+ * content.gallery.tag/headline/items[]{image,caption}. Images come from
+ * content.gallery.items[].image (Hyperagent-fed); tiles without an image drop.
+ */
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+const gallery = content.gallery || {};
+const tag = gallery.tag || '';
+const headline = gallery.headline || '';
+type Tile = { image?: string; caption?: string };
+const rawItems: Tile[] = Array.isArray(gallery.items) ? gallery.items : (Array.isArray(content.gallery) ? content.gallery : []);
+const items = rawItems.filter((it: Tile) => it && it.image);
+const spans = ['big', '', 'tall', '', '', ''];
+---
+{items.length > 0 && (
+  <section class="block" id="work">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="gallery.tag"><span class="dot"></span> {tag}</span>}
+          {headline && <h2 class="h-sect" data-field="gallery.headline" set:html={headline}></h2>}
+        </div>
+      </div>
+      <div class="gal reveal">
+        {items.map((item, i) => (
+          <div class={`gcell ${spans[i % spans.length]}`}>
+            <span class="gi">{String(i + 1).padStart(2, '0')}</span>
+            <div class="bg-img" data-image-field={`gallery.items.${i}.image`} style={`background-image:url('${item.image}');`}></div>
+            {item.caption && <div class="cap mono" data-field={`gallery.items.${i}.caption`}>{item.caption}</div>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .block { padding-block: clamp(64px, 9vw, 120px); }
+  .gal { display: grid; grid-template-columns: repeat(4, 1fr); grid-auto-rows: 200px; gap: 14px; }
+  .gcell { position: relative; overflow: hidden; border: 2px solid var(--ink); }
+  .gcell.big { grid-column: span 2; grid-row: span 2; }
+  .gcell.tall { grid-row: span 2; }
+  .gcell .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; transition: transform .5s ease; }
+  .gcell:hover .bg-img { transform: scale(1.06); }
+  .gcell .cap { position: absolute; left: 0; bottom: 0; right: 0; padding: 14px; background: linear-gradient(to top, rgba(var(--ink-rgb), .85), transparent); color: var(--paper); transform: translateY(8px); opacity: 0; transition: .3s ease; pointer-events: none; }
+  .gcell:hover .cap { transform: none; opacity: 1; }
+  .gcell .gi { position: absolute; top: 10px; left: 12px; font-family: var(--mono); font-size: 12px; color: var(--paper); mix-blend-mode: difference; z-index: 2; }
+  @media (max-width: 860px) {
+    .gal { grid-template-columns: 1fr 1fr; grid-auto-rows: 160px; }
+    .gcell.big, .gcell.tall { grid-column: auto; grid-row: auto; }
+  }
+</style>

@@ -1,0 +1,36 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const marquee = content.marquee || {};
+const words: string[] = Array.isArray(marquee.words) ? marquee.words.filter(Boolean) : [];
+const text = marquee.text || '';
+const hasContent = words.length > 0 || !!text;
+---
+{hasContent && (
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track">
+      {[0, 1].map(() => (
+        <span data-field="marquee.text">
+          {words.length > 0
+            ? words.map((w, i) => (<>{i > 0 && <span class="dot"> · </span>}{w}</>))
+            : text}
+          <span class="dot"> · </span>&nbsp;
+        </span>
+      ))}
+    </div>
+  </div>
+)}
+<style>
+  .marquee { overflow: hidden; padding: clamp(26px, 4vw, 52px) 0; border-bottom: 1px solid var(--line); }
+  .marquee-track {
+    display: flex; width: max-content; white-space: nowrap;
+    animation: rscrollx 30s linear infinite;
+    font-family: var(--serif); font-weight: 300; font-style: italic;
+    font-size: clamp(40px, 7vw, 96px);
+  }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  .marquee-track :global(span) { padding-inline: 34px; display: flex; align-items: center; gap: 34px; }
+  .marquee-track :global(.dot) { color: var(--accent); font-style: normal; padding-inline: 0; display: inline; gap: 0; }
+  @keyframes rscrollx { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
+</style>

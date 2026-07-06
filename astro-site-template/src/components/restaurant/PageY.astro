@@ -1,0 +1,110 @@
+---
+/**
+ * restaurant / PageY — Garden (Playful). Cream + tomato with teal & sun
+ * accents — Caprasimo display + DM Sans body. Non-default letter: reuses the
+ * U-letter shared sections, but ships its OWN playful hero (HeroY, layered
+ * card stack) and menu (ServicesY, bento grid). Palette/font tokens scoped
+ * to html[data-page="Y"] so they never bleed onto sister wrappers.
+ */
+import HeaderU from './header/HeaderU.astro';
+import HeroY from './hero/HeroY.astro';
+import TrustU from './trust/TrustU.astro';
+import AboutU from './about/AboutU.astro';
+import ServicesY from './services/ServicesY.astro';
+import WhyU from './why/WhyU.astro';
+import HowU from './how/HowU.astro';
+import TestimonialsU from './testimonials/TestimonialsU.astro';
+import GalleryU from './gallery/GalleryU.astro';
+import FaqU from './faq/FaqU.astro';
+import AreaU from './area/AreaU.astro';
+import CredentialsU from './credentials/CredentialsU.astro';
+import LocationU from './location/LocationU.astro';
+import CtaBandU from './ctaBand/CtaBandU.astro';
+import FooterU from './footer/FooterU.astro';
+import RestaurantSpine from './RestaurantSpine.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}` : 'Welcome';
+const { scheme: __themeScheme, pairing: __themePairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+---
+<!DOCTYPE html>
+<html lang="en" data-page="Y">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caprasimo&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+  <style is:global>
+    html[data-page="Y"] {
+      --paper: #FFF4E0; --paper-2: #FFE9C4;
+      --ink: #23332E; --ink-2: #3a4a44;
+      --paper-rgb: 255,244,224; --ink-rgb: 35,51,46;
+      --accent: #E8543C; --accent-rgb: 232,84,60;
+      --sun: #F4B43A; --teal: #1F8A6E; --plum: #7B4B8A;
+      --line: rgba(35,51,46, 1);
+      --muted: rgba(35,51,46, .78); --muted-light: rgba(255,244,224, .82);
+      --display: "Caprasimo", system-ui, cursive;
+      --sans: "DM Sans", system-ui, sans-serif;
+      --serif: "Caprasimo", system-ui, cursive;
+      --r: 26px;
+      --pad: clamp(20px, 5vw, 64px); --maxw: 1240px;
+      --on-accent: #ffffff; --on-ink: #FFF4E0; --on-paper: #23332E;
+    }
+  </style>
+  <RestaurantSpine />
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <HeaderU layout={layout} content={content} />
+  <main id="top">
+    {visibility.heroSection !== false && <HeroY content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustU content={content} />}
+    {visibility.aboutSection !== false && <AboutU content={content} />}
+    {visibility.servicesSection !== false && <ServicesY content={content} />}
+    {visibility.whyUsBlock !== false && <WhyU content={content} />}
+    {visibility.howItWorksBlock !== false && <HowU content={content} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsU content={content} />}
+    {visibility.gallerySection !== false && <GalleryU content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqU content={content} />}
+    {visibility.serviceAreaBlock !== false && <AreaU content={content} />}
+    {visibility.credentialsBlock !== false && <CredentialsU content={content} />}
+    {visibility.locationBlock !== false && <LocationU content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandU content={content} layout={layout} />}
+  <FooterU layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce && !document.hidden) {
+        var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }); }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
+        document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+      } else { document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); }); }
+      var hdr = document.querySelector('header.nav');
+      if (hdr) { var onScroll = function () { if (window.scrollY > 16) hdr.classList.add('scrolled'); else hdr.classList.remove('scrolled'); }; window.addEventListener('scroll', onScroll, { passive: true }); onScroll(); }
+      window.__restaurantInitMap = function (lat, lng, label) {
+        if (!window.L) return; var el = document.getElementById('map'); if (!el) return; el.innerHTML = '';
+        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 15);
+        L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
+        var icon = L.divIcon({ className: '', html: '<div style="width:22px;height:22px;background:#E8543C;border:2.5px solid #23332E;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 3px 6px rgba(0,0,0,.3);"></div>', iconSize: [22, 22], iconAnchor: [11, 22] });
+        L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup('<b>' + label + '</b>');
+      };
+    })();
+  </script>
+</body>
+</html>

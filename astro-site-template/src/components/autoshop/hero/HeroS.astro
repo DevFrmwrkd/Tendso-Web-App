@@ -1,0 +1,104 @@
+---
+/**
+ * Autoshop / HeroS — Redline kinetic. Oversized Anton headline that rises line
+ * by line, a kicker row with a mono locality tag, a hard-bordered hero-bar with
+ * CTAs + star rating, then a full-bleed 21:8 media band with a bottom scrim.
+ * Reads content.hero (shared shape across P–T so content stays portable when
+ * admin swaps variant). Hero image → content.hero.image (Hyperagent enhanced).
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.locality || '';
+const tag = hero.tag || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#book';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || '#services';
+const rating = hero.rating || '';
+---
+<section class="heroS" id="top">
+  <div class="wrap">
+    <div class="heroS-top">
+      {kicker && <p class="heroS-kicker" data-field="hero.kicker" set:html={kicker}></p>}
+      {tag && <span class="mono heroS-tag" data-field="hero.tag">{tag}</span>}
+    </div>
+    {headlineLines.length > 0 && (
+      <h1 class="heroS-head anim">
+        {headlineLines.map((line: string, i: number) => (
+          <span class="ln"><span data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+        ))}
+      </h1>
+    )}
+  </div>
+  <div class="wrap">
+    <div class="heroS-bar">
+      <div class="heroS-acts">
+        {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+        {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+      </div>
+      {rating && (
+        <div class="heroS-rate">
+          <span class="stars">★★★★★</span>
+          <span class="mono" data-field="hero.rating">{rating}</span>
+        </div>
+      )}
+    </div>
+  </div>
+  <div class="heroS-media">
+    {heroImage
+      ? <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+      : <div class="bg-img placeholder" data-image-field="hero.image"></div>}
+    <div class="scrim"></div>
+  </div>
+</section>
+<style>
+  .heroS { position: relative; padding-top: clamp(40px, 6vw, 70px); overflow: hidden; }
+  .heroS-top { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; flex-wrap: wrap; }
+  .heroS-kicker { max-width: 42ch; margin: 0; color: var(--muted, rgba(var(--ink-rgb), .62)); font-size: clamp(16px, 1.4vw, 19px); }
+  .heroS-tag { color: var(--muted, rgba(var(--ink-rgb), .62)); }
+  .heroS-head {
+    font-family: var(--display); font-weight: 900;
+    font-size: clamp(70px, 17vw, 260px); line-height: .82; letter-spacing: -.01em;
+    margin: 30px 0 0; text-transform: uppercase;
+  }
+  .heroS-head .ln { display: block; overflow: hidden; }
+  .heroS-head .ln > span { display: block; }
+  .heroS-head em { font-style: normal; color: var(--accent); }
+  .heroS-bar {
+    display: flex; align-items: stretch; gap: 0; margin-top: 36px;
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  }
+  .heroS-acts { display: flex; gap: 14px; padding: 22px 0; flex-wrap: wrap; align-items: center; flex: 1; }
+  .heroS-rate {
+    padding: 22px 0 22px 28px; border-left: 1px solid var(--line);
+    display: flex; flex-direction: column; justify-content: center; gap: 6px;
+  }
+  .stars { color: var(--accent); letter-spacing: 2px; font-size: 18px; }
+  .heroS-media {
+    position: relative; margin-top: 0; aspect-ratio: 21 / 8;
+    border-bottom: 2px solid var(--ink);
+  }
+  .heroS-media .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; }
+  .heroS-media .placeholder { background: repeating-linear-gradient(45deg, var(--paper-2, var(--paper)) 0 12px, var(--paper) 12px 24px); }
+  .heroS-media .scrim { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to top, rgba(var(--paper-rgb), .7), transparent 60%); }
+
+  @keyframes heroSrise { from { transform: translateY(105%); } to { transform: translateY(0); } }
+  .anim .ln > span { animation: heroSrise 1s cubic-bezier(.16, .84, .3, 1) both; }
+  .anim .ln:nth-child(1) > span { animation-delay: .05s; }
+  .anim .ln:nth-child(2) > span { animation-delay: .16s; }
+  .anim .ln:nth-child(3) > span { animation-delay: .27s; }
+  .anim .ln:nth-child(4) > span { animation-delay: .38s; }
+
+  @media (max-width: 860px) {
+    .heroS-media { aspect-ratio: 4 / 3; }
+    .heroS-rate { padding-left: 18px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .anim .ln > span { animation: none; }
+  }
+</style>

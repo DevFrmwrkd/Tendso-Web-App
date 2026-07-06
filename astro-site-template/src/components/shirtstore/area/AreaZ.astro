@@ -1,0 +1,42 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const area = content.area || {};
+const tag = area.tag || '';
+const headline = area.headline || '';
+const sub = area.sub || '';
+const places: string[] = Array.isArray(area.places) ? area.places : (Array.isArray(area.items) ? area.items : []);
+---
+{places.length > 0 && (
+  <section class="area">
+    <div class="wrap">
+      <div class="area-copy reveal">
+        {tag && <p class="eyebrow" data-field="area.tag">{tag}</p>}
+        {headline && <h2 data-field="area.headline" set:html={headline}></h2>}
+        {sub && <p class="area-sub" data-field="area.sub">{sub}</p>}
+      </div>
+      <div class="hoods reveal">
+        {places.map((place, i) => (
+          <span data-field={`area.places.${i}`}>{place}</span>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .area {
+    padding: clamp(56px, 8vw, 120px) 0; background: var(--paper-2);
+    border-block: 1px solid var(--line);
+  }
+  .area-copy { margin-bottom: clamp(24px, 3vw, 36px); }
+  .area-copy .eyebrow { color: var(--accent); }
+  .area h2 { font-size: clamp(28px, 3.6vw, 48px); margin: 8px 0; }
+  .area-sub { color: var(--ink-2, var(--muted)); max-width: 52ch; }
+  .hoods {
+    columns: 3; column-gap: 40px;
+    font-family: var(--serif); font-size: 20px; line-height: 2.1;
+  }
+  .hoods span { display: block; border-bottom: 1px solid var(--line); break-inside: avoid; color: var(--ink); }
+  @media (max-width: 860px) { .hoods { columns: 2; } }
+  @media (max-width: 520px) { .hoods { columns: 1; } }
+</style>

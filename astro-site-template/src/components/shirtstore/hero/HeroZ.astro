@@ -1,0 +1,93 @@
+---
+/**
+ * Shirtstore / HeroZ — Editorial cover. Oversized display headline + aside
+ * copy row, then a full-bleed image band with a meta overlay. Reads
+ * content.hero (shared shape across Z + siblings so content stays portable
+ * when admin swaps variant). Hero image → content.hero.image (Hyperagent).
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#services';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || '#visit';
+const rating = hero.rating || '';
+const tag = hero.tag || '';
+---
+<section class="hero" id="top">
+  <div class="wrap">
+    {kicker && <p class="eyebrow reveal" data-field="hero.kicker">{kicker}</p>}
+    <div class="hero-row">
+      {headlineLines.length > 0 && (
+        <h1>
+          {headlineLines.map((line: string, i: number) => (
+            <span class="hl"><span data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+          ))}
+        </h1>
+      )}
+      <div class="hero-aside reveal">
+        {sub && <p data-field="hero.sub">{sub}</p>}
+        <div class="cta">
+          {cta1Text && <a class="btn btn-fill" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+          {cta2Text && <a class="btn btn-out" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="hero-band reveal">
+      <figure class="fig">
+        {heroImage
+          ? <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+          : <div class="bg-img placeholder" data-image-field="hero.image"></div>}
+      </figure>
+      {(tag || rating) && (
+        <div class="hero-meta">
+          {tag && <span class="m"><b data-field="hero.tag">{tag}</b></span>}
+          {rating && <span class="m" style="text-align:right">Rated<b data-field="hero.rating">{rating}</b></span>}
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+<style>
+  .hero { padding: clamp(34px, 5vw, 64px) 0 0; }
+  .eyebrow { color: var(--accent); }
+  .hero-row {
+    display: grid; grid-template-columns: 1.5fr .9fr; gap: clamp(24px, 4vw, 60px);
+    align-items: end; padding: clamp(18px, 2vw, 28px) 0 clamp(28px, 4vw, 52px);
+  }
+  .hero h1 { font-size: clamp(56px, 11vw, 168px); font-weight: 300; letter-spacing: -.025em; }
+  .hero h1 .hl { display: block; overflow: hidden; }
+  .hero h1 .hl > span { display: block; }
+  .hero-aside { padding-bottom: 14px; }
+  .hero-aside p { font-size: 17px; color: var(--ink-2, var(--muted)); max-width: 34ch; margin: 0 0 22px; }
+  .hero-aside .cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .hero-band { position: relative; }
+  .hero-band .fig { width: 100%; overflow: hidden; margin: 0; }
+  .hero-band .bg-img { width: 100%; height: min(78vh, 720px); }
+  .hero-meta {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; justify-content: space-between; align-items: flex-end;
+    padding: 22px clamp(16px, 2vw, 28px); color: #fff;
+    background: linear-gradient(to top, rgba(0,0,0,.5), transparent 70%);
+    pointer-events: none;
+  }
+  .hero-meta .m { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; }
+  .hero-meta .m b {
+    font-family: var(--serif); font-size: 19px; font-weight: 400;
+    letter-spacing: 0; text-transform: none; display: block; margin-top: 4px;
+  }
+  @media (max-width: 860px) {
+    .hero-row { grid-template-columns: 1fr; }
+    .hero h1 { font-size: clamp(54px, 15vw, 90px); }
+    .hero-band .bg-img { height: 62vh; }
+  }
+</style>

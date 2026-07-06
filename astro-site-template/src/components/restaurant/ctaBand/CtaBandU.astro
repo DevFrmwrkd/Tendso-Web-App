@@ -1,0 +1,40 @@
+---
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const cta = content.ctaBand || content.closing || {};
+const tag = cta.tag || '';
+const headline = cta.headline || cta.heading || '';
+const sub = cta.sub || cta.body || '';
+const primary = cta.cta1 || cta.primary || {};
+const secondary = cta.cta2 || cta.secondary || {};
+const cta1Text = primary.text || '';
+const cta1Href = primary.href || '#visit';
+const cta2Text = secondary.text || '';
+const cta2Href = secondary.href || (layout.contact?.phone ? `tel:${String(layout.contact.phone).replace(/[^0-9+]/g, '')}` : '');
+const hasButtons = !!(cta1Text || cta2Text);
+---
+{(headline || hasButtons) && (
+  <section class="cta-band">
+    <div class="wrap reveal">
+      {tag && <span class="kicker" style="color:rgba(255,255,255,.85);" data-field="ctaBand.tag">{tag}</span>}
+      {headline && <h2 data-field="ctaBand.headline" set:html={headline}></h2>}
+      {sub && <p data-field="ctaBand.sub">{sub}</p>}
+      {hasButtons && (
+        <div class="cta-actions">
+          {cta1Text && <a class="btn cta-primary" href={cta1Href} data-field="ctaBand.cta1.text" data-href-field="ctaBand.cta1.href">{cta1Text}</a>}
+          {cta2Text && <a class="btn btn--ghost on-dark" href={cta2Href} data-field="ctaBand.cta2.text" data-href-field="ctaBand.cta2.href">{cta2Text}</a>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .cta-band { text-align: center; background: var(--accent); color: #fff; padding-block: clamp(78px, 10vw, 160px); }
+  .cta-band .kicker { justify-content: center; }
+  .cta-band h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(42px, 7.5vw, 108px); color: #fff; margin: 0; }
+  .cta-band h2 :global(em) { font-style: italic; }
+  .cta-band p { max-width: 46ch; margin: 20px auto 34px; font-size: 18px; color: rgba(255,255,255,.9); }
+  .cta-actions { display: flex; gap: 18px; justify-content: center; flex-wrap: wrap; }
+  .cta-primary { background: #fff; color: var(--accent-deep); border-color: #fff; }
+  .cta-primary:hover { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+</style>

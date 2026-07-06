@@ -1,0 +1,95 @@
+---
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+const f = content.footer || {};
+const brand = f.brand || layout.businessName || 'Your Business';
+const blurb = f.blurb || f.tagline || f.brand_blurb || '';
+const visitLines: string[] = Array.isArray(f.visit?.lines) && f.visit.lines.length
+  ? f.visit.lines
+  : ([layout.contact?.address, layout.contact?.phone].filter(Boolean) as string[]);
+const explore: Array<{ text: string; href: string }> = Array.isArray(f.explore?.links) && f.explore.links.length
+  ? f.explore.links
+  : [];
+const shop: Array<{ text: string; href: string }> = Array.isArray(f.shop?.links) && f.shop.links.length
+  ? f.shop.links
+  : [];
+const social: Array<{ platform: string; url: string }> = Array.isArray(f.social) && f.social.length
+  ? f.social
+  : (Array.isArray(layout.socialLinks) ? layout.socialLinks : []);
+const notes: string[] = Array.isArray(f.notes) && f.notes.length ? f.notes : [];
+const phone = layout.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+---
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <div class="foot-logo" data-field="footer.brand">{brand}<b>.</b></div>
+        {blurb && <p data-field="footer.blurb">{blurb}</p>}
+        {social.length > 0 && (
+          <div class="foot-social">
+            {social.map((s, i) => (
+              <a href={s.url} target="_blank" rel="noopener noreferrer"
+                 data-field={`footer.social.${i}.platform`}
+                 data-href-field={`footer.social.${i}.url`}>{s.platform}</a>
+            ))}
+          </div>
+        )}
+      </div>
+      {shop.length > 0 && (
+        <div class="foot-col">
+          <div class="foot-h">Shop</div>
+          {shop.map((l, i) => (
+            <a href={l.href} data-field={`footer.shop.links.${i}.text`} data-href-field={`footer.shop.links.${i}.href`}>{l.text}</a>
+          ))}
+        </div>
+      )}
+      <div class="foot-col">
+        <div class="foot-h">Visit</div>
+        {visitLines.map((line, i) => (
+          line === phone && phone
+            ? <a href={`tel:${phoneDigits}`} data-field={`footer.visit.lines.${i}`}>{line}</a>
+            : <span class="li" data-field={`footer.visit.lines.${i}`}>{line}</span>
+        ))}
+      </div>
+      {explore.length > 0 && (
+        <div class="foot-col">
+          <div class="foot-h">More</div>
+          {explore.map((l, i) => (
+            <a href={l.href} data-field={`footer.explore.links.${i}.text`} data-href-field={`footer.explore.links.${i}.href`}>{l.text}</a>
+          ))}
+        </div>
+      )}
+    </div>
+    <div class="foot-bottom">
+      {notes.map((n, i) => (
+        <span data-field={`footer.notes.${i}`}>{n}</span>
+      ))}
+    </div>
+  </div>
+</footer>
+<style>
+  footer { background: var(--ink); color: var(--paper); padding: clamp(50px, 7vw, 90px) 0 30px; }
+  .foot-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 36px; }
+  .foot-logo { font-family: var(--serif); font-size: 30px; margin-bottom: 16px; color: var(--paper); }
+  .foot-logo b { color: var(--accent-light, var(--accent)); }
+  .foot-brand p { color: rgba(var(--paper-rgb), .62); font-size: 14px; line-height: 1.9; max-width: 36ch; }
+  .foot-social { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .foot-social a {
+    font-family: var(--sans); font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(var(--paper-rgb), .62); border: 1px solid rgba(var(--paper-rgb), .2);
+    padding: 6px 12px; transition: color .2s, border-color .2s;
+  }
+  .foot-social a:hover { color: var(--paper); border-color: var(--accent-light, var(--accent)); }
+  .foot-h { font-family: var(--sans); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--accent-light, var(--accent)); margin-bottom: 14px; }
+  .foot-col { display: flex; flex-direction: column; gap: 4px; }
+  .foot-col a, .foot-col .li { color: rgba(var(--paper-rgb), .62); font-size: 14px; line-height: 1.9; }
+  .foot-col a:hover { color: var(--paper); }
+  .foot-bottom {
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    margin-top: 50px; padding-top: 24px; border-top: 1px solid rgba(var(--paper-rgb), .16);
+    font-size: 12px; letter-spacing: .06em; color: rgba(var(--paper-rgb), .46);
+  }
+  @media (max-width: 860px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 520px) { .foot-grid { grid-template-columns: 1fr; } }
+</style>

@@ -1,0 +1,111 @@
+---
+/**
+ * shirtstore / HeroAA — Streetwear full-bleed cinematic hero.
+ * Hero photo fills the frame behind a dark scrim; kicker/index pinned top,
+ * oversized Anton headline + sub + CTAs + live rating pinned bottom.
+ * Reads content.hero (shared shirtstore shape so content stays portable when
+ * admin swaps variant). Hero image = content.hero.image → Hyperagent enhanced.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#shirts';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || '#visit';
+const rating = hero.rating || '';
+const tag = hero.tag || '';
+---
+<section class="heroAA" id="top">
+  {heroImage
+    ? <div class="heroAA-bg bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+    : <div class="heroAA-bg bg-img placeholder" data-image-field="hero.image"></div>}
+  <div class="heroAA-scrim"></div>
+
+  <div class="heroAA-top">
+    {kicker && <span class="heroAA-kicker" data-field="hero.kicker">{kicker}</span>}
+    {tag && <span class="heroAA-idx" data-field="hero.tag">{tag}</span>}
+  </div>
+
+  <div class="heroAA-inner">
+    {headlineLines.length > 0 && (
+      <h1 class="heroAA-h1">
+        {headlineLines.map((line: string, i: number) => (
+          <span class="hl-line" data-field={`hero.headlineLines.${i}`} set:html={line}></span>
+        ))}
+      </h1>
+    )}
+    <div class="heroAA-bottom">
+      <div class="heroAA-copy">
+        {sub && <p class="heroAA-sub" data-field="hero.sub">{sub}</p>}
+        <div class="heroAA-cta">
+          {cta1Text && <a class="btn btn-acid" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+          {cta2Text && <a class="btn btn-ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+        </div>
+      </div>
+      {rating && <div class="heroAA-trust">Rated<b data-field="hero.rating">{rating}</b>kept live on Google</div>}
+    </div>
+  </div>
+</section>
+<style>
+  .heroAA {
+    position: relative; min-height: 92vh;
+    display: flex; flex-direction: column; justify-content: space-between;
+    overflow: hidden; border-bottom: 3px solid var(--ink);
+  }
+  .heroAA-bg { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; background-color: #0a0a0a; }
+  .heroAA-bg.placeholder { background-image: repeating-linear-gradient(45deg, #141414 0 14px, #0a0a0a 14px 28px); }
+  .heroAA-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(var(--ink-rgb), .62) 0%, rgba(var(--ink-rgb), .2) 38%, rgba(var(--ink-rgb), .8) 100%);
+  }
+  .heroAA-top {
+    position: relative; z-index: 2;
+    padding: clamp(20px, 4vw, 40px) var(--pad) 0;
+    display: flex; gap: 14px; justify-content: space-between; align-items: flex-start; color: #fff;
+  }
+  .heroAA-kicker {
+    font-family: var(--mono); font-size: 12px; font-weight: 700;
+    letter-spacing: .18em; text-transform: uppercase;
+    background: var(--accent); color: var(--on-accent, var(--ink)); padding: 7px 12px;
+  }
+  .heroAA-idx {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: #fff;
+  }
+  .heroAA-inner {
+    position: relative; z-index: 2; width: 100%;
+    padding: clamp(20px, 3vw, 40px) var(--pad) clamp(34px, 5vw, 68px);
+  }
+  .heroAA-h1 {
+    color: #fff; font-family: var(--display); text-transform: uppercase;
+    font-weight: 400; line-height: .92; letter-spacing: .005em;
+    font-size: clamp(58px, 13vw, 200px); max-width: 14ch;
+  }
+  .heroAA-h1 .hl-line { display: block; }
+  .heroAA-h1 :global(.y) { color: var(--accent); }
+  .heroAA-bottom {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    gap: 24px; flex-wrap: wrap; margin-top: 26px;
+  }
+  .heroAA-sub { color: #fff; font-size: clamp(16px, 1.4vw, 19px); max-width: 42ch; font-weight: 500; }
+  .heroAA-cta { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 20px; }
+  .heroAA-trust {
+    font-family: var(--mono); font-size: 12px; color: #fff;
+    letter-spacing: .08em; text-align: right;
+  }
+  .heroAA-trust b {
+    color: var(--accent); font-size: 30px; font-family: var(--display); display: block;
+  }
+  @media (max-width: 860px) {
+    .heroAA { min-height: 80vh; }
+    .heroAA-bottom { flex-direction: column; align-items: flex-start; }
+    .heroAA-trust { text-align: left; }
+  }
+</style>
