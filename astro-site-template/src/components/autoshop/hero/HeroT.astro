@@ -1,0 +1,115 @@
+---
+/**
+ * Autoshop / HeroT — Maple Street vintage-ticket hero. Asymmetric layered
+ * split: copy left with an italic-emphasis slab headline, hero photo right
+ * boxed with a double-offset ink shadow, plus a circular "SINCE" seal stamp
+ * and a floating info card. Reads content.hero (shared shape across P–T so
+ * content stays portable when admin swaps variant).
+ * Hero image comes from content.hero.image → Hyperagent enhanced image.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || '#services';
+const rating = hero.rating || '';
+const badge = hero.tag || '';
+const estYear = (layout.established || hero.est || '').toString();
+---
+<section class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div class="hero-left">
+      {kicker && <span class="hero-tag mono" data-field="hero.kicker"><span class="star">★</span> {kicker}</span>}
+      {headlineLines.length > 0 && (
+        <h1>
+          {headlineLines.map((line: string, i: number) => (
+            <span class="ln"><span data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+          ))}
+        </h1>
+      )}
+      {sub && <p class="hero-sub" data-field="hero.sub">{sub}</p>}
+      <div class="hero-actions">
+        {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+        {cta2Text && <a class="btn btn--ghost" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+      </div>
+      {rating && (
+        <div class="hero-trust">
+          <span class="stars">★★★★★</span>
+          <span class="mono" data-field="hero.rating">{rating}</span>
+        </div>
+      )}
+    </div>
+    <div class="hero-right">
+      <div class="hero-photo">
+        {heroImage
+          ? <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+          : <div class="bg-img placeholder" data-image-field="hero.image"></div>}
+      </div>
+      {estYear && (
+        <div class="hero-seal" aria-hidden="true">
+          <div class="seal"><div class="seal-in"><span>SINCE</span><b>{estYear}</b><span>{kicker || 'LOCAL'}</span></div></div>
+        </div>
+      )}
+      {badge && (
+        <div class="hero-card">
+          <span class="card-lead" data-field="hero.tag">{badge}</span>
+          <span class="card-sub">Free multi-point inspection</span>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+<style>
+  .hero { padding-block: clamp(40px, 6vw, 72px) clamp(56px, 8vw, 104px); overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(24px, 4vw, 56px); align-items: center; }
+  .hero-left .hero-tag { display: inline-flex; align-items: center; gap: 10px; color: var(--accent); letter-spacing: .12em; }
+  .hero-left .hero-tag .star { color: var(--accent); }
+  .hero h1 { font-size: clamp(46px, 7.4vw, 100px); line-height: 0.96; margin: 18px 0 0; text-transform: none; }
+  .hero h1 .ln { display: block; }
+  .hero h1 .ln :global(em) { font-style: italic; color: var(--accent); }
+  .hero-sub { max-width: 46ch; margin: 22px 0 0; font-size: clamp(17px, 1.4vw, 20px); color: var(--muted, rgba(var(--ink-rgb), .7)); }
+  .hero-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 30px; align-items: center; }
+  .hero-trust { margin-top: 24px; display: flex; align-items: center; gap: 12px; }
+  .stars { color: var(--accent); letter-spacing: 2px; font-size: 18px; }
+
+  .hero-right { position: relative; }
+  .hero-photo {
+    aspect-ratio: 4 / 5; border: 2px solid var(--ink);
+    box-shadow: 14px 14px 0 var(--ink); position: relative; overflow: hidden;
+  }
+  .hero-photo .bg-img { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; }
+  .hero-photo .placeholder { background: repeating-linear-gradient(45deg, var(--paper-2, var(--paper)) 0 12px, var(--paper) 12px 24px); }
+
+  .hero-seal { position: absolute; top: -22px; right: -18px; transform: rotate(8deg); z-index: 3; }
+  .seal {
+    width: 116px; height: 116px; border-radius: 50%; border: 2px solid var(--ink);
+    display: grid; place-items: center; text-align: center; background: var(--paper); position: relative;
+  }
+  .seal::before { content: ""; position: absolute; inset: 7px; border: 1px solid var(--accent); border-radius: 50%; }
+  .seal-in { position: relative; font-family: var(--display); line-height: .92; color: var(--accent); text-transform: uppercase; }
+  .seal-in b { display: block; font-size: 28px; color: var(--ink); }
+  .seal-in span { font-size: 11px; letter-spacing: .1em; }
+
+  .hero-card {
+    position: absolute; bottom: -26px; left: -28px; background: var(--paper);
+    border: 2px solid var(--ink); padding: 16px 22px; box-shadow: 6px 6px 0 var(--accent); z-index: 2;
+  }
+  .hero-card .card-lead { font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 26px; color: var(--ink); line-height: 1; display: block; }
+  .hero-card .card-sub { font-size: 12px; color: var(--muted, rgba(var(--ink-rgb), .7)); letter-spacing: .04em; }
+
+  @media (max-width: 860px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 56px; }
+    .hero-right { max-width: 400px; margin: 0 auto; }
+    .hero h1 { font-size: clamp(42px, 12vw, 72px); }
+    .hero-seal { top: -18px; right: -8px; }
+    .hero-card { left: -12px; }
+  }
+</style>

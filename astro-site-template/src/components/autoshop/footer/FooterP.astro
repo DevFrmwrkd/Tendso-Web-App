@@ -1,0 +1,82 @@
+---
+/**
+ * Autoshop / FooterP — Foundry dark footer: brand blurb column + link/info
+ * columns + a bottom rule. Reads content.footer.brand/tagline/columns[]/social[].
+ * Accepts blurb/visit/explore/hours aliases so the shape stays portable with
+ * the sibling families.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+const f = content.footer || {};
+const brand = f.brand || layout.businessName || 'Your Shop';
+const tagline = f.tagline || f.blurb || f.brand_blurb || '';
+const rating = f.rating || '';
+type Column = { title: string; items?: Array<{ text: string; href?: string }>; lines?: string[] };
+let columns: Column[] = Array.isArray(f.columns) ? f.columns : [];
+// Fall back to the sibling visit/hours/explore shape if columns[] isn't provided.
+if (columns.length === 0) {
+  const visitLines: string[] = Array.isArray(f.visit?.lines) ? f.visit.lines
+    : ([layout.contact?.address, layout.contact?.phone, layout.contact?.email].filter(Boolean) as string[]);
+  const hoursRows: Array<{ day: string; time: string }> = Array.isArray(f.hours) ? f.hours : [];
+  const explore: Array<{ text: string; href: string }> = Array.isArray(f.explore?.links) ? f.explore.links : [];
+  if (visitLines.length) columns.push({ title: 'Visit', lines: visitLines });
+  if (hoursRows.length) columns.push({ title: 'Hours', lines: hoursRows.map((r) => `${r.day} · ${r.time}`) });
+  if (explore.length) columns.push({ title: 'Explore', items: explore });
+}
+const social: Array<{ platform?: string; text?: string; url?: string; href?: string }> =
+  Array.isArray(f.social) ? f.social : (Array.isArray(layout.socialLinks) ? layout.socialLinks : []);
+const copyright = f.copyright || `© ${new Date().getFullYear()} ${brand}. All rights reserved.`;
+const locality = f.locality || layout.contact?.city || '';
+---
+<footer class="site">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="foot-logo" data-field="footer.brand">▲ {brand}</div>
+        {tagline && <p data-field="footer.tagline">{tagline}</p>}
+        {rating && <p class="mono foot-rating" data-field="footer.rating">{rating}</p>}
+        {social.length > 0 && (
+          <div class="foot-social">
+            {social.map((s, i) => (
+              <a href={s.url || s.href} target="_blank" rel="noopener noreferrer"
+                 data-field={`footer.social.${i}.platform`}
+                 data-href-field={`footer.social.${i}.url`}>{s.platform || s.text}</a>
+            ))}
+          </div>
+        )}
+      </div>
+      {columns.map((col, c) => (
+        <div>
+          <h4 class="mono" data-field={`footer.columns.${c}.title`}>{col.title}</h4>
+          {Array.isArray(col.lines) && col.lines.map((line, j) => (
+            <p data-field={`footer.columns.${c}.lines.${j}`}>{line}</p>
+          ))}
+          {Array.isArray(col.items) && col.items.map((it, j) => (
+            <p><a href={it.href || '#'} data-field={`footer.columns.${c}.items.${j}.text`} data-href-field={`footer.columns.${c}.items.${j}.href`}>{it.text}</a></p>
+          ))}
+        </div>
+      ))}
+    </div>
+    <div class="foot-bot">
+      <span data-field="footer.copyright">{copyright}</span>
+      {locality && <span class="mono" data-field="footer.locality">{locality}</span>}
+    </div>
+  </div>
+</footer>
+<style>
+  footer.site { background: var(--ink); color: var(--paper); padding-block: 64px; }
+  .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px; }
+  footer.site h4 { color: var(--paper); font-size: 14px; letter-spacing: .1em; margin-bottom: 18px; }
+  footer.site a, footer.site p { color: rgba(var(--paper-rgb), .7); font-size: 15px; margin: 8px 0; }
+  footer.site a:hover { color: var(--accent); }
+  .foot-logo { font-family: var(--display); font-weight: 900; font-size: 24px; color: var(--paper); text-transform: uppercase; }
+  .foot-rating { color: var(--accent); margin-top: 16px; }
+  .foot-social { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .foot-social a { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; border: 1px solid rgba(var(--paper-rgb), .25); padding: 6px 12px; margin: 0; }
+  .foot-social a:hover { border-color: var(--accent); }
+  .foot-bot { margin-top: 48px; padding-top: 24px; border-top: 1px solid rgba(var(--paper-rgb), .18); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; font-size: 13px; color: rgba(var(--paper-rgb), .5); }
+  @media (max-width: 860px) {
+    .foot-grid { grid-template-columns: 1fr 1fr; }
+    .foot-grid > div:first-child { grid-column: 1 / -1; }
+  }
+</style>

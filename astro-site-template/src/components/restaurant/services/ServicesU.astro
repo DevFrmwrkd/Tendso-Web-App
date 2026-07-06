@@ -1,0 +1,80 @@
+---
+interface Props { content: any; }
+const { content } = Astro.props;
+const services = content.services || {};
+const tag = services.tag || '';
+const headline = services.headline || '';
+const sub = services.sub || '';
+type Item = { title: string; body?: string; desc?: string; description?: string; price?: string };
+const items: Item[] = Array.isArray(services.items) ? services.items : (Array.isArray(services) ? services : []);
+const footText = services.footText || services.note || '';
+const footCta = services.cta || {};
+const footCtaText = footCta.text || '';
+const footCtaHref = footCta.href || '#visit';
+const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+---
+{items.length > 0 && (
+  <section class="menu" id="services">
+    <div class="wrap">
+      <div class="menu-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="services.tag">{tag}</span>}
+          {headline && <h2 data-field="services.headline" set:html={headline}></h2>}
+        </div>
+        {sub && <p class="note" data-field="services.sub">{sub}</p>}
+      </div>
+      <div class="courses">
+        {items.map((item, i) => {
+          const body = item.body ?? item.desc ?? item.description;
+          return (
+            <div class="course reveal">
+              <span class="ci">{roman[i] || i + 1}</span>
+              <div>
+                <div class="cn" data-field={`services.items.${i}.title`}>{item.title}</div>
+                {body && <div class="cd" data-field={`services.items.${i}.body`}>{body}</div>}
+              </div>
+              {item.price && <span class="cm" data-field={`services.items.${i}.price`}>{item.price}</span>}
+            </div>
+          );
+        })}
+      </div>
+      {(footCtaText || footText) && (
+        <div class="menu-foot reveal">
+          {footCtaText && <a class="btn" href={footCtaHref} data-field="services.cta.text" data-href-field="services.cta.href">{footCtaText}</a>}
+          {footText && <span data-field="services.footText">{footText}</span>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .menu { background: var(--paper-2); padding-block: clamp(78px, 10vw, 160px); }
+  .menu-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; flex-wrap: wrap; margin-bottom: 64px; }
+  .menu-head h2 { font-family: var(--serif); font-weight: 300; font-size: clamp(40px, 6vw, 84px); margin-top: 18px; }
+  .menu-head h2 :global(em) { font-style: italic; color: var(--accent); }
+  .menu-head .note {
+    max-width: 34ch; color: var(--stone, var(--muted)); font-style: italic;
+    font-family: var(--serif); font-size: 19px; margin: 0;
+  }
+  .courses { border-top: 1px solid var(--line); }
+  .course {
+    display: grid; grid-template-columns: auto 1fr auto;
+    gap: clamp(20px, 4vw, 64px); padding: 36px 0;
+    border-bottom: 1px solid var(--line); align-items: baseline;
+    transition: padding-left .5s ease;
+  }
+  .course:hover { padding-left: 14px; }
+  .course .ci { font-family: var(--serif); font-style: italic; font-size: 21px; color: var(--accent); }
+  .course .cn { font-family: var(--serif); font-weight: 400; font-size: clamp(25px, 3vw, 36px); }
+  .course .cd { color: var(--stone, var(--muted)); font-size: 16px; margin-top: 8px; max-width: 60ch; }
+  .course .cm {
+    font-family: var(--sans); font-size: 10.5px; letter-spacing: .2em;
+    text-transform: uppercase; color: var(--olive-2); white-space: nowrap; align-self: center;
+  }
+  .menu-foot { margin-top: 54px; display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+  .menu-foot span { font-family: var(--serif); font-style: italic; color: var(--stone, var(--muted)); }
+  @media (max-width: 680px) {
+    .course { grid-template-columns: auto 1fr; gap: 8px 18px; }
+    .course .cm { grid-column: 2; margin-top: 8px; }
+  }
+</style>

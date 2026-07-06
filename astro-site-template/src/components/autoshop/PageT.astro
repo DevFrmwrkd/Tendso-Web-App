@@ -1,0 +1,121 @@
+---
+/**
+ * autoshop / PageT — Maple Street.
+ * Vintage-ticket cream + oxblood — Zilla Slab + Work Sans + Bebas Neue.
+ * Palette tokens scoped to html[data-page="T"].
+ * Shared sections reuse the P family; hero is the per-letter HeroT.
+ */
+import HeaderP from './header/HeaderP.astro';
+import HeroT from './hero/HeroT.astro';
+import TrustP from './trust/TrustP.astro';
+import AboutP from './about/AboutP.astro';
+import ServicesP from './services/ServicesP.astro';
+import WhyP from './why/WhyP.astro';
+import HowP from './how/HowP.astro';
+import TestimonialsP from './testimonials/TestimonialsP.astro';
+import GalleryP from './gallery/GalleryP.astro';
+import FaqP from './faq/FaqP.astro';
+import AreaP from './area/AreaP.astro';
+import CredentialsP from './credentials/CredentialsP.astro';
+import LocationP from './location/LocationP.astro';
+import CtaBandP from './ctaBand/CtaBandP.astro';
+import FooterP from './footer/FooterP.astro';
+import AutoshopSpine from './AutoshopSpine.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __themePairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="T">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+  <style is:global>
+    html[data-page="T"] {
+      --paper: #f3ecdc; --paper-2: #ece2cd;
+      --ink: #241d18; --ink-2: #6b5f51;
+      --paper-rgb: 243,236,220; --ink-rgb: 36,29,24;
+      --accent: #8a2b2b; --accent-rgb: 138,43,43;
+      --line: rgba(36,29,24, 1);
+      --muted: rgba(36,29,24, .62); --muted-light: rgba(243,236,220, .68);
+      --display: "Zilla Slab", Georgia, serif;
+      --sans: "Work Sans", system-ui, sans-serif;
+      --mono: "Bebas Neue", sans-serif;
+      --serif: "Zilla Slab", Georgia, serif;
+      --pad: clamp(20px, 5vw, 80px); --maxw: 1240px;
+      --on-accent: #f3ecdc; --on-ink: #f3ecdc; --on-paper: #241d18;
+    }
+  </style>
+  <AutoshopSpine />
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <HeaderP layout={layout} content={content} />
+  <main id="top">
+    {visibility.heroSection !== false && <HeroT content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustP content={content} />}
+    {visibility.aboutSection !== false && <AboutP content={content} />}
+    {visibility.servicesSection !== false && <ServicesP content={content} />}
+    {visibility.whyUsBlock !== false && <WhyP content={content} />}
+    {visibility.howItWorksBlock !== false && <HowP content={content} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsP content={content} />}
+    {visibility.gallerySection !== false && <GalleryP content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqP content={content} />}
+    {visibility.serviceAreaBlock !== false && <AreaP content={content} />}
+    {visibility.credentialsBlock !== false && <CredentialsP content={content} />}
+    {visibility.locationBlock !== false && <LocationP content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandP content={content} layout={layout} />}
+  <FooterP layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce && !document.hidden) {
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
+        document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+      } else {
+        document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+      }
+      var hdr = document.querySelector('header.site');
+      if (hdr) {
+        var onScroll = function () { if (window.scrollY > 16) hdr.classList.add('scrolled'); else hdr.classList.remove('scrolled'); };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+      window.__autoshopInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map'); if (!el) return;
+        el.innerHTML = '';
+        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 15);
+        L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
+        var icon = L.divIcon({ className: '', html: '<div style="width:20px;height:20px;border-radius:50% 50% 50% 0;background:#8a2b2b;transform:rotate(-45deg);border:2px solid #241d18;box-shadow:2px 2px 0 rgba(36,29,24,.4);"></div>', iconSize: [20, 20], iconAnchor: [10, 18] });
+        L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup('<b>' + label + '</b>');
+      };
+    })();
+  </script>
+</body>
+</html>

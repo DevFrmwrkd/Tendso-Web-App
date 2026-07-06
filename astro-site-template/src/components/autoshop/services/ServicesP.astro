@@ -1,0 +1,58 @@
+---
+/**
+ * Autoshop / ServicesP — Foundry numbered editorial rows. Each service is a
+ * numbered row that shifts + tints on hover with a "Book →" affordance. Reads
+ * content.services.tag/headline/items[]{title,body,price?}.
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const services = content.services || {};
+const tag = services.tag || '';
+const headline = services.headline || '';
+type Item = { title: string; body?: string; desc?: string; description?: string; price?: string };
+const items: Item[] = Array.isArray(services.items) ? services.items : (Array.isArray(services) ? services : []);
+---
+{items.length > 0 && (
+  <section class="block" id="services">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="services.tag"><span class="dot"></span> {tag}</span>}
+          {headline && <h2 class="h-sect" data-field="services.headline" set:html={headline}></h2>}
+        </div>
+      </div>
+      <div class="svc">
+        {items.map((item, i) => {
+          const body = item.body ?? item.desc ?? item.description;
+          return (
+            <div class="svc-row reveal">
+              <span class="n">{String(i + 1).padStart(2, '0')}</span>
+              <div>
+                <h3 data-field={`services.items.${i}.title`}>{item.title}</h3>
+                {body && <p data-field={`services.items.${i}.body`}>{body}</p>}
+              </div>
+              {item.price
+                ? <span class="go" data-field={`services.items.${i}.price`}>{item.price}</span>
+                : <span class="go">Book →</span>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .block { padding-block: clamp(64px, 9vw, 120px); }
+  .svc { border-top: 2px solid var(--ink); }
+  .svc-row { display: grid; grid-template-columns: 90px 1fr auto; gap: 28px; align-items: center; padding: 30px 0; border-bottom: 1px solid rgba(var(--ink-rgb), .16); transition: padding-left .25s ease, background .25s ease; }
+  .svc-row:hover { padding-left: 18px; background: linear-gradient(90deg, rgba(var(--accent-rgb), .1), transparent); }
+  .svc-row .n { font-family: var(--mono); font-size: 15px; color: var(--accent); }
+  .svc-row h3 { font-size: clamp(22px, 2.6vw, 32px); }
+  .svc-row p { margin: 8px 0 0; color: var(--muted); max-width: 60ch; font-size: 15px; }
+  .svc-row .go { font-family: var(--mono); font-size: 13px; color: var(--ink); white-space: nowrap; }
+  .svc-row:hover .go { color: var(--accent); }
+  @media (max-width: 860px) {
+    .svc-row { grid-template-columns: 60px 1fr; gap: 8px 18px; }
+    .svc-row .go { grid-column: 2; margin-top: 8px; }
+  }
+</style>

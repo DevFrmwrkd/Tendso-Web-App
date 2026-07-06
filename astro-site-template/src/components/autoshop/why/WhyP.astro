@@ -1,0 +1,47 @@
+---
+/**
+ * Autoshop / WhyP — Foundry "why us" grid: bordered cells on a card panel with
+ * a boxed accent icon per cell. Reads content.why.tag/headline/items[]{title,body}.
+ */
+interface Props { content: any; }
+const { content } = Astro.props;
+const why = content.why || {};
+const tag = why.tag || '';
+const headline = why.headline || '';
+const items: Array<{ title: string; body?: string; desc?: string; description?: string }> =
+  Array.isArray(why.items) ? why.items : [];
+const marks = ['✓', '⚙', '⌂', '⛨', '★', '↻'];
+---
+{items.length > 0 && (
+  <section class="why block" id="why">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div>
+          {tag && <span class="kicker" data-field="why.tag"><span class="dot"></span> {tag}</span>}
+          {headline && <h2 class="h-sect" data-field="why.headline" set:html={headline}></h2>}
+        </div>
+      </div>
+      <div class="why-grid">
+        {items.map((item, i) => (
+          <div class="why-cell reveal">
+            <div class="why-ic" aria-hidden="true">{marks[i % marks.length]}</div>
+            <h3 data-field={`why.items.${i}.title`}>{item.title}</h3>
+            {(item.body ?? item.desc ?? item.description) && (
+              <p data-field={`why.items.${i}.body`}>{item.body ?? item.desc ?? item.description}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .why { background: var(--paper-2); border-block: 2px solid var(--ink); padding-block: clamp(64px, 9vw, 120px); }
+  .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border-left: 1px solid rgba(var(--ink-rgb), .15); }
+  .why-cell { padding: 36px; border-right: 1px solid rgba(var(--ink-rgb), .15); border-bottom: 1px solid rgba(var(--ink-rgb), .15); }
+  .why-ic { width: 46px; height: 46px; border: 2px solid var(--ink); display: grid; place-items: center; margin-bottom: 20px; color: var(--accent); }
+  .why-cell h3 { font-size: 20px; }
+  .why-cell p { margin: 10px 0 0; color: var(--muted); font-size: 15px; }
+  @media (max-width: 860px) { .why-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .why-grid { grid-template-columns: 1fr; } }
+</style>

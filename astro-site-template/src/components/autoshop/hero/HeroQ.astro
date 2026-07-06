@@ -1,0 +1,106 @@
+---
+/**
+ * Autoshop / HeroQ — Meridian cinematic full-bleed. Hero photo fills the
+ * section behind a diagonal navy scrim, copy anchored bottom-left. Reads the
+ * shared content.hero shape (headlineLines[], kicker, sub, cta1/cta2, rating,
+ * image) so content stays portable when admin swaps P<->Q.
+ * Hero image comes from content.hero.image -> Hyperagent enhanced image.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || '#services';
+const rating = hero.rating || '';
+---
+<section class="heroQ" id="top">
+  {heroImage
+    ? <div class="heroQ-bg bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+    : <div class="heroQ-bg placeholder" data-image-field="hero.image"></div>}
+  <div class="heroQ-scrim"></div>
+  <div class="wrap heroQ-inner">
+    {kicker && (
+      <span class="heroQ-kicker mono" data-field="hero.kicker"><span class="rule"></span> {kicker}</span>
+    )}
+    {headlineLines.length > 0 && (
+      <h1 class="heroQ-headline">
+        {headlineLines.map((line: string, i: number) => (
+          <span class="hl-line"><span data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+        ))}
+      </h1>
+    )}
+    {sub && <p class="heroQ-sub" data-field="hero.sub">{sub}</p>}
+    <div class="heroQ-cta">
+      {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+      {cta2Text && <a class="btn btn--ghost on-dark" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+    </div>
+    {rating && (
+      <div class="heroQ-trust">
+        <span class="stars">★★★★★</span>
+        <span class="mono" data-field="hero.rating">{rating}</span>
+      </div>
+    )}
+  </div>
+</section>
+<style>
+  .heroQ {
+    position: relative; min-height: 88vh;
+    display: flex; align-items: flex-end; overflow: hidden;
+    border-bottom: 2px solid var(--ink);
+  }
+  .heroQ-bg { position: absolute; inset: 0; width: 100%; height: 100%; background-size: cover; background-position: center; }
+  .heroQ-bg.placeholder {
+    background: repeating-linear-gradient(45deg, var(--paper-2) 0 14px, var(--paper) 14px 28px);
+  }
+  .heroQ-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg,
+      rgba(var(--ink-rgb), .94) 0%,
+      rgba(var(--ink-rgb), .78) 38%,
+      rgba(var(--ink-rgb), .32) 100%);
+  }
+  .heroQ-inner {
+    position: relative; z-index: 2; width: 100%;
+    padding-block: clamp(50px, 8vw, 110px);
+    color: var(--on-ink, var(--paper));
+  }
+  .heroQ-kicker {
+    display: inline-flex; align-items: center; gap: 14px;
+    color: var(--accent); margin-bottom: 26px;
+  }
+  .heroQ-kicker .rule { width: 46px; height: 2px; background: var(--accent); display: inline-block; }
+  .heroQ-headline {
+    font-family: var(--display); font-weight: 900;
+    font-size: clamp(46px, 8vw, 108px); line-height: 0.98; letter-spacing: -.02em;
+    text-transform: uppercase; max-width: 16ch;
+  }
+  .heroQ-headline .hl-line { display: block; overflow: hidden; }
+  .heroQ-headline .hl-line > span { display: block; }
+  .heroQ-sub {
+    max-width: 52ch; margin: 24px 0 0;
+    font-size: clamp(17px, 1.4vw, 20px);
+    color: rgba(var(--paper-rgb), .86);
+  }
+  .heroQ-cta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 34px; }
+  .heroQ-trust { display: flex; align-items: center; gap: 14px; margin-top: 30px; }
+  .heroQ-trust .stars { color: var(--accent); letter-spacing: 3px; font-size: 18px; }
+  .heroQ-trust .mono { color: rgba(var(--paper-rgb), .8); }
+  @media (max-width: 860px) {
+    .heroQ { min-height: 78vh; }
+    .heroQ-scrim {
+      background: linear-gradient(0deg,
+        rgba(var(--ink-rgb), .94) 0%,
+        rgba(var(--ink-rgb), .74) 46%,
+        rgba(var(--ink-rgb), .4) 100%);
+    }
+    .heroQ-headline { font-size: clamp(40px, 12vw, 68px); max-width: none; }
+  }
+</style>

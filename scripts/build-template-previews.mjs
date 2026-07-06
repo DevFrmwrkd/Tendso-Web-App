@@ -25,6 +25,10 @@
  *   public/template-previews/h.html   ← Forge Kinetic
  *   public/template-previews/i.html   ← Forge Minimal
  *   public/template-previews/j.html   ← Forge Stacked
+ *   public/template-previews/k–o.html ← SalonSpa (Atelier…Bloom)
+ *   public/template-previews/p–t.html ← Autoshop (Foundry…Maple Street)
+ *   public/template-previews/u–y.html ← Restaurant (Harvest…Garden)
+ *   public/template-previews/z,aa–ad.html ← Shirtstore (Editorial…Kinetic)
  *
  * Run manually after editing a source template:
  *   node scripts/build-template-previews.mjs
@@ -41,6 +45,9 @@ const ROOT = path.resolve(__dirname, '..');
 const GENERIC_SOURCE_DIR = path.join(ROOT, 'templates', 'Generic Landing Pages for Local business');
 const BARBERSHOP_SOURCE_DIR = path.join(ROOT, 'templates', 'Barbershop');
 const SALONSPA_SOURCE_DIR = path.join(ROOT, 'templates', 'SalonSpa');
+const AUTOSHOP_SOURCE_DIR = path.join(ROOT, 'templates', 'Autoshop');
+const RESTAURANT_SOURCE_DIR = path.join(ROOT, 'templates', 'Restaurant');
+const SHIRTSTORE_SOURCE_DIR = path.join(ROOT, 'templates', 'Shirt Store');
 const OUT_DIR = path.join(ROOT, 'public', 'template-previews');
 
 const TEMPLATES = [
@@ -59,6 +66,21 @@ const TEMPLATES = [
     { letter: 'm', dir: SALONSPA_SOURCE_DIR,   file: '03-Clinic.html',            label: 'Clinic'            },
     { letter: 'n', dir: SALONSPA_SOURCE_DIR,   file: '04-Vogue.html',             label: 'Vogue'             },
     { letter: 'o', dir: SALONSPA_SOURCE_DIR,   file: '05-Bloom.html',             label: 'Bloom'             },
+    { letter: 'p', dir: AUTOSHOP_SOURCE_DIR,   file: '01-foundry.html',           label: 'Foundry'           },
+    { letter: 'q', dir: AUTOSHOP_SOURCE_DIR,   file: '02-meridian.html',          label: 'Meridian'          },
+    { letter: 'r', dir: AUTOSHOP_SOURCE_DIR,   file: '03-volt.html',              label: 'Volt'              },
+    { letter: 's', dir: AUTOSHOP_SOURCE_DIR,   file: '04-redline.html',           label: 'Redline'           },
+    { letter: 't', dir: AUTOSHOP_SOURCE_DIR,   file: '05-maple-street.html',      label: 'Maple Street'      },
+    { letter: 'u', dir: RESTAURANT_SOURCE_DIR, file: '01 - Harvest (Rustic).html',   label: 'Harvest'        },
+    { letter: 'v', dir: RESTAURANT_SOURCE_DIR, file: '02 - Atelier (Minimal).html',  label: 'Atelier'        },
+    { letter: 'w', dir: RESTAURANT_SOURCE_DIR, file: '03 - Press (Bold).html',       label: 'Press'          },
+    { letter: 'x', dir: RESTAURANT_SOURCE_DIR, file: '04 - Ember (Cinematic).html',  label: 'Ember'          },
+    { letter: 'y', dir: RESTAURANT_SOURCE_DIR, file: '05 - Garden (Playful).html',   label: 'Garden'         },
+    { letter: 'z',  dir: SHIRTSTORE_SOURCE_DIR, file: '01 Editorial.html',         label: 'Editorial'         },
+    { letter: 'aa', dir: SHIRTSTORE_SOURCE_DIR, file: '02 Streetwear.html',        label: 'Streetwear'        },
+    { letter: 'ab', dir: SHIRTSTORE_SOURCE_DIR, file: '03 Artisan.html',           label: 'Artisan'           },
+    { letter: 'ac', dir: SHIRTSTORE_SOURCE_DIR, file: '04 Modern.html',            label: 'Modern'            },
+    { letter: 'ad', dir: SHIRTSTORE_SOURCE_DIR, file: '05 Kinetic.html',           label: 'Kinetic'           },
 ];
 
 function sanitize(html, label) {

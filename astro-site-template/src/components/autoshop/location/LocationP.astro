@@ -1,0 +1,146 @@
+---
+/**
+ * Autoshop / LocationP — Foundry visit + map: hard-framed grid with NAP lines
+ * left and a Leaflet map right. Map strategy mirrors restaurant/LocationU but
+ * boots through window.__autoshopInitMap (defined in PageP):
+ *   1. build-time lat/lng → render directly
+ *   2. else address string → client-side Nominatim lookup, then render
+ *   3. else → graceful fallback tile.
+ * Reads content.location.tag/headline/address/phone/email/hours + cta.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const loc = content.location || {};
+const tag = loc.tag || '';
+const headline = loc.headline || 'Find the shop';
+const brand = (content as any).footer?.brand || layout.businessName || 'Our shop';
+const address = loc.address || layout.contact?.address || '';
+const addressLines = address ? address.split('\n') : [];
+const phone = loc.phone || layout.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const email = loc.email || layout.contact?.email || '';
+const hours: Array<{ day: string; time: string }> = Array.isArray(loc.hours)
+  ? loc.hours
+  : (Array.isArray((content as any).footer?.hours) ? (content as any).footer.hours : []);
+const ctaText = loc.cta?.text || 'Book Service';
+const ctaHref = loc.cta?.href || '#book';
+const dirHref = loc.directionsHref || (address ? `https://maps.google.com/?q=${encodeURIComponent(address.replace(/\n/g, ' '))}` : '');
+const lat = loc.lat != null ? Number(loc.lat) : (layout.contact?.lat != null ? Number(layout.contact.lat) : null);
+const lng = loc.lng != null ? Number(loc.lng) : (layout.contact?.lng != null ? Number(layout.contact.lng) : null);
+const mapAria = `Map showing ${brand}`;
+const hasCoords = lat != null && lng != null && !isNaN(lat as number) && !isNaN(lng as number);
+const hasAddress = !!address;
+---
+<section class="block" id="location">
+  <div class="wrap">
+    <div class="loc-grid reveal">
+      <div class="loc-info">
+        {tag && <span class="kicker" data-field="location.tag"><span class="dot"></span> {tag}</span>}
+        <h2 class="h-sect" data-field="location.headline" set:html={headline}></h2>
+        <div class="loc-lines">
+          {address && (
+            <div class="loc-line">
+              <span class="lk">Address</span>
+              <span class="lv" data-field="location.address">
+                {addressLines.map((line: string, i: number) => (<>{i > 0 && <br />}{line}</>))}
+              </span>
+            </div>
+          )}
+          {phone && (
+            <div class="loc-line">
+              <span class="lk">Phone</span>
+              <span class="lv"><a href={`tel:${phoneDigits}`} data-field="location.phone">{phone}</a></span>
+            </div>
+          )}
+          {email && (
+            <div class="loc-line">
+              <span class="lk">Email</span>
+              <span class="lv"><a href={`mailto:${email}`} data-field="location.email">{email}</a></span>
+            </div>
+          )}
+          {hours.length > 0 && (
+            <div class="loc-line">
+              <span class="lk">Hours</span>
+              <span class="lv">
+                {hours.map((row: any, i: number) => (
+                  <span class="hrow"><span data-field={`location.hours.${i}.day`}>{row.day}</span> · <span data-field={`location.hours.${i}.time`}>{row.time}</span></span>
+                ))}
+              </span>
+            </div>
+          )}
+        </div>
+        <div class="loc-actions">
+          <a class="btn" href={ctaHref} data-field="location.cta.text" data-href-field="location.cta.href">{ctaText}</a>
+          {dirHref && <a class="btn btn--ghost" href={dirHref} target="_blank" rel="noopener">Directions</a>}
+        </div>
+      </div>
+      <div id="map" role="img" aria-label={mapAria}>
+        {!hasCoords && !hasAddress && <div class="map-fallback">No address on file yet.</div>}
+        {!hasCoords && hasAddress && <div class="map-fallback" id="map-fallback">Loading map…</div>}
+      </div>
+    </div>
+  </div>
+</section>
+{hasCoords && (
+  <script is:inline define:vars={{ lat, lng, label: brand }}>
+    (function init() {
+      if (window.__autoshopInitMap) window.__autoshopInitMap(lat, lng, label);
+      else setTimeout(init, 80);
+    })();
+  </script>
+)}
+{!hasCoords && hasAddress && (
+  <script is:inline define:vars={{ address, label: brand }}>
+    (function geocodeThenInit() {
+      var attempt = 0;
+      function tryInit(lat, lng) {
+        if (window.__autoshopInitMap) {
+          window.__autoshopInitMap(lat, lng, label);
+        } else if (attempt++ < 25) {
+          setTimeout(function () { tryInit(lat, lng); }, 80);
+        }
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query;
+        fetch(url, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) {
+              var el = document.getElementById('map-fallback');
+              if (el) el.textContent = 'Map preview unavailable — use the directions button.';
+              return;
+            }
+            var lat = parseFloat(results[0].lat);
+            var lng = parseFloat(results[0].lon);
+            if (isNaN(lat) || isNaN(lng)) return;
+            tryInit(lat, lng);
+          })
+          .catch(function () {
+            var el = document.getElementById('map-fallback');
+            if (el) el.textContent = 'Map preview unavailable — use the directions button.';
+          });
+      } catch (e) { /* never block render */ }
+    })();
+  </script>
+)}
+<style>
+  .block { padding-block: clamp(64px, 9vw, 120px); }
+  .loc-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 0; border: 2px solid var(--ink); }
+  .loc-info { padding: clamp(30px, 4vw, 48px); border-right: 2px solid var(--ink); }
+  .loc-info .kicker { margin-bottom: 14px; }
+  .loc-info .h-sect { font-size: clamp(28px, 3.5vw, 44px); }
+  .loc-lines { margin-top: 24px; }
+  .loc-line { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid rgba(var(--ink-rgb), .16); }
+  .loc-line .lk { font-family: var(--mono); font-size: 12px; color: var(--muted); width: 90px; flex: none; padding-top: 3px; }
+  .loc-line .lv { font-weight: 500; }
+  .loc-line .hrow { display: block; }
+  .loc-actions { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 28px; }
+  #map { min-height: 440px; background: var(--paper-2); z-index: 0; }
+  .map-fallback { display: flex; align-items: center; justify-content: center; height: 100%; min-height: 440px; color: var(--muted); font-family: var(--mono); letter-spacing: .1em; text-transform: uppercase; font-size: 12.5px; padding: 24px; text-align: center; }
+  @media (max-width: 860px) {
+    .loc-grid { grid-template-columns: 1fr; }
+    .loc-info { border-right: none; border-bottom: 2px solid var(--ink); }
+    #map, .map-fallback { min-height: 340px; }
+  }
+</style>

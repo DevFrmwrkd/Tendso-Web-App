@@ -40,6 +40,24 @@ const FAMILIES = [
         // SalonSpa family reuses FooterK across all letter variants.
         footerImportFor: () => /(import FooterK from '\.\/footer\/FooterK\.astro';)/,
     },
+    {
+        dir: 'autoshop',
+        letters: ['P', 'Q', 'R', 'S', 'T'],
+        // Autoshop family reuses FooterP across all letter variants.
+        footerImportFor: () => /(import FooterP from '\.\/footer\/FooterP\.astro';)/,
+    },
+    {
+        dir: 'restaurant',
+        letters: ['U', 'V', 'W', 'X', 'Y'],
+        // Restaurant family reuses FooterU across all letter variants.
+        footerImportFor: () => /(import FooterU from '\.\/footer\/FooterU\.astro';)/,
+    },
+    {
+        dir: 'shirtstore',
+        letters: ['Z', 'AA', 'AB', 'AC', 'AD'],
+        // Shirtstore family reuses FooterZ across all letter variants.
+        footerImportFor: () => /(import FooterZ from '\.\/footer\/FooterZ\.astro';)/,
+    },
 ];
 
 for (const fam of FAMILIES) {

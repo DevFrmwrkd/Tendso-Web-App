@@ -206,10 +206,19 @@ export const AUTO_SCHEME_BY_BUSINESS_TYPE: Record<string, string> = {
     barber:    'brown',
     salon:     'pink',
     spa:       'pink',
-    auto:      'blue',
+    // Autoshop family (P–T) default = Foundry hazard orange.
+    auto:      'orange',
+    autoshop:  'orange',
+    automotive:'orange',
+    // Restaurant family (U–Y) default = Harvest rustic warm.
     restaurant:'orange',
-    cafe:      'brown',
+    food:      'orange',
+    cafe:      'orange',
+    // Shirtstore family (Z, AA–AD) default = Editorial warm earthy.
     retail:    'brown',
+    store:     'brown',
+    apparel:   'brown',
+    clothing:  'brown',
     clinic:    'green',
     fitness:   'red',
     education: 'purple',

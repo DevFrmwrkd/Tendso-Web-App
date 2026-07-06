@@ -1,0 +1,122 @@
+---
+/**
+ * restaurant / HeroW — "Press (Bold)". Full-viewport dark cinematic hero:
+ * Ken-Burns hero photo behind a scrim, centered oversized Bodoni display
+ * headline (italic ember accent on em-wrapped words), sub, dual CTA, and a
+ * footer strip of small caps facts.
+ *
+ * Reads content.hero (shared shape across the restaurant family so content
+ * stays portable when admin swaps variant). Hero image comes from
+ * content.hero.image → Hyperagent-enhanced image.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const kicker = hero.kicker || hero.locality || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = hero.cta1?.href || '#visit';
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = hero.cta2?.href || '#menu';
+const rating = hero.rating || '';
+const tag = hero.tag || '';
+---
+<section class="heroW" id="top">
+  <div class="heroW-media">
+    {heroImage
+      ? <div class="bg-img" data-image-field="hero.image" style={`background-image:url('${heroImage}');`}></div>
+      : <div class="bg-img placeholder" data-image-field="hero.image"></div>}
+  </div>
+  <div class="heroW-scrim"></div>
+  <div class="wrap heroW-in">
+    {kicker && <span class="heroW-label" data-field="hero.kicker">{kicker}</span>}
+    {headlineLines.length > 0 && (
+      <h1 class="heroW-headline">
+        {headlineLines.map((line: string, i: number) => (
+          <span class="ln"><span data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+        ))}
+      </h1>
+    )}
+    {sub && <p class="heroW-sub" data-field="hero.sub">{sub}</p>}
+    <div class="heroW-cta">
+      {cta1Text && <a class="btn btn--accent" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+      {cta2Text && <a class="ulink" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+    </div>
+  </div>
+  {(tag || rating) && (
+    <div class="heroW-foot">
+      {tag && <span data-field="hero.tag">{tag}</span>}
+      {rating && <span data-field="hero.rating">{rating}</span>}
+    </div>
+  )}
+</section>
+<style>
+  .heroW {
+    position: relative; min-height: 100vh; display: flex; align-items: center;
+    overflow: hidden; background: var(--ink); color: var(--paper);
+  }
+  .heroW-media { position: absolute; inset: 0; }
+  .heroW-media .bg-img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    background-size: cover; background-position: center;
+    opacity: .62; animation: heroW-ken 30s ease-in-out infinite alternate;
+  }
+  .heroW-media .placeholder {
+    opacity: 1; animation: none;
+    background:
+      radial-gradient(130% 90% at 75% 15%, rgba(var(--accent-rgb), .2), transparent 55%),
+      repeating-linear-gradient(45deg, rgba(var(--paper-rgb), .05) 0 14px, transparent 14px 28px),
+      var(--ink);
+  }
+  @keyframes heroW-ken { from { transform: scale(1.04); } to { transform: scale(1.16); } }
+  .heroW-scrim {
+    position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(180deg,
+      rgba(var(--ink-rgb), .55), rgba(var(--ink-rgb), .35) 45%, rgba(var(--ink-rgb), .85));
+  }
+  .heroW-in { position: relative; z-index: 3; width: 100%; padding-top: 120px; text-align: center; }
+  .heroW-label {
+    display: block; margin-bottom: 30px;
+    font-family: var(--sans); font-weight: 600; font-size: 11px;
+    letter-spacing: .34em; text-transform: uppercase; color: var(--accent);
+  }
+  .heroW-headline {
+    font-family: var(--serif); font-weight: 500;
+    font-size: clamp(64px, 15vw, 240px); line-height: .9; letter-spacing: -.01em;
+    color: var(--paper);
+  }
+  .heroW-headline .ln { display: block; overflow: hidden; }
+  .heroW-headline .ln > span { display: block; }
+  .heroW-headline :global(em) { font-style: italic; font-weight: 400; color: var(--accent); }
+  .heroW-sub {
+    max-width: 52ch; margin: 34px auto 40px;
+    font-size: clamp(17px, 1.6vw, 20px); color: rgba(var(--paper-rgb), .82); line-height: 1.7;
+  }
+  .heroW-cta { display: flex; gap: 28px; justify-content: center; align-items: center; flex-wrap: wrap; }
+  .ulink {
+    font-family: var(--sans); font-weight: 600; font-size: 12px;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--paper);
+    position: relative; padding-bottom: 5px;
+  }
+  .ulink::after {
+    content: ""; position: absolute; left: 0; bottom: 0; height: 1px; width: 100%;
+    background: currentColor; transform-origin: right; transition: transform .5s;
+  }
+  .ulink:hover::after { transform: scaleX(0); }
+  .heroW-foot {
+    position: absolute; bottom: 30px; left: 0; right: 0; z-index: 3;
+    display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap;
+    padding-inline: var(--pad); font-family: var(--sans); font-size: 10.5px;
+    letter-spacing: .26em; text-transform: uppercase; color: rgba(var(--paper-rgb), .5);
+  }
+  @media (max-width: 860px) {
+    .heroW { min-height: 88vh; }
+    .heroW-in { padding-top: 108px; }
+    .heroW-headline { font-size: clamp(54px, 18vw, 120px); }
+  }
+  @media (max-width: 620px) { .heroW-foot { display: none; } }
+</style>

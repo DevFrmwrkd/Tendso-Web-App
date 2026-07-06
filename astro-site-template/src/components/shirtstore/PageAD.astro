@@ -1,0 +1,121 @@
+---
+/**
+ * shirtstore / PageAD — Kinetic. High-contrast mono/type-driven variant:
+ * pure white paper, near-black ink, hot-red accent — Syne + IBM Plex Sans +
+ * IBM Plex Mono. Non-default letter: reuses the shirtstore Z-letter shared
+ * sections and ships its OWN Kinetic hero (HeroAD). Palette + font tokens are
+ * scoped to html[data-page="AD"] so they never bleed into sister wrappers.
+ */
+import HeaderZ from './header/HeaderZ.astro';
+import HeroAD from './hero/HeroAD.astro';
+import TrustZ from './trust/TrustZ.astro';
+import AboutZ from './about/AboutZ.astro';
+import ServicesZ from './services/ServicesZ.astro';
+import WhyZ from './why/WhyZ.astro';
+import HowZ from './how/HowZ.astro';
+import TestimonialsZ from './testimonials/TestimonialsZ.astro';
+import GalleryZ from './gallery/GalleryZ.astro';
+import FaqZ from './faq/FaqZ.astro';
+import AreaZ from './area/AreaZ.astro';
+import CredentialsZ from './credentials/CredentialsZ.astro';
+import LocationZ from './location/LocationZ.astro';
+import CtaBandZ from './ctaBand/CtaBandZ.astro';
+import FooterZ from './footer/FooterZ.astro';
+import ShirtstoreSpine from './ShirtstoreSpine.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __themePairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+---
+<!DOCTYPE html>
+<html lang="en" data-page="AD">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+  <style is:global>
+    html[data-page="AD"] {
+      --paper: #ffffff; --paper-2: #f1f1f1;
+      --ink: #0a0a0a; --ink-2: #333333;
+      --paper-rgb: 255,255,255; --ink-rgb: 10,10,10;
+      --accent: #ff3b2f; --accent-rgb: 255,59,47;
+      --line: rgba(10,10,10, 1);
+      --muted: rgba(10,10,10, .62); --muted-light: rgba(255,255,255, .68);
+      --display: "Syne", system-ui, sans-serif;
+      --sans: "IBM Plex Sans", system-ui, sans-serif;
+      --mono: "IBM Plex Mono", monospace;
+      --serif: "Syne", system-ui, sans-serif;
+      --pad: clamp(18px, 4.5vw, 64px); --maxw: 1360px;
+      --on-accent: #ffffff; --on-ink: #ffffff; --on-paper: #0a0a0a;
+    }
+  </style>
+  <ShirtstoreSpine />
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <HeaderZ layout={layout} content={content} />
+  <main id="top">
+    {visibility.heroSection !== false && <HeroAD content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustZ content={content} />}
+    {visibility.aboutSection !== false && <AboutZ content={content} />}
+    {visibility.servicesSection !== false && <ServicesZ content={content} />}
+    {visibility.whyUsBlock !== false && <WhyZ content={content} />}
+    {visibility.howItWorksBlock !== false && <HowZ content={content} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsZ content={content} />}
+    {visibility.gallerySection !== false && <GalleryZ content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqZ content={content} />}
+    {visibility.serviceAreaBlock !== false && <AreaZ content={content} />}
+    {visibility.credentialsBlock !== false && <CredentialsZ content={content} />}
+    {visibility.locationBlock !== false && <LocationZ content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandZ content={content} layout={layout} />}
+  <FooterZ layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce && !document.hidden) {
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
+        document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+      } else {
+        document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+      }
+      var hdr = document.querySelector('header.nav');
+      if (hdr) {
+        var onScroll = function () { if (window.scrollY > 16) hdr.classList.add('scrolled'); else hdr.classList.remove('scrolled'); };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+      window.__shirtstoreInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map'); if (!el) return;
+        el.innerHTML = '';
+        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 15);
+        L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
+        var icon = L.divIcon({ className: '', html: '<div style="width:18px;height:18px;background:#ff3b2f;border:3px solid #fff;box-shadow:0 0 0 4px rgba(255,59,47,.4);"></div>', iconSize: [18, 18], iconAnchor: [9, 9] });
+        L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup('<b>' + label + '</b>');
+      };
+    })();
+  </script>
+</body>
+</html>
