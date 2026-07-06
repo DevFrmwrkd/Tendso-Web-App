@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -234,16 +235,18 @@ export default function PendingApprovalsView({ isAdmin }: { isAdmin: boolean }) 
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <div
-                                                        className="text-sm"
+                                                    <Link
+                                                        href={`/admin/creators/pending/${c._id}`}
+                                                        className="text-sm hover:underline"
                                                         style={{
                                                             fontFamily: "var(--ed-serif)",
                                                             fontSize: 16,
                                                             color: "var(--ed-ink)",
                                                         }}
+                                                        title="View creator overview"
                                                     >
                                                         {fullName(c)}
-                                                    </div>
+                                                    </Link>
                                                     <div className="ed-label mt-1">
                                                         quiz passed {timeAgo(c.quizPassedAt)}
                                                     </div>
