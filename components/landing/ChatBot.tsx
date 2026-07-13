@@ -110,12 +110,14 @@ export default function ChatBot() {
                         ref={scrollRef}
                         style={{
                             flex: 1,
+                            // minHeight:0 lets this flex child shrink so it
+                            // scrolls within the window instead of clipping.
+                            minHeight: 0,
                             padding: 16,
                             display: "flex",
                             flexDirection: "column",
                             gap: 10,
                             overflowY: "auto",
-                            maxHeight: 320,
                         }}
                     >
                         {messages.map((m, i) => (
@@ -133,6 +135,7 @@ export default function ChatBot() {
                                     fontSize: 14,
                                     lineHeight: 1.45,
                                     maxWidth: "85%",
+                                    overflowWrap: "anywhere",
                                 }}
                             >
                                 {m.text}
