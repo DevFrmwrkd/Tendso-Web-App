@@ -68,3 +68,7 @@ deploy.log
 .astro/
 .vite-cache/
 astro-site-template/.vite-cache/
+
+credentials-passbolt.csv
+*.passbolt.csv
+FRMWRKD-DEV-CREDENTIALS.txt

@@ -267,6 +267,9 @@ function DiscoverInner() {
         if (!haveAnyResolved) return undefined;
 
         const byKey = new Map<string, any>();
+        // url-source rows carry a place_id as _id, not a real lead id — detect
+        // real ids so a dup with one wins the link target.
+        const hasRealId = (row: any) => /^[0-9a-z]{20,40}$/.test(String(row?._id ?? ""));
         const stash = (row: any) => {
             // Dedup key: prefer Google place_id (the only stable cross-source
             // identity), fall back to lat,lng,name when place_id is missing
@@ -274,7 +277,13 @@ function DiscoverInner() {
             const key =
                 row.businessGooglePlaceId
                 ?? `${row.businessLatitude},${row.businessLongitude},${row.businessName}`;
-            if (!byKey.has(key)) byKey.set(key, row);
+            const existing = byKey.get(key);
+            if (!existing) {
+                byKey.set(key, row);
+            } else if (!hasRealId(existing) && hasRealId(row)) {
+                // Keep existing fields but adopt the real _id for the link.
+                byKey.set(key, { ...existing, _id: row._id, __source: existing.__source });
+            }
         };
         if (urlBusinesses) urlBusinesses.forEach(stash);
         poolArray.forEach(stash);
