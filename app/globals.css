@@ -698,7 +698,10 @@ body {
 .neo .chatbot-fab:hover { transform: scale(1.06); }
 .neo .chatbot-window {
   position: fixed; right: 24px; bottom: 92px; z-index: 1300;
-  width: 360px; max-height: 540px;
+  width: 360px;
+  /* Cap to the viewport so it never runs off a short screen; the header +
+     footer are fixed-height and the message list flexes between them. */
+  height: min(540px, calc(100dvh - 116px));
   background: var(--neo-paper-3);
   border: 1px solid var(--neo-rule);
   border-radius: var(--neo-r-xl);
@@ -709,12 +712,25 @@ body {
   animation: neo-chatbot-in .25s cubic-bezier(.2,.8,.2,1);
   transition: bottom .25s ease;
 }
+/* Phones: dock to a near-fullscreen sheet instead of a floating 360px card
+   (which would overflow narrow viewports and clip the conversation). */
+@media (max-width: 480px) {
+  .neo .chatbot-window {
+    right: 12px; left: 12px; bottom: 12px;
+    width: auto;
+    height: min(560px, calc(100dvh - 24px));
+  }
+}
 @keyframes neo-chatbot-in {
   0%   { opacity: 0; transform: scale(.9) translateY(8px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 .neo.sticky-cta-visible .chatbot-fab    { bottom: 96px; }
 .neo.sticky-cta-visible .chatbot-window { bottom: 168px; }
+@media (max-width: 480px) {
+  /* The mobile sheet is docked; don't let the sticky CTA shove it around. */
+  .neo.sticky-cta-visible .chatbot-window { bottom: 12px; }
+}
 
 /* Modal */
 .neo .modal-backdrop {

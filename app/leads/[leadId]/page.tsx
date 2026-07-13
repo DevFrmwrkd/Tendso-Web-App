@@ -98,8 +98,18 @@ export default function CreatorLeadDetailPage({
 
 type PendingNote = { tempId: string; content: string; createdAt: number };
 
+// Convex ids are 32-char base32; a place_id (e.g. "ChIJ…") isn't and would
+// throw at the v.id('leads') validator, crashing the page. Reject up front.
+function looksLikeConvexId(s: string): boolean {
+    return /^[0-9a-z]{20,40}$/.test(s);
+}
+
 function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any }) {
-    const data = useQuery(api.leads.getDetailForMobileCRM, { id: leadId });
+    const validId = looksLikeConvexId(String(leadId));
+    const data = useQuery(
+        api.leads.getDetailForMobileCRM,
+        validId ? { id: leadId } : "skip",
+    );
     const updateStatus = useMutation(api.leads.updateStatus);
     // Spec contract: api.leadNotes.add({ leadId, content }) — creatorId is
     // derived server-side from the Clerk identity.
@@ -122,6 +132,10 @@ function DetailContent({ leadId, creator }: { leadId: Id<"leads">; creator: any 
         isProspect ? { leadId } : "skip",
     );
 
+    // Query skipped for a bad id — short-circuit instead of spinning forever.
+    if (!validId) {
+        return <NotFound />;
+    }
     if (data === undefined) {
         return (
             <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
