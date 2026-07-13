@@ -42,7 +42,22 @@ export default function LoginPage() {
 
             if (result.status === "complete" && result.createdSessionId) {
                 await setActive({ session: result.createdSessionId });
-                router.push("/dashboard");
+                // Hard navigation (not router.push): a soft client transition can
+                // race Clerk's session propagation, so /dashboard mounts before
+                // useUser() reports isSignedIn and its gate bounces back to
+                // /login — a silent redirect loop. A full load lands with the
+                // session cookie already set, so the gate sees a signed-in user.
+                window.location.assign("/dashboard");
+                return;
+            }
+
+            // Any non-complete status (needs_first_factor, needs_second_factor,
+            // etc.) previously fell through silently — no redirect, no error,
+            // leaving the user stuck on the page. Surface it instead.
+            if (result.status === "needs_second_factor") {
+                setError("This account needs a verification code. Please sign in from the app to finish two-factor setup.");
+            } else {
+                setError("We couldn't complete sign-in. Double-check your email and password, or reset your password.");
             }
         } catch (err: any) {
             setError(err.errors?.[0]?.longMessage || err.message || "Invalid email or password");
