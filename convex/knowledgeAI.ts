@@ -193,6 +193,15 @@ async function withGeminiKey<T>(ctx: ActionCtx, doCall: (key: string) => Promise
 const embedText = (ctx: ActionCtx, text: string, taskType: 'RETRIEVAL_DOCUMENT' | 'RETRIEVAL_QUERY') =>
     withGeminiKey(ctx, (key) => geminiEmbed(text, taskType, key));
 
+/**
+ * Embed a search query for vector retrieval, using the exact model, dimensions,
+ * normalization, and key-rotation the KB's own retrieval uses. Exposed so the
+ * external /kb/search endpoint (convex/kb.ts) embeds queries identically to how
+ * the stored article vectors were produced — a mismatched model returns garbage.
+ */
+export const embedTextForSearch = (ctx: ActionCtx, text: string) =>
+    embedText(ctx, text, 'RETRIEVAL_QUERY');
+
 // Generate an answer, walking the model chain (strongest→weakest) and the key
 // pool together. For each key we try every model: a 429 (that model's quota for
 // this key is spent) or a 404/400 (model not on this key's tier) just drops us

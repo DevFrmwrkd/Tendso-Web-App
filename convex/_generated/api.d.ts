@@ -27,6 +27,7 @@ import type * as followUp from "../followUp.js";
 import type * as generatedWebsites from "../generatedWebsites.js";
 import type * as http from "../http.js";
 import type * as hyperagent from "../hyperagent.js";
+import type * as kb from "../kb.js";
 import type * as knowledge from "../knowledge.js";
 import type * as knowledgeAI from "../knowledgeAI.js";
 import type * as knowledgeSeed from "../knowledgeSeed.js";
@@ -87,6 +88,7 @@ declare const fullApi: ApiFromModules<{
   generatedWebsites: typeof generatedWebsites;
   http: typeof http;
   hyperagent: typeof hyperagent;
+  kb: typeof kb;
   knowledge: typeof knowledge;
   knowledgeAI: typeof knowledgeAI;
   knowledgeSeed: typeof knowledgeSeed;
