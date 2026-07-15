@@ -9,6 +9,7 @@ import { Id } from "@/convex/_generated/dataModel"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
+import { commissionFor, BASE_PRICE, formatPHP } from "@/lib/pricing"
 
 export default function SubmissionSuccessPage() {
     const router = useRouter()
@@ -103,10 +104,11 @@ export default function SubmissionSuccessPage() {
         }
     }
 
-    // Determine payout based on interview type (check both R2 URLs and storage IDs)
-    const hasVideo = submission?.videoUrl || submission?.videoStorageId
-    const hasAudio = submission?.audioUrl || submission?.audioStorageId
-    const payout = hasVideo ? 500 : (hasAudio ? 300 : null)
+    // Show the payout the submission actually froze — 50% of the creator's sale
+    // price (commissionFor), NOT the abolished flat ₱500/₱300 video/audio rate.
+    // Audio and video earn the same rate now. Legacy submissions without a frozen
+    // creatorPayout fall back to the 50% of the ₱999 base price (= ₱500).
+    const payout = submission?.creatorPayout ?? commissionFor(BASE_PRICE)
 
     // Loading state - wait for submission to load too
     if (!isLoaded || !isSignedIn || creator === undefined || (submissionId && submission === undefined)) {
@@ -144,7 +146,7 @@ export default function SubmissionSuccessPage() {
                     <div className="pb-4 border-b border-gray-100">
                         <p className="text-sm text-gray-500 uppercase font-medium tracking-wide">Expected Payout</p>
                         <p className="text-3xl font-bold text-amber-600 mt-1">
-                            ₱{payout || '---'}
+                            {formatPHP(payout)}
                         </p>
                     </div>
 
