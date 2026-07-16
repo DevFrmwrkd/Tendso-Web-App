@@ -7,8 +7,10 @@ import type { Doc, Id } from './_generated/dataModel';
 /**
  * Gemini-powered RAG for the Tendso knowledge base.
  *
- * Retrieval: Gemini embeddings (text-embedding-004, 768-dim) + Convex native
- * vector search, with a keyword fallback if embeddings are not yet generated.
+ * Retrieval: keyword search FIRST (traditional term scoring over the published
+ * corpus); Gemini embeddings + Convex native vector search are a fallback only
+ * when keyword finds nothing. At the current KB size this keeps the common path
+ * at zero inference cost (no query embedding).
  * Generation: Gemini generateContent, strictly grounded in the retrieved
  * sources, with multi-turn history for follow-ups. Answers walk a model chain
  * (strongest→weakest, see DEFAULT_GEN_CHAIN) so the best available model is
@@ -258,13 +260,21 @@ async function generateWithFallback(ctx: ActionCtx, system: string, contents: Ge
 const STOP = new Set(
     'the a an to my of for is in on at it as how do i can what where when why with your you our we and or but if'.split(' '),
 );
-function queryTerms(q: string): string[] {
+export function queryTerms(q: string): string[] {
     return (q || '')
         .toLowerCase()
         .split(/[^a-z0-9]+/)
         .filter((t) => t.length >= 2 && !STOP.has(t));
 }
-function keywordScore(a: Article, terms: string[]): number {
+// Max keywordScore a single query term can contribute (title 6 + title-prefix 3
+// + keywords 4 + summary 2 + body 1). Used to normalize raw scores into a 0–1
+// confidence for the external /kb/search contract (see convex/kb.ts).
+export const KEYWORD_MAX_PER_TERM = 16;
+// Tie-break nudge for popular articles among genuine matches. It is NOT a match
+// signal on its own — callers that need "did any term actually match?" must
+// subtract this from the raw score (the external endpoint does exactly that).
+export const KEYWORD_POPULAR_BONUS = 0.4;
+export function keywordScore(a: Article, terms: string[]): number {
     const title = a.title.toLowerCase();
     const summary = a.summary.toLowerCase();
     const kw = (a.keywords || []).join(' ').toLowerCase();
@@ -277,13 +287,31 @@ function keywordScore(a: Article, terms: string[]): number {
         if (summary.includes(t)) s += 2;
         if (body.includes(t)) s += 1;
     }
-    if (a.popular) s += 0.4;
+    if (a.popular) s += KEYWORD_POPULAR_BONUS;
     return s;
 }
 
-// ---- retrieval: vector search first, keyword fallback ----
+// ---- retrieval: keyword search first, vector/similarity fallback ----
+// Per the Knowledge Hub spec, always try traditional keyword search first and
+// only reach for embeddings when keyword finds nothing. At the current KB size
+// this keeps the common path at zero inference cost (no query embedding).
 async function retrieve(ctx: ActionCtx, query: string, workspace: Workspace, topK = 5): Promise<Article[]> {
-    // 1) Try semantic search.
+    // Small corpus: load the whole published set once, score in memory.
+    const all: Article[] = await ctx.runQuery(internal.knowledge.listPublishedInternal, { workspace });
+
+    // 1) Keyword search — no embedding call, zero inference cost.
+    const terms = queryTerms(query);
+    if (terms.length) {
+        const scored = all
+            .map((a) => ({ a, score: keywordScore(a, terms) }))
+            .filter((r) => r.score > 0)
+            .sort((x, y) => y.score - x.score)
+            .slice(0, topK)
+            .map((r) => r.a);
+        if (scored.length) return scored;
+    }
+
+    // 2) Vector/similarity fallback — only when keyword found nothing.
     try {
         const vector = await embedText(ctx, query, 'RETRIEVAL_QUERY');
         const hits = await ctx.vectorSearch('knowledgeArticles', 'by_embedding', {
@@ -292,30 +320,21 @@ async function retrieve(ctx: ActionCtx, query: string, workspace: Workspace, top
             filter: (q) => q.eq('workspace', workspace),
         });
         if (hits.length) {
-            const docs = await ctx.runQuery(internal.knowledge.getArticlesByIds, {
-                ids: hits.map((h) => h._id as Id<'knowledgeArticles'>),
-            });
-            // Preserve vector-search order; keep only published.
-            const byId = new Map(docs.map((d) => [d._id, d]));
+            // Resolve against the already-loaded published set. Because `all` is
+            // published-only, this also drops any draft the vector index surfaced
+            // (status is not a vector filter field), and saves a second DB read.
+            const byId = new Map(all.map((d) => [d._id, d]));
             const ordered = hits
                 .map((h) => byId.get(h._id as Id<'knowledgeArticles'>))
-                .filter((d): d is Article => !!d && d.status === 'published');
+                .filter((d): d is Article => !!d);
             if (ordered.length) return ordered.slice(0, topK);
         }
     } catch (err) {
-        console.warn('[KB-AI] vector search unavailable, falling back to keyword:', (err as Error).message);
+        console.warn('[KB-AI] vector fallback unavailable:', (err as Error).message);
     }
 
-    // 2) Keyword fallback over the published corpus.
-    const all: Article[] = await ctx.runQuery(internal.knowledge.listPublishedInternal, { workspace });
-    const terms = queryTerms(query);
-    if (!terms.length) return all.filter((a) => a.popular).slice(0, topK);
-    return all
-        .map((a) => ({ a, score: keywordScore(a, terms) }))
-        .filter((r) => r.score > 0)
-        .sort((x, y) => y.score - x.score)
-        .slice(0, topK)
-        .map((r) => r.a);
+    // 3) Last resort: popular articles.
+    return all.filter((a) => a.popular).slice(0, topK);
 }
 
 // ---- conversation memory (multi-turn follow-ups) ----
