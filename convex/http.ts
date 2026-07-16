@@ -248,11 +248,12 @@ http.route({
 });
 
 // POST /kb/search
-// Read-only semantic search over the public knowledge base for external bots
-// (a Discord coach + an HR responder in the owner-engine app). Gated by a shared
-// secret in the `x-kb-secret` header vs KB_SEARCH_SECRET. Returns only what a
-// grounding LLM needs (title/category/body text + score) — never ids, embeddings,
-// or PII. See convex/kb.ts for the search itself.
+// Read-only KEYWORD-FIRST search over the public knowledge base for external
+// bots (a Discord coach + an HR responder in the owner-engine app). Gated by a
+// shared secret in the `x-kb-secret` header vs KB_SEARCH_SECRET. Returns only
+// what a grounding LLM needs (title/category/body text + score) plus a `mode`
+// ('keyword' | 'vector' | 'none') telling callers how to read `score`. See
+// convex/kb.ts for the search itself.
 http.route({
     path: '/kb/search',
     method: 'POST',
@@ -277,10 +278,10 @@ http.route({
         const topK = typeof body.topK === 'number' ? body.topK : 5;
 
         const started = Date.now();
-        const result = await ctx.runAction(internal.kb.semanticSearch, { query, topK });
+        const result = await ctx.runAction(internal.kb.search, { query, topK });
         // Structured, PII-free logging: never the raw query text.
         console.log(
-            `[KB-SEARCH] len=${query.length} topK=${topK} hits=${result.articles.length} ` +
+            `[KB-SEARCH] len=${query.length} topK=${topK} mode=${result.mode} hits=${result.articles.length} ` +
             `maxScore=${result.maxScore.toFixed(3)} err=${result.error ?? 'none'} ms=${Date.now() - started}`,
         );
 
