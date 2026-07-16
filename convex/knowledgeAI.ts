@@ -1,8 +1,11 @@
 import { v } from 'convex/values';
 import { action, internalAction, type ActionCtx } from './_generated/server';
-import { internal } from './_generated/api';
+import { internal, components } from './_generated/api';
 import { decryptSecret } from './lib/encryption';
 import type { Doc, Id } from './_generated/dataModel';
+import { Agent } from '@convex-dev/agent';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { APICallError } from 'ai';
 
 /**
  * Gemini-powered RAG for the Tendso knowledge base.
@@ -50,6 +53,34 @@ function genModelChain(): string[] {
     return DEFAULT_GEN_CHAIN;
 }
 const EMBED_DIMS = 768;
+
+// ---- Convex AI Agent (@convex-dev/agent) ----
+// When KB_USE_AGENT is on, answer generation routes through the Convex agent
+// component instead of the raw Gemini REST call. The component runs on the
+// Vercel AI SDK; we override the model PER CALL with a BYOK-rotated key, keep
+// keyword-first retrieval (context injected, the component's own search off),
+// and preserve the grounded/citation contract. Threadless for now — no client
+// contract change; web-chat threads come later.
+const KB_USE_AGENT = () => {
+    const flag = process.env.KB_USE_AGENT;
+    return flag === '1' || flag === 'true';
+};
+
+// A default model is required at construction, but every KB call overrides it
+// per-request (AgentPrompt.model) with a rotated key — so this is a placeholder.
+const kbAgent = new Agent(components.agent, {
+    name: 'Tendso KB Agent',
+    languageModel: createGoogleGenerativeAI({ apiKey: process.env.GEMINI_API_KEY ?? '' })(DEFAULT_GEN_CHAIN[0]),
+});
+
+// Unified HTTP status across both generation backends: the raw-fetch path sets
+// `.status` (via geminiError); the AI SDK throws APICallError with `.statusCode`.
+// Rotation MUST read both, or every AI-SDK error looks transient and the
+// quota/key-rotation logic silently breaks (cooling good keys prematurely).
+function statusOf(err: unknown): number | undefined {
+    if (APICallError.isInstance(err)) return err.statusCode ?? undefined;
+    return (err as { status?: number }).status;
+}
 
 const workspaceArg = v.union(v.literal('help'), v.literal('wiki'));
 const sourceArg = v.union(v.literal('web'), v.literal('discord'), v.literal('chatbot'));
@@ -142,6 +173,51 @@ async function geminiGenerate(
     return text;
 }
 
+// Same contract as geminiGenerate, but the answer is generated THROUGH the
+// Convex agent component (which calls Gemini via the Vercel AI SDK). The model
+// is built per call from the rotated BYOK key; the component's own message
+// search/context is disabled so keyword-first retrieval stays authoritative.
+async function agentGenerate(
+    ctx: ActionCtx,
+    systemInstruction: string,
+    contents: GeminiTurn[],
+    model: string,
+    apiKey: string,
+): Promise<string> {
+    const google = createGoogleGenerativeAI({ apiKey });
+    const messages = contents.map((t) => ({
+        role: (t.role === 'model' ? 'assistant' : 'user') as 'assistant' | 'user',
+        content: t.parts.map((p) => p.text).join(''),
+    }));
+    const result = await kbAgent.generateText(
+        ctx,
+        // The component requires a userId or threadId; we supply a constant and
+        // persist NOTHING (saveMessages: 'none'), keeping this a stateless
+        // one-shot with no thread history and no client-contract change.
+        { userId: 'kb' },
+        {
+            model: google(model),
+            system: systemInstruction,
+            messages,
+            temperature: 0.2,
+            maxOutputTokens: 700,
+            topP: 0.9,
+        },
+        {
+            storageOptions: { saveMessages: 'none' },
+            // Keyword-first is authoritative: turn off the component's own
+            // message search/recent-history injection entirely.
+            contextOptions: {
+                recentMessages: 0,
+                searchOptions: { limit: 0, textSearch: false, vectorSearch: false },
+            },
+        },
+    );
+    const text = (result.text || '').trim();
+    if (!text) throw new Error('Agent returned an empty answer');
+    return text;
+}
+
 // ---- BYOK key pool: rotate across creator-supplied Gemini keys ----
 // Each creator contributes a free key (~500 req/day). We pull the
 // least-recently-used active key, and on quota (429) / invalid (401/403) we
@@ -177,7 +253,7 @@ async function withGeminiKey<T>(ctx: ActionCtx, doCall: (key: string) => Promise
             return result;
         } catch (err) {
             lastErr = err;
-            const status = (err as { status?: number }).status;
+            const status = statusOf(err);
             if (picked.id && (status === 429 || status === 401 || status === 403)) {
                 await ctx.runMutation(internal.aiKeys.reportKeyResult, {
                     id: picked.id,
@@ -225,12 +301,14 @@ async function generateWithFallback(ctx: ActionCtx, system: string, contents: Ge
         let lastStatus: number | undefined;
         for (const model of chain) {
             try {
-                const text = await geminiGenerate(system, contents, model, picked.key);
+                const text = KB_USE_AGENT()
+                    ? await agentGenerate(ctx, system, contents, model, picked.key)
+                    : await geminiGenerate(system, contents, model, picked.key);
                 if (picked.id) await ctx.runMutation(internal.aiKeys.reportKeyResult, { id: picked.id, status: 'ok' });
                 return text;
             } catch (err) {
                 lastErr = err;
-                lastStatus = (err as { status?: number }).status;
+                lastStatus = statusOf(err);
                 if (lastStatus === 401 || lastStatus === 403) {
                     keyInvalid = true; // bad key — stop trying models, rotate keys
                     break;
