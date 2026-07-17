@@ -492,7 +492,8 @@ Tendso builds a complete website for a local business from one 30-minute creator
 Answer the user's question using ONLY the numbered SOURCES provided below.
 - Be concise and direct: 2-4 sentences, or a short list. Lead with the answer.
 - Cite the sources you used inline, like [1] or [2].
-- Never invent prices, policies, timelines, or features. If the sources don't contain the answer, say you don't have that in the knowledge base yet and suggest contacting Tendso support (or asking in Discord for field agents).
+- Never invent prices, policies, timelines, or features.
+- If the SOURCES do not contain the answer to the question, reply with exactly NO_ANSWER (nothing else) — no apology, no other text.
 - The conversation may include earlier turns — use them to resolve follow-up references like "it" or "that", but still answer only from the SOURCES.
 - Write in a calm, clear, human voice. No hype, no emoji.`;
 
@@ -516,6 +517,15 @@ function fallbackAnswer(query: string, sources: Article[], workspace: Workspace)
     return `${top.summary}${tail} [1]`;
 }
 
+// Shown to the user when the KB genuinely doesn't have the answer (the model
+// returned the NO_ANSWER sentinel). Distinct from the extractive fallback above,
+// which is for Gemini outages.
+function noAnswerMessage(workspace: Workspace): string {
+    return workspace === 'help'
+        ? "I don't have that in the Help Center yet. Please reach out to Tendso support and we'll help."
+        : "I don't have that in the knowledge base yet — I've flagged it for the team. You can also ask in the Discord channel for field agents.";
+}
+
 // ---- shared RAG core ----
 async function runRag(
     ctx: ActionCtx,
@@ -527,16 +537,22 @@ async function runRag(
         discordUserId?: string;
         history?: ChatTurn[];
     },
-): Promise<{ answer: string; sources: { slug: string; title: string }[]; grounded: boolean; matched: boolean }> {
+): Promise<{ answer: string; sources: { slug: string; title: string }[]; grounded: boolean; matched: boolean; answered: boolean }> {
     const query = args.query.trim().slice(0, 500);
     const history = normalizeHistory(args.history);
     const { sources, matched } = await retrieve(ctx, buildRetrievalQuery(query, history), args.workspace);
 
     let answer: string;
     let grounded = true;
+    // Did the KB actually answer the question? false = a genuine content gap
+    // (the escalation trigger). Set false when there's nothing to answer from, or
+    // when the model returns NO_ANSWER. A generation OUTAGE leaves this true so we
+    // never escalate on a transient Gemini failure.
+    let answered = true;
     if (!sources.length) {
         answer = fallbackAnswer(query, sources, args.workspace);
         grounded = false;
+        answered = false;
     } else {
         try {
             // Prior turns + the live grounded question, in Gemini's wire format.
@@ -547,6 +563,12 @@ async function runRag(
                 { role: 'user', parts: [{ text: buildPrompt(query, sources) }] },
             ];
             answer = await generateWithFallback(ctx, SYSTEM_INSTRUCTION, contents);
+            if (/^\s*NO_ANSWER\b/i.test(answer)) {
+                // The model determined the retrieved SOURCES don't contain the answer.
+                answered = false;
+                grounded = false;
+                answer = noAnswerMessage(args.workspace);
+            }
         } catch (err) {
             console.warn('[KB-AI] generation failed, using extractive fallback:', (err as Error).message);
             answer = fallbackAnswer(query, sources, args.workspace);
@@ -566,7 +588,7 @@ async function runRag(
         grounded,
     });
 
-    return { answer, sources: sources.map((s) => ({ slug: s.slug, title: s.title })), grounded, matched };
+    return { answer, sources: sources.map((s) => ({ slug: s.slug, title: s.title })), grounded, matched, answered };
 }
 
 // Escalation to Discord when the KB can't answer the question (matched=false).
@@ -627,12 +649,13 @@ export const ask = action({
             history: args.history,
         });
 
-        // When the KB has no genuine match (retrieval fell through to popular
-        // articles), escalate the question to the team via Discord and tell the
-        // asker we'll follow up. Fire-and-forget so it never blocks the answer.
-        // Gated by KB_ESCALATION_ENABLED (default off).
+        // When the KB couldn't actually answer the question (no sources, or the
+        // model returned NO_ANSWER because the sources don't contain the answer),
+        // escalate it to the team via Discord. Fire-and-forget so it never blocks
+        // the answer. Gated by KB_ESCALATION_ENABLED (default off); the relevance
+        // gate in escalations.createAndPost then drops off-topic questions.
         let escalated = false;
-        if (KB_ESCALATION_ENABLED() && !result.matched) {
+        if (KB_ESCALATION_ENABLED() && !result.answered) {
             escalated = true;
             await ctx.scheduler.runAfter(0, internal.escalations.createAndPost, {
                 question: args.query.trim().slice(0, 500),
