@@ -668,6 +668,39 @@ export const answerQuery = internalAction({
     },
 });
 
+// ==================== INTERNAL: rewrite a human answer into a KB entry ====================
+// Used by the Discord escalation loop (convex/escalations.ts): when a team member
+// answers in a thread, polish their raw reply into a clean, self-contained
+// knowledge-base answer before it's saved as a Q&A. Falls back to the raw answer
+// if generation is unavailable, so the human answer is never lost.
+const REWRITE_SYSTEM = `You are an editor for the Tendso knowledge base. A team member has answered a field agent's question in a chat thread. Rewrite their raw answer into a clear, self-contained knowledge-base answer.
+- Keep ALL facts from the raw answer. Do NOT add anything that isn't in it, and never invent prices, policies, timelines, or features.
+- Write a direct answer to the question: 2-5 sentences, or a short list. Lead with the answer.
+- Calm, clear, human voice. No hype, no emoji. Do not refer to "the team member" or "the chat".
+- If the raw answer is already clean, just lightly polish it. Output only the answer text.`;
+
+export const rewriteAnswer = internalAction({
+    args: { question: v.string(), rawAnswer: v.string() },
+    handler: async (ctx, args): Promise<string> => {
+        const contents: GeminiTurn[] = [
+            {
+                role: 'user',
+                parts: [
+                    {
+                        text: `QUESTION: ${args.question}\n\nRAW ANSWER FROM TEAM MEMBER:\n${args.rawAnswer}\n\nRewrite the raw answer into a clear knowledge-base answer to the question.`,
+                    },
+                ],
+            },
+        ];
+        try {
+            return await generateWithFallback(ctx, REWRITE_SYSTEM, contents);
+        } catch (err) {
+            console.warn('[KB-AI] answer rewrite failed, keeping raw answer:', (err as Error).message);
+            return args.rawAnswer; // never lose the human answer
+        }
+    },
+});
+
 // ==================== EMBEDDINGS (ops: run from CLI/dashboard) ====================
 export const generateEmbeddingForArticle = internalAction({
     args: { articleId: v.id('knowledgeArticles') },
