@@ -44,4 +44,13 @@ crons.hourly(
     internal.outscraper.releaseStaleClaimsInternal,
 );
 
+// Every 2 minutes: poll open Knowledge Hub escalation threads for a human reply,
+// turn it into a KB Q&A, and notify the asker. No-op unless KB_ESCALATION_ENABLED.
+crons.interval(
+    'poll-kb-escalations',
+    { minutes: 2 },
+    internal.escalations.pollPending,
+    {},
+);
+
 export default crons;
