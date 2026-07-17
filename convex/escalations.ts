@@ -176,3 +176,133 @@ export const createAndPost = internalAction({
         }
     },
 });
+
+// Feature flag mirror (KB_ESCALATION_ENABLED gates the whole loop; default off).
+const escalationEnabled = () => {
+    const f = process.env.KB_ESCALATION_ENABLED;
+    return f === '1' || f === 'true';
+};
+
+/** Pending escalations that have been posted to Discord (have a thread to poll). */
+export const listPendingWithThread = internalQuery({
+    args: {},
+    handler: async (ctx) => {
+        const rows = await ctx.db
+            .query('escalations')
+            .withIndex('by_status', (q) => q.eq('status', 'pending'))
+            .collect();
+        return rows.filter((r) => !!r.discordThreadId);
+    },
+});
+
+/** Notify the original asker (a signed-in field agent) that their question was answered. */
+export const notifyAsker = internalMutation({
+    args: { askerUserId: v.string(), question: v.string(), answer: v.string() },
+    handler: async (ctx, args): Promise<boolean> => {
+        const creator = await ctx.db
+            .query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', args.askerUserId))
+            .first();
+        if (!creator) return false;
+        await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
+            creatorId: creator._id,
+            type: 'system',
+            title: 'Your question was answered',
+            body: `${args.question}\n\n${args.answer.slice(0, 300)}`,
+            data: { kbEscalation: true },
+        });
+        return true;
+    },
+});
+
+type DiscordMessage = {
+    id: string;
+    content: string;
+    author: { id: string; username: string; bot?: boolean };
+    timestamp: string;
+};
+
+/**
+ * Cron: poll open escalation threads for the first human reply. When one is
+ * found, capture it, turn it into a KB Q&A (saveTrainedQA → embedded article),
+ * notify the asker if signed in, and confirm in the thread. Gated by
+ * KB_ESCALATION_ENABLED.
+ */
+export const pollPending = internalAction({
+    args: {},
+    handler: async (ctx) => {
+        if (!escalationEnabled()) return;
+        const botToken = process.env.DISCORD_BOT_TOKEN;
+        if (!botToken) return;
+
+        const pending = await ctx.runQuery(internal.escalations.listPendingWithThread, {});
+        for (const esc of pending) {
+            const threadId = esc.discordThreadId!;
+            try {
+                const res = await fetch(`${DISCORD_API}/channels/${threadId}/messages?limit=50`, {
+                    headers: { Authorization: `Bot ${botToken}` },
+                });
+                if (!res.ok) {
+                    console.warn(`[KB-ESCALATION] poll thread ${threadId} failed (${res.status})`);
+                    await ctx.runMutation(internal.escalations.patchEscalation, { id: esc._id, lastPolledAt: Date.now() });
+                    continue;
+                }
+                const messages = (await res.json()) as DiscordMessage[];
+                // Discord returns newest-first; the first human reply = the oldest
+                // non-bot message that has text.
+                const firstHuman = messages
+                    .filter((m) => !m.author.bot && m.content.trim().length > 0)
+                    .sort((a, b) => a.timestamp.localeCompare(b.timestamp))[0];
+
+                if (!firstHuman) {
+                    await ctx.runMutation(internal.escalations.patchEscalation, { id: esc._id, lastPolledAt: Date.now() });
+                    continue;
+                }
+
+                const answer = firstHuman.content.trim().slice(0, 2000);
+
+                // Learn: turn the human answer into an embedded KB Q&A article.
+                const articleId = await ctx.runMutation(internal.knowledgeTraining.saveTrainedQA, {
+                    question: esc.question,
+                    answer,
+                    workspace: esc.workspace,
+                    grounded: true,
+                });
+
+                // Deliver back to the original asker if they were signed in.
+                let delivered = false;
+                if (esc.askerUserId) {
+                    delivered = await ctx.runMutation(internal.escalations.notifyAsker, {
+                        askerUserId: esc.askerUserId,
+                        question: esc.question,
+                        answer,
+                    });
+                }
+
+                await ctx.runMutation(internal.escalations.patchEscalation, {
+                    id: esc._id,
+                    status: delivered ? 'delivered' : 'learned',
+                    answer,
+                    answeredBy: firstHuman.author.username,
+                    answeredAt: Date.now(),
+                    learnedArticleId: articleId,
+                    lastPolledAt: Date.now(),
+                });
+
+                // Confirm in the thread (best-effort — never fails the learn).
+                await fetch(`${DISCORD_API}/channels/${threadId}/messages`, {
+                    method: 'POST',
+                    headers: { Authorization: `Bot ${botToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: '✅ Added to the knowledge base — the agent will use this answer next time. Thanks!',
+                        allowed_mentions: { parse: [] },
+                    }),
+                }).catch(() => {});
+
+                console.log(`[KB-ESCALATION] learned from thread ${threadId} → article ${articleId} (${delivered ? 'delivered' : 'learned'})`);
+            } catch (err) {
+                console.error(`[KB-ESCALATION] poll/learn failed for thread ${threadId}:`, (err as Error).message);
+            }
+        }
+    },
+});
