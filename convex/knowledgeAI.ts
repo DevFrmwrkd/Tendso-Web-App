@@ -701,6 +701,30 @@ export const rewriteAnswer = internalAction({
     },
 });
 
+// ==================== INTERNAL: is a question on-topic for Tendso? ====================
+// Used by the escalation loop (convex/escalations.ts) to avoid forwarding
+// off-topic / junk questions ("how do I bake bread") to the team's Discord.
+const RELEVANCE_SYSTEM = `You are a filter that decides whether a question should be forwarded to the Tendso team. Tendso builds a website for a Filipino local business (MSME) from one creator's 30-minute visit — topics include pricing/payments, custom domains, turnaround, the website itself, and the creator / field-agent program (training, interviews, photos, submissions, payouts, referrals).
+Reply with exactly one word:
+- YES if the question is about Tendso's product, service, process, or business and a team member could reasonably answer it (even a detail not yet documented).
+- NO if it is off-topic, spam, nonsense, a test, or unrelated to Tendso.`;
+
+export const classifyOnTopic = internalAction({
+    args: { question: v.string() },
+    handler: async (ctx, args): Promise<boolean> => {
+        try {
+            const contents: GeminiTurn[] = [{ role: 'user', parts: [{ text: `Question: ${args.question}` }] }];
+            const out = await generateWithFallback(ctx, RELEVANCE_SYSTEM, contents);
+            return /^\s*yes\b/i.test(out.trim());
+        } catch (err) {
+            // Classifier unavailable → fail OPEN (escalate) so a real question is
+            // never silently dropped; an occasional off-topic post is the lesser evil.
+            console.warn('[KB-AI] relevance classify failed, defaulting to escalate:', (err as Error).message);
+            return true;
+        }
+    },
+});
+
 // ==================== EMBEDDINGS (ops: run from CLI/dashboard) ====================
 export const generateEmbeddingForArticle = internalAction({
     args: { articleId: v.id('knowledgeArticles') },

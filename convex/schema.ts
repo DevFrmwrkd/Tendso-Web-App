@@ -1042,6 +1042,7 @@ export default defineSchema({
             v.literal('answered'), // a team member replied; captured
             v.literal('learned'), // turned into a KB Q&A article
             v.literal('delivered'), // asker notified (or n/a for anonymous)
+            v.literal('expired'), // no answer within the window — stop polling
             v.literal('error'),
         ),
         // Discord references (set once posted).

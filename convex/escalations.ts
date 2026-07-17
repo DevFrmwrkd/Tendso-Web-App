@@ -76,6 +76,7 @@ export const patchEscalation = internalMutation({
                 v.literal('answered'),
                 v.literal('learned'),
                 v.literal('delivered'),
+                v.literal('expired'),
                 v.literal('error'),
             ),
         ),
@@ -116,6 +117,14 @@ export const createAndPost = internalAction({
             return;
         }
 
+        // Relevance gate: don't forward off-topic / junk questions ("how do I bake
+        // bread") to the team. Only genuine Tendso questions get escalated.
+        const onTopic = await ctx.runAction(internal.knowledgeAI.classifyOnTopic, { question: args.question });
+        if (!onTopic) {
+            console.log('[KB-ESCALATION] off-topic, not escalating:', normalizedQuestion.slice(0, 60));
+            return;
+        }
+
         const id = await ctx.runMutation(internal.escalations.insertEscalation, {
             question: args.question,
             normalizedQuestion,
@@ -152,7 +161,7 @@ export const createAndPost = internalAction({
             const threadRes = await fetch(`${DISCORD_API}/channels/${channelId}/messages/${msg.id}/threads`, {
                 method: 'POST',
                 headers: { Authorization: `Bot ${botToken}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: args.question.slice(0, 90), auto_archive_duration: 1440 }),
+                body: JSON.stringify({ name: args.question.slice(0, 90), auto_archive_duration: 4320 }),
             });
             if (!threadRes.ok) {
                 throw new Error(`create thread failed (${threadRes.status}): ${(await threadRes.text().catch(() => '')).slice(0, 200)}`);
@@ -251,9 +260,17 @@ export const pollPending = internalAction({
         const botToken = process.env.DISCORD_BOT_TOKEN;
         if (!botToken) return;
 
+        // Give up on escalations nobody answered within the window, so they stop
+        // being polled (matches the 3-day thread auto-archive).
+        const MAX_AGE_MS = 72 * 60 * 60 * 1000;
         const pending = await ctx.runQuery(internal.escalations.listPendingWithThread, {});
         for (const esc of pending) {
             const threadId = esc.discordThreadId!;
+            if (Date.now() - esc.createdAt > MAX_AGE_MS) {
+                await ctx.runMutation(internal.escalations.patchEscalation, { id: esc._id, status: 'expired' });
+                console.log(`[KB-ESCALATION] escalation ${esc._id} expired (no answer in 72h), stopping poll`);
+                continue;
+            }
             try {
                 const res = await fetch(`${DISCORD_API}/channels/${threadId}/messages?limit=50`, {
                     headers: { Authorization: `Bot ${botToken}` },
