@@ -259,9 +259,16 @@ export const pollPending = internalAction({
                     continue;
                 }
 
-                const answer = firstHuman.content.trim().slice(0, 2000);
+                const rawAnswer = firstHuman.content.trim().slice(0, 2000);
 
-                // Learn: turn the human answer into an embedded KB Q&A article.
+                // Polish the raw chat reply into a clean, article-style KB answer
+                // (keeps all facts; falls back to the raw text if AI is unavailable).
+                const answer = await ctx.runAction(internal.knowledgeAI.rewriteAnswer, {
+                    question: esc.question,
+                    rawAnswer,
+                });
+
+                // Learn: turn the answer into an embedded KB Q&A article.
                 const articleId = await ctx.runMutation(internal.knowledgeTraining.saveTrainedQA, {
                     question: esc.question,
                     answer,
@@ -294,7 +301,7 @@ export const pollPending = internalAction({
                     method: 'POST',
                     headers: { Authorization: `Bot ${botToken}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        content: '✅ Added to the knowledge base — the agent will use this answer next time. Thanks!',
+                        content: `✅ Added to the knowledge base — the agent will use this next time:\n\n>>> ${answer.slice(0, 1500)}`,
                         allowed_mentions: { parse: [] },
                     }),
                 }).catch(() => {});
