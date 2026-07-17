@@ -261,7 +261,11 @@ async function withGeminiKey<T>(ctx: ActionCtx, doCall: (key: string) => Promise
                 });
                 continue; // rotate to the next pooled key
             }
-            if (picked.id) await ctx.runMutation(internal.aiKeys.reportKeyResult, { id: picked.id, status: 'error' });
+            // Only penalize the key on an actual API error; a failure with no HTTP
+            // status (code/SDK/network) is not the key's fault.
+            if (picked.id && status !== undefined) {
+                await ctx.runMutation(internal.aiKeys.reportKeyResult, { id: picked.id, status: 'error' });
+            }
             throw err; // transient/logic error, or the env key — not rotatable
         }
     }
@@ -305,6 +309,7 @@ async function generateWithFallback(ctx: ActionCtx, system: string, contents: Ge
                     ? await agentGenerate(ctx, system, contents, model, picked.key)
                     : await geminiGenerate(system, contents, model, picked.key);
                 if (picked.id) await ctx.runMutation(internal.aiKeys.reportKeyResult, { id: picked.id, status: 'ok' });
+                console.log(`[KB-AI] answer generated via ${KB_USE_AGENT() ? '@convex-dev/agent (component)' : 'raw-fetch'} — model=${model}`);
                 return text;
             } catch (err) {
                 lastErr = err;
@@ -324,12 +329,19 @@ async function generateWithFallback(ctx: ActionCtx, system: string, contents: Ge
             await ctx.runMutation(internal.aiKeys.reportKeyResult, { id: picked.id, status: 'invalid' });
             continue;
         }
-        // Whole chain failed on a real key. If even the floor model was rate-limited,
-        // the key is genuinely spent → cool it (12h). Otherwise treat as transient.
-        await ctx.runMutation(internal.aiKeys.reportKeyResult, {
-            id: picked.id,
-            status: lastStatus === 429 ? 'quota' : 'error',
-        });
+        // Whole chain failed on a real key. Only hold the KEY responsible for an
+        // actual API failure: 429 across the whole chain = genuinely spent (cool
+        // 12h); another HTTP status = transient error. A failure with NO HTTP
+        // status is a code/SDK/network error — NOT the key's fault — so leave the
+        // key's health untouched and stop (every other key would fail identically).
+        if (lastStatus === 429) {
+            await ctx.runMutation(internal.aiKeys.reportKeyResult, { id: picked.id, status: 'quota' });
+        } else if (lastStatus !== undefined) {
+            await ctx.runMutation(internal.aiKeys.reportKeyResult, { id: picked.id, status: 'error' });
+        } else {
+            console.warn('[KB-AI] generation failed with no HTTP status — not penalizing key:', (lastErr as Error)?.message);
+            break;
+        }
     }
     throw lastErr instanceof Error ? lastErr : new Error('Gemini generation failed across all models and keys');
 }
