@@ -276,6 +276,15 @@ export const pollPending = internalAction({
                     grounded: true,
                 });
 
+                // Link to the new article for the thread confirmation (same deep-link
+                // format the Discord /ask bot uses). Skipped if SITE_URL isn't set.
+                const [savedArticle] = await ctx.runQuery(internal.knowledge.getArticlesByIds, { ids: [articleId] });
+                const siteUrl = (process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL || '').replace(/\/$/, '');
+                const articleLink =
+                    savedArticle && siteUrl
+                        ? `${siteUrl}/knowledge?ws=${esc.workspace}&article=${encodeURIComponent(savedArticle.slug)}`
+                        : null;
+
                 // Deliver back to the original asker if they were signed in.
                 let delivered = false;
                 if (esc.askerUserId) {
@@ -301,7 +310,9 @@ export const pollPending = internalAction({
                     method: 'POST',
                     headers: { Authorization: `Bot ${botToken}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        content: `✅ Added to the knowledge base — the agent will use this next time:\n\n>>> ${answer.slice(0, 1500)}`,
+                        content:
+                            `✅ Added to the knowledge base — the agent will use this next time:\n\n>>> ${answer.slice(0, 1500)}` +
+                            (articleLink ? `\n\n🔗 ${articleLink}` : ''),
                         allowed_mentions: { parse: [] },
                     }),
                 }).catch(() => {});
