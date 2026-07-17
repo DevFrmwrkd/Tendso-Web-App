@@ -54,6 +54,11 @@ function genModelChain(): string[] {
 }
 const EMBED_DIMS = 768;
 
+// Minimum cosine similarity for a vector-fallback hit to count as a GENUINE match
+// (vs a low-relevance nearest-neighbour). Below this, retrieval reports
+// matched=false so the question can escalate. Tunable via KB_VECTOR_MATCH_THRESHOLD.
+const vectorMatchThreshold = () => Number(process.env.KB_VECTOR_MATCH_THRESHOLD) || 0.6;
+
 // ---- Convex AI Agent (@convex-dev/agent) ----
 // When KB_USE_AGENT is on, answer generation routes through the Convex agent
 // component instead of the raw Gemini REST call. The component runs on the
@@ -385,7 +390,7 @@ export function keywordScore(a: Article, terms: string[]): number {
 // Per the Knowledge Hub spec, always try traditional keyword search first and
 // only reach for embeddings when keyword finds nothing. At the current KB size
 // this keeps the common path at zero inference cost (no query embedding).
-async function retrieve(ctx: ActionCtx, query: string, workspace: Workspace, topK = 5): Promise<Article[]> {
+async function retrieve(ctx: ActionCtx, query: string, workspace: Workspace, topK = 5): Promise<{ sources: Article[]; matched: boolean }> {
     // Small corpus: load the whole published set once, score in memory.
     const all: Article[] = await ctx.runQuery(internal.knowledge.listPublishedInternal, { workspace });
 
@@ -394,11 +399,14 @@ async function retrieve(ctx: ActionCtx, query: string, workspace: Workspace, top
     if (terms.length) {
         const scored = all
             .map((a) => ({ a, score: keywordScore(a, terms) }))
-            .filter((r) => r.score > 0)
+            // Require a GENUINE term match — strip the popularity nudge so a merely
+            // `popular` article can't phantom-match a query it shares no words with
+            // (that would mask true misses and starve the vector fallback + escalation).
+            .filter((r) => r.score - (r.a.popular ? KEYWORD_POPULAR_BONUS : 0) > 0)
             .sort((x, y) => y.score - x.score)
             .slice(0, topK)
             .map((r) => r.a);
-        if (scored.length) return scored;
+        if (scored.length) return { sources: scored, matched: true };
     }
 
     // 2) Vector/similarity fallback — only when keyword found nothing.
@@ -410,21 +418,29 @@ async function retrieve(ctx: ActionCtx, query: string, workspace: Workspace, top
             filter: (q) => q.eq('workspace', workspace),
         });
         if (hits.length) {
-            // Resolve against the already-loaded published set. Because `all` is
-            // published-only, this also drops any draft the vector index surfaced
-            // (status is not a vector filter field), and saves a second DB read.
+            // Resolve against the already-loaded published set (drops any draft the
+            // vector index surfaced — status is not a vector filter field — and
+            // saves a second DB read). Keep each hit's cosine score.
             const byId = new Map(all.map((d) => [d._id, d]));
-            const ordered = hits
-                .map((h) => byId.get(h._id as Id<'knowledgeArticles'>))
-                .filter((d): d is Article => !!d);
-            if (ordered.length) return ordered.slice(0, topK);
+            const scored = hits
+                .map((h) => ({ doc: byId.get(h._id as Id<'knowledgeArticles'>), score: h._score }))
+                .filter((r): r is { doc: Article; score: number } => !!r.doc);
+            if (scored.length) {
+                // A vector hit only counts as a GENUINE match if the top similarity
+                // clears the threshold; a low-score nearest-neighbour is not a real
+                // answer (→ matched=false → escalate), but we still return it so the
+                // model can answer if it actually can.
+                const matched = scored[0].score >= vectorMatchThreshold();
+                return { sources: scored.slice(0, topK).map((r) => r.doc), matched };
+            }
         }
     } catch (err) {
         console.warn('[KB-AI] vector fallback unavailable:', (err as Error).message);
     }
 
-    // 3) Last resort: popular articles.
-    return all.filter((a) => a.popular).slice(0, topK);
+    // 3) Last resort: popular articles. matched=false = a genuine content gap
+    // (no keyword/vector hit) — this is the escalation trigger (see convex/escalations.ts).
+    return { sources: all.filter((a) => a.popular).slice(0, topK), matched: false };
 }
 
 // ---- conversation memory (multi-turn follow-ups) ----
@@ -511,10 +527,10 @@ async function runRag(
         discordUserId?: string;
         history?: ChatTurn[];
     },
-): Promise<{ answer: string; sources: { slug: string; title: string }[]; grounded: boolean }> {
+): Promise<{ answer: string; sources: { slug: string; title: string }[]; grounded: boolean; matched: boolean }> {
     const query = args.query.trim().slice(0, 500);
     const history = normalizeHistory(args.history);
-    const sources = await retrieve(ctx, buildRetrievalQuery(query, history), args.workspace);
+    const { sources, matched } = await retrieve(ctx, buildRetrievalQuery(query, history), args.workspace);
 
     let answer: string;
     let grounded = true;
@@ -550,8 +566,16 @@ async function runRag(
         grounded,
     });
 
-    return { answer, sources: sources.map((s) => ({ slug: s.slug, title: s.title })), grounded };
+    return { answer, sources: sources.map((s) => ({ slug: s.slug, title: s.title })), grounded, matched };
 }
+
+// Escalation to Discord when the KB can't answer the question (matched=false).
+// See convex/escalations.ts. Default OFF — flip KB_ESCALATION_ENABLED on the
+// deployment to enable.
+const KB_ESCALATION_ENABLED = () => {
+    const flag = process.env.KB_ESCALATION_ENABLED;
+    return flag === '1' || flag === 'true';
+};
 
 // ==================== PUBLIC: web search box + landing ChatBot ====================
 export const ask = action({
@@ -591,16 +615,38 @@ export const ask = action({
                 answer: "You're asking a lot of questions very quickly — give it a moment and try again.",
                 sources: [],
                 grounded: false,
+                escalated: false,
             };
         }
 
-        return await runRag(ctx, {
+        const result = await runRag(ctx, {
             query: args.query,
             workspace: args.workspace,
             source,
             userId,
             history: args.history,
         });
+
+        // When the KB has no genuine match (retrieval fell through to popular
+        // articles), escalate the question to the team via Discord and tell the
+        // asker we'll follow up. Fire-and-forget so it never blocks the answer.
+        // Gated by KB_ESCALATION_ENABLED (default off).
+        let escalated = false;
+        if (KB_ESCALATION_ENABLED() && !result.matched) {
+            escalated = true;
+            await ctx.scheduler.runAfter(0, internal.escalations.createAndPost, {
+                question: args.query.trim().slice(0, 500),
+                workspace: args.workspace,
+                askerUserId: userId,
+            });
+        }
+
+        return {
+            answer: result.answer,
+            sources: result.sources,
+            grounded: result.grounded,
+            escalated,
+        };
     },
 });
 
