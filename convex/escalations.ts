@@ -195,6 +195,22 @@ export const listPendingWithThread = internalQuery({
     },
 });
 
+/**
+ * Atomically claim a pending escalation for processing (pending → answered).
+ * Convex mutations are serializable, so of two overlapping poll runs (the cron
+ * plus any manual run) only ONE wins the claim — the other gets false and skips.
+ * This is what prevents duplicate articles / duplicate thread confirmations.
+ */
+export const claimForProcessing = internalMutation({
+    args: { id: v.id('escalations') },
+    handler: async (ctx, args): Promise<boolean> => {
+        const esc = await ctx.db.get(args.id);
+        if (!esc || esc.status !== 'pending') return false;
+        await ctx.db.patch(args.id, { status: 'answered', updatedAt: Date.now() });
+        return true;
+    },
+});
+
 /** Notify the original asker (a signed-in field agent) that their question was answered. */
 export const notifyAsker = internalMutation({
     args: { askerUserId: v.string(), question: v.string(), answer: v.string() },
@@ -258,6 +274,11 @@ export const pollPending = internalAction({
                     await ctx.runMutation(internal.escalations.patchEscalation, { id: esc._id, lastPolledAt: Date.now() });
                     continue;
                 }
+
+                // Atomically claim so overlapping poll runs (cron + manual) never
+                // double-process this escalation and create duplicate articles.
+                const claimed = await ctx.runMutation(internal.escalations.claimForProcessing, { id: esc._id });
+                if (!claimed) continue;
 
                 const rawAnswer = firstHuman.content.trim().slice(0, 2000);
 
