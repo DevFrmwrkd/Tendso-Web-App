@@ -1024,4 +1024,42 @@ export default defineSchema({
         .index('by_status', ['status'])
         .index('by_batch', ['batchId'])
         .index('by_createdAt', ['createdAt']),
+
+    // ==================== ESCALATIONS (Discord human-in-the-loop) ====================
+    // When the KB agent can't answer a web/chat question (retrieval found no genuine
+    // match), it is escalated to a role-scoped Discord channel: the bot posts the
+    // question and opens a thread; a team member replies in that thread; a cron polls
+    // the thread, turns the reply into a KB Q&A (knowledgeTraining.saveTrainedQA), and
+    // notifies the original asker if they were signed in. Discord is ONLY the team's
+    // answer surface — the asker is a web/mobile user, delivered back via notifications.
+    escalations: defineTable({
+        question: v.string(),
+        normalizedQuestion: v.string(), // lowercased/trimmed dedup key
+        workspace: v.union(v.literal('help'), v.literal('wiki')),
+        askerUserId: v.optional(v.string()), // Clerk subject for deliver-back; absent = anonymous
+        status: v.union(
+            v.literal('pending'), // posted to Discord, awaiting a human reply
+            v.literal('answered'), // a team member replied; captured
+            v.literal('learned'), // turned into a KB Q&A article
+            v.literal('delivered'), // asker notified (or n/a for anonymous)
+            v.literal('error'),
+        ),
+        // Discord references (set once posted).
+        discordChannelId: v.optional(v.string()),
+        discordMessageId: v.optional(v.string()),
+        discordThreadId: v.optional(v.string()),
+        // The captured human answer.
+        answer: v.optional(v.string()),
+        answeredBy: v.optional(v.string()), // Discord user id/name of the replier
+        answeredAt: v.optional(v.number()),
+        learnedArticleId: v.optional(v.id('knowledgeArticles')),
+        error: v.optional(v.string()),
+        lastPolledAt: v.optional(v.number()),
+        createdAt: v.number(),
+        updatedAt: v.number(),
+    })
+        .index('by_status', ['status'])
+        .index('by_thread', ['discordThreadId'])
+        .index('by_normalized', ['normalizedQuestion', 'status'])
+        .index('by_createdAt', ['createdAt']),
 });
