@@ -190,7 +190,7 @@ export default function HelpFaqPage() {
                         </Link>
 
                         <div className="sect-h">
-                            <div className="eyebrow">§ Help</div>
+                            <div className="eyebrow">Help</div>
                             <div>
                                 <h1 className="display-2">
                                     Questions, <em style={{ fontStyle: "italic" }}>answered.</em>

@@ -89,7 +89,7 @@ export default function ShowcaseSection({
         <section id="showcase" style={{ background: "var(--neo-paper-2)" }}>
             <div className="container-wide">
                 <div className="sect-h">
-                    <div className="eyebrow">§ 02 — Live map</div>
+                    <div className="eyebrow">Live map</div>
                     <div>
                         <h2 className="display-2">
                             Live businesses, <em style={{ fontStyle: "italic" }}>right now.</em>

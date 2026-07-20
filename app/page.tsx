@@ -35,34 +35,34 @@ export default function Home() {
             <Navbar />
 
             <main>
-                {/* § 01 — Hero with counters + two doors */}
+                {/* Hero with counters + two doors */}
                 <HeroSection />
 
-                {/* § 02 — Live map (Convex listPublished → falls back to 4 known sites) */}
+                {/* Live map (Convex listPublished → falls back to 4 known sites) */}
                 <ShowcaseSection
                     onSelectCreator={setSelectedCreator}
                     onSelectBusiness={setSelectedBusiness}
                 />
 
-                {/* § 03 — How it works (two tracks side-by-side) */}
+                {/* How it works (two tracks side-by-side) */}
                 <HowItWorks />
 
-                {/* § Process — Online Kit pipeline */}
+                {/* Process — Online Kit pipeline */}
                 <ProcessSection />
 
-                {/* § Manifesto — the 99% statement */}
+                {/* Manifesto — the 99% statement */}
                 <ManifestoSection />
 
-                {/* § 06 — Directory (rails of creators + businesses) */}
+                {/* Directory (rails of creators + businesses) */}
                 <DirectorySection
                     onSelectCreator={setSelectedCreator}
                     onSelectBusiness={setSelectedBusiness}
                 />
 
-                {/* § 08 — FAQ */}
+                {/* FAQ */}
                 <FaqSection />
 
-                {/* § 10 — Final CTA (the two doors, big) */}
+                {/* Final CTA (the two doors, big) */}
                 <CtaSection />
             </main>
 

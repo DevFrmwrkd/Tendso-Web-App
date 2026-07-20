@@ -37,7 +37,7 @@ export default function ContactPage() {
                         </Link>
 
                         <div className="sect-h">
-                            <div className="eyebrow">§ Contact</div>
+                            <div className="eyebrow">Contact</div>
                             <div>
                                 <h1 className="display">
                                     Let&apos;s <em style={{ fontStyle: "italic", color: "var(--neo-creator)" }}>talk</em>.

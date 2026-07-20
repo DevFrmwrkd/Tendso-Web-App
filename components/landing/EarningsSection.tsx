@@ -17,7 +17,7 @@ export default function EarningsSection() {
         >
             <div className="container-wide">
                 <div className="sect-h">
-                    <div className="eyebrow" style={{ color: "var(--neo-creator)" }}>§ 05 — For creators</div>
+                    <div className="eyebrow" style={{ color: "var(--neo-creator)" }}>For creators</div>
                     <div>
                         <h2 className="display-2" style={{ color: "var(--neo-paper)" }}>
                             Earn while bringing them <em style={{ fontStyle: "italic", color: "var(--neo-creator)" }}>online</em>.

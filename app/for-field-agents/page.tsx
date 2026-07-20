@@ -232,7 +232,7 @@ function TrustSection() {
         <section style={{ background: "var(--neo-paper-2)" }}>
             <div className="container-wide">
                 <div className="sect-h">
-                    <div className="eyebrow">§ Is this legit?</div>
+                    <div className="eyebrow">Is this legit?</div>
                     <div>
                         <h2 className="display-2">
                             A real job, <em>not a scam</em>.
@@ -267,7 +267,7 @@ function FieldStepsSection() {
         <section>
             <div className="container-wide">
                 <div className="sect-h">
-                    <div className="eyebrow">§ How it works</div>
+                    <div className="eyebrow">How it works</div>
                     <div>
                         <h2 className="display-2">
                             From the street <em>to your wallet</em>.

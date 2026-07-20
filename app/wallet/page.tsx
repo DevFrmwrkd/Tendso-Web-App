@@ -239,7 +239,7 @@ export default function WalletPage() {
 
                 {/* Editorial header */}
                 <div className="mb-6 mt-2">
-                    <p className="ed-label">§ Wallet · Withdrawals</p>
+                    <p className="ed-label">Wallet · Withdrawals</p>
                     <h1
                         className="mt-2"
                         style={{
@@ -376,7 +376,7 @@ export default function WalletPage() {
 
                 {/* Recent Earnings */}
                 <div className="mb-6">
-                    <p className="ed-label">§ History</p>
+                    <p className="ed-label">History</p>
                     <h2
                         className="mt-1 mb-3"
                         style={{

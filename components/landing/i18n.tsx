@@ -57,7 +57,7 @@ const EN: Dict = {
     "hero.counterCountries": "countries",
 
     // Business pricing
-    "price.eyebrow": "§ 04 — The price",
+    "price.eyebrow": "The price",
     "price.liveForever": "Live forever.",
     "price.lede":
         "One-time payment. No monthly fees. No contracts. You only pay once your website is live and you've approved it.",
@@ -109,7 +109,7 @@ const TL: Dict = {
     "hero.counterCountries": "mga bansa",
 
     // Business pricing
-    "price.eyebrow": "§ 04 — Ang presyo",
+    "price.eyebrow": "Ang presyo",
     "price.liveForever": "Live habambuhay.",
     "price.lede":
         "Isang bayad lang. Walang buwanang bayad. Walang kontrata. Magbabayad ka lang kapag live na ang website mo at na-approve mo na.",

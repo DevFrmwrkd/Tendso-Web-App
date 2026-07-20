@@ -147,7 +147,7 @@ function HowToApplySection() {
         <section style={{ background: "var(--neo-paper-2)" }}>
             <div className="container-wide">
                 <div className="sect-h">
-                    <div className="eyebrow">§ How to apply</div>
+                    <div className="eyebrow">How to apply</div>
                     <div>
                         <h2 className="display-2">
                             From this page <em>to your first payout</em>.

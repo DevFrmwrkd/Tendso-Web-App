@@ -429,7 +429,7 @@ export default function DashboardPage() {
                 <div>
                     <div className="flex items-center justify-between mb-3">
                         <div>
-                            <p className="ed-label">§ Recent activity</p>
+                            <p className="ed-label">Recent activity</p>
                             <h2
                                 className="mt-1"
                                 style={{

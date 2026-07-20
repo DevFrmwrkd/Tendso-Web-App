@@ -112,7 +112,7 @@ export default function DirectorySection({
         <section id="directory">
             <div className="container-wide">
                 <div className="sect-h">
-                    <div className="eyebrow">§ 06 — Directory</div>
+                    <div className="eyebrow">Directory</div>
                     <div>
                         <h2 className="display-2">
                             Proof, <em style={{ fontStyle: "italic" }}>at scale</em>.

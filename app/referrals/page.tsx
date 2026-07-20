@@ -133,7 +133,7 @@ export default function ReferralsPage() {
 
                 {/* Editorial header */}
                 <div className="mb-6 mt-2">
-                    <p className="ed-label">§ Referral Program</p>
+                    <p className="ed-label">Referral Program</p>
                     <h1
                         className="mt-2"
                         style={{
@@ -285,7 +285,7 @@ export default function ReferralsPage() {
 
                 {/* Referred Creators */}
                 <div className="mb-6">
-                    <p className="ed-label">§ Your tree</p>
+                    <p className="ed-label">Your tree</p>
                     <h2
                         className="mt-1 mb-3"
                         style={{
@@ -386,7 +386,7 @@ export default function ReferralsPage() {
 
                 {/* How it Works */}
                 <div>
-                    <p className="ed-label">§ How it works</p>
+                    <p className="ed-label">How it works</p>
                     <h2
                         className="mt-1 mb-4"
                         style={{

@@ -31,7 +31,7 @@ const playfair = Playfair_Display({
   display: "swap",
 });
 
-// Monospace for editorial section markers (§ 01 — THE VISION)
+// Monospace for eyebrows and the legal section markers (§ 01)
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
   subsets: ["latin"],

@@ -244,7 +244,7 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Editorial eyebrow */}
-                <p className="ed-label mt-2">§ Your Profile</p>
+                <p className="ed-label mt-2">Your Profile</p>
 
                 {/* Profile Header — avatar + serif name */}
                 <div className="flex flex-col items-center mt-4 mb-8">

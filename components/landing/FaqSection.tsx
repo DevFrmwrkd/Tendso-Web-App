@@ -17,7 +17,7 @@ export default function FaqSection() {
         <section id="faq">
             <div className="container-wide">
                 <div className="sect-h">
-                    <div className="eyebrow">§ 08 — Questions</div>
+                    <div className="eyebrow">Questions</div>
                     <div>
                         <h2 className="display-2">
                             Questions <em>worth asking.</em>
