@@ -62,7 +62,7 @@ export default function ConnectAiPage() {
                             </svg>
                             Field agents
                         </Link>
-                        <div className="eyebrow">§ Tendso AI — bring your own key</div>
+                        <div className="eyebrow">Tendso AI — bring your own key</div>
                         <h1 className="display-2">
                             Power <em>Tendso AI</em> with a free key.
                         </h1>

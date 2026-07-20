@@ -87,7 +87,7 @@ export default function HowItWorks({ door = null }: { door?: "business" | "creat
         <section id="how-it-works" style={{ background: "var(--neo-paper-2)" }}>
             <div className="container-wide">
                 <div className="sect-h">
-                    <div className="eyebrow">§ 03 — How It Works</div>
+                    <div className="eyebrow">How It Works</div>
                     <div>
                         <h2 className="display-2">
                             Two flows. <em style={{ color: "var(--neo-creator)", fontStyle: "italic" }}>Side by side.</em>

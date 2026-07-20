@@ -145,7 +145,7 @@ export default function LoginPage() {
                         className="text-[10px] uppercase tracking-[0.4em] font-medium text-[var(--rust)]"
                         style={{ fontFamily: "var(--font-mono)" }}
                     >
-                        § ACCESS — RETURNING
+                        ACCESS — RETURNING
                     </p>
                     <span className="h-px w-10 bg-[var(--rust)]/40" />
                 </div>

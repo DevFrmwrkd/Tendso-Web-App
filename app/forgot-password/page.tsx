@@ -185,7 +185,7 @@ export default function ForgotPasswordPage() {
                         className="text-[10px] uppercase tracking-[0.4em] font-medium text-[var(--rust)]"
                         style={{ fontFamily: "var(--font-mono)" }}
                     >
-                        § ACCESS — RECOVERY
+                        ACCESS — RECOVERY
                     </p>
                     <span className="h-px w-10 bg-[var(--rust)]/40" />
                 </div>

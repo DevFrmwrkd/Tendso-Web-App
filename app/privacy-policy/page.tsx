@@ -237,7 +237,7 @@ export default function PrivacyPolicy() {
                             className="text-[10px] sm:text-[11px] uppercase tracking-[0.45em] font-medium text-[var(--rust)]"
                             style={{ fontFamily: "var(--font-mono)" }}
                         >
-                            § DOC — PRIVACY · UPDATED FEB 2026
+                            DOC — PRIVACY · UPDATED FEB 2026
                         </p>
                         <span className="h-px w-12 bg-[var(--rust)]/40" />
                     </div>

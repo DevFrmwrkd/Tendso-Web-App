@@ -4,6 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Logo, ArrowUpRightIcon } from "./landingPrimitives";
 
+/**
+ * The persistent "pick a door" CTA that appears once you've scrolled past the hero.
+ *
+ * Design note: this is a quiet, auto-width pill rather than a full-bleed bar. The
+ * two doors carry equal weight — colour identifies each one with a dot instead of
+ * filling the whole button, so neither shouts over the page content behind it.
+ * When `door` is set, that side reads as the current context via a soft tint.
+ */
 export default function StickyCTA({ door = null }: { door?: "business" | "creator" | null }) {
     const [visible, setVisible] = useState(false);
 
@@ -16,57 +24,43 @@ export default function StickyCTA({ door = null }: { door?: "business" | "creato
 
     return (
         <div className={`sticky-cta ${visible ? "visible" : ""}`}>
-            <div className="container-wide flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 py-3 sm:py-3.5">
-                {/* Logo + door badge — hide logo on phones to save room for the CTA buttons */}
-                <div className="hidden sm:flex items-center gap-3">
+            <nav className="sticky-cta-pill" aria-label="Choose your path">
+                <span className="sticky-cta-brand">
                     <Logo />
-                    {door && (
-                        <span className="label" style={{ color: "var(--neo-ink-3)" }}>
-                            You picked the{" "}
-                            <strong
-                                style={{
-                                    color: door === "creator" ? "var(--neo-creator)" : "var(--neo-business)",
-                                }}
-                            >
-                                {door}
-                            </strong>{" "}
-                            door.
-                        </span>
-                    )}
-                </div>
-                <div className="grid grid-cols-2 sm:flex gap-2 w-full sm:w-auto">
-                    <Link
-                        href="/for-business"
-                        className="door door-business justify-center sm:justify-start"
-                        style={{
-                            padding: "10px 14px",
-                            fontSize: 13,
-                            textDecoration: "none",
-                            display: "inline-flex",
-                            whiteSpace: "nowrap",
-                        }}
-                    >
-                        <span className="hidden md:inline">I own a business</span>
-                        <span className="md:hidden">Business</span>
-                        <span className="arrow"><ArrowUpRightIcon /></span>
-                    </Link>
-                    <Link
-                        href="/for-creators"
-                        className="door door-creator justify-center sm:justify-start"
-                        style={{
-                            padding: "10px 14px",
-                            fontSize: 13,
-                            textDecoration: "none",
-                            display: "inline-flex",
-                            whiteSpace: "nowrap",
-                        }}
-                    >
-                        <span className="hidden md:inline">I want to earn</span>
-                        <span className="md:hidden">Earn</span>
-                        <span className="arrow"><ArrowUpRightIcon /></span>
-                    </Link>
-                </div>
-            </div>
+                </span>
+
+                <span className="sticky-cta-div" aria-hidden="true" />
+
+                <Link
+                    href="/for-business"
+                    className={`sticky-cta-seg is-business${door === "business" ? " is-current" : ""}`}
+                    tabIndex={visible ? 0 : -1}
+                    aria-current={door === "business" ? "page" : undefined}
+                >
+                    <span className="sticky-cta-dot" aria-hidden="true" />
+                    <span className="sticky-cta-full">I own a business</span>
+                    <span className="sticky-cta-short">Business</span>
+                    <span className="sticky-cta-arrow" aria-hidden="true">
+                        <ArrowUpRightIcon />
+                    </span>
+                </Link>
+
+                <span className="sticky-cta-div" aria-hidden="true" />
+
+                <Link
+                    href="/for-creators"
+                    className={`sticky-cta-seg is-creator${door === "creator" ? " is-current" : ""}`}
+                    tabIndex={visible ? 0 : -1}
+                    aria-current={door === "creator" ? "page" : undefined}
+                >
+                    <span className="sticky-cta-dot" aria-hidden="true" />
+                    <span className="sticky-cta-full">I want to earn</span>
+                    <span className="sticky-cta-short">Earn</span>
+                    <span className="sticky-cta-arrow" aria-hidden="true">
+                        <ArrowUpRightIcon />
+                    </span>
+                </Link>
+            </nav>
         </div>
     );
 }

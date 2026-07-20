@@ -87,7 +87,7 @@ export default function TermsOfServicePage() {
                             className="text-[10px] sm:text-[11px] uppercase tracking-[0.45em] font-medium text-[var(--rust)]"
                             style={{ fontFamily: "var(--font-mono)" }}
                         >
-                            § DOC — LEGAL
+                            DOC — LEGAL
                         </p>
                         <span className="h-px w-12 bg-[var(--rust)]/40" />
                     </div>
@@ -184,7 +184,7 @@ export default function TermsOfServicePage() {
                                 className="text-[10px] uppercase tracking-[0.45em] font-medium text-[var(--rust-soft)]"
                                 style={{ fontFamily: "var(--font-mono)" }}
                             >
-                                § INQUIRY — LEGAL HQ
+                                INQUIRY — LEGAL HQ
                             </p>
                             <span className="h-px w-10 bg-[var(--rust-soft)]/50" />
                         </div>

@@ -50,7 +50,7 @@ export default function SignupPage() {
                         className="text-[10px] uppercase tracking-[0.4em] font-medium text-[var(--rust)]"
                         style={{ fontFamily: "var(--font-mono)" }}
                     >
-                        § ACCESS — NEW CREATOR
+                        ACCESS — NEW CREATOR
                     </p>
                     <span className="h-px w-10 bg-[var(--rust)]/40" />
                 </div>

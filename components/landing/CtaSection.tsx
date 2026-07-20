@@ -20,7 +20,7 @@ export default function CtaSection() {
                         className="eyebrow"
                         style={{ marginBottom: 24, color: "var(--neo-creator)" }}
                     >
-                        § 10 — The vision
+                        The vision
                     </div>
                     <h2
                         className="display"
