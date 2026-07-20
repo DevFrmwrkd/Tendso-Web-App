@@ -1056,6 +1056,7 @@ export default defineSchema({
         learnedArticleId: v.optional(v.id('knowledgeArticles')),
         error: v.optional(v.string()),
         lastPolledAt: v.optional(v.number()),
+        lastPingedAt: v.optional(v.number()), // last reminder ping to the team role
         createdAt: v.number(),
         updatedAt: v.number(),
     })
