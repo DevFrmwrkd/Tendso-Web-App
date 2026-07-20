@@ -26,6 +26,15 @@ const isPublicRoute = createRouteMatcher([
     // The route handler enforces either a valid Clerk session OR a matching
     // X-Internal-Secret itself, so bypassing middleware is safe.
     '/api/transcribe',
+    // Same pattern: called server-to-server from Convex crons/actions with the
+    // X-Internal-Secret header. Without these entries clerkMiddleware redirects
+    // the POST to /login (307), it lands on the GET-only login page as a 405,
+    // and the email silently never sends. Each handler verifies the secret
+    // itself — the two /api/internal routes require it outright, the other two
+    // accept "valid admin Clerk session OR secret" — so bypassing here is safe.
+    '/api/internal(.*)', // send-withdrawal-status-email, send-domain-live-email
+    '/api/send-payment-followup-email',
+    '/api/send-completed-website-email',
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
