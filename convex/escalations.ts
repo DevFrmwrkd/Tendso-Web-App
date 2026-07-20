@@ -23,6 +23,9 @@ import type { Id } from './_generated/dataModel';
  */
 
 const DISCORD_API = 'https://discord.com/api/v10';
+// How often to re-ping the team role about an escalation nobody has answered.
+// Tunable via KB_ESCALATION_REPING_HOURS (default 8; fractional values allowed).
+const repingEveryMs = () => Number(process.env.KB_ESCALATION_REPING_HOURS || 8) * 60 * 60 * 1000;
 const workspaceArg = v.union(v.literal('help'), v.literal('wiki'));
 
 function normalizeQuestion(q: string): string {
@@ -89,6 +92,7 @@ export const patchEscalation = internalMutation({
         learnedArticleId: v.optional(v.id('knowledgeArticles')),
         error: v.optional(v.string()),
         lastPolledAt: v.optional(v.number()),
+        lastPingedAt: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
         const { id, ...rest } = args;
@@ -288,7 +292,28 @@ export const pollPending = internalAction({
                     .sort((a, b) => a.timestamp.localeCompare(b.timestamp))[0];
 
                 if (!firstHuman) {
-                    await ctx.runMutation(internal.escalations.patchEscalation, { id: esc._id, lastPolledAt: Date.now() });
+                    // Still unanswered — nudge the team role every REPING_EVERY_MS
+                    // (first nudge measured from when the escalation was created).
+                    const roleId = process.env.DISCORD_ESCALATION_ROLE_ID;
+                    const lastNudge = esc.lastPingedAt ?? esc.createdAt;
+                    const due = !!roleId && Date.now() - lastNudge >= repingEveryMs();
+                    if (due) {
+                        const hoursOpen = Math.round((Date.now() - esc.createdAt) / 3_600_000);
+                        await fetch(`${DISCORD_API}/channels/${threadId}/messages`, {
+                            method: 'POST',
+                            headers: { Authorization: `Bot ${botToken}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                content: `⏰ <@&${roleId}> still no answer on this one (${hoursOpen}h open). Reply in this thread and I'll add it to the knowledge base.`,
+                                allowed_mentions: { roles: [roleId] },
+                            }),
+                        }).catch(() => {});
+                        console.log(`[KB-ESCALATION] re-pinged role on thread ${threadId} (${hoursOpen}h open)`);
+                    }
+                    await ctx.runMutation(internal.escalations.patchEscalation, {
+                        id: esc._id,
+                        lastPolledAt: Date.now(),
+                        lastPingedAt: due ? Date.now() : undefined,
+                    });
                     continue;
                 }
 
@@ -354,6 +379,17 @@ export const pollPending = internalAction({
                         allowed_mentions: { parse: [] },
                     }),
                 }).catch(() => {});
+
+                // Resolved: lock + archive the thread so the captured answer stands
+                // and no further replies pile up. Best-effort — needs MANAGE_THREADS.
+                const lockRes = await fetch(`${DISCORD_API}/channels/${threadId}`, {
+                    method: 'PATCH',
+                    headers: { Authorization: `Bot ${botToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ locked: true, archived: true }),
+                }).catch(() => null);
+                if (!lockRes || !lockRes.ok) {
+                    console.warn(`[KB-ESCALATION] could not lock thread ${threadId} (needs MANAGE_THREADS)`);
+                }
 
                 console.log(`[KB-ESCALATION] learned from thread ${threadId} → article ${articleId} (${delivered ? 'delivered' : 'learned'})`);
             } catch (err) {
