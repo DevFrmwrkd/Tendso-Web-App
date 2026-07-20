@@ -571,17 +571,207 @@ body {
 .neo .pill[aria-pressed="true"]:hover { color: var(--neo-paper); }
 
 /* Sticky bottom CTA */
+/* Sticky door CTA — a compact centred pill, not a full-bleed bar.
+   Colour identifies each door with a dot rather than filling the button, so the
+   two choices sit at equal weight without competing with the page behind them. */
 .neo .sticky-cta {
-  position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 1200;
-  transform: translateY(calc(100% + 32px));
-  transition: transform .35s cubic-bezier(.2,.8,.2,1);
+  position: fixed; left: 50%; bottom: 20px; z-index: 1200;
+  transform: translate(-50%, calc(100% + 32px));
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .38s cubic-bezier(.2,.8,.2,1), opacity .28s ease;
+}
+.neo .sticky-cta.visible { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+
+.neo .sticky-cta-pill {
+  display: flex; align-items: stretch;
+  padding: 4px;
+  background: oklch(from var(--neo-paper-3) l c h / .92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--neo-rule);
+  border-radius: 999px;
+  box-shadow: var(--neo-shadow-2);
+}
+
+/* Brand mark anchors the left of the pill. Sized down to sit with the 13.5px
+   labels rather than dominate them. */
+.neo .sticky-cta-brand {
+  display: inline-flex; align-items: center; flex: none;
+  padding: 0 13px 0 15px;
+}
+.neo .sticky-cta-brand img { width: 74px; height: auto; }
+/* Logo sets an inline filter tuned for light paper; flip it back on the dark
+   "ink" theme so the mark stays legible. Inline styles need !important. */
+.neo[data-theme="ink"] .sticky-cta-brand img { filter: none !important; }
+
+.neo .sticky-cta-seg {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-family: var(--neo-sans);
+  font-size: 13.5px; font-weight: 500; letter-spacing: -0.01em; line-height: 1;
+  color: var(--neo-ink);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .18s ease, color .18s ease;
+}
+.neo .sticky-cta-div { width: 1px; flex: none; margin: 8px 2px; background: var(--neo-rule); }
+
+.neo .sticky-cta-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex: none;
+  transition: transform .18s ease;
+}
+.neo .sticky-cta-seg.is-business .sticky-cta-dot { background: var(--neo-business); }
+.neo .sticky-cta-seg.is-creator  .sticky-cta-dot { background: var(--neo-creator); }
+.neo .sticky-cta-seg:hover .sticky-cta-dot { transform: scale(1.3); }
+
+.neo .sticky-cta-arrow {
+  width: 14px; height: 14px; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  opacity: 0; transform: translate(-4px, 4px);
+  transition: opacity .18s ease, transform .18s ease;
+}
+.neo .sticky-cta-seg:hover .sticky-cta-arrow,
+.neo .sticky-cta-seg:focus-visible .sticky-cta-arrow { opacity: .55; transform: translate(0, 0); }
+
+.neo .sticky-cta-seg.is-business:hover,
+.neo .sticky-cta-seg.is-business.is-current { background: var(--neo-business-bg); color: var(--neo-business-ink); }
+.neo .sticky-cta-seg.is-creator:hover,
+.neo .sticky-cta-seg.is-creator.is-current  { background: var(--neo-creator-bg);  color: var(--neo-creator-ink); }
+
+.neo .sticky-cta-seg:focus-visible { outline: 2px solid var(--neo-ink); outline-offset: 2px; }
+
+/* Long label by default, short label on narrow phones. */
+.neo .sticky-cta-short { display: none; }
+
+@media (max-width: 440px) {
+  .neo .sticky-cta { left: 12px; right: 12px; transform: translateY(calc(100% + 32px)); }
+  .neo .sticky-cta.visible { transform: translateY(0); }
+  .neo .sticky-cta-seg { flex: 1; justify-content: center; padding: 10px 12px; }
+  .neo .sticky-cta-full { display: none; }
+  .neo .sticky-cta-short { display: inline; }
+  /* Give the two labels the full width on phones — the topbar still shows the mark. */
+  .neo .sticky-cta-brand,
+  .neo .sticky-cta-brand + .sticky-cta-div { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neo .sticky-cta { transition: opacity .2s ease; }
+  .neo .sticky-cta-dot, .neo .sticky-cta-arrow, .neo .sticky-cta-seg { transition: none; }
+}
+
+/* ── Process pipeline ──────────────────────────────────────────────
+   Four ordered steps. The <ol> and the bare mono ordinals carry the sequence —
+   the same way HowItWorks' Track does directly above this section. An earlier
+   pass drew a hairline connector rail between numbered pill badges; it was cut
+   because it invented a vocabulary the house doesn't have, and it had to be
+   switched off entirely below 600px, which proved it wasn't load-bearing.
+   The last step inverts to ink: it's the terminus, not a recommended option. */
+.neo .process-track {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  /* Duplicates Tailwind preflight deliberately: without it, a preflight config
+     change would restore UA list padding and break this grid. Not redundant. */
+  list-style: none; padding: 0; margin: 0;
+}
+.neo .process-step { display: flex; flex-direction: column; }
+
+/* The ordinal carries the sequence on its own, at display scale. A 12px mono
+   ordinal works in HowItWorks because that list is stacked VERTICALLY inside one
+   card — reading order is free. This grid is horizontal and its cards are
+   detached, so the numerals have to do the work typographically or the section
+   reads as four unrelated boxes. Set in the display serif at --neo-ink-3 so it
+   is large but quiet, and never competes with the 22px heading below it. */
+.neo .process-node {
+  font-family: var(--neo-serif); font-size: 44px; line-height: 1;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+  color: var(--neo-ink-3);
+}
+.neo .process-step.is-final .process-node { color: var(--neo-creator); }
+
+/* Ordinal left, the owner's time cost right, sharing a baseline. Because the
+   four cards are side by side, the costs land on one horizontal line and can be
+   compared at a glance — which is the whole argument this section is making. */
+.neo .process-node-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+}
+/* Icon + ordinal read as one lockup, so the card has a single anchor rather
+   than two competing ones. The icon is optically centred on the numeral's body
+   rather than sat on its baseline. */
+.neo .process-mark { display: flex; align-items: center; gap: 11px; }
+.neo .process-icon {
+  width: 26px; height: 26px; flex: none;
+  color: var(--neo-ink-3);
+}
+.neo .process-icon svg { width: 100%; height: 100%; display: block; }
+.neo .process-step.is-final .process-icon { color: var(--neo-creator); }
+.neo .process-cost {
+  font-family: var(--neo-mono); font-size: 12px; letter-spacing: .02em;
+  font-variant-numeric: tabular-nums; text-align: right;
+  color: var(--neo-ink);
+}
+/* The final card inverts, so this has to flip with it (see .process-sub below). */
+.neo .process-step.is-final .process-cost { color: var(--neo-paper-2); }
+
+/* The ordinal sits inside the card as its opening element, so it reads as that
+   step's chapter number rather than as a label floating above a box. */
+.neo .process-card {
+  flex: 1;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 20px 22px 22px;
   background: var(--neo-paper-3);
   border: 1px solid var(--neo-rule);
-  border-radius: var(--neo-r-xl);
-  box-shadow: 0 12px 40px -12px oklch(0% 0 0 / .25);
-  overflow: hidden;
+  border-radius: var(--neo-r-lg);
 }
-.neo .sticky-cta.visible { transform: translateY(0); }
+.neo .process-node + .process-h { margin-top: 2px; }
+.neo .process-step.is-final .process-card {
+  background: var(--neo-ink); border-color: var(--neo-ink); color: var(--neo-paper);
+}
+.neo .process-h {
+  font-family: var(--neo-serif); font-size: 22px;
+  line-height: 1.15; letter-spacing: -.015em;
+}
+/* 14/1.55 matches ManifestoSection's Beat sub — the closest structural twin. */
+.neo .process-sub {
+  font-size: 14px; line-height: 1.55; color: var(--neo-ink-2);
+  text-wrap: pretty;
+}
+/* --neo-ink flips 15%→97% under [data-theme="ink"], so this card inverts to a
+   light slab in dark. --neo-paper-2 flips with it (~12.6:1 either way); a
+   hardcoded literal here was invisible in dark and is why this rule exists. */
+.neo .process-step.is-final .process-sub { color: var(--neo-paper-2); }
+
+/* What an Online Kit includes + the turnaround. Subordinate to the four steps,
+   so it takes a border-top and no fill — the house pattern for a footnote
+   block. A filled card here read as a fifth step. */
+.neo .process-kit {
+  margin-top: 32px; padding-top: 20px;
+  border-top: 1px solid var(--neo-rule);
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+  gap: 20px;
+}
+.neo .process-kit-list { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.neo .process-kit-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.neo .process-turnaround { display: flex; align-items: baseline; gap: 9px; }
+.neo .process-turnaround b {
+  font-family: var(--neo-serif); font-weight: 500; font-size: 26px;
+  letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+  color: var(--neo-creator-ink);
+}
+/* --neo-creator-ink (38% L) is NOT redefined under [data-theme="ink"], so on a
+   flipped dark ground it lands ~1.8:1. Step up to the 62% L accent in dark only
+   — a flat swap would drop light mode to ~2.8:1. Do not collapse these rules. */
+.neo[data-theme="ink"] .process-turnaround b { color: var(--neo-creator); }
+
+@media (max-width: 1000px) {
+  .neo .process-track { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .neo .process-track { grid-template-columns: 1fr; }
+  /* 1-col gives the card ~508px of text (~77ch). Cap it; 62ch is the house band. */
+  .neo .process-sub { max-width: 62ch; }
+}
 
 /* Counters */
 .neo .counter-num {
