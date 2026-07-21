@@ -1428,7 +1428,25 @@ function ProspectDetail({ data, creator }: { data: any; creator: any }) {
                             >
                                 Quick actions
                             </div>
-                            {claimedByMe ? (
+                            {lead.submissionId ? (
+                                // Already interviewed. Guards a bookmarked or
+                                // stale prospect URL. This rarely renders —
+                                // once submit patches the lead, `isProspect`
+                                // goes false and the page self-heals into the
+                                // normal interviewed-lead layout — so it only
+                                // covers the reactivity gap.
+                                <Link
+                                    href={`/submissions/${lead.submissionId}`}
+                                    className="w-full inline-flex items-center justify-center gap-2 text-[14px] font-semibold px-3 py-2.5 rounded-xl"
+                                    style={{
+                                        background: "var(--ed-paper-2)",
+                                        color: "var(--ed-ink)",
+                                        border: "1px solid var(--ed-rule)",
+                                    }}
+                                >
+                                    Already interviewed <ArrowRight className="w-4 h-4" />
+                                </Link>
+                            ) : claimedByMe ? (
                                 <>
                                     <Link
                                         href={startInterviewHref}

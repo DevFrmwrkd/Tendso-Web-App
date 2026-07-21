@@ -180,6 +180,14 @@ export default defineSchema({
         // new global prospects pool. Optional + additive — existing
         // submissions stay valid. Mutations that set this land in P2+.
         prospectId: v.optional(v.id('prospects')),
+        // Links this interview back to a LEGACY Outscraper prospect — a `leads`
+        // row with source === 'outscraper'. Distinct from `prospectId` above,
+        // which points at the new global `prospects` pool and cannot hold a
+        // leads id. Written by submissions.create/update from the
+        // ?prospectLeadId= query param; consumed by submissions.submit, which
+        // sets the reverse pointer leads.submissionId and marks the prospect
+        // converted. Dies with the prospects-pool consolidation.
+        prospectLeadId: v.optional(v.id('leads')),
     })
         // Use mobile's index name (by_creator_id, not by_creatorId)
         .index('by_creator_id', ['creatorId'])

@@ -785,7 +785,12 @@ export const listScrapedLeads = query({
         await requireAuth(ctx);
 
         const all = await ctx.db.query("leads").collect();
-        let scraped = all.filter((l) => l.source === "outscraper");
+        // `!l.submissionId` drops prospects that have already been interviewed —
+        // submissions.submit sets that pointer on conversion. Without it an
+        // interviewed business stays in the Prospects tab and on the Discover
+        // map, indistinguishable from an un-interviewed one, and another
+        // creator drives out to redo it.
+        let scraped = all.filter((l) => l.source === "outscraper" && !l.submissionId);
 
         scraped.sort((a, b) => (b.scrapedAt ?? b.createdAt) - (a.scrapedAt ?? a.createdAt));
 
@@ -999,6 +1004,12 @@ export const getProspect = query({
                 createdAt: lead.createdAt,
                 source: lead.source,
                 claimedAt: (lead as any).claimedAt ?? null,
+                // Non-null once this prospect has been interviewed. Lets the
+                // detail page tell a converted prospect from a fresh one, and
+                // makes the client-side `!p.submissionId` filters on the
+                // Discover page (which were no-ops while this field was never
+                // returned) actually do something.
+                submissionId: lead.submissionId ? String(lead.submissionId) : null,
             },
             claimedBy,
             notes: notes.map((n) => ({

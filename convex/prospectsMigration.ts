@@ -169,6 +169,16 @@ export const backfillBatch = internalMutation({
                 skipped += 1;
                 continue;
             }
+            // Skip 1b: already interviewed. Without this, a converted prospect
+            // gets re-seeded into the new pool as `state: 'available'` (this
+            // loop hardcodes submissionId: undefined and derives state from
+            // claimedByCreatorId, which conversion clears) — resurrecting the
+            // exact duplicate-business bug through the surface that is
+            // becoming primary.
+            if (lead.submissionId) {
+                skipped += 1;
+                continue;
+            }
             // Skip 2: missing required keys
             const placeId = lead.businessGooglePlaceId;
             const lat = lead.businessLatitude;

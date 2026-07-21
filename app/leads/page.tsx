@@ -194,9 +194,14 @@ function CreatorLeadsInner() {
     const allLeads = feed?.leads ?? [];
 
     // Interviewed feed — exclude Outscraper-source leads so the two tabs
-    // don't double-count.
+    // don't double-count. A CONVERTED prospect is the exception: it's been
+    // interviewed, so it belongs here even though its source is outscraper.
+    // Without that clause it drops out of Prospects on conversion and never
+    // appears anywhere else, and the creator loses sight of the business they
+    // just interviewed. submissionStatus is non-null exactly when a submission
+    // is linked, and listForMobileCRM already returns it.
     const interviewedLeads = useMemo(
-        () => allLeads.filter((l: any) => l.source !== "outscraper"),
+        () => allLeads.filter((l: any) => l.source !== "outscraper" || l.submissionStatus != null),
         [allLeads],
     );
 
