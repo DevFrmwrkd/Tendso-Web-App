@@ -1,5 +1,7 @@
 import { v } from 'convex/values';
 import { query, mutation, internalQuery, internalMutation, internalAction } from './_generated/server';
+import type { MutationCtx } from './_generated/server';
+import type { Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
 import { BASE_PRICE, STANDARD_PRICE, UNLOCK_THRESHOLD, COMMISSION_RATE, CUSTOM_DOMAIN_ADDON, commissionFor, ownerTotal, domainAddOnFor } from '../lib/pricing';
 
@@ -275,6 +277,31 @@ export const getCreatorPricingSummary = query({
 // ==================== MUTATIONS ====================
 
 /**
+ * Validate an incoming ?prospectLeadId= before we store it on a submission.
+ *
+ * NEVER throws. The creator is standing in front of the business on a phone —
+ * a stale, already-interviewed, or hand-edited id must degrade to a normal
+ * unlinked submission, not block the interview. Returns undefined when the id
+ * can't be linked, and the caller just omits the field.
+ */
+async function resolveProspectLead(
+    ctx: MutationCtx,
+    leadId: Id<'leads'> | undefined,
+): Promise<Id<'leads'> | undefined> {
+    if (!leadId) return undefined;
+    const lead = await ctx.db.get(leadId);
+    if (!lead) return undefined;
+    // Only scraped prospects convert — never a real customer lead.
+    if (lead.source !== 'outscraper') return undefined;
+    // Someone already interviewed it; don't steal their link.
+    if (lead.submissionId) return undefined;
+    // Already ported to the new prospects pool — linking here would leave its
+    // twin 'available' and leak the business back onto Discover.
+    if ((lead as any).migratedToProspectId) return undefined;
+    return leadId;
+}
+
+/**
  * Create a new submission
  */
 export const create = mutation({
@@ -313,6 +340,10 @@ export const create = mutation({
             v.literal('completed'),
             v.literal('website_generated')
         )),
+        // Set when this interview was started from a scraped prospect
+        // (/submit/info?prospectLeadId=…). Validated server-side; an
+        // unusable id is silently dropped rather than failing the create.
+        prospectLeadId: v.optional(v.id('leads')),
     },
     handler: async (ctx, args) => {
         const submissionId = await ctx.db.insert('submissions', {
@@ -336,6 +367,7 @@ export const create = mutation({
             status: args.status ?? 'draft',
             amount: args.amount ?? STANDARD_PRICE,
             creatorPayout: args.creatorPayout ?? commissionFor(BASE_PRICE),
+            prospectLeadId: await resolveProspectLead(ctx, args.prospectLeadId),
         });
 
         // Increment creator's submissionCount and lastActiveAt
@@ -389,14 +421,29 @@ export const update = mutation({
         amount: v.optional(v.number()),
         creatorPayout: v.optional(v.number()),
         platformFee: v.optional(v.number()),
+        // See create(). Set-once — never re-pointed or cleared here.
+        prospectLeadId: v.optional(v.id('leads')),
     },
     handler: async (ctx, args) => {
-        const { id, ...updates } = args;
+        // prospectLeadId is pulled out of the generic spread deliberately: it
+        // needs validation, and letting it flow through filteredUpdates would
+        // let a re-entry silently re-point an in-progress interview at a
+        // different business.
+        const { id, prospectLeadId, ...updates } = args;
 
         // Filter out undefined values
-        const filteredUpdates = Object.fromEntries(
+        const filteredUpdates: Record<string, unknown> = Object.fromEntries(
             Object.entries(updates).filter(([, value]) => value !== undefined)
         );
+
+        if (prospectLeadId) {
+            const existing = await ctx.db.get(id);
+            // Only ever SET the link — never overwrite one that's already there.
+            if (existing && !existing.prospectLeadId) {
+                const resolved = await resolveProspectLead(ctx, prospectLeadId);
+                if (resolved) filteredUpdates.prospectLeadId = resolved;
+            }
+        }
 
         await ctx.db.patch(id, filteredUpdates);
 
@@ -528,6 +575,11 @@ export const submit = mutation({
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
 
+        // Idempotency. Without this a double-tap on the review page re-inserts
+        // the lead, double-fires both analytics increments, and re-triggers the
+        // Studio render. Applies to every submission, not just prospect ones.
+        if (submission.status !== 'draft') return;
+
         // Validate: at least 3 photos
         if (!submission.photos || submission.photos.length < 3) {
             throw new Error('At least 3 photos are required');
@@ -547,17 +599,56 @@ export const submit = mutation({
             airtableSyncStatus: 'pending_push',
         });
 
-        // 2. Create a lead record from business owner info
-        await ctx.db.insert('leads', {
-            submissionId: args.id,
-            creatorId: submission.creatorId,
-            source: 'direct',
-            name: submission.ownerName,
-            phone: submission.ownerPhone,
-            email: submission.ownerEmail,
-            status: 'new',
-            createdAt: Date.now(),
-        });
+        // 2. Link the interview to its source prospect, or create a fresh lead.
+        //
+        // When this interview started from a scraped Outscraper prospect we
+        // PATCH that existing row instead of inserting a second one. That's the
+        // whole point: one row per physical business. It also brings two
+        // already-written but permanently dead guards to life for the first
+        // time — claimProspect's "already been interviewed" check and the
+        // stale-claim cron's `submissionId === undefined` filter, which is what
+        // currently launders an interviewed prospect back into the pool at 24h.
+        let converted = false;
+        if (submission.prospectLeadId) {
+            const prospect = await ctx.db.get(submission.prospectLeadId);
+            if (prospect && prospect.source === 'outscraper') {
+                if (!prospect.submissionId) {
+                    await ctx.db.patch(prospect._id, {
+                        submissionId: args.id,
+                        // Credit the interviewer, not the scraper. outscraper.ts
+                        // always stamps the SCRAPER's creatorId on scraped rows,
+                        // so a `??` fallback would never fire and the business
+                        // would show under whoever ran the scrape.
+                        creatorId: submission.creatorId,
+                        status: 'converted',
+                        name: submission.ownerName,
+                        email: submission.ownerEmail,
+                        // phone deliberately left as the scraped listing number;
+                        // the owner's direct number is exposed separately as
+                        // ownerPhone through the submission join.
+                        claimedByCreatorId: undefined,
+                        claimedAt: undefined,
+                    });
+                    converted = true;
+                } else if (String(prospect.submissionId) === String(args.id)) {
+                    converted = true; // idempotent replay
+                }
+                // else: someone else converted it first. Fall through and create
+                // a normal lead — never destroy an interview already completed.
+            }
+        }
+        if (!converted) {
+            await ctx.db.insert('leads', {
+                submissionId: args.id,
+                creatorId: submission.creatorId,
+                source: 'direct',
+                name: submission.ownerName,
+                phone: submission.ownerPhone,
+                email: submission.ownerEmail,
+                status: 'new',
+                createdAt: Date.now(),
+            });
+        }
 
         // 3. Increment analytics (daily + monthly)
         const today = new Date().toISOString().split('T')[0];
