@@ -289,4 +289,82 @@ http.route({
     }),
 });
 
+// POST /kb/ask
+// Full Knowledge Hub answer for external bots (owner-engine's Field Coach). Runs
+// the SAME RAG the web Knowledge Hub uses — retrieval + Gemini generation over the
+// requested workspace — and, when the KB genuinely can't answer, fires the exact
+// same Discord escalation loop the web ask() uses (post → thread → re-ping →
+// learn-back). Secret-gated (x-kb-secret vs KB_SEARCH_SECRET, same as /kb/search).
+//
+// Body: { question: string, workspace?: 'help' | 'wiki' (default 'wiki'), discordUserId?: string }
+// Reply: { answer, answered, grounded, sources, escalated }
+//   answered=false  → the KB had no answer (and we escalated if enabled)
+//   escalated=true  → an escalation was scheduled (respects KB_ESCALATION_ENABLED)
+http.route({
+    path: '/kb/ask',
+    method: 'POST',
+    handler: httpAction(async (ctx, request) => {
+        const secret = request.headers.get('x-kb-secret');
+        const expected = process.env.KB_SEARCH_SECRET;
+        if (!expected || !secret || secret !== expected) {
+            return jsonResponse({ error: 'unauthorized' }, 401);
+        }
+
+        let body: { question?: unknown; workspace?: unknown; discordUserId?: unknown };
+        try {
+            body = await request.json();
+        } catch {
+            return jsonResponse({ error: 'question required' }, 400);
+        }
+
+        const question = typeof body.question === 'string' ? body.question.trim() : '';
+        if (!question) {
+            return jsonResponse({ error: 'question required' }, 400);
+        }
+        // Field-agent questions default to the internal 'wiki'; 'help' is the public
+        // Help Center. Anything else falls back to 'wiki'.
+        const workspace = body.workspace === 'help' ? 'help' : 'wiki';
+        const discordUserId = typeof body.discordUserId === 'string' ? body.discordUserId : undefined;
+
+        const started = Date.now();
+        const result = await ctx.runAction(internal.knowledgeAI.answerQuery, {
+            query: question,
+            workspace,
+            source: 'discord',
+            discordUserId,
+        });
+
+        // Escalate on a genuine content gap (never on a transient generation outage —
+        // runRag keeps answered=true in that case). Reuses the web Knowledge Hub's
+        // loop; createAndPost then dedups + drops off-topic questions on its own.
+        const escalationFlag = process.env.KB_ESCALATION_ENABLED;
+        const escalationEnabled = escalationFlag === '1' || escalationFlag === 'true';
+        let escalated = false;
+        if (!result.answered && escalationEnabled) {
+            escalated = true;
+            await ctx.scheduler.runAfter(0, internal.escalations.createAndPost, {
+                question: question.slice(0, 500),
+                workspace,
+                origin: 'coach',
+            });
+        }
+
+        console.log(
+            `[KB-ASK] len=${question.length} ws=${workspace} answered=${result.answered} ` +
+            `grounded=${result.grounded} escalated=${escalated} ms=${Date.now() - started}`,
+        );
+
+        return jsonResponse(
+            {
+                answer: result.answer,
+                answered: result.answered,
+                grounded: result.grounded,
+                sources: result.sources,
+                escalated,
+            },
+            200,
+        );
+    }),
+});
+
 export default http;
