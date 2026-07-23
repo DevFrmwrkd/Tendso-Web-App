@@ -110,6 +110,10 @@ export const createAndPost = internalAction({
         question: v.string(),
         workspace: workspaceArg,
         askerUserId: v.optional(v.string()),
+        // Where the question came from, for the team's context in Discord. 'coach'
+        // = owner-engine's Field Coach forwarded it after its own KB miss; absent
+        // = the web/chat Knowledge Hub. Purely cosmetic (labels the post).
+        origin: v.optional(v.union(v.literal('web'), v.literal('coach'))),
     },
     handler: async (ctx, args) => {
         const normalizedQuestion = normalizeQuestion(args.question);
@@ -146,12 +150,13 @@ export const createAndPost = internalAction({
 
         try {
             // 1) Post the question to the role-scoped channel.
+            const originLabel = args.origin === 'coach' ? ' (via the Field Coach)' : '';
             const msgRes = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
                 method: 'POST',
                 headers: { Authorization: `Bot ${botToken}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     content:
-                        `❓ **Unanswered question from the Knowledge Hub**\n\n>>> ${args.question}\n\n` +
+                        `❓ **Unanswered question from the Knowledge Hub${originLabel}**\n\n>>> ${args.question}\n\n` +
                         `_Reply in this thread with the answer — the bot will add it to the knowledge base._`,
                     allowed_mentions: { parse: [] },
                 }),
