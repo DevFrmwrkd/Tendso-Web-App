@@ -54,6 +54,16 @@ function genModelChain(): string[] {
 }
 const EMBED_DIMS = 768;
 
+// Ceiling for a generated answer. Deliberately far above what a 2-4 sentence
+// grounded answer needs (~200 tokens): the strongest models in the chain
+// (gemini-3.5-flash, gemini-2.5-flash) are THINKING models whose internal
+// reasoning is billed against maxOutputTokens BEFORE any visible text. At the
+// old 700 cap, thinking could eat most of the budget and the answer came back
+// truncated mid-sentence. The SYSTEM_INSTRUCTION — not this ceiling — keeps
+// answers short; this just guarantees the visible answer is never cut off.
+// Override with KB_GEN_MAX_OUTPUT_TOKENS if a future model needs more headroom.
+const GEN_MAX_OUTPUT_TOKENS = () => Number(process.env.KB_GEN_MAX_OUTPUT_TOKENS) || 2048;
+
 // Minimum cosine similarity for a vector-fallback hit to count as a GENUINE match
 // (vs a low-relevance nearest-neighbour). Below this, retrieval reports
 // matched=false so the question can escalate. Tunable via KB_VECTOR_MATCH_THRESHOLD.
@@ -165,7 +175,7 @@ async function geminiGenerate(
         body: JSON.stringify({
             systemInstruction: { parts: [{ text: systemInstruction }] },
             contents,
-            generationConfig: { temperature: 0.2, maxOutputTokens: 700, topP: 0.9 },
+            generationConfig: { temperature: 0.2, maxOutputTokens: GEN_MAX_OUTPUT_TOKENS(), topP: 0.9 },
         }),
     });
     if (!res.ok) throw geminiError('generate', res.status, await res.text().catch(() => ''));
@@ -205,7 +215,7 @@ async function agentGenerate(
             system: systemInstruction,
             messages,
             temperature: 0.2,
-            maxOutputTokens: 700,
+            maxOutputTokens: GEN_MAX_OUTPUT_TOKENS(),
             topP: 0.9,
         },
         {
