@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Compass & Quarter — antique maps, sea charts and framing in Greenwich</title>
+<meta name="description" content="Compass & Quarter is an antiquarian map shop in Greenwich — original antique maps, sea charts and celestial prints, honest advice, conservation framing and valuations, for collectors, gift-givers and the merely curious." />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Compass & Quarter", phone: "+44 20 8305 7740", phoneDisplay: "020 8305 7740", email: "shop@compassandquarter.co.uk", foundedYear: 1998 },
+  hero: {
+    kicker: "Antique maps · sea charts · celestial prints · Greenwich",
+    headline: "Every map is an argument about the world, drawn by someone who was there.",
+    lede: "An antiquarian map shop a short walk from the Prime Meridian, dealing in original antique maps, sea charts and celestial prints from the sixteenth century onward. We sell the real thing — genuine, catalogued, honestly described — and we'll happily spend an afternoon helping you find the map of the place that means something to you.",
+    primaryCta: { label: "Find your map", href: "#book" },
+    secondaryCta: { label: "What we deal in", href: "#services" },
+    image: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "An antique world map."
+  },
+  trust: { years: "Dealing in Greenwich since 1998" },
+  about: {
+    heading: "We sell originals, describe them honestly, and never pass off a reproduction.",
+    paragraphs: [
+      "Compass & Quarter is an antiquarian map shop a few hundred yards from the Royal Observatory, where the world's meridian is drawn on the ground. We opened in 1998, and in a trade with more than its share of sharp practice, our whole reputation rests on one thing: what we sell is genuine, and described exactly as it is — the date, the mapmaker, the condition, every repair and every blemish.",
+      "We deal in original antique maps, sea charts, town plans and celestial prints, from grand engraved wall maps to small county sheets you can hold in one hand. Prices run from a few pounds for a modest print to serious sums for a rare early chart, and we love both ends equally. If you've come for the map of the town you grew up in, or the sea your grandfather sailed, that matters here as much as any collector's piece.",
+      "And we don't just sell and wave you off. We frame to conservation standard so a map outlives you rather than fading in the sun, we value for insurance and probate, we advise collectors building a focused collection, and we'll tell you honestly when something you've been offered elsewhere is a reproduction dressed up as the real thing. A good map deals in truth; so do we."
+    ],
+    portrait: "https://images.unsplash.com/photo-1519500099198-fd81846b8f03?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "An antique map laid out on a table."
+  },
+  services: [
+    { name: "Original antique maps", description: "Genuine engraved and lithographed maps from the 1500s onward — counties, countries, continents and the world — each catalogued with its date, mapmaker and condition, and described without flattery." },
+    { name: "Sea charts & town plans", description: "Admiralty and antique sea charts, harbour plans and town plans for the collector, the sailor and anyone drawn to a particular coast or city. The paper your patch of the world was first drawn on." },
+    { name: "Celestial & decorative prints", description: "Antique star charts, celestial hemispheres and decorative cartographic prints — the heavens mapped as carefully as the earth, and every bit as beautiful on a wall." },
+    { name: "Conservation framing", description: "Acid-free mounts, UV glazing and reversible techniques that protect a work rather than damage it. A map is a document; we frame it so it survives being loved for another century." },
+    { name: "Valuations & advice", description: "Honest valuations for insurance, sale or probate, and impartial advice for collectors — what to buy, what to avoid, and how to build a collection with a spine rather than a scattering." },
+    { name: "Sourcing & gifts", description: "Looking for the map of a specific place, year or event? We'll search our stock and the trade to find it. A framed map of somewhere that matters is a gift people keep for life." }
+  ],
+  why: [
+    { title: "Genuine, or we don't sell it.", body: "Every map is an original, catalogued and honestly described — date, maker, condition, repairs and all. We will never pass off a reproduction as antique, and we'll warn you when someone else has tried." },
+    { title: "Every budget is welcome.", body: "We care as much about the modest print of your home town as the rare early chart. You'll get the same time, honesty and knowledge whether you spend ten pounds or ten thousand." },
+    { title: "Framed to outlive you.", body: "A map is fragile paper and volatile ink. We frame to conservation standard — acid-free, UV-protected, reversible — so the thing you love is still here for whoever loves it next." }
+  ],
+  how: [
+    { step: "01", title: "Tell us the place", body: "A town, a coast, a country, a year, an event — or just a wall to fill. We start from what the map means to you, then bring out what we have and explain each one." },
+    { step: "02", title: "Hold the real thing", body: "Handle the maps, read the paper and the plate, and learn to see the difference between a genuine antique and a reproduction. No pressure, no hovering — take your time." },
+    { step: "03", title: "Frame or take away", body: "Buy as it is, or leave it with us to frame to conservation standard so it lasts. We'll advise on mount, glazing and where to hang it out of the light." },
+    { step: "04", title: "Come back for more", body: "Collectors return because the advice is straight and the stock turns over. Tell us what you're hunting and we'll keep an eye out across the trade." }
+  ],
+  testimonials: [
+    { quote: "I wanted the map of the Cornish coast my family has sailed for generations. They found three, explained the difference between them, and let me sit with each until I knew which was mine. It's framed above the fireplace now and I look at it every day. This is how a shop should be.", name: "Hugh P.", context: "sea chart, framed" },
+    { quote: "A dealer elsewhere tried to sell me a 'seventeenth-century' map that Compass & Quarter identified as a modern reproduction in about ten seconds — kindly, and without making me feel a fool. Then they found me a genuine one I could afford. Trust is everything in this trade and they have mine.", name: "Dr. Anna R.", context: "collector" },
+    { quote: "Bought my father the map of the town he was born in for his eightieth. They framed it beautifully, told me all about the mapmaker so I could put a card with it, and he was speechless. Best present I've ever given anyone. Worth every penny.", name: "Marcus D.", context: "gift & framing" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1600&q=85&auto=format&fit=crop", alt: "An old map with a compass and dividers." },
+    { src: "https://images.unsplash.com/photo-1519500099198-fd81846b8f03?w=1600&q=85&auto=format&fit=crop", alt: "An antique map laid out on a table." },
+    { src: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1600&q=85&auto=format&fit=crop", alt: "A star-filled night sky." },
+    { src: "https://images.unsplash.com/photo-1717700300260-02b182f94c9d?w=1600&q=85&auto=format&fit=crop", alt: "A genuine 1670s double-hemisphere world map." },
+    { src: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=1600&q=85&auto=format&fit=crop", alt: "An old map close up." },
+    { src: "https://images.unsplash.com/photo-1447069387593-a5de0862481e?w=1600&q=85&auto=format&fit=crop", alt: "Old atlases, a pen and inkwell." }
+  ],
+  faq: [
+    { q: "How do I know a map is genuinely antique and not a reproduction?", a: "It's the question the whole trade turns on, and it's exactly why we exist. Genuine antique maps show their age honestly — the paper has a particular feel and tone, engraved maps have a plate mark and ink that sits on the surface in a way modern printing can't fake, and there are the small irregularities of hand-work and hand-colouring. Reproductions, however 'aged', tend to give themselves away under a loupe and to a trained eye. We catalogue every map we sell with its date, mapmaker and printing method, we'll show you exactly what we're looking at and why we're confident, and we give a written description you can rely on. Just as importantly, if you bring us something bought elsewhere we'll tell you honestly what it is — we've saved a good many people from an expensive mistake, and occasionally delighted someone who owned a genuine piece without knowing it." },
+    { q: "I don't collect — can I still buy a map of somewhere meaningful?", a: "Absolutely, and it's some of our favourite trade. You don't need to be a collector or spend a fortune; many of our loveliest maps are modest county sheets and town plans that cost far less than people expect. Tell us the place that matters — where you grew up, where you married, a coast you love, a city you lived in — and roughly when, and we'll bring out what we have and explain each one. A genuine antique map of a place with meaning, properly framed, is an extraordinarily personal thing to own or to give, and worlds away from a printed poster. We'll take just as much care over a ten-pound print for your kitchen as over a rare chart for a serious collection." },
+    { q: "Do you frame maps, and why does 'conservation framing' matter?", a: "Yes, framing is a big part of what we do, and it matters more than most people realise. Antique paper and ink are fragile: ordinary framing — acidic mounts, backing boards that off-gas, glass with no UV protection — will yellow, foxing and fade a map within years, sometimes irreversibly. Conservation framing uses acid-free, archival materials, UV-filtering glazing, and reversible mounting techniques that hold the map without glue or tape touching it, so nothing we do can't be safely undone by a future conservator. It costs a little more than a high-street frame and it is the single best thing you can do to make sure the map you love is still bright and sound for whoever inherits it. We'll always advise hanging it out of direct sunlight too." },
+    { q: "Can you value a map I already own?", a: "Yes — we provide honest valuations for insurance, sale and probate, whether you're insuring a collection, settling an estate, or simply curious what the map on your wall might be worth. We'll examine it properly: identify the mapmaker, date and edition, assess condition and any restoration, and place it in the context of what comparable examples actually sell for, not an inflated guess. If you're thinking of selling, we'll tell you frankly whether it's something we'd buy or take on commission, and what a realistic figure looks like. And if a much-loved map turns out to be worth little in money, we'll say so gently — sentimental value is real value too, and not everything needs a price to be worth keeping and framing well." },
+    { q: "How should I look after antique maps at home?", a: "The two great enemies are light and damp, so start there: hang maps out of direct sunlight (UV fades ink and colour fast) and away from radiators, bathrooms and outside walls that get cold and damp. Conservation framing handles most of the rest, protecting the paper from acid and pollutants and holding it flat without stress. Never dry-mount, laminate or trim an antique map, never use ordinary tape on it, and don't try to 'clean' it yourself — well-meant repairs and cleaning do more damage than almost anything. If a map is stored rather than framed, keep it flat in acid-free folders somewhere cool, dry and dark. And if something does go wrong — a tear, a spill, foxing spreading — bring it to us before you try to fix it; a conservator can work wonders, but only with what hasn't already been botched." },
+    { q: "Do you buy maps, or take them on commission?", a: "Both, depending on the piece. We're always interested in genuine antique maps, charts and celestial prints, whether a single inherited map or a whole collection, and we'll give you an honest assessment of what we can offer or what it might achieve on commission through the shop. Bring it in or send us clear photographs of the whole map and any text, borders and the reverse, along with rough dimensions, and we'll tell you what we think it is and whether it's for us. We'd always rather be straight with you — if your map is worth more to a specialist auction or another dealer, we'll say so. A reputation for honesty is the only thing that lasts in this trade, and it's taken us since 1998 to build ours." }
+  ],
+  area: { places: ["Greenwich", "Blackheath", "Deptford", "Lewisham", "Canary Wharf", "London-wide"] },
+  credentials: [
+    { label: "Since 1998", detail: "Antiquarian dealers by the Prime Meridian" },
+    { label: "Genuine only", detail: "Originals, catalogued and honestly described" },
+    { label: "Conservation framing", detail: "Acid-free, UV-glazed, fully reversible" },
+    { label: "Valuations", detail: "For insurance, sale and probate" }
+  ],
+  location: { name: "Compass & Quarter", addressStreet: "14 Nelson Road", addressLocality: "Greenwich", addressRegion: "London", addressPostcode: "SE10 9JB", addressCountry: "United Kingdom" },
+  cta: { heading: "Find the map of the place that means something.", body: "Come in and tell us the town, the coast or the year — and let us bring out the real thing. Genuine antique maps, honestly described, and framed to outlive us all. A short walk from the Meridian.", primary: { label: "Find your map", href: "#book" }, secondary: { label: "020 8305 7740", href: "tel:+442083057740" } },
+  messaging: { whatsapp: "https://wa.me/442083057740", messenger: "https://m.me/compassandquarter" }
+};
+</script>
+
+<style>
+  :root {
+    --parch:#efe6d3; --sepia:#3a2f22; --ocean:#2f6d7a; --rust:#b04a2f; --gold:#b58a3c;
+    --ink:#3a2f22; --mid:#7c7059; --mid-d:#c3b79c; --rule:rgba(58,47,34,0.16); --rule-d:rgba(239,230,211,0.18);
+    --disp:"Cormorant Garamond",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--parch);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--rust);}
+  .wrap{width:min(1240px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--rust);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.4vw,78px);line-height:1.0;margin:0 0 0.34em;letter-spacing:0;}
+  .h2 em{font-style:italic;color:var(--ocean);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--sepia);color:var(--parch);} .btn-primary:hover{background:var(--ocean);}
+  .btn-ghost{border:1.5px solid var(--sepia);} .btn-ghost:hover{background:var(--sepia);color:var(--parch);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--sepia);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);font-weight:700;}
+  .dark .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(239,230,211,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--sepia);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:31px;text-decoration:none;letter-spacing:0;}
+  .wm span{color:var(--rust);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(40px,5.5vw,80px) 0;}
+  .hero h1{font-family:var(--disp);font-weight:500;font-size:clamp(44px,6vw,92px);line-height:1.0;margin:20px 0 24px;letter-spacing:0;max-width:16ch;}
+  .hero h1 em{font-style:italic;color:var(--ocean);}
+  .hero-lower{display:grid;grid-template-columns:0.85fr 1.15fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/11;object-fit:cover;border-radius:3px;}
+  .hero-left .lede{color:var(--mid);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--sepia);color:var(--parch);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(239,230,211,0.85);font-weight:700;}
+
+  .about{background:var(--sepia);color:var(--parch);}
+  .about .h2{color:var(--parch);} .about .h2 em{color:var(--gold);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:rgba(239,230,211,0.82);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--sepia);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(176,74,47,0.06);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--rust);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(26px,2.8vw,38px);margin:0;line-height:1.0;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--ocean);color:var(--parch);}
+  .why .sw-head{border-color:rgba(239,230,211,0.4);color:rgba(239,230,211,0.82);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--parch);opacity:0.75;display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:32px;margin:0 0 10px;line-height:1.0;}
+  .why-grid p{color:rgba(239,230,211,0.92);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--sepia);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--rust);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:8px 0 8px;line-height:1.02;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#e5dac2;}
+  .t-quote{font-family:var(--disp);font-weight:500;font-size:clamp(30px,4vw,56px);line-height:1.02;max-width:24ch;margin:0 0 24px;letter-spacing:0;}
+  .t-quote em{font-style:italic;color:var(--ocean);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--sepia);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:3px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--sepia);color:var(--gold);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--sepia);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:26px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.08;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--rust);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--sepia);border-radius:2px;font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--sepia);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--rust);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.1;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--sepia);color:var(--parch);padding:34px;border-radius:3px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:24px;line-height:1.26;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(239,230,211,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(239,230,211,0.78);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(239,230,211,0.72);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:3px;border:1.5px solid var(--sepia);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) sepia(0.35);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--sepia);color:var(--parch);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--gold);}
+  .cta-band h2{font-family:var(--disp);font-weight:500;font-size:clamp(44px,6.2vw,100px);line-height:0.98;margin:14px auto 18px;max-width:17ch;letter-spacing:0;}
+  .cta-band h2 em{font-style:italic;color:var(--gold);}
+  .cta-band p{color:rgba(239,230,211,0.84);max-width:50ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--gold);color:var(--sepia);} .cta-band .btn-primary:hover{background:var(--parch);color:var(--sepia);}
+  .cta-band .btn-ghost{border-color:rgba(239,230,211,0.6);color:var(--parch);} .cta-band .btn-ghost:hover{background:var(--parch);color:var(--sepia);}
+
+  footer{background:var(--parch);border-top:1.5px solid var(--sepia);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--rust);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--rust);color:var(--parch);padding:13px 20px;border-radius:2px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(176,74,47,0.35);}
+  .msg-fab a:hover{background:var(--sepia);color:var(--parch);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Compass & Quarter","description":"Antiquarian map shop in Greenwich — original antique maps, sea charts and celestial prints, honest advice, conservation framing and valuations.","url":"https://compassandquarter.co.uk/","telephone":"+442083057740","email":"shop@compassandquarter.co.uk","address":{"@type":"PostalAddress","streetAddress":"14 Nelson Road","addressLocality":"Greenwich","addressRegion":"London","postalCode":"SE10 9JB","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.4810,"longitude":-0.0090},"areaServed":["Greenwich","Blackheath","Deptford","London"],"image":["https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1600"],"foundingDate":"1998"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do I know a map is genuinely antique?","acceptedAnswer":{"@type":"Answer","text":"Genuine antique maps show their age honestly — paper tone and feel, a plate mark and surface ink on engravings, and the irregularities of hand-work and hand-colouring. We catalogue every map with date, mapmaker and method, show you why we're confident, and give a written description. Bring us something bought elsewhere and we'll tell you honestly what it is."}},
+{"@type":"Question","name":"I don't collect — can I buy a map of somewhere meaningful?","acceptedAnswer":{"@type":"Answer","text":"Absolutely. Many of our loveliest maps are modest county sheets and town plans that cost far less than people expect. Tell us the place and roughly when, and we'll bring out what we have. A genuine antique map of somewhere meaningful, framed, is deeply personal and worlds from a printed poster."}},
+{"@type":"Question","name":"Why does conservation framing matter?","acceptedAnswer":{"@type":"Answer","text":"Antique paper and ink are fragile; acidic mounts and unfiltered glass yellow and fade a map within years. Conservation framing uses acid-free archival materials, UV glazing and reversible mounting, so nothing can't be undone later. It's the single best thing you can do to keep a map bright and sound for the next owner."}},
+{"@type":"Question","name":"Can you value a map I own?","acceptedAnswer":{"@type":"Answer","text":"Yes — honest valuations for insurance, sale and probate. We identify maker, date and edition, assess condition and restoration, and place it against what comparable examples really sell for. If it's worth little in money we'll say so gently; sentimental value is real value too."}},
+{"@type":"Question","name":"How should I look after antique maps at home?","acceptedAnswer":{"@type":"Answer","text":"Keep them out of direct sunlight and away from damp and radiators. Conservation framing handles the rest. Never dry-mount, laminate, trim, tape or 'clean' an antique map yourself. Store unframed maps flat in acid-free folders somewhere cool, dry and dark, and bring any damage to a conservator before attempting a repair."}},
+{"@type":"Question","name":"Do you buy maps or take them on commission?","acceptedAnswer":{"@type":"Answer","text":"Both. We're interested in genuine antique maps, charts and celestial prints, single pieces or collections. Bring it in or send clear photos and dimensions and we'll assess it honestly — and tell you frankly if an auction or another dealer would serve you better."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Compass <span>&amp;</span> Quarter</a>
+    <nav class="nav-links">
+      <a href="#about">The shop</a><a href="#services">What we deal in</a><a href="#location">Find us</a><a href="#book">Find your map</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v75">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker">Antique maps · sea charts · celestial prints · Greenwich</div>
+    <h1 data-comment-anchor="hero-headline">Every map is an argument about the world, <em>drawn by someone who was there.</em></h1>
+    <div class="hero-lower">
+      <div class="hero-left">
+        <p class="lede" data-bind="hero.lede">An antiquarian map shop a short walk from the Prime Meridian, dealing in original antique maps, sea charts and celestial prints from the sixteenth century onward. We sell the real thing — genuine, catalogued, honestly described — and we'll happily spend an afternoon helping you find the map of the place that means something to you.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Find your map</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we deal in</a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=2000&q=85&auto=format&fit=crop"
+             alt="An antique world map." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Dealing in Greenwich since 1998</span>
+    <span>Genuine originals only</span>
+    <span>Honestly catalogued &amp; described</span>
+    <span>Conservation framing</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about dark" data-component="ABOUT" data-variant="v41">
+  <div class="wrap">
+    <div class="sw-head"><span>SHEET 01 / THE SHOP</span><span>BY THE PRIME MERIDIAN</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">We sell originals, describe them honestly, and never pass off <em>a reproduction.</em></h2>
+        <p>Compass &amp; Quarter is an antiquarian map shop a few hundred yards from the Royal Observatory, where the world's meridian is drawn on the ground. We opened in 1998, and in a trade with more than its share of sharp practice, our whole reputation rests on one thing: what we sell is genuine, and described exactly as it is — the date, the mapmaker, the condition, every repair and every blemish.</p>
+        <p>We deal in original antique maps, sea charts, town plans and celestial prints, from grand engraved wall maps to small county sheets you can hold in one hand. Prices run from a few pounds for a modest print to serious sums for a rare early chart, and we love both ends equally. If you've come for the map of the town you grew up in, or the sea your grandfather sailed, that matters here as much as any collector's piece.</p>
+        <p>And we don't just sell and wave you off. We frame to conservation standard so a map outlives you rather than fading in the sun, we value for insurance and probate, we advise collectors building a focused collection, and we'll tell you honestly when something you've been offered elsewhere is a reproduction dressed up as the real thing. A good map deals in truth; so do we.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1519500099198-fd81846b8f03?w=1200&q=85&auto=format&fit=crop"
+           alt="An antique map laid out on a table." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v68">
+  <div class="wrap">
+    <div class="sw-head"><span>SHEET 02 / WHAT WE DEAL IN</span><span>PAPER WORLDS</span></div>
+    <h2 class="h2">What we deal in.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Original antique maps</h3><p>Genuine engraved and lithographed maps from the 1500s onward — counties, countries, continents and the world — each catalogued with its date, mapmaker and condition, and described without flattery.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Sea charts &amp; town plans</h3><p>Admiralty and antique sea charts, harbour plans and town plans for the collector, the sailor and anyone drawn to a particular coast or city. The paper your patch of the world was first drawn on.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Celestial &amp; decorative prints</h3><p>Antique star charts, celestial hemispheres and decorative cartographic prints — the heavens mapped as carefully as the earth, and every bit as beautiful on a wall.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Conservation framing</h3><p>Acid-free mounts, UV glazing and reversible techniques that protect a work rather than damage it. A map is a document; we frame it so it survives being loved for another century.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Valuations &amp; advice</h3><p>Honest valuations for insurance, sale or probate, and impartial advice for collectors — what to buy, what to avoid, and how to build a collection with a spine rather than a scattering.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Sourcing &amp; gifts</h3><p>Looking for the map of a specific place, year or event? We'll search our stock and the trade to find it. A framed map of somewhere that matters is a gift people keep for life.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v40">
+  <div class="wrap">
+    <div class="sw-head"><span>SHEET 03 / THE DIFFERENCE</span><span>WHY COLLECTORS TRUST US</span></div>
+    <h2 class="h2" style="color:var(--parch);">Why collectors trust us.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Genuine, or we don't sell it.</h3><p>Every map is an original, catalogued and honestly described — date, maker, condition, repairs and all. We will never pass off a reproduction as antique, and we'll warn you when someone else has tried.</p></div>
+      <div><span class="no">02 / 03</span><h3>Every budget is welcome.</h3><p>We care as much about the modest print of your home town as the rare early chart. You'll get the same time, honesty and knowledge whether you spend ten pounds or ten thousand.</p></div>
+      <div><span class="no">03 / 03</span><h3>Framed to outlive you.</h3><p>A map is fragile paper and volatile ink. We frame to conservation standard — acid-free, UV-protected, reversible — so the thing you love is still here for whoever loves it next.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>SHEET 04 / HOW IT GOES</span><span>PLACE → HOLD → FRAME → RETURN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us the place</h3><p>A town, a coast, a country, a year, an event — or just a wall to fill. We start from what the map means to you, then bring out what we have and explain each one.</p></li>
+      <li><span class="step">STEP 02</span><h3>Hold the real thing</h3><p>Handle the maps, read the paper and the plate, and learn to see the difference between a genuine antique and a reproduction. No pressure, no hovering — take your time.</p></li>
+      <li><span class="step">STEP 03</span><h3>Frame or take away</h3><p>Buy as it is, or leave it with us to frame to conservation standard so it lasts. We'll advise on mount, glazing and where to hang it out of the light.</p></li>
+      <li><span class="step">STEP 04</span><h3>Come back for more</h3><p>Collectors return because the advice is straight and the stock turns over. Tell us what you're hunting and we'll keep an eye out across the trade.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v40">
+  <div class="wrap">
+    <div class="sw-head"><span>SHEET 05 / FROM THE COUNTER</span><span>WHAT THEY FOUND</span></div>
+    <blockquote class="t-quote">“They let me sit with each map until I knew which one <em>was mine.</em>”</blockquote>
+    <div class="t-attr">Hugh P. — sea chart, framed</div>
+    <div class="t-sub">
+      <figure><blockquote>“A dealer elsewhere tried to sell me a 'seventeenth-century' map that Compass &amp; Quarter identified as a modern reproduction in about ten seconds — kindly, and without making me feel a fool. Then they found me a genuine one I could afford. Trust is everything in this trade and they have mine.”</blockquote><figcaption>Dr. Anna R. — collector</figcaption></figure>
+      <figure><blockquote>“Bought my father the map of the town he was born in for his eightieth. They framed it beautifully, told me all about the mapmaker so I could put a card with it, and he was speechless. Best present I've ever given anyone. Worth every penny.”</blockquote><figcaption>Marcus D. — gift &amp; framing</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v68">
+  <div class="wrap">
+    <div class="sw-head"><span>SHEET 06 / THE STOCK</span><span>PAPER, PLATE &amp; INK</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1600&q=85&auto=format&fit=crop" alt="An antique world map." /><figcaption>CHARTED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519500099198-fd81846b8f03?w=1600&q=85&auto=format&fit=crop" alt="An antique map laid out on a table." /><figcaption>ON THE TABLE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1600&q=85&auto=format&fit=crop" alt="A star-filled night sky." /><figcaption>THE HEAVENS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1717700300260-02b182f94c9d?w=1600&q=85&auto=format&fit=crop" alt="A genuine 1670s double-hemisphere world map." /><figcaption>THE WORLD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=1600&q=85&auto=format&fit=crop" alt="An old map close up." /><figcaption>THE PLATE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1447069387593-a5de0862481e?w=1600&q=85&auto=format&fit=crop" alt="Old atlases, a pen and inkwell." /><figcaption>THE ARCHIVE</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>SHEET 07 / ASKED AT THE COUNTER</span><span>BEFORE YOU BUY</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+442083057740" style="color:var(--rust);font-weight:700;">020 8305 7740</a>, or bring the map in. We love a puzzle across the counter.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How do I know a map is genuinely antique and not a reproduction?</summary><p>It's the question the whole trade turns on, and it's exactly why we exist. Genuine antique maps show their age honestly — the paper has a particular feel and tone, engraved maps have a plate mark and ink that sits on the surface in a way modern printing can't fake, and there are the small irregularities of hand-work and hand-colouring. Reproductions, however "aged", tend to give themselves away under a loupe and to a trained eye. We catalogue every map we sell with its date, mapmaker and printing method, we'll show you exactly what we're looking at and why we're confident, and we give a written description you can rely on. Just as importantly, if you bring us something bought elsewhere we'll tell you honestly what it is — we've saved a good many people from an expensive mistake, and occasionally delighted someone who owned a genuine piece without knowing it.</p></details>
+        <details><summary>I don't collect — can I still buy a map of somewhere meaningful?</summary><p>Absolutely, and it's some of our favourite trade. You don't need to be a collector or spend a fortune; many of our loveliest maps are modest county sheets and town plans that cost far less than people expect. Tell us the place that matters — where you grew up, where you married, a coast you love, a city you lived in — and roughly when, and we'll bring out what we have and explain each one. A genuine antique map of a place with meaning, properly framed, is an extraordinarily personal thing to own or to give, and worlds away from a printed poster. We'll take just as much care over a ten-pound print for your kitchen as over a rare chart for a serious collection.</p></details>
+        <details><summary>Do you frame maps, and why does "conservation framing" matter?</summary><p>Yes, framing is a big part of what we do, and it matters more than most people realise. Antique paper and ink are fragile: ordinary framing — acidic mounts, backing boards that off-gas, glass with no UV protection — will yellow, foxing and fade a map within years, sometimes irreversibly. Conservation framing uses acid-free, archival materials, UV-filtering glazing, and reversible mounting techniques that hold the map without glue or tape touching it, so nothing we do can't be safely undone by a future conservator. It costs a little more than a high-street frame and it is the single best thing you can do to make sure the map you love is still bright and sound for whoever inherits it. We'll always advise hanging it out of direct sunlight too.</p></details>
+        <details><summary>Can you value a map I already own?</summary><p>Yes — we provide honest valuations for insurance, sale and probate, whether you're insuring a collection, settling an estate, or simply curious what the map on your wall might be worth. We'll examine it properly: identify the mapmaker, date and edition, assess condition and any restoration, and place it in the context of what comparable examples actually sell for, not an inflated guess. If you're thinking of selling, we'll tell you frankly whether it's something we'd buy or take on commission, and what a realistic figure looks like. And if a much-loved map turns out to be worth little in money, we'll say so gently — sentimental value is real value too, and not everything needs a price to be worth keeping and framing well.</p></details>
+        <details><summary>How should I look after antique maps at home?</summary><p>The two great enemies are light and damp, so start there: hang maps out of direct sunlight (UV fades ink and colour fast) and away from radiators, bathrooms and outside walls that get cold and damp. Conservation framing handles most of the rest, protecting the paper from acid and pollutants and holding it flat without stress. Never dry-mount, laminate or trim an antique map, never use ordinary tape on it, and don't try to "clean" it yourself — well-meant repairs and cleaning do more damage than almost anything. If a map is stored rather than framed, keep it flat in acid-free folders somewhere cool, dry and dark. And if something does go wrong — a tear, a spill, foxing spreading — bring it to us before you try to fix it; a conservator can work wonders, but only with what hasn't already been botched.</p></details>
+        <details><summary>Do you buy maps, or take them on commission?</summary><p>Both, depending on the piece. We're always interested in genuine antique maps, charts and celestial prints, whether a single inherited map or a whole collection, and we'll give you an honest assessment of what we can offer or what it might achieve on commission through the shop. Bring it in or send us clear photographs of the whole map and any text, borders and the reverse, along with rough dimensions, and we'll tell you what we think it is and whether it's for us. We'd always rather be straight with you — if your map is worth more to a specialist auction or another dealer, we'll say so. A reputation for honesty is the only thing that lasts in this trade, and it's taken us since 1998 to build ours.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SHEET 08 / COLLECTORS FROM</span><span>GREENWICH & BEYOND</span></div>
+    <ul class="area-list">
+      <li>Greenwich</li><li>Blackheath</li><li>Deptford</li><li>Lewisham</li><li>Canary Wharf</li><li>London-wide</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v15" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SHEET 09 / THE ESSENTIALS</span><span>HOW WE TRADE</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1998</div><div class="detail">Antiquarian dealers by the Prime Meridian</div></div>
+      <div><div class="label">Genuine only</div><div class="detail">Originals, catalogued and honestly described</div></div>
+      <div><div class="label">Conservation framing</div><div class="detail">Acid-free, UV-glazed, fully reversible</div></div>
+      <div><div class="label">Valuations</div><div class="detail">For insurance, sale and probate</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SHEET 10 / FIND THE SHOP</span><span>NELSON ROAD, GREENWICH</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Compass &amp; Quarter</strong><br />
+          14 Nelson Road<br />
+          Greenwich SE10 9JB<br /><br />
+          <a href="tel:+442083057740" data-bind="business.phoneDisplay">020 8305 7740</a><br />
+          <a href="mailto:shop@compassandquarter.co.uk" data-bind="business.email">shop@compassandquarter.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>TUE – SAT</span><span>10 – 6</span></div>
+          <div class="row"><span>SUN</span><span>11 – 4</span></div>
+          <div class="row"><span>MON</span><span>CLOSED</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on Nelson Road in the heart of Greenwich, a few minutes from the Cutty Sark and a short climb from the Royal Observatory and the Meridian line.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Compass & Quarter, Greenwich" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.0180%2C51.4770%2C0.0000%2C51.4850&layer=mapnik&marker=51.4810%2C-0.0090"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v43">
+  <div class="wrap">
+    <div class="kick">SHEET 11 / FIND YOUR MAP</div>
+    <h2 data-bind="cta.heading">Find the map of the place that <em>means something.</em></h2>
+    <p data-bind="cta.body">Come in and tell us the town, the coast or the year — and let us bring out the real thing. Genuine antique maps, honestly described, and framed to outlive us all. A short walk from the Meridian.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Find your map</a>
+      <a class="btn btn-ghost" href="tel:+442083057740" data-bind="cta.secondary.label">020 8305 7740</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/442083057740" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:31px;">Compass <span style="color:var(--rust);font-style:italic;">&amp;</span> Quarter</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">An antiquarian map shop by the Prime Meridian in Greenwich. Genuine originals, honestly described, since 1998.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;">
+          14 Nelson Road<br />Greenwich SE10 9JB<br />
+          <a href="tel:+442083057740">020 8305 7740</a><br />
+          <a href="mailto:shop@compassandquarter.co.uk">shop@compassandquarter.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we deal in</a><a href="#about">The shop</a><a href="#location">Find us</a><a href="#book">Find your map</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> COMPASS &amp; QUARTER</span>
+      <span>GENUINE ANTIQUE MAPS BY THE MERIDIAN</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

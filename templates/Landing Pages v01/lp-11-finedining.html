@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Corvid — tasting-menu restaurant in Lyon's Croix-Rousse</title>
+<meta name="description" content="Corvid is a sixteen-seat tasting-menu restaurant in Lyon's Croix-Rousse — one menu, one seating, five nights a week. Reservations open monthly." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter+Tight:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Corvid", phone: "+33 4 78 21 90 44", phoneDisplay: "+33 4 78 21 90 44", email: "table@corvid.fr", foundedYear: 2019 },
+  hero: {
+    kicker: "Croix-Rousse · Lyon · sixteen seats",
+    headline: "One menu. One seating. The night takes as long as it takes.",
+    lede: "Corvid is a sixteen-seat tasting-menu restaurant in a former silk-weaver's atelier. One menu, written weekly. One seating, five nights. Reservations open on the first of each month.",
+    primaryCta: { label: "Reserve", href: "#reserve" },
+    secondaryCta: { label: "This month's menu", href: "#menu" },
+    image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A single plated course under low warm light."
+  },
+  trust: { years: "Cooking in Croix-Rousse since 2019" },
+  about: {
+    heading: "A room the size of the idea.",
+    paragraphs: [
+      "Corvid opened in 2019 in a silk-weaver's atelier halfway up the Croix-Rousse hill — one long room, a counter of sixteen seats, and a kitchen you can hear breathing. The name is the crow's family: birds that remember faces and hold grudges. So do chefs.",
+      "The menu is written every Sunday for the week ahead, from what the Monts du Lyonnais and the Saône valley are actually producing. It is served to everyone, together, in one seating. There is a vegetal version of every course and a shorter menu for children who make it past nine o'clock.",
+      "The wine list is one page. The music is on vinyl. The night ends when the last table stands up, and no earlier."
+    ],
+    portrait: "https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?w=1400&q=85&auto=format&fit=crop",
+    portraitAlt: "The chef plating at the counter under a single lamp."
+  },
+  services: [
+    { name: "The tasting menu", description: "Nine to eleven courses, written weekly. Served to the whole room at one seating, Tuesday to Saturday." },
+    { name: "The vegetal menu", description: "The same night, the same rhythm, no animal at the centre of any plate. Written with equal seriousness." },
+    { name: "Wine pairing", description: "Six pours from a one-page list — Beaujolais, Jura, Northern Rhône, and whatever the sommelier drove back from on Monday." },
+    { name: "The counter", description: "Four of the sixteen seats face the pass. Same menu, closest heat. Requested at reservation, granted by luck." },
+    { name: "Whole-room evenings", description: "The entire room, sixteen guests, your occasion. One menu, written for the date. Two months' notice." },
+    { name: "The archive", description: "Every menu since opening night, printed and bound by year. Read them in the entryway while your coat dries." }
+  ],
+  why: [
+    { title: "One seating, one rhythm.", body: "Everyone eats together. The kitchen cooks each course once, at its exact moment — nothing waits under a lamp." },
+    { title: "The menu is written weekly.", body: "Sunday afternoon, from what the valley actually has. No signature dishes, no greatest hits, no permanent anything." },
+    { title: "Sixteen seats is the whole restaurant.", body: "No second room, no private annexe, no expansion plan. The size is the point." }
+  ],
+  how: [
+    { step: "01", title: "Reservations open monthly", body: "On the first of each month, at noon, for the month following. By the form or by phone." },
+    { step: "02", title: "Tell us everything", body: "Allergies, aversions, the vegetal menu, the occasion. The menu bends before you arrive, not at the table." },
+    { step: "03", title: "Arrive at eight", body: "The room seats together. The first course leaves the pass when the last coat is hung." },
+    { step: "04", title: "Stay as long as the night", body: "There is no second seating. Coffee is included. So is the argument about dessert." }
+  ],
+  testimonials: [
+    { quote: "The single best meal of my life, and I say that as someone who has eaten at places with three stars and valet parking. Corvid has a coat rack and a dog next door.", name: "Élodie R.", context: "third visit" },
+    { quote: "They remembered, eleven months later, that my wife doesn't eat oysters. The menu that night had no oysters. Nobody mentioned it.", name: "Marc & Hélène D.", context: "anniversary table" },
+    { quote: "A restaurant with the confidence to be small. Everything on the plate had a reason to be there.", name: "James T.", context: "visiting from London" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop", alt: "A plated course under low warm light." },
+    { src: "https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?w=1600&q=85&auto=format&fit=crop", alt: "The chef plating at the counter." },
+    { src: "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=1600&q=85&auto=format&fit=crop", alt: "The dining counter set for service." },
+    { src: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600&q=85&auto=format&fit=crop", alt: "Wine being poured by candlelight." },
+    { src: "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=1600&q=85&auto=format&fit=crop", alt: "A course in a shallow stone bowl." },
+    { src: "https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=1600&q=85&auto=format&fit=crop", alt: "The room at the end of the night, candles low." }
+  ],
+  faq: [
+    { q: "How do reservations work?", a: "They open on the first of each month at noon, for the following month, through the form or by phone. The room is sixteen seats, so most nights fill within the week. Cancellations go to the waiting list in order." },
+    { q: "Can you accommodate allergies and aversions?", a: "Yes — tell us at reservation, not at the table. The menu is adjusted for you before the night begins. Severe allergies are taken seriously; we will call you to talk it through." },
+    { q: "Is there a vegetarian or vegan menu?", a: "The vegetal menu runs every night, written with the same seriousness as the main menu. Vegan on request at reservation." },
+    { q: "What does dinner cost?", a: "The menu price is fixed and stated on the reservation form for the month you book. Pairings are optional and priced alongside. We have no hidden supplements." },
+    { q: "Can we bring children?", a: "Children who can enjoy a three-hour dinner are welcome; there is a shorter menu for them. Most families choose Tuesday, the gentlest night." },
+    { q: "Is there a dress code?", a: "No. The room is warm, the floor is old, the dog next door doesn't judge and neither do we." },
+    { q: "Can we book the whole room?", a: "Yes — sixteen guests, one menu written for your date, two months' notice. Write to the table address." },
+    { q: "Where do we park?", a: "You mostly don't, this high on the hill. The Croix-Rousse métro is four minutes' walk; the C13 stops at the corner." }
+  ],
+  area: { places: ["Croix-Rousse", "Presqu'île", "Vieux Lyon", "Part-Dieu", "Villeurbanne", "Caluire", "and guests from much further, most nights"] },
+  credentials: [
+    { label: "Guide Michelin", detail: "Listed since 2021" },
+    { label: "Collège Culinaire de France", detail: "Restaurant de Qualité" },
+    { label: "Slow Food Alliance", detail: "Member kitchen" },
+    { label: "Hygiène alimentaire", detail: "Niveau très satisfaisant" }
+  ],
+  location: { name: "Corvid", addressStreet: "8 Rue d'Ivry", addressLocality: "Croix-Rousse, Lyon", addressRegion: "Auvergne-Rhône-Alpes", addressPostcode: "69004", addressCountry: "France" },
+  cta: { heading: "Sixteen seats. The first of the month.", body: "Reservations open at noon on the first, for the month following. Tuesday is the easiest door in.", primary: { label: "Reserve a seat", href: "#reserve" }, secondary: { label: "+33 4 78 21 90 44", href: "tel:+33478219044" } },
+  messaging: { whatsapp: "https://wa.me/33478219044", messenger: "https://m.me/corvidlyon" }
+};
+</script>
+
+<style>
+  :root {
+    --void: #0c0a08;
+    --void-2: #14110e;
+    --void-3: #1d1915;
+    --bone: #e8e0d2;
+    --bone-soft: #a1988a;
+    --gold: #c2a15c;
+    --blood: #7d2a20;
+    --rule: rgba(232,224,210,0.13);
+    --serif: "EB Garamond", Georgia, serif;
+    --sans: "Inter Tight", system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--void); color: var(--bone); font-family: var(--sans); font-weight: 300; font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  .wrap { width: min(1180px, 92vw); margin-inline: auto; }
+  .kicker { font-family: var(--mono); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
+  .h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(34px, 4.6vw, 66px); line-height: 1.05; letter-spacing: 0.005em; margin: 0 0 0.4em; }
+  .h2 em { font-style: italic; color: var(--gold); }
+  .body { font-size: 16px; line-height: 1.7; color: var(--bone-soft); }
+  section { padding: clamp(84px, 11vw, 160px) 0; }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 30px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; text-decoration: none; transition: 0.25s; }
+  .btn-primary { background: var(--gold); color: var(--void); }
+  .btn-primary:hover { background: var(--bone); }
+  .btn-ghost { border: 1px solid rgba(232,224,210,0.35); color: var(--bone); }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+  .orn { text-align: center; color: var(--gold); font-family: var(--serif); font-size: 20px; letter-spacing: 0.6em; padding-left: 0.6em; margin: 0 0 18px; }
+
+  /* NAV */
+  .nav { position: sticky; top: 0; z-index: 50; background: rgba(12,10,8,0.88); backdrop-filter: blur(12px); border-bottom: 1px solid var(--rule); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; }
+  .wm { font-family: var(--serif); font-size: 24px; letter-spacing: 0.34em; text-transform: uppercase; text-decoration: none; padding-left: 0.34em; }
+  .nav-links { display: flex; gap: 34px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--bone-soft); }
+  .nav-links a { text-decoration: none; }
+  .nav-links a:hover { color: var(--gold); }
+  @media (max-width: 760px) { .nav-links { display: none; } }
+
+  /* HERO — centred, ceremonial */
+  .hero { padding: clamp(72px, 10vw, 140px) 0 0; text-align: center; }
+  .hero h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(40px, 6.2vw, 92px); line-height: 1.06; letter-spacing: 0.005em; margin: 26px auto 30px; max-width: 18ch; }
+  .hero h1 em { font-style: italic; color: var(--gold); }
+  .hero .lede { font-size: clamp(16px, 1.4vw, 19px); line-height: 1.65; color: var(--bone-soft); max-width: 54ch; margin: 0 auto; }
+  .hero-ctas { margin-top: 40px; display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+  .hero-figure { margin: clamp(56px, 8vw, 110px) 0 0; position: relative; }
+  .hero-figure img { width: 100%; aspect-ratio: 21/9; object-fit: cover; filter: brightness(0.88) saturate(0.92); }
+  .hero-figure::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, var(--void) 0%, transparent 18%, transparent 82%, var(--void) 100%); pointer-events: none; }
+  .hero-figure figcaption { position: relative; display: flex; justify-content: space-between; font-family: var(--mono); font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--bone-soft); padding-top: 14px; }
+  @media (max-width: 760px) { .hero-figure img { aspect-ratio: 4/3; } }
+
+  /* TRUST */
+  .trust { padding: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); background: var(--void-2); }
+  .trust .row { display: flex; justify-content: center; gap: clamp(20px, 4vw, 56px); flex-wrap: wrap; padding: 22px 0; font-family: var(--mono); font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--bone-soft); }
+  .trust .row .g { color: var(--gold); }
+
+  /* ABOUT */
+  .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 7vw, 120px); align-items: center; }
+  .about-grid img { aspect-ratio: 3/4; object-fit: cover; width: 100%; filter: brightness(0.9); }
+  .about-prose p { font-family: var(--serif); font-size: clamp(18px, 1.8vw, 23px); line-height: 1.55; margin: 0 0 1em; color: var(--bone); }
+  @media (max-width: 820px) { .about-grid { grid-template-columns: 1fr; } }
+
+  /* SERVICES — menu-card list */
+  .menu-card { max-width: 760px; margin: clamp(36px, 5vw, 64px) auto 0; border: 1px solid var(--rule); padding: clamp(32px, 5vw, 72px); background: var(--void-2); }
+  .menu-card .item { padding: 26px 0; border-bottom: 1px solid var(--rule); text-align: center; }
+  .menu-card .item:last-child { border-bottom: 0; }
+  .menu-card .name { font-family: var(--serif); font-size: clamp(24px, 2.4vw, 32px); line-height: 1.15; margin-bottom: 10px; }
+  .menu-card .desc { color: var(--bone-soft); font-size: 15px; max-width: 46ch; margin: 0 auto; }
+  .services { text-align: center; }
+
+  /* WHY */
+  .why { background: var(--void-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(32px, 5vw, 72px); margin-top: clamp(36px, 5vw, 60px); }
+  .why-grid .num { font-family: var(--serif); font-style: italic; font-size: 44px; color: var(--gold); line-height: 1; display: block; margin-bottom: 20px; }
+  .why-grid h3 { font-family: var(--serif); font-weight: 400; font-size: 25px; line-height: 1.2; margin: 0 0 12px; }
+  .why-grid p { color: var(--bone-soft); margin: 0; font-size: 15px; }
+  @media (max-width: 760px) { .why-grid { grid-template-columns: 1fr; } }
+
+  /* HOW */
+  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(24px, 3vw, 48px); margin-top: clamp(36px, 5vw, 60px); }
+  .how-grid > li { list-style: none; border-top: 1px solid var(--gold); padding-top: 20px; }
+  .how-grid .step { font-family: var(--mono); font-size: 9px; letter-spacing: 0.26em; color: var(--gold); }
+  .how-grid h3 { font-family: var(--serif); font-weight: 400; font-size: 23px; margin: 12px 0 10px; line-height: 1.15; }
+  .how-grid p { color: var(--bone-soft); margin: 0; font-size: 14px; }
+  @media (max-width: 760px) { .how-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* TESTIMONIALS */
+  .t-quote { font-family: var(--serif); font-style: italic; font-size: clamp(26px, 3.6vw, 54px); line-height: 1.2; text-align: center; max-width: 26ch; margin: 0 auto 26px; }
+  .t-attr { text-align: center; font-family: var(--mono); font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--bone-soft); margin-bottom: clamp(48px, 7vw, 88px); }
+  .t-sub { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 96px); border-top: 1px solid var(--rule); padding-top: 44px; }
+  .t-sub blockquote { font-family: var(--serif); font-style: italic; font-size: 20px; line-height: 1.45; margin: 0 0 14px; }
+  .t-sub figcaption { font-family: var(--mono); font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--bone-soft); }
+  @media (max-width: 760px) { .t-sub { grid-template-columns: 1fr; } }
+
+  /* GALLERY — film strip */
+  .gallery { background: var(--void-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .g-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: clamp(36px, 5vw, 60px); }
+  .g-grid figure { margin: 0; }
+  .g-grid img { width: 100%; object-fit: cover; filter: brightness(0.88) saturate(0.94); transition: filter 0.4s; }
+  .g-grid img:hover { filter: brightness(1) saturate(1); }
+  .g-grid figure:nth-child(1) { grid-column: span 4; } .g-grid figure:nth-child(1) img { aspect-ratio: 16/10; }
+  .g-grid figure:nth-child(2) { grid-column: span 2; } .g-grid figure:nth-child(2) img { aspect-ratio: 4/5; height: 100%; }
+  .g-grid figure:nth-child(3) { grid-column: span 2; } .g-grid figure:nth-child(3) img { aspect-ratio: 1/1; }
+  .g-grid figure:nth-child(4) { grid-column: span 2; } .g-grid figure:nth-child(4) img { aspect-ratio: 1/1; }
+  .g-grid figure:nth-child(5) { grid-column: span 2; } .g-grid figure:nth-child(5) img { aspect-ratio: 1/1; }
+  .g-grid figure:nth-child(6) { grid-column: span 6; } .g-grid figure:nth-child(6) img { aspect-ratio: 21/8; }
+  @media (max-width: 760px) { .g-grid figure { grid-column: span 6 !important; } .g-grid img { aspect-ratio: 4/3 !important; } }
+
+  /* FAQ */
+  .faq-list { max-width: 760px; margin: clamp(36px, 5vw, 60px) auto 0; }
+  .faq-list details { border-bottom: 1px solid var(--rule); padding: 26px 0; }
+  .faq-list details:first-child { border-top: 1px solid var(--rule); }
+  .faq-list summary { font-family: var(--serif); font-size: 23px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 24px; line-height: 1.25; }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after { content: "✳"; color: var(--gold); font-size: 14px; flex-shrink: 0; transition: transform 0.3s; }
+  .faq-list details[open] summary::after { transform: rotate(45deg); }
+  .faq-list p { margin: 16px 0 0; color: var(--bone-soft); font-size: 15px; max-width: 60ch; }
+
+  /* AREA */
+  .area { text-align: center; }
+  .area-list { display: flex; flex-wrap: wrap; gap: 10px 26px; justify-content: center; margin: 28px 0 0; padding: 0; }
+  .area-list li { list-style: none; font-family: var(--serif); font-style: italic; font-size: 21px; color: var(--bone-soft); }
+  .area-list li::after { content: " ·"; color: var(--gold); }
+  .area-list li:last-child::after { content: ""; }
+
+  /* CREDS */
+  .creds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: clamp(36px, 5vw, 60px); }
+  .creds > div { background: var(--void); padding: 30px 24px; text-align: center; }
+  .creds .label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .creds .detail { font-family: var(--serif); font-size: 19px; line-height: 1.3; }
+  @media (max-width: 760px) { .creds { grid-template-columns: 1fr 1fr; } }
+
+  /* LOCATION */
+  .loc-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: clamp(32px, 5vw, 72px); margin-top: clamp(36px, 5vw, 60px); }
+  .nap address { font-style: normal; font-family: var(--serif); font-size: clamp(21px, 2vw, 27px); line-height: 1.4; }
+  .nap a { text-decoration: none; }
+  .hours { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; margin-top: 30px; border-top: 1px solid var(--rule); padding-top: 22px; }
+  .hours .row { display: flex; justify-content: space-between; padding: 5px 0; color: var(--bone-soft); text-transform: uppercase; }
+  .hours .gbp-note { font-family: var(--sans); font-size: 12px; color: var(--bone-soft); margin-top: 18px; line-height: 1.6; letter-spacing: 0; text-transform: none; }
+  .map-frame { min-height: 400px; filter: grayscale(1) invert(0.92) contrast(0.9); border: 1px solid var(--rule); }
+  .map-frame iframe { width: 100%; height: 100%; border: 0; min-height: 400px; }
+  @media (max-width: 820px) { .loc-grid { grid-template-columns: 1fr; } }
+
+  /* CTA */
+  .cta-band { text-align: center; padding: clamp(100px, 14vw, 200px) 0; border-top: 1px solid var(--rule); background: radial-gradient(50% 60% at 50% 40%, var(--void-3), var(--void)); }
+  .cta-band h2 { font-family: var(--serif); font-weight: 400; font-size: clamp(38px, 5.6vw, 84px); line-height: 1.05; margin: 18px auto 20px; max-width: 18ch; }
+  .cta-band h2 em { font-style: italic; color: var(--gold); }
+  .cta-band p { color: var(--bone-soft); max-width: 44ch; margin: 0 auto 40px; }
+  .cta-band .ctas { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+  /* FOOTER */
+  footer { padding: 64px 0 36px; border-top: 1px solid var(--rule); background: var(--void-2); }
+  .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 44px; }
+  .footer-grid h4 { font-family: var(--mono); font-size: 9px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold); margin: 0 0 16px; font-weight: 400; }
+  .footer-grid a { text-decoration: none; display: block; padding: 3px 0; font-size: 14px; color: var(--bone); }
+  .footer-grid a:hover { color: var(--gold); }
+  .colophon { margin-top: 60px; padding-top: 22px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--bone-soft); }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr; } }
+
+  /* MSG FAB */
+  .msg-fab { position: fixed; right: 20px; bottom: 20px; z-index: 100; }
+  .msg-fab a { display: inline-flex; align-items: center; gap: 8px; background: var(--void-3); border: 1px solid var(--gold); color: var(--gold); padding: 13px 20px; text-decoration: none; font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; }
+  .msg-fab a:hover { background: var(--gold); color: var(--void); }
+  .msg-fab svg { width: 13px; height: 13px; }
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Corvid","description":"Sixteen-seat tasting-menu restaurant in Lyon's Croix-Rousse — one menu, one seating, five nights a week.","url":"https://corvid.fr/","telephone":"+33478219044","email":"table@corvid.fr","servesCuisine":["French","Seasonal","Tasting menu"],"priceRange":"€€€€","address":{"@type":"PostalAddress","streetAddress":"8 Rue d'Ivry","addressLocality":"Lyon","addressRegion":"Auvergne-Rhône-Alpes","postalCode":"69004","addressCountry":"FR"},"geo":{"@type":"GeoCoordinates","latitude":45.7772,"longitude":4.8320},"areaServed":["Lyon","Croix-Rousse","Villeurbanne"],"image":["https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600"],"foundingDate":"2019","acceptsReservations":"True"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How do reservations work?","acceptedAnswer":{"@type":"Answer","text":"They open on the first of each month at noon, for the following month. Sixteen seats; most nights fill within the week."}},
+{"@type":"Question","name":"Can you accommodate allergies and aversions?","acceptedAnswer":{"@type":"Answer","text":"Yes — tell us at reservation, not at the table. The menu is adjusted before the night begins."}},
+{"@type":"Question","name":"Is there a vegetarian or vegan menu?","acceptedAnswer":{"@type":"Answer","text":"The vegetal menu runs every night. Vegan on request at reservation."}},
+{"@type":"Question","name":"What does dinner cost?","acceptedAnswer":{"@type":"Answer","text":"The menu price is fixed and stated on the reservation form for the month you book. No hidden supplements."}},
+{"@type":"Question","name":"Can we bring children?","acceptedAnswer":{"@type":"Answer","text":"Children who can enjoy a three-hour dinner are welcome; there is a shorter menu for them."}},
+{"@type":"Question","name":"Is there a dress code?","acceptedAnswer":{"@type":"Answer","text":"No."}},
+{"@type":"Question","name":"Can we book the whole room?","acceptedAnswer":{"@type":"Answer","text":"Yes — sixteen guests, one menu written for your date, two months' notice."}},
+{"@type":"Question","name":"Where do we park?","acceptedAnswer":{"@type":"Answer","text":"The Croix-Rousse métro is four minutes' walk; the C13 stops at the corner."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Corvid</a>
+    <nav class="nav-links">
+      <a href="#about">The room</a>
+      <a href="#menu">The menu</a>
+      <a href="#location">Find us</a>
+      <a href="#reserve">Reserve</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v8">
+  <div class="wrap">
+    <div class="kicker" data-bind="hero.kicker">Croix-Rousse · Lyon · sixteen seats</div>
+    <h1 data-bind="hero.headline">One menu. One seating. <em>The night takes as long as it takes.</em></h1>
+    <p class="lede" data-bind="hero.lede">Corvid is a sixteen-seat tasting-menu restaurant in a former silk-weaver's atelier. One menu, written weekly. One seating, five nights. Reservations open on the first of each month.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#reserve" data-bind="hero.primaryCta.label">Reserve</a>
+      <a class="btn btn-ghost" href="#menu" data-bind="hero.secondaryCta.label">This month's menu</a>
+    </div>
+    <figure class="hero-figure">
+      <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=2000&q=85&auto=format&fit=crop"
+           alt="A single plated course under low warm light."
+           data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <figcaption><span>Course VII — this week</span><span>Rue d'Ivry, 69004</span></figcaption>
+    </figure>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Cooking in Croix-Rousse since 2019</span>
+    <span class="g">✳</span><span>Guide Michelin, listed</span>
+    <span class="g">✳</span><span>Collège Culinaire de France</span>
+    <span class="g">✳</span><span>Slow Food Alliance</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v2">
+  <div class="wrap about-grid">
+    <div class="about-prose">
+      <div class="kicker">The room</div>
+      <h2 class="h2" data-bind="about.heading">A room the size <em>of the idea.</em></h2>
+      <p>Corvid opened in 2019 in a silk-weaver's atelier halfway up the Croix-Rousse hill — one long room, a counter of sixteen seats, and a kitchen you can hear breathing. The name is the crow's family: birds that remember faces and hold grudges. So do chefs.</p>
+      <p>The menu is written every Sunday for the week ahead, from what the Monts du Lyonnais and the Saône valley are actually producing. It is served to everyone, together, in one seating.</p>
+      <p>The wine list is one page. The music is on vinyl. The night ends when the last table stands up, and no earlier.</p>
+    </div>
+    <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+         src="https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?w=1400&q=85&auto=format&fit=crop"
+         alt="The chef plating at the counter under a single lamp." />
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="menu" class="services" data-component="SERVICES" data-variant="v6">
+  <div class="wrap">
+    <div class="orn">✳ ✳ ✳</div>
+    <div class="kicker">What the house offers</div>
+    <h2 class="h2">The evening, <em>in six parts.</em></h2>
+    <div class="menu-card">
+      <div class="item"><div class="name">The tasting menu</div><p class="desc">Nine to eleven courses, written weekly. Served to the whole room at one seating, Tuesday to Saturday.</p></div>
+      <div class="item"><div class="name">The vegetal menu</div><p class="desc">The same night, the same rhythm, no animal at the centre of any plate. Written with equal seriousness.</p></div>
+      <div class="item"><div class="name">Wine pairing</div><p class="desc">Six pours from a one-page list — Beaujolais, Jura, Northern Rhône, and whatever the sommelier drove back from on Monday.</p></div>
+      <div class="item"><div class="name">The counter</div><p class="desc">Four of the sixteen seats face the pass. Same menu, closest heat. Requested at reservation, granted by luck.</p></div>
+      <div class="item"><div class="name">Whole-room evenings</div><p class="desc">The entire room, sixteen guests, your occasion. One menu, written for the date. Two months' notice.</p></div>
+      <div class="item"><div class="name">The archive</div><p class="desc">Every menu since opening night, printed and bound by year. Read them in the entryway while your coat dries.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Why it works this way</div>
+    <h2 class="h2">Three convictions, <em>held nightly.</em></h2>
+    <div class="why-grid">
+      <div><span class="num">i.</span><h3>One seating, one rhythm.</h3><p>Everyone eats together. The kitchen cooks each course once, at its exact moment — nothing waits under a lamp.</p></div>
+      <div><span class="num">ii.</span><h3>The menu is written weekly.</h3><p>Sunday afternoon, from what the valley actually has. No signature dishes, no greatest hits, no permanent anything.</p></div>
+      <div><span class="num">iii.</span><h3>Sixteen seats is the whole restaurant.</h3><p>No second room, no private annexe, no expansion plan. The size is the point.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">How a night unfolds</div>
+    <h2 class="h2">From the first of the month <em>to the last candle.</em></h2>
+    <ol class="how-grid" style="padding:0;">
+      <li><span class="step">I.</span><h3>Reservations open monthly</h3><p>On the first of each month, at noon, for the month following. By the form or by phone.</p></li>
+      <li><span class="step">II.</span><h3>Tell us everything</h3><p>Allergies, aversions, the vegetal menu, the occasion. The menu bends before you arrive, not at the table.</p></li>
+      <li><span class="step">III.</span><h3>Arrive at eight</h3><p>The room seats together. The first course leaves the pass when the last coat is hung.</p></li>
+      <li><span class="step">IV.</span><h3>Stay as long as the night</h3><p>There is no second seating. Coffee is included. So is the argument about dessert.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="orn">✳</div>
+    <blockquote class="t-quote">“The single best meal of my life — and I say that as someone who has eaten at places with three stars and valet parking. Corvid has a coat rack and a dog next door.”</blockquote>
+    <div class="t-attr">Élodie R. — third visit</div>
+    <div class="t-sub">
+      <figure><blockquote>“They remembered, eleven months later, that my wife doesn't eat oysters. The menu that night had no oysters. Nobody mentioned it.”</blockquote><figcaption>Marc &amp; Hélène D. — anniversary table</figcaption></figure>
+      <figure><blockquote>“A restaurant with the confidence to be small. Everything on the plate had a reason to be there.”</blockquote><figcaption>James T. — visiting from London</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section class="gallery" data-component="GALLERY" data-variant="v6">
+  <div class="wrap">
+    <div class="kicker">The room, the plates</div>
+    <h2 class="h2">By candlelight, <em>mostly.</em></h2>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop" alt="A plated course under low warm light." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600565193348-f74bd3c7ccdf?w=1600&q=85&auto=format&fit=crop" alt="The chef plating at the counter." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?w=1600&q=85&auto=format&fit=crop" alt="The dining counter set for service." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600&q=85&auto=format&fit=crop" alt="Wine being poured by candlelight." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1476224203421-9ac39bcb3327?w=1600&q=85&auto=format&fit=crop" alt="A course in a shallow stone bowl." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1424847651672-bf20a4b0982b?w=1600&q=85&auto=format&fit=crop" alt="The room at the end of the night, candles low." /></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap" style="text-align:center;">
+    <div class="kicker">Asked, answered</div>
+    <h2 class="h2">Before <em>you book.</em></h2>
+    <div class="faq-list" style="text-align:left;">
+      <details><summary>How do reservations work?</summary><p>They open on the first of each month at noon, for the following month, through the form or by phone. The room is sixteen seats, so most nights fill within the week. Cancellations go to the waiting list in order.</p></details>
+      <details><summary>Can you accommodate allergies and aversions?</summary><p>Yes — tell us at reservation, not at the table. The menu is adjusted for you before the night begins. Severe allergies are taken seriously; we will call you to talk it through.</p></details>
+      <details><summary>Is there a vegetarian or vegan menu?</summary><p>The vegetal menu runs every night, written with the same seriousness as the main menu. Vegan on request at reservation.</p></details>
+      <details><summary>What does dinner cost?</summary><p>The menu price is fixed and stated on the reservation form for the month you book. Pairings are optional and priced alongside. We have no hidden supplements.</p></details>
+      <details><summary>Can we bring children?</summary><p>Children who can enjoy a three-hour dinner are welcome; there is a shorter menu for them. Most families choose Tuesday, the gentlest night.</p></details>
+      <details><summary>Is there a dress code?</summary><p>No. The room is warm, the floor is old, the dog next door doesn't judge and neither do we.</p></details>
+      <details><summary>Can we book the whole room?</summary><p>Yes — sixteen guests, one menu written for your date, two months' notice. Write to the table address.</p></details>
+      <details><summary>Where do we park?</summary><p>You mostly don't, this high on the hill. The Croix-Rousse métro is four minutes' walk; the C13 stops at the corner.</p></details>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section class="area" data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker">Guests arrive from</div>
+    <ul class="area-list">
+      <li>Croix-Rousse</li><li>Presqu'île</li><li>Vieux Lyon</li><li>Part-Dieu</li>
+      <li>Villeurbanne</li><li>Caluire</li><li>and much further, most nights</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker" style="text-align:center; display:block;">For the record</div>
+    <div class="creds">
+      <div><div class="label">Guide Michelin</div><div class="detail">Listed since 2021</div></div>
+      <div><div class="label">Collège Culinaire</div><div class="detail">Restaurant de Qualité</div></div>
+      <div><div class="label">Slow Food Alliance</div><div class="detail">Member kitchen</div></div>
+      <div><div class="label">Hygiène alimentaire</div><div class="detail">Niveau très satisfaisant</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker">Halfway up the hill</div>
+    <h2 class="h2">8 Rue d'Ivry, <em>69004.</em></h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Corvid</strong><br />
+          8 Rue d'Ivry<br />
+          Croix-Rousse, Lyon 69004<br /><br />
+          <a href="tel:+33478219044" data-bind="business.phoneDisplay">+33 4 78 21 90 44</a><br />
+          <a href="mailto:table@corvid.fr" data-bind="business.email">table@corvid.fr</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>ONE SEATING</span></div>
+          <div class="row"><span>SUN – MON</span><span>CLOSED</span></div>
+          <p class="gbp-note">Exact times on our Google Business Profile. The door opens twenty minutes before the seating; the bell works, quietly.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Corvid, Rue d'Ivry, Lyon" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=4.8240%2C45.7740%2C4.8400%2C45.7805&layer=mapnik&marker=45.7772%2C4.8320"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="reserve" class="cta-band" data-component="CTA-BAND" data-variant="v5">
+  <div class="wrap">
+    <div class="orn">✳ ✳ ✳</div>
+    <h2 data-bind="cta.heading">Sixteen seats. <em>The first of the month.</em></h2>
+    <p data-bind="cta.body">Reservations open at noon on the first, for the month following. Tuesday is the easiest door in.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#reserve" data-bind="cta.primary.label">Reserve a seat</a>
+      <a class="btn btn-ghost" href="tel:+33478219044" data-bind="cta.secondary.label">+33 4 78 21 90 44</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/33478219044" data-bind="messaging.whatsapp" aria-label="Message the table">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    The table
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a class="wm" href="#" style="font-size: 28px;">Corvid</a>
+        <p class="body" style="margin-top: 16px; max-width: 34ch;">A sixteen-seat tasting-menu restaurant in a silk-weaver's atelier, Croix-Rousse, Lyon. Since 2019.</p>
+      </div>
+      <div>
+        <h4>The room</h4>
+        <address style="font-style: normal; font-size: 14px; line-height: 1.7;">
+          8 Rue d'Ivry<br />
+          Croix-Rousse, Lyon 69004<br />
+          <a href="tel:+33478219044">+33 4 78 21 90 44</a><br />
+          <a href="mailto:table@corvid.fr">table@corvid.fr</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#menu">The menu</a>
+        <a href="#reserve">Reserve</a>
+        <a href="#about">The room</a>
+        <a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> CORVID SARL · RCS LYON 851 204 993</span>
+      <span>CROIX-ROUSSE · LYON 4E</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

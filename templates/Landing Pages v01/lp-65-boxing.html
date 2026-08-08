@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Southpaw — boxing gym in Leeds' Holbeck</title>
+<meta name="description" content="Southpaw is a boxing gym in Holbeck, Leeds — real coaching from real fighters, beginners' courses that never spar unless you want to, and a bag room open six days. No mirrors, no posing, all work." />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;800&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Southpaw", phone: "+44 113 244 8890", phoneDisplay: "0113 244 8890", email: "gym@southpawleeds.co.uk", foundedYear: 2015 },
+  hero: {
+    kicker: "Boxing gym · coached by fighters · Holbeck, Leeds",
+    headline: "Learn to box. Nobody's making you fight.",
+    lede: "A proper boxing gym coached by people who've actually fought — three rings, a bag room, and beginners' courses where sparring is a choice, never a rite of passage. Come for the fitness, the skill, or the head-clearing hour of hitting things correctly. No mirrors, no posing, all work.",
+    primaryCta: { label: "Start the beginners' course", href: "#book" },
+    secondaryCta: { label: "See the classes", href: "#services" },
+    image: "https://images.unsplash.com/photo-1591117207239-788bf8de6c3b?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A boxer hitting a heavy bag in a gym."
+  },
+  trust: { years: "In the corner since 2015" },
+  about: {
+    heading: "A fighter's gym that welcomes everyone.",
+    paragraphs: [
+      "Southpaw was set up by two former amateurs who were tired of two kinds of place: the intimidating fight gym that ignores anyone who isn't competing, and the shiny 'boxing-inspired' studio where nobody learns to actually box. This is the third thing — real coaching, real technique, open to the nervous first-timer and the club fighter alike.",
+      "Everyone starts on the pads and the bags, learning stance, guard and the four punches properly before anything else. You will not be thrown into a ring in week one. You may never spar at all, and plenty of our members never do — the skill and the fitness are the point, and they arrive whether or not you ever take a shot.",
+      "There are no mirror walls to pose in front of and no thumping playlist to hide behind. Just the sound of skipping ropes, the bags, the bell on the round timer, and a coach watching your feet. It's the calmest loud place in Leeds."
+    ],
+    portrait: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A coach holding pads for a boxer."
+  },
+  services: [
+    { name: "Beginners' course", description: "Six weeks, same group, from stance to combinations. No sparring, no assumptions, no being the only one who doesn't know what they're doing. The best way in." },
+    { name: "Boxing fitness", description: "Bags, pads, rounds and conditioning — the boxer's workout without the contact. The fittest hour you'll have all week, and the hour that clears your head." },
+    { name: "Technical classes", description: "For anyone past the basics: footwork, defence, combinations, and reading an opponent. Skill work with a coach on the pads, sparring optional and controlled." },
+    { name: "Sparring (if you want it)", description: "Supervised, matched by size and experience, gum shield and headguard, and never a surprise. Entirely optional, forever. Some of our best members never step in." },
+    { name: "One-to-one coaching", description: "You and a coach, on the pads, working exactly on what you need. Nerves, fitness, a competition goal, or just an hour that's entirely yours." },
+    { name: "Youth & women-only sessions", description: "Coached youth classes and dedicated women-only sessions with the same technique-first approach. Bring the kids; bring yourself; bring a mate who's nervous." }
+  ],
+  why: [
+    { title: "Coached by fighters.", body: "Everyone in a Southpaw corner has boxed competitively. You're learning real technique from people who've used it, not a circuit-class routine with gloves on." },
+    { title: "Sparring is always a choice.", body: "Nobody is pushed into a ring. Many members never spar and get everything they came for. When you do, it's supervised, matched and never sprung on you." },
+    { title: "No mirrors, no posing.", body: "We took the mirror walls out on purpose. This is a room for work, not for watching yourself work. The results show up in the ring and on the bag, not the glass." }
+  ],
+  how: [
+    { step: "01", title: "Book the beginners' course", body: "Six weeks, one group, starting monthly. No kit but shorts and a water bottle — we lend gloves and wraps until you want your own." },
+    { step: "02", title: "Learn the four punches", body: "Stance, guard, jab, cross, hook, uppercut — done properly and slowly before speed. Your feet get more attention than your fists at first." },
+    { step: "03", title: "Put it on the bag", body: "Rounds on the bags and pads, building the fitness and the timing. This is where it clicks and where the week's stress goes to die." },
+    { step: "04", title: "Choose your path", body: "Stay for fitness, push into technical classes, or — only if you want — try supervised sparring. All three are full memberships, no hierarchy." }
+  ],
+  testimonials: [
+    { quote: "I signed up terrified, forty-one, never thrown a punch. Six weeks later I can actually box, I've lost the stone I wasn't even chasing, and I have never once been made to feel like the beginner I was.", name: "Dan M.", context: "beginners' course, then hooked" },
+    { quote: "I do boxing fitness three mornings a week purely to keep my head straight. It's an hour where I can't think about anything except the next combination. Better than any therapy I've paid more for.", name: "Priya K.", context: "boxing fitness regular" },
+    { quote: "The women-only sessions got me into a sport I'd always been curious about and always assumed wasn't for me. Two years on I spar weekly and coach the newcomers. This place changes what you think you're capable of.", name: "Leanne T.", context: "women-only, now assistant coach" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1591117207239-788bf8de6c3b?w=1600&q=85&auto=format&fit=crop", alt: "Working the heavy bag." },
+    { src: "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=1600&q=85&auto=format&fit=crop", alt: "Pad work with a coach." },
+    { src: "https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=1600&q=85&auto=format&fit=crop", alt: "Conditioning on the gym floor." },
+    { src: "https://images.unsplash.com/photo-1544216717-3bbf52512659?w=1600&q=85&auto=format&fit=crop", alt: "Partner drills after training." },
+    { src: "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=1600&q=85&auto=format&fit=crop", alt: "Skipping in the bag room." },
+    { src: "https://images.unsplash.com/photo-1583473848882-f9a5bc7fd2ee?w=1600&q=85&auto=format&fit=crop", alt: "Gloves resting on the ropes." }
+  ],
+  faq: [
+    { q: "I've genuinely never boxed. Am I going to embarrass myself?", a: "No — the beginners' course is built entirely for you, and everyone in the room started in exactly the same spot. We teach stance and the punches from zero, slowly, with no assumed knowledge. The only people who look out of place here are the ones pretending they already know it all." },
+    { q: "Will I have to spar or get hit?", a: "Never unless you choose to. Sparring is entirely optional at Southpaw, forever — lots of members train for years and never do it, and they get the full benefit of the fitness and the skill. If you do decide to try, it's supervised, size-matched, protected, and never a surprise." },
+    { q: "Is it just for young, fit people?", a: "Not at all. Our members run from teenagers to people in their sixties, every fitness level, all shapes. Boxing scales to whoever's doing it — the coach adjusts the work to you, not the other way round. Plenty of people arrive to get fit, not arrive already fit." },
+    { q: "What do I need to bring?", a: "Shorts or joggers, a t-shirt, trainers and a water bottle for the first few weeks — we lend gloves and hand wraps until you're sure you're sticking around. When you are, we'll help you buy the right gloves rather than the flashiest ones." },
+    { q: "Do you do women-only classes?", a: "Yes — dedicated women-only sessions with the same technique-first coaching, plus mixed classes that are welcoming to everyone. Many members move between the two. If a women-only start is what gets you through the door, it's here and it's properly coached." },
+    { q: "Can my kids train here?", a: "We run coached youth classes with the same discipline-and-technique approach — no full-contact for juniors, plenty of skill, fitness and focus. It's brilliant for confidence. Come and watch a session before you sign them up; parents usually end up joining too." }
+  ],
+  area: { places: ["Holbeck", "Hunslet", "City centre", "Beeston", "Armley", "Hunslet Carr"] },
+  credentials: [
+    { label: "Coaching", detail: "England Boxing qualified, ex-competitive coaches" },
+    { label: "First aid", detail: "Trained first-aiders on every session" },
+    { label: "Insured", detail: "Fully insured; England Boxing affiliated gym" },
+    { label: "Kit", detail: "Gloves & wraps loaned to beginners" }
+  ],
+  location: { name: "Southpaw", addressStreet: "Unit 6, Marshall's Mill, Marshall Street", addressLocality: "Holbeck, Leeds", addressRegion: "West Yorkshire", addressPostcode: "LS11 9YJ", addressCountry: "United Kingdom" },
+  cta: { heading: "Throw the first punch. On a bag.", body: "The beginners' course starts monthly. Gloves lent, nerves expected, sparring never compulsory.", primary: { label: "Start the course", href: "#book" }, secondary: { label: "0113 244 8890", href: "tel:+441132448890" } },
+  messaging: { whatsapp: "https://wa.me/441132448890", messenger: "https://m.me/southpawleeds" }
+};
+</script>
+
+<style>
+  :root {
+    --black:#141414; --bone:#f0ece4; --blood:#c02a2a; --steel:#3f4a52; --gold:#d8a53a;
+    --ink:#141414; --mid:#6b6b6b; --mid-d:#9a9a94; --rule:rgba(20,20,20,0.15); --rule-d:rgba(240,236,228,0.16);
+    --disp:"Anton",sans-serif; --sans:"Archivo",system-ui,sans-serif; --mono:"Spline Sans Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bone);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--blood);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--blood);font-weight:500;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(36px,5.6vw,80px);line-height:0.94;text-transform:uppercase;letter-spacing:0.005em;margin:0 0 0.4em;}
+  .body{color:var(--mid);line-height:1.68;}
+  section{padding:clamp(72px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 30px;font-family:var(--disp);font-weight:400;font-size:16px;letter-spacing:0.04em;text-transform:uppercase;text-decoration:none;transition:0.16s;}
+  .btn-primary{background:var(--blood);color:var(--bone);} .btn-primary:hover{background:var(--black);}
+  .btn-ghost{border:2px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--bone);}
+  .rnd-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:3px solid var(--ink);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);}
+  .light .rnd-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(240,236,228,0.95);backdrop-filter:blur(10px);border-bottom:3px solid var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 0;}
+  .wm{font-family:var(--disp);font-size:26px;text-transform:uppercase;letter-spacing:0.02em;text-decoration:none;}
+  .wm span{color:var(--blood);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — round-timer slab */
+  .hero{padding:clamp(48px,6.5vw,92px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.08fr 0.92fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:400;font-size:clamp(50px,8vw,124px);line-height:0.88;text-transform:uppercase;letter-spacing:0.005em;margin:16px 0 22px;}
+  .hero h1 em{font-style:normal;color:var(--blood);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.68;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;filter:grayscale(1) contrast(1.05);}
+  .bell-tag{position:absolute;top:-16px;left:-14px;background:var(--blood);color:var(--bone);padding:14px 18px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;line-height:1.8;box-shadow:0 10px 26px rgba(0,0,0,0.3);}
+  .bell-tag b{font-family:var(--disp);font-size:20px;display:block;letter-spacing:0.02em;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--black);color:var(--bone);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(240,236,228,0.85);}
+
+  .about{background:var(--black);color:var(--bone);}
+  .about .h2{color:var(--bone);}
+  .about .h2 em{color:var(--blood);}
+  .about-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.72;margin:0 0 1em;color:rgba(240,236,228,0.82);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;filter:grayscale(1) contrast(1.05);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:3px solid var(--ink);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(192,42,42,0.05);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--blood);text-transform:uppercase;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(22px,2.4vw,32px);margin:0;line-height:1;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.64;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--blood);color:var(--bone);}
+  .why .rnd-head{border-color:rgba(240,236,228,0.4);color:rgba(240,236,228,0.75);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--black);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:500;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;}
+  .why-grid p{color:rgba(240,236,228,0.9);margin:0;font-size:14.5px;line-height:1.66;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--ink);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--blood);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:22px;margin:8px 0 8px;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.62;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--black);color:var(--bone);}
+  .testimonials .rnd-head{border-color:rgba(240,236,228,0.4);color:rgba(240,236,228,0.75);}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(28px,3.8vw,52px);line-height:0.98;max-width:26ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.005em;}
+  .t-quote em{font-style:normal;color:var(--blood);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.7;margin:0 0 12px;color:rgba(240,236,228,0.85);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid-d);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;filter:grayscale(1) contrast(1.05);transition:0.3s;}
+  .g-grid figure:hover img{filter:grayscale(0) contrast(1);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--black);color:var(--gold);font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:6px 10px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:3px solid var(--ink);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--blood);font-size:22px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--ink);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px solid var(--ink);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--blood);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:18px;line-height:1.15;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--black);color:var(--bone);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:22px;line-height:1.25;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;letter-spacing:0;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(240,236,228,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(240,236,228,0.75);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(240,236,228,0.7);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:3px solid var(--ink);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.7) contrast(1.05);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--blood);color:var(--bone);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--black);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(44px,7vw,116px);line-height:0.9;text-transform:uppercase;margin:14px auto 18px;max-width:14ch;}
+  .cta-band h2 em{font-style:normal;color:var(--black);}
+  .cta-band p{color:rgba(240,236,228,0.9);max-width:44ch;margin:0 auto 32px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--black);color:var(--bone);}
+  .cta-band .btn-primary:hover{background:var(--bone);color:var(--black);}
+  .cta-band .btn-ghost{border-color:var(--black);color:var(--black);}
+  .cta-band .btn-ghost:hover{background:var(--black);color:var(--bone);}
+
+  footer{background:var(--bone);border-top:3px solid var(--ink);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--blood);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--blood);color:var(--bone);padding:13px 20px;text-decoration:none;font-family:var(--disp);font-size:15px;letter-spacing:0.04em;text-transform:uppercase;box-shadow:0 8px 24px rgba(192,42,42,0.4);}
+  .msg-fab a:hover{background:var(--black);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SportsActivityLocation","name":"Southpaw","description":"Boxing gym in Holbeck, Leeds — coached by former fighters, beginners' courses with optional sparring, boxing fitness and youth classes.","url":"https://southpawleeds.co.uk/","telephone":"+441132448890","email":"gym@southpawleeds.co.uk","address":{"@type":"PostalAddress","streetAddress":"Unit 6, Marshall's Mill, Marshall Street","addressLocality":"Leeds","addressRegion":"West Yorkshire","postalCode":"LS11 9YJ","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.7900,"longitude":-1.5540},"areaServed":["Holbeck","Hunslet","Beeston","Leeds"],"image":["https://images.unsplash.com/photo-1591117207239-788bf8de6c3b?w=1600"],"foundingDate":"2015"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I've genuinely never boxed. Am I going to embarrass myself?","acceptedAnswer":{"@type":"Answer","text":"No — the beginners' course is built for you, from stance and the punches with no assumed knowledge. Everyone started in the same spot."}},
+{"@type":"Question","name":"Will I have to spar or get hit?","acceptedAnswer":{"@type":"Answer","text":"Never unless you choose to. Sparring is entirely optional, forever; when you do, it's supervised, size-matched and protected."}},
+{"@type":"Question","name":"Is it just for young, fit people?","acceptedAnswer":{"@type":"Answer","text":"No — members run from teenagers to their sixties, every fitness level. The coach adjusts the work to you."}},
+{"@type":"Question","name":"What do I need to bring?","acceptedAnswer":{"@type":"Answer","text":"Shorts, a t-shirt, trainers and water. We lend gloves and wraps until you're sure you're sticking around."}},
+{"@type":"Question","name":"Do you do women-only classes?","acceptedAnswer":{"@type":"Answer","text":"Yes — dedicated women-only sessions with the same technique-first coaching, plus welcoming mixed classes."}},
+{"@type":"Question","name":"Can my kids train here?","acceptedAnswer":{"@type":"Answer","text":"Coached youth classes with no full-contact — skill, fitness and focus. Come and watch a session first."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">SOUTH<span>PAW</span></a>
+    <nav class="nav-links">
+      <a href="#about">The gym</a><a href="#services">Classes</a><a href="#location">Find us</a><a href="#book">Start</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v54">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Boxing gym · coached by fighters · Holbeck, Leeds</div>
+      <h1 data-comment-anchor="hero-headline">Learn to box. <em>Nobody's making you fight.</em></h1>
+      <p class="lede" data-bind="hero.lede">A proper boxing gym coached by people who've actually fought — three rings, a bag room, and beginners' courses where sparring is a choice, never a rite of passage. Come for the fitness, the skill, or the head-clearing hour of hitting things correctly. No mirrors, no posing, all work.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Start the beginners' course</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">See the classes</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1591117207239-788bf8de6c3b?w=2000&q=85&auto=format&fit=crop"
+           alt="A boxer hitting a heavy bag in a gym." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="bell-tag"><b>ROUND 1</b>3 MIN ON<br />1 MIN OFF<br />SPARRING · OPTIONAL</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">In the corner since 2015</span>
+    <span>Coached by fighters</span>
+    <span>Sparring always optional</span>
+    <span>No mirrors, all work</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v20">
+  <div class="wrap">
+    <div class="rnd-head"><span>ROUND 01 / THE GYM</span><span>A FIGHTER'S GYM FOR EVERYONE</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=1200&q=85&auto=format&fit=crop"
+           alt="A coach holding pads for a boxer." />
+      <div class="about-prose">
+        <h2 class="h2">A fighter's gym that <em>welcomes everyone.</em></h2>
+        <p>Southpaw was set up by two former amateurs who were tired of two kinds of place: the intimidating fight gym that ignores anyone who isn't competing, and the shiny "boxing-inspired" studio where nobody learns to actually box. This is the third thing — real coaching, real technique, open to the nervous first-timer and the club fighter alike.</p>
+        <p>Everyone starts on the pads and the bags, learning stance, guard and the four punches properly before anything else. You will not be thrown into a ring in week one. You may never spar at all, and plenty of our members never do — the skill and the fitness are the point, and they arrive whether or not you ever take a shot.</p>
+        <p>There are no mirror walls to pose in front of and no thumping playlist to hide behind. Just the sound of skipping ropes, the bags, the bell on the round timer, and a coach watching your feet. It's the calmest loud place in Leeds.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v47">
+  <div class="wrap">
+    <div class="rnd-head"><span>ROUND 02 / THE CARD</span><span>WHAT'S ON THE TIMETABLE</span></div>
+    <h2 class="h2">On the card.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Bout 01</span><h3>Beginners' course</h3><p>Six weeks, same group, from stance to combinations. No sparring, no assumptions, no being the only one who doesn't know what they're doing. The best way in.</p></div>
+      <div class="svc-row"><span class="no">Bout 02</span><h3>Boxing fitness</h3><p>Bags, pads, rounds and conditioning — the boxer's workout without the contact. The fittest hour you'll have all week, and the hour that clears your head.</p></div>
+      <div class="svc-row"><span class="no">Bout 03</span><h3>Technical classes</h3><p>For anyone past the basics: footwork, defence, combinations, and reading an opponent. Skill work with a coach on the pads, sparring optional and controlled.</p></div>
+      <div class="svc-row"><span class="no">Bout 04</span><h3>Sparring (if you want it)</h3><p>Supervised, matched by size and experience, gum shield and headguard, and never a surprise. Entirely optional, forever. Some of our best members never step in.</p></div>
+      <div class="svc-row"><span class="no">Bout 05</span><h3>One-to-one coaching</h3><p>You and a coach, on the pads, working exactly on what you need. Nerves, fitness, a competition goal, or just an hour that's entirely yours.</p></div>
+      <div class="svc-row"><span class="no">Bout 06</span><h3>Youth &amp; women-only sessions</h3><p>Coached youth classes and dedicated women-only sessions with the same technique-first approach. Bring the kids; bring yourself; bring a mate who's nervous.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v19">
+  <div class="wrap">
+    <div class="rnd-head"><span>ROUND 03 / THE CORNER</span><span>THREE THINGS WE STAND ON</span></div>
+    <h2 class="h2" style="color:var(--bone);">In our corner.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Coached by fighters.</h3><p>Everyone in a Southpaw corner has boxed competitively. You're learning real technique from people who've used it, not a circuit-class routine with gloves on.</p></div>
+      <div><span class="no">02 / 03</span><h3>Sparring is always a choice.</h3><p>Nobody is pushed into a ring. Many members never spar and get everything they came for. When you do, it's supervised, matched and never sprung on you.</p></div>
+      <div><span class="no">03 / 03</span><h3>No mirrors, no posing.</h3><p>We took the mirror walls out on purpose. This is a room for work, not for watching yourself work. The results show up in the ring and on the bag, not the glass.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="rnd-head"><span>ROUND 04 / THE FIRST SIX WEEKS</span><span>DOOR → STANCE → BAG → PATH</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Book the course</h3><p>Six weeks, one group, starting monthly. No kit but shorts and a water bottle — we lend gloves and wraps until you want your own.</p></li>
+      <li><span class="step">Step 02</span><h3>Learn the four punches</h3><p>Stance, guard, jab, cross, hook, uppercut — done properly and slowly before speed. Your feet get more attention than your fists at first.</p></li>
+      <li><span class="step">Step 03</span><h3>Put it on the bag</h3><p>Rounds on the bags and pads, building the fitness and the timing. This is where it clicks and where the week's stress goes to die.</p></li>
+      <li><span class="step">Step 04</span><h3>Choose your path</h3><p>Stay for fitness, push into technical classes, or — only if you want — try supervised sparring. All three are full memberships, no hierarchy.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v19">
+  <div class="wrap">
+    <div class="rnd-head"><span>ROUND 05 / MEMBERS</span><span>SAID AFTER THE BELL</span></div>
+    <blockquote class="t-quote">“Forty-one, never thrown a punch. Six weeks later I can actually box — and never once been made to feel like the beginner I was.”</blockquote>
+    <div class="t-attr">Dan M. — beginners' course, then hooked</div>
+    <div class="t-sub">
+      <figure><blockquote>“I do boxing fitness three mornings a week purely to keep my head straight. An hour where I can't think about anything except the next combination. Better than any therapy I've paid more for.”</blockquote><figcaption>Priya K. — boxing fitness regular</figcaption></figure>
+      <figure><blockquote>“The women-only sessions got me into a sport I'd always assumed wasn't for me. Two years on I spar weekly and coach the newcomers. This place changes what you think you're capable of.”</blockquote><figcaption>Leanne T. — women-only, now assistant coach</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v47">
+  <div class="wrap">
+    <div class="rnd-head"><span>ROUND 06 / THE ROOM</span><span>BAGS, RING, WRAPS</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1591117207239-788bf8de6c3b?w=1600&q=85&auto=format&fit=crop" alt="Working the heavy bag." /><figcaption>THE BAG ROOM</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=1600&q=85&auto=format&fit=crop" alt="Pad work with a coach." /><figcaption>ON THE PADS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1546483875-ad9014c88eba?w=1600&q=85&auto=format&fit=crop" alt="Conditioning on the gym floor." /><figcaption>CONDITIONING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1544216717-3bbf52512659?w=1600&q=85&auto=format&fit=crop" alt="Partner drills after training." /><figcaption>PARTNER DRILLS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=1600&q=85&auto=format&fit=crop" alt="Skipping in the bag room." /><figcaption>SKIP, WARM UP</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1583473848882-f9a5bc7fd2ee?w=1600&q=85&auto=format&fit=crop" alt="Gloves resting on the ropes." /><figcaption>GLOVES ON THE ROPES</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="rnd-head"><span>ROUND 07 / ASKED AT THE DOOR</span><span>WRAPS STILL ON</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the door.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441132448890" style="color:var(--blood);">0113 244 8890</a>. Mid-session it's loud; leave a message and we'll ring back between classes.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I've genuinely never boxed. Am I going to embarrass myself?</summary><p>No — the beginners' course is built entirely for you, and everyone in the room started in exactly the same spot. We teach stance and the punches from zero, slowly, with no assumed knowledge. The only people who look out of place here are the ones pretending they already know it all.</p></details>
+        <details><summary>Will I have to spar or get hit?</summary><p>Never unless you choose to. Sparring is entirely optional at Southpaw, forever — lots of members train for years and never do it, and they get the full benefit of the fitness and the skill. If you do decide to try, it's supervised, size-matched, protected, and never a surprise.</p></details>
+        <details><summary>Is it just for young, fit people?</summary><p>Not at all. Our members run from teenagers to people in their sixties, every fitness level, all shapes. Boxing scales to whoever's doing it — the coach adjusts the work to you, not the other way round. Plenty of people arrive to get fit, not arrive already fit.</p></details>
+        <details><summary>What do I need to bring?</summary><p>Shorts or joggers, a t-shirt, trainers and a water bottle for the first few weeks — we lend gloves and hand wraps until you're sure you're sticking around. When you are, we'll help you buy the right gloves rather than the flashiest ones.</p></details>
+        <details><summary>Do you do women-only classes?</summary><p>Yes — dedicated women-only sessions with the same technique-first coaching, plus mixed classes that are welcoming to everyone. Many members move between the two. If a women-only start is what gets you through the door, it's here and it's properly coached.</p></details>
+        <details><summary>Can my kids train here?</summary><p>We run coached youth classes with the same discipline-and-technique approach — no full-contact for juniors, plenty of skill, fitness and focus. It's brilliant for confidence. Come and watch a session before you sign them up; parents usually end up joining too.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="rnd-head"><span>ROUND 08 / MEMBERS COME FROM</span><span>SOUTH LEEDS &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Holbeck</li><li>Hunslet</li><li>City centre</li><li>Beeston</li><li>Armley</li><li>Hunslet Carr</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="rnd-head"><span>ROUND 09 / THE ESSENTIALS</span><span>PROPERLY RUN</span></div>
+    <div class="creds">
+      <div><div class="label">Coaching</div><div class="detail">England Boxing qualified, ex-competitive coaches</div></div>
+      <div><div class="label">First aid</div><div class="detail">Trained first-aiders on every session</div></div>
+      <div><div class="label">Insured</div><div class="detail">Fully insured; England Boxing affiliated gym</div></div>
+      <div><div class="label">Kit</div><div class="detail">Gloves &amp; wraps loaned to beginners</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="rnd-head"><span>ROUND 10 / FIND US</span><span>MARSHALL'S MILL, HOLBECK</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Southpaw</strong><br />
+          Unit 6, Marshall's Mill<br />
+          Marshall Street, Holbeck, Leeds LS11 9YJ<br /><br />
+          <a href="tel:+441132448890" data-bind="business.phoneDisplay">0113 244 8890</a><br />
+          <a href="mailto:gym@southpawleeds.co.uk" data-bind="business.email">gym@southpawleeds.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>MON – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>SUN</span><span>REST DAY</span></div>
+          <p class="gbp-note">Class timetable and live hours on our Google Business Profile. Ground floor of the old mill — follow the sound of the skipping ropes.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Southpaw, Marshall Street, Holbeck, Leeds" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.5630%2C53.7860%2C-1.5450%2C53.7940&layer=mapnik&marker=53.7900%2C-1.5540"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v22">
+  <div class="wrap">
+    <div class="kick">ROUND 11 / START</div>
+    <h2 data-bind="cta.heading">Throw the first punch. <em>On a bag.</em></h2>
+    <p data-bind="cta.body">The beginners' course starts monthly. Gloves lent, nerves expected, sparring never compulsory.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Start the course</a>
+      <a class="btn btn-ghost" href="tel:+441132448890" data-bind="cta.secondary.label">0113 244 8890</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441132448890" data-bind="messaging.whatsapp" aria-label="Message the gym">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:26px;">SOUTH<span style="color:var(--blood);">PAW</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A boxing gym in Marshall's Mill, Holbeck, Leeds. In the corner since 2015.</p>
+      </div>
+      <div>
+        <h4>The gym</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          Unit 6, Marshall's Mill<br />Holbeck, Leeds LS11 9YJ<br />
+          <a href="tel:+441132448890">0113 244 8890</a><br />
+          <a href="mailto:gym@southpawleeds.co.uk">gym@southpawleeds.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Classes</a><a href="#about">The gym</a><a href="#location">Find us</a><a href="#book">Start</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> SOUTHPAW BOXING LTD</span>
+      <span>NO MIRRORS · ALL WORK</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

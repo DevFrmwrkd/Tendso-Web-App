@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Suki Fresh — palengke fish & meat stall, dawn-fresh isda & karne, delivery from Pasig Public Market</title>
+<meta name="description" content="Suki Fresh is a fish and meat stall in Pasig Public Market — dawn-fresh bangus, tilapia, galunggong and the day's catch, plus pork, chicken and beef cut to order. Free cleaning, suki prices, and same-day delivery around Pasig. Behind the same table since 1995." />
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Suki Fresh", phone: "+63 917 555 0233", phoneDisplay: "0917 555 0233", email: "order@sukifresh.ph", foundedYear: 1995 },
+  hero: {
+    kicker: "Palengke fish & meat stall · dawn-fresh · delivery · Pasig Public Market",
+    headline: "Fresh means it was swimming this morning. We don't sell it any other way.",
+    lede: "A fish and meat stall in Pasig Public Market, run by the same family behind the same table since 1995 — bangus, tilapia, galunggong and the day's catch on ice by dawn, plus pork, chicken and beef cut to order. We clean it free, we give suki prices to the regulars, and now we message you the day's fresh list and deliver it to your door. The palengke, without the 5AM alarm.",
+    primaryCta: { label: "Order today's fresh", href: "#book" },
+    secondaryCta: { label: "What's on ice", href: "#services" },
+    image: "https://images.unsplash.com/photo-1534177616072-ef7dc120449d?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Fresh fish laid out on ice at a market stall."
+  },
+  trust: { years: "Behind the same table since 1995" },
+  about: {
+    heading: "The palengke runs on trust. Twenty-five years of it lives at our table.",
+    paragraphs: [
+      "Suki Fresh is a fish-and-meat stall in Pasig Public Market — the palengke, the beating heart of how Filipinos have always shopped for food. A palengke isn't a supermarket; it's rows of family vendors, haggling and banter, produce that arrived hours ago, and the all-important suki relationship: the loyal-customer bond where your vendor knows your name, your usual order, sets aside the best cut for you, and gives you a fair price because you keep coming back. That trust is the whole system, and it's ours.",
+      "We've stood behind the same table since 1995. Our fish comes in before dawn — bangus, tilapia, galunggong, tamban, whatever the boats and the fish port sent — and goes straight onto ice, where you can see the clear eyes and red gills that tell you it's genuinely fresh, not yesterday's. Our pork, chicken and beef are delivered daily and cut to your order right in front of you. Nothing sits. In a palengke, a vendor who sells tired fish twice doesn't sell a third time.",
+      "What's changed is only how you reach us. We still run the table, but now we message our suki the day's fresh list each morning, take orders by phone and chat, clean and prepare everything the way you like it — scaled, gutted, sliced, ground, marinated — and deliver around Pasig the same day. Same fish, same hands, same fair suki price. You just skip the 5AM alarm and the walk through the wet aisles. The palengke, delivered."
+    ],
+    portrait: "https://images.unsplash.com/photo-1611262588024-d12430b98920?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A market vendor arranging fresh produce."
+  },
+  services: [
+    { name: "Dawn-fresh fish (isda)", description: "Bangus, tilapia, galunggong, tamban, pompano and the day's catch, on ice by dawn — clear eyes, red gills, firm flesh. We scale, gut and slice however you want it, free. Ask what came in best today." },
+    { name: "Pork, chicken & beef (karne)", description: "Delivered daily and cut to your order at the table — kasim, liempo, pork for adobo or sinigang, whole or parted chicken, beef for nilaga or caldereta. Ground, sliced or cubed as you need, no charge." },
+    { name: "Seafood & shellfish", description: "Shrimp, squid, crabs, tahong and clams when they're fresh and worth it — we'll tell you honestly what's good that day and what to skip. Cleaned and prepped so it's ready for the pot." },
+    { name: "Free cleaning & prep", description: "Every fish scaled, gutted and sliced; every cut of meat trimmed, sliced or ground to your recipe — all free, the way the palengke has always done it. Tell us the dish and we'll prep it to suit." },
+    { name: "Suki list & standing orders", description: "Join the suki list and we'll message you the day's fresh catch and best cuts each morning. Set a standing weekly order and we'll sort your usual without you lifting a finger — the modern suki bond." },
+    { name: "Same-day delivery", description: "Order by morning, delivered around Pasig the same day, packed cold and clean. The freshness of the palengke at your door — no 5AM alarm, no wet aisles, no haggling in the heat. Just good, fresh food." }
+  ],
+  why: [
+    { title: "On ice by dawn.", body: "Our fish arrives before sunrise and goes straight onto ice. Clear eyes, red gills, firm flesh — the signs of real freshness you can see. We'd rather sell out early than sell you yesterday's fish." },
+    { title: "Cut to order, cleaned free.", body: "Nothing pre-packed and sitting. We scale, gut, slice, grind and trim to your recipe, in front of you or before delivery — free, because that's how the palengke has always treated its suki." },
+    { title: "A suki price, honestly given.", body: "Regulars get the fair, loyal-customer price and the straight answer on what's freshest today. We've kept our suki for decades by never selling them tired fish or a bad cut. Trust is the business." }
+  ],
+  how: [
+    { step: "01", title: "Join the suki list", body: "Message us to get on the list, and each morning we'll send you the day's fresh catch and best cuts with prices. No guessing what's good — you'll know before you order, straight from the table." },
+    { step: "02", title: "Order by chat or phone", body: "Reply with what you want and how you'll cook it — sinigang na bangus, adobong baboy, ginataang hipon. Tell us the dish and we'll pick the right fish or cut and prep it to match." },
+    { step: "03", title: "We clean & prep it", body: "Scaled, gutted, sliced, ground, trimmed or marinated to your order — free, the palengke way. Everything packed cold and clean, ready to go straight into your pot. No mess in your kitchen." },
+    { step: "04", title: "Delivered the same day", body: "Order in the morning, and it's at your door around Pasig the same day. Or come see us at the table if you love the palengke as much as we do. Either way — fresh, fair, and yours." }
+  ],
+  testimonials: [
+    { quote: "I've been their suki for over fifteen years and I trust them completely — they'll literally tell me 'huwag yan today, kunin mo itong tilapia, mas fresh.' Now they message me the list and deliver, and it's the same great fish without the dawn trip. My family eats better and I sleep in. Perfect.", name: "Ate Malou", context: "suki since 2008" },
+    { quote: "As someone who never learned to pick fish, having a vendor I trust is everything. They clean everything free, cut my pork exactly for sinigang, and the bangus is always spotless-fresh. The morning list is genius — I plan dinner around what's freshest. Palengke quality, delivered. Sulit na sulit.", name: "Jenny R.", context: "delivery customer" },
+    { quote: "Our carinderia buys fish and meat from Suki Fresh daily and they've never let us down — fresh, fairly priced, cut exactly how we need it, and delivered on time every morning. When you cook for a living, a reliable palengke suki is worth gold. Twenty-five years and still the best table in Pasig.", name: "Mang Entoy", context: "carinderia owner" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1534177616072-ef7dc120449d?w=1600&q=85&auto=format&fit=crop", alt: "Fresh fish laid out on ice at a market stall." },
+    { src: "https://images.unsplash.com/photo-1611262588024-d12430b98920?w=1600&q=85&auto=format&fit=crop", alt: "A market vendor arranging fresh produce." },
+    { src: "https://images.unsplash.com/photo-1498654200943-1088dd4438ae?w=1600&q=85&auto=format&fit=crop", alt: "Fish arranged on crushed ice." },
+    { src: "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=1600&q=85&auto=format&fit=crop", alt: "Fresh cuts of meat." },
+    { src: "https://images.unsplash.com/photo-1506617420156-8e4536971650?w=1600&q=85&auto=format&fit=crop", alt: "A busy market aisle." },
+    { src: "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1600&q=85&auto=format&fit=crop", alt: "Fresh produce stacked at the market." }
+  ],
+  faq: [
+    { q: "What is a palengke, and what does 'suki' mean?", a: "A palengke is a Filipino public wet market — rows of independent family-run stalls selling fresh fish, meat, vegetables, fruit and everything for the kitchen, and it's how most Filipinos have traditionally shopped for food. Unlike a supermarket, a palengke runs on relationships, freshness and a bit of friendly haggling; produce typically arrives that same morning and turns over fast. 'Suki' is the heart of it: it's the Filipino term for the loyal-customer / trusted-vendor relationship. When you're someone's suki, they know you, they know your usual order, they set aside the best pieces for you, they give you a fair 'suki price' without you having to haggle hard, and they'll tell you honestly what's freshest that day and what to skip. In return, you keep coming back to them rather than shopping around. It's a bond built on mutual trust over time, and it's genuinely one of the nicest things about shopping the palengke way. We've built our whole stall on being a suki you can rely on." },
+    { q: "How do I know the fish is actually fresh?", a: "There are clear physical signs, and part of a good vendor's job is to point them out honestly rather than hide them. In truly fresh fish, the eyes are clear, bright and slightly bulging (not sunken, cloudy or grey), the gills are bright red or pink (not brown or slimy), the flesh is firm and springs back when pressed (not soft or mushy), and the smell is clean and of the sea (not sour or 'fishy' in a bad way). Fresh fish also generally has bright, intact scales and a shiny skin. At our stall everything comes in before dawn and goes straight onto ice, and we're happy for you to look closely — we'll show you the eyes and gills ourselves, because we've got nothing to hide and everything to gain from you trusting us. For delivery customers, this is exactly why the suki relationship matters: you're relying on us to apply those standards on your behalf and only send you fish we'd cook for our own family, which is precisely the trust we've spent decades earning. If anything we deliver ever isn't right, tell us — a suki relationship works both ways." },
+    { q: "Do you really clean and cut everything for free?", a: "Yes — free cleaning and preparation is a standard, expected part of good palengke service, not an extra, and we take pride in doing it well. For fish, that means scaling, gutting, removing gills, and slicing or filleting however your recipe needs — whole, butterflied, in steaks, deboned where possible, whatever you ask. For meat, it means trimming, slicing, cubing or grinding your pork, chicken or beef to suit the dish, and parting a whole chicken as you like it. Just tell us what you're cooking — sinigang, adobo, ginataan, nilaga, caldereta — and we'll prepare the fish or cut to match, because the right prep genuinely makes the dish easier and better. It also means your kitchen stays clean: no scaling fish over your sink, no wrestling a whole chicken. For delivery orders we do all of this before packing, so everything arrives cleaned, cut and ready to go straight into the pot. It's one of the quiet joys of having a real suki vendor rather than grabbing shrink-wrapped trays." },
+    { q: "How does the morning fresh list and ordering work?", a: "It's simple and it's the modern version of what the palengke always did informally. Each morning, once our fish is in and on ice and we know what came best from the boats and the port, and which meat cuts we have, we message our suki list the day's fresh selection, often with prices and a note on what's especially good that day. You just reply — by chat or a quick call — with what you'd like and, ideally, how you plan to cook it, so we can pick the right item and prep it accordingly. We confirm your order and the total, clean and prepare everything, and either set it aside for pickup at the table or send it out for same-day delivery around Pasig. To join, just message us and ask to be added to the list. There's no obligation to order every day — the list is simply so you always know what's fresh and can decide easily. Many of our regulars also set a standing order (say, their weekly usual), which we just prepare and deliver without them having to think about it." },
+    { q: "What areas do you deliver to, and when?", a: "We deliver around Pasig and the immediately surrounding areas, same-day, for orders placed in the morning — the whole point is to get you genuinely fresh palengke fish and meat while it's still at its best, so the delivery window is built around the morning's fresh arrivals. Order early and we'll get it to you that day, cleaned, prepped and packed cold. Exact coverage and cut-off times can vary a little with the day and demand, so the easiest thing is to message us with your location and we'll tell you straight whether we can reach you and by when. If you're just outside our usual range, ask anyway — depending on the day and your order we can sometimes work something out, especially for standing orders and regular customers. For anyone within easy reach of Pasig Public Market who'd rather come in person, you're always welcome at the table too; a lot of our suki enjoy the visit and the banter, and only use delivery when they're busy. Either way, the freshness and the suki price are the same." },
+    { q: "Is buying from a palengke stall as safe and good as a supermarket?", a: "In our honest view, for fish and meat a good palengke stall is often fresher than a supermarket, precisely because the produce arrives that morning, turns over quickly, and comes from a vendor whose entire livelihood depends on repeat customers trusting the quality. A supermarket's chilled trays can be perfectly fine, but they may have been packed a day or more earlier, and you can't inspect the fish's eyes and gills through shrink-wrap or ask a barcode what's freshest today. The one thing a supermarket offers is standardised handling, so the fair concern with a palengke is hygiene and cold-chain — and that's exactly where choosing a reputable stall matters. We keep our fish properly iced, our meat delivered fresh daily and kept cold, our table and tools clean, and for delivery we pack everything cold and hygienically. The suki relationship is itself a safeguard: a vendor who wants you back for another twenty years simply cannot afford to make you sick or sell you something off. Buy from a stall that takes freshness and cleanliness seriously — like ours — and you get supermarket-beating freshness with a real person standing behind it." }
+  ],
+  area: { places: ["Pasig", "Kapitolyo", "Ortigas", "Mandaluyong", "Cainta", "Same-day delivery"] },
+  credentials: [
+    { label: "Since 1995", detail: "The same family, the same table" },
+    { label: "On ice by dawn", detail: "Fresh fish daily, clear eyes & red gills" },
+    { label: "Cleaned free", detail: "Scaled, cut & prepped to your recipe" },
+    { label: "Suki delivery", detail: "Morning fresh list, same-day to your door" }
+  ],
+  location: { name: "Suki Fresh", addressStreet: "Stall 44, Pasig Public Market, Plaza Rizal", addressLocality: "Pasig", addressRegion: "Metro Manila", addressPostcode: "1600", addressCountry: "Philippines" },
+  cta: { heading: "Get on the list. Eat like you've got a suki.", body: "Dawn-fresh fish and meat from our Pasig Public Market table, cleaned and cut free to your recipe, at an honest suki price — messaged to you each morning and delivered the same day. Behind the same table since 1995.", primary: { label: "Order today's fresh", href: "#book" }, secondary: { label: "0917 555 0233", href: "tel:+639175550233" } },
+  messaging: { whatsapp: "https://wa.me/639175550233", messenger: "https://m.me/sukifresh" }
+};
+</script>
+
+<style>
+  :root {
+    --deep:#0f3b45; --deep-2:#0a2b32; --foam:#f0f6f4; --foam-2:#f9fcfb; --ink:#16302f; --ink-2:#3c5453;
+    --coral:#e8563f; --catch:#f2a92e; --sea:#1f9c8a; --gill:#d64545;
+    --mid:#7c918f; --mid-d:#a9c2bf; --rule:rgba(15,59,69,0.13); --rule-d:rgba(240,246,244,0.16);
+    --disp:"Familjen Grotesk",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--foam);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--coral);}
+  .wrap{width:min(1260px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--coral);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:700;font-size:clamp(38px,5.4vw,80px);line-height:1.0;margin:0 0 0.32em;letter-spacing:-0.02em;}
+  .h2 em{font-style:normal;color:var(--coral);}
+  .body{color:var(--ink-2);line-height:1.7;}
+  section{padding:clamp(76px,9vw,128px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:999px;}
+  .btn-primary{background:var(--coral);color:var(--foam-2);} .btn-primary:hover{background:var(--deep);}
+  .btn-ghost{border:2px solid var(--deep);color:var(--deep);} .btn-ghost:hover{background:var(--deep);color:var(--foam-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);border-bottom:2px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(240,246,244,0.93);backdrop-filter:blur(10px);border-bottom:2px solid var(--deep);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:700;font-size:23px;text-decoration:none;letter-spacing:-0.02em;color:var(--deep);}
+  .wm span{color:var(--coral);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--ink-2);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,66px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(40px,6.2vw,96px);line-height:0.98;letter-spacing:-0.025em;margin:0 0 34px;max-width:17ch;color:var(--deep);}
+  .hero-headline em{font-style:normal;color:var(--coral);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:14px;}
+  .hero-photo::after{content:"ON ICE BY DAWN · SINCE 1995";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.12em;background:var(--catch);color:var(--deep);padding:7px 12px;border-radius:999px;}
+  .hero-right .lede{color:var(--ink-2);font-size:clamp(15px,1.5vw,17.5px);line-height:1.74;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--deep);color:var(--foam-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.11em;text-transform:uppercase;color:rgba(249,252,251,0.86);font-weight:700;}
+
+  .about{background:var(--foam-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:14px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.78;margin:0 0 1em;color:#354c4b;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:2px solid var(--deep);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(232,86,63,0.09);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;color:var(--sea);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:700;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:1.04;letter-spacing:-0.02em;}
+  .svc-row p{color:var(--ink-2);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--deep);color:var(--foam);}
+  .why .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+  .why .h2{color:var(--foam);} .why .h2 em{color:var(--catch);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--catch);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:700;font-size:27px;margin:0 0 10px;line-height:1.06;letter-spacing:-0.02em;}
+  .why-grid p{color:var(--mid-d);margin:0;font-size:14.5px;line-height:1.72;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--coral);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--sea);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:700;font-size:23px;margin:8px 0 8px;line-height:1.08;letter-spacing:-0.02em;}
+  .how-grid p{color:var(--ink-2);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--deep-2);color:var(--foam);}
+  .t-quote{font-family:var(--disp);font-weight:700;font-size:clamp(26px,3.5vw,50px);line-height:1.1;max-width:26ch;margin:0 0 24px;letter-spacing:-0.02em;}
+  .t-quote em{font-style:normal;color:var(--catch);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--catch);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.74;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:12px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--coral);color:var(--foam-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--deep);}
+  .faq-list summary{font-family:var(--disp);font-weight:700;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;letter-spacing:-0.02em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--coral);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--ink-2);font-size:14.5px;max-width:64ch;line-height:1.74;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--deep);border-radius:999px;font-weight:700;color:var(--ink-2);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px solid var(--sea);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--coral);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.16;letter-spacing:-0.02em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--deep);color:var(--foam);padding:34px;border-radius:14px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:700;font-size:21px;line-height:1.3;letter-spacing:-0.02em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:var(--mid-d);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:2px solid var(--rule-d);padding-top:18px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid-d);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid-d);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:14px;border:2px solid var(--deep);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.2) contrast(1.02);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--coral);color:var(--foam-2);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--foam-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(42px,6.2vw,102px);line-height:1.0;margin:14px auto 18px;max-width:15ch;letter-spacing:-0.025em;}
+  .cta-band h2 em{font-style:normal;color:var(--catch);}
+  .cta-band p{color:rgba(249,252,251,0.94);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--foam-2);color:var(--coral);} .cta-band .btn-primary:hover{background:var(--deep);color:var(--foam-2);}
+  .cta-band .btn-ghost{border-color:var(--foam-2);color:var(--foam-2);} .cta-band .btn-ghost:hover{background:var(--foam-2);color:var(--coral);}
+
+  footer{background:var(--deep-2);color:var(--foam);border-top:3px solid var(--catch);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--catch);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--coral);color:var(--foam-2);padding:13px 20px;border-radius:999px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 8px 24px rgba(232,86,63,0.4);border:2.5px solid var(--foam-2);}
+  .msg-fab a:hover{background:var(--deep);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Suki Fresh","description":"Fish and meat stall in Pasig Public Market — dawn-fresh bangus, tilapia, galunggong and the day's catch, plus pork, chicken and beef cut to order, cleaned free, at suki prices with same-day delivery around Pasig. Since 1995.","url":"https://sukifresh.ph/","telephone":"+639175550233","email":"order@sukifresh.ph","address":{"@type":"PostalAddress","streetAddress":"Stall 44, Pasig Public Market, Plaza Rizal","addressLocality":"Pasig","addressRegion":"Metro Manila","postalCode":"1600","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":14.5760,"longitude":121.0850},"areaServed":["Pasig","Kapitolyo","Ortigas","Mandaluyong","Cainta"],"image":["https://images.unsplash.com/photo-1534177616072-ef7dc120449d?w=1600"],"foundingDate":"1995"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is a palengke, and what does 'suki' mean?","acceptedAnswer":{"@type":"Answer","text":"A palengke is a Filipino public wet market — rows of independent family stalls selling fresh fish, meat, vegetables and everything for the kitchen, where produce arrives that morning and turns over fast. 'Suki' is the loyal-customer / trusted-vendor relationship: when you're someone's suki they know your usual order, set aside the best pieces, give a fair suki price without hard haggling, and tell you honestly what's freshest. It's a bond built on mutual trust over time, and it's what we've built our stall on."}},
+{"@type":"Question","name":"How do I know the fish is actually fresh?","acceptedAnswer":{"@type":"Answer","text":"Fresh fish has clear, bright, slightly bulging eyes (not sunken or cloudy), bright red or pink gills (not brown or slimy), firm flesh that springs back, a clean sea smell, and shiny intact scales. Everything at our stall comes in before dawn and goes straight onto ice, and we'll show you the eyes and gills ourselves. For delivery customers this is exactly why the suki relationship matters — you rely on us to apply those standards and only send fish we'd cook for our own family. If anything isn't right, tell us."}},
+{"@type":"Question","name":"Do you really clean and cut everything for free?","acceptedAnswer":{"@type":"Answer","text":"Yes — free cleaning and prep is standard good palengke service, not an extra. For fish: scaling, gutting, removing gills, slicing or filleting however your recipe needs. For meat: trimming, slicing, cubing or grinding pork, chicken or beef, and parting a whole chicken. Tell us the dish — sinigang, adobo, ginataan, nilaga — and we prep to match. It keeps your kitchen clean too, and for delivery we do all of it before packing so everything arrives ready for the pot."}},
+{"@type":"Question","name":"How does the morning fresh list and ordering work?","acceptedAnswer":{"@type":"Answer","text":"Each morning, once our fish is in and on ice and we know what came best, we message our suki list the day's fresh selection with prices and notes on what's especially good. You reply by chat or call with what you'd like and how you'll cook it; we confirm, clean and prepare it, and set it aside for pickup or send it for same-day delivery around Pasig. Message us to join the list — there's no obligation to order daily, and many regulars set a standing weekly order we just prepare and deliver."}},
+{"@type":"Question","name":"What areas do you deliver to, and when?","acceptedAnswer":{"@type":"Answer","text":"We deliver around Pasig and immediately surrounding areas, same-day, for orders placed in the morning, so you get genuinely fresh palengke fish and meat at its best. Order early and we'll get it to you that day, cleaned, prepped and packed cold. Coverage and cut-off times vary with the day, so message us your location and we'll say straight whether we can reach you and by when. Just outside our range? Ask anyway — especially for standing orders. You're always welcome at the table too."}},
+{"@type":"Question","name":"Is buying from a palengke stall as good as a supermarket?","acceptedAnswer":{"@type":"Answer","text":"For fish and meat, a good palengke stall is often fresher than a supermarket, because produce arrives that morning, turns over fast, and comes from a vendor whose livelihood depends on repeat trust. Supermarket trays can be fine but may be a day or more old, and you can't inspect eyes and gills through shrink-wrap. The fair concern is hygiene and cold-chain — which is why choosing a reputable stall matters. We keep fish properly iced, meat fresh daily and cold, tools and table clean, and pack delivery cold. The suki relationship is itself a safeguard: a vendor who wants you back for twenty years can't afford to sell you something off."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Suki <span>Fresh</span></a>
+    <nav class="nav-links">
+      <a href="#about">The stall</a><a href="#services">What's on ice</a><a href="#location">Find us</a><a href="#book">Order</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Palengke fish & meat stall · dawn-fresh · delivery · Pasig Public Market</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Fresh means it was swimming this morning. We don't sell it <em>any other way.</em>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1534177616072-ef7dc120449d?w=2000&q=85&auto=format&fit=crop"
+             alt="Fresh fish laid out on ice at a market stall." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A fish and meat stall in Pasig Public Market, run by the same family behind the same table since 1995 — bangus, tilapia, galunggong and the day's catch on ice by dawn, plus pork, chicken and beef cut to order. We clean it free, we give suki prices to the regulars, and now we message you the day's fresh list and deliver it to your door. The palengke, without the 5AM alarm.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Order today's fresh</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What's on ice</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Behind the same table since 1995</span>
+    <span>On ice by dawn</span>
+    <span>Cleaned &amp; cut free</span>
+    <span>Suki prices, same-day delivery</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>STALL 01 / THE TABLE</span><span>PASIG PUBLIC MARKET</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">The palengke runs on trust. Twenty-five years of it lives at our <em>table.</em></h2>
+        <p>Suki Fresh is a fish-and-meat stall in Pasig Public Market — the palengke, the beating heart of how Filipinos have always shopped for food. A palengke isn't a supermarket; it's rows of family vendors, haggling and banter, produce that arrived hours ago, and the all-important suki relationship: the loyal-customer bond where your vendor knows your name, your usual order, sets aside the best cut for you, and gives you a fair price because you keep coming back. That trust is the whole system, and it's ours.</p>
+        <p>We've stood behind the same table since 1995. Our fish comes in before dawn — bangus, tilapia, galunggong, tamban, whatever the boats and the fish port sent — and goes straight onto ice, where you can see the clear eyes and red gills that tell you it's genuinely fresh, not yesterday's. Our pork, chicken and beef are delivered daily and cut to your order right in front of you. Nothing sits. In a palengke, a vendor who sells tired fish twice doesn't sell a third time.</p>
+        <p>What's changed is only how you reach us. We still run the table, but now we message our suki the day's fresh list each morning, take orders by phone and chat, clean and prepare everything the way you like it — scaled, gutted, sliced, ground, marinated — and deliver around Pasig the same day. Same fish, same hands, same fair suki price. You just skip the 5AM alarm and the walk through the wet aisles. The palengke, delivered.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1611262588024-d12430b98920?w=1200&q=85&auto=format&fit=crop"
+           alt="A market vendor arranging fresh produce." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>STALL 02 / WHAT'S ON ICE</span><span>ISDA · KARNE · PREP · DELIVERY</span></div>
+    <h2 class="h2">What's on ice.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Dawn-fresh fish (isda)</h3><p>Bangus, tilapia, galunggong, tamban, pompano and the day's catch, on ice by dawn — clear eyes, red gills, firm flesh. We scale, gut and slice however you want it, free. Ask what came in best today.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Pork, chicken &amp; beef (karne)</h3><p>Delivered daily and cut to your order at the table — kasim, liempo, pork for adobo or sinigang, whole or parted chicken, beef for nilaga or caldereta. Ground, sliced or cubed as you need, no charge.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Seafood &amp; shellfish</h3><p>Shrimp, squid, crabs, tahong and clams when they're fresh and worth it — we'll tell you honestly what's good that day and what to skip. Cleaned and prepped so it's ready for the pot.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Free cleaning &amp; prep</h3><p>Every fish scaled, gutted and sliced; every cut of meat trimmed, sliced or ground to your recipe — all free, the way the palengke has always done it. Tell us the dish and we'll prep it to suit.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Suki list &amp; standing orders</h3><p>Join the suki list and we'll message you the day's fresh catch and best cuts each morning. Set a standing weekly order and we'll sort your usual without you lifting a finger — the modern suki bond.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Same-day delivery</h3><p>Order by morning, delivered around Pasig the same day, packed cold and clean. The freshness of the palengke at your door — no 5AM alarm, no wet aisles, no haggling in the heat. Just good, fresh food.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>STALL 03 / THE DIFFERENCE</span><span>WHY OUR SUKI STAY</span></div>
+    <h2 class="h2">Why our suki <em>stay.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>On ice by dawn.</h3><p>Our fish arrives before sunrise and goes straight onto ice. Clear eyes, red gills, firm flesh — the signs of real freshness you can see. We'd rather sell out early than sell you yesterday's fish.</p></div>
+      <div><span class="no">02 / 03</span><h3>Cut to order, cleaned free.</h3><p>Nothing pre-packed and sitting. We scale, gut, slice, grind and trim to your recipe, in front of you or before delivery — free, because that's how the palengke has always treated its suki.</p></div>
+      <div><span class="no">03 / 03</span><h3>A suki price, honestly given.</h3><p>Regulars get the fair, loyal-customer price and the straight answer on what's freshest today. We've kept our suki for decades by never selling them tired fish or a bad cut. Trust is the business.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>STALL 04 / HOW IT GOES</span><span>LIST · ORDER · PREP · DELIVER</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Join the suki list</h3><p>Message us to get on the list, and each morning we'll send you the day's fresh catch and best cuts with prices. No guessing what's good — you'll know before you order, straight from the table.</p></li>
+      <li><span class="step">STEP 02</span><h3>Order by chat or phone</h3><p>Reply with what you want and how you'll cook it — sinigang na bangus, adobong baboy, ginataang hipon. Tell us the dish and we'll pick the right fish or cut and prep it to match.</p></li>
+      <li><span class="step">STEP 03</span><h3>We clean &amp; prep it</h3><p>Scaled, gutted, sliced, ground, trimmed or marinated to your order — free, the palengke way. Everything packed cold and clean, ready to go straight into your pot. No mess in your kitchen.</p></li>
+      <li><span class="step">STEP 04</span><h3>Delivered the same day</h3><p>Order in the morning, and it's at your door around Pasig the same day. Or come see us at the table if you love the palengke as much as we do. Either way — fresh, fair, and yours.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>STALL 05 / FROM THE SUKI</span><span>SULIT NA SULIT</span></div>
+    <blockquote class="t-quote">“They'll tell me 'huwag yan today, kunin mo itong tilapia, mas fresh.' My family eats better and I <em>sleep in.</em>”</blockquote>
+    <div class="t-attr">Ate Malou — suki since 2008</div>
+    <div class="t-sub">
+      <figure><blockquote>“As someone who never learned to pick fish, having a vendor I trust is everything. They clean everything free, cut my pork exactly for sinigang, and the bangus is always spotless-fresh. The morning list is genius — I plan dinner around what's freshest. Palengke quality, delivered. Sulit na sulit.”</blockquote><figcaption>Jenny R. — delivery customer</figcaption></figure>
+      <figure><blockquote>“Our carinderia buys fish and meat from Suki Fresh daily and they've never let us down — fresh, fairly priced, cut exactly how we need it, and delivered on time every morning. When you cook for a living, a reliable palengke suki is worth gold. Twenty-five years and still the best table in Pasig.”</blockquote><figcaption>Mang Entoy — carinderia owner</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--foam-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>STALL 06 / AT THE MARKET</span><span>ICE, CATCH &amp; TRUST</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1534177616072-ef7dc120449d?w=1600&q=85&auto=format&fit=crop" alt="Fresh fish laid out on ice at a market stall." /><figcaption>THE ICE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1611262588024-d12430b98920?w=1600&q=85&auto=format&fit=crop" alt="A market vendor arranging fresh produce." /><figcaption>THE TABLE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1498654200943-1088dd4438ae?w=1600&q=85&auto=format&fit=crop" alt="Fish arranged on crushed ice." /><figcaption>THE CATCH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=1600&q=85&auto=format&fit=crop" alt="Fresh cuts of meat." /><figcaption>THE KARNE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1506617420156-8e4536971650?w=1600&q=85&auto=format&fit=crop" alt="A busy market aisle." /><figcaption>THE PALENGKE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1600&q=85&auto=format&fit=crop" alt="Fresh produce stacked at the market." /><figcaption>THE MORNING</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>STALL 07 / GOOD TO KNOW</span><span>FRESHNESS, SUKI &amp; DELIVERY</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+639175550233" style="color:var(--coral);font-weight:700;">0917 555 0233</a>. Ask to join the morning fresh list; it's the easiest way to eat well.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What is a palengke, and what does 'suki' mean?</summary><p>A palengke is a Filipino public wet market — rows of independent family-run stalls selling fresh fish, meat, vegetables, fruit and everything for the kitchen, and it's how most Filipinos have traditionally shopped for food. Unlike a supermarket, a palengke runs on relationships, freshness and a bit of friendly haggling; produce typically arrives that same morning and turns over fast. 'Suki' is the heart of it: the Filipino term for the loyal-customer / trusted-vendor relationship. When you're someone's suki, they know you, they know your usual order, they set aside the best pieces for you, they give you a fair suki price without you having to haggle hard, and they'll tell you honestly what's freshest and what to skip. In return, you keep coming back. It's a bond built on mutual trust over time, and we've built our whole stall on being a suki you can rely on.</p></details>
+        <details><summary>How do I know the fish is actually fresh?</summary><p>There are clear physical signs, and part of a good vendor's job is to point them out honestly. In truly fresh fish, the eyes are clear, bright and slightly bulging (not sunken, cloudy or grey), the gills are bright red or pink (not brown or slimy), the flesh is firm and springs back when pressed, and the smell is clean and of the sea. Fresh fish also has bright, intact scales and shiny skin. At our stall everything comes in before dawn and goes straight onto ice, and we're happy for you to look closely — we'll show you the eyes and gills ourselves. For delivery customers, this is exactly why the suki relationship matters: you're relying on us to apply those standards on your behalf and only send you fish we'd cook for our own family. If anything we deliver ever isn't right, tell us — a suki relationship works both ways.</p></details>
+        <details><summary>Do you really clean and cut everything for free?</summary><p>Yes — free cleaning and preparation is a standard, expected part of good palengke service, not an extra. For fish, that means scaling, gutting, removing gills, and slicing or filleting however your recipe needs — whole, butterflied, in steaks, deboned where possible. For meat, it means trimming, slicing, cubing or grinding your pork, chicken or beef to suit the dish, and parting a whole chicken. Just tell us what you're cooking — sinigang, adobo, ginataan, nilaga, caldereta — and we'll prepare the fish or cut to match, because the right prep makes the dish easier and better. It also keeps your kitchen clean. For delivery orders we do all of this before packing, so everything arrives cleaned, cut and ready for the pot.</p></details>
+        <details><summary>How does the morning fresh list and ordering work?</summary><p>It's the modern version of what the palengke always did informally. Each morning, once our fish is in and on ice and we know what came best from the boats and the port, and which meat cuts we have, we message our suki list the day's fresh selection, often with prices and a note on what's especially good. You just reply — by chat or a quick call — with what you'd like and, ideally, how you plan to cook it, so we can pick the right item and prep it accordingly. We confirm your order and total, clean and prepare everything, and either set it aside for pickup or send it out for same-day delivery around Pasig. To join, just message us. There's no obligation to order every day, and many regulars set a standing order we simply prepare and deliver without them having to think about it.</p></details>
+        <details><summary>What areas do you deliver to, and when?</summary><p>We deliver around Pasig and the immediately surrounding areas, same-day, for orders placed in the morning — the point is to get you genuinely fresh palengke fish and meat while it's at its best, so the window is built around the morning's arrivals. Order early and we'll get it to you that day, cleaned, prepped and packed cold. Exact coverage and cut-off times vary a little with the day and demand, so message us your location and we'll tell you straight whether we can reach you and by when. If you're just outside our usual range, ask anyway — depending on the day and your order we can sometimes work something out, especially for standing orders. Anyone near Pasig Public Market is always welcome at the table too.</p></details>
+        <details><summary>Is buying from a palengke stall as safe and good as a supermarket?</summary><p>In our honest view, for fish and meat a good palengke stall is often fresher than a supermarket, precisely because the produce arrives that morning, turns over quickly, and comes from a vendor whose livelihood depends on repeat customers trusting the quality. Supermarket trays can be fine, but may have been packed a day or more earlier, and you can't inspect the fish's eyes and gills through shrink-wrap. The one thing a supermarket offers is standardised handling, so the fair concern with a palengke is hygiene and cold-chain — and that's exactly where choosing a reputable stall matters. We keep our fish properly iced, our meat delivered fresh daily and kept cold, our table and tools clean, and for delivery we pack everything cold and hygienically. The suki relationship is itself a safeguard: a vendor who wants you back for another twenty years cannot afford to make you sick.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>STALL 08 / WE DELIVER TO</span><span>PASIG &amp; NEARBY</span></div>
+    <ul class="area-list">
+      <li>Pasig</li><li>Kapitolyo</li><li>Ortigas</li><li>Mandaluyong</li><li>Cainta</li><li>Same-day delivery</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>STALL 09 / THE ESSENTIALS</span><span>HOW WE RUN THE TABLE</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1995</div><div class="detail">The same family, the same table</div></div>
+      <div><div class="label">On ice by dawn</div><div class="detail">Fresh fish daily, clear eyes &amp; red gills</div></div>
+      <div><div class="label">Cleaned free</div><div class="detail">Scaled, cut &amp; prepped to your recipe</div></div>
+      <div><div class="label">Suki delivery</div><div class="detail">Morning fresh list, same-day to your door</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>STALL 10 / THE TABLE</span><span>PASIG PUBLIC MARKET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Suki Fresh</strong><br />
+          Stall 44, Pasig Public Market<br />
+          Plaza Rizal, Pasig 1600<br /><br />
+          <a href="tel:+639175550233" data-bind="business.phoneDisplay">0917 555 0233</a><br />
+          <a href="mailto:order@sukifresh.ph" data-bind="business.email">order@sukifresh.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SUN</span><span>5AM – 12NN</span></div>
+          <div class="row"><span>ORDER CUT-OFF</span><span>MORNING</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. Find us at Stall 44 inside Pasig Public Market. Order early for same-day delivery, or come say hi at the table — the banter's free too.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Suki Fresh, Pasig Public Market" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=121.0700%2C14.5660%2C121.1000%2C14.5860&layer=mapnik&marker=14.5760%2C121.0850"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">STALL 11 / ORDER</div>
+    <h2 data-bind="cta.heading">Get on the list. Eat like you've got a <em>suki.</em></h2>
+    <p data-bind="cta.body">Dawn-fresh fish and meat from our Pasig Public Market table, cleaned and cut free to your recipe, at an honest suki price — messaged to you each morning and delivered the same day. Behind the same table since 1995.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Order today's fresh</a>
+      <a class="btn btn-ghost" href="tel:+639175550233" data-bind="cta.secondary.label">0917 555 0233</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/639175550233" data-bind="messaging.whatsapp" aria-label="Message the stall">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:23px;color:var(--foam);">Suki <span style="color:var(--catch);">Fresh</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:var(--mid-d);">A fish and meat stall in Pasig Public Market — dawn-fresh, cleaned free, suki prices and same-day delivery, since 1995.</p>
+      </div>
+      <div>
+        <h4>The stall</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          Stall 44, Pasig Public Market<br />Plaza Rizal, Pasig 1600<br />
+          <a href="tel:+639175550233">0917 555 0233</a><br />
+          <a href="mailto:order@sukifresh.ph">order@sukifresh.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What's on ice</a><a href="#about">The stall</a><a href="#location">Find us</a><a href="#book">Order</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> SUKI FRESH</span>
+      <span>ON ICE BY DAWN · PASIG</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

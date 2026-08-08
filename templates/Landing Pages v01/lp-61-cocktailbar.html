@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Blind Tiger — cocktail bar in Manchester's Northern Quarter</title>
+<meta name="description" content="The Blind Tiger is a cocktail bar in Manchester's Northern Quarter with no menu — you tell the bartender three things, they build you a drink. Twelve seats, one long bar, reservations only after eight." />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;1,6..96,500&family=Archivo:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "The Blind Tiger", phone: "+44 161 228 7412", phoneDisplay: "0161 228 7412", email: "bar@theblindtiger.co.uk", foundedYear: 2016 },
+  hero: {
+    kicker: "Cocktail bar · no menu · Northern Quarter, Manchester",
+    headline: "There's no menu. Tell us three things.",
+    lede: "A spirit you like, a mood you're in, and how strong you're feeling. That's the whole order. Twelve seats at one long bar, four bartenders who've forgotten more recipes than most bars have printed, and a drink built for you on the spot — never the same twice.",
+    primaryCta: { label: "Reserve a seat", href: "#book" },
+    secondaryCta: { label: "How it works", href: "#services" },
+    image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A cocktail being finished at a dimly lit bar."
+  },
+  trust: { years: "Pouring since 2016" },
+  about: {
+    heading: "The menu is the bartender.",
+    paragraphs: [
+      "The Blind Tiger opened in 2016 with a printed menu like everyone else. We binned it within a month. A menu freezes a bar in time; it tells you what we made last season, not what's ripe, not what just came off the still, not what suits the weather and your mood tonight. So we threw it out and put the knowledge behind the bar instead.",
+      "You give three coordinates — a base spirit, a mood, a strength — and one of four bartenders builds from there, asking as much as they need to. It's not a magic trick; it's forty years of combined experience and a back bar of three hundred bottles doing what a laminated card can't.",
+      "Twelve seats, deliberately. You can see every drink made, ask what's in it, and change your mind halfway. Walk-ins before eight; reservations after. The room is small so the attention isn't."
+    ],
+    portrait: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Bartender stirring a drink over ice."
+  },
+  services: [
+    { name: "Bartender's choice", description: "The whole idea. Three coordinates, one drink built for you, never printed and never quite repeated. Tell us if we nailed it; we adjust in real time." },
+    { name: "The classics, properly", description: "Want a negroni made right, an old fashioned that isn't sweet, a martini as cold as physics allows? Ask. We keep the canon flawless as a matter of pride." },
+    { name: "Zero-proof, taken seriously", description: "Not a sad tonic. Distilled non-alcoholic spirits, house shrubs and clarified juices, built with the same three-coordinate care. Drivers eat well here." },
+    { name: "The bar seat experience", description: "Sit at the bar and let it run for the evening — a sequence of drinks paced to you, the bartender narrating as they go. The best seat in the house, by design." },
+    { name: "Private bar hire", description: "The whole room, twelve seats, one bartender to yourselves for the evening. Tell us the group; we'll build the flight. Sundays and Mondays." },
+    { name: "Masterclasses", description: "Two hours behind the bar for a small group — technique, balance, three drinks you'll make badly at home forever after. Monthly, booked out fast." }
+  ],
+  why: [
+    { title: "No menu, no ceiling.", body: "A menu limits a bar to what fit on the card. We're limited only by three hundred bottles and what the bartender knows — which is a great deal more than a page holds." },
+    { title: "Twelve seats, full attention.", body: "Small on purpose. You watch your drink made, ask what's in it, and get a bartender who has time for the answer. Big rooms can't do this; we won't try." },
+    { title: "Built for you, not for Instagram.", body: "No smoke, no dry ice, no drink that photographs better than it tastes. Balance over theatre, every time. The garnish earns its place or it doesn't get one." }
+  ],
+  how: [
+    { step: "01", title: "Take a seat", body: "Twelve at the bar. Walk in before eight or reserve after. No standing three-deep waving a twenty — that's not what this is." },
+    { step: "02", title: "Give three coordinates", body: "A spirit, a mood, a strength. 'Gin, something bright, medium' is plenty. The more you tell us, the closer we land." },
+    { step: "03", title: "Watch it built", body: "Everything happens in front of you. Ask what that bottle is, why that ice, what they're tasting for. Curiosity is the house drink." },
+    { step: "04", title: "Adjust and go again", body: "Too sweet? Too strong? Say so — we recalibrate on the next one. By drink three we know you. That's the whole point of no menu." }
+  ],
+  testimonials: [
+    { quote: "I said 'mezcal, moody, strong' and got a drink I've thought about for two years and been unable to order anywhere since, because it doesn't exist anywhere else. That's either genius or cruelty.", name: "Dominic R.", context: "the unrepeatable mezcal" },
+    { quote: "As the designated driver I'm used to lime and soda and pity. Here I got three zero-proof drinks as considered as anyone's, and paid attention to like a paying adult. I actually looked forward to my round.", name: "Sana K.", context: "zero-proof convert" },
+    { quote: "Took a sceptical American colleague who 'doesn't really do cocktails'. Four drinks later he was taking notes on his phone and trying to book the masterclass. The no-menu thing disarms everyone.", name: "Will T.", context: "bar seat, work night out" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=1600&q=85&auto=format&fit=crop", alt: "Finishing a cocktail at the bar." },
+    { src: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=1600&q=85&auto=format&fit=crop", alt: "Stirring over ice." },
+    { src: "https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=1600&q=85&auto=format&fit=crop", alt: "The back bar, three hundred bottles." },
+    { src: "https://images.unsplash.com/photo-1536935338788-846bb9981813?w=1600&q=85&auto=format&fit=crop", alt: "A finished drink, garnished." },
+    { src: "https://images.unsplash.com/photo-1575023782549-62ca0d244b39?w=1600&q=85&auto=format&fit=crop", alt: "Citrus and tools on the bar top." },
+    { src: "https://images.unsplash.com/photo-1569924995012-c4c706bfcd51?w=1600&q=85&auto=format&fit=crop", alt: "The bar at night, low light." }
+  ],
+  faq: [
+    { q: "Is there really no menu at all?", a: "None. Not hidden, not on request, not a QR code. You tell the bartender a spirit, a mood and a strength, and they build from there. If you genuinely can't decide, 'surprise me' is an accepted and encouraged order." },
+    { q: "What if I don't know what I like?", a: "Perfect — that's the easy version. Tell us a flavour you enjoy in anything (coffee, elderflower, chilli, black pepper) or a drink you had once and loved, and we'll triangulate. Half the fun is watching a vague answer become a specific drink." },
+    { q: "Do you take reservations?", a: "Walk-ins before 8pm, reservations after — twelve seats go fast, so booking the later slots is wise. Reserve online or ring. Groups larger than four are better as a private hire; the bar seats work best in ones, twos and threes." },
+    { q: "How much is a drink?", a: "Comparable to any serious cocktail bar in the city — you're paying for spirits and skill, not theatre. Because there's no menu, tell your bartender a ceiling if you have one and they'll build beautifully inside it. No one's ever surprised by the bill here." },
+    { q: "Can you do non-alcoholic drinks?", a: "Properly, yes — distilled zero-proof spirits, house shrubs, clarified juices, built with the same three-coordinate care as everything else. Drivers and non-drinkers get the full experience, not a consolation prize." },
+    { q: "I have an allergy / I hate coriander / aniseed is my enemy.", a: "Tell us — it's exactly the kind of thing the no-menu format handles best. We route around allergies and hatreds live, which a printed menu can't. The more we know, the better the drink; nothing you say is too fussy." }
+  ],
+  area: { places: ["Northern Quarter", "Ancoats", "City centre", "Salford", "Chorlton", "Didsbury"] },
+  credentials: [
+    { label: "Back bar", detail: "300+ bottles; classics kept flawless" },
+    { label: "The team", detail: "Four bartenders, 40 years combined" },
+    { label: "Zero-proof", detail: "Full non-alcoholic programme, taken seriously" },
+    { label: "Licensing", detail: "Challenge 25; Manchester licensed premises" }
+  ],
+  location: { name: "The Blind Tiger", addressStreet: "Basement, 9 Tib Street", addressLocality: "Manchester", addressRegion: "Greater Manchester", addressPostcode: "M4 1SH", addressCountry: "United Kingdom" },
+  cta: { heading: "Three words. One drink. Yours.", body: "Twelve seats, no menu, no wrong answers. Walk in before eight or reserve the later slots.", primary: { label: "Reserve a seat", href: "#book" }, secondary: { label: "0161 228 7412", href: "tel:+441612287412" } },
+  messaging: { whatsapp: "https://wa.me/441612287412", messenger: "https://m.me/theblindtiger" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#141014; --oxblood:#5c1a24; --brass:#c69a4c; --absinthe:#9fb04a; --cream:#efe7d8;
+    --ink:#efe7d8; --mid:#a99f8f; --mid-d:#8a8072; --rule:rgba(239,231,216,0.15);
+    --disp:"Bodoni Moda",serif; --sans:"Archivo",system-ui,sans-serif; --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--brass);}
+  .wrap{width:min(1200px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--brass);}
+  .h2{font-family:var(--disp);font-weight:500;font-size:clamp(32px,4.8vw,62px);line-height:1.02;margin:0 0 0.5em;letter-spacing:-0.01em;}
+  .h2 em{font-style:italic;}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(74px,9vw,128px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--brass);color:var(--void);} .btn-primary:hover{background:var(--cream);}
+  .btn-ghost{border:1px solid rgba(239,231,216,0.5);} .btn-ghost:hover{background:var(--cream);color:var(--void);border-color:var(--cream);}
+  .idx-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,60px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(20,16,20,0.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-size:21px;text-decoration:none;letter-spacing:0.01em;}
+  .wm em{font-style:italic;color:var(--brass);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — three-coordinate order slip over dark bar photo */
+  .hero{padding:clamp(52px,7vw,104px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.08fr 0.92fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.6vw,82px);line-height:1;letter-spacing:-0.02em;margin:20px 0 24px;}
+  .hero h1 em{font-style:italic;color:var(--brass);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.74;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;filter:saturate(0.9) brightness(0.85);}
+  .order-slip{position:absolute;bottom:22px;left:-16px;background:var(--cream);color:var(--void);padding:18px 22px;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;line-height:2;box-shadow:0 14px 34px rgba(0,0,0,0.5);max-width:220px;}
+  .order-slip .hd{color:var(--oxblood);letter-spacing:0.18em;border-bottom:1px solid rgba(20,16,20,0.2);padding-bottom:6px;margin-bottom:8px;}
+  .order-slip b{color:var(--void);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .order-slip{left:8px;}}
+
+  .trust{padding:0;background:var(--oxblood);color:var(--cream);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:rgba(239,231,216,0.85);}
+
+  .about{background:var(--oxblood);color:var(--cream);}
+  .about .h2{color:var(--cream);}
+  .about-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.76;margin:0 0 1em;color:rgba(239,231,216,0.82);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;filter:saturate(0.9);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — bottle-list ledger rows */
+  .svc-rows{border-top:1px solid var(--rule);}
+  .svc-row{display:grid;grid-template-columns:96px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(198,154,76,0.06);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--brass);text-transform:uppercase;}
+  .svc-row h3{font-family:var(--disp);font-weight:500;font-size:clamp(21px,2.2vw,28px);margin:0;line-height:1.12;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--absinthe);color:var(--void);}
+  .why .idx-head{border-color:rgba(20,16,20,0.25);color:rgba(20,16,20,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--oxblood);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--disp);font-weight:500;font-size:23px;margin:0 0 10px;line-height:1.14;}
+  .why-grid p{color:rgba(20,16,20,0.78);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1px solid var(--rule);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--brass);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:500;font-size:19px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#0f0c0f;}
+  .t-quote{font-family:var(--disp);font-weight:500;font-size:clamp(23px,3vw,40px);line-height:1.22;max-width:32ch;margin:0 0 22px;font-style:italic;}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--rule);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid-d);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — low-light contact strip */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;filter:saturate(0.85) brightness(0.85);transition:0.3s;}
+  .g-grid figure:hover img{filter:saturate(1) brightness(1);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:rgba(20,16,20,0.85);color:var(--brass);font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:6px 10px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--rule);}
+  .faq-list summary{font-family:var(--disp);font-weight:500;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--brass);font-size:20px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1px solid var(--rule);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1px solid var(--rule);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brass);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-size:16px;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--oxblood);color:var(--cream);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:19px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(239,231,216,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(239,231,216,0.75);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(239,231,216,0.7);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:1px solid var(--rule);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.5) invert(0.9) contrast(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--brass);color:var(--void);padding:clamp(84px,10vw,148px) 0;text-align:center;}
+  .cta-band .kick{color:var(--oxblood);}
+  .cta-band h2{font-family:var(--disp);font-weight:500;font-size:clamp(36px,5.4vw,80px);line-height:0.98;margin:16px auto 18px;max-width:16ch;letter-spacing:-0.02em;}
+  .cta-band h2 em{font-style:italic;}
+  .cta-band p{color:rgba(20,16,20,0.78);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--void);color:var(--brass);}
+  .cta-band .btn-primary:hover{background:var(--cream);color:var(--void);}
+  .cta-band .btn-ghost{border-color:var(--void);color:var(--void);}
+  .cta-band .btn-ghost:hover{background:var(--void);color:var(--brass);}
+
+  footer{background:var(--void);border-top:1px solid var(--rule);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--brass);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;color:var(--mid);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--brass);color:var(--void);padding:13px 20px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;box-shadow:0 8px 24px rgba(0,0,0,0.5);}
+  .msg-fab a:hover{background:var(--cream);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BarOrPub","name":"The Blind Tiger","description":"No-menu cocktail bar in Manchester's Northern Quarter — tell the bartender three things and they build your drink. Twelve seats.","url":"https://theblindtiger.co.uk/","telephone":"+441612287412","email":"bar@theblindtiger.co.uk","address":{"@type":"PostalAddress","streetAddress":"Basement, 9 Tib Street","addressLocality":"Manchester","addressRegion":"Greater Manchester","postalCode":"M4 1SH","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.4830,"longitude":-2.2360},"areaServed":["Northern Quarter","Ancoats","Manchester"],"image":["https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=1600"],"foundingDate":"2016"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is there really no menu at all?","acceptedAnswer":{"@type":"Answer","text":"None. You tell the bartender a spirit, a mood and a strength, and they build from there. 'Surprise me' is encouraged."}},
+{"@type":"Question","name":"What if I don't know what I like?","acceptedAnswer":{"@type":"Answer","text":"Tell us a flavour you enjoy in anything, or a drink you loved once, and we'll triangulate."}},
+{"@type":"Question","name":"Do you take reservations?","acceptedAnswer":{"@type":"Answer","text":"Walk-ins before 8pm, reservations after. Groups larger than four are better as a private hire."}},
+{"@type":"Question","name":"How much is a drink?","acceptedAnswer":{"@type":"Answer","text":"Comparable to any serious cocktail bar. Tell your bartender a ceiling and they'll build beautifully inside it."}},
+{"@type":"Question","name":"Can you do non-alcoholic drinks?","acceptedAnswer":{"@type":"Answer","text":"Properly — distilled zero-proof spirits, house shrubs, clarified juices, same three-coordinate care."}},
+{"@type":"Question","name":"Can you handle allergies and dislikes?","acceptedAnswer":{"@type":"Answer","text":"Yes — the no-menu format handles it best. We route around allergies and hatreds live."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">The Blind <em>Tiger</em></a>
+    <nav class="nav-links">
+      <a href="#about">The bar</a><a href="#services">How it works</a><a href="#location">Find us</a><a href="#book">Reserve</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v50">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Cocktail bar · no menu · Northern Quarter, Manchester</div>
+      <h1 data-comment-anchor="hero-headline">There's no menu. <em>Tell us three things.</em></h1>
+      <p class="lede" data-bind="hero.lede">A spirit you like, a mood you're in, and how strong you're feeling. That's the whole order. Twelve seats at one long bar, four bartenders who've forgotten more recipes than most bars have printed, and a drink built for you on the spot — never the same twice.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Reserve a seat</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">How it works</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=2000&q=85&auto=format&fit=crop"
+           alt="A cocktail being finished at a dimly lit bar." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="order-slip">
+        <div class="hd">ORDER № 1</div>
+        SPIRIT · <b>MEZCAL</b><br />MOOD · <b>MOODY</b><br />STRENGTH · <b>STRONG</b><br />→ BUILT TO ORDER
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Pouring since 2016</span>
+    <span>No menu, ever</span>
+    <span>Twelve seats</span>
+    <span>Zero-proof taken seriously</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v16">
+  <div class="wrap">
+    <div class="idx-head"><span>POUR 01 / THE BAR</span><span>THE MENU IS THE BARTENDER</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=1200&q=85&auto=format&fit=crop"
+           alt="Bartender stirring a drink over ice." />
+      <div class="about-prose">
+        <h2 class="h2">The menu is <em>the bartender.</em></h2>
+        <p>The Blind Tiger opened in 2016 with a printed menu like everyone else. We binned it within a month. A menu freezes a bar in time; it tells you what we made last season, not what's ripe, not what just came off the still, not what suits the weather and your mood tonight. So we threw it out and put the knowledge behind the bar instead.</p>
+        <p>You give three coordinates — a base spirit, a mood, a strength — and one of four bartenders builds from there, asking as much as they need to. It's not a magic trick; it's forty years of combined experience and a back bar of three hundred bottles doing what a laminated card can't.</p>
+        <p>Twelve seats, deliberately. You can see every drink made, ask what's in it, and change your mind halfway. Walk-ins before eight; reservations after. The room is small so the attention isn't.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v43">
+  <div class="wrap">
+    <div class="idx-head"><span>POUR 02 / WHAT WE POUR</span><span>NO CARD, JUST THIS</span></div>
+    <h2 class="h2">Ways to drink here.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Pour 01</span><h3>Bartender's choice</h3><p>The whole idea. Three coordinates, one drink built for you, never printed and never quite repeated. Tell us if we nailed it; we adjust in real time.</p></div>
+      <div class="svc-row"><span class="no">Pour 02</span><h3>The classics, properly</h3><p>Want a negroni made right, an old fashioned that isn't sweet, a martini as cold as physics allows? Ask. We keep the canon flawless as a matter of pride.</p></div>
+      <div class="svc-row"><span class="no">Pour 03</span><h3>Zero-proof, taken seriously</h3><p>Not a sad tonic. Distilled non-alcoholic spirits, house shrubs and clarified juices, built with the same three-coordinate care. Drivers eat well here.</p></div>
+      <div class="svc-row"><span class="no">Pour 04</span><h3>The bar seat experience</h3><p>Sit at the bar and let it run for the evening — a sequence of drinks paced to you, the bartender narrating as they go. The best seat in the house, by design.</p></div>
+      <div class="svc-row"><span class="no">Pour 05</span><h3>Private bar hire</h3><p>The whole room, twelve seats, one bartender to yourselves for the evening. Tell us the group; we'll build the flight. Sundays and Mondays.</p></div>
+      <div class="svc-row"><span class="no">Pour 06</span><h3>Masterclasses</h3><p>Two hours behind the bar for a small group — technique, balance, three drinks you'll make badly at home forever after. Monthly, booked out fast.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v15">
+  <div class="wrap">
+    <div class="idx-head"><span>POUR 03 / WHY NO MENU</span><span>THREE REASONS, NO CARD</span></div>
+    <h2 class="h2">Why we threw the menu out.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>No menu, no ceiling.</h3><p>A menu limits a bar to what fit on the card. We're limited only by three hundred bottles and what the bartender knows — which is a great deal more than a page holds.</p></div>
+      <div><span class="no">02 / 03</span><h3>Twelve seats, full attention.</h3><p>Small on purpose. You watch your drink made, ask what's in it, and get a bartender who has time for the answer. Big rooms can't do this; we won't try.</p></div>
+      <div><span class="no">03 / 03</span><h3>Built for you, not for Instagram.</h3><p>No smoke, no dry ice, no drink that photographs better than it tastes. Balance over theatre, every time. The garnish earns its place or it doesn't get one.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>POUR 04 / THE ORDER</span><span>SEAT → COORDINATES → DRINK</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Take a seat</h3><p>Twelve at the bar. Walk in before eight or reserve after. No standing three-deep waving a twenty — that's not what this is.</p></li>
+      <li><span class="step">Step 02</span><h3>Give three coordinates</h3><p>A spirit, a mood, a strength. "Gin, something bright, medium" is plenty. The more you tell us, the closer we land.</p></li>
+      <li><span class="step">Step 03</span><h3>Watch it built</h3><p>Everything happens in front of you. Ask what that bottle is, why that ice, what they're tasting for. Curiosity is the house drink.</p></li>
+      <li><span class="step">Step 04</span><h3>Adjust and go again</h3><p>Too sweet? Too strong? Say so — we recalibrate on the next one. By drink three we know you. That's the whole point of no menu.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v15">
+  <div class="wrap">
+    <div class="idx-head"><span>POUR 05 / REGULARS</span><span>OVERHEARD AT THE BAR</span></div>
+    <blockquote class="t-quote">“I said ‘mezcal, moody, strong’ and got a drink I've thought about for two years and been unable to order anywhere since, because it doesn't exist anywhere else.”</blockquote>
+    <div class="t-attr">Dominic R. — the unrepeatable mezcal</div>
+    <div class="t-sub">
+      <figure><blockquote>“As the designated driver I'm used to lime and soda and pity. Here I got three zero-proof drinks as considered as anyone's, and paid attention to like a paying adult.”</blockquote><figcaption>Sana K. — zero-proof convert</figcaption></figure>
+      <figure><blockquote>“Took a sceptical American colleague who 'doesn't really do cocktails'. Four drinks later he was taking notes on his phone and trying to book the masterclass.”</blockquote><figcaption>Will T. — bar seat, work night out</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v43">
+  <div class="wrap">
+    <div class="idx-head"><span>POUR 06 / THE ROOM</span><span>SHOT IN LOW LIGHT</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=1600&q=85&auto=format&fit=crop" alt="Finishing a cocktail at the bar." /><figcaption>THE FINISH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=1600&q=85&auto=format&fit=crop" alt="Stirring over ice." /><figcaption>STIRRED, NOT RUSHED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=1600&q=85&auto=format&fit=crop" alt="The back bar." /><figcaption>THREE HUNDRED BOTTLES</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1536935338788-846bb9981813?w=1600&q=85&auto=format&fit=crop" alt="A finished drink, garnished." /><figcaption>GARNISH THAT EARNS IT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1575023782549-62ca0d244b39?w=1600&q=85&auto=format&fit=crop" alt="Citrus and tools on the bar top." /><figcaption>THE STATION</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1569924995012-c4c706bfcd51?w=1600&q=85&auto=format&fit=crop" alt="The bar at night." /><figcaption>THE ROOM, LATE</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>POUR 07 / ASKED ACROSS THE BAR</span><span>USUALLY MID-STIR</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked across <em>the bar.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441612287412" style="color:var(--brass);">0161 228 7412</a> or message us. After eight we're busy pouring; leave it and we'll come back to you.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Is there really no menu at all?</summary><p>None. Not hidden, not on request, not a QR code. You tell the bartender a spirit, a mood and a strength, and they build from there. If you genuinely can't decide, "surprise me" is an accepted and encouraged order.</p></details>
+        <details><summary>What if I don't know what I like?</summary><p>Perfect — that's the easy version. Tell us a flavour you enjoy in anything (coffee, elderflower, chilli, black pepper) or a drink you had once and loved, and we'll triangulate. Half the fun is watching a vague answer become a specific drink.</p></details>
+        <details><summary>Do you take reservations?</summary><p>Walk-ins before 8pm, reservations after — twelve seats go fast, so booking the later slots is wise. Reserve online or ring. Groups larger than four are better as a private hire; the bar seats work best in ones, twos and threes.</p></details>
+        <details><summary>How much is a drink?</summary><p>Comparable to any serious cocktail bar in the city — you're paying for spirits and skill, not theatre. Because there's no menu, tell your bartender a ceiling if you have one and they'll build beautifully inside it. No one's ever surprised by the bill here.</p></details>
+        <details><summary>Can you do non-alcoholic drinks?</summary><p>Properly, yes — distilled zero-proof spirits, house shrubs, clarified juices, built with the same three-coordinate care as everything else. Drivers and non-drinkers get the full experience, not a consolation prize.</p></details>
+        <details><summary>I have an allergy / I hate coriander / aniseed is my enemy.</summary><p>Tell us — it's exactly the kind of thing the no-menu format handles best. We route around allergies and hatreds live, which a printed menu can't. The more we know, the better the drink; nothing you say is too fussy.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>POUR 08 / DRINKERS COME FROM</span><span>MANCHESTER &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Northern Quarter</li><li>Ancoats</li><li>City centre</li><li>Salford</li><li>Chorlton</li><li>Didsbury</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>POUR 09 / THE ESSENTIALS</span><span>BEHIND THE BAR</span></div>
+    <div class="creds">
+      <div><div class="label">Back bar</div><div class="detail">300+ bottles; classics kept flawless</div></div>
+      <div><div class="label">The team</div><div class="detail">Four bartenders, 40 years combined</div></div>
+      <div><div class="label">Zero-proof</div><div class="detail">Full non-alcoholic programme, taken seriously</div></div>
+      <div><div class="label">Licensing</div><div class="detail">Challenge 25; Manchester licensed premises</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>POUR 10 / FIND US</span><span>BASEMENT, 9 TIB STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">The Blind Tiger</strong><br />
+          Basement, 9 Tib Street<br />
+          Northern Quarter, Manchester M4 1SH<br /><br />
+          <a href="tel:+441612287412" data-bind="business.phoneDisplay">0161 228 7412</a><br />
+          <a href="mailto:bar@theblindtiger.co.uk" data-bind="business.email">bar@theblindtiger.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>WED – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>WALK-INS</span><span>BEFORE 8PM</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The unmarked black door beside the record shop — down the stairs, that's us. If the lamp's lit, we're open.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of The Blind Tiger, Tib Street, Manchester" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.2450%2C53.4800%2C-2.2270%2C53.4870&layer=mapnik&marker=53.4830%2C-2.2360"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v18">
+  <div class="wrap">
+    <div class="kick">POUR 11 / RESERVE</div>
+    <h2 data-bind="cta.heading">Three words. One drink. <em>Yours.</em></h2>
+    <p data-bind="cta.body">Twelve seats, no menu, no wrong answers. Walk in before eight or reserve the later slots.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Reserve a seat</a>
+      <a class="btn btn-ghost" href="tel:+441612287412" data-bind="cta.secondary.label">0161 228 7412</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441612287412" data-bind="messaging.whatsapp" aria-label="Message the bar">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">The Blind <em style="color:var(--brass);">Tiger</em></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A no-menu cocktail bar in Manchester's Northern Quarter. Twelve seats since 2016.</p>
+      </div>
+      <div>
+        <h4>The bar</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;color:var(--mid);">
+          Basement, 9 Tib Street<br />Manchester M4 1SH<br />
+          <a href="tel:+441612287412">0161 228 7412</a><br />
+          <a href="mailto:bar@theblindtiger.co.uk">bar@theblindtiger.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">How it works</a><a href="#about">The bar</a><a href="#location">Find us</a><a href="#book">Reserve</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> THE BLIND TIGER LTD · DRINK RESPONSIBLY</span>
+      <span>NO MENU · NO CEILING</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

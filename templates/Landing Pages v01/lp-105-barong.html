@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Casa Piña — barong Tagalog atelier, hand-embroidered piña & jusi, made to measure in Taal, Batangas</title>
+<meta name="description" content="Casa Piña is a barong Tagalog atelier in Taal, Batangas — made-to-measure barong in piña, piña-seda and jusi, with hand-embroidered calado worked by our own manunuburan, for weddings, ninongs and formal occasions. Restoration and heirloom care too. Stitching since 1962." />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;1,6..96,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Casa Piña", phone: "+63 43 555 0162", phoneDisplay: "(043) 555 0162", email: "atelier@casapina.ph", foundedYear: 1962 },
+  hero: {
+    kicker: "Barong Tagalog atelier · piña & jusi · hand calado · Taal, Batangas",
+    headline: "The national dress, cut to your measure and embroidered by hand.",
+    lede: "A barong Tagalog atelier in Taal, the old heart of Batangas embroidery, making the Filipino formal shirt the way it was meant to be made — cut to your measure in piña, piña-seda and jusi, with calado and pechera worked stitch by stitch by hand. For grooms and ninongs, for graduations and inaugurals, for the barong you keep for a lifetime and pass on.",
+    primaryCta: { label: "Book a fitting", href: "#book" },
+    secondaryCta: { label: "What we make", href: "#services" },
+    image: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A tailor chalking a pattern on fine cloth at the cutting table."
+  },
+  trust: { years: "An atelier in Taal since 1962" },
+  about: {
+    heading: "A barong is not sewn in a day, and it is not worn out in a lifetime.",
+    paragraphs: [
+      "Casa Piña is a barong Tagalog atelier in Taal, Batangas — a town whose name has meant fine embroidery for generations. The barong Tagalog is the Filipino national dress: a formal shirt, worn untucked over an undershirt, traditionally in cloth so fine it is almost sheer, ornamented not with print but with embroidery worked directly into the fabric. Made properly, it is one of the most elegant garments in the world. Made carelessly, it is a costume. We only make it properly.",
+      "The atelier was founded in 1962 and has always worked the same way: cloth chosen by hand, measurements taken in person, patterns cut to the individual body, and the embroidery — the calado openwork and the pechera front panel — stitched by hand by our manunuburan, the embroiderers whose craft is Taal's inheritance. We work in the classic barong fabrics: piña, woven from pineapple-leaf fibre, the finest and most prized; piña-seda, blended with silk for a little more forgiveness; and jusi, a smooth, more affordable woven cloth for barong worn often.",
+      "We dress grooms and their entourages, ninongs and principal sponsors, graduates, officials at their inaugurals, and anyone who wants to own a real barong rather than a printed imitation. We also restore and care for heirloom barong — the ones handed down, yellowed or torn — because a hand-made barong is meant to outlive the occasion it was made for. Come and be measured; wear the national dress as it should be worn."
+    ],
+    portrait: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Hands stitching fine embroidery by lamplight."
+  },
+  services: [
+    { name: "Made-to-measure barong", description: "The full commission: cloth chosen with you, measurements taken in person, pattern cut to your body, and the barong made and embroidered by hand — for the groom, the ninong, the graduate, the occasion you'll remember." },
+    { name: "Piña, piña-seda & jusi", description: "The classic barong fabrics — piña from pineapple-leaf fibre, the finest and most prized; piña-seda blended with silk; and smooth, everyday jusi. We help you choose by occasion, budget and how sheer you dare." },
+    { name: "Hand calado & pechera", description: "The soul of the barong: calado openwork drawn-thread embroidery and the ornamented pechera front panel, worked stitch by stitch by our manunuburan. Classic patterns or a design created for you." },
+    { name: "Wedding & entourage sets", description: "Coordinated barong for the groom, fathers, ninongs and groomsmen — matched in cloth and embroidery, sized to each man and delivered in time for the fittings before the day. Book early for wedding season." },
+    { name: "Ladies' & modern cuts", description: "Kimona, traditional Filipiniana embroidery for the women of the party, and slimmer modern barong cuts for those who want the tradition tailored to a contemporary silhouette. Same cloth, same hand embroidery." },
+    { name: "Restoration & heirloom care", description: "Careful cleaning, mending and re-embroidery of heirloom and vintage barong — the yellowed, the torn, the ones handed down — so a barong made for a wedding decades ago can be worn to the next one." }
+  ],
+  why: [
+    { title: "Embroidered by hand, in Taal.", body: "The calado and pechera are stitched by hand by our own manunuburan, in the town that has embroidered barong for generations — not printed, not machine-copied. You can feel the difference in the cloth." },
+    { title: "Cut to you, not to a size.", body: "Measured in person and patterned to your body, because a barong that hangs right is the whole point of made-to-measure. A national dress deserves better than small, medium, large." },
+    { title: "Made to be handed down.", body: "Real cloth, hand embroidery and honest construction mean a barong outlives its occasion. We build them to be worn for decades — and we restore the ones that already have been." }
+  ],
+  how: [
+    { step: "01", title: "Come and be measured", body: "Visit the atelier for a proper consultation and fitting. We'll talk about the occasion, take your measurements in person, and let you see and handle the cloths so the choice is yours, not a catalogue's." },
+    { step: "02", title: "Choose cloth & embroidery", body: "Piña, piña-seda or jusi; a classic calado pattern or a design worked for you. We advise honestly on what suits the occasion, the climate and the budget, and sample the embroidery so you know what you're getting." },
+    { step: "03", title: "Cut, stitched & embroidered", body: "Your pattern is cut and the barong made by hand, the embroidery worked stitch by stitch by our manunuburan. It takes weeks, not hours — hand embroidery cannot be rushed, and shouldn't be." },
+    { step: "04", title: "Final fitting & wear", body: "A fitting to perfect the fit before the day, adjustments made, and your barong delivered pressed and ready. Wear it, keep it well, and bring it back for care whenever it needs it." }
+  ],
+  testimonials: [
+    { quote: "I was married in a Casa Piña piña barong and it is, without exaggeration, the finest thing I own. The embroidery is astonishing up close — every guest asked about it. It fit like it was grown on me. My father wore his to my wedding twenty-five years after his own. This is heirloom work.", name: "Enrique D.", context: "groom's barong, piña" },
+    { quote: "They made barong for the groom, both fathers and six ninongs for our wedding, all matched, all beautifully fitted, all ready on time despite my panic. The consultation was patient and the craftsmanship is on another level. Worth every peso and then some. Maraming salamat, Casa Piña.", name: "The Villanueva–Reyes wedding", context: "entourage set" },
+    { quote: "I brought them my late lolo's barong, yellowed and torn at the pechera, hoping it could be saved for my own wedding. They restored it so tenderly I cried at the fitting. To be married in his barong meant everything. There is no one else I would have trusted with it.", name: "Marco S.", context: "heirloom restoration" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1600&q=85&auto=format&fit=crop", alt: "Chalking a pattern on fine cloth at the cutting table." },
+    { src: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1600&q=85&auto=format&fit=crop", alt: "Hands stitching embroidery by lamplight." },
+    { src: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85&auto=format&fit=crop", alt: "Fine woven fabric with delicate pattern." },
+    { src: "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=1600&q=85&auto=format&fit=crop", alt: "Folded fine textiles stacked." },
+    { src: "https://images.unsplash.com/photo-1600166898405-da9535204843?w=1600&q=85&auto=format&fit=crop", alt: "A roll of fine cloth." },
+    { src: "https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=1600&q=85&auto=format&fit=crop", alt: "The atelier workbench with tools and cloth." }
+  ],
+  faq: [
+    { q: "What's the difference between piña, piña-seda and jusi?", a: "They are the three classic barong fabrics, and choosing between them is the first real decision of any commission. Piña is woven from the fibre of pineapple leaves — extraordinarily fine, slightly stiff, faintly golden, almost translucent, and the most prized and expensive cloth for a barong; it is what you'd choose for a wedding or the most important occasions, and it ages beautifully. Piña-seda is piña blended with silk (seda), which keeps much of piña's elegance while being a little softer, more forgiving and somewhat more affordable — a lovely middle ground. Jusi is a smooth, fine woven cloth, more affordable and hard-wearing, ideal for a barong you'll wear more often to work functions and everyday formal occasions. All three are worn untucked over an undershirt and all three can carry hand embroidery; the difference is in fineness, sheerness, drape, longevity and price. We'll show you all of them, explain how each suits your occasion and climate, and never push you towards more than the day requires." },
+    { q: "Is the embroidery really done by hand?", a: "Yes — the calado and pechera on our barong are embroidered by hand, by our own manunuburan (embroiderers), in Taal, which is precisely the craft this town has been known for across generations. This matters more than it might sound. Machine embroidery and printed 'barong' can imitate the look from a distance, but up close the difference is unmistakable: hand calado is drawn-thread openwork, where threads are actually withdrawn from the weave and the remaining ones stitched into lacy patterns, and the hand-worked pechera has a depth, irregularity and life that a machine simply cannot reproduce. It is slow, exacting, eye-straining work, and it is the single biggest reason a proper barong takes weeks to make and costs what it does. When people say a Casa Piña barong feels different, this is what they're feeling. We're glad to show you hand embroidery beside machine work so you can see for yourself before you decide." },
+    { q: "How long does a made-to-measure barong take?", a: "Plan on several weeks from measurement to final fitting for a standard commission, and longer for elaborate hand embroidery or a large wedding entourage — hand work cannot be rushed without ruining exactly what you're paying for. The timeline covers the consultation and measuring, cutting your pattern, the making of the barong, and then the embroidery, which is the longest and most delicate stage, followed by a fitting and any adjustments before delivery. For weddings, graduations and inaugurals — which cluster into busy seasons — we strongly advise coming to us as early as you can, ideally a couple of months ahead for an entourage, both so the work is unhurried and so we can secure the cloth you want. If you're in a genuine hurry we'll tell you honestly what's achievable and what isn't; we would rather turn away a rush than deliver a barong that isn't up to our name. Book the fitting early and the rest is a pleasure rather than a panic." },
+    { q: "Can you dress a whole wedding entourage?", a: "Yes, and it's some of our favourite work — coordinating barong for the groom, the fathers, the ninongs (principal sponsors) and the groomsmen, matched in cloth and embroidery pattern but each cut and fitted to the individual man, and all delivered in time for fittings before the day. Weddings are exactly what the atelier was built for, and there's a real art to making a set look unified on the day while flattering very different bodies. We'll usually recommend a slightly more forgiving cloth like piña-seda or jusi for a large entourage where budget and wearability across many men matter, and reserve the finest piña for the groom, though it's entirely your choice. The key is time: bring us the party, the date and the vision as early as possible, ideally a couple of months out, and we'll manage measurements, cloth, embroidery and fittings so it all comes together without stress. We coordinate ladies' Filipiniana and kimona for the women of the party too." },
+    { q: "Do you restore or repair old and heirloom barong?", a: "Yes — restoration and heirloom care is a genuine specialty and among the most meaningful work we do. A hand-made barong is designed to outlive the occasion it was made for, which means many families have a lolo's or father's barong put away — yellowed with age, weakened at the folds, or torn at the delicate pechera — that they long to wear again, often to a wedding. Depending on the cloth and the damage, we can gently clean and de-yellow, stabilise and mend weakened fabric, and re-embroider or repair damaged calado and pechera to blend with the original, always assessing honestly first and telling you plainly if a piece is too fragile to safely wear or better conserved than reworked. There are few things more moving than a groom married in his grandfather's restored barong, and we treat every heirloom that comes through the door with exactly that weight of care. Bring it in or send photographs of the whole garment and the damage, and we'll tell you what's possible." },
+    { q: "How do I care for a barong so it lasts?", a: "Gently, and it will last for decades. Fine barong cloth — especially piña — is delicate, so the golden rules are: wear an undershirt (the traditional camiseta) so body oils and sweat reach it rather than the barong; avoid perfume and deodorant contact with the cloth; and never wad it up or store it on a wire hanger. For cleaning, hand-washing or specialist dry-cleaning as the fabric dictates is far safer than a rough machine wash, and we give specific care guidance with every barong we make. Store it clean, dry and flat or on a padded hanger, ideally wrapped in acid-free tissue or clean cloth and away from damp, which yellows and weakens the fibre over time — a real consideration in our climate. Press with care and low heat, or let us press it for you. And crucially, when a barong does eventually show its age or suffer damage, don't discard it — bring it back. It was made to be repaired and handed down, and we'll help you keep yours wearable for the next generation." }
+  ],
+  area: { places: ["Taal", "Lemery", "Batangas City", "Lipa", "Batangas", "Commissions nationwide"] },
+  credentials: [
+    { label: "Since 1962", detail: "A barong atelier in old Taal" },
+    { label: "Piña & jusi", detail: "The classic barong cloths, chosen by hand" },
+    { label: "Hand calado", detail: "Embroidered by our own manunuburan" },
+    { label: "Made to measure", detail: "Cut to you, made to be handed down" }
+  ],
+  location: { name: "Casa Piña", addressStreet: "14 Calle Marcela Agoncillo", addressLocality: "Taal", addressRegion: "Batangas", addressPostcode: "4208", addressCountry: "Philippines" },
+  cta: { heading: "Be measured for the national dress.", body: "Made-to-measure barong Tagalog in piña, piña-seda and jusi, hand-embroidered by our manunuburan, for weddings, ninongs and the occasions you keep — plus loving restoration of the barong you inherited. An atelier in Taal since 1962.", primary: { label: "Book a fitting", href: "#book" }, secondary: { label: "(043) 555 0162", href: "tel:+63435550162" } },
+  messaging: { whatsapp: "https://wa.me/63435550162", messenger: "https://m.me/casapina" }
+};
+</script>
+
+<style>
+  :root {
+    --ivory:#f3ecdd; --ivory-2:#faf5ea; --night:#1c2434; --night-2:#141a27; --ink:#232a38; --ink-2:#4a5163;
+    --pina:#c39a45; --rosewood:#9a5647; --sage:#6d7d6a;
+    --mid:#8b8571; --rule:rgba(28,36,52,0.13);
+    --disp:"Bodoni Moda",Didot,Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--ivory);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--rosewood);}
+  .wrap{width:min(1220px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--rosewood);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(38px,5.2vw,74px);line-height:1.04;margin:0 0 0.34em;letter-spacing:0.002em;}
+  .h2 em{font-style:italic;color:var(--rosewood);}
+  .body{color:var(--ink-2);line-height:1.7;}
+  section{padding:clamp(78px,9.5vw,134px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 34px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--night);color:var(--ivory-2);} .btn-primary:hover{background:var(--rosewood);}
+  .btn-ghost{border:1.5px solid var(--night);color:var(--night);} .btn-ghost:hover{background:var(--night);color:var(--ivory-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(243,236,221,0.93);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--night);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
+  .wm{font-family:var(--disp);font-weight:400;font-size:27px;text-decoration:none;letter-spacing:0.01em;color:var(--night);}
+  .wm span{color:var(--pina);font-style:italic;}
+  .nav-links{display:flex;gap:28px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-2);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(32px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:400;font-size:clamp(40px,6.4vw,98px);line-height:1.02;letter-spacing:0.004em;margin:0 0 34px;max-width:18ch;color:var(--night);}
+  .hero-headline em{font-style:italic;color:var(--rosewood);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-photo::after{content:"MADE TO MEASURE · TAAL · EST. 1962";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.14em;background:var(--ivory-2);color:var(--night);padding:7px 12px;border:1px solid var(--night);}
+  .hero-right .lede{color:var(--ink-2);font-size:clamp(15px,1.5vw,17.5px);line-height:1.74;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--night);color:var(--ivory);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(243,236,221,0.82);font-weight:700;}
+
+  .about{background:var(--ivory-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.8;margin:0 0 1em;color:var(--ink-2);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--rule);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(154,86,71,0.08);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;color:var(--pina);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:1.06;color:var(--night);}
+  .svc-row p{color:var(--ink-2);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--night);color:var(--ivory);}
+  .why .sw-head{color:rgba(243,236,221,0.62);border-color:rgba(243,236,221,0.2);}
+  .why .h2{color:var(--ivory);} .why .h2 em{color:var(--pina);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--pina);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:27px;margin:0 0 10px;line-height:1.1;}
+  .why-grid p{color:rgba(243,236,221,0.82);margin:0;font-size:14.5px;line-height:1.72;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--rule);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--pina);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:24px;margin:8px 0 8px;line-height:1.1;color:var(--night);}
+  .how-grid p{color:var(--ink-2);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--night-2);color:var(--ivory);}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(28px,3.6vw,50px);line-height:1.16;max-width:27ch;margin:0 0 24px;}
+  .t-quote em{font-style:italic;color:var(--pina);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--pina);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(243,236,221,0.2);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.74;margin:0 0 12px;color:rgba(243,236,221,0.82);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(243,236,221,0.6);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--night);color:var(--ivory);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--rule);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:23px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;color:var(--night);}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--pina);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--ink-2);font-size:14.5px;max-width:64ch;line-height:1.74;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--night);border-radius:1px;font-weight:700;color:var(--ink-2);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--rosewood);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:20px;line-height:1.18;color:var(--night);}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--night);color:var(--ivory);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:400;font-size:23px;line-height:1.3;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:rgba(243,236,221,0.82);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(243,236,221,0.2);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(243,236,221,0.7);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(243,236,221,0.7);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid var(--night);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.35) contrast(1.02);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--rosewood);color:var(--ivory-2);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--ivory-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(42px,6vw,100px);line-height:1.02;margin:14px auto 18px;max-width:16ch;}
+  .cta-band h2 em{font-style:italic;color:#f0d9a0;}
+  .cta-band p{color:rgba(250,245,234,0.9);max-width:54ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--ivory-2);color:var(--rosewood);} .cta-band .btn-primary:hover{background:var(--night);color:var(--ivory-2);}
+  .cta-band .btn-ghost{border-color:var(--ivory-2);color:var(--ivory-2);} .cta-band .btn-ghost:hover{background:var(--ivory-2);color:var(--rosewood);}
+
+  footer{background:var(--night-2);color:var(--ivory);border-top:1.5px solid rgba(243,236,221,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--pina);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:rgba(243,236,221,0.72);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(243,236,221,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(243,236,221,0.6);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--night);color:var(--ivory-2);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(28,36,52,0.4);}
+  .msg-fab a:hover{background:var(--rosewood);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ClothingStore","name":"Casa Piña","description":"Barong Tagalog atelier in Taal, Batangas — made-to-measure barong in piña, piña-seda and jusi, with hand-embroidered calado worked by our own manunuburan, for weddings, ninongs and formal occasions, plus heirloom restoration. Stitching since 1962.","url":"https://casapina.ph/","telephone":"+63435550162","email":"atelier@casapina.ph","address":{"@type":"PostalAddress","streetAddress":"14 Calle Marcela Agoncillo","addressLocality":"Taal","addressRegion":"Batangas","postalCode":"4208","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":13.8790,"longitude":120.9230},"areaServed":["Taal","Lemery","Batangas City","Lipa"],"image":["https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1600"],"foundingDate":"1962"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What's the difference between piña, piña-seda and jusi?","acceptedAnswer":{"@type":"Answer","text":"They're the three classic barong fabrics. Piña, woven from pineapple-leaf fibre, is the finest, faintly golden, almost translucent and most prized — the choice for weddings and important occasions. Piña-seda blends piña with silk for a little more softness and forgiveness at a lower price. Jusi is a smooth, fine, more affordable and hard-wearing cloth, ideal for a barong worn often. All three are worn untucked over an undershirt and can carry hand embroidery; they differ in fineness, sheerness, drape, longevity and price."}},
+{"@type":"Question","name":"Is the embroidery really done by hand?","acceptedAnswer":{"@type":"Answer","text":"Yes — the calado and pechera are embroidered by hand by our own manunuburan in Taal. Machine embroidery and printed 'barong' imitate the look from a distance, but up close hand calado is drawn-thread openwork — threads withdrawn from the weave and the rest stitched into lacy patterns — with a depth and life a machine can't reproduce. It's slow, exacting work and the biggest reason a proper barong takes weeks and costs what it does. We're glad to show hand embroidery beside machine work so you can see the difference."}},
+{"@type":"Question","name":"How long does a made-to-measure barong take?","acceptedAnswer":{"@type":"Answer","text":"Several weeks from measurement to final fitting for a standard commission, longer for elaborate embroidery or a large entourage — hand work can't be rushed. The timeline covers consultation and measuring, cutting the pattern, making the barong, the embroidery (the longest stage), then a fitting and adjustments. For weddings, graduations and inaugurals, come as early as you can, ideally a couple of months ahead for an entourage. We'll tell you honestly what's achievable rather than deliver a rushed barong."}},
+{"@type":"Question","name":"Can you dress a whole wedding entourage?","acceptedAnswer":{"@type":"Answer","text":"Yes — barong for the groom, fathers, ninongs and groomsmen, matched in cloth and embroidery but cut and fitted to each man, delivered in time for fittings. We often recommend piña-seda or jusi for a large entourage and reserve the finest piña for the groom, though it's your choice. The key is time: bring us the party, date and vision a couple of months out and we'll manage measurements, cloth, embroidery and fittings. We coordinate ladies' Filipiniana and kimona too."}},
+{"@type":"Question","name":"Do you restore or repair old and heirloom barong?","acceptedAnswer":{"@type":"Answer","text":"Yes — restoration and heirloom care is a specialty. Depending on cloth and damage we can gently clean and de-yellow, stabilise and mend weakened fabric, and re-embroider or repair damaged calado and pechera to blend with the original, always assessing honestly and saying if a piece is too fragile to wear safely or better conserved. There are few things more moving than a groom married in his grandfather's restored barong. Bring it in or send photos of the whole garment and the damage."}},
+{"@type":"Question","name":"How do I care for a barong so it lasts?","acceptedAnswer":{"@type":"Answer","text":"Gently. Wear an undershirt so oils and sweat reach it, not the barong; keep perfume and deodorant off the cloth; never wad it or use a wire hanger. Hand-wash or specialist dry-clean as the fabric dictates (we give care guidance with every barong). Store it clean, dry and flat or on a padded hanger, wrapped in acid-free tissue away from damp, which yellows and weakens the fibre. Press with low heat, or let us press it. And when it ages or is damaged, bring it back — it's made to be repaired and handed down."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Casa <span>Piña</span></a>
+    <nav class="nav-links">
+      <a href="#about">The atelier</a><a href="#services">What we make</a><a href="#location">Find us</a><a href="#book">Book a fitting</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Barong Tagalog atelier · piña & jusi · hand calado · Taal, Batangas</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      The national dress, cut to your measure and embroidered <em>by hand.</em>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=2000&q=85&auto=format&fit=crop"
+             alt="A tailor chalking a pattern on fine cloth at the cutting table." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A barong Tagalog atelier in Taal, the old heart of Batangas embroidery, making the Filipino formal shirt the way it was meant to be made — cut to your measure in piña, piña-seda and jusi, with calado and pechera worked stitch by stitch by hand. For grooms and ninongs, for graduations and inaugurals, for the barong you keep for a lifetime and pass on.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a fitting</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we make</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">An atelier in Taal since 1962</span>
+    <span>Piña, piña-seda &amp; jusi</span>
+    <span>Hand calado by our manunuburan</span>
+    <span>Made to measure &amp; restored</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>STITCH 01 / THE ATELIER</span><span>TAAL, THE HOME OF EMBROIDERY</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">A barong is not sewn in a day, and it is not worn out in a <em>lifetime.</em></h2>
+        <p>Casa Piña is a barong Tagalog atelier in Taal, Batangas — a town whose name has meant fine embroidery for generations. The barong Tagalog is the Filipino national dress: a formal shirt, worn untucked over an undershirt, traditionally in cloth so fine it is almost sheer, ornamented not with print but with embroidery worked directly into the fabric. Made properly, it is one of the most elegant garments in the world. Made carelessly, it is a costume. We only make it properly.</p>
+        <p>The atelier was founded in 1962 and has always worked the same way: cloth chosen by hand, measurements taken in person, patterns cut to the individual body, and the embroidery — the calado openwork and the pechera front panel — stitched by hand by our manunuburan, the embroiderers whose craft is Taal's inheritance. We work in the classic barong fabrics: piña, woven from pineapple-leaf fibre, the finest and most prized; piña-seda, blended with silk for a little more forgiveness; and jusi, a smooth, more affordable woven cloth for barong worn often.</p>
+        <p>We dress grooms and their entourages, ninongs and principal sponsors, graduates, officials at their inaugurals, and anyone who wants to own a real barong rather than a printed imitation. We also restore and care for heirloom barong — the ones handed down, yellowed or torn — because a hand-made barong is meant to outlive the occasion it was made for. Come and be measured; wear the national dress as it should be worn.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1200&q=85&auto=format&fit=crop"
+           alt="Hands stitching fine embroidery by lamplight." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>STITCH 02 / WHAT WE MAKE</span><span>BAROng · CLOTH · CALADO · RESTORE</span></div>
+    <h2 class="h2">What we make.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Made-to-measure barong</h3><p>The full commission: cloth chosen with you, measurements taken in person, pattern cut to your body, and the barong made and embroidered by hand — for the groom, the ninong, the graduate, the occasion you'll remember.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Piña, piña-seda &amp; jusi</h3><p>The classic barong fabrics — piña from pineapple-leaf fibre, the finest and most prized; piña-seda blended with silk; and smooth, everyday jusi. We help you choose by occasion, budget and how sheer you dare.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Hand calado &amp; pechera</h3><p>The soul of the barong: calado openwork drawn-thread embroidery and the ornamented pechera front panel, worked stitch by stitch by our manunuburan. Classic patterns or a design created for you.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Wedding &amp; entourage sets</h3><p>Coordinated barong for the groom, fathers, ninongs and groomsmen — matched in cloth and embroidery, sized to each man and delivered in time for the fittings before the day. Book early for wedding season.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Ladies' &amp; modern cuts</h3><p>Kimona and traditional Filipiniana embroidery for the women of the party, and slimmer modern barong cuts for a contemporary silhouette. Same cloth, same hand embroidery.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Restoration &amp; heirloom care</h3><p>Careful cleaning, mending and re-embroidery of heirloom and vintage barong — the yellowed, the torn, the ones handed down — so a barong made for a wedding decades ago can be worn to the next one.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>STITCH 03 / THE DIFFERENCE</span><span>WHY A REAL BARONG</span></div>
+    <h2 class="h2">Why a real <em>barong.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Embroidered by hand, in Taal.</h3><p>The calado and pechera are stitched by hand by our own manunuburan, in the town that has embroidered barong for generations — not printed, not machine-copied. You can feel the difference in the cloth.</p></div>
+      <div><span class="no">02 / 03</span><h3>Cut to you, not to a size.</h3><p>Measured in person and patterned to your body, because a barong that hangs right is the whole point of made-to-measure. A national dress deserves better than small, medium, large.</p></div>
+      <div><span class="no">03 / 03</span><h3>Made to be handed down.</h3><p>Real cloth, hand embroidery and honest construction mean a barong outlives its occasion. We build them to be worn for decades — and we restore the ones that already have been.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>STITCH 04 / HOW IT GOES</span><span>MEASURE · CHOOSE · STITCH · FIT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Come and be measured</h3><p>Visit the atelier for a proper consultation and fitting. We'll talk about the occasion, take your measurements in person, and let you handle the cloths so the choice is yours, not a catalogue's.</p></li>
+      <li><span class="step">STEP 02</span><h3>Choose cloth &amp; embroidery</h3><p>Piña, piña-seda or jusi; a classic calado pattern or a design worked for you. We advise honestly on what suits the occasion, the climate and the budget, and sample the embroidery.</p></li>
+      <li><span class="step">STEP 03</span><h3>Cut, stitched &amp; embroidered</h3><p>Your pattern is cut and the barong made by hand, the embroidery worked stitch by stitch by our manunuburan. It takes weeks, not hours — hand embroidery cannot be rushed, and shouldn't be.</p></li>
+      <li><span class="step">STEP 04</span><h3>Final fitting &amp; wear</h3><p>A fitting to perfect the fit before the day, adjustments made, and your barong delivered pressed and ready. Wear it, keep it well, and bring it back for care whenever it needs it.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>STITCH 05 / FROM THE FITTING ROOM</span><span>THIS IS HEIRLOOM WORK</span></div>
+    <blockquote class="t-quote">“The finest thing I own. My father wore his to my wedding twenty-five years after his own. This is <em>heirloom work.</em>”</blockquote>
+    <div class="t-attr">Enrique D. — groom's barong, piña</div>
+    <div class="t-sub">
+      <figure><blockquote>“They made barong for the groom, both fathers and six ninongs for our wedding, all matched, all beautifully fitted, all ready on time despite my panic. The consultation was patient and the craftsmanship is on another level. Worth every peso and then some. Maraming salamat, Casa Piña.”</blockquote><figcaption>The Villanueva–Reyes wedding — entourage set</figcaption></figure>
+      <figure><blockquote>“I brought them my late lolo's barong, yellowed and torn at the pechera, hoping it could be saved for my own wedding. They restored it so tenderly I cried at the fitting. To be married in his barong meant everything. There is no one else I would have trusted with it.”</blockquote><figcaption>Marco S. — heirloom restoration</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--ivory-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>STITCH 06 / IN THE ATELIER</span><span>CLOTH, THREAD &amp; HAND</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=1600&q=85&auto=format&fit=crop" alt="Chalking a pattern on fine cloth at the cutting table." /><figcaption>THE CUT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?w=1600&q=85&auto=format&fit=crop" alt="Hands stitching embroidery by lamplight." /><figcaption>THE STITCH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=1600&q=85&auto=format&fit=crop" alt="Fine woven fabric with delicate pattern." /><figcaption>THE PIÑA</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1604176354204-9268737828e4?w=1600&q=85&auto=format&fit=crop" alt="Folded fine textiles stacked." /><figcaption>THE CLOTH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600166898405-da9535204843?w=1600&q=85&auto=format&fit=crop" alt="A roll of fine cloth." /><figcaption>THE BOLT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519791883288-dc8bd696e667?w=1600&q=85&auto=format&fit=crop" alt="The atelier workbench with tools and cloth." /><figcaption>THE BENCH</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>STITCH 07 / BEFORE YOU COMMISSION</span><span>CLOTH, TIME &amp; CARE</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you commission.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63435550162" style="color:var(--rosewood);font-weight:700;">(043) 555 0162</a>, or bring the inherited barong you'd like to wear again.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What's the difference between piña, piña-seda and jusi?</summary><p>They are the three classic barong fabrics, and choosing between them is the first real decision of any commission. Piña is woven from the fibre of pineapple leaves — extraordinarily fine, slightly stiff, faintly golden, almost translucent, and the most prized and expensive cloth for a barong; it is what you'd choose for a wedding or the most important occasions, and it ages beautifully. Piña-seda is piña blended with silk (seda), which keeps much of piña's elegance while being a little softer, more forgiving and somewhat more affordable — a lovely middle ground. Jusi is a smooth, fine woven cloth, more affordable and hard-wearing, ideal for a barong you'll wear more often to work functions and everyday formal occasions. All three are worn untucked over an undershirt and all can carry hand embroidery; the difference is in fineness, sheerness, drape, longevity and price. We'll show you all of them and never push you towards more than the day requires.</p></details>
+        <details><summary>Is the embroidery really done by hand?</summary><p>Yes — the calado and pechera on our barong are embroidered by hand, by our own manunuburan (embroiderers), in Taal, which is precisely the craft this town has been known for across generations. Machine embroidery and printed 'barong' can imitate the look from a distance, but up close the difference is unmistakable: hand calado is drawn-thread openwork, where threads are actually withdrawn from the weave and the remaining ones stitched into lacy patterns, and the hand-worked pechera has a depth, irregularity and life that a machine simply cannot reproduce. It is slow, exacting, eye-straining work, and it is the single biggest reason a proper barong takes weeks to make and costs what it does. We're glad to show you hand embroidery beside machine work so you can see for yourself before you decide.</p></details>
+        <details><summary>How long does a made-to-measure barong take?</summary><p>Plan on several weeks from measurement to final fitting for a standard commission, and longer for elaborate hand embroidery or a large wedding entourage — hand work cannot be rushed without ruining exactly what you're paying for. The timeline covers the consultation and measuring, cutting your pattern, the making of the barong, and then the embroidery, which is the longest and most delicate stage, followed by a fitting and any adjustments before delivery. For weddings, graduations and inaugurals — which cluster into busy seasons — we strongly advise coming to us as early as you can, ideally a couple of months ahead for an entourage, both so the work is unhurried and so we can secure the cloth you want. If you're in a genuine hurry we'll tell you honestly what's achievable; we'd rather turn away a rush than deliver a barong that isn't up to our name.</p></details>
+        <details><summary>Can you dress a whole wedding entourage?</summary><p>Yes, and it's some of our favourite work — coordinating barong for the groom, the fathers, the ninongs and the groomsmen, matched in cloth and embroidery pattern but each cut and fitted to the individual man, and all delivered in time for fittings before the day. There's a real art to making a set look unified on the day while flattering very different bodies. We'll usually recommend a slightly more forgiving cloth like piña-seda or jusi for a large entourage where budget and wearability across many men matter, and reserve the finest piña for the groom, though it's entirely your choice. The key is time: bring us the party, the date and the vision as early as possible, ideally a couple of months out, and we'll manage measurements, cloth, embroidery and fittings so it comes together without stress. We coordinate ladies' Filipiniana and kimona for the women of the party too.</p></details>
+        <details><summary>Do you restore or repair old and heirloom barong?</summary><p>Yes — restoration and heirloom care is a genuine specialty and among the most meaningful work we do. A hand-made barong is designed to outlive the occasion it was made for, which means many families have a lolo's or father's barong put away — yellowed with age, weakened at the folds, or torn at the delicate pechera — that they long to wear again, often to a wedding. Depending on the cloth and the damage, we can gently clean and de-yellow, stabilise and mend weakened fabric, and re-embroider or repair damaged calado and pechera to blend with the original, always assessing honestly first and telling you plainly if a piece is too fragile to safely wear or better conserved than reworked. There are few things more moving than a groom married in his grandfather's restored barong. Bring it in or send photographs of the whole garment and the damage.</p></details>
+        <details><summary>How do I care for a barong so it lasts?</summary><p>Gently, and it will last for decades. Fine barong cloth — especially piña — is delicate, so the golden rules are: wear an undershirt (the traditional camiseta) so body oils and sweat reach it rather than the barong; avoid perfume and deodorant contact with the cloth; and never wad it up or store it on a wire hanger. For cleaning, hand-washing or specialist dry-cleaning as the fabric dictates is far safer than a rough machine wash, and we give specific care guidance with every barong. Store it clean, dry and flat or on a padded hanger, ideally wrapped in acid-free tissue and away from damp, which yellows and weakens the fibre — a real consideration in our climate. Press with care and low heat, or let us press it. And when a barong does age or suffer damage, don't discard it — bring it back. It was made to be repaired and handed down.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>STITCH 08 / WE DRESS</span><span>BATANGAS &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Taal</li><li>Lemery</li><li>Batangas City</li><li>Lipa</li><li>Batangas</li><li>Commissions nationwide</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>STITCH 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1962</div><div class="detail">A barong atelier in old Taal</div></div>
+      <div><div class="label">Piña &amp; jusi</div><div class="detail">The classic barong cloths, chosen by hand</div></div>
+      <div><div class="label">Hand calado</div><div class="detail">Embroidered by our own manunuburan</div></div>
+      <div><div class="label">Made to measure</div><div class="detail">Cut to you, made to be handed down</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>STITCH 10 / THE ATELIER</span><span>CALLE AGONCILLO, TAAL</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Casa Piña</strong><br />
+          14 Calle Marcela Agoncillo<br />
+          Taal, Batangas 4208<br /><br />
+          <a href="tel:+63435550162" data-bind="business.phoneDisplay">(043) 555 0162</a><br />
+          <a href="mailto:atelier@casapina.ph" data-bind="business.email">atelier@casapina.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>TUE – SAT</span><span>9 – 6</span></div>
+          <div class="row"><span>FITTINGS</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The atelier is in a heritage house on Calle Agoncillo in old Taal. Fittings are by appointment, so we can give you our full attention.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Casa Piña, Taal" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=120.9080%2C13.8690%2C120.9380%2C13.8890&layer=mapnik&marker=13.8790%2C120.9230"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">STITCH 11 / BOOK A FITTING</div>
+    <h2 data-bind="cta.heading">Be measured for the national <em>dress.</em></h2>
+    <p data-bind="cta.body">Made-to-measure barong Tagalog in piña, piña-seda and jusi, hand-embroidered by our manunuburan, for weddings, ninongs and the occasions you keep — plus loving restoration of the barong you inherited. An atelier in Taal since 1962.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a fitting</a>
+      <a class="btn btn-ghost" href="tel:+63435550162" data-bind="cta.secondary.label">(043) 555 0162</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63435550162" data-bind="messaging.whatsapp" aria-label="Message the atelier">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:27px;color:var(--ivory);">Casa <span style="color:var(--pina);font-style:italic;">Piña</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:rgba(243,236,221,0.72);">A barong Tagalog atelier in Taal, Batangas — made-to-measure barong in piña and jusi, hand-embroidered, since 1962.</p>
+      </div>
+      <div>
+        <h4>The atelier</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:rgba(243,236,221,0.72);">
+          14 Calle Marcela Agoncillo<br />Taal, Batangas 4208<br />
+          <a href="tel:+63435550162">(043) 555 0162</a><br />
+          <a href="mailto:atelier@casapina.ph">atelier@casapina.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we make</a><a href="#about">The atelier</a><a href="#location">Find us</a><a href="#book">Book a fitting</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> CASA PIÑA</span>
+      <span>HAND-EMBROIDERED IN TAAL · SINCE 1962</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

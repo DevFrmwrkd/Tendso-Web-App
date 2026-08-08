@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hammer & String — piano restoration, tuning and rebuilding in Bath</title>
+<meta name="description" content="Hammer & String is a piano workshop in Bath — full restoration and rebuilding of grands and uprights, regulating, voicing, tuning and honest advice, for players, families and concert halls." />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Hammer & String", phone: "+44 1225 460 330", phoneDisplay: "01225 460 330", email: "workshop@hammerandstring.co.uk", foundedYear: 2004 },
+  hero: {
+    kicker: "Piano restoration · tuning · rebuilding · Bath",
+    headline: "The piano isn't dead. It's just been let down.",
+    lede: "A piano workshop in Bath that brings tired grands and uprights back to life — restored action, re-strung frame, voiced hammers and a tuning that holds. We don't write pianos off. Nine times out of ten the instrument in your front room is worth saving, and worth far more restored than the shiny new one the shop wants to sell you.",
+    primaryCta: { label: "Book an assessment", href: "#book" },
+    secondaryCta: { label: "What the workshop does", href: "#services" },
+    image: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "The inside of a grand piano, strings and hammers."
+  },
+  trust: { years: "At the bench since 2004" },
+  about: {
+    heading: "A good piano is a century of engineering. Treat it like one.",
+    paragraphs: [
+      "Hammer & String is a piano workshop in Bath, run by restorers who trained the long way and have spent two decades with the lids up. We opened in 2004 because too many good instruments were being scrapped — declared 'beyond economical repair' by people who'd never opened them — when in truth they needed patience, the right parts, and someone who understood how they were built.",
+      "A piano is thousands of moving parts under tons of string tension, and every one affects the touch and the tone. We rebuild actions, replace hammers and dampers, re-string and re-pin, restore soundboards and refinish cases — and just as often we regulate and voice an instrument that only needed setting up properly. We'll always tell you honestly whether a piano is worth the work.",
+      "We look after everything from the family upright that taught three generations to concert grands on the recital platform, and we tune for homes, schools, churches and halls across the region. Whatever you play and whatever it's worth, the aim is the same: an instrument that responds under your fingers and holds its tune, so the piano gets played instead of dusted."
+    ],
+    portrait: "https://images.unsplash.com/photo-1552422535-c45813c61732?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A restorer working on piano action."
+  },
+  services: [
+    { name: "Full restoration & rebuilding", description: "Ground-up work on grands and uprights — new strings and pins, rebuilt action, new hammers and dampers, restored soundboard and refinished case. The instrument made whole, not patched." },
+    { name: "Tuning that holds", description: "Regular concert-standard tuning for homes, schools and halls, on a schedule that suits the room and the use. A piano that's tuned twice a year stays a pleasure to play." },
+    { name: "Regulating & voicing", description: "The setup that transforms how a piano feels and sounds — evening out the touch across the keys and shaping the hammers so the tone is round, not harsh. Often all a piano needs." },
+    { name: "Repairs & action work", description: "Sticking keys, broken hammers, buzzing strings, worn action parts — diagnosed and fixed properly, with the right components, so the fault stays gone." },
+    { name: "Case & finish restoration", description: "French polish and modern finishes, veneer repair, new felts, brass and ivory-substitute keytops — the piano looking as considered as it plays." },
+    { name: "Moving, valuation & advice", description: "Specialist piano moving, honest valuations for sale or insurance, and buying advice before you take on a secondhand instrument. Ask us before you buy, not after." }
+  ],
+  why: [
+    { title: "We don't write pianos off.", body: "Most instruments called 'beyond repair' aren't. We assess what's really wrong, tell you honestly what it'll cost, and far more often than not the piano is worth saving." },
+    { title: "Touch and tone, not just pitch.", body: "Anyone can pull strings to pitch. Restoring and regulating an action so the keys respond evenly, and voicing hammers so the tone sings, is the craft that makes a piano playable." },
+    { title: "The right parts, properly fitted.", body: "We use quality strings, hammers and action parts and fit them the way the makers intended — no bodges, no generic shortcuts that leave the instrument worse than before." }
+  ],
+  how: [
+    { step: "01", title: "Assessment", body: "We come to the piano, open it up and tell you honestly what's going on — what it needs, what it doesn't, what it'll cost, and whether it's worth restoring or better replaced." },
+    { step: "02", title: "The plan", body: "You get a clear written quote and options — from a regulate-and-tune that transforms it for a modest sum, to a full rebuild. No pressure, no upselling parts it doesn't need." },
+    { step: "03", title: "The work", body: "Small jobs happen in your home; rebuilds come to the workshop where we can strip the action, re-string and refinish properly. We keep you posted and never rush the settling." },
+    { step: "04", title: "Tuned & kept", body: "Restored, regulated, voiced and tuned, back in your room and playing. Then we keep it that way with regular tuning, so the work lasts and the piano gets played." }
+  ],
+  testimonials: [
+    { quote: "Two shops told me our grandmother's grand was scrap and tried to sell us a new upright. Hammer & String opened it up, said it was a lovely instrument that had simply been neglected, and rebuilt it beautifully for a fraction of a new one. It sounds glorious. Trust these people.", name: "Eleanor V.", context: "1912 grand, full restoration" },
+    { quote: "Our school piano was unplayable — half the keys sticking, wildly out of tune. They regulated the action, voiced it and tuned it, and the kids can actually learn on it now. Honest about what it did and didn't need. Booked them for the church too.", name: "Music dept.", context: "school upright" },
+    { quote: "I'm a working pianist and I'm fussy. They tune to concert standard, they turn up when they say, and the voicing on my Steinway is exactly how I like it — even, warm, no harshness at the top. The only tuner I'll let near it now.", name: "Marcus D.", context: "concert grand, regular tuning" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=1600&q=85&auto=format&fit=crop", alt: "Inside a grand piano, strings and frame." },
+    { src: "https://images.unsplash.com/photo-1552422535-c45813c61732?w=1600&q=85&auto=format&fit=crop", alt: "A restorer working on piano action." },
+    { src: "https://images.unsplash.com/photo-1571974599782-87624638275e?w=1600&q=85&auto=format&fit=crop", alt: "Close up of piano keys." },
+    { src: "https://images.unsplash.com/photo-1690310588514-511dfaf88e3b?w=1600&q=85&auto=format&fit=crop", alt: "A grand piano in a room." },
+    { src: "https://images.unsplash.com/photo-1512733596533-7b00ccf8ebaf?w=1600&q=85&auto=format&fit=crop", alt: "Piano hammers and strings detail." },
+    { src: "https://images.unsplash.com/photo-1720416816012-e945dac2ddbe?w=1600&q=85&auto=format&fit=crop", alt: "Hands playing a piano." }
+  ],
+  faq: [
+    { q: "Is my old piano actually worth restoring?", a: "Very often, yes — and we'll tell you honestly either way, because we'd rather keep your trust than sell you work you don't need. A well-made piano from a reputable maker, even a century old, usually has a soundboard, frame and case worth building on; what wears out is the action, strings, hammers and felts, all of which we can renew. The pianos genuinely not worth restoring tend to be cheaply built to begin with, or so far gone that a rebuild costs more than a good secondhand instrument. We assess yours specifically — its make, condition and what you want from it — rather than giving you a blanket answer, and we'll always point you to the sensible choice even when it isn't the most expensive one." },
+    { q: "How often should a piano be tuned?", a: "For most homes, twice a year is the sweet spot — pianos drift with the seasons as humidity changes, and two tunings a year keeps yours reliably at pitch and catches small problems early. A piano that's played hard, used for teaching, or kept somewhere with big temperature swings may want tuning more often; a concert instrument might be tuned before every performance. If a piano has been left for years it may need a couple of tunings fairly close together to bring it back to pitch and hold there. We'll recommend a schedule based on your instrument and how you use it, and remind you when it's due." },
+    { q: "What's the difference between tuning, regulating and voicing?", a: "They're three different things and a piano usually needs all three at some point. Tuning adjusts the string tension so the notes are at the correct pitch relative to each other — it's about being in tune. Regulating adjusts the thousands of mechanical parts of the action so the keys respond evenly and precisely — it's about how the piano feels under your fingers. Voicing shapes the hammer felt to control the tone, from mellow to bright — it's about the character of the sound. Many pianos people think are 'past it' are simply badly regulated and voiced; sorting those out can transform an instrument without a full rebuild." },
+    { q: "Do you work on the piano in my home or take it away?", a: "It depends on the job. Tuning, regulating, voicing and most repairs we do in your home — there's no need to move the piano, and it's better tuned in the room it lives in. Full restorations and rebuilds come to the workshop, where we can strip the action right down, re-string, work on the soundboard and refinish the case properly in controlled conditions, then return it and let it settle before a final tuning. We arrange specialist piano moving for that (pianos are heavy, awkward and easily damaged by amateurs), and we'll always tell you upfront whether a job can be done at home or needs the bench." },
+    { q: "Can you help me buy a secondhand piano?", a: "Please ask us before you buy, not after — it's the cheapest advice you'll ever get. A piano can look immaculate and be mechanically exhausted, or look tatty and be a gem underneath; the case tells you very little about the instrument. We can inspect a piano you're considering, tell you what it really needs and what that will cost, and help you judge whether the asking price makes sense. We're not selling you anything, so the advice is genuinely impartial. Many people have avoided an expensive mistake, or spotted a bargain, by having us look first." },
+    { q: "Do you tune for schools, churches and venues?", a: "Yes — a good part of our work is looking after institutional instruments, from school and church uprights to hall and recital grands. We can set up a regular maintenance schedule so the piano is always ready when it's needed, handle the repairs and regulation that heavy shared use demands, and work around your timetable and events. For performance venues we tune to concert standard on the day, and we're used to the discretion and reliability that requires. Get in touch with what you've got and how it's used and we'll put together a plan that keeps it playable." }
+  ],
+  area: { places: ["Bath", "Bristol", "Chippenham", "Frome", "Trowbridge", "Wells"] },
+  credentials: [
+    { label: "Since 2004", detail: "Two decades of restoration and tuning" },
+    { label: "Honest first", detail: "We tell you if it's not worth the work" },
+    { label: "Full workshop", detail: "Re-stringing, action rebuilds and refinishing" },
+    { label: "Concert standard", detail: "Homes, schools, churches and halls" }
+  ],
+  location: { name: "Hammer & String", addressStreet: "Unit 4, Walcot Yard", addressLocality: "Bath", addressRegion: "Somerset", addressPostcode: "BA1 5BG", addressCountry: "United Kingdom" },
+  cta: { heading: "Book an assessment. Save the piano.", body: "Let us open it up and tell you honestly what it needs. Nine times out of ten the piano in your room is worth restoring — and worth far more once it is. Homes, schools and halls across the region.", primary: { label: "Book an assessment", href: "#book" }, secondary: { label: "01225 460 330", href: "tel:+441225460330" } },
+  messaging: { whatsapp: "https://wa.me/441225460330", messenger: "https://m.me/hammerandstring" }
+};
+</script>
+
+<style>
+  :root {
+    --ivory:#f3efe8; --ebony:#171512; --burgundy:#7c2130; --brass:#b08428;
+    --ink:#171512; --mid:#6a6156; --mid-d:#b3aa9c; --rule:rgba(23,21,18,0.15); --rule-d:rgba(243,239,232,0.2);
+    --disp:"Cormorant Garamond",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--ivory);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--burgundy);}
+  .wrap{width:min(1240px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--burgundy);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:500;font-size:clamp(40px,5.4vw,78px);line-height:1.0;margin:0 0 0.34em;letter-spacing:0;}
+  .h2 em{font-style:italic;color:var(--burgundy);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--ebony);color:var(--ivory);} .btn-primary:hover{background:var(--burgundy);}
+  .btn-ghost{border:1.5px solid var(--ebony);} .btn-ghost:hover{background:var(--ebony);color:var(--ivory);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--ebony);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);font-weight:700;}
+  .light .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(243,239,232,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--ebony);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:31px;text-decoration:none;letter-spacing:0;}
+  .wm span{color:var(--burgundy);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(48px,6.5vw,92px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:500;font-size:clamp(48px,6.6vw,98px);line-height:0.98;margin:18px 0 22px;letter-spacing:0;}
+  .hero h1 em{font-style:italic;color:var(--burgundy);}
+  .hero .lede{color:var(--mid);max-width:50ch;line-height:1.72;font-size:clamp(15.5px,1.5vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:3px;}
+  .spec-card{position:absolute;bottom:22px;left:-16px;background:var(--ebony);color:var(--ivory);padding:16px 20px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;line-height:2;text-transform:uppercase;font-weight:700;box-shadow:0 12px 30px rgba(23,21,18,0.3);}
+  .spec-card b{font-family:var(--disp);font-weight:500;font-size:22px;display:block;letter-spacing:0;text-transform:none;color:var(--brass);margin-bottom:6px;}
+  .spec-card .row{display:flex;justify-content:space-between;gap:26px;color:var(--mid-d);}
+  .spec-card .row span:last-child{color:var(--ivory);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .hero-photo{max-width:420px;}}
+
+  .trust{padding:0;background:var(--ebony);color:var(--ivory);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(243,239,232,0.85);font-weight:700;}
+
+  .about{background:var(--ebony);color:var(--ivory);}
+  .about .h2{color:var(--ivory);} .about .h2 em{color:var(--brass);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:rgba(243,239,232,0.82);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--ebony);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(124,33,48,0.06);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--burgundy);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(26px,2.8vw,38px);margin:0;line-height:1.0;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--burgundy);color:var(--ivory);}
+  .why .sw-head{border-color:rgba(243,239,232,0.4);color:rgba(243,239,232,0.82);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--ivory);opacity:0.75;display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:32px;margin:0 0 10px;line-height:1.0;}
+  .why-grid p{color:rgba(243,239,232,0.92);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--ebony);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--burgundy);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:8px 0 8px;line-height:1.02;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#e7e1d6;}
+  .t-quote{font-family:var(--disp);font-weight:500;font-size:clamp(30px,4vw,56px);line-height:1.02;max-width:24ch;margin:0 0 24px;letter-spacing:0;}
+  .t-quote em{font-style:italic;color:var(--burgundy);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--ebony);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:3px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--ebony);color:var(--brass);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--ebony);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:26px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.08;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--burgundy);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--ebony);border-radius:2px;font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--ebony);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--burgundy);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.1;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--ebony);color:var(--ivory);padding:34px;border-radius:3px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:24px;line-height:1.26;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(243,239,232,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(243,239,232,0.78);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(243,239,232,0.72);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:3px;border:1.5px solid var(--ebony);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.25) sepia(0.1);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--ebony);color:var(--ivory);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--brass);}
+  .cta-band h2{font-family:var(--disp);font-weight:500;font-size:clamp(46px,6.5vw,104px);line-height:0.98;margin:14px auto 18px;max-width:16ch;letter-spacing:0;}
+  .cta-band h2 em{font-style:italic;color:var(--brass);}
+  .cta-band p{color:rgba(243,239,232,0.84);max-width:48ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--brass);color:var(--ebony);} .cta-band .btn-primary:hover{background:var(--ivory);color:var(--ebony);}
+  .cta-band .btn-ghost{border-color:rgba(243,239,232,0.6);color:var(--ivory);} .cta-band .btn-ghost:hover{background:var(--ivory);color:var(--ebony);}
+
+  footer{background:var(--ivory);border-top:1.5px solid var(--ebony);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--burgundy);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--burgundy);color:var(--ivory);padding:13px 20px;border-radius:2px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(124,33,48,0.4);}
+  .msg-fab a:hover{background:var(--ebony);color:var(--ivory);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Hammer & String","description":"Piano workshop in Bath — full restoration and rebuilding of grands and uprights, regulating, voicing, tuning and honest advice, for players, families and concert halls.","url":"https://hammerandstring.co.uk/","telephone":"+441225460330","email":"workshop@hammerandstring.co.uk","address":{"@type":"PostalAddress","streetAddress":"Unit 4, Walcot Yard","addressLocality":"Bath","addressRegion":"Somerset","postalCode":"BA1 5BG","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.3890,"longitude":-2.3560},"areaServed":["Bath","Bristol","Chippenham","Frome"],"image":["https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=1600"],"foundingDate":"2004"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is my old piano worth restoring?","acceptedAnswer":{"@type":"Answer","text":"Very often yes, and we'll tell you honestly either way. A well-made piano usually has a soundboard, frame and case worth building on; the action, strings, hammers and felts that wear out can be renewed. We assess yours specifically and point you to the sensible choice, even when it isn't the most expensive one."}},
+{"@type":"Question","name":"How often should a piano be tuned?","acceptedAnswer":{"@type":"Answer","text":"For most homes, twice a year keeps it reliably at pitch as humidity changes. Hard-played, teaching or concert instruments may need more; a long-neglected piano may need a couple of tunings close together to hold pitch. We recommend a schedule for your instrument and remind you when it's due."}},
+{"@type":"Question","name":"What's the difference between tuning, regulating and voicing?","acceptedAnswer":{"@type":"Answer","text":"Tuning sets string pitch. Regulating adjusts the action so keys respond evenly — how it feels. Voicing shapes hammer felt to control tone — the character of the sound. Many 'past it' pianos are simply badly regulated and voiced, which we can transform without a full rebuild."}},
+{"@type":"Question","name":"Do you work in my home or take the piano away?","acceptedAnswer":{"@type":"Answer","text":"Tuning, regulating, voicing and most repairs are done in your home. Full restorations come to the workshop for stripping, re-stringing and refinishing, then return to settle before a final tuning. We arrange specialist piano moving and always say upfront which a job needs."}},
+{"@type":"Question","name":"Can you help me buy a secondhand piano?","acceptedAnswer":{"@type":"Answer","text":"Please ask before you buy. A piano can look immaculate and be mechanically exhausted, or look tatty and be a gem. We inspect one you're considering, tell you what it needs and what that costs, impartially — we're not selling you anything."}},
+{"@type":"Question","name":"Do you tune for schools, churches and venues?","acceptedAnswer":{"@type":"Answer","text":"Yes — school and church uprights to hall and recital grands. We set up maintenance schedules, handle the repairs heavy shared use demands, work around your timetable, and tune to concert standard on the day for performances."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Hammer <span>&amp;</span> String</a>
+    <nav class="nav-links">
+      <a href="#about">The workshop</a><a href="#services">What we do</a><a href="#location">Find us</a><a href="#book">Assessment</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v73">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Piano restoration · tuning · rebuilding · Bath</div>
+      <h1 data-comment-anchor="hero-headline">The piano isn't dead. <em>It's just been let down.</em></h1>
+      <p class="lede" data-bind="hero.lede">A piano workshop in Bath that brings tired grands and uprights back to life — restored action, re-strung frame, voiced hammers and a tuning that holds. We don't write pianos off. Nine times out of ten the instrument in your front room is worth saving, and worth far more restored than the shiny new one the shop wants to sell you.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book an assessment</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What the workshop does</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=2000&q=85&auto=format&fit=crop"
+           alt="The inside of a grand piano, strings and hammers." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="spec-card">
+        <b>On the bench</b>
+        <div class="row"><span>Action</span><span>Rebuilt</span></div>
+        <div class="row"><span>Strings</span><span>Renewed</span></div>
+        <div class="row"><span>Voiced</span><span>By hand</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the bench since 2004</span>
+    <span>We don't write pianos off</span>
+    <span>Touch, tone &amp; pitch</span>
+    <span>Concert standard</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v39">
+  <div class="wrap">
+    <div class="sw-head"><span>MOVEMENT 01 / THE WORKSHOP</span><span>A CENTURY OF ENGINEERING</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1552422535-c45813c61732?w=1200&q=85&auto=format&fit=crop"
+           alt="A restorer working on piano action." />
+      <div class="about-prose">
+        <h2 class="h2">A good piano is a century of engineering. <em>Treat it like one.</em></h2>
+        <p>Hammer &amp; String is a piano workshop in Bath, run by restorers who trained the long way and have spent two decades with the lids up. We opened in 2004 because too many good instruments were being scrapped — declared "beyond economical repair" by people who'd never opened them — when in truth they needed patience, the right parts, and someone who understood how they were built.</p>
+        <p>A piano is thousands of moving parts under tons of string tension, and every one affects the touch and the tone. We rebuild actions, replace hammers and dampers, re-string and re-pin, restore soundboards and refinish cases — and just as often we regulate and voice an instrument that only needed setting up properly. We'll always tell you honestly whether a piano is worth the work.</p>
+        <p>We look after everything from the family upright that taught three generations to concert grands on the recital platform, and we tune for homes, schools, churches and halls across the region. Whatever you play and whatever it's worth, the aim is the same: an instrument that responds under your fingers and holds its tune, so the piano gets played instead of dusted.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v66">
+  <div class="wrap">
+    <div class="sw-head"><span>MOVEMENT 02 / THE WORK</span><span>LIDS UP</span></div>
+    <h2 class="h2">What the workshop does.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Full restoration &amp; rebuilding</h3><p>Ground-up work on grands and uprights — new strings and pins, rebuilt action, new hammers and dampers, restored soundboard and refinished case. The instrument made whole, not patched.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Tuning that holds</h3><p>Regular concert-standard tuning for homes, schools and halls, on a schedule that suits the room and the use. A piano that's tuned twice a year stays a pleasure to play.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Regulating &amp; voicing</h3><p>The setup that transforms how a piano feels and sounds — evening out the touch across the keys and shaping the hammers so the tone is round, not harsh. Often all a piano needs.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Repairs &amp; action work</h3><p>Sticking keys, broken hammers, buzzing strings, worn action parts — diagnosed and fixed properly, with the right components, so the fault stays gone.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Case &amp; finish restoration</h3><p>French polish and modern finishes, veneer repair, new felts, brass and ivory-substitute keytops — the piano looking as considered as it plays.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Moving, valuation &amp; advice</h3><p>Specialist piano moving, honest valuations for sale or insurance, and buying advice before you take on a secondhand instrument. Ask us before you buy, not after.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v38">
+  <div class="wrap">
+    <div class="sw-head"><span>MOVEMENT 03 / THE DIFFERENCE</span><span>WHY IT PLAYS AGAIN</span></div>
+    <h2 class="h2" style="color:var(--ivory);">Why it plays again.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>We don't write pianos off.</h3><p>Most instruments called "beyond repair" aren't. We assess what's really wrong, tell you honestly what it'll cost, and far more often than not the piano is worth saving.</p></div>
+      <div><span class="no">02 / 03</span><h3>Touch and tone, not just pitch.</h3><p>Anyone can pull strings to pitch. Restoring and regulating an action so the keys respond evenly, and voicing hammers so the tone sings, is the craft that makes a piano playable.</p></div>
+      <div><span class="no">03 / 03</span><h3>The right parts, properly fitted.</h3><p>We use quality strings, hammers and action parts and fit them the way the makers intended — no bodges, no generic shortcuts that leave the instrument worse than before.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>MOVEMENT 04 / HOW IT GOES</span><span>ASSESS → PLAN → WORK → TUNE</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Assessment</h3><p>We come to the piano, open it up and tell you honestly what's going on — what it needs, what it doesn't, what it'll cost, and whether it's worth restoring or better replaced.</p></li>
+      <li><span class="step">STEP 02</span><h3>The plan</h3><p>You get a clear written quote and options — from a regulate-and-tune that transforms it for a modest sum, to a full rebuild. No pressure, no upselling parts it doesn't need.</p></li>
+      <li><span class="step">STEP 03</span><h3>The work</h3><p>Small jobs happen in your home; rebuilds come to the workshop where we can strip the action, re-string and refinish properly. We keep you posted and never rush the settling.</p></li>
+      <li><span class="step">STEP 04</span><h3>Tuned &amp; kept</h3><p>Restored, regulated, voiced and tuned, back in your room and playing. Then we keep it that way with regular tuning, so the work lasts and the piano gets played.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v38">
+  <div class="wrap">
+    <div class="sw-head"><span>MOVEMENT 05 / FROM THE KEYBOARD</span><span>WHAT PLAYERS SAY</span></div>
+    <blockquote class="t-quote">“Two shops said our grandmother's grand was scrap. They rebuilt it beautifully — <em>it sounds glorious.</em>”</blockquote>
+    <div class="t-attr">Eleanor V. — 1912 grand, full restoration</div>
+    <div class="t-sub">
+      <figure><blockquote>“Our school piano was unplayable — half the keys sticking, wildly out of tune. They regulated the action, voiced it and tuned it, and the kids can actually learn on it now. Honest about what it did and didn't need. Booked them for the church too.”</blockquote><figcaption>Music dept. — school upright</figcaption></figure>
+      <figure><blockquote>“I'm a working pianist and I'm fussy. They tune to concert standard, they turn up when they say, and the voicing on my Steinway is exactly how I like it — even, warm, no harshness at the top. The only tuner I'll let near it now.”</blockquote><figcaption>Marcus D. — concert grand, regular tuning</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v66">
+  <div class="wrap">
+    <div class="sw-head"><span>MOVEMENT 06 / THE INSTRUMENT</span><span>KEYS, STRINGS &amp; HAMMERS</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=1600&q=85&auto=format&fit=crop" alt="Inside a grand piano, strings and frame." /><figcaption>THE FRAME</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1552422535-c45813c61732?w=1600&q=85&auto=format&fit=crop" alt="A restorer working on piano action." /><figcaption>THE ACTION</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1571974599782-87624638275e?w=1600&q=85&auto=format&fit=crop" alt="Close up of piano keys." /><figcaption>THE KEYS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1690310588514-511dfaf88e3b?w=1600&q=85&auto=format&fit=crop" alt="A grand piano in a room." /><figcaption>RESTORED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1512733596533-7b00ccf8ebaf?w=1600&q=85&auto=format&fit=crop" alt="Piano hammers and strings detail." /><figcaption>HAMMERS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1720416816012-e945dac2ddbe?w=1600&q=85&auto=format&fit=crop" alt="Hands playing a piano." /><figcaption>PLAYED AGAIN</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>MOVEMENT 07 / ASKED BY PLAYERS</span><span>BEFORE YOU DECIDE</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked by players.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441225460330" style="color:var(--burgundy);font-weight:700;">01225 460 330</a>. Leave a message if we're at a keyboard and we'll call you straight back.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Is my old piano actually worth restoring?</summary><p>Very often, yes — and we'll tell you honestly either way, because we'd rather keep your trust than sell you work you don't need. A well-made piano from a reputable maker, even a century old, usually has a soundboard, frame and case worth building on; what wears out is the action, strings, hammers and felts, all of which we can renew. The pianos genuinely not worth restoring tend to be cheaply built to begin with, or so far gone that a rebuild costs more than a good secondhand instrument. We assess yours specifically — its make, condition and what you want from it — rather than giving you a blanket answer, and we'll always point you to the sensible choice even when it isn't the most expensive one.</p></details>
+        <details><summary>How often should a piano be tuned?</summary><p>For most homes, twice a year is the sweet spot — pianos drift with the seasons as humidity changes, and two tunings a year keeps yours reliably at pitch and catches small problems early. A piano that's played hard, used for teaching, or kept somewhere with big temperature swings may want tuning more often; a concert instrument might be tuned before every performance. If a piano has been left for years it may need a couple of tunings fairly close together to bring it back to pitch and hold there. We'll recommend a schedule based on your instrument and how you use it, and remind you when it's due.</p></details>
+        <details><summary>What's the difference between tuning, regulating and voicing?</summary><p>They're three different things and a piano usually needs all three at some point. Tuning adjusts the string tension so the notes are at the correct pitch relative to each other — it's about being in tune. Regulating adjusts the thousands of mechanical parts of the action so the keys respond evenly and precisely — it's about how the piano feels under your fingers. Voicing shapes the hammer felt to control the tone, from mellow to bright — it's about the character of the sound. Many pianos people think are "past it" are simply badly regulated and voiced; sorting those out can transform an instrument without a full rebuild.</p></details>
+        <details><summary>Do you work on the piano in my home or take it away?</summary><p>It depends on the job. Tuning, regulating, voicing and most repairs we do in your home — there's no need to move the piano, and it's better tuned in the room it lives in. Full restorations and rebuilds come to the workshop, where we can strip the action right down, re-string, work on the soundboard and refinish the case properly in controlled conditions, then return it and let it settle before a final tuning. We arrange specialist piano moving for that (pianos are heavy, awkward and easily damaged by amateurs), and we'll always tell you upfront whether a job can be done at home or needs the bench.</p></details>
+        <details><summary>Can you help me buy a secondhand piano?</summary><p>Please ask us before you buy, not after — it's the cheapest advice you'll ever get. A piano can look immaculate and be mechanically exhausted, or look tatty and be a gem underneath; the case tells you very little about the instrument. We can inspect a piano you're considering, tell you what it really needs and what that will cost, and help you judge whether the asking price makes sense. We're not selling you anything, so the advice is genuinely impartial. Many people have avoided an expensive mistake, or spotted a bargain, by having us look first.</p></details>
+        <details><summary>Do you tune for schools, churches and venues?</summary><p>Yes — a good part of our work is looking after institutional instruments, from school and church uprights to hall and recital grands. We can set up a regular maintenance schedule so the piano is always ready when it's needed, handle the repairs and regulation that heavy shared use demands, and work around your timetable and events. For performance venues we tune to concert standard on the day, and we're used to the discretion and reliability that requires. Get in touch with what you've got and how it's used and we'll put together a plan that keeps it playable.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>MOVEMENT 08 / WE TUNE ACROSS</span><span>BATH & THE WEST</span></div>
+    <ul class="area-list">
+      <li>Bath</li><li>Bristol</li><li>Chippenham</li><li>Frome</li><li>Trowbridge</li><li>Wells</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v13" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>MOVEMENT 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2004</div><div class="detail">Two decades of restoration and tuning</div></div>
+      <div><div class="label">Honest first</div><div class="detail">We tell you if it's not worth the work</div></div>
+      <div><div class="label">Full workshop</div><div class="detail">Re-stringing, action rebuilds and refinishing</div></div>
+      <div><div class="label">Concert standard</div><div class="detail">Homes, schools, churches and halls</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>MOVEMENT 10 / FIND THE WORKSHOP</span><span>WALCOT YARD, BATH</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Hammer &amp; String</strong><br />
+          Unit 4, Walcot Yard<br />
+          Bath BA1 5BG<br /><br />
+          <a href="tel:+441225460330" data-bind="business.phoneDisplay">01225 460 330</a><br />
+          <a href="mailto:workshop@hammerandstring.co.uk" data-bind="business.email">workshop@hammerandstring.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>WORKSHOP</span><span>MON – FRI</span></div>
+          <div class="row"><span>HOME VISITS</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The workshop is in Walcot Yard, off the London Road end of Bath — ring ahead, as we're often out tuning.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Hammer & String, Bath" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.3650%2C51.3850%2C-2.3470%2C51.3930&layer=mapnik&marker=51.3890%2C-2.3560"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v41">
+  <div class="wrap">
+    <div class="kick">MOVEMENT 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Book an assessment. <em>Save the piano.</em></h2>
+    <p data-bind="cta.body">Let us open it up and tell you honestly what it needs. Nine times out of ten the piano in your room is worth restoring — and worth far more once it is. Homes, schools and halls across the region.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book an assessment</a>
+      <a class="btn btn-ghost" href="tel:+441225460330" data-bind="cta.secondary.label">01225 460 330</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441225460330" data-bind="messaging.whatsapp" aria-label="Message the workshop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:31px;">Hammer <span style="color:var(--burgundy);font-style:italic;">&amp;</span> String</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A piano restoration and tuning workshop in Bath. At the bench since 2004.</p>
+      </div>
+      <div>
+        <h4>The workshop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;">
+          Unit 4, Walcot Yard<br />Bath BA1 5BG<br />
+          <a href="tel:+441225460330">01225 460 330</a><br />
+          <a href="mailto:workshop@hammerandstring.co.uk">workshop@hammerandstring.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we do</a><a href="#about">The workshop</a><a href="#location">Find us</a><a href="#book">Assessment</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> HAMMER &amp; STRING</span>
+      <span>PIANOS BROUGHT BACK TO LIFE IN BATH</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

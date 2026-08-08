@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meridian & Grey — goldsmith & jeweller in Antwerp's diamond quarter</title>
+<meta name="description" content="Meridian & Grey is a goldsmith's atelier in Antwerp — bespoke engagement rings, wedding bands, redesign of inherited pieces, and repairs, made at one bench since 2013." />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Meridian & Grey", phone: "+32 3 501 22 84", phoneDisplay: "+32 3 501 22 84", email: "atelier@meridiangrey.be", foundedYear: 2013 },
+  hero: {
+    kicker: "Goldsmith's atelier · Antwerp",
+    headline: "Made at one bench, by the hands you shook.",
+    lede: "A goldsmith's atelier two streets from Antwerp's diamond quarter. Bespoke engagement rings, wedding bands, and the careful redesign of pieces you inherited but never wear. By appointment.",
+    primaryCta: { label: "Book an appointment", href: "#appointment" },
+    secondaryCta: { label: "The work", href: "#gallery" },
+    image: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1800&q=85&auto=format&fit=crop",
+    imageAlt: "A ring being set under the goldsmith's loupe."
+  },
+  trust: { years: "At the bench since 2013" },
+  about: {
+    heading: "One bench. No cases of stock.",
+    paragraphs: [
+      "Meridian & Grey is not a jewellery shop. There are no glass cases, no trays brought out in velvet, no 'collection'. There is a bench, a safe, two chairs for you, and a goldsmith who trained eight years in Pelikaanstraat workshops before opening her own door in 2013.",
+      "Everything here is made to order or remade from what you bring. Engagement rings begin with a conversation and a sketch, not a catalogue. Inherited pieces — the brooch nobody wears, the chain with a story but no style — are redesigned with their history kept on purpose.",
+      "Stones are sourced two streets away, with certificates, from dealers we've worked with for a decade. Gold is recycled where the design allows. Every piece leaves with its drawings, so any goldsmith on earth could repair it in fifty years."
+    ],
+    portrait: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Gold rings in progress on the workbench."
+  },
+  services: [
+    { name: "Bespoke engagement rings", description: "From first conversation to finished ring, six to ten weeks. Three design proposals, one honest recommendation." },
+    { name: "Wedding bands", description: "Made as a pair, at the bench, often with your involvement — one afternoon of filing yours is tradition here." },
+    { name: "Redesign of inherited pieces", description: "Old gold, old stones, new life. The history stays; the setting changes. We photograph everything before the first cut." },
+    { name: "Repairs & restoration", description: "Ring sizing, chain repair, stone tightening, re-tipping claws. Honest triage — some things shouldn't be touched." },
+    { name: "Stone sourcing", description: "Diamonds and coloured stones from the quarter, certificated, at stated margins. You see exactly what we pay." },
+    { name: "Valuations", description: "Insurance valuations with photographs and full specifications, accepted by every Belgian insurer." }
+  ],
+  why: [
+    { title: "The maker is the seller.", body: "The person who designs your ring makes your ring. Nothing is sent out, nothing is white-labelled." },
+    { title: "Stated margins on stones.", body: "You see the dealer's invoice. Our margin is fixed and printed on the quote. Nobody does this; we think everybody should." },
+    { title: "Drawings included, forever.", body: "Every piece leaves with its technical drawings. Any goldsmith, anywhere, in any decade, can maintain it." }
+  ],
+  how: [
+    { step: "01", title: "Talk", body: "An hour at the atelier. Bring photos, heirlooms, half-formed ideas. Coffee is included; commitment is not." },
+    { step: "02", title: "Sketch & quote", body: "Three proposals with fixed prices inside two weeks. One will be our honest recommendation." },
+    { step: "03", title: "Make", body: "Six to ten weeks at the bench. You're welcome to visit mid-make; wax fittings for complex pieces." },
+    { step: "04", title: "Collect", body: "Fitted, photographed, documented. The drawings go home with you, along with the care instructions." }
+  ],
+  testimonials: [
+    { quote: "She took my grandmother's unwearable brooch and made the ring I got engaged with. My grandmother's initials are inside, where only we know. I cried at the bench.", name: "Elise V.", context: "redesign, then engagement" },
+    { quote: "The stated-margin thing is real. I saw the dealer invoice for my diamond. Try asking for that anywhere on the Meir.", name: "Thomas B.", context: "engagement ring" },
+    { quote: "We filed our own wedding bands one Saturday afternoon under her supervision. Best money we spent on the entire wedding.", name: "Ana & Pieter", context: "wedding bands" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1600&q=85&auto=format&fit=crop", alt: "Setting a stone under the loupe." },
+    { src: "https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=1600&q=85&auto=format&fit=crop", alt: "Rings in progress on the bench." },
+    { src: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1600&q=85&auto=format&fit=crop", alt: "A finished solitaire in natural light." },
+    { src: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1600&q=85&auto=format&fit=crop", alt: "Gold bands, matte and polished." },
+    { src: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1600&q=85&auto=format&fit=crop", alt: "A sapphire ring on dark velvet." },
+    { src: "https://images.unsplash.com/photo-1600003014755-ba31aa59c4b6?w=1600&q=85&auto=format&fit=crop", alt: "The goldsmith's tools, worn smooth." }
+  ],
+  faq: [
+    { q: "What does a bespoke ring cost?", a: "Design and making start from a stated bench fee, plus materials at documented cost and our fixed, printed margin. The three proposals we sketch always include one at the bottom of your stated budget — treated as seriously as the others." },
+    { q: "How long does it take?", a: "Engagement rings, six to ten weeks from approved sketch. Wedding bands, four to six. Repairs, usually under two weeks. If your proposal has a date, tell us — we've done heroics before and will again." },
+    { q: "Can you work with my stones and gold?", a: "Almost always. Old gold can be re-alloyed and reused if the design allows; stones are checked for chips and re-cut only with your consent. We photograph everything before the first cut." },
+    { q: "Are your diamonds certificated?", a: "Every diamond above 0.30ct comes with a GIA or HRD certificate, and you see the dealer invoice alongside our fixed margin. Lab-grown is available and clearly labelled — we sell both without sermons either way." },
+    { q: "Do I need an appointment?", a: "Yes — the atelier is a workshop, not a shop floor. Appointments are an hour, unhurried, and free. Evenings possible on Thursdays." },
+    { q: "Do you do repairs on pieces made elsewhere?", a: "Yes, with honest triage first. Some things are riskier to repair than to leave; we'll tell you which yours is and why, before anything is agreed." },
+    { q: "What about valuations?", a: "Insurance valuations with full specifications and photography, accepted by every Belgian insurer we've encountered. Turnaround one week." },
+    { q: "Can we watch our rings being made?", a: "Mid-make visits are welcome, and couples can spend a supervised afternoon filing their own wedding bands. It's the most-mentioned line in our guestbook." }
+  ],
+  area: { places: ["Antwerp centre", "Zurenborg", "Het Zuid", "Berchem", "Brasschaat", "Ghent & Brussels by appointment", "and by post, insured, worldwide"] },
+  credentials: [
+    { label: "Ars Nobilis", detail: "Belgian jewellery federation, member" },
+    { label: "HRD Antwerp", detail: "Certified diamond grading partner" },
+    { label: "Responsible Jewellery", detail: "RJC chain-of-custody sourcing" },
+    { label: "Guarantee", detail: "Lifetime workmanship warranty, in writing" }
+  ],
+  location: { name: "Meridian & Grey", addressStreet: "Lange Herentalsestraat 14", addressLocality: "Antwerp", addressRegion: "Antwerpen", addressPostcode: "2018", addressCountry: "Belgium" },
+  cta: { heading: "Bring the idea. Or the heirloom. Or the nerves.", body: "Appointments are an hour, unhurried, and free. Thursdays run late.", primary: { label: "Book an appointment", href: "#appointment" }, secondary: { label: "+32 3 501 22 84", href: "tel:+3235012284" } },
+  messaging: { whatsapp: "https://wa.me/3235012284", messenger: "https://m.me/meridiangrey" }
+};
+</script>
+
+<style>
+  :root {
+    --pearl:#f3f0ea; --linen:#e9e4d9; --ink:#26231e; --soft:#6f6a60;
+    --gold:#a8894e; --slate:#454f52; --rule:rgba(38,35,30,0.13);
+    --serif:"Cormorant",Georgia,serif; --sans:"Outfit",system-ui,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--pearl);color:var(--ink);font-family:var(--sans);font-weight:300;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1160px,92vw);margin-inline:auto;}
+  .kicker{font-size:11px;letter-spacing:0.3em;text-transform:uppercase;font-weight:500;color:var(--gold);}
+  .h2{font-family:var(--serif);font-weight:500;font-size:clamp(32px,4.4vw,58px);line-height:1.06;letter-spacing:0.005em;margin:0 0 0.45em;}
+  .h2 em{font-style:italic;color:var(--gold);}
+  .body{color:var(--soft);line-height:1.75;}
+  section{padding:clamp(76px,9.5vw,132px) 0;}
+  .btn{display:inline-flex;gap:10px;padding:15px 28px;font-size:12px;letter-spacing:0.22em;text-transform:uppercase;font-weight:500;text-decoration:none;transition:0.22s;}
+  .btn-primary{background:var(--ink);color:var(--pearl);} .btn-primary:hover{background:var(--gold);}
+  .btn-ghost{border:1px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--pearl);}
+  .hairline{width:64px;height:1px;background:var(--gold);margin:0 0 22px;}
+
+  .nav{position:sticky;top:0;z-index:50;background:color-mix(in oklab,var(--pearl) 90%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--rule);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:18px 0;}
+  .wm{font-family:var(--serif);font-size:21px;letter-spacing:0.22em;text-transform:uppercase;text-decoration:none;font-weight:500;}
+  .wm span{color:var(--gold);}
+  .nav-links{display:flex;gap:30px;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;font-weight:500;color:var(--soft);}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--gold);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — vertical duet */
+  .hero{padding:clamp(56px,8vw,110px) 0 clamp(56px,8vw,100px);}
+  .hero-grid{display:grid;grid-template-columns:1fr 0.85fr;gap:clamp(40px,6vw,100px);align-items:center;}
+  .hero h1{font-family:var(--serif);font-weight:500;font-size:clamp(38px,5.4vw,76px);line-height:1.04;letter-spacing:0.005em;margin:22px 0 26px;}
+  .hero h1 em{font-style:italic;color:var(--gold);}
+  .hero .lede{color:var(--soft);max-width:44ch;line-height:1.75;font-size:clamp(15px,1.4vw,18px);}
+  .hero-ctas{margin-top:34px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;padding:0 0 26px 26px;}
+  .hero-photo img{width:100%;aspect-ratio:3/4;object-fit:cover;position:relative;z-index:1;}
+  .hero-photo::before{content:"";position:absolute;left:0;bottom:0;width:70%;height:70%;border:1px solid var(--gold);}
+  .hero-cap{display:flex;justify-content:space-between;margin-top:14px;font-size:10px;letter-spacing:0.26em;text-transform:uppercase;font-weight:500;color:var(--soft);padding-left:26px;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);}
+  .trust .row{display:flex;justify-content:center;gap:clamp(18px,3.5vw,52px);flex-wrap:wrap;padding:20px 0;font-size:10px;letter-spacing:0.26em;text-transform:uppercase;font-weight:500;color:var(--soft);}
+  .trust .o{color:var(--gold);}
+
+  .about{background:var(--linen);}
+  .about-grid{display:grid;grid-template-columns:0.85fr 1.15fr;gap:clamp(40px,6vw,96px);align-items:center;}
+  .about-grid img{aspect-ratio:3/4;object-fit:cover;width:100%;}
+  .about-prose p{font-size:clamp(16px,1.5vw,19px);line-height:1.8;margin:0 0 1.1em;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — ledger */
+  .ledger{max-width:800px;margin:clamp(30px,4vw,52px) auto 0;border-top:1px solid var(--ink);}
+  .ledger-row{display:grid;grid-template-columns:56px 1fr;gap:26px;padding:30px 0;border-bottom:1px solid var(--rule);align-items:baseline;}
+  .ledger-row .no{font-family:var(--serif);font-style:italic;font-size:22px;color:var(--gold);}
+  .ledger-row h3{font-family:var(--serif);font-weight:500;font-size:27px;margin:0 0 8px;line-height:1.12;}
+  .ledger-row p{margin:0;color:var(--soft);font-size:15px;line-height:1.7;}
+
+  .why{background:var(--slate);color:var(--pearl);}
+  .why .h2{color:var(--pearl);} .why .h2 em{color:var(--gold);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(30px,5vw,72px);margin-top:clamp(30px,4vw,52px);}
+  .why-grid .hairline{background:var(--gold);}
+  .why-grid h3{font-family:var(--serif);font-weight:500;font-size:24px;margin:0 0 12px;line-height:1.2;}
+  .why-grid p{color:rgba(243,240,234,0.7);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(22px,3vw,44px);margin-top:clamp(30px,4vw,52px);padding:0;}
+  .how-grid > li{list-style:none;border-top:1px solid var(--gold);padding-top:18px;}
+  .how-grid .step{font-size:10px;letter-spacing:0.28em;text-transform:uppercase;font-weight:500;color:var(--gold);}
+  .how-grid h3{font-family:var(--serif);font-weight:500;font-size:23px;margin:12px 0 8px;}
+  .how-grid p{color:var(--soft);margin:0;font-size:14px;line-height:1.65;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--linen);}
+  .t-quote{font-family:var(--serif);font-style:italic;font-size:clamp(24px,3.2vw,44px);line-height:1.28;text-align:center;max-width:30ch;margin:0 auto 24px;}
+  .t-attr{text-align:center;font-size:10px;letter-spacing:0.26em;text-transform:uppercase;font-weight:500;color:var(--soft);margin-bottom:clamp(40px,5vw,68px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,5vw,84px);border-top:1px solid var(--rule);padding-top:38px;}
+  .t-sub blockquote{font-family:var(--serif);font-style:italic;font-size:20px;line-height:1.5;margin:0 0 12px;}
+  .t-sub figcaption{font-size:10px;letter-spacing:0.26em;text-transform:uppercase;font-weight:500;color:var(--soft);}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:clamp(30px,4vw,52px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;height:100%;object-fit:cover;}
+  .g-grid figure:nth-child(1){grid-column:span 3;aspect-ratio:4/3;}
+  .g-grid figure:nth-child(2){grid-column:span 3;aspect-ratio:4/3;}
+  .g-grid figure:nth-child(n+3){grid-column:span 2;aspect-ratio:1/1;}
+  .g-grid figcaption{font-size:10px;letter-spacing:0.24em;text-transform:uppercase;font-weight:500;color:var(--soft);padding-top:10px;}
+  @media(max-width:760px){.g-grid figure{grid-column:span 6 !important;aspect-ratio:4/3 !important;}}
+
+  .faq-list{max-width:780px;margin:clamp(30px,4vw,52px) auto 0;}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:26px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--ink);}
+  .faq-list summary{font-family:var(--serif);font-weight:500;font-size:23px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:22px;line-height:1.3;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"◇";color:var(--gold);font-size:13px;flex-shrink:0;}
+  .faq-list details[open] summary::after{content:"◆";}
+  .faq-list p{margin:14px 0 0;color:var(--soft);font-size:15px;max-width:60ch;line-height:1.75;}
+
+  .area{text-align:center;}
+  .area-list{display:flex;flex-wrap:wrap;gap:8px 26px;justify-content:center;margin:26px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--soft);}
+  .area-list li::after{content:" ◇";color:var(--gold);font-size:11px;}
+  .area-list li:last-child::after{content:"";}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);margin-top:clamp(28px,4vw,48px);}
+  .creds > div{border-top:1px solid var(--gold);padding-top:16px;}
+  .creds .label{font-size:9px;letter-spacing:0.26em;text-transform:uppercase;font-weight:500;color:var(--gold);margin-bottom:10px;}
+  .creds .detail{font-family:var(--serif);font-size:19px;line-height:1.35;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(26px,4vw,52px);margin-top:clamp(30px,4vw,52px);}
+  .nap{border:1px solid var(--rule);background:var(--linen);padding:38px;}
+  .nap address{font-style:normal;font-family:var(--serif);font-size:23px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-size:11px;margin-top:26px;border-top:1px solid var(--rule);padding-top:20px;letter-spacing:0.18em;text-transform:uppercase;font-weight:500;}
+  .hours .row{display:flex;justify-content:space-between;padding:5px 0;color:var(--soft);}
+  .hours .gbp-note{font-size:13px;color:var(--soft);margin-top:16px;line-height:1.7;letter-spacing:0;text-transform:none;font-weight:300;}
+  .map-frame{border:1px solid var(--rule);min-height:400px;filter:grayscale(0.85) sepia(0.12);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:400px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--ink);color:var(--pearl);text-align:center;padding:clamp(90px,12vw,170px) 0;}
+  .cta-band h2{font-family:var(--serif);font-weight:500;font-size:clamp(34px,4.8vw,68px);line-height:1.08;margin:18px auto 20px;max-width:22ch;}
+  .cta-band h2 em{font-style:italic;color:var(--gold);}
+  .cta-band p{color:rgba(243,240,234,0.65);max-width:44ch;margin:0 auto 38px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--gold);color:var(--ink);}
+  .cta-band .btn-ghost{border-color:rgba(243,240,234,0.4);color:var(--pearl);}
+  .cta-band .btn-ghost:hover{background:var(--pearl);color:var(--ink);}
+
+  footer{background:var(--pearl);padding:64px 0 34px;border-top:1px solid var(--rule);}
+  .footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:44px;}
+  .footer-grid h4{font-size:9px;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);margin:0 0 16px;font-weight:500;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:60px;padding-top:22px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:9px;letter-spacing:0.26em;text-transform:uppercase;color:var(--soft);font-weight:500;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--pearl);padding:13px 20px;text-decoration:none;font-size:10px;letter-spacing:0.24em;text-transform:uppercase;font-weight:500;}
+  .msg-fab a:hover{background:var(--gold);color:var(--ink);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"JewelryStore","name":"Meridian & Grey","description":"Goldsmith's atelier in Antwerp — bespoke engagement rings, wedding bands, redesign of inherited pieces, and repairs.","url":"https://meridiangrey.be/","telephone":"+3235012284","email":"atelier@meridiangrey.be","address":{"@type":"PostalAddress","streetAddress":"Lange Herentalsestraat 14","addressLocality":"Antwerp","addressRegion":"Antwerpen","postalCode":"2018","addressCountry":"BE"},"geo":{"@type":"GeoCoordinates","latitude":51.2130,"longitude":4.4200},"areaServed":["Antwerp","Ghent","Brussels"],"image":["https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1600"],"priceRange":"€€€","foundingDate":"2013"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What does a bespoke ring cost?","acceptedAnswer":{"@type":"Answer","text":"A stated bench fee plus materials at documented cost and a fixed, printed margin."}},
+{"@type":"Question","name":"How long does it take?","acceptedAnswer":{"@type":"Answer","text":"Engagement rings six to ten weeks from approved sketch; bands four to six; repairs under two."}},
+{"@type":"Question","name":"Can you work with my stones and gold?","acceptedAnswer":{"@type":"Answer","text":"Almost always. Everything is photographed before the first cut."}},
+{"@type":"Question","name":"Are your diamonds certificated?","acceptedAnswer":{"@type":"Answer","text":"GIA or HRD above 0.30ct, with the dealer invoice visible. Lab-grown available and labelled."}},
+{"@type":"Question","name":"Do I need an appointment?","acceptedAnswer":{"@type":"Answer","text":"Yes — appointments are an hour, unhurried, and free. Thursday evenings possible."}},
+{"@type":"Question","name":"Do you repair pieces made elsewhere?","acceptedAnswer":{"@type":"Answer","text":"Yes, with honest triage first."}},
+{"@type":"Question","name":"What about valuations?","acceptedAnswer":{"@type":"Answer","text":"Insurance valuations with full specs and photography, one-week turnaround."}},
+{"@type":"Question","name":"Can we watch our rings being made?","acceptedAnswer":{"@type":"Answer","text":"Mid-make visits welcome; couples can file their own wedding bands under supervision."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Meridian <span>&amp;</span> Grey</a>
+    <nav class="nav-links">
+      <a href="#about">Atelier</a><a href="#services">Work</a><a href="#gallery">Pieces</a><a href="#appointment">Appointment</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v14">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker" data-bind="hero.kicker">Goldsmith's atelier · Antwerp</div>
+      <h1 data-bind="hero.headline">Made at one bench, <em>by the hands you shook.</em></h1>
+      <p class="lede" data-bind="hero.lede">A goldsmith's atelier two streets from Antwerp's diamond quarter. Bespoke engagement rings, wedding bands, and the careful redesign of pieces you inherited but never wear. By appointment.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#appointment" data-bind="hero.primaryCta.label">Book an appointment</a>
+        <a class="btn btn-ghost" href="#gallery" data-bind="hero.secondaryCta.label">The work</a>
+      </div>
+    </div>
+    <div>
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1800&q=85&auto=format&fit=crop"
+             alt="A ring being set under the goldsmith's loupe." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-cap"><span>At the bench</span><span>Est. 2013</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the bench since 2013</span>
+    <span class="o">◇</span><span>Ars Nobilis member</span>
+    <span class="o">◇</span><span>HRD-certificated stones</span>
+    <span class="o">◇</span><span>Lifetime workmanship warranty</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v2">
+  <div class="wrap about-grid">
+    <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+         src="https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=1200&q=85&auto=format&fit=crop"
+         alt="Gold rings in progress on the workbench." />
+    <div class="about-prose">
+      <div class="kicker">The atelier</div>
+      <h2 class="h2" data-bind="about.heading">One bench. <em>No cases of stock.</em></h2>
+      <p>Meridian &amp; Grey is not a jewellery shop. There are no glass cases, no trays brought out in velvet, no 'collection'. There is a bench, a safe, two chairs for you, and a goldsmith who trained eight years in Pelikaanstraat workshops before opening her own door in 2013.</p>
+      <p>Everything here is made to order or remade from what you bring. Inherited pieces — the brooch nobody wears, the chain with a story but no style — are redesigned with their history kept on purpose.</p>
+      <p>Stones are sourced two streets away, with certificates. Gold is recycled where the design allows. Every piece leaves with its drawings, so any goldsmith on earth could repair it in fifty years.</p>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v6">
+  <div class="wrap" style="text-align:center;">
+    <div class="kicker">The work</div>
+    <h2 class="h2">Six things made <em>at this bench.</em></h2>
+    <div class="ledger" style="text-align:left;">
+      <div class="ledger-row"><span class="no">i.</span><div><h3>Bespoke engagement rings</h3><p>From first conversation to finished ring, six to ten weeks. Three design proposals, one honest recommendation.</p></div></div>
+      <div class="ledger-row"><span class="no">ii.</span><div><h3>Wedding bands</h3><p>Made as a pair, at the bench, often with your involvement — one afternoon of filing yours is tradition here.</p></div></div>
+      <div class="ledger-row"><span class="no">iii.</span><div><h3>Redesign of inherited pieces</h3><p>Old gold, old stones, new life. The history stays; the setting changes. We photograph everything before the first cut.</p></div></div>
+      <div class="ledger-row"><span class="no">iv.</span><div><h3>Repairs &amp; restoration</h3><p>Ring sizing, chain repair, stone tightening, re-tipping claws. Honest triage — some things shouldn't be touched.</p></div></div>
+      <div class="ledger-row"><span class="no">v.</span><div><h3>Stone sourcing</h3><p>Diamonds and coloured stones from the quarter, certificated, at stated margins. You see exactly what we pay.</p></div></div>
+      <div class="ledger-row"><span class="no">vi.</span><div><h3>Valuations</h3><p>Insurance valuations with photographs and full specifications, accepted by every Belgian insurer.</p></div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Held to</div>
+    <h2 class="h2">Three uncommon <em>practices.</em></h2>
+    <div class="why-grid">
+      <div><div class="hairline"></div><h3>The maker is the seller.</h3><p>The person who designs your ring makes your ring. Nothing is sent out, nothing is white-labelled.</p></div>
+      <div><div class="hairline"></div><h3>Stated margins on stones.</h3><p>You see the dealer's invoice. Our margin is fixed and printed on the quote. Nobody does this; we think everybody should.</p></div>
+      <div><div class="hairline"></div><h3>Drawings included, forever.</h3><p>Every piece leaves with its technical drawings. Any goldsmith, anywhere, in any decade, can maintain it.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">The commission</div>
+    <h2 class="h2">From idea <em>to hand.</em></h2>
+    <ol class="how-grid">
+      <li><span class="step">I</span><h3>Talk</h3><p>An hour at the atelier. Bring photos, heirlooms, half-formed ideas. Coffee is included; commitment is not.</p></li>
+      <li><span class="step">II</span><h3>Sketch &amp; quote</h3><p>Three proposals with fixed prices inside two weeks. One will be our honest recommendation.</p></li>
+      <li><span class="step">III</span><h3>Make</h3><p>Six to ten weeks at the bench. You're welcome to visit mid-make; wax fittings for complex pieces.</p></li>
+      <li><span class="step">IV</span><h3>Collect</h3><p>Fitted, photographed, documented. The drawings go home with you, along with the care instructions.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="kicker" style="text-align:center;display:block;">From the guestbook</div>
+    <blockquote class="t-quote">“She took my grandmother's unwearable brooch and made the ring I got engaged with. My grandmother's initials are inside, where only we know.”</blockquote>
+    <div class="t-attr">Elise V. — redesign, then engagement</div>
+    <div class="t-sub">
+      <figure><blockquote>“The stated-margin thing is real. I saw the dealer invoice for my diamond. Try asking for that anywhere on the Meir.”</blockquote><figcaption>Thomas B. — engagement ring</figcaption></figure>
+      <figure><blockquote>“We filed our own wedding bands one Saturday afternoon under her supervision. Best money we spent on the entire wedding.”</blockquote><figcaption>Ana &amp; Pieter — wedding bands</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section id="gallery" data-component="GALLERY" data-variant="v4">
+  <div class="wrap">
+    <div class="kicker">Recent pieces</div>
+    <h2 class="h2">Gold, stone, <em>and patience.</em></h2>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1600&q=85&auto=format&fit=crop" alt="Setting a stone under the loupe." /><figcaption>Setting, in progress</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=1600&q=85&auto=format&fit=crop" alt="Rings in progress on the bench." /><figcaption>The bench, midweek</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1600&q=85&auto=format&fit=crop" alt="A finished solitaire in natural light." /><figcaption>Solitaire</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1600&q=85&auto=format&fit=crop" alt="Gold bands, matte and polished." /><figcaption>Bands, paired</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1600&q=85&auto=format&fit=crop" alt="A sapphire ring on dark velvet." /><figcaption>Sapphire, redesigned</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600003014755-ba31aa59c4b6?w=1600&q=85&auto=format&fit=crop" alt="The goldsmith's tools, worn smooth." /><figcaption>Tools, inherited</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap" style="text-align:center;">
+    <div class="kicker">Asked at the bench</div>
+    <h2 class="h2">Before your <em>appointment.</em></h2>
+    <div class="faq-list" style="text-align:left;">
+      <details><summary>What does a bespoke ring cost?</summary><p>Design and making start from a stated bench fee, plus materials at documented cost and our fixed, printed margin. The three proposals we sketch always include one at the bottom of your stated budget — treated as seriously as the others.</p></details>
+      <details><summary>How long does it take?</summary><p>Engagement rings, six to ten weeks from approved sketch. Wedding bands, four to six. Repairs, usually under two weeks. If your proposal has a date, tell us — we've done heroics before and will again.</p></details>
+      <details><summary>Can you work with my stones and gold?</summary><p>Almost always. Old gold can be re-alloyed and reused if the design allows; stones are checked for chips and re-cut only with your consent. We photograph everything before the first cut.</p></details>
+      <details><summary>Are your diamonds certificated?</summary><p>Every diamond above 0.30ct comes with a GIA or HRD certificate, and you see the dealer invoice alongside our fixed margin. Lab-grown is available and clearly labelled — we sell both without sermons either way.</p></details>
+      <details><summary>Do I need an appointment?</summary><p>Yes — the atelier is a workshop, not a shop floor. Appointments are an hour, unhurried, and free. Evenings possible on Thursdays.</p></details>
+      <details><summary>Do you do repairs on pieces made elsewhere?</summary><p>Yes, with honest triage first. Some things are riskier to repair than to leave; we'll tell you which yours is and why, before anything is agreed.</p></details>
+      <details><summary>What about valuations?</summary><p>Insurance valuations with full specifications and photography, accepted by every Belgian insurer we've encountered. Turnaround one week.</p></details>
+      <details><summary>Can we watch our rings being made?</summary><p>Mid-make visits are welcome, and couples can spend a supervised afternoon filing their own wedding bands. It's the most-mentioned line in our guestbook.</p></details>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section class="area" data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker">Clients come from</div>
+    <ul class="area-list">
+      <li>Antwerp centre</li><li>Zurenborg</li><li>Het Zuid</li><li>Berchem</li>
+      <li>Brasschaat</li><li>Ghent &amp; Brussels by appointment</li><li>and by post, insured, worldwide</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker">For the record</div>
+    <div class="creds">
+      <div><div class="label">Ars Nobilis</div><div class="detail">Belgian jewellery federation, member</div></div>
+      <div><div class="label">HRD Antwerp</div><div class="detail">Certified diamond grading partner</div></div>
+      <div><div class="label">Responsible Jewellery</div><div class="detail">RJC chain-of-custody sourcing</div></div>
+      <div><div class="label">Guarantee</div><div class="detail">Lifetime workmanship warranty, in writing</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker">The atelier</div>
+    <h2 class="h2">Lange Herentalsestraat 14.</h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Meridian &amp; Grey</strong><br />
+          Lange Herentalsestraat 14<br />
+          2018 Antwerp<br /><br />
+          <a href="tel:+3235012284" data-bind="business.phoneDisplay">+32 3 501 22 84</a><br />
+          <a href="mailto:atelier@meridiangrey.be" data-bind="business.email">atelier@meridiangrey.be</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>Tue – Fri</span><span>by appointment</span></div>
+          <div class="row"><span>Thursday</span><span>evenings possible</span></div>
+          <div class="row"><span>Sat – Mon</span><span>closed</span></div>
+          <p class="gbp-note">Appointment slots are kept current on our Google Business Profile. Ring the bell twice; the bench is at the back.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Meridian & Grey, Antwerp" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=4.4120%2C51.2100%2C4.4280%2C51.2165&layer=mapnik&marker=51.2130%2C4.4200"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="appointment" class="cta-band" data-component="CTA-BAND" data-variant="v5">
+  <div class="wrap">
+    <div class="kicker">Appointments</div>
+    <h2 data-bind="cta.heading">Bring the idea. Or the heirloom. <em>Or the nerves.</em></h2>
+    <p data-bind="cta.body">Appointments are an hour, unhurried, and free. Thursdays run late.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#appointment" data-bind="cta.primary.label">Book an appointment</a>
+      <a class="btn btn-ghost" href="tel:+3235012284" data-bind="cta.secondary.label">+32 3 501 22 84</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/3235012284" data-bind="messaging.whatsapp" aria-label="Message the atelier">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    The atelier
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a class="wm" href="#" style="font-size:24px;">Meridian <span>&amp;</span> Grey</a>
+        <p class="body" style="margin-top:14px;max-width:36ch;">A goldsmith's atelier two streets from Antwerp's diamond quarter. Since 2013.</p>
+      </div>
+      <div>
+        <h4>The atelier</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          Lange Herentalsestraat 14<br />2018 Antwerp<br />
+          <a href="tel:+3235012284">+32 3 501 22 84</a><br />
+          <a href="mailto:atelier@meridiangrey.be">atelier@meridiangrey.be</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The work</a><a href="#gallery">Pieces</a><a href="#appointment">Appointment</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> Meridian &amp; Grey BV · BTW BE 0537.221.904</span>
+      <span>One bench · Antwerp 2018</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

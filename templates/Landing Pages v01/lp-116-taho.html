@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Taho ni Mang Ading — warm silken taho with arnibal & sago, morning rounds in Quezon City</title>
+<meta name="description" content="Taho ni Mang Ading serves traditional Filipino taho in Quezon City — warm silken soy curd with brown-sugar arnibal and chewy sago, carried in the classic aluminium buckets on morning rounds, plus flavoured taho and event bookings. Calling 'Tahoooo!' since 2005." />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Taho ni Mang Ading", phone: "+63 917 555 0261", phoneDisplay: "0917 555 0261", email: "taho@mangading.ph", foundedYear: 2005 },
+  hero: {
+    kicker: "Traditional taho · morning rounds · event bookings · Quezon City",
+    headline: "You'll hear him before you see him. Then breakfast finds you.",
+    lede: "Warm, silken soy curd ladled into a cup, drenched in dark brown-sugar arnibal and topped with chewy sago pearls — taho, the Filipino morning in a plastic cup, carried through the streets in the classic aluminium buckets on a shoulder pole. Mang Ading has walked these barangays since 2005, and now takes bookings for parties, offices and events too.",
+    primaryCta: { label: "Book the taho cart", href: "#book" },
+    secondaryCta: { label: "What's in the cup", href: "#services" },
+    image: "https://images.unsplash.com/photo-1541544181051-e46607bc22a4?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A warm sweet drink in a cup with syrup and pearls."
+  },
+  trust: { years: "Calling 'Tahoooo!' since 2005" },
+  about: {
+    heading: "Three ingredients, one call, and a whole country's childhood.",
+    paragraphs: [
+      "Taho is one of the simplest and most beloved things in Filipino food: warm, silken soybean curd, sweet dark syrup called arnibal, and chewy sago pearls, layered into a cup and eaten with a spoon or drunk straight down. It costs very little, it's sold on foot rather than in shops, and for generations of Filipinos the first sound of the morning wasn't an alarm — it was the magtataho calling 'Tahoooo!' down the street.",
+      "Mang Ading has been that voice around these barangays since 2005. The soy curd is made fresh and kept warm in the traditional aluminium buckets, slung on a shoulder pole and carried on foot through the same morning route: past the school gate, the village, the jeepney stop, the houses where the kids already have their cups ready. The arnibal is cooked dark and caramel-deep, the sago boiled soft and chewy. Nothing fancy. Everything right.",
+      "What's new is that we now take bookings. Weddings, kids' parties, offices, school fairs and company events book the taho cart — Mang Ading, buckets, pole and all — for a nostalgic, unbelievably popular merienda station. We also do flavoured taho for those who want it, and take-home tubs of curd, arnibal and sago. But the heart of it is unchanged: warm taho, a fair price, and that call down the street in the morning."
+    ],
+    portrait: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A warm cup on a table in the morning light."
+  },
+  services: [
+    { name: "The classic taho", description: "Warm silken soy curd, dark brown-sugar arnibal and chewy sago pearls, layered into a cup — the original, exactly as it's been sold on Filipino streets for generations. Small or large, hot from the bucket." },
+    { name: "Flavoured taho", description: "Ube, strawberry, chocolate and pandan arnibal for those who like a twist — same warm silken curd, a different syrup. Popular with kids, and a nice option to offer alongside the classic at events." },
+    { name: "Morning rounds", description: "Mang Ading walks the same barangay route every morning with the buckets and the call. Message us to find today's route or to request a stop on your street — if there's demand, he'll come to you." },
+    { name: "Party & event bookings", description: "Book the taho station for kids' parties, weddings, reunions and school fairs — buckets, pole, Mang Ading and unlimited cups for your guests for a set time. Nostalgia that makes every age smile." },
+    { name: "Office & corporate merienda", description: "A taho morning for the office: we'll come to your building and serve warm cups to the whole floor. An unexpectedly perfect team treat, cheaper and far more memorable than another tray of pastries." },
+    { name: "Take-home tubs", description: "Curd, arnibal and sago packed separately to assemble at home — for when you want taho at your own breakfast table without waiting for the call. Order ahead and collect, or add to a booking." }
+  ],
+  why: [
+    { title: "Made fresh, served warm.", body: "Taho is meant to be warm and silky, not cold and rubbery. Ours is made fresh and kept hot in the traditional buckets so every cup has that soft, comforting texture the whole thing depends on." },
+    { title: "Arnibal cooked dark.", body: "The syrup is half the pleasure. We cook our arnibal properly dark and caramel-deep rather than thin and merely sweet, so it ribbons through the curd instead of watering it down." },
+    { title: "Carried, not stationed.", body: "Taho comes to you — that's the tradition. Buckets on a pole, the call down the street, breakfast delivered on foot. Booking the cart brings that whole piece of Filipino childhood into your event." }
+  ],
+  how: [
+    { step: "01", title: "Catch the call, or book", body: "Listen for 'Tahoooo!' on the morning round, message us for today's route, or book the cart for an event. Kids know the sound instinctively; adults rediscover it about a second later." },
+    { step: "02", title: "Say how you want it", body: "Extra arnibal? Extra sago? Small or large cup? Classic or a flavoured syrup? Tell Mang Ading — every cup is ladled to order right there from the bucket. It takes about fifteen seconds." },
+    { step: "03", title: "Drink it warm", body: "Taho is best while it's hot and silky, so don't save it for later — spoon it, sip it, get the sago at the bottom. This is a fifteen-peso pleasure that beats most things costing twenty times more." },
+    { step: "04", title: "Book it for the crowd", body: "Want everyone to have that moment? Book the station for your party, office or school event — message us the date, place and headcount and we'll bring the buckets and enough for everybody." }
+  ],
+  testimonials: [
+    { quote: "My kids sprint to the gate the second they hear him. Warm, silky, proper arnibal — not the watery stuff. Mang Ading has been our morning for years and he always remembers who takes extra sago. Some things are worth keeping exactly as they are. This is one of them.", name: "Marites C.", context: "morning-round regular" },
+    { quote: "We booked the taho station for our daughter's birthday and it beat every other food at the party, including the cake — I'm not exaggerating. The lolos got emotional, the kids had three cups each, and it cost a fraction of a dessert caterer. Genius idea. Book it, seriously.", name: "Paul & Ivy", context: "kids' party booking" },
+    { quote: "Brought Mang Ading in for our office merienda and the whole floor lit up. Everyone had a taho story from childhood. Warm, delicious, arrived exactly on time, and far more memorable than the usual catered snacks. Our team asks when he's coming back. Now a quarterly tradition.", name: "HR lead, Ortigas", context: "office booking" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1541544181051-e46607bc22a4?w=1600&q=85&auto=format&fit=crop", alt: "A warm sweet drink in a cup with syrup and pearls." },
+    { src: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop", alt: "A warm cup on a table in the morning light." },
+    { src: "https://images.unsplash.com/photo-1558857563-b371033873b8?w=1600&q=85&auto=format&fit=crop", alt: "A sweet drink with tapioca pearls." },
+    { src: "https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600&q=85&auto=format&fit=crop", alt: "A bright street-food counter." },
+    { src: "https://images.unsplash.com/photo-1523294587484-bae6cc870010?w=1600&q=85&auto=format&fit=crop", alt: "Dark syrup being poured." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "A neighbourhood street in the morning." }
+  ],
+  faq: [
+    { q: "What exactly is taho made of?", a: "Three things, and that simplicity is the whole beauty of it. First, the base: warm, very soft silken soybean curd — essentially fresh, unpressed tofu, so soft it's spooned rather than sliced, with a delicate, faintly beany, comforting flavour. Second, arnibal: a dark syrup made from brown sugar (and sometimes a little vanilla), cooked down until it's rich and caramel-like, which is poured generously over the curd. Third, sago: small chewy pearls, similar in bite to tapioca, boiled soft and added for texture. They're layered together in a cup and eaten with a spoon or drunk straight down as the curd loosens. That's it — no dairy, no eggs, nothing complicated. It's naturally plant-based, high in soy protein, warm, sweet and comforting, and it costs very little, which is exactly why it's been a beloved everyday Filipino breakfast and merienda for generations rather than a fancy treat." },
+    { q: "Why is taho sold from buckets on a pole rather than from a shop?", a: "Because taho has always been a mobile, street-sold food, and the delivery method is genuinely part of the tradition. The magtataho — the taho vendor — carries two large aluminium buckets suspended from a wooden pole balanced across the shoulders: one holds the warm soy curd, the other holds the arnibal and sago, along with the cups and ladle. He walks a regular route through neighbourhoods, calling out 'Tahoooo!' as he goes, and people come out to the gate or the roadside with coins in hand. The whole system exists because taho is best warm and freshly ladled, it's cheap enough that it needs no overheads, and it goes to where people actually are — outside houses, at school gates, near jeepney stops — in the early morning when they want it. For most Filipinos, that call down the street is inseparable from the food itself; it's a sound that means morning. Keeping the buckets and the walk is not nostalgia for show, it's simply how taho works best." },
+    { q: "Is taho healthy? Is it vegan?", a: "Taho is naturally plant-based — the curd is made from soybeans, the arnibal from brown sugar, and the sago from starch pearls — so it contains no dairy, meat or eggs, and it's generally suitable for vegans and for people avoiding lactose. Nutritionally, the soy curd itself is a genuinely good thing: it's a decent source of plant protein and is low in fat, which is part of why taho has long been considered a wholesome, filling breakfast for workers, students and children on modest budgets. The honest caveat is the arnibal — it's sugar syrup, and a generous pour makes taho a fairly sweet drink, so it's a treat as much as a health food. The good news is that it's easily adjusted: just ask for less arnibal (or less sago) and you'll get a lighter, less sweet cup while keeping all the warm, silky soy goodness. Mang Ading is very happy to pour to taste — plenty of regulars have their own standing preference, from 'extra arnibal please' to 'konti lang.'" },
+    { q: "What time do the morning rounds happen, and can you come to my street?", a: "Taho is fundamentally a morning food, and the rounds run early — that's when people want it, and when the curd is at its freshest and warmest. Mang Ading walks a fairly consistent route through the barangays each morning, hitting the same landmarks around the same times, which is how regulars know roughly when to listen for the call. Because the route moves and can vary a little with the day and the weather, the easiest thing is to message us to ask where he'll be and roughly when. And yes — you can absolutely request a stop on your street or at your village: if there's enough interest from a few households or a village gate, we're glad to add or adjust the route, because a reliable cluster of customers is exactly what makes a stop worthwhile. Just message us with your location and we'll tell you honestly whether it's on or near the round and what time to expect the call. For anything guaranteed at a specific time, book the station instead." },
+    { q: "Can I book taho for a party, wedding or office event?", a: "Yes, and it's become one of the most popular things we do — booking the taho station brings the whole nostalgic experience to your event: Mang Ading, the buckets, the pole, and warm cups served fresh to your guests for an agreed period. It works brilliantly at kids' birthdays (children go wild for it and it's mercifully mess-free compared to most party food), weddings and reunions (older guests are frequently moved by it — it's a direct line to their childhood), school fairs, store openings and corporate merienda breaks. It's also refreshingly affordable compared to conventional dessert catering while being far more memorable, and it photographs beautifully. To book, just message or call with your date, location, expected headcount and the time window you'd like, and we'll confirm availability and sort out quantities, cups and whether you'd like flavoured arnibal alongside the classic. Weekends, holidays and the December party season book up fastest, so reach out early if your date is fixed." },
+    { q: "Do you have flavoured taho or take-home options?", a: "Yes to both, though we'll always be a bit partial to the classic. Alongside traditional brown-sugar arnibal, we offer flavoured syrups — ube, strawberry, chocolate and pandan are the usual suspects — over the same warm silken curd, which kids in particular love and which makes a fun extra option at events where you want variety on the station. And for taking home, we can pack the components separately — curd, arnibal and sago in their own containers — so you can assemble fresh cups at your own table whenever you like, warm the curd gently, and pour to your own taste. That's ideal for households that want taho on their own schedule, for gifting, or for anyone whose street isn't on the morning route. Order take-home tubs ahead and collect, or add them onto an event booking. The one thing we'd say: taho is at its absolute best warm and freshly ladled, so however you take it, don't leave it sitting cold in the fridge for days — it's made to be enjoyed soon." }
+  ],
+  area: { places: ["Quezon City", "Diliman", "Kamuning", "San Juan", "Metro Manila", "Event bookings"] },
+  credentials: [
+    { label: "Since 2005", detail: "Walking the same morning rounds" },
+    { label: "Warm & silken", detail: "Fresh curd, kept hot in the buckets" },
+    { label: "Arnibal cooked dark", detail: "Deep brown-sugar syrup, never watery" },
+    { label: "Bookings", detail: "Parties, weddings, offices & school fairs" }
+  ],
+  location: { name: "Taho ni Mang Ading", addressStreet: "12 Mayon Street, Sta. Mesa Heights", addressLocality: "Quezon City", addressRegion: "Metro Manila", addressPostcode: "1114", addressCountry: "Philippines" },
+  cta: { heading: "Bring the morning call to your street.", body: "Warm silken taho with dark arnibal and chewy sago, ladled fresh from the buckets — on the morning rounds around Quezon City, or booked for your party, office or school event. Calling 'Tahoooo!' since 2005.", primary: { label: "Book the taho cart", href: "#book" }, secondary: { label: "0917 555 0261", href: "tel:+639175550261" } },
+  messaging: { whatsapp: "https://wa.me/639175550261", messenger: "https://m.me/mangadingtaho" }
+};
+</script>
+
+<style>
+  :root {
+    --soy:#f7f0e2; --soy-2:#fffaf1; --arnibal:#7a4419; --arnibal-2:#5c3211; --ink:#33261a; --ink-2:#5d4b39;
+    --sago:#c98a3c; --morning:#e9b949; --leafy:#5c8a52; --sunrise:#e2703a;
+    --mid:#93826b; --mid-d:#cbb99b; --rule:rgba(51,38,26,0.13); --rule-d:rgba(247,240,226,0.16);
+    --disp:"Baloo 2",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--soy);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--sunrise);}
+  .wrap{width:min(1250px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--sunrise);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:800;font-size:clamp(36px,5.2vw,76px);line-height:1.02;margin:0 0 0.3em;letter-spacing:-0.02em;}
+  .h2 em{font-style:normal;color:var(--sunrise);}
+  .body{color:var(--ink-2);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:999px;}
+  .btn-primary{background:var(--arnibal);color:var(--soy-2);} .btn-primary:hover{background:var(--sunrise);}
+  .btn-ghost{border:2px solid var(--arnibal);color:var(--arnibal);} .btn-ghost:hover{background:var(--arnibal);color:var(--soy-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);border-bottom:2px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,58px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(247,240,226,0.93);backdrop-filter:blur(10px);border-bottom:2px solid var(--arnibal);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:800;font-size:23px;text-decoration:none;letter-spacing:-0.02em;color:var(--arnibal);}
+  .wm span{color:var(--sunrise);}
+  .nav-links{display:flex;gap:24px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-2);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,64px) 0 clamp(56px,7vw,96px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:800;font-size:clamp(38px,6vw,92px);line-height:1.0;letter-spacing:-0.025em;margin:0 0 32px;max-width:17ch;color:var(--arnibal);}
+  .hero-headline .em{color:var(--sunrise);}
+  .hero-lower{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(30px,4vw,60px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:18px;border:3px solid var(--arnibal);}
+  .hero-photo::after{content:"TAHOOOO! · SINCE 2005";position:absolute;left:-8px;top:-14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.1em;background:var(--morning);color:var(--ink);padding:8px 14px;border-radius:999px;border:2.5px solid var(--arnibal);transform:rotate(-3deg);}
+  .hero-right .lede{color:var(--ink-2);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--arnibal);color:var(--soy-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.11em;text-transform:uppercase;color:rgba(255,250,241,0.88);font-weight:700;}
+
+  .about{background:var(--soy-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:18px;border:3px solid var(--arnibal);}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.78;margin:0 0 1em;color:var(--ink-2);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:2px solid var(--arnibal);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(226,112,58,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;color:var(--leafy);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:700;font-size:clamp(23px,2.5vw,33px);margin:0;line-height:1.06;letter-spacing:-0.02em;color:var(--arnibal);}
+  .svc-row p{color:var(--ink-2);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--arnibal);color:var(--soy-2);}
+  .why .sw-head{color:rgba(255,250,241,0.7);border-color:rgba(255,250,241,0.24);}
+  .why .h2{color:var(--soy-2);} .why .h2 em{color:var(--morning);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--morning);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:700;font-size:26px;margin:0 0 10px;line-height:1.06;letter-spacing:-0.02em;}
+  .why-grid p{color:rgba(255,250,241,0.86);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--sunrise);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--leafy);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:700;font-size:22px;margin:8px 0 8px;line-height:1.08;letter-spacing:-0.02em;color:var(--arnibal);}
+  .how-grid p{color:var(--ink-2);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--arnibal-2);color:var(--soy);}
+  .t-quote{font-family:var(--disp);font-weight:700;font-size:clamp(26px,3.5vw,50px);line-height:1.1;max-width:26ch;margin:0 0 24px;letter-spacing:-0.02em;}
+  .t-quote em{font-style:normal;color:var(--morning);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--morning);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.74;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:14px;border:3px solid var(--arnibal);}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--sunrise);color:var(--soy-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--arnibal);}
+  .faq-list summary{font-family:var(--disp);font-weight:700;font-size:21px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.18;letter-spacing:-0.02em;color:var(--arnibal);}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--sunrise);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--ink-2);font-size:14.5px;max-width:64ch;line-height:1.74;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--arnibal);border-radius:999px;font-weight:700;color:var(--ink-2);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px solid var(--sago);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sunrise);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.16;letter-spacing:-0.02em;color:var(--arnibal);}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--morning);color:var(--ink);padding:34px;border-radius:18px;border:3px solid var(--arnibal);}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:700;font-size:20px;line-height:1.3;letter-spacing:-0.02em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:600;color:var(--arnibal-2);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:2px solid rgba(51,38,26,0.24);padding-top:18px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--arnibal-2);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--arnibal-2);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:18px;border:3px solid var(--arnibal);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.15) contrast(1.02);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--sunrise);color:var(--soy-2);padding:clamp(80px,10vw,144px) 0;text-align:center;}
+  .cta-band .kick{color:var(--soy-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:800;font-size:clamp(40px,6vw,96px);line-height:1.0;margin:14px auto 18px;max-width:16ch;letter-spacing:-0.025em;}
+  .cta-band h2 em{font-style:normal;color:var(--morning);}
+  .cta-band p{color:rgba(255,250,241,0.94);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--soy-2);color:var(--sunrise);} .cta-band .btn-primary:hover{background:var(--arnibal);color:var(--soy-2);}
+  .cta-band .btn-ghost{border-color:var(--soy-2);color:var(--soy-2);} .cta-band .btn-ghost:hover{background:var(--soy-2);color:var(--sunrise);}
+
+  footer{background:var(--arnibal-2);color:var(--soy);border-top:3px solid var(--morning);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--morning);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--arnibal);color:var(--soy-2);padding:13px 20px;border-radius:999px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 8px 24px rgba(122,68,25,0.4);border:2.5px solid var(--morning);}
+  .msg-fab a:hover{background:var(--sunrise);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FoodEstablishment","name":"Taho ni Mang Ading","description":"Traditional taho vendor in Quezon City — warm silken soy curd with brown-sugar arnibal and chewy sago, carried in aluminium buckets on morning rounds, plus flavoured taho, take-home tubs and event bookings. Since 2005.","servesCuisine":"Filipino","url":"https://mangadingtaho.ph/","telephone":"+639175550261","email":"taho@mangading.ph","address":{"@type":"PostalAddress","streetAddress":"12 Mayon Street, Sta. Mesa Heights","addressLocality":"Quezon City","addressRegion":"Metro Manila","postalCode":"1114","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":14.6300,"longitude":121.0110},"areaServed":["Quezon City","Diliman","Kamuning","San Juan"],"image":["https://images.unsplash.com/photo-1541544181051-e46607bc22a4?w=1600"],"foundingDate":"2005"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What exactly is taho made of?","acceptedAnswer":{"@type":"Answer","text":"Three things: warm, very soft silken soybean curd (essentially fresh unpressed tofu, spooned rather than sliced); arnibal, a dark syrup of brown sugar cooked down until rich and caramel-like; and sago, small chewy pearls boiled soft. They're layered in a cup and eaten with a spoon or drunk down. No dairy, no eggs — naturally plant-based, high in soy protein, warm and sweet, and cheap, which is why it's been an everyday Filipino breakfast for generations."}},
+{"@type":"Question","name":"Why is taho sold from buckets on a pole?","acceptedAnswer":{"@type":"Answer","text":"Because taho has always been mobile street food and the delivery is part of the tradition. The magtataho carries two aluminium buckets on a shoulder pole — one with warm curd, one with arnibal and sago — walking a regular route calling 'Tahoooo!' while people come out with coins. It exists because taho is best warm and freshly ladled, needs no overheads, and goes where people are early in the morning. That call down the street is inseparable from the food."}},
+{"@type":"Question","name":"Is taho healthy? Is it vegan?","acceptedAnswer":{"@type":"Answer","text":"It's naturally plant-based — soy curd, brown-sugar syrup and starch pearls — with no dairy, meat or eggs, so generally suitable for vegans and those avoiding lactose. The soy curd is a decent source of plant protein and low in fat, part of why taho is a wholesome, filling breakfast on modest budgets. The honest caveat is the arnibal is sugar syrup, so a generous pour makes it fairly sweet. Just ask for less arnibal or sago for a lighter cup — Mang Ading pours to taste."}},
+{"@type":"Question","name":"What time are the morning rounds, and can you come to my street?","acceptedAnswer":{"@type":"Answer","text":"Taho is a morning food and the rounds run early, when the curd is freshest and warmest. Mang Ading walks a fairly consistent barangay route, hitting the same landmarks around the same times. Because it can vary with the day and weather, message us to ask where he'll be and when. And yes — you can request a stop on your street or village; if there's interest from a few households we're glad to adjust the route. For a guaranteed time, book the station instead."}},
+{"@type":"Question","name":"Can I book taho for a party, wedding or office event?","acceptedAnswer":{"@type":"Answer","text":"Yes — booking brings the whole nostalgic experience: Mang Ading, the buckets, the pole, and warm cups served fresh for an agreed period. It works brilliantly at kids' birthdays (mess-free and wildly popular), weddings and reunions (older guests are often moved by it), school fairs, openings and corporate merienda. It's affordable versus conventional dessert catering and far more memorable. Message with date, location, headcount and time window. Weekends, holidays and December book up fastest."}},
+{"@type":"Question","name":"Do you have flavoured taho or take-home options?","acceptedAnswer":{"@type":"Answer","text":"Yes to both. Alongside traditional brown-sugar arnibal we offer ube, strawberry, chocolate and pandan syrups over the same warm curd — kids love them and they add variety at events. For home, we pack curd, arnibal and sago separately so you can assemble fresh cups at your own table, warm the curd gently and pour to taste. Order take-home tubs ahead and collect, or add to a booking. Taho is best warm and fresh, so don't leave it sitting cold for days."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Taho ni <span>Mang Ading</span></a>
+    <nav class="nav-links">
+      <a href="#about">The taho</a><a href="#services">What's in the cup</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Traditional taho · morning rounds · event bookings · Quezon City</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      You'll hear him before you see him. Then breakfast <span class="em">finds you.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1541544181051-e46607bc22a4?w=2000&q=85&auto=format&fit=crop"
+             alt="A warm sweet drink in a cup with syrup and pearls." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">Warm, silken soy curd ladled into a cup, drenched in dark brown-sugar arnibal and topped with chewy sago pearls — taho, the Filipino morning in a plastic cup, carried through the streets in the classic aluminium buckets on a shoulder pole. Mang Ading has walked these barangays since 2005, and now takes bookings for parties, offices and events too.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book the taho cart</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What's in the cup</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Calling 'Tahoooo!' since 2005</span>
+    <span>Warm, silken, made fresh</span>
+    <span>Arnibal cooked dark</span>
+    <span>Rounds &amp; event bookings</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>CUP 01 / THE TAHO</span><span>THE SOUND OF MORNING</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Three ingredients, one call, and a whole country's <em>childhood.</em></h2>
+        <p>Taho is one of the simplest and most beloved things in Filipino food: warm, silken soybean curd, sweet dark syrup called arnibal, and chewy sago pearls, layered into a cup and eaten with a spoon or drunk straight down. It costs very little, it's sold on foot rather than in shops, and for generations of Filipinos the first sound of the morning wasn't an alarm — it was the magtataho calling "Tahoooo!" down the street.</p>
+        <p>Mang Ading has been that voice around these barangays since 2005. The soy curd is made fresh and kept warm in the traditional aluminium buckets, slung on a shoulder pole and carried on foot through the same morning route: past the school gate, the village, the jeepney stop, the houses where the kids already have their cups ready. The arnibal is cooked dark and caramel-deep, the sago boiled soft and chewy. Nothing fancy. Everything right.</p>
+        <p>What's new is that we now take bookings. Weddings, kids' parties, offices, school fairs and company events book the taho cart — Mang Ading, buckets, pole and all — for a nostalgic, unbelievably popular merienda station. We also do flavoured taho for those who want it, and take-home tubs of curd, arnibal and sago. But the heart of it is unchanged: warm taho, a fair price, and that call down the street in the morning.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200&q=85&auto=format&fit=crop"
+           alt="A warm cup on a table in the morning light." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>CUP 02 / WHAT'S IN THE CUP</span><span>CLASSIC · FLAVOURED · ROUNDS · BOOKINGS</span></div>
+    <h2 class="h2">What's in the cup.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>The classic taho</h3><p>Warm silken soy curd, dark brown-sugar arnibal and chewy sago pearls, layered into a cup — the original, exactly as it's been sold on Filipino streets for generations. Small or large, hot from the bucket.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Flavoured taho</h3><p>Ube, strawberry, chocolate and pandan arnibal for those who like a twist — same warm silken curd, a different syrup. Popular with kids, and a nice option alongside the classic at events.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Morning rounds</h3><p>Mang Ading walks the same barangay route every morning with the buckets and the call. Message us to find today's route or to request a stop on your street — if there's demand, he'll come to you.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Party &amp; event bookings</h3><p>Book the taho station for kids' parties, weddings, reunions and school fairs — buckets, pole, Mang Ading and unlimited cups for your guests for a set time. Nostalgia that makes every age smile.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Office &amp; corporate merienda</h3><p>A taho morning for the office: we'll come to your building and serve warm cups to the whole floor. An unexpectedly perfect team treat, cheaper and far more memorable than another tray of pastries.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Take-home tubs</h3><p>Curd, arnibal and sago packed separately to assemble at home — for when you want taho at your own breakfast table without waiting for the call. Order ahead and collect, or add to a booking.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>CUP 03 / THE DIFFERENCE</span><span>WHY OURS TASTES RIGHT</span></div>
+    <h2 class="h2">Why ours tastes <em>right.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Made fresh, served warm.</h3><p>Taho is meant to be warm and silky, not cold and rubbery. Ours is made fresh and kept hot in the traditional buckets so every cup has that soft, comforting texture the whole thing depends on.</p></div>
+      <div><span class="no">02 / 03</span><h3>Arnibal cooked dark.</h3><p>The syrup is half the pleasure. We cook our arnibal properly dark and caramel-deep rather than thin and merely sweet, so it ribbons through the curd instead of watering it down.</p></div>
+      <div><span class="no">03 / 03</span><h3>Carried, not stationed.</h3><p>Taho comes to you — that's the tradition. Buckets on a pole, the call down the street, breakfast delivered on foot. Booking the cart brings that whole piece of Filipino childhood into your event.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>CUP 04 / HOW IT GOES</span><span>LISTEN · ORDER · DRINK · BOOK</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Catch the call, or book</h3><p>Listen for 'Tahoooo!' on the morning round, message us for today's route, or book the cart for an event. Kids know the sound instinctively; adults rediscover it about a second later.</p></li>
+      <li><span class="step">STEP 02</span><h3>Say how you want it</h3><p>Extra arnibal? Extra sago? Small or large cup? Classic or a flavoured syrup? Tell Mang Ading — every cup is ladled to order right there from the bucket. It takes about fifteen seconds.</p></li>
+      <li><span class="step">STEP 03</span><h3>Drink it warm</h3><p>Taho is best while it's hot and silky, so don't save it for later — spoon it, sip it, get the sago at the bottom. A small pleasure that beats most things costing twenty times more.</p></li>
+      <li><span class="step">STEP 04</span><h3>Book it for the crowd</h3><p>Want everyone to have that moment? Book the station for your party, office or school event — message us the date, place and headcount and we'll bring the buckets and enough for everybody.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>CUP 05 / FROM THE GATE</span><span>WORTH KEEPING EXACTLY AS IT IS</span></div>
+    <blockquote class="t-quote">“My kids sprint to the gate the second they hear him. Some things are worth keeping <em>exactly as they are.</em>”</blockquote>
+    <div class="t-attr">Marites C. — morning-round regular</div>
+    <div class="t-sub">
+      <figure><blockquote>“We booked the taho station for our daughter's birthday and it beat every other food at the party, including the cake — I'm not exaggerating. The lolos got emotional, the kids had three cups each, and it cost a fraction of a dessert caterer. Genius idea. Book it, seriously.”</blockquote><figcaption>Paul &amp; Ivy — kids' party booking</figcaption></figure>
+      <figure><blockquote>“Brought Mang Ading in for our office merienda and the whole floor lit up. Everyone had a taho story from childhood. Warm, delicious, arrived exactly on time, and far more memorable than the usual catered snacks. Our team asks when he's coming back. Now a quarterly tradition.”</blockquote><figcaption>HR lead, Ortigas — office booking</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--soy-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>CUP 06 / ON THE ROUND</span><span>CURD, SYRUP &amp; SAGO</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1541544181051-e46607bc22a4?w=1600&q=85&auto=format&fit=crop" alt="A warm sweet drink in a cup with syrup and pearls." /><figcaption>THE CUP</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop" alt="A warm cup on a table in the morning light." /><figcaption>THE MORNING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1558857563-b371033873b8?w=1600&q=85&auto=format&fit=crop" alt="A sweet drink with tapioca pearls." /><figcaption>THE SAGO</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600&q=85&auto=format&fit=crop" alt="A bright street-food counter." /><figcaption>THE STREET</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1523294587484-bae6cc870010?w=1600&q=85&auto=format&fit=crop" alt="Dark syrup being poured." /><figcaption>THE ARNIBAL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="A neighbourhood street in the morning." /><figcaption>THE ROUND</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>CUP 07 / GOOD TO KNOW</span><span>THE CURD, THE CALL &amp; BOOKINGS</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+639175550261" style="color:var(--sunrise);font-weight:700;">0917 555 0261</a>. Want him on your street? Ask; if a few houses want it, he'll add the stop.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What exactly is taho made of?</summary><p>Three things, and that simplicity is the whole beauty of it. First, the base: warm, very soft silken soybean curd — essentially fresh, unpressed tofu, so soft it's spooned rather than sliced, with a delicate, faintly beany, comforting flavour. Second, arnibal: a dark syrup made from brown sugar (and sometimes a little vanilla), cooked down until it's rich and caramel-like, poured generously over the curd. Third, sago: small chewy pearls, similar in bite to tapioca, boiled soft and added for texture. They're layered together in a cup and eaten with a spoon or drunk straight down as the curd loosens. No dairy, no eggs, nothing complicated. It's naturally plant-based, high in soy protein, warm, sweet and comforting, and it costs very little — exactly why it's been a beloved everyday Filipino breakfast for generations.</p></details>
+        <details><summary>Why is taho sold from buckets on a pole rather than from a shop?</summary><p>Because taho has always been a mobile, street-sold food, and the delivery method is genuinely part of the tradition. The magtataho — the taho vendor — carries two large aluminium buckets suspended from a wooden pole balanced across the shoulders: one holds the warm soy curd, the other holds the arnibal and sago, along with the cups and ladle. He walks a regular route through neighbourhoods, calling out 'Tahoooo!' as he goes, and people come out to the gate or the roadside with coins in hand. The whole system exists because taho is best warm and freshly ladled, it's cheap enough that it needs no overheads, and it goes to where people actually are in the early morning. For most Filipinos, that call down the street is inseparable from the food itself; it's a sound that means morning.</p></details>
+        <details><summary>Is taho healthy? Is it vegan?</summary><p>Taho is naturally plant-based — the curd is made from soybeans, the arnibal from brown sugar, and the sago from starch pearls — so it contains no dairy, meat or eggs, and it's generally suitable for vegans and for people avoiding lactose. Nutritionally, the soy curd is genuinely good: a decent source of plant protein and low in fat, which is part of why taho has long been considered a wholesome, filling breakfast for workers, students and children on modest budgets. The honest caveat is the arnibal — it's sugar syrup, and a generous pour makes taho a fairly sweet drink, so it's a treat as much as a health food. The good news is it's easily adjusted: ask for less arnibal (or less sago) and you'll get a lighter cup while keeping all the warm, silky soy goodness. Mang Ading is happy to pour to taste.</p></details>
+        <details><summary>What time do the morning rounds happen, and can you come to my street?</summary><p>Taho is fundamentally a morning food, and the rounds run early — that's when people want it, and when the curd is at its freshest and warmest. Mang Ading walks a fairly consistent route through the barangays each morning, hitting the same landmarks around the same times, which is how regulars know roughly when to listen for the call. Because the route can vary a little with the day and the weather, the easiest thing is to message us to ask where he'll be and roughly when. And yes — you can absolutely request a stop on your street or at your village: if there's enough interest from a few households or a village gate, we're glad to add or adjust the route. For anything guaranteed at a specific time, book the station instead.</p></details>
+        <details><summary>Can I book taho for a party, wedding or office event?</summary><p>Yes, and it's become one of the most popular things we do — booking the taho station brings the whole nostalgic experience to your event: Mang Ading, the buckets, the pole, and warm cups served fresh to your guests for an agreed period. It works brilliantly at kids' birthdays (children go wild for it and it's mercifully mess-free compared to most party food), weddings and reunions (older guests are frequently moved by it), school fairs, store openings and corporate merienda breaks. It's also refreshingly affordable compared to conventional dessert catering while being far more memorable. To book, message or call with your date, location, expected headcount and time window, and we'll confirm availability and sort quantities, cups and whether you'd like flavoured arnibal alongside the classic. Weekends, holidays and December book up fastest.</p></details>
+        <details><summary>Do you have flavoured taho or take-home options?</summary><p>Yes to both, though we'll always be a bit partial to the classic. Alongside traditional brown-sugar arnibal, we offer flavoured syrups — ube, strawberry, chocolate and pandan are the usual suspects — over the same warm silken curd, which kids in particular love and which makes a fun extra option at events. And for taking home, we can pack the components separately — curd, arnibal and sago in their own containers — so you can assemble fresh cups at your own table whenever you like, warm the curd gently, and pour to your own taste. That's ideal for households that want taho on their own schedule, for gifting, or for anyone whose street isn't on the morning route. Order take-home tubs ahead and collect, or add them onto an event booking.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>CUP 08 / WE WALK</span><span>QUEZON CITY &amp; NEARBY</span></div>
+    <ul class="area-list">
+      <li>Quezon City</li><li>Diliman</li><li>Kamuning</li><li>San Juan</li><li>Metro Manila</li><li>Event bookings</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>CUP 09 / THE ESSENTIALS</span><span>HOW WE SERVE IT</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2005</div><div class="detail">Walking the same morning rounds</div></div>
+      <div><div class="label">Warm &amp; silken</div><div class="detail">Fresh curd, kept hot in the buckets</div></div>
+      <div><div class="label">Arnibal cooked dark</div><div class="detail">Deep brown-sugar syrup, never watery</div></div>
+      <div><div class="label">Bookings</div><div class="detail">Parties, weddings, offices &amp; school fairs</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>CUP 10 / THE BASE</span><span>STA. MESA HEIGHTS, QC</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Taho ni Mang Ading</strong><br />
+          12 Mayon Street, Sta. Mesa Heights<br />
+          Quezon City 1114<br /><br />
+          <a href="tel:+639175550261" data-bind="business.phoneDisplay">0917 555 0261</a><br />
+          <a href="mailto:taho@mangading.ph" data-bind="business.email">taho@mangading.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>ROUNDS</span><span>DAILY, EARLY AM</span></div>
+          <div class="row"><span>BOOKINGS</span><span>7 DAYS</span></div>
+          <p class="gbp-note">Live details on our Google Business Profile. The round moves — message us for today's route or to request a stop. Our base in Sta. Mesa Heights handles bookings and take-home tubs.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Taho ni Mang Ading, Quezon City" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=120.9960%2C14.6200%2C121.0260%2C14.6400&layer=mapnik&marker=14.6300%2C121.0110"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">CUP 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Bring the morning call to your <em>street.</em></h2>
+    <p data-bind="cta.body">Warm silken taho with dark arnibal and chewy sago, ladled fresh from the buckets — on the morning rounds around Quezon City, or booked for your party, office or school event. Calling 'Tahoooo!' since 2005.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book the taho cart</a>
+      <a class="btn btn-ghost" href="tel:+639175550261" data-bind="cta.secondary.label">0917 555 0261</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/639175550261" data-bind="messaging.whatsapp" aria-label="Message Mang Ading">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:23px;color:var(--soy);">Taho ni <span style="color:var(--morning);">Mang Ading</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:var(--mid-d);">Traditional warm taho with dark arnibal and sago, carried on the morning rounds around Quezon City since 2005.</p>
+      </div>
+      <div>
+        <h4>The round</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          12 Mayon Street, Sta. Mesa Heights<br />Quezon City 1114<br />
+          <a href="tel:+639175550261">0917 555 0261</a><br />
+          <a href="mailto:taho@mangading.ph">taho@mangading.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What's in the cup</a><a href="#about">The taho</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> TAHO NI MANG ADING</span>
+      <span>TAHOOOO! · QUEZON CITY</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

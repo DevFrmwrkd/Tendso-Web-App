@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Isla Perla — South Sea pearl farm & atelier, cultured golden pearls from Palawan</title>
+<meta name="description" content="Isla Perla is a South Sea pearl farm and atelier in Puerto Princesa, Palawan — cultured golden and white South Sea pearls grown in Pinctada maxima oysters in clean island waters, graded on site, strung and set into fine jewellery, with farm visits and wholesale. Farming pearls since 1994." />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Isla Perla", phone: "+63 48 555 0128", phoneDisplay: "(048) 555 0128", email: "atelier@islaperla.ph", foundedYear: 1994 },
+  hero: {
+    kicker: "South Sea pearl farm & atelier · golden & white · Puerto Princesa, Palawan",
+    headline: "Three years underwater to make one perfect thing.",
+    lede: "A South Sea pearl farm and atelier in Palawan, growing cultured golden and white pearls in Pinctada maxima oysters suspended in some of the cleanest water in the country. Each pearl takes years, and only a fraction come out worth setting. We graft, tend, harvest, grade and set them ourselves — farm to finished jewellery, on one island.",
+    primaryCta: { label: "Enquire or visit", href: "#book" },
+    secondaryCta: { label: "The pearls", href: "#services" },
+    image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Lustrous pearls arranged on a soft surface."
+  },
+  trust: { years: "Farming South Sea pearls since 1994" },
+  about: {
+    heading: "The oyster does the work. Our job is patience and clean water.",
+    paragraphs: [
+      "Isla Perla is a South Sea pearl farm off Palawan, and the South Sea pearl is the aristocrat of the pearl world — the largest and among the most valuable cultured pearls, grown in the big Pinctada maxima oyster, which produces the celebrated white and, in its gold-lipped variety, the deep golden pearls the Philippines is particularly known for. The golden South Sea pearl is close to a national treasure here, and Palawan's clean, warm, plankton-rich waters are precisely where it thrives.",
+      "The process is slow and unforgiving. A skilled technician grafts a tiny nucleus and a scrap of mantle tissue into each oyster by hand. The oyster is returned to the sea in panels suspended beneath the surface, where it's cleaned, turned and tended for years while it lays down nacre — layer upon microscopic layer — around the nucleus. Typhoons, water temperature, disease and simple bad luck all take their toll. Of every harvest, only a portion are round, clean and lustrous enough to be called fine.",
+      "We do everything on one island: grafting, husbandry, harvest, grading, drilling, matching, stringing and setting in our atelier. That means when you buy a strand or a piece from us, we can tell you which farm line it came from and what grade it is, honestly. We sell to collectors and jewellers, supply wholesale, take bespoke commissions, and welcome visitors to see how a pearl is actually made. Nothing about it is quick. That's the entire point."
+    ],
+    portrait: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A single pearl held in soft light."
+  },
+  services: [
+    { name: "Golden South Sea pearls", description: "The Philippines' signature pearl — deep, warm gold grown in gold-lipped Pinctada maxima, in loose pearls, matched pairs and strands. Rare, coveted, and graded honestly by lustre, surface, shape and colour depth." },
+    { name: "White South Sea pearls", description: "Large, silvery-white South Sea pearls with the soft, deep lustre only thick nacre gives. Loose, in matched sets, or strung into strands — the classic that anchors any serious pearl collection." },
+    { name: "Strands & matched sets", description: "Matching a strand takes years of harvests and a very patient eye — pearls paired for size, shape, colour and lustre until the necklace reads as one piece. We string and knot by hand in the atelier." },
+    { name: "Fine jewellery & bespoke", description: "Rings, earrings, pendants and bridal pieces set in gold around our own pearls, made in our atelier — or commission something specific and we'll select the pearl and design the setting with you." },
+    { name: "Wholesale & trade", description: "Loose pearls, strands and matched parcels for jewellers, designers and international buyers, graded consistently and supplied with honest provenance. Enquire for grades, quantities and terms." },
+    { name: "Farm visits & education", description: "Come out to the farm and see the grafting, the panels and the harvest — how a pearl is actually made, over years, by hand and by oyster. For visitors, buyers and anyone who wants to understand what they're buying." }
+  ],
+  why: [
+    { title: "Grown, graded and set here.", body: "We farm, harvest, grade and set on the same island, so we know each pearl's origin and grade first-hand. No opaque supply chain, no relabelled imports — we can tell you exactly where it came from." },
+    { title: "Clean Palawan water.", body: "Pearl quality begins with the environment: clean, warm, nutrient-rich water grows healthy oysters and thick, lustrous nacre. Protecting the water isn't sentiment for us — it's the production line." },
+    { title: "Honest grading.", body: "Lustre, surface, shape, size, colour. We grade plainly and price accordingly rather than flattering a pearl beyond what it is. You'll always know which grade you're buying, and why it costs what it does." }
+  ],
+  how: [
+    { step: "01", title: "Tell us what you're after", body: "A single fine pearl, a matched pair for earrings, a full strand, a bridal commission, or a wholesale parcel? Tell us the purpose and budget and we'll show you honestly what's achievable." },
+    { step: "02", title: "See the pearls", body: "Visit the atelier or the farm, or we'll send detailed images and grading notes if you're buying from afar. We'll explain lustre, surface and shape so you can judge for yourself, not just take our word." },
+    { step: "03", title: "Select & set", body: "Choose the pearl or the parcel; for jewellery, we design and set it in our atelier around that specific pearl. Strands are matched, drilled and hand-knotted. Bespoke pieces are made to your brief." },
+    { step: "04", title: "Delivered & cared for", box: "", body: "Your piece is packed and delivered or shipped securely, with grading details and care guidance. Bring it back for restringing and cleaning down the years — pearls are meant to be worn and maintained." }
+  ],
+  testimonials: [
+    { quote: "I bought a golden South Sea strand for our anniversary and it is the single most beautiful object I own — that warm gold is nothing like the photos you see online. They walked me through the grading properly, never oversold, and let me see the farm. Genuinely special people and pearls.", name: "Collector, Manila", context: "golden strand" },
+    { quote: "As a jeweller I've sourced from several suppliers and Isla Perla is the one I trust on grading — what they say a parcel is, it is, consistently, batch after batch. Real provenance, honest communication, and pearls with proper nacre depth. That reliability is worth everything in this trade.", name: "Trade buyer", context: "wholesale account" },
+    { quote: "We commissioned bridal earrings and a pendant around pearls we chose at the farm, and watching them design the settings around those specific pearls was extraordinary. Wearing them at the wedding, knowing exactly which oyster line they came from, meant so much. Heirloom pieces, truly.", name: "Bianca & Migs", context: "bridal commission" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1600&q=85&auto=format&fit=crop", alt: "Lustrous pearls arranged on a soft surface." },
+    { src: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1600&q=85&auto=format&fit=crop", alt: "A single pearl held in soft light." },
+    { src: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1600&q=85&auto=format&fit=crop", alt: "Clear tropical water over a reef." },
+    { src: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1600&q=85&auto=format&fit=crop", alt: "A pearl necklace laid out." },
+    { src: "https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=1600&q=85&auto=format&fit=crop", alt: "Jewellery being worked on at a bench." },
+    { src: "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=1600&q=85&auto=format&fit=crop", alt: "A calm island shoreline." }
+  ],
+  faq: [
+    { q: "What is a South Sea pearl, and why is the golden one so prized?", a: "South Sea pearls are cultured pearls grown in Pinctada maxima, the largest pearl oyster, farmed in the warm waters of the Indo-Pacific including the Philippines, Indonesia and Australia. Because the oyster is so large, it can accept a bigger nucleus and lay down thicker nacre, which is why South Sea pearls are typically the largest cultured pearls available and have that distinctive soft, deep, almost satiny lustre rather than the sharper shine of smaller pearl types. Pinctada maxima comes in two main varieties — silver-lipped, which produces white and silvery pearls, and gold-lipped, which produces the golden pearls. The golden South Sea pearl is especially associated with the Philippines and is highly prized because natural deep-gold colour is genuinely rare, the colour is entirely natural to the oyster rather than dyed, and it takes years of growth to achieve both the size and the nacre depth that give it that glow. Put simply: size, natural colour, nacre thickness and rarity all stack up, which is why fine golden South Sea pearls sit at the top end of the pearl world." },
+    { q: "How long does it take to grow a pearl, and why are so few good?", a: "Years — typically several from grafting to harvest for a South Sea pearl, and that's after the oyster itself has been raised to a size where it can be grafted at all. The process starts when a skilled technician surgically inserts a nucleus plus a small piece of mantle tissue from a donor oyster; the oyster then slowly deposits nacre, in microscopically thin layers, around that nucleus. Time is the whole product: thicker nacre means better lustre, more durability and a more beautiful pearl, and it simply cannot be rushed. In that time, an enormous amount can go wrong. Oysters reject nuclei or die; typhoons, temperature swings, water-quality changes and disease can wipe out a season's work; and even among surviving pearls, many come out off-round, blemished, thin-nacred or dull in colour. Only a fraction of any harvest is round, clean and lustrous enough to be considered fine, and finer still is the tiny share good enough to match into a strand. That attrition, plus the years of husbandry, is exactly why fine pearls cost what they do." },
+    { q: "How do you grade pearls, and what should I look for?", a: "Pearls are judged on a handful of factors, and understanding them makes you a much better buyer. Lustre is the most important: it's the depth and sharpness of the glow, and it comes from nacre quality and thickness — hold a pearl up and you should see clear, bright reflections rather than a chalky, flat surface. Surface quality is about how free the pearl is of blemishes, spots and rings (almost no pearl is perfectly flawless, and minor marks are normal). Shape ranges from perfectly round, the rarest and most valued, through near-round, drop, oval, button, semi-baroque and baroque — baroque shapes can be spectacular and are often better value. Size matters enormously with South Sea pearls, since larger pearls are exponentially rarer. Colour is a matter of both rarity and taste, with deep, even, natural golden tones commanding a premium. Finally, matching matters for strands and pairs. We grade our pearls plainly against these factors and explain them to you at the counter, because a customer who understands why one pearl costs more than another buys with confidence rather than on trust alone." },
+    { q: "Are your pearls natural or cultured — and is dyed golden a thing?", a: "Our pearls are cultured, and we'd be immediately suspicious of anyone selling quantities of 'natural' pearls today. Truly natural pearls — formed with no human intervention at all — are extraordinarily rare, effectively historical, and essentially unavailable in the market at any meaningful volume; virtually all pearls sold worldwide, including all fine jewellery pearls, are cultured. Cultured does not mean fake: it means a human initiated the process by grafting a nucleus, after which the oyster grows a completely real pearl from real nacre over years in the sea. As for colour: our golden pearls are naturally golden, produced by gold-lipped Pinctada maxima, and their colour comes from the oyster itself. Dyed and colour-treated pearls do exist in the market, and cheap 'golden' pearls are often dyed, which is one reason honest provenance matters so much when buying. Because we farm, harvest and grade our own pearls, we can tell you exactly what you're getting and how it got its colour — and we'd rather explain the difference than have you learn it the expensive way elsewhere." },
+    { q: "Can I visit the farm, and can I buy directly?", a: "Yes to both, and we genuinely encourage the visit if you can make it — seeing the panels, the grafting bench and a harvest changes how people understand what a pearl is. Farm and atelier visits let you watch the husbandry work, see graded pearls side by side so the difference between grades becomes obvious rather than theoretical, and choose your own pearl if you're commissioning a piece. We sell directly to individuals — loose pearls, strands and finished jewellery from our atelier — as well as wholesale to jewellers, designers and international trade buyers. Buying direct from the farm means you're getting honest provenance and grading from the people who actually grew the pearl, usually at better value than a long retail chain. If you can't visit, we can send detailed photographs and grading notes and talk you through options remotely, and we ship securely. Just message us with what you're looking for, your purpose and budget, and whether you'd like to come out to the island; we'll arrange it." },
+    { q: "How should I care for pearls so they last?", a: "Gently, and with the understanding that pearls are organic and softer than gemstones. The golden rule is 'last on, first off': put your pearls on after perfume, hairspray, cosmetics and lotions, and take them off before you do anything strenuous, swim or shower, because acids, alcohols and chemicals dull nacre over time. After wearing, wipe them softly with a clean, slightly damp cloth to remove skin oils and let them dry before storing. Store them separately from harder jewellery — a soft pouch or a lined box — so they aren't scratched, and avoid airtight containers or bank vaults for long periods, since pearls benefit from a little ambient humidity and can dry out and craze if kept bone-dry for years. For strands, have them restrung periodically (we do this for our customers), as silk stretches and soils with wear and a broken thread is heartbreaking. Above all: wear them. Pearls do well against skin, and the whole point of an heirloom is that it's used, cared for, and eventually handed on — bring yours back to us for cleaning and restringing whenever they need it." }
+  ],
+  area: { places: ["Puerto Princesa", "Palawan", "Manila showroom enquiries", "Nationwide", "Trade & wholesale", "International shipping"] },
+  credentials: [
+    { label: "Since 1994", detail: "Farming South Sea pearls off Palawan" },
+    { label: "Pinctada maxima", detail: "Golden & white, naturally coloured" },
+    { label: "Farm to atelier", detail: "Grown, graded, drilled & set on-island" },
+    { label: "Honest grading", detail: "Lustre, surface, shape, size & colour" }
+  ],
+  location: { name: "Isla Perla", addressStreet: "Km 9 Airport Road, San Miguel", addressLocality: "Puerto Princesa", addressRegion: "Palawan", addressPostcode: "5300", addressCountry: "Philippines" },
+  cta: { heading: "Choose a pearl that took years to make.", body: "Naturally golden and white South Sea pearls grown in Palawan waters, graded honestly, and set into fine and bespoke jewellery in our own atelier — plus wholesale supply and farm visits. Farming pearls since 1994.", primary: { label: "Enquire or visit", href: "#book" }, secondary: { label: "(048) 555 0128", href: "tel:+63485550128" } },
+  messaging: { whatsapp: "https://wa.me/63485550128", messenger: "https://m.me/islaperla" }
+};
+</script>
+
+<style>
+  :root {
+    --deep:#111a24; --deep-2:#0a1017; --shell:#f4f1ea; --shell-2:#fbf9f4; --ink:#1b2530; --ink-2:#46535f;
+    --gold:#c9a227; --gold-2:#e3c96a; --lagoon:#3d8b96; --nacre:#ded3c0;
+    --mid:#8b8a83; --mid-d:#b9b4a7; --rule:rgba(27,37,48,0.13); --rule-d:rgba(244,241,234,0.16);
+    --disp:"Cormorant Garamond",Garamond,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--shell);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--gold);}
+  .wrap{width:min(1220px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.17em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(40px,5.6vw,84px);line-height:1.04;margin:0 0 0.3em;letter-spacing:0.002em;}
+  .h2 em{font-style:italic;color:var(--gold);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(80px,9.5vw,136px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 34px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.13em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--deep);color:var(--shell-2);} .btn-primary:hover{background:var(--gold);color:var(--deep);}
+  .btn-ghost{border:1px solid var(--deep);color:var(--deep);} .btn-ghost:hover{background:var(--deep);color:var(--shell-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.17em;text-transform:uppercase;color:var(--mid);border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,62px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(244,241,234,0.93);backdrop-filter:blur(10px);border-bottom:1px solid var(--deep);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
+  .wm{font-family:var(--disp);font-weight:500;font-size:28px;text-decoration:none;letter-spacing:0.02em;color:var(--deep);}
+  .wm span{color:var(--gold);font-style:italic;}
+  .nav-links{display:flex;gap:28px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-2);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(32px,5vw,72px) 0 clamp(60px,7vw,104px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:400;font-size:clamp(44px,6.8vw,106px);line-height:1.0;letter-spacing:0.004em;margin:0 0 34px;max-width:16ch;color:var(--deep);}
+  .hero-headline em{font-style:italic;color:var(--gold);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-photo::after{content:"CULTURED IN PALAWAN · EST. 1994";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.14em;background:var(--shell-2);color:var(--deep);padding:7px 12px;border:1px solid var(--deep);}
+  .hero-right .lede{color:var(--mid);font-size:clamp(15px,1.5vw,17.5px);line-height:1.76;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--deep);color:var(--shell);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.13em;text-transform:uppercase;color:rgba(244,241,234,0.8);font-weight:700;}
+
+  .about{background:var(--shell-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.8;margin:0 0 1em;color:var(--ink-2);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1px solid var(--deep);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(201,162,39,0.09);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.11em;color:var(--lagoon);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:500;font-size:clamp(26px,2.8vw,38px);margin:0;line-height:1.04;color:var(--deep);}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--deep);color:var(--shell);}
+  .why .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+  .why .h2{color:var(--shell);} .why .h2 em{color:var(--gold-2);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.17em;color:var(--gold-2);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:500;font-size:30px;margin:0 0 10px;line-height:1.1;}
+  .why-grid p{color:var(--mid-d);margin:0;font-size:14.5px;line-height:1.74;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1px solid var(--rule);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.15em;color:var(--lagoon);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:500;font-size:26px;margin:8px 0 8px;line-height:1.1;color:var(--deep);}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.68;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--deep-2);color:var(--shell);}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(30px,3.9vw,56px);line-height:1.14;max-width:26ch;margin:0 0 24px;}
+  .t-quote em{font-style:italic;color:var(--gold-2);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--gold-2);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.76;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--deep);color:var(--shell);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--deep);}
+  .faq-list summary{font-family:var(--disp);font-weight:500;font-size:24px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;color:var(--deep);}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--gold);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:64ch;line-height:1.76;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.09em;text-transform:uppercase;padding:10px 20px;border:1px solid var(--deep);border-radius:1px;font-weight:700;color:var(--ink-2);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1px solid var(--rule);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:21px;line-height:1.18;color:var(--deep);}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--deep);color:var(--shell);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:500;font-size:24px;line-height:1.3;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:var(--mid-d);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule-d);padding-top:18px;letter-spacing:0.09em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid-d);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid-d);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1px solid var(--deep);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.35) contrast(1.02);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--gold);color:var(--deep);padding:clamp(84px,10vw,152px) 0;text-align:center;}
+  .cta-band .kick{color:var(--deep);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(44px,6.4vw,108px);line-height:1.02;margin:14px auto 18px;max-width:15ch;color:var(--deep);}
+  .cta-band h2 em{font-style:italic;color:var(--shell-2);}
+  .cta-band p{color:rgba(17,26,36,0.82);max-width:54ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--deep);color:var(--shell-2);} .cta-band .btn-primary:hover{background:var(--shell-2);color:var(--deep);}
+  .cta-band .btn-ghost{border-color:var(--deep);color:var(--deep);} .cta-band .btn-ghost:hover{background:var(--deep);color:var(--shell-2);}
+
+  footer{background:var(--deep-2);color:var(--shell);border-top:1px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--gold-2);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.11em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--deep);color:var(--shell-2);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(17,26,36,0.4);}
+  .msg-fab a:hover{background:var(--gold);color:var(--deep);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"JewelryStore","name":"Isla Perla","description":"South Sea pearl farm and atelier in Puerto Princesa, Palawan — cultured golden and white South Sea pearls grown in Pinctada maxima oysters, graded on site and set into fine jewellery, with farm visits and wholesale supply. Since 1994.","url":"https://islaperla.ph/","telephone":"+63485550128","email":"atelier@islaperla.ph","address":{"@type":"PostalAddress","streetAddress":"Km 9 Airport Road, San Miguel","addressLocality":"Puerto Princesa","addressRegion":"Palawan","postalCode":"5300","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":9.7900,"longitude":118.7600},"areaServed":["Puerto Princesa","Palawan","Philippines"],"image":["https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1600"],"foundingDate":"1994"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is a South Sea pearl, and why is the golden one so prized?","acceptedAnswer":{"@type":"Answer","text":"South Sea pearls are cultured in Pinctada maxima, the largest pearl oyster, farmed in warm Indo-Pacific waters including the Philippines. Its size allows a bigger nucleus and thicker nacre, giving the largest cultured pearls and a soft, deep, satiny lustre. Silver-lipped oysters yield white and silvery pearls; gold-lipped yield golden ones. The golden South Sea pearl is especially associated with the Philippines and prized because deep natural gold is rare, entirely natural to the oyster rather than dyed, and takes years to achieve size and nacre depth."}},
+{"@type":"Question","name":"How long does it take to grow a pearl, and why are so few good?","acceptedAnswer":{"@type":"Answer","text":"Years — typically several from grafting to harvest, after raising the oyster to graftable size. A technician inserts a nucleus plus donor mantle tissue; the oyster then deposits nacre in microscopic layers. Time is the product: thicker nacre means better lustre and durability, and can't be rushed. Meanwhile oysters reject nuclei or die, and typhoons, temperature swings, water quality and disease can wipe out a season. Only a fraction of a harvest is round, clean and lustrous enough to be fine — and fewer still match into a strand."}},
+{"@type":"Question","name":"How do you grade pearls, and what should I look for?","acceptedAnswer":{"@type":"Answer","text":"Lustre is most important — the depth and sharpness of the glow, from nacre quality and thickness; look for clear bright reflections, not a chalky surface. Surface quality is freedom from blemishes (minor marks are normal). Shape runs from perfectly round (rarest) through drop, oval, button and baroque, which can be spectacular value. Size matters enormously as larger pearls are exponentially rarer. Colour combines rarity and taste, with deep even natural gold commanding a premium. Matching matters for strands. We grade plainly against these and explain them."}},
+{"@type":"Question","name":"Are your pearls natural or cultured — and is dyed golden a thing?","acceptedAnswer":{"@type":"Answer","text":"Cultured — and be suspicious of anyone selling quantities of 'natural' pearls, which are effectively historical and unavailable at volume; virtually all fine jewellery pearls are cultured. Cultured isn't fake: a human grafts a nucleus, then the oyster grows a completely real pearl of real nacre over years. Our golden pearls are naturally golden from gold-lipped Pinctada maxima. Dyed and colour-treated pearls do exist and cheap 'golden' pearls are often dyed, which is why provenance matters. We farm and grade our own, so we can tell you exactly what you're getting."}},
+{"@type":"Question","name":"Can I visit the farm, and can I buy directly?","acceptedAnswer":{"@type":"Answer","text":"Yes to both. Farm and atelier visits let you see the husbandry and compare graded pearls side by side so differences become obvious, and choose your own pearl for a commission. We sell directly to individuals — loose pearls, strands and finished jewellery — as well as wholesale to jewellers, designers and international buyers. Buying direct means honest provenance and grading from the people who grew the pearl, usually at better value. Can't visit? We send detailed photos and grading notes and ship securely."}},
+{"@type":"Question","name":"How should I care for pearls so they last?","acceptedAnswer":{"@type":"Answer","text":"Last on, first off: put pearls on after perfume, hairspray and lotions, and remove them before strenuous activity, swimming or showering, as acids and chemicals dull nacre. Wipe with a clean, slightly damp cloth after wearing and let dry before storing. Store separately from harder jewellery in a soft pouch or lined box, and avoid airtight storage for long periods since pearls can dry out. Have strands restrung periodically — we do this for customers. Above all, wear them; bring them back for cleaning and restringing whenever needed."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Isla <span>Perla</span></a>
+    <nav class="nav-links">
+      <a href="#about">The farm</a><a href="#services">The pearls</a><a href="#location">Find us</a><a href="#book">Enquire</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">South Sea pearl farm & atelier · golden & white · Puerto Princesa, Palawan</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Three years underwater to make one <em>perfect thing.</em>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=2000&q=85&auto=format&fit=crop"
+             alt="Lustrous pearls arranged on a soft surface." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A South Sea pearl farm and atelier in Palawan, growing cultured golden and white pearls in Pinctada maxima oysters suspended in some of the cleanest water in the country. Each pearl takes years, and only a fraction come out worth setting. We graft, tend, harvest, grade and set them ourselves — farm to finished jewellery, on one island.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Enquire or visit</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">The pearls</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Farming South Sea pearls since 1994</span>
+    <span>Naturally golden &amp; white</span>
+    <span>Grown, graded &amp; set on-island</span>
+    <span>Retail, bespoke &amp; wholesale</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>PEARL 01 / THE FARM</span><span>PALAWAN WATERS</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">The oyster does the work. Our job is patience and clean <em>water.</em></h2>
+        <p>Isla Perla is a South Sea pearl farm off Palawan, and the South Sea pearl is the aristocrat of the pearl world — the largest and among the most valuable cultured pearls, grown in the big Pinctada maxima oyster, which produces the celebrated white and, in its gold-lipped variety, the deep golden pearls the Philippines is particularly known for. The golden South Sea pearl is close to a national treasure here, and Palawan's clean, warm, plankton-rich waters are precisely where it thrives.</p>
+        <p>The process is slow and unforgiving. A skilled technician grafts a tiny nucleus and a scrap of mantle tissue into each oyster by hand. The oyster is returned to the sea in panels suspended beneath the surface, where it's cleaned, turned and tended for years while it lays down nacre — layer upon microscopic layer — around the nucleus. Typhoons, water temperature, disease and simple bad luck all take their toll. Of every harvest, only a portion are round, clean and lustrous enough to be called fine.</p>
+        <p>We do everything on one island: grafting, husbandry, harvest, grading, drilling, matching, stringing and setting in our atelier. That means when you buy a strand or a piece from us, we can tell you which farm line it came from and what grade it is, honestly. We sell to collectors and jewellers, supply wholesale, take bespoke commissions, and welcome visitors to see how a pearl is actually made. Nothing about it is quick. That's the entire point.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1200&q=85&auto=format&fit=crop"
+           alt="A single pearl held in soft light." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>PEARL 02 / THE PEARLS</span><span>GOLDEN · WHITE · STRANDS · BESPOKE</span></div>
+    <h2 class="h2">The pearls.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Golden South Sea pearls</h3><p>The Philippines' signature pearl — deep, warm gold grown in gold-lipped Pinctada maxima, in loose pearls, matched pairs and strands. Rare, coveted, and graded honestly by lustre, surface, shape and colour depth.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>White South Sea pearls</h3><p>Large, silvery-white South Sea pearls with the soft, deep lustre only thick nacre gives. Loose, in matched sets, or strung into strands — the classic that anchors any serious pearl collection.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Strands &amp; matched sets</h3><p>Matching a strand takes years of harvests and a very patient eye — pearls paired for size, shape, colour and lustre until the necklace reads as one piece. We string and knot by hand in the atelier.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Fine jewellery &amp; bespoke</h3><p>Rings, earrings, pendants and bridal pieces set in gold around our own pearls, made in our atelier — or commission something specific and we'll select the pearl and design the setting with you.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Wholesale &amp; trade</h3><p>Loose pearls, strands and matched parcels for jewellers, designers and international buyers, graded consistently and supplied with honest provenance. Enquire for grades, quantities and terms.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Farm visits &amp; education</h3><p>Come out to the farm and see the grafting, the panels and the harvest — how a pearl is actually made, over years, by hand and by oyster. For visitors, buyers and anyone who wants to understand what they're buying.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>PEARL 03 / THE DIFFERENCE</span><span>WHY BUY FROM THE FARM</span></div>
+    <h2 class="h2">Why buy from the <em>farm.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Grown, graded and set here.</h3><p>We farm, harvest, grade and set on the same island, so we know each pearl's origin and grade first-hand. No opaque supply chain, no relabelled imports — we can tell you exactly where it came from.</p></div>
+      <div><span class="no">02 / 03</span><h3>Clean Palawan water.</h3><p>Pearl quality begins with the environment: clean, warm, nutrient-rich water grows healthy oysters and thick, lustrous nacre. Protecting the water isn't sentiment for us — it's the production line.</p></div>
+      <div><span class="no">03 / 03</span><h3>Honest grading.</h3><p>Lustre, surface, shape, size, colour. We grade plainly and price accordingly rather than flattering a pearl beyond what it is. You'll always know which grade you're buying, and why it costs what it does.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>PEARL 04 / HOW IT GOES</span><span>ENQUIRE · SEE · SELECT · WEAR</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us what you're after</h3><p>A single fine pearl, a matched pair for earrings, a full strand, a bridal commission, or a wholesale parcel? Tell us the purpose and budget and we'll show you honestly what's achievable.</p></li>
+      <li><span class="step">STEP 02</span><h3>See the pearls</h3><p>Visit the atelier or the farm, or we'll send detailed images and grading notes if you're buying from afar. We'll explain lustre, surface and shape so you can judge for yourself.</p></li>
+      <li><span class="step">STEP 03</span><h3>Select &amp; set</h3><p>Choose the pearl or the parcel; for jewellery, we design and set it in our atelier around that specific pearl. Strands are matched, drilled and hand-knotted. Bespoke pieces are made to your brief.</p></li>
+      <li><span class="step">STEP 04</span><h3>Delivered &amp; cared for</h3><p>Your piece is packed and delivered or shipped securely, with grading details and care guidance. Bring it back for restringing and cleaning down the years — pearls are meant to be worn and maintained.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>PEARL 05 / FROM THE COLLECTORS</span><span>GENUINELY SPECIAL</span></div>
+    <blockquote class="t-quote">“That warm gold is nothing like the photos you see online. Genuinely special <em>people and pearls.</em>”</blockquote>
+    <div class="t-attr">Collector, Manila — golden strand</div>
+    <div class="t-sub">
+      <figure><blockquote>“As a jeweller I've sourced from several suppliers and Isla Perla is the one I trust on grading — what they say a parcel is, it is, consistently, batch after batch. Real provenance, honest communication, and pearls with proper nacre depth. That reliability is worth everything in this trade.”</blockquote><figcaption>Trade buyer — wholesale account</figcaption></figure>
+      <figure><blockquote>“We commissioned bridal earrings and a pendant around pearls we chose at the farm, and watching them design the settings around those specific pearls was extraordinary. Wearing them at the wedding, knowing exactly which oyster line they came from, meant so much. Heirloom pieces, truly.”</blockquote><figcaption>Bianca &amp; Migs — bridal commission</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--shell-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>PEARL 06 / SEA TO SETTING</span><span>NACRE, LUSTRE &amp; LIGHT</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1600&q=85&auto=format&fit=crop" alt="Lustrous pearls arranged on a soft surface." /><figcaption>THE HARVEST</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1600&q=85&auto=format&fit=crop" alt="A single pearl held in soft light." /><figcaption>THE PEARL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1515377905703-c4788e51af15?w=1600&q=85&auto=format&fit=crop" alt="Clear tropical water over a reef." /><figcaption>THE WATER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1600&q=85&auto=format&fit=crop" alt="A pearl necklace laid out." /><figcaption>THE STRAND</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=1600&q=85&auto=format&fit=crop" alt="Jewellery being worked on at a bench." /><figcaption>THE ATELIER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=1600&q=85&auto=format&fit=crop" alt="A calm island shoreline." /><figcaption>THE ISLAND</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>PEARL 07 / BEFORE YOU BUY</span><span>GRADING, ORIGIN &amp; CARE</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you buy.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63485550128" style="color:var(--gold);font-weight:700;">(048) 555 0128</a>. Buying from abroad? We'll send grading notes and detailed images.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What is a South Sea pearl, and why is the golden one so prized?</summary><p>South Sea pearls are cultured pearls grown in Pinctada maxima, the largest pearl oyster, farmed in the warm waters of the Indo-Pacific including the Philippines. Because the oyster is so large, it can accept a bigger nucleus and lay down thicker nacre, which is why South Sea pearls are typically the largest cultured pearls available and have that distinctive soft, deep, almost satiny lustre rather than the sharper shine of smaller pearl types. Pinctada maxima comes in two main varieties — silver-lipped, which produces white and silvery pearls, and gold-lipped, which produces the golden pearls. The golden South Sea pearl is especially associated with the Philippines and highly prized because natural deep-gold colour is genuinely rare, the colour is entirely natural to the oyster rather than dyed, and it takes years of growth to achieve both the size and the nacre depth that give it that glow.</p></details>
+        <details><summary>How long does it take to grow a pearl, and why are so few good?</summary><p>Years — typically several from grafting to harvest for a South Sea pearl, and that's after the oyster itself has been raised to a size where it can be grafted at all. The process starts when a skilled technician surgically inserts a nucleus plus a small piece of mantle tissue from a donor oyster; the oyster then slowly deposits nacre, in microscopically thin layers, around that nucleus. Time is the whole product: thicker nacre means better lustre, more durability and a more beautiful pearl, and it cannot be rushed. In that time, an enormous amount can go wrong. Oysters reject nuclei or die; typhoons, temperature swings, water-quality changes and disease can wipe out a season's work; and even among survivors, many come out off-round, blemished, thin-nacred or dull. Only a fraction of any harvest is fine, and fewer still match into a strand.</p></details>
+        <details><summary>How do you grade pearls, and what should I look for?</summary><p>Pearls are judged on a handful of factors, and understanding them makes you a much better buyer. Lustre is the most important: the depth and sharpness of the glow, which comes from nacre quality and thickness — hold a pearl up and you should see clear, bright reflections rather than a chalky, flat surface. Surface quality is about freedom from blemishes, spots and rings (almost no pearl is perfectly flawless, and minor marks are normal). Shape ranges from perfectly round, the rarest and most valued, through near-round, drop, oval, button and baroque — baroque shapes can be spectacular and are often better value. Size matters enormously with South Sea pearls, since larger pearls are exponentially rarer. Colour is a matter of both rarity and taste. Finally, matching matters for strands and pairs. We grade plainly against these factors and explain them at the counter.</p></details>
+        <details><summary>Are your pearls natural or cultured — and is dyed golden a thing?</summary><p>Our pearls are cultured, and we'd be immediately suspicious of anyone selling quantities of 'natural' pearls today. Truly natural pearls — formed with no human intervention — are extraordinarily rare, effectively historical, and essentially unavailable in the market at any meaningful volume; virtually all pearls sold worldwide, including all fine jewellery pearls, are cultured. Cultured does not mean fake: a human initiated the process by grafting a nucleus, after which the oyster grows a completely real pearl from real nacre over years in the sea. As for colour: our golden pearls are naturally golden, produced by gold-lipped Pinctada maxima, and the colour comes from the oyster itself. Dyed and colour-treated pearls do exist, and cheap 'golden' pearls are often dyed, which is one reason honest provenance matters so much. Because we farm, harvest and grade our own, we can tell you exactly what you're getting.</p></details>
+        <details><summary>Can I visit the farm, and can I buy directly?</summary><p>Yes to both, and we genuinely encourage the visit if you can make it — seeing the panels, the grafting bench and a harvest changes how people understand what a pearl is. Farm and atelier visits let you watch the husbandry work, see graded pearls side by side so the difference between grades becomes obvious rather than theoretical, and choose your own pearl if you're commissioning a piece. We sell directly to individuals — loose pearls, strands and finished jewellery — as well as wholesale to jewellers, designers and international trade buyers. Buying direct from the farm means honest provenance and grading from the people who actually grew the pearl, usually at better value than a long retail chain. If you can't visit, we can send detailed photographs and grading notes and ship securely.</p></details>
+        <details><summary>How should I care for pearls so they last?</summary><p>Gently, and with the understanding that pearls are organic and softer than gemstones. The golden rule is 'last on, first off': put your pearls on after perfume, hairspray, cosmetics and lotions, and take them off before anything strenuous, swimming or showering, because acids, alcohols and chemicals dull nacre over time. After wearing, wipe them softly with a clean, slightly damp cloth to remove skin oils and let them dry before storing. Store them separately from harder jewellery — a soft pouch or lined box — so they aren't scratched, and avoid airtight containers for long periods, since pearls benefit from a little ambient humidity. For strands, have them restrung periodically (we do this for our customers), as silk stretches and soils with wear. Above all: wear them, and bring them back for cleaning and restringing whenever they need it.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PEARL 08 / WE SERVE</span><span>PALAWAN &amp; THE WORLD</span></div>
+    <ul class="area-list">
+      <li>Puerto Princesa</li><li>Palawan</li><li>Manila showroom enquiries</li><li>Nationwide</li><li>Trade &amp; wholesale</li><li>International shipping</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PEARL 09 / THE ESSENTIALS</span><span>HOW WE FARM</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1994</div><div class="detail">Farming South Sea pearls off Palawan</div></div>
+      <div><div class="label">Pinctada maxima</div><div class="detail">Golden &amp; white, naturally coloured</div></div>
+      <div><div class="label">Farm to atelier</div><div class="detail">Grown, graded, drilled &amp; set on-island</div></div>
+      <div><div class="label">Honest grading</div><div class="detail">Lustre, surface, shape, size &amp; colour</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PEARL 10 / THE ATELIER</span><span>PUERTO PRINCESA, PALAWAN</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Isla Perla</strong><br />
+          Km 9 Airport Road, San Miguel<br />
+          Puerto Princesa, Palawan 5300<br /><br />
+          <a href="tel:+63485550128" data-bind="business.phoneDisplay">(048) 555 0128</a><br />
+          <a href="mailto:atelier@islaperla.ph" data-bind="business.email">atelier@islaperla.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SAT</span><span>9 – 6</span></div>
+          <div class="row"><span>FARM VISITS</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The atelier is on Airport Road in Puerto Princesa; the farm is offshore and visited by boat, by appointment. Trade buyers welcome.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Isla Perla, Puerto Princesa" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=118.7450%2C9.7800%2C118.7750%2C9.8000&layer=mapnik&marker=9.7900%2C118.7600"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">PEARL 11 / ENQUIRE</div>
+    <h2 data-bind="cta.heading">Choose a pearl that took years to <em>make.</em></h2>
+    <p data-bind="cta.body">Naturally golden and white South Sea pearls grown in Palawan waters, graded honestly, and set into fine and bespoke jewellery in our own atelier — plus wholesale supply and farm visits. Farming pearls since 1994.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Enquire or visit</a>
+      <a class="btn btn-ghost" href="tel:+63485550128" data-bind="cta.secondary.label">(048) 555 0128</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63485550128" data-bind="messaging.whatsapp" aria-label="Message the atelier">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:28px;color:var(--shell);">Isla <span style="color:var(--gold-2);font-style:italic;">Perla</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:var(--mid-d);">A South Sea pearl farm and atelier in Palawan — naturally golden and white pearls, grown, graded and set on-island since 1994.</p>
+      </div>
+      <div>
+        <h4>The atelier</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          Km 9 Airport Road, San Miguel<br />Puerto Princesa, Palawan 5300<br />
+          <a href="tel:+63485550128">(048) 555 0128</a><br />
+          <a href="mailto:atelier@islaperla.ph">atelier@islaperla.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The pearls</a><a href="#about">The farm</a><a href="#location">Find us</a><a href="#book">Enquire</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> ISLA PERLA</span>
+      <span>CULTURED IN PALAWAN · SINCE 1994</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

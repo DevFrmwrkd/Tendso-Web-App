@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fennel &amp; Fox — herbal apothecary in Hebden Bridge</title>
+<meta name="description" content="Fennel & Fox is a herbal apothecary in Hebden Bridge — consultations with a registered medical herbalist, bespoke tinctures blended in the dispensary, teas, and honest advice on what herbs can and can't do." />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Barlow:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Fennel & Fox", phone: "+44 1422 843 190", phoneDisplay: "01422 843 190", email: "dispensary@fennelandfox.co.uk", foundedYear: 2016 },
+  hero: {
+    kicker: "Herbal apothecary · registered medical herbalist · Hebden Bridge",
+    headline: "Herbs, dispensed with a straight face.",
+    lede: "A working apothecary run by a registered medical herbalist — not a wellness shop. Consultations, bespoke tinctures blended by hand in the dispensary, and honest advice on what plants can help with and what needs a doctor. No miracle claims, no fear-mongering, no jade eggs.",
+    primaryCta: { label: "Book a consultation", href: "#book" },
+    secondaryCta: { label: "What the apothecary does", href: "#services" },
+    image: "https://images.unsplash.com/photo-1545840716-c82e9eec6930?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Dried herbs and botanicals arranged on a surface."
+  },
+  trust: { years: "In the dispensary since 2016" },
+  about: {
+    heading: "A herbalist who will tell you to see your GP.",
+    paragraphs: [
+      "Fennel & Fox is run by a herbalist trained to degree level and registered with a professional body — which means a proper case history, an understanding of the medicines you're already on, and a red-flag list that ends the conversation with 'this needs a doctor, not a tincture'. Herbalism done well is careful, not credulous.",
+      "The dispensary is the heart of it: a wall of labelled tinctures, dried herbs in Kilner jars, and a bench where blends are made up for one person at a time. Nothing here is off a pallet with a lifestyle brand on it. It's weighed, blended, labelled and dated in front of you.",
+      "We work alongside conventional medicine, not against it. Plenty of what we do is unglamorous — sleep, digestion, skin, the long tail of feeling-not-quite-right — and plenty of appointments end with us sending you elsewhere. An apothecary you can trust is one that knows its limits."
+    ],
+    portrait: "https://images.unsplash.com/photo-1531914530594-1982b1737a59?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Fresh herbs on a wooden surface."
+  },
+  services: [
+    { name: "Herbal consultation", description: "A full first appointment: case history, current medications, lifestyle, and a considered plan. An hour of actual listening before anything is dispensed. Follow-ups keep it on track." },
+    { name: "Bespoke tinctures", description: "Blended for you at the bench from the tincture wall — weighed, combined, labelled and dated. Made for your case, not pulled off a shelf with your symptom on the front." },
+    { name: "Teas & dried herbs", description: "Loose herbal teas and dried herbs by weight, from a proper apothecary drawer. Blended to taste and purpose, with brewing instructions that actually work." },
+    { name: "Skin & topical", description: "Balms, creams and washes made in small batches for skin complaints, aches and the everyday. Simple ingredients, listed in full, nothing you can't pronounce." },
+    { name: "Repeat dispensing", description: "Once we've found what works, top-ups are quick — ring ahead and it's blended and ready. We keep your formula on file so it's identical each time." },
+    { name: "Talks & apothecary walks", description: "Occasional evenings and hedgerow walks on what grows locally and what it's good for. Practical, sceptical, and firmly on the right side of the law." }
+  ],
+  why: [
+    { title: "Registered, not self-appointed.", body: "Degree-trained and registered with a professional body, working to a code of practice. We take a real case history and know when a symptom needs a GP, not a herb." },
+    { title: "Blended for you.", body: "Your tincture is weighed and mixed at the bench for your case, then labelled and dated. Not a mass-produced bottle with your symptom printed on a nice label." },
+    { title: "Honest about limits.", body: "We say what herbs can help with, what they can't, and what interacts with your medication. Plenty of appointments end with us sending you elsewhere. That's the job." }
+  ],
+  how: [
+    { step: "01", title: "Book a consultation", body: "An hour to take a proper history — symptoms, medications, sleep, digestion, the lot. Bring a list of anything you're already taking." },
+    { step: "02", title: "A considered plan", body: "We talk through what's realistic, what herbs might help, and what should go to your GP. No plan is dispensed before it's explained." },
+    { step: "03", title: "Blended & labelled", body: "Your tincture or tea is made up at the bench, labelled with the contents and dosage, and dated. You leave knowing exactly what you've got." },
+    { step: "04", title: "Review & adjust", body: "A follow-up to see what's working and refine the blend. Herbs work slowly and honestly; we keep an eye on it with you." }
+  ],
+  testimonials: [
+    { quote: "The first thing she did was ask about my medications and rule two herbs straight out because they'd interact. That's when I trusted her. The blend for my sleep has done more than anything in years.", name: "Helen M.", context: "sleep, ongoing" },
+    { quote: "I came in half-expecting incense and vague talk. Instead I got a case history, a clear explanation of what might help my skin and what wouldn't, and a balm that actually worked. Refreshingly un-woo.", name: "Dan P.", context: "skin consultation" },
+    { quote: "She told me plainly that my symptom needed a GP appointment, not a tincture, and wouldn't sell me anything until I'd been. It turned out to matter. I send everyone I know to her because of that.", name: "Aisha R.", context: "referred onward" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1545840716-c82e9eec6930?w=1600&q=85&auto=format&fit=crop", alt: "Dried botanicals." },
+    { src: "https://images.unsplash.com/photo-1531914530594-1982b1737a59?w=1600&q=85&auto=format&fit=crop", alt: "Fresh herbs on wood." },
+    { src: "https://images.unsplash.com/photo-1492552085122-36706c238263?w=1600&q=85&auto=format&fit=crop", alt: "Grinding herbs with a mortar and pestle." },
+    { src: "https://images.unsplash.com/photo-1545840716-c82e9eec6930?w=1600&q=85&auto=format&fit=crop", alt: "Apothecary bottles and herbs." },
+    { src: "https://images.unsplash.com/photo-1492552085122-36706c238263?w=1600&q=85&auto=format&fit=crop", alt: "Herbs ground by hand." },
+    { src: "https://images.unsplash.com/photo-1531914530594-1982b1737a59?w=1600&q=85&auto=format&fit=crop", alt: "Herbs laid out at the bench." }
+  ],
+  faq: [
+    { q: "Is a medical herbalist actually qualified?", a: "A registered medical herbalist trains to degree level in the same medical sciences a nurse or doctor covers — anatomy, physiology, pathology, pharmacology — alongside the clinical use of plants, and is registered with a professional body that sets a code of practice and requires insurance and ongoing training. It is not a weekend course. We're happy to show you our registration." },
+    { q: "Will herbs interfere with my medication?", a: "They can, which is exactly why we take a full medication history before dispensing anything and rule out anything that interacts. This is the single most important thing a proper herbalist does and the single thing an off-the-shelf supplement shop can't. Always tell us — and your doctor and pharmacist — everything you're taking." },
+    { q: "Can you treat serious conditions?", a: "We work alongside conventional medicine for many long-term and everyday complaints, but we do not treat serious disease in place of your doctor, and we'll tell you plainly when something needs medical attention. If you have red-flag symptoms we'll send you to your GP or A&E first. Herbalism is a complement to medical care, not a replacement for it." },
+    { q: "What happens in a consultation?", a: "The first appointment is about an hour: a detailed history of your health, symptoms, sleep, digestion, stress and medications, then a discussion of what's realistic and what might help. If a herbal approach is sensible, we blend and explain it; if it isn't, we say so. Follow-ups are shorter and focus on how things are going." },
+    { q: "Are your remedies safe in pregnancy or for children?", a: "Some herbs are fine, many are not, and the dose and context matter enormously — so we're especially careful here and will often decline or refer. Always tell us if you're pregnant, breastfeeding or asking about a child, and never assume 'natural' means 'safe in any amount'. We'd rather turn work away than take a risk." },
+    { q: "Do I need an appointment, or can I just buy tea?", a: "You're very welcome to come in for loose teas, dried herbs and over-the-counter balms without an appointment — the shop side is open to browse. Bespoke tinctures and anything for a specific health concern need a consultation first, so we can do it properly and safely. Pop in, and we'll point you to the right one." }
+  ],
+  area: { places: ["Hebden Bridge", "Todmorden", "Mytholmroyd", "Halifax", "Sowerby Bridge", "the upper Calder Valley"] },
+  credentials: [
+    { label: "Registered", detail: "Member of a professional herbalists' register" },
+    { label: "Trained", detail: "Degree-level medical herbalist" },
+    { label: "Insured", detail: "Full professional indemnity cover" },
+    { label: "Dispensary", detail: "Blended, labelled & dated on site" }
+  ],
+  location: { name: "Fennel & Fox", addressStreet: "5 Bridge Gate", addressLocality: "Hebden Bridge", addressRegion: "West Yorkshire", addressPostcode: "HX7 8EX", addressCountry: "United Kingdom" },
+  cta: { heading: "Herbs, done properly.", body: "Book a consultation with a registered herbalist, or come in for teas and advice — either way you'll get honesty before you get a bottle.", primary: { label: "Book a consultation", href: "#book" }, secondary: { label: "01422 843 190", href: "tel:+441422843190" } },
+  messaging: { whatsapp: "https://wa.me/441422843190", messenger: "https://m.me/fennelandfox" }
+};
+</script>
+
+<style>
+  :root {
+    --herb:#26372a; --cream:#f4efe3; --ochre:#b1842c; --clay:#a4553a; --sage:#7d9070;
+    --ink:#26372a; --mid:#5c6a5b; --mid-d:#aab6a6; --rule:rgba(38,55,42,0.16); --rule-d:rgba(244,239,227,0.18);
+    --disp:"Cormorant Garamond",Georgia,serif; --sans:"Barlow",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--clay);}
+  .wrap{width:min(1220px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--clay);}
+  .h2{font-family:var(--disp);font-weight:500;font-size:clamp(38px,5.2vw,72px);line-height:1.0;letter-spacing:-0.01em;margin:0 0 0.4em;}
+  .h2 em{font-style:italic;color:var(--clay);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(72px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 30px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;}
+  .btn-primary{background:var(--herb);color:var(--cream);} .btn-primary:hover{background:var(--clay);}
+  .btn-ghost{border:1.5px solid var(--herb);} .btn-ghost:hover{background:var(--herb);color:var(--cream);}
+  .idx-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--herb);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);}
+  .light .idx-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(244,239,227,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--herb);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:27px;text-decoration:none;letter-spacing:-0.01em;}
+  .wm span{color:var(--ochre);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — apothecary label with botanical hairline frame */
+  .hero{padding:clamp(48px,6.5vw,92px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.06fr 0.94fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:500;font-size:clamp(46px,6.6vw,98px);line-height:1.0;letter-spacing:-0.015em;margin:16px 0 22px;}
+  .hero h1 em{font-style:italic;color:var(--clay);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.72;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;padding:14px;background:var(--herb);}
+  .hero-photo::before{content:"";position:absolute;inset:7px;border:1px solid var(--ochre);pointer-events:none;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .label-tag{position:absolute;bottom:26px;left:-12px;background:var(--cream);color:var(--herb);padding:14px 18px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;line-height:1.9;border:1px solid var(--herb);}
+  .label-tag b{font-family:var(--disp);font-style:italic;font-weight:600;font-size:15px;letter-spacing:0;text-transform:none;display:block;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--herb);color:var(--cream);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,239,227,0.85);}
+
+  .about{background:var(--herb);color:var(--cream);}
+  .about .h2{color:var(--cream);}
+  .about .h2 em{color:var(--ochre);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.75;margin:0 0 1em;color:rgba(244,239,227,0.82);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — apothecary label cards */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,22px);}
+  .svc-card{border:1px solid var(--rule);padding:clamp(24px,2.6vw,34px);position:relative;transition:0.16s;background:#faf7ee;}
+  .svc-card:hover{border-color:var(--herb);}
+  .svc-card .no{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--clay);text-transform:uppercase;}
+  .svc-card .bot{font-family:var(--disp);font-style:italic;font-weight:500;font-size:14px;color:var(--sage);margin-top:2px;}
+  .svc-card h3{font-family:var(--disp);font-weight:600;font-size:clamp(22px,2.2vw,28px);margin:14px 0 8px;line-height:1.05;letter-spacing:-0.01em;}
+  .svc-card p{color:var(--mid);margin:0;font-size:14px;line-height:1.66;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;}}
+
+  .why{background:var(--sage);color:var(--herb);}
+  .why .idx-head{border-color:rgba(38,55,42,0.35);color:rgba(38,55,42,0.7);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--herb);opacity:0.65;display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:29px;margin:0 0 10px;line-height:1.02;letter-spacing:-0.01em;}
+  .why-grid p{color:rgba(38,55,42,0.82);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--herb);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--clay);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:25px;margin:6px 0 8px;letter-spacing:-0.01em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#ebe5d5;}
+  .t-quote{font-family:var(--disp);font-weight:500;font-size:clamp(28px,3.8vw,52px);line-height:1.06;max-width:30ch;margin:0 0 24px;letter-spacing:-0.01em;}
+  .t-quote em{font-style:italic;color:var(--clay);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--herb);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--herb);color:var(--ochre);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--herb);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:24px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;letter-spacing:-0.01em;line-height:1.15;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--clay);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:60ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1px solid var(--herb);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--herb);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--clay);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-weight:600;font-size:20px;line-height:1.15;letter-spacing:-0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--herb);color:var(--cream);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:23px;line-height:1.25;letter-spacing:-0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(244,239,227,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(244,239,227,0.75);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(244,239,227,0.7);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:1.5px solid var(--herb);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.35) sepia(0.1);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--herb);color:var(--cream);padding:clamp(84px,10vw,148px) 0;text-align:center;}
+  .cta-band .kick{color:var(--ochre);}
+  .cta-band h2{font-family:var(--disp);font-weight:500;font-size:clamp(44px,6.4vw,96px);line-height:1.0;margin:14px auto 18px;max-width:16ch;letter-spacing:-0.015em;}
+  .cta-band h2 em{font-style:italic;color:var(--ochre);}
+  .cta-band p{color:rgba(244,239,227,0.85);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--ochre);color:var(--herb);}
+  .cta-band .btn-primary:hover{background:var(--cream);}
+  .cta-band .btn-ghost{border-color:rgba(244,239,227,0.6);color:var(--cream);}
+  .cta-band .btn-ghost:hover{background:var(--cream);color:var(--herb);}
+
+  footer{background:var(--cream);border-top:1.5px solid var(--herb);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--clay);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--herb);color:var(--cream);padding:13px 20px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(38,55,42,0.4);}
+  .msg-fab a:hover{background:var(--clay);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"HealthAndBeautyBusiness","name":"Fennel & Fox","description":"Herbal apothecary in Hebden Bridge — consultations with a registered medical herbalist, bespoke tinctures, teas and honest herbal advice.","url":"https://fennelandfox.co.uk/","telephone":"+441422843190","email":"dispensary@fennelandfox.co.uk","address":{"@type":"PostalAddress","streetAddress":"5 Bridge Gate","addressLocality":"Hebden Bridge","addressRegion":"West Yorkshire","postalCode":"HX7 8EX","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.7420,"longitude":-2.0110},"areaServed":["Hebden Bridge","Todmorden","Calder Valley"],"image":["https://images.unsplash.com/photo-1545840716-c82e9eec6930?w=1600"],"foundingDate":"2016"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is a medical herbalist actually qualified?","acceptedAnswer":{"@type":"Answer","text":"A registered medical herbalist trains to degree level in medical sciences alongside clinical use of plants, and is registered with a professional body requiring insurance and ongoing training."}},
+{"@type":"Question","name":"Will herbs interfere with my medication?","acceptedAnswer":{"@type":"Answer","text":"They can, which is why we take a full medication history and rule out interactions before dispensing. Always tell us everything you take."}},
+{"@type":"Question","name":"Can you treat serious conditions?","acceptedAnswer":{"@type":"Answer","text":"We work alongside conventional medicine for everyday and long-term complaints, but do not replace your doctor and will refer red-flag symptoms onward."}},
+{"@type":"Question","name":"What happens in a consultation?","acceptedAnswer":{"@type":"Answer","text":"About an hour: a detailed history, then a discussion of what's realistic. If herbs are sensible we blend and explain; if not, we say so."}},
+{"@type":"Question","name":"Are remedies safe in pregnancy or for children?","acceptedAnswer":{"@type":"Answer","text":"Some herbs are fine, many are not, and dose matters — we're especially careful and will often decline or refer. Always tell us."}},
+{"@type":"Question","name":"Do I need an appointment to buy tea?","acceptedAnswer":{"@type":"Answer","text":"No — teas, dried herbs and balms are open to browse. Bespoke tinctures and anything for a specific concern need a consultation first."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Fennel <span>&amp;</span> Fox</a>
+    <nav class="nav-links">
+      <a href="#about">The apothecary</a><a href="#services">What we do</a><a href="#location">Find us</a><a href="#book">Consultation</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v64">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Herbal apothecary · registered medical herbalist · Hebden Bridge</div>
+      <h1 data-comment-anchor="hero-headline">Herbs, dispensed <em>with a straight face.</em></h1>
+      <p class="lede" data-bind="hero.lede">A working apothecary run by a registered medical herbalist — not a wellness shop. Consultations, bespoke tinctures blended by hand in the dispensary, and honest advice on what plants can help with and what needs a doctor. No miracle claims, no fear-mongering, no jade eggs.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a consultation</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What the apothecary does</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1545840716-c82e9eec6930?w=2000&q=85&auto=format&fit=crop"
+           alt="Dried herbs and botanicals arranged on a surface." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="label-tag"><b>Tinctura</b>BLENDED · BY HAND<br />REGISTERED · MNIMH<br />DATED · ON SITE</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">In the dispensary since 2016</span>
+    <span>Registered herbalist</span>
+    <span>Blended for you</span>
+    <span>Honest about limits</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v30">
+  <div class="wrap">
+    <div class="idx-head"><span>FILE 01 / THE APOTHECARY</span><span>CAREFUL, NOT CREDULOUS</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1531914530594-1982b1737a59?w=1200&q=85&auto=format&fit=crop"
+           alt="Fresh herbs on a wooden surface." />
+      <div class="about-prose">
+        <h2 class="h2">A herbalist who will tell you <em>to see your GP.</em></h2>
+        <p>Fennel & Fox is run by a herbalist trained to degree level and registered with a professional body — which means a proper case history, an understanding of the medicines you're already on, and a red-flag list that ends the conversation with "this needs a doctor, not a tincture". Herbalism done well is careful, not credulous.</p>
+        <p>The dispensary is the heart of it: a wall of labelled tinctures, dried herbs in Kilner jars, and a bench where blends are made up for one person at a time. Nothing here is off a pallet with a lifestyle brand on it. It's weighed, blended, labelled and dated in front of you.</p>
+        <p>We work alongside conventional medicine, not against it. Plenty of what we do is unglamorous — sleep, digestion, skin, the long tail of feeling-not-quite-right — and plenty of appointments end with us sending you elsewhere. An apothecary you can trust is one that knows its limits.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v57">
+  <div class="wrap">
+    <div class="idx-head"><span>FILE 02 / MATERIA MEDICA</span><span>WHAT WE DO</span></div>
+    <h2 class="h2">What the apothecary does.</h2>
+    <div class="svc-grid">
+      <div class="svc-card"><span class="no">No. 01</span><div class="bot">Consultatio</div><h3>Herbal consultation</h3><p>A full first appointment: case history, current medications, lifestyle, and a considered plan. An hour of actual listening before anything is dispensed. Follow-ups keep it on track.</p></div>
+      <div class="svc-card"><span class="no">No. 02</span><div class="bot">Tinctura</div><h3>Bespoke tinctures</h3><p>Blended for you at the bench from the tincture wall — weighed, combined, labelled and dated. Made for your case, not pulled off a shelf with your symptom on the front.</p></div>
+      <div class="svc-card"><span class="no">No. 03</span><div class="bot">Herba sicca</div><h3>Teas &amp; dried herbs</h3><p>Loose herbal teas and dried herbs by weight, from a proper apothecary drawer. Blended to taste and purpose, with brewing instructions that actually work.</p></div>
+      <div class="svc-card"><span class="no">No. 04</span><div class="bot">Unguentum</div><h3>Skin &amp; topical</h3><p>Balms, creams and washes made in small batches for skin complaints, aches and the everyday. Simple ingredients, listed in full, nothing you can't pronounce.</p></div>
+      <div class="svc-card"><span class="no">No. 05</span><div class="bot">Iteratio</div><h3>Repeat dispensing</h3><p>Once we've found what works, top-ups are quick — ring ahead and it's blended and ready. We keep your formula on file so it's identical each time.</p></div>
+      <div class="svc-card"><span class="no">No. 06</span><div class="bot">Herbarium</div><h3>Talks &amp; apothecary walks</h3><p>Occasional evenings and hedgerow walks on what grows locally and what it's good for. Practical, sceptical, and firmly on the right side of the law.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v29">
+  <div class="wrap">
+    <div class="idx-head"><span>FILE 03 / WHY TRUST US</span><span>REGISTERED &amp; HONEST</span></div>
+    <h2 class="h2">Why trust this apothecary.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Registered, not self-appointed.</h3><p>Degree-trained and registered with a professional body, working to a code of practice. We take a real case history and know when a symptom needs a GP, not a herb.</p></div>
+      <div><span class="no">02 / 03</span><h3>Blended for you.</h3><p>Your tincture is weighed and mixed at the bench for your case, then labelled and dated. Not a mass-produced bottle with your symptom printed on a nice label.</p></div>
+      <div><span class="no">03 / 03</span><h3>Honest about limits.</h3><p>We say what herbs can help with, what they can't, and what interacts with your medication. Plenty of appointments end with us sending you elsewhere. That's the job.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>FILE 04 / THE PROCESS</span><span>HISTORY → PLAN → BLEND → REVIEW</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Book a consultation</h3><p>An hour to take a proper history — symptoms, medications, sleep, digestion, the lot. Bring a list of anything you're already taking.</p></li>
+      <li><span class="step">Step 02</span><h3>A considered plan</h3><p>We talk through what's realistic, what herbs might help, and what should go to your GP. No plan is dispensed before it's explained.</p></li>
+      <li><span class="step">Step 03</span><h3>Blended &amp; labelled</h3><p>Your tincture or tea is made up at the bench, labelled with the contents and dosage, and dated. You leave knowing exactly what you've got.</p></li>
+      <li><span class="step">Step 04</span><h3>Review &amp; adjust</h3><p>A follow-up to see what's working and refine the blend. Herbs work slowly and honestly; we keep an eye on it with you.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v29">
+  <div class="wrap">
+    <div class="idx-head"><span>FILE 05 / PATIENTS</span><span>IN THEIR WORDS</span></div>
+    <blockquote class="t-quote">“She ruled two herbs straight out because they'd interact with my meds. <em>That's</em> when I trusted her.”</blockquote>
+    <div class="t-attr">Helen M. — sleep, ongoing</div>
+    <div class="t-sub">
+      <figure><blockquote>“I came in half-expecting incense and vague talk. Instead I got a case history, a clear explanation of what might help my skin and what wouldn't, and a balm that actually worked. Refreshingly un-woo.”</blockquote><figcaption>Dan P. — skin consultation</figcaption></figure>
+      <figure><blockquote>“She told me plainly that my symptom needed a GP appointment, not a tincture, and wouldn't sell me anything until I'd been. It turned out to matter. I send everyone I know to her because of that.”</blockquote><figcaption>Aisha R. — referred onward</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v57">
+  <div class="wrap">
+    <div class="idx-head"><span>FILE 06 / THE DISPENSARY</span><span>WEIGHED &amp; BLENDED</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1545840716-c82e9eec6930?w=1600&q=85&auto=format&fit=crop" alt="Dried botanicals." /><figcaption>THE HERB WALL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1531914530594-1982b1737a59?w=1600&q=85&auto=format&fit=crop" alt="Fresh herbs on wood." /><figcaption>FRESH, AT THE BENCH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1492552085122-36706c238263?w=1600&q=85&auto=format&fit=crop" alt="Grinding herbs with a mortar and pestle." /><figcaption>BLENDED TO PURPOSE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1545840716-c82e9eec6930?w=1600&q=85&auto=format&fit=crop" alt="Apothecary bottles and herbs." /><figcaption>THE TINCTURE SHELF</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1492552085122-36706c238263?w=1600&q=85&auto=format&fit=crop" alt="Herbs ground by hand." /><figcaption>GROUND BY HAND</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1531914530594-1982b1737a59?w=1600&q=85&auto=format&fit=crop" alt="Herbs laid out at the bench." /><figcaption>WEIGHED &amp; DATED</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>FILE 07 / ASKED AT THE COUNTER</span><span>BEFORE A BOTTLE</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441422843190" style="color:var(--clay);">01422 843 190</a>. If we're mid-consultation we'll call you back once the door's shut.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Is a medical herbalist actually qualified?</summary><p>A registered medical herbalist trains to degree level in the same medical sciences a nurse or doctor covers — anatomy, physiology, pathology, pharmacology — alongside the clinical use of plants, and is registered with a professional body that sets a code of practice and requires insurance and ongoing training. It is not a weekend course. We're happy to show you our registration.</p></details>
+        <details><summary>Will herbs interfere with my medication?</summary><p>They can, which is exactly why we take a full medication history before dispensing anything and rule out anything that interacts. This is the single most important thing a proper herbalist does and the single thing an off-the-shelf supplement shop can't. Always tell us — and your doctor and pharmacist — everything you're taking.</p></details>
+        <details><summary>Can you treat serious conditions?</summary><p>We work alongside conventional medicine for many long-term and everyday complaints, but we do not treat serious disease in place of your doctor, and we'll tell you plainly when something needs medical attention. If you have red-flag symptoms we'll send you to your GP or A&E first. Herbalism is a complement to medical care, not a replacement for it.</p></details>
+        <details><summary>What happens in a consultation?</summary><p>The first appointment is about an hour: a detailed history of your health, symptoms, sleep, digestion, stress and medications, then a discussion of what's realistic and what might help. If a herbal approach is sensible, we blend and explain it; if it isn't, we say so. Follow-ups are shorter and focus on how things are going.</p></details>
+        <details><summary>Are your remedies safe in pregnancy or for children?</summary><p>Some herbs are fine, many are not, and the dose and context matter enormously — so we're especially careful here and will often decline or refer. Always tell us if you're pregnant, breastfeeding or asking about a child, and never assume "natural" means "safe in any amount". We'd rather turn work away than take a risk.</p></details>
+        <details><summary>Do I need an appointment, or can I just buy tea?</summary><p>You're very welcome to come in for loose teas, dried herbs and over-the-counter balms without an appointment — the shop side is open to browse. Bespoke tinctures and anything for a specific health concern need a consultation first, so we can do it properly and safely. Pop in, and we'll point you to the right one.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>FILE 08 / PATIENTS COME FROM</span><span>THE CALDER VALLEY</span></div>
+    <ul class="area-list">
+      <li>Hebden Bridge</li><li>Todmorden</li><li>Mytholmroyd</li><li>Halifax</li><li>Sowerby Bridge</li><li>Upper Calder Valley</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>FILE 09 / THE ESSENTIALS</span><span>OUR STANDING</span></div>
+    <div class="creds">
+      <div><div class="label">Registered</div><div class="detail">Member of a professional herbalists' register</div></div>
+      <div><div class="label">Trained</div><div class="detail">Degree-level medical herbalist</div></div>
+      <div><div class="label">Insured</div><div class="detail">Full professional indemnity cover</div></div>
+      <div><div class="label">Dispensary</div><div class="detail">Blended, labelled &amp; dated on site</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>FILE 10 / FIND US</span><span>5 BRIDGE GATE, HEBDEN BRIDGE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Fennel &amp; Fox</strong><br />
+          5 Bridge Gate<br />
+          Hebden Bridge HX7 8EX<br /><br />
+          <a href="tel:+441422843190" data-bind="business.phoneDisplay">01422 843 190</a><br />
+          <a href="mailto:dispensary@fennelandfox.co.uk" data-bind="business.email">dispensary@fennelandfox.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>CONSULTATIONS</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The shop is open to browse; consultations are by appointment, including some evenings. We're just off the packhorse bridge — the green door with the herbs in the window.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Fennel & Fox, Hebden Bridge" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.0200%2C53.7380%2C-2.0020%2C53.7460&layer=mapnik&marker=53.7420%2C-2.0110"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v32">
+  <div class="wrap">
+    <div class="kick">FILE 11 / CONSULTATION</div>
+    <h2 data-bind="cta.heading">Herbs, <em>done properly.</em></h2>
+    <p data-bind="cta.body">Book a consultation with a registered herbalist, or come in for teas and advice — either way you'll get honesty before you get a bottle.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a consultation</a>
+      <a class="btn btn-ghost" href="tel:+441422843190" data-bind="cta.secondary.label">01422 843 190</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441422843190" data-bind="messaging.whatsapp" aria-label="Message the apothecary">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:27px;">Fennel <span style="color:var(--ochre);font-style:italic;">&amp;</span> Fox</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A herbal apothecary in Hebden Bridge, run by a registered medical herbalist. Since 2016.</p>
+      </div>
+      <div>
+        <h4>The apothecary</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          5 Bridge Gate<br />Hebden Bridge HX7 8EX<br />
+          <a href="tel:+441422843190">01422 843 190</a><br />
+          <a href="mailto:dispensary@fennelandfox.co.uk">dispensary@fennelandfox.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we do</a><a href="#about">The apothecary</a><a href="#location">Find us</a><a href="#book">Consultation</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> FENNEL &amp; FOX LTD</span>
+      <span>CAREFUL, NOT CREDULOUS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

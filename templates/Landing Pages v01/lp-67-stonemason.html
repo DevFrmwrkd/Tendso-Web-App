@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chisel &amp; Serif — letter carver &amp; stonemason in Portland, Dorset</title>
+<meta name="description" content="Chisel &amp; Serif is a letter-carving workshop on Portland, Dorset — headstones, house names, memorials and inscriptions cut by hand into local stone, drawn to your words and lettered by eye." />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Chisel & Serif", phone: "+44 1305 821 447", phoneDisplay: "01305 821 447", email: "workshop@chiselandserif.co.uk", foundedYear: 2009 },
+  hero: {
+    kicker: "Letter carver & stonemason · cut by hand · Portland, Dorset",
+    headline: "Every letter drawn by hand and cut by eye.",
+    lede: "Headstones, memorials, house names and inscriptions carved into Portland and slate the old way — lettering drawn for your exact words, then cut with mallet and chisel, not sandblasted through a stencil. Stone outlasts everyone who reads it. The words deserve the same care.",
+    primaryCta: { label: "Discuss a commission", href: "#book" },
+    secondaryCta: { label: "What we carve", href: "#services" },
+    image: "https://images.unsplash.com/photo-1519972064555-542444e71b54?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A hand carving a letter into stone with a chisel."
+  },
+  trust: { years: "At the banker since 2009" },
+  about: {
+    heading: "Drawn, then cut. Never printed.",
+    paragraphs: [
+      "There are two ways to put letters on stone. One is to print a font, cut a rubber stencil, and blast it in with sand — fast, cheap, and dead on the surface. The other is to draw each letter by hand for the words and the stone in front of you, then cut it with a mallet and chisel so the light catches the facets. We only do the second. It's why our work is still crisp when the blasted stuff has gone flat.",
+      "The workshop sits on Portland, on top of the quarry that has clad half of London's landmarks. We cut Portland limestone and Welsh slate mostly, drawn from beds a few miles from the banker bench, and we letter by eye — spacing, weight and the tiny optical corrections a stencil can't make.",
+      "Much of what we carve marks a death, and we treat that with the time and gentleness it asks for. There is no rushing a headstone and no upselling a grieving family. We'll draw the words, show you the design full-size in chalk, and carry the whole thing at the pace you need."
+    ],
+    portrait: "https://images.unsplash.com/photo-1615800098779-1be32e60cca3?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A stonemason drawing lettering onto stone."
+  },
+  services: [
+    { name: "Headstones & memorials", description: "Designed, drawn and hand-carved to your words, in Portland or slate, to cemetery and churchyard regulations. Unhurried, gentle, and never a template." },
+    { name: "Additional inscriptions", description: "Adding a name to an existing family stone, matching the original lettering and depth on site or in the workshop. Careful, respectful, weatherproofed." },
+    { name: "House names & numbers", description: "A slate or stone nameplate cut by hand for your door, gatepost or wall. Drawn to your house and your railings, not pulled from a catalogue." },
+    { name: "Commemorative & commissioned", description: "Benches, plaques, foundation stones, sundials and inscriptions for gardens, institutions and gifts. If it's stone and it needs words, we'll draw them." },
+    { name: "Restoration & recutting", description: "Reviving weathered inscriptions, cleaning and recutting worn lettering, and conserving old stones — carefully, reversibly, and honestly about what's beyond saving." },
+    { name: "Lettering commissions in slate", description: "Poetry, quotations and single words cut into slate as artworks for the wall. The craft applied to something you simply want to live with." }
+  ],
+  why: [
+    { title: "Hand-drawn for your words.", body: "Every inscription is lettered by hand for its exact text and stone — spacing and weight adjusted by eye. A stencil repeats a font; we compose a piece." },
+    { title: "Cut, not blasted.", body: "Mallet and chisel leave faceted, light-catching letters that stay crisp for a century. Sandblasting scours a flat groove that softens and greys within years." },
+    { title: "The right pace, especially in grief.", body: "A memorial cannot be rushed and shouldn't be sold. We move at the speed a family needs, show the design full-size before cutting, and never upsell a loss." }
+  ],
+  how: [
+    { step: "01", title: "Talk it through", body: "The words, the stone, the place it will stand. For memorials, entirely at your pace — there is no clock in this conversation." },
+    { step: "02", title: "Drawn full-size", body: "We hand-draw the lettering and show it to you chalked at full size, so you see the real thing, not a screen mock-up, before a chisel touches stone." },
+    { step: "03", title: "Cut at the banker", body: "Carved by hand with mallet and chisel over days or weeks, the facets cut to catch the light. Gilding or paint added if the setting calls for it." },
+    { step: "04", title: "Set & cared for", body: "Delivered and fixed to regulations, or installed on site. We keep your drawing on file for future inscriptions, matched exactly when the time comes." }
+  ],
+  testimonials: [
+    { quote: "They carved my mother's headstone and never once made me feel like a customer. They drew her name, showed it to me in chalk, and waited until I was ready. The lettering is so alive it's hard to believe it's cut into rock.", name: "Frances W.", context: "headstone, Portland stone" },
+    { quote: "Our house name in slate has had three winters of Dorset weather and looks as sharp as the day it went up. A neighbour had one blasted the same year; hers is already fading. The difference is the hand.", name: "Nigel & Kate P.", context: "house nameplate, Welsh slate" },
+    { quote: "I commissioned a line of poetry cut into slate for my wife's fiftieth. It's the most beautiful object in our home. People assume it's from a gallery; it's from a shed on Portland with the best view in England.", name: "David L.", context: "slate lettering commission" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1519972064555-542444e71b54?w=1600&q=85&auto=format&fit=crop", alt: "Carving a letter into stone." },
+    { src: "https://images.unsplash.com/photo-1615800098779-1be32e60cca3?w=1600&q=85&auto=format&fit=crop", alt: "Drawing lettering onto stone." },
+    { src: "https://images.unsplash.com/photo-1519972064555-542444e71b54?w=1600&q=85&auto=format&fit=crop", alt: "Chisels laid out on the bench." },
+    { src: "https://images.unsplash.com/photo-1615800098779-1be32e60cca3?w=1600&q=85&auto=format&fit=crop", alt: "A finished carved inscription." },
+    { src: "https://images.unsplash.com/photo-1519972064555-542444e71b54?w=1600&q=85&auto=format&fit=crop", alt: "Stone blocks in the workshop yard." },
+    { src: "https://images.unsplash.com/photo-1615800098779-1be32e60cca3?w=1600&q=85&auto=format&fit=crop", alt: "Letters cut into slate." }
+  ],
+  faq: [
+    { q: "How is hand-carving different from an engraved or sandblasted stone?", a: "A sandblasted inscription is a font printed onto a stencil and blown into the surface — flat, uniform, and quick to soften and grey. Hand-carving draws each letter for your words and cuts it with a chisel, leaving faceted walls that catch light and stay crisp for a century. Stand beside both after ten years and you'll never choose the stencil again." },
+    { q: "We've had a death. How does commissioning a headstone work?", a: "Gently, and at your pace. We talk through the words and the stone whenever you're ready — there's no rush and no pressure. We draw the lettering, show it to you chalked full-size, and only cut when you're happy. We handle cemetery and churchyard regulations for you, so the paperwork isn't another weight to carry." },
+    { q: "Can you add a name to an existing family grave?", a: "Yes — one of the most careful things we do. We match the original lettering style, size and depth, cut the new inscription on site or in the workshop, and blend it so it reads as one hand across the years. Send us photos and we'll advise before anything is moved." },
+    { q: "What stone should I choose?", a: "It depends on the setting and the regulations, but mostly Portland limestone and Welsh slate — both cut beautifully by hand and weather honestly. We'll talk you through how each looks over decades, what churchyards allow, and which suits your words. There's no single right answer, and we won't pretend there is." },
+    { q: "How long does a piece take?", a: "A house name, a few weeks. A headstone, longer — drawing, approval, carving and setting all take real time, and memorials should never be hurried. We'll give you an honest schedule at the start and keep you posted. If there's a date that matters, tell us early and we'll plan for it." },
+    { q: "Do you work from anywhere, or just Dorset?", a: "The workshop is on Portland and we set memorials across Dorset and the South West, but lettering commissions and slate pieces travel anywhere — we've posted carved slate across the UK and beyond. For a headstone, distance to the churchyard matters; for a wall piece, it doesn't at all." }
+  ],
+  area: { places: ["Portland", "Weymouth", "Dorchester", "Bridport", "Wareham", "across the South West"] },
+  credentials: [
+    { label: "Method", detail: "Hand-drawn lettering, mallet-and-chisel cut" },
+    { label: "Stone", detail: "Portland limestone & Welsh slate, locally quarried" },
+    { label: "Memorials", detail: "Cut to cemetery & churchyard regulations" },
+    { label: "On file", detail: "Your drawing kept for matched future inscriptions" }
+  ],
+  location: { name: "Chisel & Serif", addressStreet: "The Banker Shed, Wide Street", addressLocality: "Easton, Portland", addressRegion: "Dorset", addressPostcode: "DT5 1HG", addressCountry: "United Kingdom" },
+  cta: { heading: "Words worth cutting into stone.", body: "For a headstone, a house name or a line you want to keep forever — let's talk it through, unhurried.", primary: { label: "Discuss a commission", href: "#book" }, secondary: { label: "01305 821 447", href: "tel:+441305821447" } },
+  messaging: { whatsapp: "https://wa.me/441305821447", messenger: "https://m.me/chiselandserif" }
+};
+</script>
+
+<style>
+  :root {
+    --stone:#e8e4dc; --slate:#2b2f33; --portland:#cfc8bb; --moss:#5b6650; --oxide:#9a5a3c;
+    --ink:#232527; --mid:#71736f; --mid-d:#a8a89f; --rule:rgba(35,37,39,0.15); --rule-d:rgba(232,228,220,0.18);
+    --disp:"Cormorant",serif; --sans:"Inter",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--stone);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--oxide);}
+  .wrap{width:min(1200px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--oxide);}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(36px,5.2vw,68px);line-height:1;margin:0 0 0.4em;letter-spacing:-0.01em;}
+  .h2 em{font-style:italic;color:var(--moss);}
+  .body{color:var(--mid);line-height:1.74;}
+  section{padding:clamp(74px,9vw,128px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--sans);font-weight:600;font-size:13.5px;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--slate);color:var(--stone);} .btn-primary:hover{background:var(--oxide);}
+  .btn-ghost{border:1.5px solid var(--slate);} .btn-ghost:hover{background:var(--slate);color:var(--stone);}
+  .idx-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--slate);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,60px);}
+  .light .idx-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(232,228,220,0.94);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--slate);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:23px;text-decoration:none;letter-spacing:0.01em;}
+  .wm em{font-style:italic;color:var(--moss);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — incised-letter serif with V-cut shadow */
+  .hero{padding:clamp(52px,7vw,102px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.06fr 0.94fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:600;font-size:clamp(42px,6vw,92px);line-height:0.98;letter-spacing:-0.015em;margin:20px 0 24px;text-shadow:1px 1px 0 rgba(35,37,39,0.12);}
+  .hero h1 em{font-style:italic;color:var(--moss);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.74;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .cut-tag{position:absolute;bottom:20px;left:-14px;background:var(--slate);color:var(--stone);padding:14px 18px;font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;line-height:1.8;box-shadow:0 12px 30px rgba(35,37,39,0.25);}
+  .cut-tag .hd{color:var(--portland);letter-spacing:0.16em;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .cut-tag{left:8px;}}
+
+  .trust{padding:0;background:var(--slate);color:var(--stone);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(232,228,220,0.85);}
+
+  .about{background:var(--slate);color:var(--stone);}
+  .about .h2{color:var(--stone);}
+  .about .h2 em{color:var(--portland);}
+  .about-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.78;margin:0 0 1em;color:rgba(232,228,220,0.82);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--slate);}
+  .svc-row{display:grid;grid-template-columns:100px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(91,102,80,0.06);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--oxide);text-transform:uppercase;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(23px,2.5vw,32px);margin:0;line-height:1.02;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--moss);color:var(--stone);}
+  .why .idx-head{border-color:rgba(232,228,220,0.4);color:rgba(232,228,220,0.75);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--portland);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:25px;margin:0 0 10px;line-height:1.04;}
+  .why-grid p{color:rgba(232,228,220,0.88);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--slate);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--oxide);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:21px;margin:8px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--portland);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(24px,3.2vw,44px);line-height:1.14;max-width:32ch;margin:0 0 22px;font-style:italic;}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--slate);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;filter:saturate(0.9);transition:0.25s;}
+  .g-grid figure:hover img{filter:none;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-top:10px;border-top:1px solid var(--rule);padding-top:8px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--slate);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:21px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--oxide);font-size:20px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--slate);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--slate);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--oxide);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-weight:600;font-size:17px;line-height:1.3;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--slate);color:var(--stone);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:21px;line-height:1.4;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(232,228,220,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(232,228,220,0.75);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(232,228,220,0.7);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:1.5px solid var(--slate);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.4);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--slate);color:var(--stone);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--portland);}
+  .cta-band h2{font-family:var(--disp);font-weight:600;font-size:clamp(38px,5.6vw,84px);line-height:1;margin:16px auto 18px;max-width:16ch;letter-spacing:-0.01em;text-shadow:1px 1px 0 rgba(0,0,0,0.25);}
+  .cta-band h2 em{font-style:italic;color:var(--portland);}
+  .cta-band p{color:rgba(232,228,220,0.85);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--stone);color:var(--slate);}
+  .cta-band .btn-primary:hover{background:var(--oxide);color:var(--stone);}
+  .cta-band .btn-ghost{border-color:rgba(232,228,220,0.6);color:var(--stone);}
+  .cta-band .btn-ghost:hover{background:var(--stone);color:var(--slate);}
+
+  footer{background:var(--stone);border-top:1.5px solid var(--slate);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--oxide);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--slate);color:var(--stone);padding:13px 20px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(35,37,39,0.3);}
+  .msg-fab a:hover{background:var(--oxide);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Chisel & Serif","description":"Letter carver and stonemason on Portland, Dorset — hand-carved headstones, memorials, house names and inscriptions in Portland stone and slate.","url":"https://chiselandserif.co.uk/","telephone":"+441305821447","email":"workshop@chiselandserif.co.uk","address":{"@type":"PostalAddress","streetAddress":"The Banker Shed, Wide Street","addressLocality":"Portland","addressRegion":"Dorset","postalCode":"DT5 1HG","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":50.5410,"longitude":-2.4390},"areaServed":["Portland","Weymouth","Dorchester","South West England"],"image":["https://images.unsplash.com/photo-1519972064555-542444e71b54?w=1600"],"foundingDate":"2009"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How is hand-carving different from a sandblasted stone?","acceptedAnswer":{"@type":"Answer","text":"Sandblasting blows a printed font through a stencil — flat and quick to grey. Hand-carving draws each letter and cuts faceted walls that catch light and stay crisp for a century."}},
+{"@type":"Question","name":"We've had a death. How does commissioning a headstone work?","acceptedAnswer":{"@type":"Answer","text":"Gently and at your pace. We draw the words, show them chalked full-size, cut only when you're happy, and handle the cemetery regulations for you."}},
+{"@type":"Question","name":"Can you add a name to an existing family grave?","acceptedAnswer":{"@type":"Answer","text":"Yes — we match the original lettering style, size and depth so the new inscription reads as one hand across the years."}},
+{"@type":"Question","name":"What stone should I choose?","acceptedAnswer":{"@type":"Answer","text":"Mostly Portland limestone and Welsh slate — both cut beautifully by hand and weather honestly. We advise on setting and regulations."}},
+{"@type":"Question","name":"How long does a piece take?","acceptedAnswer":{"@type":"Answer","text":"A house name a few weeks; a headstone longer. We give an honest schedule and never hurry a memorial."}},
+{"@type":"Question","name":"Do you work outside Dorset?","acceptedAnswer":{"@type":"Answer","text":"We set memorials across the South West; lettering and slate pieces post anywhere in the UK and beyond."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Chisel <em>&amp;</em> Serif</a>
+    <nav class="nav-links">
+      <a href="#about">The workshop</a><a href="#services">What we carve</a><a href="#location">Find us</a><a href="#book">Commission</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v56">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Letter carver &amp; stonemason · cut by hand · Portland, Dorset</div>
+      <h1 data-comment-anchor="hero-headline">Every letter drawn by hand and <em>cut by eye.</em></h1>
+      <p class="lede" data-bind="hero.lede">Headstones, memorials, house names and inscriptions carved into Portland and slate the old way — lettering drawn for your exact words, then cut with mallet and chisel, not sandblasted through a stencil. Stone outlasts everyone who reads it. The words deserve the same care.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Discuss a commission</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we carve</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1519972064555-542444e71b54?w=2000&q=85&auto=format&fit=crop"
+           alt="Portland limestone, close up." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="cut-tag">
+        <div class="hd">V-CUT · BY HAND</div>
+        STONE · PORTLAND<br />LETTER · ROMAN CAPITAL<br />DEPTH · 8MM
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the banker since 2009</span>
+    <span>Cut, never blasted</span>
+    <span>Portland stone &amp; Welsh slate</span>
+    <span>Memorials, unhurried</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v22">
+  <div class="wrap">
+    <div class="idx-head"><span>CUT 01 / THE WORKSHOP</span><span>DRAWN, THEN CUT</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1615800098779-1be32e60cca3?w=1200&q=85&auto=format&fit=crop"
+           alt="Polished marble surface in the workshop." />
+      <div class="about-prose">
+        <h2 class="h2">Drawn, then cut. <em>Never printed.</em></h2>
+        <p>There are two ways to put letters on stone. One is to print a font, cut a rubber stencil, and blast it in with sand — fast, cheap, and dead on the surface. The other is to draw each letter by hand for the words and the stone in front of you, then cut it with a mallet and chisel so the light catches the facets. We only do the second. It's why our work is still crisp when the blasted stuff has gone flat.</p>
+        <p>The workshop sits on Portland, on top of the quarry that has clad half of London's landmarks. We cut Portland limestone and Welsh slate mostly, drawn from beds a few miles from the banker bench, and we letter by eye — spacing, weight and the tiny optical corrections a stencil can't make.</p>
+        <p>Much of what we carve marks a death, and we treat that with the time and gentleness it asks for. There is no rushing a headstone and no upselling a grieving family. We'll draw the words, show you the design full-size in chalk, and carry the whole thing at the pace you need.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v49">
+  <div class="wrap">
+    <div class="idx-head"><span>CUT 02 / THE WORK</span><span>FROM THE BANKER BENCH</span></div>
+    <h2 class="h2">What we carve.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Cut 01</span><h3>Headstones &amp; memorials</h3><p>Designed, drawn and hand-carved to your words, in Portland or slate, to cemetery and churchyard regulations. Unhurried, gentle, and never a template.</p></div>
+      <div class="svc-row"><span class="no">Cut 02</span><h3>Additional inscriptions</h3><p>Adding a name to an existing family stone, matching the original lettering and depth on site or in the workshop. Careful, respectful, weatherproofed.</p></div>
+      <div class="svc-row"><span class="no">Cut 03</span><h3>House names &amp; numbers</h3><p>A slate or stone nameplate cut by hand for your door, gatepost or wall. Drawn to your house and your railings, not pulled from a catalogue.</p></div>
+      <div class="svc-row"><span class="no">Cut 04</span><h3>Commemorative &amp; commissioned</h3><p>Benches, plaques, foundation stones, sundials and inscriptions for gardens, institutions and gifts. If it's stone and it needs words, we'll draw them.</p></div>
+      <div class="svc-row"><span class="no">Cut 05</span><h3>Restoration &amp; recutting</h3><p>Reviving weathered inscriptions, cleaning and recutting worn lettering, and conserving old stones — carefully, reversibly, and honestly about what's beyond saving.</p></div>
+      <div class="svc-row"><span class="no">Cut 06</span><h3>Lettering commissions in slate</h3><p>Poetry, quotations and single words cut into slate as artworks for the wall. The craft applied to something you simply want to live with.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v21">
+  <div class="wrap">
+    <div class="idx-head"><span>CUT 03 / THE DIFFERENCE</span><span>WHY BY HAND</span></div>
+    <h2 class="h2">Why cut, not blast.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Hand-drawn for your words.</h3><p>Every inscription is lettered by hand for its exact text and stone — spacing and weight adjusted by eye. A stencil repeats a font; we compose a piece.</p></div>
+      <div><span class="no">02 / 03</span><h3>Cut, not blasted.</h3><p>Mallet and chisel leave faceted, light-catching letters that stay crisp for a century. Sandblasting scours a flat groove that softens and greys within years.</p></div>
+      <div><span class="no">03 / 03</span><h3>The right pace, especially in grief.</h3><p>A memorial cannot be rushed and shouldn't be sold. We move at the speed a family needs, show the design full-size before cutting, and never upsell a loss.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>CUT 04 / THE PROCESS</span><span>TALK → DRAW → CUT → SET</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Talk it through</h3><p>The words, the stone, the place it will stand. For memorials, entirely at your pace — there is no clock in this conversation.</p></li>
+      <li><span class="step">Step 02</span><h3>Drawn full-size</h3><p>We hand-draw the lettering and show it to you chalked at full size, so you see the real thing, not a screen mock-up, before a chisel touches stone.</p></li>
+      <li><span class="step">Step 03</span><h3>Cut at the banker</h3><p>Carved by hand with mallet and chisel over days or weeks, the facets cut to catch the light. Gilding or paint added if the setting calls for it.</p></li>
+      <li><span class="step">Step 04</span><h3>Set &amp; cared for</h3><p>Delivered and fixed to regulations, or installed on site. We keep your drawing on file for future inscriptions, matched exactly when the time comes.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v21">
+  <div class="wrap">
+    <div class="idx-head"><span>CUT 05 / THOSE WE'VE CARVED FOR</span><span>KEPT WITH THANKS</span></div>
+    <blockquote class="t-quote">“The lettering is so alive it's hard to believe it's cut into rock. They never once made me feel like a customer.”</blockquote>
+    <div class="t-attr">Frances W. — headstone, Portland stone</div>
+    <div class="t-sub">
+      <figure><blockquote>“Our house name in slate has had three winters of Dorset weather and looks as sharp as the day it went up. A neighbour had one blasted the same year; hers is already fading. The difference is the hand.”</blockquote><figcaption>Nigel &amp; Kate P. — house nameplate, Welsh slate</figcaption></figure>
+      <figure><blockquote>“I commissioned a line of poetry cut into slate for my wife's fiftieth. People assume it's from a gallery; it's from a shed on Portland with the best view in England.”</blockquote><figcaption>David L. — slate lettering commission</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v49">
+  <div class="wrap">
+    <div class="idx-head"><span>CUT 06 / THE BENCH</span><span>MALLET, CHISEL, STONE</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1519972064555-542444e71b54?w=1600&q=85&auto=format&fit=crop" alt="Portland limestone, sawn face." /><figcaption>PORTLAND · SAWN FACE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1615800098779-1be32e60cca3?w=1600&q=85&auto=format&fit=crop" alt="Polished marble surface." /><figcaption>MARBLE · POLISHED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519972064555-542444e71b54?w=1600&q=85&auto=format&fit=crop" alt="Limestone grain, close up." /><figcaption>LIMESTONE · CLOSE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1615800098779-1be32e60cca3?w=1600&q=85&auto=format&fit=crop" alt="Pale stone, ready to letter." /><figcaption>READY TO LETTER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519972064555-542444e71b54?w=1600&q=85&auto=format&fit=crop" alt="Sawn limestone block." /><figcaption>THE STONE YARD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1615800098779-1be32e60cca3?w=1600&q=85&auto=format&fit=crop" alt="Fine-grained stone face." /><figcaption>READY FOR THE CHISEL</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>CUT 07 / ASKED AT THE WORKSHOP</span><span>OFTEN, GENTLY</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the workshop.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441305821447" style="color:var(--oxide);">01305 821 447</a>. For a memorial, take your time; there's no hurry in this conversation, ever.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How is hand-carving different from an engraved or sandblasted stone?</summary><p>A sandblasted inscription is a font printed onto a stencil and blown into the surface — flat, uniform, and quick to soften and grey. Hand-carving draws each letter for your words and cuts it with a chisel, leaving faceted walls that catch light and stay crisp for a century. Stand beside both after ten years and you'll never choose the stencil again.</p></details>
+        <details><summary>We've had a death. How does commissioning a headstone work?</summary><p>Gently, and at your pace. We talk through the words and the stone whenever you're ready — there's no rush and no pressure. We draw the lettering, show it to you chalked full-size, and only cut when you're happy. We handle cemetery and churchyard regulations for you, so the paperwork isn't another weight to carry.</p></details>
+        <details><summary>Can you add a name to an existing family grave?</summary><p>Yes — one of the most careful things we do. We match the original lettering style, size and depth, cut the new inscription on site or in the workshop, and blend it so it reads as one hand across the years. Send us photos and we'll advise before anything is moved.</p></details>
+        <details><summary>What stone should I choose?</summary><p>It depends on the setting and the regulations, but mostly Portland limestone and Welsh slate — both cut beautifully by hand and weather honestly. We'll talk you through how each looks over decades, what churchyards allow, and which suits your words. There's no single right answer, and we won't pretend there is.</p></details>
+        <details><summary>How long does a piece take?</summary><p>A house name, a few weeks. A headstone, longer — drawing, approval, carving and setting all take real time, and memorials should never be hurried. We'll give you an honest schedule at the start and keep you posted. If there's a date that matters, tell us early and we'll plan for it.</p></details>
+        <details><summary>Do you work from anywhere, or just Dorset?</summary><p>The workshop is on Portland and we set memorials across Dorset and the South West, but lettering commissions and slate pieces travel anywhere — we've posted carved slate across the UK and beyond. For a headstone, distance to the churchyard matters; for a wall piece, it doesn't at all.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>CUT 08 / WE SET MEMORIALS ACROSS</span><span>DORSET &amp; THE SOUTH WEST</span></div>
+    <ul class="area-list">
+      <li>Portland</li><li>Weymouth</li><li>Dorchester</li><li>Bridport</li><li>Wareham</li><li>Across the South West</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>CUT 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Method</div><div class="detail">Hand-drawn lettering, mallet-and-chisel cut</div></div>
+      <div><div class="label">Stone</div><div class="detail">Portland limestone &amp; Welsh slate, locally quarried</div></div>
+      <div><div class="label">Memorials</div><div class="detail">Cut to cemetery &amp; churchyard regulations</div></div>
+      <div><div class="label">On file</div><div class="detail">Your drawing kept for matched future inscriptions</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>CUT 10 / FIND US</span><span>THE BANKER SHED, EASTON</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Chisel &amp; Serif</strong><br />
+          The Banker Shed, Wide Street<br />
+          Easton, Portland, Dorset DT5 1HG<br /><br />
+          <a href="tel:+441305821447" data-bind="business.phoneDisplay">01305 821 447</a><br />
+          <a href="mailto:workshop@chiselandserif.co.uk" data-bind="business.email">workshop@chiselandserif.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>MON – FRI</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>VISITS</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The workshop is best visited by appointment — carving is quiet work and we'd rather give you our full attention.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Chisel &amp; Serif, Easton, Portland" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.4480%2C50.5370%2C-2.4300%2C50.5450&layer=mapnik&marker=50.5410%2C-2.4390"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v24">
+  <div class="wrap">
+    <div class="kick">CUT 11 / COMMISSION</div>
+    <h2 data-bind="cta.heading">Words worth cutting <em>into stone.</em></h2>
+    <p data-bind="cta.body">For a headstone, a house name or a line you want to keep forever — let's talk it through, unhurried.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Discuss a commission</a>
+      <a class="btn btn-ghost" href="tel:+441305821447" data-bind="cta.secondary.label">01305 821 447</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441305821447" data-bind="messaging.whatsapp" aria-label="Message the workshop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:23px;">Chisel <em style="color:var(--moss);">&amp;</em> Serif</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A letter-carving workshop on Portland, Dorset. At the banker bench since 2009.</p>
+      </div>
+      <div>
+        <h4>The workshop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          The Banker Shed, Wide Street<br />Easton, Portland DT5 1HG<br />
+          <a href="tel:+441305821447">01305 821 447</a><br />
+          <a href="mailto:workshop@chiselandserif.co.uk">workshop@chiselandserif.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we carve</a><a href="#about">The workshop</a><a href="#location">Find us</a><a href="#book">Commission</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> CHISEL &amp; SERIF LTD</span>
+      <span>DRAWN BY HAND · CUT BY EYE</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

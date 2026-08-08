@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meridian Works — handmade terrestrial globes and bespoke maps, Bath</title>
+<meta name="description" content="Meridian Works make handmade terrestrial globes and bespoke maps in Bath — traditional gore-mounted globes, restorations of antique globes, and hand-finished commissioned maps. Made by hand, one at a time, since 1997." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Meridian Works", phone: "+44 1225 555 062", phoneDisplay: "01225 555 062", email: "studio@meridianworks.co.uk", foundedYear: 1997 },
+  hero: {
+    kicker: "Handmade globes · bespoke maps · restoration · Bath",
+    headline: "The whole world, mounted true and turned by hand.",
+    lede: "A globe-making studio in Bath making terrestrial globes the old way — printed gores, hand-laid onto a true sphere, seamed at the meridian, and finished so they turn sweet on the axis. We also draw and hand-finish bespoke maps, and restore antique globes to spin again. One sphere, one map, one pair of hands at a time, since 1997.",
+    primaryCta: { label: "Commission a globe", href: "#book" },
+    secondaryCta: { label: "What we make", href: "#services" },
+    image: "https://images.unsplash.com/photo-1717700300260-02b182f94c9d?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "An antique double-hemisphere world map."
+  },
+  trust: { years: "Mounting the world since 1997" },
+  about: {
+    heading: "A globe is a flat map that has made its peace with a round earth.",
+    paragraphs: [
+      "Meridian Works is a small globe-making studio in Bath, and we make globes the way they've been made for four centuries — because no shortcut has ever bettered it. It begins with the map, printed in tapering segments called gores, and the true craft is laying those gores, damp and stretching, onto a perfect sphere so that every coastline meets its neighbour at the seam and the poles close without a pucker. It is slow, exacting, faintly maddening work, and there is nothing else we would rather do.",
+      "We founded the studio in 1997 out of a shared obsession — one of us a cartographer, one a bookbinder — and a conviction that a globe is the most beautiful object a home or a study can hold: a scientific instrument, a work of art, and a quiet invitation to wonder, all turning on one brass axis. Every globe we make is built on a true sphere, mounted by hand, seamed at the meridian, and balanced to turn smoothly and sit level. We make them plain and scholarly or richly coloured, floor-standing or desk-sized, contemporary or in the antique manner.",
+      "Alongside the globes we draw and hand-finish bespoke maps — of an estate, a coastline, a journey, a city someone loves — and we restore antique globes that have split, faded or seized, returning them to spin again. Whether you're commissioning a globe to mark a milestone, a map of somewhere that matters, or bringing us a family heirloom that's lost its turn, you're commissioning something made slowly, by hand, to outlast everyone who'll ever touch it."
+    ],
+    portrait: "https://images.unsplash.com/photo-1519500099198-fd81846b8f03?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A terrestrial globe on a stand."
+  },
+  services: [
+    { name: "Handmade terrestrial globes", description: "Traditional gore-mounted globes built on a true sphere, seamed at the meridian and balanced to turn sweetly — desk-sized to floor-standing, plain and scholarly or richly hand-coloured." },
+    { name: "Bespoke commissioned maps", description: "Hand-drawn and hand-finished maps of an estate, a coastline, a voyage or a beloved city — designed with you, rendered beautifully, and made to frame and keep for generations." },
+    { name: "Antique globe restoration", description: "Split gores, faded colour, a seized axis or a wobbling mount — we restore antique and vintage globes with period-correct care, returning them to turn true and sit proud again." },
+    { name: "Milestone & gift globes", description: "A globe to mark a retirement, an anniversary, a christening or a great achievement — personalised with an inscription, a plotted journey or a marked place, and boxed to give." },
+    { name: "Celestial globes", description: "Globes of the night sky rather than the earth — the constellations mapped and mounted the same painstaking way — for astronomers, collectors and anyone who prefers the heavens." },
+    { name: "Corporate & presentation pieces", description: "Bespoke globes and maps as corporate gifts, awards, boardroom pieces and civic presentations — made to a brief, to a standard that says everything a plaque never could." }
+  ],
+  why: [
+    { title: "Mounted the four-century way.", body: "We lay printed gores by hand onto a true sphere and seam them at the meridian — the traditional method, unbettered since the 1600s. It is the only way to make a globe that is genuinely right." },
+    { title: "Made one at a time.", body: "Nothing here is mass-produced or shell-printed. Each globe and map is built by hand, by us, one at a time, which is why it takes weeks — and why it will still be turning true in a hundred years." },
+    { title: "Cartographer and binder.", body: "Between us we bring mapmaking and bookbinding — the drawing and the making, the accuracy and the craft. A Meridian globe is right as geography and beautiful as an object, both at once." }
+  ],
+  how: [
+    { step: "01", title: "Tell us the world", body: "A globe to mark a moment, a map of a place you love, a celestial sphere, or an heirloom to restore? We begin with what it's for, where it'll live and the feeling you want it to hold." },
+    { step: "02", title: "Design & proof", body: "We work up the cartography, colour and mount with you — size, style, the antique manner or the modern, any inscription or plotted place — and proof it before a single gore is laid." },
+    { step: "03", title: "Mounted by hand", body: "Then the slow part: printing the gores, laying them damp onto the true sphere, seaming at the meridian, colouring, finishing and balancing the mount. Weeks of it, and worth every one." },
+    { step: "04", title: "Turned & delivered", body: "We balance it to turn sweet and sit level, box it with care, and deliver it — a scientific instrument and a work of art on one brass axis, made to outlast us all." }
+  ],
+  testimonials: [
+    { quote: "We commissioned a floor globe for my father's eightieth, with the sea-routes of his merchant-navy years plotted across it in gold. When it was unveiled the whole room fell silent, and then he wept. It is the finest thing we have ever given anyone. The craft, the patience, the beauty — beyond words.", name: "The Hartley family", context: "commissioned milestone globe" },
+    { quote: "My grandmother's globe had split along a dozen gores and the axis had seized solid. Meridian restored it so tenderly and so expertly that it turns like new and you cannot see the joins — and they told me its history as they worked. It's the heart of my study now. I'm endlessly grateful.", name: "Professor E. Nwosu", context: "antique globe restoration" },
+    { quote: "They drew us a hand-finished map of the stretch of coast where we married, with our little bay named for us, and it is quite simply the most beautiful object in our home. Watching a real cartographer work is a privilege. Everyone who sees it asks where on earth we found them.", name: "Sam & Priya", context: "bespoke commissioned map" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1717700300260-02b182f94c9d?w=1600&q=85&auto=format&fit=crop", alt: "An antique double-hemisphere world map." },
+    { src: "https://images.unsplash.com/photo-1519500099198-fd81846b8f03?w=1600&q=85&auto=format&fit=crop", alt: "A terrestrial globe on a stand." },
+    { src: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=1600&q=85&auto=format&fit=crop", alt: "A carved wooden world map." },
+    { src: "https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1600&q=85&auto=format&fit=crop", alt: "A detailed political world map." },
+    { src: "https://images.unsplash.com/photo-1447069387593-a5de0862481e?w=1600&q=85&auto=format&fit=crop", alt: "Old atlases, a pen and inkwell." },
+    { src: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85&auto=format&fit=crop", alt: "The earth seen from space." }
+  ],
+  faq: [
+    { q: "How is a real globe actually made, and why does it take so long?", a: "A traditional terrestrial globe is made by a method that has barely changed in four hundred years, because nothing has ever improved on it — and understanding it explains the time and the cost. First the world map is drawn and printed not as a flat sheet but as a series of tapering segments called 'gores', shaped so that they will curve to fit a sphere. Each gore is then dampened and laid by hand onto a perfectly true ball, stretched and smoothed so that its edges meet the next gore exactly along the seam, with the coastlines, borders and lines of latitude flowing unbroken around the globe and closing cleanly at the poles. That laying-up is the true craft: fiddly, unforgiving, and impossible to rush, because a millimetre's drift at the equator becomes a visible fault at the pole. After mounting comes colouring, sealing, and the balancing of the sphere on its axis and mount so it turns smoothly and sits level. All of it is done by hand, one globe at a time, over weeks — which is precisely why a real globe is a heirloom and a printed plastic ball is a toy." },
+    { q: "How much does a commissioned globe cost?", a: "A handmade globe is a significant commission and priced accordingly, because you are buying many weeks of skilled handwork, not a manufactured object — but the range is wide and we will always be honest about what your budget can achieve. A smaller desk globe, plainly finished, sits at the more accessible end; a large floor-standing globe, richly hand-coloured, mounted in a fine stand and personalised with inscriptions or a plotted journey, is a major piece and priced as one. The variables are size, the complexity of the cartography and colouring, the mount and stand, and any bespoke personalisation. Bespoke maps and restorations are quoted individually according to their scope. What every price includes is the same thing: genuine, traditional, one-at-a-time handwork by a cartographer and a maker, and an object built to outlast generations. If you tell us your budget and what the piece is for, we will tell you frankly and without pressure what we can make for it — there is usually a way to create something beautiful at a range of levels." },
+    { q: "Can you restore my old or damaged globe?", a: "Very probably, yes — restoring antique and vintage globes is one of the most rewarding parts of what we do, and globes that look beyond hope often aren't. The commonest problems are entirely repairable: gores that have split, lifted or gone brittle along the seams; colour that has faded, foxed or discoloured under old varnish; a mount or stand that has loosened, warped or broken; and an axis that has seized so the globe no longer turns. We assess each globe individually and with great care, because a restoration should respect the object's age and character rather than erase it — sometimes the right course is a light, sympathetic conservation rather than a full refinish, and we'll always advise honestly, including telling you when a globe is better left as a characterful original than over-restored. We can also value globes for insurance or sale. Bring it in or send us clear photographs of the whole globe, the damage, and any maker's name or date, and we'll tell you what's possible and what it would involve." },
+    { q: "Are your globes and maps geographically accurate?", a: "Yes — accuracy matters to us enormously, because a globe that is beautiful but wrong is a decoration, not an instrument, and we are cartographers first. Our globes and maps are drawn from proper, current geographic data and carefully checked, so coastlines, borders, place-names and the graticule of latitude and longitude are correct and true to the projection. That said, we make globes in different styles for different purposes, and we're always clear about which you're getting: a contemporary globe shows the modern world accurately; a globe made 'in the antique manner' faithfully reproduces the look, and sometimes the historical geography and old place-names, of a globe of an earlier century — which is part of its charm but is a deliberate stylistic choice, not an error. If you need absolute contemporary accuracy (for an educational or presentation piece, say) we'll make that; if you want the romance of an old-world globe, we'll make that instead, and we'll make sure you know exactly which world you're commissioning." },
+    { q: "Do you make celestial globes and bespoke maps too, not just terrestrial globes?", a: "We do, and they're some of our favourite commissions. Celestial globes map the night sky rather than the earth's surface — the constellations, the stars and the celestial coordinate grid mounted onto a sphere by exactly the same painstaking gore method — and they make a wonderful counterpart to a terrestrial globe or a beautiful piece in their own right for astronomers and dreamers. Bespoke maps are a whole strand of the studio: hand-drawn and hand-finished maps of a particular place — a family estate, a stretch of coast, a city, the route of a great journey or expedition — designed with you and rendered as a framed piece to keep, name and treasure. Both begin the same way as a globe: a conversation about what it's for and what it should feel like, followed by design, proofing and then slow, careful making by hand. Whether it's the heavens on a sphere or a beloved corner of the earth on paper, tell us what you have in mind and we'll draw you a world." },
+    { q: "How long does a commission take, and can you work to a deadline?", a: "A handmade globe or bespoke map typically takes several weeks to a few months from commission to delivery, depending on its size, complexity and where we are in our order book — and because everything is made by hand, one at a time, we can't honestly compress that without compromising the work, which we won't do. For that reason we always encourage people to commission well ahead of a milestone like a significant birthday, retirement, anniversary or Christmas, and the earlier you come to us the more relaxed and considered the design stage can be. That said, we understand that the best occasions sometimes announce themselves late, and where a deadline is genuinely tight we'll always tell you honestly at the outset whether it's achievable and, if it is, exactly what's possible within the time — rather than promising and disappointing. If a full globe can't be made in time, we can sometimes arrange a beautifully presented commission certificate to give on the day, with the finished piece to follow. Talk to us early, tell us the date, and we'll be straight with you about what we can make and when." }
+  ],
+  area: { places: ["Bath", "Bristol", "Wells", "Wiltshire", "Somerset", "Nationwide & export"] },
+  credentials: [
+    { label: "Since 1997", detail: "A cartographer and a bookbinder, by hand" },
+    { label: "Gore-mounted", detail: "The traditional four-century method" },
+    { label: "One at a time", detail: "Never mass-produced or shell-printed" },
+    { label: "Restoration", detail: "Antique globes returned to turn true" }
+  ],
+  location: { name: "Meridian Works", addressStreet: "6 Bartlett Street", addressLocality: "Bath", addressRegion: "Somerset", addressPostcode: "BA1 2QZ", addressCountry: "United Kingdom" },
+  cta: { heading: "Commission a world that will outlast you.", body: "Handmade terrestrial and celestial globes, bespoke maps, and tender restoration of antique globes — made slowly, by hand, in Bath. Tell us the world you have in mind and we'll mount it true.", primary: { label: "Commission a globe", href: "#book" }, secondary: { label: "01225 555 062", href: "tel:+441225555062" } },
+  messaging: { whatsapp: "https://wa.me/441225555062", messenger: "https://m.me/meridianworks" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#0f2024; --parch:#efe9da; --terra:#b6603a; --brass:#c99a44; --ocean:#2f7f86;
+    --ink:#0f2024; --mid:#647074; --mid-d:#9fb0b2; --rule:rgba(15,32,36,0.16); --rule-d:rgba(239,233,218,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--parch);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--brass);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--brass);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--terra);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--terra);color:var(--parch);} .btn-primary:hover{background:var(--brass);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(239,233,218,0.4);color:var(--parch);} .btn-ghost:hover{background:var(--parch);color:var(--void);border-color:var(--parch);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid rgba(239,233,218,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(15,32,36,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(239,233,218,0.16);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--terra);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7.4vw,112px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;max-width:16ch;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--ocean);color:transparent;}
+  .hero-headline .em{color:var(--terra);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--brass);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(15,32,36,0.82);font-weight:700;}
+
+  .about{background:var(--parch);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--terra);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#37454a;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(239,233,218,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(239,233,218,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(182,96,58,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--brass);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--parch);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--terra);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#37454a;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(239,233,218,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--brass);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--terra);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(239,233,218,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--brass);color:var(--void);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(239,233,218,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(239,233,218,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--brass);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(239,233,218,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(239,233,218,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brass);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--parch);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#37454a;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(239,233,218,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(160deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--terra);color:var(--parch);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--parch);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7vw,116px);line-height:0.9;margin:14px auto 18px;max-width:16ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--parch);color:transparent;}
+  .cta-band p{color:rgba(239,233,218,0.9);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--parch);color:var(--terra);} .cta-band .btn-primary:hover{background:var(--brass);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(239,233,218,0.6);color:var(--parch);} .cta-band .btn-ghost:hover{background:var(--parch);color:var(--terra);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(239,233,218,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brass);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(239,233,218,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--terra);color:var(--parch);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(182,96,58,0.4);}
+  .msg-fab a:hover{background:var(--parch);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Meridian Works","description":"Handmade terrestrial and celestial globes and bespoke maps in Bath — traditional gore-mounted globes, restorations of antique globes, and hand-finished commissioned maps.","url":"https://meridianworks.co.uk/","telephone":"+441225555062","email":"studio@meridianworks.co.uk","address":{"@type":"PostalAddress","streetAddress":"6 Bartlett Street","addressLocality":"Bath","addressRegion":"Somerset","postalCode":"BA1 2QZ","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.3860,"longitude":-2.3630},"areaServed":["Bath","Bristol","Wells","Nationwide"],"image":["https://images.unsplash.com/photo-1717700300260-02b182f94c9d?w=1600"],"foundingDate":"1997"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How is a real globe made, and why does it take so long?","acceptedAnswer":{"@type":"Answer","text":"By a four-century-old method: the map is printed as tapering segments called gores, each dampened and laid by hand onto a true sphere so coastlines meet exactly at the seams and close at the poles. That laying-up is unforgiving and can't be rushed. Colouring, sealing and balancing on the axis follow. All by hand, one at a time, over weeks — which is why it's an heirloom, not a toy."}},
+{"@type":"Question","name":"How much does a commissioned globe cost?","acceptedAnswer":{"@type":"Answer","text":"A wide range: a small, plainly-finished desk globe sits at the accessible end; a large, richly hand-coloured floor globe in a fine stand is a major piece priced as one. Variables are size, cartography, colouring, mount and personalisation. Maps and restorations are quoted individually. Tell us your budget and purpose and we'll say honestly what we can make."}},
+{"@type":"Question","name":"Can you restore my old or damaged globe?","acceptedAnswer":{"@type":"Answer","text":"Very probably. Split or lifted gores, faded colour, a loose mount and a seized axis are all repairable. We assess each globe carefully and respect its age — sometimes light conservation beats a full refinish, and we'll say so. We can value for insurance too. Bring it in or send photos of the whole globe, the damage and any maker's name or date."}},
+{"@type":"Question","name":"Are your globes and maps geographically accurate?","acceptedAnswer":{"@type":"Answer","text":"Yes — we're cartographers first, drawing from current data and checking carefully. We also make globes 'in the antique manner' that faithfully reproduce an earlier century's look and geography as a deliberate style. We're always clear which you're commissioning: contemporary accuracy, or old-world romance."}},
+{"@type":"Question","name":"Do you make celestial globes and bespoke maps too?","acceptedAnswer":{"@type":"Answer","text":"Yes. Celestial globes map the night sky by the same gore method. Bespoke maps are hand-drawn and hand-finished depictions of a place that matters — an estate, coast, city or journey — designed with you and framed to keep. Both start with a conversation, then design, proofing and slow handwork."}},
+{"@type":"Question","name":"How long does a commission take, and can you meet a deadline?","acceptedAnswer":{"@type":"Answer","text":"Typically several weeks to a few months depending on size, complexity and our order book, and we can't honestly compress handwork without compromising it. Commission well ahead of milestones. Where a deadline is tight we'll say honestly if it's achievable, and can sometimes provide a presentation certificate to give on the day with the piece to follow."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Meridian <span>Works</span></a>
+    <nav class="nav-links">
+      <a href="#about">The studio</a><a href="#services">What we make</a><a href="#location">Find us</a><a href="#book">Commission</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v83">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Handmade globes · bespoke maps · restoration · Bath</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      The whole world, <span class="out">mounted true</span> and turned <span class="em">by hand.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1717700300260-02b182f94c9d?w=2000&q=85&auto=format&fit=crop"
+             alt="An antique double-hemisphere world map." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A globe-making studio in Bath making terrestrial globes the old way — printed gores, hand-laid onto a true sphere, seamed at the meridian, and finished so they turn sweet on the axis. We also draw and hand-finish bespoke maps, and restore antique globes to spin again. One sphere, one map, one pair of hands at a time, since 1997.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Commission a globe</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we make</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Mounting the world since 1997</span>
+    <span>The traditional gore method</span>
+    <span>Made one at a time, by hand</span>
+    <span>Antique globe restoration</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v49">
+  <div class="wrap">
+    <div class="sw-head"><span>GORE 01 / THE STUDIO</span><span>THE FOUR-CENTURY METHOD</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">A globe is a flat map that has made its peace with a <em>round earth.</em></h2>
+        <p>Meridian Works is a small globe-making studio in Bath, and we make globes the way they've been made for four centuries — because no shortcut has ever bettered it. It begins with the map, printed in tapering segments called gores, and the true craft is laying those gores, damp and stretching, onto a perfect sphere so that every coastline meets its neighbour at the seam and the poles close without a pucker. It is slow, exacting, faintly maddening work, and there is nothing else we would rather do.</p>
+        <p>We founded the studio in 1997 out of a shared obsession — one of us a cartographer, one a bookbinder — and a conviction that a globe is the most beautiful object a home or a study can hold: a scientific instrument, a work of art, and a quiet invitation to wonder, all turning on one brass axis. Every globe we make is built on a true sphere, mounted by hand, seamed at the meridian, and balanced to turn smoothly and sit level. We make them plain and scholarly or richly coloured, floor-standing or desk-sized, contemporary or in the antique manner.</p>
+        <p>Alongside the globes we draw and hand-finish bespoke maps — of an estate, a coastline, a journey, a city someone loves — and we restore antique globes that have split, faded or seized, returning them to spin again. Whether you're commissioning a globe to mark a milestone, a map of somewhere that matters, or bringing us a family heirloom that's lost its turn, you're commissioning something made slowly, by hand, to outlast everyone who'll ever touch it.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1519500099198-fd81846b8f03?w=1200&q=85&auto=format&fit=crop"
+           alt="A terrestrial globe on a stand." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v76" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>GORE 02 / WHAT WE MAKE</span><span>GLOBES · MAPS · RESTORATION</span></div>
+    <h2 class="h2">What we make.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Handmade terrestrial globes</h3><p>Traditional gore-mounted globes built on a true sphere, seamed at the meridian and balanced to turn sweetly — desk-sized to floor-standing, plain and scholarly or richly hand-coloured.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Bespoke commissioned maps</h3><p>Hand-drawn and hand-finished maps of an estate, a coastline, a voyage or a beloved city — designed with you, rendered beautifully, and made to frame and keep for generations.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Antique globe restoration</h3><p>Split gores, faded colour, a seized axis or a wobbling mount — we restore antique and vintage globes with period-correct care, returning them to turn true and sit proud again.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Milestone &amp; gift globes</h3><p>A globe to mark a retirement, an anniversary, a christening or a great achievement — personalised with an inscription, a plotted journey or a marked place, and boxed to give.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Celestial globes</h3><p>Globes of the night sky rather than the earth — the constellations mapped and mounted the same painstaking way — for astronomers, collectors and anyone who prefers the heavens.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Corporate &amp; presentation pieces</h3><p>Bespoke globes and maps as corporate gifts, awards, boardroom pieces and civic presentations — made to a brief, to a standard that says everything a plaque never could.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v48">
+  <div class="wrap">
+    <div class="sw-head"><span>GORE 03 / THE DIFFERENCE</span><span>WHY MERIDIAN</span></div>
+    <h2 class="h2">Why Meridian.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Mounted the four-century way.</h3><p>We lay printed gores by hand onto a true sphere and seam them at the meridian — the traditional method, unbettered since the 1600s. It is the only way to make a globe that is genuinely right.</p></div>
+      <div><span class="no">02 / 03</span><h3>Made one at a time.</h3><p>Nothing here is mass-produced or shell-printed. Each globe and map is built by hand, by us, one at a time, which is why it takes weeks — and why it will still be turning true in a hundred years.</p></div>
+      <div><span class="no">03 / 03</span><h3>Cartographer and binder.</h3><p>Between us we bring mapmaking and bookbinding — the drawing and the making, the accuracy and the craft. A Meridian globe is right as geography and beautiful as an object, both at once.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>GORE 04 / HOW IT GOES</span><span>BRIEF → PROOF → MOUNT → TURN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us the world</h3><p>A globe to mark a moment, a map of a place you love, a celestial sphere, or an heirloom to restore? We begin with what it's for, where it'll live and the feeling you want it to hold.</p></li>
+      <li><span class="step">STEP 02</span><h3>Design &amp; proof</h3><p>We work up the cartography, colour and mount with you — size, style, the antique manner or the modern, any inscription or plotted place — and proof it before a single gore is laid.</p></li>
+      <li><span class="step">STEP 03</span><h3>Mounted by hand</h3><p>Then the slow part: printing the gores, laying them damp onto the true sphere, seaming at the meridian, colouring, finishing and balancing the mount. Weeks of it, and worth every one.</p></li>
+      <li><span class="step">STEP 04</span><h3>Turned &amp; delivered</h3><p>We balance it to turn sweet and sit level, box it with care, and deliver it — a scientific instrument and a work of art on one brass axis, made to outlast us all.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v48">
+  <div class="wrap">
+    <div class="sw-head"><span>GORE 05 / FROM THE STUDY</span><span>WHAT THEY COMMISSIONED</span></div>
+    <blockquote class="t-quote">“The whole room fell silent, and then he wept. The finest thing we have <em>ever given anyone.</em>”</blockquote>
+    <div class="t-attr">The Hartley family — commissioned milestone globe</div>
+    <div class="t-sub">
+      <figure><blockquote>“My grandmother's globe had split along a dozen gores and the axis had seized solid. Meridian restored it so tenderly and so expertly that it turns like new and you cannot see the joins — and they told me its history as they worked. It's the heart of my study now. I'm endlessly grateful.”</blockquote><figcaption>Professor E. Nwosu — antique globe restoration</figcaption></figure>
+      <figure><blockquote>“They drew us a hand-finished map of the stretch of coast where we married, with our little bay named for us, and it is quite simply the most beautiful object in our home. Watching a real cartographer work is a privilege. Everyone who sees it asks where on earth we found them.”</blockquote><figcaption>Sam &amp; Priya — bespoke commissioned map</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v76" class="about" style="background:var(--parch);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>GORE 06 / THE WORK</span><span>SPHERE, GORE &amp; MERIDIAN</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1717700300260-02b182f94c9d?w=1600&q=85&auto=format&fit=crop" alt="An antique double-hemisphere world map." /><figcaption>THE OLD WORLD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519500099198-fd81846b8f03?w=1600&q=85&auto=format&fit=crop" alt="A terrestrial globe on a stand." /><figcaption>ON THE AXIS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=1600&q=85&auto=format&fit=crop" alt="A carved wooden world map." /><figcaption>IN RELIEF</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=1600&q=85&auto=format&fit=crop" alt="A detailed political world map." /><figcaption>THE MAP</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1447069387593-a5de0862481e?w=1600&q=85&auto=format&fit=crop" alt="Old atlases, a pen and inkwell." /><figcaption>THE STUDY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85&auto=format&fit=crop" alt="The earth seen from space." /><figcaption>THE SPHERE</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>GORE 07 / BEFORE YOU COMMISSION</span><span>MAKING, COST & TIME</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you commission.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441225555062" style="color:var(--brass);font-weight:700;">01225 555 062</a>, or bring us the seized old globe from the attic. We love a revival.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How is a real globe actually made, and why does it take so long?</summary><p>A traditional terrestrial globe is made by a method that has barely changed in four hundred years, because nothing has ever improved on it — and understanding it explains the time and the cost. First the world map is drawn and printed not as a flat sheet but as a series of tapering segments called "gores", shaped so that they will curve to fit a sphere. Each gore is then dampened and laid by hand onto a perfectly true ball, stretched and smoothed so that its edges meet the next gore exactly along the seam, with the coastlines, borders and lines of latitude flowing unbroken around the globe and closing cleanly at the poles. That laying-up is the true craft: fiddly, unforgiving, and impossible to rush, because a millimetre's drift at the equator becomes a visible fault at the pole. After mounting comes colouring, sealing, and the balancing of the sphere on its axis and mount so it turns smoothly and sits level. All of it is done by hand, one globe at a time, over weeks — which is precisely why a real globe is an heirloom and a printed plastic ball is a toy.</p></details>
+        <details><summary>How much does a commissioned globe cost?</summary><p>A handmade globe is a significant commission and priced accordingly, because you are buying many weeks of skilled handwork, not a manufactured object — but the range is wide and we will always be honest about what your budget can achieve. A smaller desk globe, plainly finished, sits at the more accessible end; a large floor-standing globe, richly hand-coloured, mounted in a fine stand and personalised with inscriptions or a plotted journey, is a major piece and priced as one. The variables are size, the complexity of the cartography and colouring, the mount and stand, and any bespoke personalisation. Bespoke maps and restorations are quoted individually according to their scope. What every price includes is the same thing: genuine, traditional, one-at-a-time handwork by a cartographer and a maker, and an object built to outlast generations. If you tell us your budget and what the piece is for, we will tell you frankly and without pressure what we can make for it — there is usually a way to create something beautiful at a range of levels.</p></details>
+        <details><summary>Can you restore my old or damaged globe?</summary><p>Very probably, yes — restoring antique and vintage globes is one of the most rewarding parts of what we do, and globes that look beyond hope often aren't. The commonest problems are entirely repairable: gores that have split, lifted or gone brittle along the seams; colour that has faded, foxed or discoloured under old varnish; a mount or stand that has loosened, warped or broken; and an axis that has seized so the globe no longer turns. We assess each globe individually and with great care, because a restoration should respect the object's age and character rather than erase it — sometimes the right course is a light, sympathetic conservation rather than a full refinish, and we'll always advise honestly, including telling you when a globe is better left as a characterful original than over-restored. We can also value globes for insurance or sale. Bring it in or send us clear photographs of the whole globe, the damage, and any maker's name or date, and we'll tell you what's possible and what it would involve.</p></details>
+        <details><summary>Are your globes and maps geographically accurate?</summary><p>Yes — accuracy matters to us enormously, because a globe that is beautiful but wrong is a decoration, not an instrument, and we are cartographers first. Our globes and maps are drawn from proper, current geographic data and carefully checked, so coastlines, borders, place-names and the graticule of latitude and longitude are correct and true to the projection. That said, we make globes in different styles for different purposes, and we're always clear about which you're getting: a contemporary globe shows the modern world accurately; a globe made "in the antique manner" faithfully reproduces the look, and sometimes the historical geography and old place-names, of a globe of an earlier century — which is part of its charm but is a deliberate stylistic choice, not an error. If you need absolute contemporary accuracy (for an educational or presentation piece, say) we'll make that; if you want the romance of an old-world globe, we'll make that instead, and we'll make sure you know exactly which world you're commissioning.</p></details>
+        <details><summary>Do you make celestial globes and bespoke maps too, not just terrestrial globes?</summary><p>We do, and they're some of our favourite commissions. Celestial globes map the night sky rather than the earth's surface — the constellations, the stars and the celestial coordinate grid mounted onto a sphere by exactly the same painstaking gore method — and they make a wonderful counterpart to a terrestrial globe or a beautiful piece in their own right for astronomers and dreamers. Bespoke maps are a whole strand of the studio: hand-drawn and hand-finished maps of a particular place — a family estate, a stretch of coast, a city, the route of a great journey or expedition — designed with you and rendered as a framed piece to keep, name and treasure. Both begin the same way as a globe: a conversation about what it's for and what it should feel like, followed by design, proofing and then slow, careful making by hand. Whether it's the heavens on a sphere or a beloved corner of the earth on paper, tell us what you have in mind and we'll draw you a world.</p></details>
+        <details><summary>How long does a commission take, and can you work to a deadline?</summary><p>A handmade globe or bespoke map typically takes several weeks to a few months from commission to delivery, depending on its size, complexity and where we are in our order book — and because everything is made by hand, one at a time, we can't honestly compress that without compromising the work, which we won't do. For that reason we always encourage people to commission well ahead of a milestone like a significant birthday, retirement, anniversary or Christmas, and the earlier you come to us the more relaxed and considered the design stage can be. That said, we understand that the best occasions sometimes announce themselves late, and where a deadline is genuinely tight we'll always tell you honestly at the outset whether it's achievable and, if it is, exactly what's possible within the time — rather than promising and disappointing. If a full globe can't be made in time, we can sometimes arrange a beautifully presented commission certificate to give on the day, with the finished piece to follow. Talk to us early, tell us the date, and we'll be straight with you about what we can make and when.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>GORE 08 / COMMISSIONS FROM</span><span>BATH & WORLDWIDE</span></div>
+    <ul class="area-list">
+      <li>Bath</li><li>Bristol</li><li>Wells</li><li>Wiltshire</li><li>Somerset</li><li>Nationwide &amp; export</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v23" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>GORE 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1997</div><div class="detail">A cartographer and a bookbinder, by hand</div></div>
+      <div><div class="label">Gore-mounted</div><div class="detail">The traditional four-century method</div></div>
+      <div><div class="label">One at a time</div><div class="detail">Never mass-produced or shell-printed</div></div>
+      <div><div class="label">Restoration</div><div class="detail">Antique globes returned to turn true</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>GORE 10 / THE STUDIO</span><span>BARTLETT STREET, BATH</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Meridian Works</strong><br />
+          6 Bartlett Street<br />
+          Bath BA1 2QZ<br /><br />
+          <a href="tel:+441225555062" data-bind="business.phoneDisplay">01225 555 062</a><br />
+          <a href="mailto:studio@meridianworks.co.uk" data-bind="business.email">studio@meridianworks.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>TUE – SAT</span><span>10 – 5</span></div>
+          <div class="row"><span>SUN – MON</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The studio is on Bartlett Street near the Assembly Rooms — come and watch a globe being mounted, and bring an heirloom for us to look at.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Meridian Works, Bath" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.3720%2C51.3820%2C-2.3540%2C51.3900&layer=mapnik&marker=51.3860%2C-2.3630"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v51">
+  <div class="wrap">
+    <div class="kick">GORE 11 / COMMISSION</div>
+    <h2 data-bind="cta.heading">Commission a world that will <em>outlast you.</em></h2>
+    <p data-bind="cta.body">Handmade terrestrial and celestial globes, bespoke maps, and tender restoration of antique globes — made slowly, by hand, in Bath. Tell us the world you have in mind and we'll mount it true.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Commission a globe</a>
+      <a class="btn btn-ghost" href="tel:+441225555062" data-bind="cta.secondary.label">01225 555 062</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441225555062" data-bind="messaging.whatsapp" aria-label="Message the studio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Meridian <span style="color:var(--terra);">Works</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">Handmade terrestrial and celestial globes and bespoke maps, made by hand in Bath since 1997.</p>
+      </div>
+      <div>
+        <h4>The studio</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          6 Bartlett Street<br />Bath BA1 2QZ<br />
+          <a href="tel:+441225555062">01225 555 062</a><br />
+          <a href="mailto:studio@meridianworks.co.uk">studio@meridianworks.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we make</a><a href="#about">The studio</a><a href="#location">Find us</a><a href="#book">Commission</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> MERIDIAN WORKS</span>
+      <span>ONE SPHERE · ONE MAP · ONE PAIR OF HANDS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

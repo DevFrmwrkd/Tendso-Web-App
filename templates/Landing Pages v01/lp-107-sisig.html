@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sizzling Aldo — sisig on a screaming hot plate, the Kapampangan original, San Fernando, Pampanga</title>
+<meta name="description" content="Sizzling Aldo is a sisig house in San Fernando, Pampanga — the Kapampangan original, chopped pork face and ear grilled then sizzled on cast iron with calamansi, chili and egg, plus bangus and tofu sisig, and cold beer. Sisig the way its birthplace makes it. Since 2012." />
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Hanken+Grotesk:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Sizzling Aldo", phone: "+63 45 555 0133", phoneDisplay: "(045) 555 0133", email: "kanan@sizzlingaldo.ph", foundedYear: 2012 },
+  hero: {
+    kicker: "Sisig house · Kapampangan original · sizzling plate · San Fernando, Pampanga",
+    headline: "You hear it before you see it. That sizzle is the whole promise.",
+    lede: "A sisig house in San Fernando, Pampanga — the birthplace of sisig — serving it the way Kapampangans invented it: pork face and ear boiled, grilled and chopped fine, then thrown onto a cast-iron plate so hot it screams, hit with calamansi, chili and a cracked egg at your table. Bangus, tofu and chicken sisig too, an ice-cold beer beside it, and that unmistakable sizzle.",
+    primaryCta: { label: "Order or dine in", href: "#book" },
+    secondaryCta: { label: "The sisig", href: "#services" },
+    image: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A sizzling cast-iron plate of chopped, seasoned meat."
+  },
+  trust: { years: "Sizzling in Pampanga since 2012" },
+  about: {
+    heading: "Sisig was born here. We're not reinventing it — we're keeping it honest.",
+    paragraphs: [
+      "Sizzling Aldo is a sisig house in San Fernando, Pampanga, and if that sounds like a small distinction, it isn't: Pampanga is where sisig comes from, San Fernando is the city that claims its modern form, and Kapampangans are famously, unshakeably particular about it. 'Sisig' comes from a Kapampangan word about snacking on something sour, and the dish grew into what it is today right here — which is why we don't chase trends with it. We make it the way its birthplace does.",
+      "That means the real method, not the shortcut. Pork maskara — face and ears — is boiled until tender, then grilled over coals for smoke and bite, then chopped fine by hand. It's seasoned with calamansi, onion, chili and a little of what each cook swears by, then served on a cast-iron plate heated until it's genuinely dangerous, so it arrives sizzling and keeps crisping at your table. A raw egg cracked over the top cooks in the heat as you mix it. That theatre isn't a gimmick; it's the dish.",
+      "We opened in 2012 to serve sisig with that respect, and to feed the people who grew up on it. Alongside the classic pork we do bangus (milkfish) sisig, tofu sisig for the meat-free, chicken and a few Kapampangan sides, with cold beer and rice because that's the correct company. Come for the sizzle, stay because it's the real thing — sisig from the province that will never let anyone forget they made it first."
+    ],
+    portrait: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A seasoned dish served on a hot plate."
+  },
+  services: [
+    { name: "Classic pork sisig", description: "The original: pork maskara boiled, grilled and chopped fine, seasoned with calamansi, onion and chili, served screaming on cast iron with a raw egg cracked over to cook as you mix. This is the one. Order it first." },
+    { name: "Bangus & seafood sisig", description: "Milkfish (bangus) sisig — flaked, seasoned and sizzled — plus squid and other seafood sisig when it's in. Lighter than pork but every bit as loud on the plate. A Pampanga favourite in its own right." },
+    { name: "Tofu & chicken sisig", description: "Tofu sisig for the meat-free and chicken sisig for the lighter appetite — same seasoning, same sizzle, same cracked egg. Proof sisig is a method as much as a meat, done properly either way." },
+    { name: "Rice, egg & extras", description: "Steamed or garlic rice, extra egg, extra chili, crushed chicharon on top — the small additions that make a sisig plate yours. Rice is non-negotiable; sisig without it isn't the point." },
+    { name: "Pulutan & cold beer", description: "Sisig is the king of pulutan — food to drink with — so we keep the beer cold and the Kapampangan bar snacks coming. The proper way to spend an evening in San Fernando." },
+    { name: "Take-out & party trays", description: "Sisig packed hot to go, or by the tray for parties and pulutan sessions — the plate won't sizzle at home, but the flavour travels. Order ahead for gatherings and we'll have it ready." }
+  ],
+  why: [
+    { title: "Boiled, grilled, then chopped.", body: "The real three-step method — not just fried scraps. Boiling tenderises, grilling brings smoke and edge, hand-chopping gives the texture. Skip a step and Kapampangans will know. So we don't." },
+    { title: "The plate is genuinely hot.", body: "We heat the cast iron until it's dangerous, so your sisig arrives sizzling and keeps crisping while you eat. That sound and that crisp edge are half the dish — a lukewarm plate is a failed one." },
+    { title: "Made where sisig was born.", body: "This is Pampanga. We grew up on sisig and we're judged on it daily by people who did too. That pressure keeps us honest — you can't fake sisig in the province that invented it." }
+  ],
+  how: [
+    { step: "01", title: "Pick your sisig", body: "Classic pork, bangus, tofu or chicken. First-timer? Order the classic pork with rice and an egg — it's the benchmark everything else is measured against, and the reason people drive here." },
+    { step: "02", title: "We sizzle to order", body: "Your sisig hits a screaming-hot plate the moment you order, egg cracked over the top. It comes to the table loud and still cooking — that's why it's called sizzling, and why it's worth the short wait." },
+    { step: "03", title: "Mix it, fast", body: "Squeeze the calamansi, fold the egg through while the plate's hot so it cooks and coats, add chili to taste, and eat it with rice while the edges are still crisping. Don't let it sit — mix and dig in." },
+    { step: "04", title: "Beer or take a tray", body: "Stay for cold beer and pulutan, or order a tray to take to the party. It won't sizzle at home, but the flavour holds — message us a day ahead for big pulutan sessions and gatherings." }
+  ],
+  testimonials: [
+    { quote: "I'm Kapampangan and I do not say this lightly: this is proper sisig. Boiled, grilled, chopped by hand, screaming hot, egg done right. Not the mushy fried version you get elsewhere. My titos approve, which is the highest bar there is. Sizzling Aldo gets it.", name: "Ryan P.", context: "regular, San Fernando" },
+    { quote: "Drove to Pampanga specifically to eat sisig at the source and this delivered. The plate was so hot I could feel it from across the table, the pork had real bite, and with rice and beer it was perfect. You can taste the difference the grilling makes. Worth the trip.", name: "Camille A.", context: "visitor from Manila" },
+    { quote: "The tofu sisig converted my vegetarian sister and the pork converted everyone else. We came for dinner and stayed three hours over beer and pulutan. Warm, loud, delicious, unmistakably Kapampangan. This is now a required stop whenever we're in the province.", name: "The Dizon barkada", context: "regulars over beer" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=1600&q=85&auto=format&fit=crop", alt: "A sizzling cast-iron plate of chopped meat." },
+    { src: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1600&q=85&auto=format&fit=crop", alt: "A seasoned dish on a hot plate." },
+    { src: "https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=1600&q=85&auto=format&fit=crop", alt: "Grilling meat over an open fire." },
+    { src: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop", alt: "A plate of food with rice." },
+    { src: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop", alt: "A cold drink on the table." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "A table set for a meal in the evening." }
+  ],
+  faq: [
+    { q: "Why is Pampanga sisig different from sisig everywhere else?", a: "Because Pampanga is where sisig comes from, and Kapampangans have kept the method rather than the shortcut. The word 'sisig' is Kapampangan, the dish took its modern sizzling form here, and the province is fiercely proud and particular about it. Authentic Kapampangan sisig uses pork maskara — the face and ears — which is boiled until tender, then grilled over coals for smoke and a bit of char, then chopped fine by hand and seasoned with calamansi, onion and chili. Many versions elsewhere skip the grilling, over-fry the meat into mush, or drown it in mayonnaise and sauces that were never part of the original. We're not against anyone's take, but here in San Fernando the benchmark is the traditional method done well, and that's what we hold ourselves to. The difference is in the texture — real sisig has bite and crisp edges, not a uniform mush — and in the balance of sour, savoury and heat rather than creaminess. Eat it here and you'll taste what the fuss is about." },
+    { q: "What's the deal with the sizzling plate and the raw egg?", a: "The sizzle is not for show — it's part of how sisig is meant to be eaten. We heat the cast-iron plate until it's genuinely very hot, so when the seasoned, chopped sisig hits it, it keeps cooking and crisping right in front of you and arrives at your table still sizzling and audibly loud. That continued heat crisps the edges of the meat, which is exactly the texture you want. The raw egg cracked over the top cooks gently in the residual heat as you fold it through the sisig, enriching it and binding everything into a glossy, savoury tangle — it's the classic finishing move. The key is to mix it quickly while the plate is at its hottest: squeeze the calamansi, fold in the egg, add chili, and eat straight away with rice while the edges are still crisping. Let it sit and you lose the magic. If you'd prefer your egg more cooked or left off entirely, just tell us — but at least once, try it the traditional way." },
+    { q: "Do you have bangus, tofu and non-pork sisig?", a: "Yes — sisig is really a method and a flavour profile as much as a specific meat, so it adapts beautifully. Our bangus (milkfish) sisig flakes seasoned, sizzled milkfish onto the hot plate and is a genuine Pampanga favourite in its own right, lighter than pork but just as loud and satisfying. Tofu sisig ('tokwa') is our version for vegetarians and anyone who wants a meat-free plate — crisped tofu seasoned and sizzled the same way, and it surprises people with how good it is. We also do chicken sisig for a lighter appetite. All of them get the same treatment: the screaming plate, the calamansi, the chili, the cracked egg (which you can skip). So a table with different eaters — meat lovers, pescatarians, vegetarians — can all get their own proper sisig, which is part of why it works so well for groups and barkada nights. Tell us the table and we'll sort you out." },
+    { q: "Is sisig meant to be eaten with beer or with rice?", a: "Both, and it depends on the moment. Sisig is legendary as pulutan — the Filipino term for food eaten while drinking, usually beer — and there are few better matches: the salty, sour, fatty, spicy hit of sisig is made for an ice-cold beer, and a plate of sisig in the middle of the table is the natural anchor of a barkada drinking session that stretches for hours. But sisig is also a full ulam (main dish) eaten with rice, and honestly most Kapampangans grew up eating it exactly that way — sisig and rice as a proper meal, egg and all. So you can come for dinner and have it with rice as a hearty meal, or settle in for the evening and treat it as pulutan with cold beer and a few other bar snacks, or do both. We keep rice ready and the beer cold precisely because people want it every way. There's no wrong answer — sisig is happy in all of them." },
+    { q: "Can I take sisig out or order for a party?", a: "Yes — we pack sisig hot for take-out and do party trays for gatherings and pulutan sessions, which are hugely popular because sisig is such natural group and party food. The one honest caveat is the sizzle: the plate is what keeps it crisping and dramatic, and that doesn't survive the trip home, so take-out and tray sisig won't have that theatre — but the flavour absolutely travels, and it's still a fantastic thing to have on the table at a party, reheated quickly in a hot pan if you want to bring back some of the edge. For trays and larger orders we ask for at least a day's notice, and more around fiestas, Christmas and long weekends, so we can prep and cook it properly rather than rushing. Tell us the headcount, the date and which sisig you'd like — pork, bangus, tofu, chicken or a mix — and we'll sort quantities and a fair price. It's one of the fastest ways to make a gathering happy." },
+    { q: "I've only had the mayo-heavy version — will I like the traditional one?", a: "Give it a fair try and there's a very good chance you'll prefer it. The creamy, mayonnaise-and-sauce-laden sisig that's common in a lot of bars and chains is genuinely tasty in its own way, and plenty of people love it — we're not here to sneer at it. But it's a fairly recent, richer riff on the dish, and it can bury the things that make sisig special: the smokiness from grilling, the crisp texture from the hot plate, and the bright, sour lift of calamansi cutting through the fat. Traditional Kapampangan sisig is more about balance and texture than creaminess — savoury, smoky, sour, a little spicy, with real bite. Lots of people who thought they knew sisig from the mayo version have their minds changed the first time they eat it done the original way at the source. Order the classic pork, mix it properly while it's hot, eat it with rice, and judge for yourself. If you still miss the creaminess, we won't be offended — but we're confident the real thing wins most people over." }
+  ],
+  area: { places: ["San Fernando", "Angeles", "Mabalacat", "Bacolor", "Pampanga", "Take-out & trays"] },
+  credentials: [
+    { label: "Since 2012", detail: "A sisig house in San Fernando" },
+    { label: "The real method", detail: "Boiled, grilled, then chopped by hand" },
+    { label: "Screaming plate", detail: "Cast iron heated till it sizzles loud" },
+    { label: "Kapampangan", detail: "Sisig from the province that invented it" }
+  ],
+  location: { name: "Sizzling Aldo", addressStreet: "8 Consunji Street", addressLocality: "San Fernando", addressRegion: "Pampanga", addressPostcode: "2000", addressCountry: "Philippines" },
+  cta: { heading: "Follow the sizzle to San Fernando.", body: "Kapampangan sisig done the real way — boiled, grilled, chopped and thrown onto a screaming cast-iron plate with calamansi, chili and a cracked egg, plus bangus and tofu sisig, rice and cold beer. Sisig from its birthplace since 2012.", primary: { label: "Order or dine in", href: "#book" }, secondary: { label: "(045) 555 0133", href: "tel:+63455550133" } },
+  messaging: { whatsapp: "https://wa.me/63455550133", messenger: "https://m.me/sizzlingaldo" }
+};
+</script>
+
+<style>
+  :root {
+    --ink:#151212; --ink-2:#211b1b; --bone:#f4efe6; --bone-2:#fbf7ef; --sizzle:#e23a1e; --molten:#f2971d; --lime:#8aa63a;
+    --mid:#89807a; --mid-d:#cabfb6; --rule-d:rgba(244,239,230,0.15);
+    --disp:"Archivo Black",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--ink);color:var(--bone);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--molten);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--molten);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(36px,5vw,74px);line-height:0.98;margin:0 0 0.3em;letter-spacing:-0.02em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--sizzle);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--sizzle);color:var(--bone);} .btn-primary:hover{background:var(--molten);color:var(--ink);}
+  .btn-ghost{border:1.5px solid rgba(244,239,230,0.4);color:var(--bone);} .btn-ghost:hover{background:var(--bone);color:var(--ink);border-color:var(--bone);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid var(--rule-d);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,58px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(21,18,18,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--rule-d);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:400;font-size:22px;text-decoration:none;letter-spacing:-0.02em;text-transform:uppercase;}
+  .wm span{color:var(--sizzle);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,64px) 0 clamp(56px,7vw,96px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:400;font-size:clamp(40px,6.6vw,102px);line-height:0.9;letter-spacing:-0.03em;text-transform:uppercase;margin:0 0 32px;max-width:16ch;}
+  .hero-headline .em{color:var(--sizzle);}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--molten);color:transparent;}
+  .hero-lower{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(30px,4vw,60px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:3px;}
+  .hero-photo::after{content:"SISIG · SINCE 2012 · SAN FERNANDO";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.12em;background:var(--sizzle);color:var(--bone);padding:7px 12px;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--molten);color:var(--ink);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(21,18,18,0.82);font-weight:700;}
+
+  .about{background:var(--bone);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--sizzle);}
+  .about .sw-head{color:var(--mid);border-color:rgba(21,18,18,0.16);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#463b39;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--rule-d);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(244,239,230,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(226,58,30,0.12);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;color:var(--molten);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(22px,2.4vw,32px);margin:0;line-height:1.0;text-transform:uppercase;letter-spacing:-0.02em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--bone);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:rgba(21,18,18,0.16);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--sizzle);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:25px;margin:0 0 10px;line-height:1.0;text-transform:uppercase;letter-spacing:-0.02em;}
+  .why-grid p{color:#463b39;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--rule-d);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--molten);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:21px;margin:8px 0 8px;line-height:1.02;text-transform:uppercase;letter-spacing:-0.02em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--ink-2);}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(26px,3.4vw,50px);line-height:1.04;max-width:25ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:-0.02em;}
+  .t-quote em{font-style:normal;color:var(--sizzle);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:3px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--sizzle);color:var(--bone);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule-d);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--rule-d);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:18px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.18;text-transform:uppercase;letter-spacing:-0.02em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--molten);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(244,239,230,0.3);border-radius:2px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule-d);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--molten);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:18px;line-height:1.14;text-transform:uppercase;letter-spacing:-0.02em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--bone);color:var(--ink);padding:34px;border-radius:3px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:400;font-size:20px;line-height:1.3;text-transform:uppercase;letter-spacing:-0.02em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:#463b39;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(21,18,18,0.16);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:3px;border:1.5px solid rgba(244,239,230,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(160deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--sizzle);color:var(--bone);padding:clamp(80px,10vw,144px) 0;text-align:center;}
+  .cta-band .kick{color:var(--bone);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(42px,6.5vw,104px);line-height:0.92;margin:14px auto 18px;max-width:15ch;text-transform:uppercase;letter-spacing:-0.02em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--bone);color:transparent;}
+  .cta-band p{color:rgba(244,239,230,0.92);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--bone);color:var(--sizzle);} .cta-band .btn-primary:hover{background:var(--molten);color:var(--ink);}
+  .cta-band .btn-ghost{border-color:rgba(244,239,230,0.6);color:var(--bone);} .cta-band .btn-ghost:hover{background:var(--bone);color:var(--sizzle);}
+
+  footer{background:var(--ink);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--molten);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--sizzle);color:var(--bone);padding:13px 20px;border-radius:2px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(226,58,30,0.4);}
+  .msg-fab a:hover{background:var(--bone);color:var(--ink);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Sizzling Aldo","description":"Sisig house in San Fernando, Pampanga — the Kapampangan original, pork face and ear boiled, grilled and chopped then sizzled on cast iron with calamansi, chili and egg, plus bangus and tofu sisig, and cold beer. Since 2012.","servesCuisine":"Filipino","url":"https://sizzlingaldo.ph/","telephone":"+63455550133","email":"kanan@sizzlingaldo.ph","address":{"@type":"PostalAddress","streetAddress":"8 Consunji Street","addressLocality":"San Fernando","addressRegion":"Pampanga","postalCode":"2000","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":15.0350,"longitude":120.6890},"areaServed":["San Fernando","Angeles","Mabalacat","Bacolor"],"image":["https://images.unsplash.com/photo-1600891964092-4316c288032e?w=1600"],"foundingDate":"2012"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why is Pampanga sisig different?","acceptedAnswer":{"@type":"Answer","text":"Pampanga is where sisig comes from, and Kapampangans kept the method rather than the shortcut. Authentic sisig uses pork maskara (face and ears) boiled until tender, grilled over coals for smoke, then chopped fine and seasoned with calamansi, onion and chili. Many versions elsewhere skip the grilling, over-fry into mush, or drown it in mayo. Here the benchmark is the traditional method — real bite and crisp edges, and a balance of sour, savoury and heat rather than creaminess."}},
+{"@type":"Question","name":"What's the deal with the sizzling plate and raw egg?","acceptedAnswer":{"@type":"Answer","text":"The sizzle is part of how sisig is eaten. The cast-iron plate is heated very hot so the sisig keeps crisping in front of you and arrives loud and still cooking. The raw egg cracked over the top cooks in the residual heat as you fold it through, binding everything into a glossy tangle. Mix it quickly while hottest — calamansi, egg, chili — and eat with rice while the edges crisp. Prefer the egg more cooked or left off? Just tell us."}},
+{"@type":"Question","name":"Do you have bangus, tofu and non-pork sisig?","acceptedAnswer":{"@type":"Answer","text":"Yes — sisig is a method as much as a meat. Bangus (milkfish) sisig is a genuine Pampanga favourite, lighter than pork but just as loud. Tofu sisig is our vegetarian version, crisped and seasoned the same way. We also do chicken sisig. All get the screaming plate, calamansi, chili and cracked egg (skippable), so a mixed table of meat lovers, pescatarians and vegetarians can all get their own proper sisig."}},
+{"@type":"Question","name":"Is sisig eaten with beer or with rice?","acceptedAnswer":{"@type":"Answer","text":"Both. Sisig is legendary pulutan — food eaten while drinking — and a natural match for ice-cold beer over a long barkada session. But it's also a full ulam eaten with rice, which is how most Kapampangans grew up on it. Come for dinner with rice, settle in for the evening with beer and bar snacks, or do both. We keep rice ready and beer cold because people want it every way."}},
+{"@type":"Question","name":"Can I take sisig out or order for a party?","acceptedAnswer":{"@type":"Answer","text":"Yes — we pack it hot for take-out and do party trays. The honest caveat is the sizzle doesn't survive the trip, so it loses the theatre — but the flavour travels and it's still fantastic party food, reheated quickly in a hot pan to bring back some edge. For trays we ask at least a day's notice, more around fiestas and holidays. Tell us the headcount, date and which sisig — pork, bangus, tofu, chicken or a mix — and we'll sort quantities and a fair price."}},
+{"@type":"Question","name":"I've only had the mayo-heavy version — will I like the traditional one?","acceptedAnswer":{"@type":"Answer","text":"Give it a fair try and there's a good chance you'll prefer it. The creamy mayo version is tasty in its own way, but it's a richer recent riff that can bury sisig's best parts: the smokiness from grilling, the crisp texture from the hot plate, and the bright sour lift of calamansi. Traditional Kapampangan sisig is about balance and texture — savoury, smoky, sour, a little spicy, with real bite. Order the classic pork, mix it while hot, eat with rice, and judge for yourself."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Sizzling <span>Aldo</span></a>
+    <nav class="nav-links">
+      <a href="#about">The sisig</a><a href="#services">What we serve</a><a href="#location">Find us</a><a href="#book">Order</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Sisig house · Kapampangan original · sizzling plate · San Fernando, Pampanga</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      You hear it before you <span class="out">see it.</span> That sizzle is the whole <span class="em">promise.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?w=2000&q=85&auto=format&fit=crop"
+             alt="A sizzling cast-iron plate of chopped, seasoned meat." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A sisig house in San Fernando, Pampanga — the birthplace of sisig — serving it the way Kapampangans invented it: pork face and ear boiled, grilled and chopped fine, then thrown onto a cast-iron plate so hot it screams, hit with calamansi, chili and a cracked egg at your table. Bangus, tofu and chicken sisig too, an ice-cold beer beside it, and that unmistakable sizzle.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Order or dine in</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">The sisig</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Sizzling in Pampanga since 2012</span>
+    <span>Boiled, grilled, then chopped</span>
+    <span>Screaming-hot cast iron</span>
+    <span>Pork · bangus · tofu · chicken</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 01 / THE SISIG</span><span>PAMPANGA, THE BIRTHPLACE</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Sisig was born here. We're not reinventing it — we're keeping it <em>honest.</em></h2>
+        <p>Sizzling Aldo is a sisig house in San Fernando, Pampanga, and if that sounds like a small distinction, it isn't: Pampanga is where sisig comes from, San Fernando is the city that claims its modern form, and Kapampangans are famously, unshakeably particular about it. "Sisig" comes from a Kapampangan word about snacking on something sour, and the dish grew into what it is today right here — which is why we don't chase trends with it. We make it the way its birthplace does.</p>
+        <p>That means the real method, not the shortcut. Pork maskara — face and ears — is boiled until tender, then grilled over coals for smoke and bite, then chopped fine by hand. It's seasoned with calamansi, onion, chili and a little of what each cook swears by, then served on a cast-iron plate heated until it's genuinely dangerous, so it arrives sizzling and keeps crisping at your table. A raw egg cracked over the top cooks in the heat as you mix it. That theatre isn't a gimmick; it's the dish.</p>
+        <p>We opened in 2012 to serve sisig with that respect, and to feed the people who grew up on it. Alongside the classic pork we do bangus (milkfish) sisig, tofu sisig for the meat-free, chicken and a few Kapampangan sides, with cold beer and rice because that's the correct company. Come for the sizzle, stay because it's the real thing — sisig from the province that will never let anyone forget they made it first.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1200&q=85&auto=format&fit=crop"
+           alt="A seasoned dish served on a hot plate." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v78" data-screen-label="Services" style="background:var(--ink);">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 02 / WHAT WE SERVE</span><span>PORK · BANGUS · TOFU · BEER</span></div>
+    <h2 class="h2">What we serve.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Classic pork sisig</h3><p>The original: pork maskara boiled, grilled and chopped fine, seasoned with calamansi, onion and chili, served screaming on cast iron with a raw egg cracked over. This is the one. Order it first.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Bangus &amp; seafood sisig</h3><p>Milkfish (bangus) sisig — flaked, seasoned and sizzled — plus squid and seafood sisig when it's in. Lighter than pork but every bit as loud on the plate. A Pampanga favourite in its own right.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Tofu &amp; chicken sisig</h3><p>Tofu sisig for the meat-free and chicken sisig for the lighter appetite — same seasoning, same sizzle, same cracked egg. Proof sisig is a method as much as a meat, done properly either way.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Rice, egg &amp; extras</h3><p>Steamed or garlic rice, extra egg, extra chili, crushed chicharon on top — the small additions that make a sisig plate yours. Rice is non-negotiable; sisig without it isn't the point.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Pulutan &amp; cold beer</h3><p>Sisig is the king of pulutan — food to drink with — so we keep the beer cold and the Kapampangan bar snacks coming. The proper way to spend an evening in San Fernando.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Take-out &amp; party trays</h3><p>Sisig packed hot to go, or by the tray for parties and pulutan sessions — the plate won't sizzle at home, but the flavour travels. Order ahead for gatherings and we'll have it ready.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 03 / THE DIFFERENCE</span><span>WHY OURS IS THE REAL ONE</span></div>
+    <h2 class="h2">Why ours is the real <em>one.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Boiled, grilled, chopped.</h3><p>The real three-step method — not just fried scraps. Boiling tenderises, grilling brings smoke and edge, hand-chopping gives the texture. Skip a step and Kapampangans will know. So we don't.</p></div>
+      <div><span class="no">02 / 03</span><h3>The plate is genuinely hot.</h3><p>We heat the cast iron until it's dangerous, so your sisig arrives sizzling and keeps crisping while you eat. That sound and that crisp edge are half the dish — a lukewarm plate is a failed one.</p></div>
+      <div><span class="no">03 / 03</span><h3>Made where sisig was born.</h3><p>This is Pampanga. We grew up on sisig and we're judged on it daily by people who did too. That pressure keeps us honest — you can't fake sisig in the province that invented it.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 04 / HOW IT GOES</span><span>PICK · SIZZLE · MIX · BEER</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Pick your sisig</h3><p>Classic pork, bangus, tofu or chicken. First-timer? Order the classic pork with rice and an egg — it's the benchmark everything else is measured against, and the reason people drive here.</p></li>
+      <li><span class="step">STEP 02</span><h3>We sizzle to order</h3><p>Your sisig hits a screaming-hot plate the moment you order, egg cracked over the top. It comes to the table loud and still cooking — that's why it's called sizzling, and worth the short wait.</p></li>
+      <li><span class="step">STEP 03</span><h3>Mix it, fast</h3><p>Squeeze the calamansi, fold the egg through while the plate's hot so it cooks and coats, add chili to taste, and eat it with rice while the edges are still crisping. Don't let it sit.</p></li>
+      <li><span class="step">STEP 04</span><h3>Beer or take a tray</h3><p>Stay for cold beer and pulutan, or order a tray for the party. It won't sizzle at home, but the flavour holds — message us a day ahead for big pulutan sessions and gatherings.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 05 / FROM THE TABLE</span><span>MY TITOS APPROVE</span></div>
+    <blockquote class="t-quote">“This is proper sisig. Not the mushy fried version. My titos approve, which is the <em>highest bar there is.</em>”</blockquote>
+    <div class="t-attr">Ryan P. — regular, San Fernando</div>
+    <div class="t-sub">
+      <figure><blockquote>“Drove to Pampanga specifically to eat sisig at the source and this delivered. The plate was so hot I could feel it from across the table, the pork had real bite, and with rice and beer it was perfect. You can taste the difference the grilling makes. Worth the trip.”</blockquote><figcaption>Camille A. — visitor from Manila</figcaption></figure>
+      <figure><blockquote>“The tofu sisig converted my vegetarian sister and the pork converted everyone else. We came for dinner and stayed three hours over beer and pulutan. Warm, loud, delicious, unmistakably Kapampangan. This is now a required stop whenever we're in the province.”</blockquote><figcaption>The Dizon barkada — regulars over beer</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--bone);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:rgba(21,18,18,0.16);"><span>PLATE 06 / OFF THE IRON</span><span>SMOKE, SOUR &amp; SIZZLE</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?w=1600&q=85&auto=format&fit=crop" alt="A sizzling cast-iron plate of chopped meat." /><figcaption>THE PLATE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=1600&q=85&auto=format&fit=crop" alt="A seasoned dish on a hot plate." /><figcaption>THE SISIG</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1432139555190-58524dae6a55?w=1600&q=85&auto=format&fit=crop" alt="Grilling meat over an open fire." /><figcaption>THE GRILL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop" alt="A plate of food with rice." /><figcaption>THE RICE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop" alt="A cold drink on the table." /><figcaption>THE BEER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="A table set for a meal in the evening." /><figcaption>THE NIGHT</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 07 / BEFORE YOU ORDER</span><span>METHOD, EGG &amp; BEER</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you order.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63455550133" style="color:var(--molten);font-weight:700;">(045) 555 0133</a>. Come hungry and, if you can, come with a barkada.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why is Pampanga sisig different from sisig everywhere else?</summary><p>Because Pampanga is where sisig comes from, and Kapampangans have kept the method rather than the shortcut. The word 'sisig' is Kapampangan, the dish took its modern sizzling form here, and the province is fiercely proud and particular about it. Authentic Kapampangan sisig uses pork maskara — the face and ears — which is boiled until tender, then grilled over coals for smoke and a bit of char, then chopped fine by hand and seasoned with calamansi, onion and chili. Many versions elsewhere skip the grilling, over-fry the meat into mush, or drown it in mayonnaise. Here in San Fernando the benchmark is the traditional method done well — real bite and crisp edges, and a balance of sour, savoury and heat rather than creaminess.</p></details>
+        <details><summary>What's the deal with the sizzling plate and the raw egg?</summary><p>The sizzle is not for show — it's part of how sisig is meant to be eaten. We heat the cast-iron plate until it's genuinely very hot, so when the seasoned, chopped sisig hits it, it keeps cooking and crisping right in front of you and arrives at your table still sizzling and audibly loud. That continued heat crisps the edges of the meat, which is exactly the texture you want. The raw egg cracked over the top cooks gently in the residual heat as you fold it through, enriching it and binding everything into a glossy, savoury tangle. The key is to mix it quickly while the plate is at its hottest, then eat straight away with rice. If you'd prefer your egg more cooked or left off entirely, just tell us — but at least once, try it the traditional way.</p></details>
+        <details><summary>Do you have bangus, tofu and non-pork sisig?</summary><p>Yes — sisig is really a method and a flavour profile as much as a specific meat, so it adapts beautifully. Our bangus (milkfish) sisig flakes seasoned, sizzled milkfish onto the hot plate and is a genuine Pampanga favourite, lighter than pork but just as loud and satisfying. Tofu sisig is our version for vegetarians and anyone who wants a meat-free plate — crisped tofu seasoned and sizzled the same way, and it surprises people with how good it is. We also do chicken sisig. All of them get the same treatment: the screaming plate, the calamansi, the chili, the cracked egg (which you can skip). So a table with different eaters can all get their own proper sisig, which is part of why it works so well for groups.</p></details>
+        <details><summary>Is sisig meant to be eaten with beer or with rice?</summary><p>Both, and it depends on the moment. Sisig is legendary as pulutan — food eaten while drinking, usually beer — and there are few better matches: the salty, sour, fatty, spicy hit of sisig is made for an ice-cold beer, and a plate in the middle of the table is the natural anchor of a barkada session that stretches for hours. But sisig is also a full ulam eaten with rice, and honestly most Kapampangans grew up eating it exactly that way. So you can come for dinner and have it with rice as a hearty meal, or settle in for the evening and treat it as pulutan with cold beer, or do both. We keep rice ready and the beer cold precisely because people want it every way.</p></details>
+        <details><summary>Can I take sisig out or order for a party?</summary><p>Yes — we pack sisig hot for take-out and do party trays for gatherings and pulutan sessions, which are hugely popular because sisig is such natural group and party food. The one honest caveat is the sizzle: the plate is what keeps it crisping and dramatic, and that doesn't survive the trip home, so take-out and tray sisig won't have that theatre — but the flavour absolutely travels, and it's still fantastic on a party table, reheated quickly in a hot pan to bring back some edge. For trays and larger orders we ask for at least a day's notice, and more around fiestas and long weekends. Tell us the headcount, the date and which sisig — pork, bangus, tofu, chicken or a mix — and we'll sort quantities and a fair price.</p></details>
+        <details><summary>I've only had the mayo-heavy version — will I like the traditional one?</summary><p>Give it a fair try and there's a very good chance you'll prefer it. The creamy, mayonnaise-laden sisig common in a lot of bars and chains is genuinely tasty in its own way, and plenty of people love it — we're not here to sneer at it. But it's a fairly recent, richer riff on the dish, and it can bury the things that make sisig special: the smokiness from grilling, the crisp texture from the hot plate, and the bright, sour lift of calamansi cutting through the fat. Traditional Kapampangan sisig is more about balance and texture than creaminess — savoury, smoky, sour, a little spicy, with real bite. Order the classic pork, mix it properly while it's hot, eat it with rice, and judge for yourself.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 08 / WE SIZZLE FOR</span><span>PAMPANGA</span></div>
+    <ul class="area-list">
+      <li>San Fernando</li><li>Angeles</li><li>Mabalacat</li><li>Bacolor</li><li>Pampanga</li><li>Take-out &amp; trays</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 09 / THE ESSENTIALS</span><span>HOW WE MAKE IT</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2012</div><div class="detail">A sisig house in San Fernando</div></div>
+      <div><div class="label">The real method</div><div class="detail">Boiled, grilled, then chopped by hand</div></div>
+      <div><div class="label">Screaming plate</div><div class="detail">Cast iron heated till it sizzles loud</div></div>
+      <div><div class="label">Kapampangan</div><div class="detail">Sisig from the province that invented it</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>PLATE 10 / THE HOUSE</span><span>CONSUNJI ST, SAN FERNANDO</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Sizzling Aldo</strong><br />
+          8 Consunji Street<br />
+          San Fernando, Pampanga 2000<br /><br />
+          <a href="tel:+63455550133" data-bind="business.phoneDisplay">(045) 555 0133</a><br />
+          <a href="mailto:kanan@sizzlingaldo.ph" data-bind="business.email">kanan@sizzlingaldo.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SUN</span><span>11AM – 12MN</span></div>
+          <div class="row"><span>PULUTAN</span><span>TILL LATE</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on Consunji Street in San Fernando — listen for the sizzle. Dine-in, take-out, or trays for the party.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Sizzling Aldo, San Fernando" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=120.6740%2C15.0250%2C120.7040%2C15.0450&layer=mapnik&marker=15.0350%2C120.6890"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">PLATE 11 / ORDER</div>
+    <h2 data-bind="cta.heading">Follow the sizzle to San <em>Fernando.</em></h2>
+    <p data-bind="cta.body">Kapampangan sisig done the real way — boiled, grilled, chopped and thrown onto a screaming cast-iron plate with calamansi, chili and a cracked egg, plus bangus and tofu sisig, rice and cold beer. Sisig from its birthplace since 2012.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Order or dine in</a>
+      <a class="btn btn-ghost" href="tel:+63455550133" data-bind="cta.secondary.label">(045) 555 0133</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63455550133" data-bind="messaging.whatsapp" aria-label="Message the sisig house">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;">Sizzling <span style="color:var(--sizzle);">Aldo</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A sisig house in San Fernando, Pampanga — the Kapampangan original, sizzled on cast iron since 2012.</p>
+      </div>
+      <div>
+        <h4>The house</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          8 Consunji Street<br />San Fernando, Pampanga 2000<br />
+          <a href="tel:+63455550133">(045) 555 0133</a><br />
+          <a href="mailto:kanan@sizzlingaldo.ph">kanan@sizzlingaldo.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we serve</a><a href="#about">The sisig</a><a href="#location">Find us</a><a href="#book">Order</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> SIZZLING ALDO</span>
+      <span>SISIG FROM ITS BIRTHPLACE · PAMPANGA</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

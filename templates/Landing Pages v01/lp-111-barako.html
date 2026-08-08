@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kapeng Barako Lipa — heritage Liberica coffee, roasted & ground in Lipa, Batangas</title>
+<meta name="description" content="Kapeng Barako Lipa roasts heritage Batangas barako — bold, smoky Liberica coffee — from farms on the slopes of Mt. Malarayat, roasted in small batches and ground to order, sold as beans, ground and in the café. Reviving the coffee that made Lipa rich. Since 2013." />
+<link href="https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Kapeng Barako Lipa", phone: "+63 43 555 0171", phoneDisplay: "(043) 555 0171", email: "kape@barakolipa.ph", foundedYear: 2013 },
+  hero: {
+    kicker: "Heritage barako coffee · Liberica · roasted in Lipa, Batangas",
+    headline: "The coffee that once made this city rich. We brought it back.",
+    lede: "A roastery and café reviving kapeng barako — the bold, smoky Liberica coffee that made Lipa the coffee capital of the country before blight nearly wiped it out. We work with heritage farms on the slopes of Mt. Malarayat, roast in small batches, and grind to order for the strong, aromatic cup Batangueños grew up on. Beans, ground, and brewed strong in the café.",
+    primaryCta: { label: "Order beans or visit", href: "#book" },
+    secondaryCta: { label: "The coffee", href: "#services" },
+    image: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A cup of dark coffee beside roasted beans."
+  },
+  trust: { years: "Reviving barako since 2013" },
+  about: {
+    heading: "Barako almost disappeared. Losing it would have meant losing Lipa's story.",
+    paragraphs: [
+      "Kapeng Barako Lipa is a roastery and café built to save a coffee. Barako is the Batangas name for coffee made from Liberica beans — big, bold, intensely aromatic, with a smoky, woody character and a punch that gave the drink, and eventually strong men, the name 'barako.' In the 1800s Lipa grew rich on it; Batangas was one of the great coffee regions of the world. Then coffee rust blight arrived, the farms collapsed, and barako nearly vanished from the country it once fed.",
+      "We started in 2013 to bring it back properly. We work directly with the heritage farms still growing Liberica on the volcanic slopes of Mt. Malarayat, buy their cherries at a fair price, and roast in small batches so the beans are fresh, not stale from a warehouse. Barako is a bruising, difficult bean to grow and roast well, which is part of why it faded — but done right, nothing else tastes like it: bold, smoky, and unmistakably Batangas.",
+      "We sell whole beans and grind to order — because barako loses its soul sitting pre-ground on a shelf — and we brew it strong in the café the traditional way, black, in a cup that wakes the dead. We also stock the kapeng barako our lolos drank, and the local sweets that go with it. This isn't nostalgia for its own sake; it's keeping a living Batangas craft alive, one bold cup at a time."
+    ],
+    portrait: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Roasted coffee beans spilling from a scoop."
+  },
+  services: [
+    { name: "Whole-bean barako", description: "Heritage Liberica beans from Mt. Malarayat farms, roasted in small batches for freshness and bagged whole. Bold, smoky and aromatic — the real Batangas barako, best ground just before you brew." },
+    { name: "Ground to order", description: "We grind your barako to your brew — for the traditional cloth strainer, French press, drip or espresso — right when you order, because pre-ground beans on a shelf lose exactly what makes barako barako." },
+    { name: "The café — brewed strong", description: "Barako brewed the traditional way, black and strong enough to wake the dead, plus barako-based drinks for the modern palate. Sit with a cup and the local sweets, the way merienda is meant to be." },
+    { name: "Barako blends & single-origin", description: "Pure Liberica for the purists, and balanced barako blends for those easing in — plus other heritage Batangas beans in season. We'll steer you by how bold a cup you can handle." },
+    { name: "Farm-direct, fair trade", description: "We buy cherries directly from the heritage growers at a fair price, because reviving barako means the farms have to survive too. Every bag supports a farmer keeping a near-lost crop alive on the mountain." },
+    { name: "Wholesale & pasalubong", description: "Bags of roasted barako for cafés, offices and shops, plus pasalubong packs to carry the taste of Batangas home. Order beans shipped nationwide, or set up a standing wholesale supply." }
+  ],
+  why: [
+    { title: "Real Liberica, from Lipa.", body: "Barako means Liberica, and ours comes from the heritage farms on Mt. Malarayat that never stopped growing it. This is the genuine Batangas bean — not robusta relabelled, not a blend pretending. The real thing." },
+    { title: "Roasted small, ground fresh.", body: "We roast in small batches and grind to order, because barako's bold aroma fades fast once it's roasted and ground. Freshness is the difference between a cup that sings and one that's just bitter." },
+    { title: "Saving a crop, not just selling coffee.", body: "Barako nearly died out, and the farms nearly with it. Buying direct at fair prices keeps the growers going and the heritage alive. Every bag is a small vote for barako's survival." }
+  ],
+  how: [
+    { step: "01", title: "Tell us your cup", body: "Pure barako or an easing-in blend? Cloth strainer, press, drip or espresso? First time with Liberica or a lifelong Batangueño? Tell us and we'll match you to the right roast and grind." },
+    { step: "02", title: "Beans or ground", body: "Buy whole beans to grind at home for the freshest cup, or have us grind to your brew method on the spot. We'll bag it fresh with the roast date, so you know exactly what you've got." },
+    { step: "03", title: "Brew it bold", body: "Barako wants to be strong and black — that's the point. We'll share how the lolos brewed it with the cloth strainer, plus modern methods, so you get the smoky, aromatic cup at its best." },
+    { step: "04", title: "Re-order or go wholesale", body: "Hooked? We ship beans nationwide, do pasalubong packs, and set up standing supply for cafés and offices. Message us and keep the barako — and the farms — going strong." }
+  ],
+  testimonials: [
+    { quote: "As a Batangueño, this is the barako my lolo drank — bold, smoky, no messing about. Freshly roasted, ground to order, and you can taste that it's the real Liberica, not some watered-down blend. I'm proud someone is keeping this alive in Lipa. My mornings are loyal to this cup now.", name: "Ariel M.", context: "Lipa local" },
+    { quote: "I thought I knew coffee until I had proper barako here. It's unlike anything — this deep, woody, almost smoky intensity. The staff explained the whole history and matched me to a blend to start. I've since gone full pure-Liberica. Buy the beans and grind fresh; it's a revelation.", name: "Denise R.", context: "specialty-coffee convert" },
+    { quote: "We switched our café to their wholesale barako and customers immediately noticed. Fresh, consistent, genuinely local, and there's a real story to tell about the Malarayat farms. Reliable delivery too. Supporting the revival of Batangas coffee and serving a better cup — easy decision.", name: "Café owner, Tagaytay", context: "wholesale account" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=1600&q=85&auto=format&fit=crop", alt: "A cup of dark coffee beside roasted beans." },
+    { src: "https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=1600&q=85&auto=format&fit=crop", alt: "Roasted coffee beans spilling from a scoop." },
+    { src: "https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=1600&q=85&auto=format&fit=crop", alt: "Coffee cherries on the branch." },
+    { src: "https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb?w=1600&q=85&auto=format&fit=crop", alt: "Green coffee beans being sorted." },
+    { src: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop", alt: "A black coffee on a wooden table." },
+    { src: "https://images.unsplash.com/photo-1442550528053-c431ecb55509?w=1600&q=85&auto=format&fit=crop", alt: "A coffee roaster at work." }
+  ],
+  faq: [
+    { q: "What is kapeng barako, and how is it different from other coffee?", a: "Kapeng barako is coffee made primarily from Liberica beans, and it's most associated with Batangas, especially Lipa and the surrounding towns. It's quite different from the two coffees most people know: it's not Arabica (the smoother, more acidic specialty standard) nor mainstream Robusta (the strong, cheap workhorse of instant coffee). Liberica beans are large and irregular, and they produce a cup with a distinctive bold, full-bodied, intensely aromatic character — smoky, woody, sometimes almost fruity or floral underneath, with a real punch. That strength is where the name comes from: 'barako' evokes a wild boar and, by extension, toughness and machismo, which is how Batangueños have long thought of their coffee. If your only reference points are a delicate pour-over or a supermarket blend, barako will surprise you — it's assertive and unmistakable. It rewards being brewed strong and drunk black, the traditional way, and once people acquire the taste, ordinary coffee can feel a little thin by comparison." },
+    { q: "Why did barako nearly disappear, and why does reviving it matter?", a: "In the 1800s, Batangas — and Lipa in particular — was one of the great coffee regions of the world, and barako made the area genuinely wealthy; there's real history in those grand old Lipa houses built on coffee money. Then coffee rust blight (and later other pressures) devastated the plantations, and the industry largely collapsed, with land converted to other crops and barako declining from a national staple to a regional rarity. On top of that, Liberica is simply a harder, lower-yielding, more labour-intensive bean to grow and process well than the commercial alternatives, so as the global market standardised around Arabica and Robusta, barako had little economic momentum left. Reviving it matters for a few reasons: it's a genuine part of Philippine and Batangas heritage that would be a real loss to let vanish; it's a distinctive coffee that deserves a place in the world's cups on its own merits; and supporting the remaining heritage farms gives growers a reason to keep cultivating it rather than abandoning the trees. We see selling barako as keeping a living tradition alive, not embalming a dead one." },
+    { q: "Do you really source directly from the farms?", a: "Yes — we work directly with heritage Liberica growers on the volcanic slopes of Mt. Malarayat and the surrounding Batangas uplands, buying their coffee cherries at a fair price rather than going through layers of middlemen. This matters for both quality and ethics. On quality, buying direct lets us know exactly whose trees the beans came from, select for ripeness and care, and control freshness from cherry to roast. On ethics and sustainability, the honest truth is that barako only survives if growing it is worth the farmers' while: Liberica is demanding to cultivate and the trees are often old, so if growers can't earn fairly from it, they'll understandably switch to easier, more profitable crops and the heritage disappears for good. Paying a fair farm-gate price is therefore not charity or marketing — it's the actual mechanism by which barako gets to survive. When you buy a bag from us, a real share of that supports a specific farming family keeping a near-lost crop alive on the mountain, and we're glad to tell you more about the farms we work with." },
+    { q: "Should I buy whole beans or ground, and how should I brew barako?", a: "Buy whole beans and grind just before brewing if you possibly can — this is true for all coffee but especially for barako, whose bold aroma and character fade noticeably once the beans are ground and exposed to air. We roast in small batches and grind to order for exactly this reason, and every bag is dated so you know its freshness. As for brewing: barako is traditionally made strong and drunk black, and it genuinely shines that way. The classic Batangas method uses a cloth strainer (the 'coffee sock' or bahag), essentially a rustic pour-over that produces a robust, full cup, and it's worth trying for the authentic experience. But barako also works beautifully in a French press (great for its body), in drip machines, and even pulled as a bold, unusual espresso. Whatever method, lean towards a stronger brew than you might for Arabica — under-brewed barako sells itself short. Tell us how you like to drink coffee and we'll recommend a roast, grind and method to suit; if you're new to Liberica, we'll often suggest starting with a blend and working towards pure barako." },
+    { q: "I find barako too strong or bitter — is it for me?", a: "Maybe, with the right approach — barako is assertive by nature, but 'too strong or bitter' is often a brewing or roast issue rather than the bean's fault. A few things help. First, we offer barako blends as well as pure Liberica; a blend eases you into the flavour with a bit less intensity, and it's how a lot of people build a taste for it. Second, brewing technique matters enormously: bitterness usually comes from over-extraction — water too hot, grind too fine, or brewing too long — so a slightly coarser grind, water just off the boil, and not over-steeping can transform the cup from harsh to bold-but-smooth. Third, while purists drink it black, there's absolutely no shame in a little sugar or milk while you're getting used to it; plenty of lifelong barako drinkers take it with muscovado. Come to the café and let us brew you a properly made cup — a lot of people who think they dislike barako have actually only had it badly made or stale. If, after a well-brewed cup, it's genuinely not for you, that's fine too; taste is personal, and we'd rather match you to a coffee you love than sell you one you won't finish." },
+    { q: "Can I get barako shipped, as pasalubong, or for my café?", a: "Yes to all three. For individuals, we ship roasted barako beans and ground coffee nationwide, so you can keep your supply going wherever you are, and we do pasalubong packs specifically designed to carry the taste of Batangas home to family or send to relatives — barako is a wonderful, distinctive gift precisely because it's so tied to place. For businesses, wholesale is a core part of what we do: we supply cafés, restaurants, offices and shops with freshly roasted barako on a regular basis, and there's a genuine story to tell your own customers about serving a revived heritage Philippine coffee from the Malarayat farms, which many find compelling. Wholesale customers get consistent supply, fair pricing and the freshness that comes from small-batch roasting to order rather than warehouse stock. Whether you want a single pasalubong bag, a monthly home delivery, or a standing café supply, message us with what you need and we'll sort quantities, grind, roast level and terms. Keeping barako alive depends on more people drinking it, so we're always glad to help it reach a new cup." }
+  ],
+  area: { places: ["Lipa", "Batangas City", "Tanauan", "Tagaytay", "Batangas", "Nationwide shipping"] },
+  credentials: [
+    { label: "Since 2013", detail: "Reviving Lipa's heritage barako" },
+    { label: "Real Liberica", detail: "From Mt. Malarayat heritage farms" },
+    { label: "Small-batch", detail: "Roasted fresh, ground to order" },
+    { label: "Farm-direct", detail: "Fair prices keep the growers going" }
+  ],
+  location: { name: "Kapeng Barako Lipa", addressStreet: "19 C.M. Recto Avenue", addressLocality: "Lipa", addressRegion: "Batangas", addressPostcode: "4217", addressCountry: "Philippines" },
+  cta: { heading: "Taste the coffee that built Lipa.", body: "Heritage Batangas barako — bold, smoky Liberica from the Mt. Malarayat farms, roasted in small batches and ground to order, brewed strong in the café or bagged for home. Reviving a near-lost coffee since 2013.", primary: { label: "Order beans or visit", href: "#book" }, secondary: { label: "(043) 555 0171", href: "tel:+63435550171" } },
+  messaging: { whatsapp: "https://wa.me/63435550171", messenger: "https://m.me/barakolipa" }
+};
+</script>
+
+<style>
+  :root {
+    --bean:#241812; --bean-2:#1a110c; --oat:#efe4d0; --oat-2:#f7efdf; --ink:#2c2119; --ink-2:#52443a;
+    --barako:#b5471f; --gold:#cf9137; --leaf:#5f7a44;
+    --mid:#8a7963; --mid-d:#c9b393; --rule:rgba(44,33,25,0.14); --rule-d:rgba(239,228,208,0.16);
+    --disp:"Zilla Slab",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--oat);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--barako);}
+  .wrap{width:min(1240px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--barako);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:700;font-size:clamp(38px,5.4vw,78px);line-height:1.04;margin:0 0 0.32em;letter-spacing:-0.01em;}
+  .h2 em{font-style:normal;color:var(--barako);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:3px;}
+  .btn-primary{background:var(--barako);color:var(--oat-2);} .btn-primary:hover{background:var(--bean);}
+  .btn-ghost{border:1.5px solid var(--bean);color:var(--bean);} .btn-ghost:hover{background:var(--bean);color:var(--oat-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(239,228,208,0.93);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--bean);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:700;font-size:23px;text-decoration:none;letter-spacing:-0.01em;color:var(--bean);}
+  .wm span{color:var(--barako);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,66px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(42px,6.4vw,98px);line-height:1.0;letter-spacing:-0.02em;margin:0 0 34px;max-width:17ch;color:var(--bean);}
+  .hero-headline em{font-style:normal;color:var(--barako);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:4px;}
+  .hero-photo::after{content:"HERITAGE LIBERICA · SINCE 2013";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.12em;background:var(--gold);color:var(--bean);padding:7px 12px;border-radius:3px;}
+  .hero-right .lede{color:var(--mid);font-size:clamp(15px,1.5vw,17.5px);line-height:1.74;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--bean);color:var(--oat-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(247,239,223,0.86);font-weight:700;}
+
+  .about{background:var(--oat-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:4px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.78;margin:0 0 1em;color:#4d3d31;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--bean);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(181,71,31,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;color:var(--leaf);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:700;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:1.06;letter-spacing:-0.01em;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--bean);color:var(--oat);}
+  .why .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+  .why .h2{color:var(--oat);} .why .h2 em{color:var(--gold);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--gold);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:700;font-size:28px;margin:0 0 10px;line-height:1.1;letter-spacing:-0.01em;}
+  .why-grid p{color:var(--mid-d);margin:0;font-size:14.5px;line-height:1.72;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--rule);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--leaf);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:700;font-size:24px;margin:8px 0 8px;line-height:1.1;letter-spacing:-0.01em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--bean-2);color:var(--oat);}
+  .t-quote{font-family:var(--disp);font-weight:700;font-size:clamp(28px,3.7vw,54px);line-height:1.1;max-width:26ch;margin:0 0 24px;letter-spacing:-0.01em;}
+  .t-quote em{font-style:normal;color:var(--gold);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.74;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:4px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--barako);color:var(--oat-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--bean);}
+  .faq-list summary{font-family:var(--disp);font-weight:700;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;letter-spacing:-0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--barako);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:64ch;line-height:1.74;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--bean);border-radius:3px;font-weight:700;color:var(--mid);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--barako);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:700;font-size:20px;line-height:1.18;letter-spacing:-0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--bean);color:var(--oat);padding:34px;border-radius:4px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:700;font-size:22px;line-height:1.3;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:var(--mid-d);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule-d);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid-d);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid-d);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:4px;border:1.5px solid var(--bean);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(160deg) brightness(0.9) sepia(0.2);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--barako);color:var(--oat-2);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--oat-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,6.5vw,106px);line-height:1.0;margin:14px auto 18px;max-width:15ch;}
+  .cta-band h2 em{font-style:normal;color:var(--gold);}
+  .cta-band p{color:rgba(247,239,223,0.92);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--oat-2);color:var(--barako);} .cta-band .btn-primary:hover{background:var(--bean);color:var(--oat-2);}
+  .cta-band .btn-ghost{border-color:var(--oat-2);color:var(--oat-2);} .cta-band .btn-ghost:hover{background:var(--oat-2);color:var(--barako);}
+
+  footer{background:var(--bean-2);color:var(--oat);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--barako);color:var(--oat-2);padding:13px 20px;border-radius:3px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(181,71,31,0.4);}
+  .msg-fab a:hover{background:var(--bean);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"CafeOrCoffeeShop","name":"Kapeng Barako Lipa","description":"Roastery and café reviving heritage Batangas barako — bold, smoky Liberica coffee from Mt. Malarayat farms, roasted in small batches and ground to order, sold as beans and ground and brewed in the café. Since 2013.","url":"https://barakolipa.ph/","telephone":"+63435550171","email":"kape@barakolipa.ph","address":{"@type":"PostalAddress","streetAddress":"19 C.M. Recto Avenue","addressLocality":"Lipa","addressRegion":"Batangas","postalCode":"4217","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":13.9410,"longitude":121.1620},"areaServed":["Lipa","Batangas City","Tanauan","Tagaytay"],"image":["https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=1600"],"foundingDate":"2013"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is kapeng barako and how is it different?","acceptedAnswer":{"@type":"Answer","text":"Kapeng barako is coffee made mainly from Liberica beans, most associated with Batangas, especially Lipa. It's neither Arabica nor mainstream Robusta — Liberica beans are large and irregular and give a bold, full-bodied, intensely aromatic cup: smoky, woody, with a real punch. The name evokes toughness and machismo. It rewards being brewed strong and drunk black, the traditional way, and once you acquire the taste, ordinary coffee can feel thin."}},
+{"@type":"Question","name":"Why did barako nearly disappear, and why revive it?","acceptedAnswer":{"@type":"Answer","text":"In the 1800s Batangas, and Lipa especially, was a great coffee region that grew wealthy on barako. Then coffee rust blight devastated the plantations and the industry largely collapsed; Liberica is also harder and lower-yielding than Arabica or Robusta, so it lost economic momentum. Reviving it matters because it's genuine Philippine heritage, a distinctive coffee worth its place, and supporting the heritage farms gives growers a reason to keep the trees. We see it as keeping a living tradition alive."}},
+{"@type":"Question","name":"Do you really source directly from the farms?","acceptedAnswer":{"@type":"Answer","text":"Yes — we work directly with heritage Liberica growers on Mt. Malarayat and the Batangas uplands, buying cherries at a fair price rather than through middlemen. It lets us control quality and freshness and know whose trees the beans came from. Crucially, barako only survives if growing it is worth the farmers' while, so a fair farm-gate price is the actual mechanism by which it endures — not charity. A real share of each bag supports a specific family keeping a near-lost crop alive."}},
+{"@type":"Question","name":"Should I buy whole beans or ground, and how do I brew barako?","acceptedAnswer":{"@type":"Answer","text":"Buy whole beans and grind just before brewing — barako's bold aroma fades once ground. We roast small-batch and grind to order, and date every bag. Brew it strong and black to let it shine: the traditional cloth strainer (coffee sock) is worth trying, but it's also great in a French press, drip, or as a bold espresso. Lean stronger than you would for Arabica. Tell us how you drink coffee and we'll recommend a roast, grind and method; newcomers often start with a blend."}},
+{"@type":"Question","name":"I find barako too strong or bitter — is it for me?","acceptedAnswer":{"@type":"Answer","text":"Maybe, with the right approach — 'too bitter' is often a brewing or freshness issue. We offer blends as well as pure Liberica to ease you in. Bitterness usually comes from over-extraction, so a coarser grind, water just off the boil and not over-steeping help a lot. Purists drink it black, but there's no shame in a little muscovado or milk while you adjust. Come to the café for a properly made cup — many who think they dislike barako have only had it stale or badly brewed."}},
+{"@type":"Question","name":"Can I get barako shipped, as pasalubong, or for my café?","acceptedAnswer":{"@type":"Answer","text":"Yes to all three. We ship roasted beans and ground coffee nationwide and do pasalubong packs to carry the taste of Batangas home. For businesses, wholesale is core — we supply cafés, restaurants, offices and shops with freshly roasted barako on a regular basis, with a genuine heritage story to tell your customers, consistent supply, fair pricing and small-batch freshness. Message us with what you need and we'll sort quantities, grind, roast level and terms."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Kapeng Barako <span>Lipa</span></a>
+    <nav class="nav-links">
+      <a href="#about">The roastery</a><a href="#services">The coffee</a><a href="#location">Find us</a><a href="#book">Order</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Heritage barako coffee · Liberica · roasted in Lipa, Batangas</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      The coffee that once made this city <em>rich.</em> We brought it back.
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=2000&q=85&auto=format&fit=crop"
+             alt="A cup of dark coffee beside roasted beans." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A roastery and café reviving kapeng barako — the bold, smoky Liberica coffee that made Lipa the coffee capital of the country before blight nearly wiped it out. We work with heritage farms on the slopes of Mt. Malarayat, roast in small batches, and grind to order for the strong, aromatic cup Batangueños grew up on. Beans, ground, and brewed strong in the café.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Order beans or visit</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">The coffee</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Reviving barako since 2013</span>
+    <span>Real Liberica, from Lipa</span>
+    <span>Small-batch, ground to order</span>
+    <span>Farm-direct &amp; fair</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>ROAST 01 / THE ROASTERY</span><span>SLOPES OF MT. MALARAYAT</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Barako almost disappeared. Losing it would have meant losing Lipa's <em>story.</em></h2>
+        <p>Kapeng Barako Lipa is a roastery and café built to save a coffee. Barako is the Batangas name for coffee made from Liberica beans — big, bold, intensely aromatic, with a smoky, woody character and a punch that gave the drink, and eventually strong men, the name "barako." In the 1800s Lipa grew rich on it; Batangas was one of the great coffee regions of the world. Then coffee rust blight arrived, the farms collapsed, and barako nearly vanished from the country it once fed.</p>
+        <p>We started in 2013 to bring it back properly. We work directly with the heritage farms still growing Liberica on the volcanic slopes of Mt. Malarayat, buy their cherries at a fair price, and roast in small batches so the beans are fresh, not stale from a warehouse. Barako is a bruising, difficult bean to grow and roast well, which is part of why it faded — but done right, nothing else tastes like it: bold, smoky, and unmistakably Batangas.</p>
+        <p>We sell whole beans and grind to order — because barako loses its soul sitting pre-ground on a shelf — and we brew it strong in the café the traditional way, black, in a cup that wakes the dead. We also stock the kapeng barako our lolos drank, and the local sweets that go with it. This isn't nostalgia for its own sake; it's keeping a living Batangas craft alive, one bold cup at a time.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=1200&q=85&auto=format&fit=crop"
+           alt="Roasted coffee beans spilling from a scoop." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>ROAST 02 / THE COFFEE</span><span>BEANS · GROUND · CAFÉ · WHOLESALE</span></div>
+    <h2 class="h2">The coffee.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Whole-bean barako</h3><p>Heritage Liberica beans from Mt. Malarayat farms, roasted in small batches for freshness and bagged whole. Bold, smoky and aromatic — the real Batangas barako, best ground just before you brew.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Ground to order</h3><p>We grind your barako to your brew — cloth strainer, French press, drip or espresso — right when you order, because pre-ground beans on a shelf lose exactly what makes barako barako.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>The café — brewed strong</h3><p>Barako brewed the traditional way, black and strong enough to wake the dead, plus barako-based drinks for the modern palate. Sit with a cup and the local sweets, the way merienda is meant to be.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Blends &amp; single-origin</h3><p>Pure Liberica for the purists, and balanced barako blends for those easing in — plus other heritage Batangas beans in season. We'll steer you by how bold a cup you can handle.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Farm-direct, fair trade</h3><p>We buy cherries directly from the heritage growers at a fair price, because reviving barako means the farms have to survive too. Every bag supports a farmer keeping a near-lost crop alive on the mountain.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Wholesale &amp; pasalubong</h3><p>Bags of roasted barako for cafés, offices and shops, plus pasalubong packs to carry the taste of Batangas home. Order beans shipped nationwide, or set up a standing wholesale supply.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>ROAST 03 / THE DIFFERENCE</span><span>WHY OURS IS THE REAL BARAKO</span></div>
+    <h2 class="h2">Why ours is the real <em>barako.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Real Liberica, from Lipa.</h3><p>Barako means Liberica, and ours comes from the heritage farms on Mt. Malarayat that never stopped growing it. This is the genuine Batangas bean — not robusta relabelled, not a blend pretending. The real thing.</p></div>
+      <div><span class="no">02 / 03</span><h3>Roasted small, ground fresh.</h3><p>We roast in small batches and grind to order, because barako's bold aroma fades fast once it's roasted and ground. Freshness is the difference between a cup that sings and one that's just bitter.</p></div>
+      <div><span class="no">03 / 03</span><h3>Saving a crop, not just coffee.</h3><p>Barako nearly died out, and the farms nearly with it. Buying direct at fair prices keeps the growers going and the heritage alive. Every bag is a small vote for barako's survival.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>ROAST 04 / HOW IT GOES</span><span>CUP · BEANS · BREW · RE-ORDER</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us your cup</h3><p>Pure barako or an easing-in blend? Cloth strainer, press, drip or espresso? First time with Liberica or a lifelong Batangueño? Tell us and we'll match you to the right roast and grind.</p></li>
+      <li><span class="step">STEP 02</span><h3>Beans or ground</h3><p>Buy whole beans to grind at home for the freshest cup, or have us grind to your brew method on the spot. We'll bag it fresh with the roast date, so you know exactly what you've got.</p></li>
+      <li><span class="step">STEP 03</span><h3>Brew it bold</h3><p>Barako wants to be strong and black — that's the point. We'll share how the lolos brewed it with the cloth strainer, plus modern methods, so you get the smoky, aromatic cup at its best.</p></li>
+      <li><span class="step">STEP 04</span><h3>Re-order or go wholesale</h3><p>Hooked? We ship beans nationwide, do pasalubong packs, and set up standing supply for cafés and offices. Message us and keep the barako — and the farms — going strong.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>ROAST 05 / FROM THE CUP</span><span>THE BARAKO MY LOLO DRANK</span></div>
+    <blockquote class="t-quote">“This is the barako my lolo drank — bold, smoky, no messing about. My mornings are <em>loyal to this cup</em> now.”</blockquote>
+    <div class="t-attr">Ariel M. — Lipa local</div>
+    <div class="t-sub">
+      <figure><blockquote>“I thought I knew coffee until I had proper barako here. This deep, woody, almost smoky intensity. The staff explained the whole history and matched me to a blend to start. I've since gone full pure-Liberica. Buy the beans and grind fresh; it's a revelation.”</blockquote><figcaption>Denise R. — specialty-coffee convert</figcaption></figure>
+      <figure><blockquote>“We switched our café to their wholesale barako and customers immediately noticed. Fresh, consistent, genuinely local, and there's a real story to tell about the Malarayat farms. Reliable delivery too. Supporting the revival of Batangas coffee and serving a better cup — easy decision.”</blockquote><figcaption>Café owner, Tagaytay — wholesale account</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--oat-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>ROAST 06 / CHERRY TO CUP</span><span>BOLD, SMOKY &amp; BATANGAS</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=1600&q=85&auto=format&fit=crop" alt="A cup of dark coffee beside roasted beans." /><figcaption>THE CUP</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1559056199-641a0ac8b55e?w=1600&q=85&auto=format&fit=crop" alt="Roasted coffee beans spilling from a scoop." /><figcaption>THE ROAST</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=1600&q=85&auto=format&fit=crop" alt="Coffee cherries on the branch." /><figcaption>THE CHERRY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb?w=1600&q=85&auto=format&fit=crop" alt="Green coffee beans being sorted." /><figcaption>THE SORT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop" alt="A black coffee on a wooden table." /><figcaption>THE BLACK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1442550528053-c431ecb55509?w=1600&q=85&auto=format&fit=crop" alt="A coffee roaster at work." /><figcaption>THE ROASTER</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>ROAST 07 / GOOD TO KNOW</span><span>THE BEAN, THE HISTORY &amp; THE BREW</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63435550171" style="color:var(--barako);font-weight:700;">(043) 555 0171</a>. New to Liberica? Come to the café and let us brew you a proper cup.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What is kapeng barako, and how is it different from other coffee?</summary><p>Kapeng barako is coffee made primarily from Liberica beans, most associated with Batangas, especially Lipa and the surrounding towns. It's quite different from the two coffees most people know: it's not Arabica (the smoother, more acidic specialty standard) nor mainstream Robusta (the strong, cheap workhorse of instant coffee). Liberica beans are large and irregular, and they produce a cup with a distinctive bold, full-bodied, intensely aromatic character — smoky, woody, sometimes almost fruity or floral underneath, with a real punch. That strength is where the name comes from: 'barako' evokes a wild boar and, by extension, toughness. If your only reference points are a delicate pour-over or a supermarket blend, barako will surprise you — it's assertive and unmistakable, and rewards being brewed strong and drunk black.</p></details>
+        <details><summary>Why did barako nearly disappear, and why does reviving it matter?</summary><p>In the 1800s, Batangas — and Lipa in particular — was one of the great coffee regions of the world, and barako made the area genuinely wealthy. Then coffee rust blight and later pressures devastated the plantations, and the industry largely collapsed, with barako declining from a national staple to a regional rarity. Liberica is also a harder, lower-yielding, more labour-intensive bean than the commercial alternatives, so as the market standardised around Arabica and Robusta, it had little economic momentum left. Reviving it matters because it's genuine Philippine and Batangas heritage that would be a real loss to let vanish; it's a distinctive coffee that deserves a place on its own merits; and supporting the heritage farms gives growers a reason to keep cultivating it. We see selling barako as keeping a living tradition alive.</p></details>
+        <details><summary>Do you really source directly from the farms?</summary><p>Yes — we work directly with heritage Liberica growers on the volcanic slopes of Mt. Malarayat and the surrounding Batangas uplands, buying cherries at a fair price rather than through layers of middlemen. On quality, this lets us know whose trees the beans came from, select for ripeness and control freshness from cherry to roast. On sustainability, the honest truth is that barako only survives if growing it is worth the farmers' while: Liberica is demanding and the trees are often old, so if growers can't earn fairly, they'll switch to easier crops and the heritage disappears. A fair farm-gate price is therefore the actual mechanism by which barako survives — not charity. A real share of each bag supports a specific family keeping a near-lost crop alive.</p></details>
+        <details><summary>Should I buy whole beans or ground, and how should I brew barako?</summary><p>Buy whole beans and grind just before brewing if you can — this is true for all coffee but especially barako, whose bold aroma fades noticeably once ground and exposed to air. We roast small-batch and grind to order for that reason, and date every bag. As for brewing: barako is traditionally made strong and drunk black, and it genuinely shines that way. The classic Batangas method uses a cloth strainer (the coffee sock), essentially a rustic pour-over producing a robust cup, and it's worth trying for the authentic experience. But barako also works beautifully in a French press, in drip machines, and as a bold espresso. Lean towards a stronger brew than for Arabica. Tell us how you drink coffee and we'll recommend a roast, grind and method; newcomers often start with a blend.</p></details>
+        <details><summary>I find barako too strong or bitter — is it for me?</summary><p>Maybe, with the right approach — barako is assertive by nature, but 'too strong or bitter' is often a brewing or roast issue rather than the bean's fault. We offer blends as well as pure Liberica; a blend eases you into the flavour with a bit less intensity. Brewing technique matters enormously: bitterness usually comes from over-extraction — water too hot, grind too fine, or brewing too long — so a coarser grind, water just off the boil, and not over-steeping can transform the cup. And while purists drink it black, there's no shame in a little muscovado or milk while you're getting used to it. Come to the café and let us brew you a properly made cup — a lot of people who think they dislike barako have only had it stale or badly made.</p></details>
+        <details><summary>Can I get barako shipped, as pasalubong, or for my café?</summary><p>Yes to all three. For individuals, we ship roasted barako beans and ground coffee nationwide, and we do pasalubong packs designed to carry the taste of Batangas home or send to relatives — barako is a wonderful, distinctive gift precisely because it's so tied to place. For businesses, wholesale is a core part of what we do: we supply cafés, restaurants, offices and shops with freshly roasted barako on a regular basis, and there's a genuine story to tell your own customers about serving a revived heritage Philippine coffee from the Malarayat farms. Wholesale customers get consistent supply, fair pricing and small-batch freshness. Whether you want a single pasalubong bag, a monthly home delivery, or a standing café supply, message us and we'll sort quantities, grind, roast level and terms.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ROAST 08 / WE SERVE</span><span>BATANGAS &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Lipa</li><li>Batangas City</li><li>Tanauan</li><li>Tagaytay</li><li>Batangas</li><li>Nationwide shipping</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ROAST 09 / THE ESSENTIALS</span><span>HOW WE ROAST</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2013</div><div class="detail">Reviving Lipa's heritage barako</div></div>
+      <div><div class="label">Real Liberica</div><div class="detail">From Mt. Malarayat heritage farms</div></div>
+      <div><div class="label">Small-batch</div><div class="detail">Roasted fresh, ground to order</div></div>
+      <div><div class="label">Farm-direct</div><div class="detail">Fair prices keep the growers going</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ROAST 10 / THE ROASTERY</span><span>C.M. RECTO AVE, LIPA</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Kapeng Barako Lipa</strong><br />
+          19 C.M. Recto Avenue<br />
+          Lipa, Batangas 4217<br /><br />
+          <a href="tel:+63435550171" data-bind="business.phoneDisplay">(043) 555 0171</a><br />
+          <a href="mailto:kape@barakolipa.ph" data-bind="business.email">kape@barakolipa.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SUN</span><span>7AM – 8PM</span></div>
+          <div class="row"><span>WHOLESALE</span><span>BY ENQUIRY</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on C.M. Recto Avenue in Lipa — the roastery and café are in one. Walk in for a cup and beans, or enquire for wholesale.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Kapeng Barako Lipa, Lipa" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=121.1470%2C13.9310%2C121.1770%2C13.9510&layer=mapnik&marker=13.9410%2C121.1620"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">ROAST 11 / ORDER</div>
+    <h2 data-bind="cta.heading">Taste the coffee that built <em>Lipa.</em></h2>
+    <p data-bind="cta.body">Heritage Batangas barako — bold, smoky Liberica from the Mt. Malarayat farms, roasted in small batches and ground to order, brewed strong in the café or bagged for home. Reviving a near-lost coffee since 2013.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Order beans or visit</a>
+      <a class="btn btn-ghost" href="tel:+63435550171" data-bind="cta.secondary.label">(043) 555 0171</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63435550171" data-bind="messaging.whatsapp" aria-label="Message the roastery">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:23px;color:var(--oat);">Kapeng Barako <span style="color:var(--gold);">Lipa</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:var(--mid-d);">A roastery and café reviving heritage Batangas barako — bold, smoky Liberica from Mt. Malarayat, since 2013.</p>
+      </div>
+      <div>
+        <h4>The roastery</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          19 C.M. Recto Avenue<br />Lipa, Batangas 4217<br />
+          <a href="tel:+63435550171">(043) 555 0171</a><br />
+          <a href="mailto:kape@barakolipa.ph">kape@barakolipa.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The coffee</a><a href="#about">The roastery</a><a href="#location">Find us</a><a href="#book">Order</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> KAPENG BARAKO LIPA</span>
+      <span>HERITAGE LIBERICA · BATANGAS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

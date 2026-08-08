@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lomi King — thick Batangas lomi, goto & mami in a bowl that fights back, Lipa City</title>
+<meta name="description" content="Lomi King is a lomihan in Lipa City, Batangas — thick, egg-noodle lomi loaded with liver, chicharon, kikiam and egg in a gravy you can stand a spoon in, plus goto, mami and pancit lomi. The panlaban meal Batangueños swear by. Since 2008." />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,900;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Lomi King", phone: "+63 43 555 0204", phoneDisplay: "(043) 555 0204", email: "kumain@lomiking.ph", foundedYear: 2008 },
+  hero: {
+    kicker: "Lomihan · thick Batangas lomi · goto & mami · Lipa City",
+    headline: "A gravy you can stand a spoon in. Batangas comfort in one bowl.",
+    lede: "A lomihan in Lipa, serving the thick, glorious, egg-noodle lomi that Batangas built — fat noodles in a gravy so rich it clings to the spoon, loaded with liver, chicharon, kikiam, meatballs and a beaten egg swirled in at the end. Order it plain or panlaban-loaded, add goto and mami, and eat the bowl that has cured every hangover and heartbreak in Lipa since 2008.",
+    primaryCta: { label: "Find the lomihan", href: "#book" },
+    secondaryCta: { label: "What's in the bowl", href: "#services" },
+    image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A steaming bowl of thick noodle soup."
+  },
+  trust: { years: "Ladling lomi in Lipa since 2008" },
+  about: {
+    heading: "Lomi is not soup. Soup is polite. Lomi means business.",
+    paragraphs: [
+      "Lomi King is a lomihan — a place that lives and dies by one dish. Lomi is the pride of Batangas: thick, fresh egg noodles in a gravy-like broth thickened until it's almost a sauce, built up with liver, pork, chicharon, kikiam, fish balls, a beaten egg and whatever else the cook is generous with that day. It is not a light soup. It is a full meal in a bowl, the kind you eat leaning over the table, and Batangueños are fiercely, correctly proud of it.",
+      "We opened in 2008 with one big kawali and a recipe argued over by three titas until it was perfect. The secret to real lomi is the broth — simmered long, thickened right, seasoned deep — and the noodles, thick and fresh so they hold up in the gravy instead of dissolving. Ours does both properly, which is why the tricycle drivers, students from the Lipa schools, and whole families on a Sunday keep the tables full from open to close.",
+      "Beyond lomi we ladle goto (rice porridge with tripe), mami (clear noodle soup), pancit lomi and the sides that go with them — and yes, we do the loaded 'panlaban' bowl for those who want everything in it at once. Squeeze in some kalamansi, spoon on the chilli-garlic, crack the extra egg, and dig in. This is Batangas comfort food at its most honest: hot, heavy, cheap, and exactly what you needed."
+    ],
+    portrait: "https://images.unsplash.com/photo-1547928576-b822bc410bdf?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A hot bowl of noodles topped with egg."
+  },
+  services: [
+    { name: "The classic lomi", description: "Thick fresh egg noodles in our long-simmered, properly thickened gravy-broth, with liver, pork, kikiam and a beaten egg swirled through. The bowl Batangas is famous for. Regular or extra-large." },
+    { name: "Panlaban (loaded) lomi", description: "Everything, all at once — extra liver, chicharon, meatballs, kikiam, quail eggs and double egg in a heavier bowl for the seriously hungry. The one that ends arguments and hangovers." },
+    { name: "Goto & arroz caldo", description: "Rice porridge done right — goto with tripe and the trimmings, or ginger-rich arroz caldo with chicken — topped with toasted garlic, spring onion, and a squeeze of kalamansi. Rainy-day medicine." },
+    { name: "Mami & pancit lomi", description: "The lighter noodle options: clear, comforting mami in a clean broth, and pancit lomi tossed rather than drowned — for when you want the noodle without the gravy avalanche." },
+    { name: "Sides & silog", description: "Tokwa't baboy, lumpia, extra chicharon and egg, plus quick silog rice meals — the sidekicks that turn a bowl into a full spread. Add rice; there's no shame in rice with lomi." },
+    { name: "Take-out & bulk broth", description: "Everything packs to go, broth and noodles kept separate so it travels right, and we sell lomi by the family tub for gatherings. Reheat, swirl the egg, and it's like you never left." }
+  ],
+  why: [
+    { title: "The broth is the whole game.", body: "Simmered long, thickened by hand to that spoon-coating richness, seasoned deep. Thin, gluey or bland lomi is a crime here — ours is the real Batangas texture, and it shows in the first spoonful." },
+    { title: "Thick noodles that hold up.", body: "Fresh, fat egg noodles that stay springy in the gravy instead of turning to mush. The right noodle is half of what makes lomi lomi, and we don't cut that corner." },
+    { title: "Loaded, not stingy.", body: "Liver, chicharon, kikiam, egg — piled in with a generous hand. A lomi bowl should feel like a gift, not a portion. That's why the panlaban is our proudest order." }
+  ],
+  how: [
+    { step: "01", title: "Pick your bowl", body: "Regular lomi, extra-large, or the full panlaban with everything in it. New to lomi? Start classic; you can always graduate to the loaded bowl once you understand what you're dealing with." },
+    { step: "02", title: "Load your toppings", body: "Extra egg, extra chicharon, quail eggs, more liver — build it up however hungry you are. Tell us at the counter and we'll pile it in before the egg goes on." },
+    { step: "03", title: "Season it your way", body: "Kalamansi to cut the richness, chilli-garlic for heat, a splash of soy, black pepper — the condiment tray is yours. Real lomi eating is a little ritual; take your time." },
+    { step: "04", title: "Dig in while it's hot", body: "Lomi waits for no one — it thickens as it cools, so eat it hot and fast. Leaning over the bowl is encouraged. For later, take it away with the broth and noodles packed apart." }
+  ],
+  testimonials: [
+    { quote: "I've eaten lomi across all of Batangas and Lomi King's is the benchmark. The gravy is exactly right — thick, deep, not gluey — and the panlaban bowl is a religious experience. Every time I'm back in Lipa this is the first stop, before I even go home. Simple as that.", name: "Ronnel A.", context: "Lipa native, weekly" },
+    { quote: "My barkada ends every night out here for the panlaban lomi. It has cured hangovers that had no business being cured. Cheap, hot, enormous, and open when we need it most. The extra-egg-and-chicharon bowl is elite. Lomi King forever.", name: "Trixie D.", context: "regular, the 2am crowd" },
+    { quote: "Ordered family tubs for a rainy Sunday reunion and it fed everyone twice over. Broth packed separate so the noodles were perfect, generous with the toppings, and my lolo — a lomi purist — actually approved. That's the highest praise there is.", name: "The Marasigan family", context: "bulk order" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1600&q=85&auto=format&fit=crop", alt: "A steaming bowl of thick noodle soup." },
+    { src: "https://images.unsplash.com/photo-1547928576-b822bc410bdf?w=1600&q=85&auto=format&fit=crop", alt: "Noodles topped with a soft egg." },
+    { src: "https://images.unsplash.com/photo-1552611052-33e04de081de?w=1600&q=85&auto=format&fit=crop", alt: "A rich broth simmering in a pot." },
+    { src: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=1600&q=85&auto=format&fit=crop", alt: "A bowl garnished with toppings." },
+    { src: "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=1600&q=85&auto=format&fit=crop", alt: "Condiments on the table." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "The busy tables of the lomihan." }
+  ],
+  faq: [
+    { q: "What exactly is Batangas lomi?", a: "Lomi is a noodle dish that Batangas has made entirely its own — thick, fresh egg noodles served in a broth that's been thickened, usually with cornstarch or flour and enriched with a beaten egg, until it's less a soup and more a rich, glossy gravy that coats every strand. Into that go the toppings that make it a full meal: liver, pork, chicharon (crushed on top for crunch), kikiam, fish or meatballs, sometimes quail eggs, and always a raw egg beaten through at the end so it cooks in the heat of the bowl. It is hearty, heavy and unapologetically filling — nobody eats lomi to stay light. While versions of thick noodle dishes exist elsewhere, the Batangas lomihan style is its own tradition, and around Lipa it's practically a food group. If you've only had thin, watery 'lomi' before, a proper Batangas bowl is a revelation: you'll understand immediately why people here are so proud of it." },
+    { q: "What's the difference between the classic and the panlaban bowl?", a: "The classic lomi is the real, complete thing already — thick noodles, rich gravy-broth, liver, pork, kikiam and egg, a genuinely filling meal on its own. The 'panlaban' bowl is what we call the loaded, maxed-out version, and the name says it all: panlaban roughly means 'for fighting' or 'to go up against,' the bowl you order when you're seriously hungry, nursing a hangover, or out to prove something. It piles on extra liver, extra chicharon, meatballs, kikiam, quail eggs and a double dose of egg, in a heavier, more indulgent bowl. If you're new to lomi, we'd genuinely suggest starting with the classic to learn the dish; it's more than enough for most appetites. Once you know you love it — and once you've faced down a rough morning — the panlaban is waiting. Either way you can add individual toppings to build the exact bowl you want; just tell us at the counter." },
+    { q: "Why does the broth get so thick, and is that normal?", a: "Yes, that thickness is the whole point and the mark of a proper Batangas lomi — if it's watery, something's gone wrong. The broth is simmered long for depth, then deliberately thickened so it becomes a rich, spoon-coating gravy rather than a thin soup, and the beaten egg stirred through at the end adds body and silkiness. One thing to know: lomi keeps thickening as it cools, because that's how the starch behaves, which is exactly why we tell everyone to eat it hot and reasonably fast — a bowl left to sit will set up almost like a stew. That's not a fault, it's the nature of the dish, and many regulars actually love those last thick spoonfuls. If you prefer yours a touch looser, tell us and we can adjust, and if you're taking it away we pack the broth and noodles separately so it reheats and loosens up perfectly at home." },
+    { q: "Do you have lighter options if lomi is too heavy?", a: "Yes — while lomi is our headline and our pride, we know it's a serious, heavy bowl and not what everyone wants every day, so the menu has gentler choices. Mami is our clear, clean noodle soup, comforting without the gravy weight; pancit lomi is the same thick noodles tossed rather than drowned in broth, so you get the noodle without the avalanche; and goto and arroz caldo are warming rice porridges, lighter on the stomach and perfect for a rainy day or when you're under the weather. You can also just order a regular lomi rather than the panlaban and skip the heaviest toppings. And of course there are sides — tokwa't baboy, lumpia — if you want to graze rather than commit to a full bowl. Tell us how hungry you are and how heavy you want to go, and we'll steer you right; not every visit has to be a panlaban." },
+    { q: "Can I order lomi for take-out or a big group?", a: "Absolutely. Everything travels, and take-out is a big part of what we do — the key is that we pack the broth and the noodles separately, because if they sit together in transit the noodles soak up the gravy and lose their bounce. Kept apart, you just combine and reheat at home and it's as good as in the shop; we'll tell you exactly how. For groups and gatherings we sell lomi by the family tub, with the components packed to travel and enough to feed a crowd, which is popular for rainy Sundays, reunions and office merienda. Give us a rough headcount and a little notice for large bulk orders so we can have the broth ready, and we'll sort quantities and a fair price. Whether it's one bowl for the road or a tub for twelve, the lomi that leaves here is the same lomi we'd serve you at the table." },
+    { q: "What are your hours — are you open late?", a: "We open through the day and run into the evening, seven days a week, and yes, being open when people actually crave lomi is part of the job — a thick, hot bowl is exactly what's wanted after a long shift, a night out, or on a cold, wet Batangas evening, so we keep the kawali going late. The lunch and merienda stretches are busiest, and weekends bring the family crowd, so if you want a quieter table come a little off-peak; if you want the full lomihan atmosphere, come when it's packed. Exact hours are kept live and current on our Google Business Profile, so check there before a late-night run. And if you're bringing a big group or want a bulk take-out order ready at a specific time, message us ahead and we'll have it waiting so you're not standing around hungry watching everyone else eat." }
+  ],
+  area: { places: ["Lipa City", "Tanauan", "Batangas City", "Sto. Tomas", "Batangas", "Take-out & bulk"] },
+  credentials: [
+    { label: "Since 2008", detail: "A dedicated lomihan in Lipa" },
+    { label: "The broth", detail: "Long-simmered, hand-thickened, deep" },
+    { label: "Thick noodles", detail: "Fresh egg noodles that hold up" },
+    { label: "Panlaban", detail: "Loaded bowls, generous hands" }
+  ],
+  location: { name: "Lomi King", addressStreet: "77 C.M. Recto Ave", addressLocality: "Lipa City", addressRegion: "Batangas", addressPostcode: "4217", addressCountry: "Philippines" },
+  cta: { heading: "Come hungry. Leave defeated by a bowl.", body: "Thick Batangas lomi in a gravy you can stand a spoon in — classic or panlaban-loaded, plus goto, mami and family tubs to take home. The bowl that cures everything, in Lipa since 2008.", primary: { label: "Find the lomihan", href: "#book" }, secondary: { label: "(043) 555 0204", href: "tel:+63435550204" } },
+  messaging: { whatsapp: "https://wa.me/63435550204", messenger: "https://m.me/lomiking" }
+};
+</script>
+
+<style>
+  :root {
+    --stock:#241009; --stock-2:#2f150c; --cream:#f7ead3; --cream-2:#fdf4e2; --gravy:#c2691f; --liver:#8f2f1e; --herb:#5f7d3a;
+    --mid:#94795f; --mid-d:#d6bb94; --rule-d:rgba(247,234,211,0.16);
+    --disp:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--stock);color:var(--cream);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--gravy);}
+  .wrap{width:min(1240px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gravy);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:900;font-size:clamp(40px,5.6vw,84px);line-height:0.98;margin:0 0 0.3em;letter-spacing:-0.02em;}
+  .h2 em{font-style:italic;font-weight:500;color:var(--gravy);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:3px;}
+  .btn-primary{background:var(--liver);color:var(--cream);} .btn-primary:hover{background:var(--gravy);color:var(--stock);}
+  .btn-ghost{border:1.5px solid rgba(247,234,211,0.4);color:var(--cream);} .btn-ghost:hover{background:var(--cream);color:var(--stock);border-color:var(--cream);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid var(--rule-d);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(36,16,9,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--rule-d);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:900;font-size:25px;text-decoration:none;letter-spacing:-0.02em;}
+  .wm span{color:var(--gravy);font-style:italic;font-weight:500;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,66px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:900;font-size:clamp(44px,7vw,106px);line-height:0.96;letter-spacing:-0.03em;margin:0 0 34px;max-width:16ch;}
+  .hero-headline em{font-style:italic;font-weight:500;color:var(--gravy);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:4px;}
+  .hero-photo::after{content:"PANLABAN · THICK · HOT · SINCE 2008";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.1em;background:var(--gravy);color:var(--stock);padding:7px 12px;border-radius:3px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--gravy);color:var(--stock);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(36,16,9,0.82);font-weight:700;}
+
+  .about{background:var(--cream);color:var(--stock);}
+  .about .h2{color:var(--stock);} .about .h2 em{color:var(--liver);}
+  .about .sw-head{color:var(--mid);border-color:rgba(36,16,9,0.16);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:4px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.78;margin:0 0 1em;color:#4a2a1a;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--rule-d);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(247,234,211,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(143,47,30,0.16);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;color:var(--gravy);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:900;font-size:clamp(25px,2.7vw,36px);margin:0;line-height:1.04;letter-spacing:-0.02em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--liver);color:var(--cream);}
+  .why .sw-head{color:rgba(247,234,211,0.65);border-color:rgba(247,234,211,0.24);}
+  .why .h2{color:var(--cream);} .why .h2 em{color:var(--gravy);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--gravy);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:900;font-size:28px;margin:0 0 10px;line-height:1.02;letter-spacing:-0.02em;}
+  .why-grid p{color:rgba(247,234,211,0.86);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--rule-d);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--gravy);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:900;font-size:24px;margin:8px 0 8px;line-height:1.06;letter-spacing:-0.02em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--stock-2);}
+  .t-quote{font-family:var(--disp);font-weight:900;font-size:clamp(30px,4vw,56px);line-height:1.04;max-width:24ch;margin:0 0 24px;letter-spacing:-0.02em;}
+  .t-quote em{font-style:italic;font-weight:500;color:var(--gravy);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:4px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--liver);color:var(--cream);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule-d);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--rule-d);}
+  .faq-list summary{font-family:var(--disp);font-weight:900;font-size:23px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.12;letter-spacing:-0.02em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--gravy);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(247,234,211,0.3);border-radius:3px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule-d);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gravy);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:900;font-size:20px;line-height:1.14;letter-spacing:-0.02em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--cream);color:var(--stock);padding:34px;border-radius:4px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:900;font-size:22px;line-height:1.26;letter-spacing:-0.02em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:#4a2a1a;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(36,16,9,0.16);padding-top:18px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:4px;border:1.5px solid rgba(247,234,211,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(150deg) brightness(0.92) sepia(0.15);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--liver);color:var(--cream);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--cream);}
+  .cta-band h2{font-family:var(--disp);font-weight:900;font-size:clamp(44px,6.5vw,110px);line-height:0.98;margin:14px auto 18px;max-width:15ch;letter-spacing:-0.03em;}
+  .cta-band h2 em{font-style:italic;font-weight:500;color:var(--gravy);}
+  .cta-band p{color:rgba(247,234,211,0.9);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--cream);color:var(--liver);} .cta-band .btn-primary:hover{background:var(--gravy);color:var(--stock);}
+  .cta-band .btn-ghost{border-color:rgba(247,234,211,0.6);color:var(--cream);} .cta-band .btn-ghost:hover{background:var(--cream);color:var(--liver);}
+
+  footer{background:var(--stock);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gravy);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--liver);color:var(--cream);padding:13px 20px;border-radius:3px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 8px 24px rgba(143,47,30,0.4);}
+  .msg-fab a:hover{background:var(--cream);color:var(--stock);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Lomi King","description":"Lomihan in Lipa City, Batangas — thick egg-noodle lomi in a rich gravy-broth loaded with liver, chicharon, kikiam and egg, plus goto, mami and pancit lomi. Since 2008.","servesCuisine":"Filipino","url":"https://lomiking.ph/","telephone":"+63435550204","email":"kumain@lomiking.ph","address":{"@type":"PostalAddress","streetAddress":"77 C.M. Recto Ave","addressLocality":"Lipa City","addressRegion":"Batangas","postalCode":"4217","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":13.9411,"longitude":121.1622},"areaServed":["Lipa City","Tanauan","Batangas City","Sto. Tomas"],"image":["https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1600"],"foundingDate":"2008"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What exactly is Batangas lomi?","acceptedAnswer":{"@type":"Answer","text":"Lomi is thick, fresh egg noodles in a broth thickened (with starch and a beaten egg) until it's a rich, glossy gravy that coats every strand, loaded with liver, pork, crushed chicharon, kikiam, meatballs, sometimes quail eggs, and a raw egg beaten through at the end. It's hearty, heavy and unapologetically filling. The Batangas lomihan style is its own tradition, and around Lipa it's practically a food group."}},
+{"@type":"Question","name":"What's the difference between the classic and panlaban bowl?","acceptedAnswer":{"@type":"Answer","text":"The classic is already the complete thing — thick noodles, rich gravy-broth, liver, pork, kikiam and egg. The panlaban is the loaded, maxed-out version (panlaban means 'for fighting'): extra liver, chicharon, meatballs, kikiam, quail eggs and double egg. New to lomi? Start classic — it's plenty. Once you love it (and once you've faced a rough morning), the panlaban is waiting. You can add individual toppings to build your own bowl too."}},
+{"@type":"Question","name":"Why does the broth get so thick?","acceptedAnswer":{"@type":"Answer","text":"That thickness is the point of a proper Batangas lomi — watery lomi means something's wrong. The broth is simmered for depth then deliberately thickened into a spoon-coating gravy, and the beaten egg adds body. It keeps thickening as it cools, which is why we say eat it hot and fast; a bowl left to sit sets up almost like stew. That's the nature of the dish. Prefer it looser? Tell us. For take-out we pack broth and noodles separately so it loosens perfectly when reheated."}},
+{"@type":"Question","name":"Do you have lighter options if lomi is too heavy?","acceptedAnswer":{"@type":"Answer","text":"Yes — mami is our clear, clean noodle soup; pancit lomi is the same thick noodles tossed rather than drowned; and goto and arroz caldo are warming rice porridges, lighter on the stomach. You can also order a regular lomi and skip the heaviest toppings, or graze on sides like tokwa't baboy and lumpia. Tell us how hungry you are and how heavy you want to go — not every visit has to be a panlaban."}},
+{"@type":"Question","name":"Can I order lomi for take-out or a big group?","acceptedAnswer":{"@type":"Answer","text":"Yes — we pack the broth and noodles separately so the noodles keep their bounce; just combine and reheat at home. For groups we sell lomi by the family tub, popular for rainy Sundays and reunions. Give us a rough headcount and a little notice for large bulk orders. Whether it's one bowl for the road or a tub for twelve, it's the same lomi we serve at the table."}},
+{"@type":"Question","name":"What are your hours — are you open late?","acceptedAnswer":{"@type":"Answer","text":"We open through the day and run into the evening, seven days a week, keeping the kawali going late because a hot bowl is exactly what's wanted after a shift or a night out. Lunch and merienda are busiest and weekends bring the family crowd. Exact hours are kept live on our Google Business Profile. For a big group or a timed bulk take-out, message ahead and we'll have it waiting."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Lomi <span>King</span></a>
+    <nav class="nav-links">
+      <a href="#about">The lomihan</a><a href="#services">The bowl</a><a href="#location">Find us</a><a href="#book">Order</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Lomihan · thick Batangas lomi · goto & mami · Lipa City</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      A gravy you can stand a spoon in. Batangas comfort in <em>one bowl.</em>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=2000&q=85&auto=format&fit=crop"
+             alt="A steaming bowl of thick noodle soup." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A lomihan in Lipa, serving the thick, glorious, egg-noodle lomi that Batangas built — fat noodles in a gravy so rich it clings to the spoon, loaded with liver, chicharon, kikiam, meatballs and a beaten egg swirled in at the end. Order it plain or panlaban-loaded, add goto and mami, and eat the bowl that has cured every hangover and heartbreak in Lipa since 2008.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Find the lomihan</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What's in the bowl</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Ladling lomi in Lipa since 2008</span>
+    <span>Long-simmered, hand-thickened broth</span>
+    <span>Thick fresh egg noodles</span>
+    <span>Loaded, never stingy</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>BOWL 01 / THE LOMIHAN</span><span>ONE DISH, DONE RIGHT</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Lomi is not soup. Soup is polite. Lomi means <em>business.</em></h2>
+        <p>Lomi King is a lomihan — a place that lives and dies by one dish. Lomi is the pride of Batangas: thick, fresh egg noodles in a gravy-like broth thickened until it's almost a sauce, built up with liver, pork, chicharon, kikiam, fish balls, a beaten egg and whatever else the cook is generous with that day. It is not a light soup. It is a full meal in a bowl, the kind you eat leaning over the table, and Batangueños are fiercely, correctly proud of it.</p>
+        <p>We opened in 2008 with one big kawali and a recipe argued over by three titas until it was perfect. The secret to real lomi is the broth — simmered long, thickened right, seasoned deep — and the noodles, thick and fresh so they hold up in the gravy instead of dissolving. Ours does both properly, which is why the tricycle drivers, students from the Lipa schools, and whole families on a Sunday keep the tables full from open to close.</p>
+        <p>Beyond lomi we ladle goto (rice porridge with tripe), mami (clear noodle soup), pancit lomi and the sides that go with them — and yes, we do the loaded "panlaban" bowl for those who want everything in it at once. Squeeze in some kalamansi, spoon on the chilli-garlic, crack the extra egg, and dig in. This is Batangas comfort food at its most honest: hot, heavy, cheap, and exactly what you needed.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1547928576-b822bc410bdf?w=1200&q=85&auto=format&fit=crop"
+           alt="A hot bowl of noodles topped with egg." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v78" data-screen-label="Services" style="background:var(--stock);">
+  <div class="wrap">
+    <div class="sw-head"><span>BOWL 02 / WHAT'S IN THE BOWL</span><span>LOMI · GOTO · MAMI · SIDES</span></div>
+    <h2 class="h2">What's in the bowl.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>The classic lomi</h3><p>Thick fresh egg noodles in our long-simmered, properly thickened gravy-broth, with liver, pork, kikiam and a beaten egg swirled through. The bowl Batangas is famous for. Regular or extra-large.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Panlaban (loaded) lomi</h3><p>Everything, all at once — extra liver, chicharon, meatballs, kikiam, quail eggs and double egg in a heavier bowl for the seriously hungry. The one that ends arguments and hangovers.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Goto &amp; arroz caldo</h3><p>Rice porridge done right — goto with tripe and the trimmings, or ginger-rich arroz caldo with chicken — topped with toasted garlic, spring onion, and a squeeze of kalamansi. Rainy-day medicine.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Mami &amp; pancit lomi</h3><p>The lighter noodle options: clear, comforting mami in a clean broth, and pancit lomi tossed rather than drowned — for when you want the noodle without the gravy avalanche.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Sides &amp; silog</h3><p>Tokwa't baboy, lumpia, extra chicharon and egg, plus quick silog rice meals — the sidekicks that turn a bowl into a full spread. Add rice; there's no shame in rice with lomi.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Take-out &amp; bulk broth</h3><p>Everything packs to go, broth and noodles kept separate so it travels right, and we sell lomi by the family tub for gatherings. Reheat, swirl the egg, and it's like you never left.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>BOWL 03 / THE DIFFERENCE</span><span>WHY OURS IS THE BENCHMARK</span></div>
+    <h2 class="h2">Why ours is the <em>benchmark.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>The broth is the whole game.</h3><p>Simmered long, thickened by hand to that spoon-coating richness, seasoned deep. Thin, gluey or bland lomi is a crime here — ours is the real Batangas texture, and it shows in the first spoonful.</p></div>
+      <div><span class="no">02 / 03</span><h3>Thick noodles that hold up.</h3><p>Fresh, fat egg noodles that stay springy in the gravy instead of turning to mush. The right noodle is half of what makes lomi lomi, and we don't cut that corner.</p></div>
+      <div><span class="no">03 / 03</span><h3>Loaded, not stingy.</h3><p>Liver, chicharon, kikiam, egg — piled in with a generous hand. A lomi bowl should feel like a gift, not a portion. That's why the panlaban is our proudest order.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>BOWL 04 / HOW IT GOES</span><span>PICK · LOAD · SEASON · DIG IN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Pick your bowl</h3><p>Regular lomi, extra-large, or the full panlaban with everything in it. New to lomi? Start classic; you can always graduate to the loaded bowl once you understand what you're dealing with.</p></li>
+      <li><span class="step">STEP 02</span><h3>Load your toppings</h3><p>Extra egg, extra chicharon, quail eggs, more liver — build it up however hungry you are. Tell us at the counter and we'll pile it in before the egg goes on.</p></li>
+      <li><span class="step">STEP 03</span><h3>Season it your way</h3><p>Kalamansi to cut the richness, chilli-garlic for heat, a splash of soy, black pepper — the condiment tray is yours. Real lomi eating is a little ritual; take your time.</p></li>
+      <li><span class="step">STEP 04</span><h3>Dig in while it's hot</h3><p>Lomi waits for no one — it thickens as it cools, so eat it hot and fast. Leaning over the bowl is encouraged. For later, take it away with broth and noodles packed apart.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>BOWL 05 / FROM THE TABLES</span><span>THE FIRST STOP IN LIPA</span></div>
+    <blockquote class="t-quote">“The gravy is exactly right — thick, deep, not gluey — and the panlaban is a <em>religious experience.</em>”</blockquote>
+    <div class="t-attr">Ronnel A. — Lipa native, weekly</div>
+    <div class="t-sub">
+      <figure><blockquote>“My barkada ends every night out here for the panlaban lomi. It has cured hangovers that had no business being cured. Cheap, hot, enormous, and open when we need it most. The extra-egg-and-chicharon bowl is elite. Lomi King forever.”</blockquote><figcaption>Trixie D. — regular, the 2am crowd</figcaption></figure>
+      <figure><blockquote>“Ordered family tubs for a rainy Sunday reunion and it fed everyone twice over. Broth packed separate so the noodles were perfect, generous with the toppings, and my lolo — a lomi purist — actually approved. That's the highest praise there is.”</blockquote><figcaption>The Marasigan family — bulk order</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--cream);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:rgba(36,16,9,0.16);"><span>BOWL 06 / FROM THE KAWALI</span><span>THICK, HOT &amp; HONEST</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1600&q=85&auto=format&fit=crop" alt="A steaming bowl of thick noodle soup." /><figcaption>THE LOMI</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1547928576-b822bc410bdf?w=1600&q=85&auto=format&fit=crop" alt="Noodles topped with a soft egg." /><figcaption>THE EGG</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1552611052-33e04de081de?w=1600&q=85&auto=format&fit=crop" alt="A rich broth simmering in a pot." /><figcaption>THE BROTH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1585032226651-759b368d7246?w=1600&q=85&auto=format&fit=crop" alt="A bowl garnished with toppings." /><figcaption>THE LOAD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1512058564366-18510be2db19?w=1600&q=85&auto=format&fit=crop" alt="Condiments on the table." /><figcaption>THE TRAY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="The busy tables of the lomihan." /><figcaption>THE TABLES</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>BOWL 07 / GOOD TO KNOW</span><span>THE DISH, THE LOAD &amp; THE HOURS</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63435550204" style="color:var(--gravy);font-weight:700;">(043) 555 0204</a>. Or just come by; the bowl explains itself.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What exactly is Batangas lomi?</summary><p>Lomi is a noodle dish that Batangas has made entirely its own — thick, fresh egg noodles served in a broth that's been thickened, usually with starch and enriched with a beaten egg, until it's less a soup and more a rich, glossy gravy that coats every strand. Into that go the toppings that make it a full meal: liver, pork, chicharon crushed on top for crunch, kikiam, fish or meatballs, sometimes quail eggs, and always a raw egg beaten through at the end so it cooks in the heat of the bowl. It is hearty, heavy and unapologetically filling — nobody eats lomi to stay light. The Batangas lomihan style is its own tradition, and around Lipa it's practically a food group. If you've only had thin, watery 'lomi' before, a proper Batangas bowl is a revelation.</p></details>
+        <details><summary>What's the difference between the classic and the panlaban bowl?</summary><p>The classic lomi is the real, complete thing already — thick noodles, rich gravy-broth, liver, pork, kikiam and egg, a genuinely filling meal on its own. The 'panlaban' bowl is the loaded, maxed-out version, and the name says it all: panlaban roughly means 'for fighting,' the bowl you order when you're seriously hungry, nursing a hangover, or out to prove something. It piles on extra liver, extra chicharon, meatballs, kikiam, quail eggs and a double dose of egg. If you're new to lomi, start with the classic to learn the dish; it's more than enough for most appetites. Once you know you love it, the panlaban is waiting. Either way you can add individual toppings to build the exact bowl you want.</p></details>
+        <details><summary>Why does the broth get so thick, and is that normal?</summary><p>Yes, that thickness is the whole point and the mark of a proper Batangas lomi — if it's watery, something's gone wrong. The broth is simmered long for depth, then deliberately thickened so it becomes a rich, spoon-coating gravy, and the beaten egg stirred through at the end adds body. One thing to know: lomi keeps thickening as it cools, which is exactly why we tell everyone to eat it hot and reasonably fast — a bowl left to sit will set up almost like a stew. That's not a fault, it's the nature of the dish, and many regulars love those last thick spoonfuls. If you prefer yours looser, tell us and we can adjust, and if you're taking it away we pack broth and noodles separately so it reheats perfectly.</p></details>
+        <details><summary>Do you have lighter options if lomi is too heavy?</summary><p>Yes — while lomi is our headline and our pride, we know it's a serious, heavy bowl, so the menu has gentler choices. Mami is our clear, clean noodle soup, comforting without the gravy weight; pancit lomi is the same thick noodles tossed rather than drowned in broth; and goto and arroz caldo are warming rice porridges, lighter on the stomach and perfect for a rainy day. You can also just order a regular lomi rather than the panlaban and skip the heaviest toppings. And there are sides — tokwa't baboy, lumpia — if you want to graze rather than commit to a full bowl. Tell us how hungry you are and we'll steer you right; not every visit has to be a panlaban.</p></details>
+        <details><summary>Can I order lomi for take-out or a big group?</summary><p>Absolutely. Take-out is a big part of what we do — the key is that we pack the broth and the noodles separately, because if they sit together in transit the noodles soak up the gravy and lose their bounce. Kept apart, you just combine and reheat at home and it's as good as in the shop. For groups we sell lomi by the family tub, with the components packed to travel, which is popular for rainy Sundays, reunions and office merienda. Give us a rough headcount and a little notice for large bulk orders so we can have the broth ready. Whether it's one bowl for the road or a tub for twelve, the lomi that leaves here is the same lomi we'd serve you at the table.</p></details>
+        <details><summary>What are your hours — are you open late?</summary><p>We open through the day and run into the evening, seven days a week, keeping the kawali going late because a thick, hot bowl is exactly what's wanted after a long shift, a night out, or on a cold, wet Batangas evening. The lunch and merienda stretches are busiest, and weekends bring the family crowd, so if you want a quieter table come a little off-peak; if you want the full lomihan atmosphere, come when it's packed. Exact hours are kept live on our Google Business Profile, so check there before a late-night run. And if you're bringing a big group or want a bulk take-out order ready at a specific time, message us ahead and we'll have it waiting.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BOWL 08 / WE FEED</span><span>BATANGAS</span></div>
+    <ul class="area-list">
+      <li>Lipa City</li><li>Tanauan</li><li>Batangas City</li><li>Sto. Tomas</li><li>Batangas</li><li>Take-out &amp; bulk</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BOWL 09 / THE ESSENTIALS</span><span>HOW WE LADLE</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2008</div><div class="detail">A dedicated lomihan in Lipa</div></div>
+      <div><div class="label">The broth</div><div class="detail">Long-simmered, hand-thickened, deep</div></div>
+      <div><div class="label">Thick noodles</div><div class="detail">Fresh egg noodles that hold up</div></div>
+      <div><div class="label">Panlaban</div><div class="detail">Loaded bowls, generous hands</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BOWL 10 / THE LOMIHAN</span><span>C.M. RECTO AVE, LIPA</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Lomi King</strong><br />
+          77 C.M. Recto Ave<br />
+          Lipa City, Batangas 4217<br /><br />
+          <a href="tel:+63435550204" data-bind="business.phoneDisplay">(043) 555 0204</a><br />
+          <a href="mailto:kumain@lomiking.ph" data-bind="business.email">kumain@lomiking.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>DAILY</span><span>8AM – 10PM</span></div>
+          <div class="row"><span>KITCHEN</span><span>TILL LATE</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on C.M. Recto near the city centre — look for the steam and the full tables. Bulk take-out, message ahead.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Lomi King, Lipa City" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=121.1472%2C13.9311%2C121.1772%2C13.9511&layer=mapnik&marker=13.9411%2C121.1622"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">BOWL 11 / COME EAT</div>
+    <h2 data-bind="cta.heading">Come hungry. Leave defeated by a <em>bowl.</em></h2>
+    <p data-bind="cta.body">Thick Batangas lomi in a gravy you can stand a spoon in — classic or panlaban-loaded, plus goto, mami and family tubs to take home. The bowl that cures everything, in Lipa since 2008.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Find the lomihan</a>
+      <a class="btn btn-ghost" href="tel:+63435550204" data-bind="cta.secondary.label">(043) 555 0204</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63435550204" data-bind="messaging.whatsapp" aria-label="Message the lomihan">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Lomi <span style="color:var(--gravy);font-style:italic;font-weight:500;">King</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A lomihan in Lipa City, Batangas — thick, hand-thickened lomi loaded with everything, since 2008.</p>
+      </div>
+      <div>
+        <h4>The lomihan</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          77 C.M. Recto Ave<br />Lipa City, Batangas 4217<br />
+          <a href="tel:+63435550204">(043) 555 0204</a><br />
+          <a href="mailto:kumain@lomiking.ph">kumain@lomiking.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The bowl</a><a href="#about">The lomihan</a><a href="#location">Find us</a><a href="#book">Order</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> LOMI KING</span>
+      <span>THICK · HOT · PANLABAN · LIPA</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

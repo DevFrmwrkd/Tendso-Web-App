@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Heel &amp; Last — shoe repair &amp; leather workshop in Durham</title>
+<meta name="description" content="Heel &amp; Last is a traditional shoe repair workshop in Durham — resoles, heels, welted repairs, leather care and key cutting, done at the bench in the window since 1978." />
+<link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Karla:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Spline+Sans+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Heel & Last", phone: "+44 191 384 2217", phoneDisplay: "0191 384 2217", email: "bench@heelandlast.co.uk", foundedYear: 1978 },
+  hero: {
+    kicker: "Shoe repair · leather work · Saddler Street, Durham · est. 1978",
+    headline: "Buy good shoes once. Bring them here forever.",
+    lede: "Three generations at the same bench in the same window. Resoles, heels, welted repairs, stitching, stretching, dyeing — and the honest verdict on whether your shoes deserve it. (They usually do. That's why you're carrying them.)",
+    primaryCta: { label: "The price of forever", href: "#services" },
+    secondaryCta: { label: "Find the bench", href: "#location" },
+    image: "https://images.unsplash.com/photo-1449505278894-297fdb3edbc1?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Well-worn leather brogues on the cobbler's bench."
+  },
+  trust: { years: "At the bench since 1978" },
+  about: {
+    heading: "The bench in the window.",
+    paragraphs: [
+      "Heel & Last opened in 1978 when Jim Aldred put his bench in the window of a shop on Saddler Street — on the theory, correct for forty-seven years now, that people trust a repair they can watch. His daughter runs the bench today; his grandson runs the stitching machine and the socials, in that order of importance.",
+      "The work hasn't changed: rip it back to what's sound, rebuild with materials at least as good as the factory used, and hand it back better balanced than it arrived. Oak-bark-tanned leather for the soles that earn it, proper rubber for the weather this city actually has.",
+      "The window bench also produces the shop's favourite genre of moment: someone collecting shoes they'd written off, turning them over twice, and asking if we've swapped them for new ones. We have not. That's the job."
+    ],
+    portrait: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Cobbler working leather at the bench."
+  },
+  services: [
+    { name: "Sole & heel, done right", description: "Stitched or bonded to match how the shoe was born. Oak-bark leather or rubber compounds we'd wear ourselves. Balanced, finished, waxed." },
+    { name: "Welted & handmade repairs", description: "Goodyear and hand-welted work — the repairs most high streets send away, done at this bench with the welt respected." },
+    { name: "Stretching, dyeing & rescue", description: "Too tight, wrong colour, rain-ruined, dog-visited. Most 'beyond saving' shoes aren't; bring them in before you grieve." },
+    { name: "Boots, bags & leather goods", description: "Zips replaced, straps stitched, satchels revived. If it's leather and it mattered enough to carry in, it's our problem now." },
+    { name: "Care counter", description: "The polish wall, the right brushes, and a free five-minute lesson with any purchase. Shoe trees that will outlive the government." },
+    { name: "Keys, while you watch", description: "Yes, cobblers cut keys — ours since 1981, on the machine by the door. Two minutes, done properly, no drama." }
+  ],
+  why: [
+    { title: "Repair over replace, on principle.", body: "A £180 resole on £400 shoes beats £400 of new shoes every time — better leather, broken in, and yours. We'll tell you when that maths fails, too." },
+    { title: "Factory-grade or better.", body: "Oak-bark-tanned soles, proper welting thread, heels balanced to your wear pattern. The repair should outlast the original. It usually does." },
+    { title: "Watch it happen.", body: "The bench has been in the window since 1978. No send-away, no mystery middleman — the person who quotes your job is the person holding the knife." }
+  ],
+  how: [
+    { step: "01", title: "Bring them in", body: "No appointment. Plonk them on the counter, tell us what they've been through. We've heard worse." },
+    { step: "02", title: "The verdict", body: "What's sound, what's gone, what it costs, whether it's worth it. Written on the ticket, honoured to the penny." },
+    { step: "03", title: "The bench", body: "Ripped back, rebuilt, rebalanced, refinished. Watch through the window; we're used to the audience." },
+    { step: "04", title: "The reveal", body: "Collect with the ticket stub. Turn them over twice. Ask if we've swapped them. We haven't." }
+  ],
+  testimonials: [
+    { quote: "I brought in my late father's brogues as a sentimental long-shot. They came back ready for another thirty years, and I wore them to my daughter's wedding. Some shops fix shoes. This one fixed something else.", name: "Michael D.", context: "welted resole, inherited brogues" },
+    { quote: "Fifteen-year-old boots, resoled twice here now. Each time they come back better balanced than I remember them ever being. I've stopped even looking at new boots.", name: "Sarah P.", context: "boots, second resole" },
+    { quote: "They talked me OUT of a repair — 'these weren't built to be fixed, spend the money on ones that are' — then showed me what to look for. I did. Those ones are on their first resole now.", name: "James L.", context: "converted to buy-once" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1449505278894-297fdb3edbc1?w=1600&q=85&auto=format&fit=crop", alt: "Brogues on the bench." },
+    { src: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=1600&q=85&auto=format&fit=crop", alt: "Working leather at the bench." },
+    { src: "https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1600&q=85&auto=format&fit=crop", alt: "A leather satchel, carried in for repair." },
+    { src: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=1600&q=85&auto=format&fit=crop", alt: "Boots, rebuilt and paired." },
+    { src: "https://images.unsplash.com/photo-1542840410-3092f99611a3?w=1600&q=85&auto=format&fit=crop", alt: "Finished pair, ready for collection." },
+    { src: "https://images.unsplash.com/photo-1560343090-f0409e92791a?w=1600&q=85&auto=format&fit=crop", alt: "The care counter's polish wall." }
+  ],
+  faq: [
+    { q: "Are my shoes worth repairing?", a: "Bring them in for the free verdict. Rule of thumb: welted or stitched construction, yes, almost always; glued fashion shoes, sometimes; anything with a cardboard midsole, we'll say so kindly and tell you what to buy instead." },
+    { q: "How long does a resole take?", a: "Heels while you wait or same day. Full resoles about a week; welted work up to two, because the welt sets the pace and we don't rush welts. The ticket carries a real date." },
+    { q: "How much will it cost?", a: "Quoted on sight, written on the ticket, honoured to the penny. Heels are a coffee-and-cake sum; full welted resoles are a serious-shoes sum. Either way it's a fraction of replacing anything worth repairing." },
+    { q: "Can you save suede / rain damage / dog incidents?", a: "Usually. Suede revives better than people fear, salt lines lift, and we have seen and reversed every category of dog incident. The only true fatalities are cracked-through soles on glued construction — and even then, ask." },
+    { q: "Do you do while-you-wait?", a: "Heels, taps, stretching tweaks and keys, yes — there's a chair and the paper. Bigger jobs deserve bench time; the window seat is for watching, not waiting." },
+    { q: "Why should I buy welted shoes?", a: "Because they're the last shoes you'll need to buy — everything on them can be renewed from this bench, for decades. Come in and we'll show you on a cutaway shoe what your money actually buys. No brand allegiance; construction is the religion here." }
+  ],
+  area: { places: ["Durham", "Framwellgate Moor", "Chester-le-Street", "Bishop Auckland", "Consett", "Spennymoor"] },
+  credentials: [
+    { label: "Est.", detail: "Same bench, same window, since 1978" },
+    { label: "Guild", detail: "Society of Master Shoe Repairers" },
+    { label: "Materials", detail: "Oak-bark-tanned leather, proper compounds" },
+    { label: "Guarantee", detail: "Six months on every repair, in writing" }
+  ],
+  location: { name: "Heel & Last", addressStreet: "9 Saddler Street", addressLocality: "Durham", addressRegion: "County Durham", addressPostcode: "DH1 3NP", addressCountry: "United Kingdom" },
+  cta: { heading: "Your shoes aren't done. They're due.", body: "No appointment. Plonk them on the counter and get the verdict — free, honest, occasionally life-extending.", primary: { label: "Find the bench", href: "#location" }, secondary: { label: "0191 384 2217", href: "tel:+441913842217" } },
+  messaging: { whatsapp: "https://wa.me/441913842217", messenger: "https://m.me/heelandlast" }
+};
+</script>
+
+<style>
+  :root {
+    --cream:#f1e8d8; --oxblood:#5e1420; --tan:#b97b43; --ink:#26160f;
+    --stitch:#d8a44a; --mid:#8a7462; --rule:rgba(38,22,15,0.18);
+    --display:"Abril Fatface",serif; --sans:"Karla",sans-serif; --mono:"Spline Sans Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--oxblood);}
+  .wrap{width:min(1280px,94vw);margin-inline:auto;}
+  .stub{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--oxblood);font-weight:600;}
+  .h2{font-family:var(--display);font-weight:400;font-size:clamp(38px,5.6vw,86px);line-height:0.98;letter-spacing:0;margin:0 0 0.45em;}
+  .h2 em{font-style:italic;color:var(--oxblood);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(72px,9vw,130px) 0;position:relative;}
+  /* stitched rule device */
+  .stitchline{border:0;border-top:3px dashed var(--stitch);margin:0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--sans);font-weight:700;font-size:14px;letter-spacing:0.04em;text-transform:uppercase;text-decoration:none;transition:0.15s;}
+  .btn-primary{background:var(--oxblood);color:var(--cream);} .btn-primary:hover{background:var(--ink);}
+  .btn-ghost{border:2px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--cream);}
+  .ticket-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);border-bottom:3px dashed var(--stitch);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:600;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(241,232,216,0.95);backdrop-filter:blur(10px);border-bottom:3px dashed var(--stitch);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--display);font-size:21px;text-decoration:none;}
+  .wm span{color:var(--oxblood);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:600;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — repair-ticket poster: giant Abril + punched ticket over the photo */
+  .hero{padding:clamp(48px,6vw,92px) 0 0;}
+  .hero .kicker-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);font-weight:600;}
+  .hero .kicker-row b{color:var(--oxblood);}
+  .hero h1{font-family:var(--display);font-weight:400;line-height:0.94;margin:26px 0 0;font-size:clamp(52px,8.8vw,150px);letter-spacing:-0.005em;max-width:11ch;}
+  .hero h1 em{font-style:italic;color:var(--oxblood);}
+  .hero-under{display:grid;grid-template-columns:0.95fr 1.05fr;gap:clamp(30px,5vw,80px);align-items:end;margin-top:clamp(30px,4vw,56px);}
+  .hero-under .lede{font-size:clamp(16px,1.55vw,19.5px);line-height:1.62;color:var(--ink);max-width:46ch;font-weight:500;}
+  .hero-ctas{margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/11;object-fit:cover;border:3px solid var(--ink);}
+  .repair-ticket{position:absolute;top:-26px;right:22px;background:#fff8ea;border:2px solid var(--ink);padding:16px 18px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;line-height:1.9;text-transform:uppercase;font-weight:600;transform:rotate(2.5deg);box-shadow:0 14px 30px rgba(38,22,15,0.2);}
+  .repair-ticket::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--cream);border:2px solid var(--ink);}
+  .repair-ticket .no{font-family:var(--display);font-size:24px;letter-spacing:0;color:var(--oxblood);display:block;text-align:center;margin-top:10px;}
+  .repair-ticket .hd{color:var(--oxblood);letter-spacing:0.16em;display:block;text-align:center;margin-top:8px;}
+  @media(max-width:820px){.hero-under{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--ink);color:var(--cream);margin-top:clamp(48px,6vw,80px);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(241,232,216,0.75);font-weight:600;}
+
+  /* ABOUT — oxblood chapter */
+  .about{background:var(--oxblood);color:var(--cream);}
+  .about .h2{color:var(--cream);}
+  .about .h2 em{color:var(--stitch);}
+  .about .ticket-head{border-color:rgba(216,164,74,0.6);color:rgba(241,232,216,0.65);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-grid .photo{position:relative;padding:12px;border:3px dashed var(--stitch);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  .about-prose p{font-size:clamp(16.5px,1.6vw,19.5px);line-height:1.72;margin:0 0 1em;color:rgba(241,232,216,0.92);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — the price board: ticket stubs with punched holes */
+  .stubs{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .stub-card{background:#fff8ea;border:2px solid var(--ink);padding:clamp(24px,2.8vw,34px) clamp(22px,2.6vw,30px) clamp(22px,2.6vw,28px);position:relative;transition:0.18s;}
+  .stub-card::before{content:"";position:absolute;top:14px;right:14px;width:13px;height:13px;border-radius:50%;background:var(--cream);border:2px solid var(--ink);}
+  .stub-card::after{content:"";position:absolute;left:0;right:0;bottom:44px;border-top:2px dashed var(--rule);}
+  .stub-card:hover{transform:rotate(-1deg) translateY(-4px);box-shadow:0 16px 34px rgba(38,22,15,0.16);}
+  .stub-card .jobno{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;color:var(--oxblood);display:block;margin-bottom:12px;text-transform:uppercase;font-weight:600;}
+  .stub-card h3{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 8px;line-height:1.1;}
+  .stub-card p{color:var(--mid);margin:0 0 28px;font-size:14px;line-height:1.62;}
+  .stub-card .keep{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:8.5px;letter-spacing:0.24em;color:var(--mid);text-transform:uppercase;}
+  @media(max-width:900px){.stubs{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.stubs{grid-template-columns:1fr;}}
+
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,64px);}
+  .why-grid .num{font-family:var(--display);font-size:clamp(64px,7vw,104px);line-height:0.9;color:var(--tan);display:block;margin-bottom:16px;}
+  .why-grid h3{font-family:var(--display);font-weight:400;font-size:23px;margin:0 0 10px;line-height:1.12;}
+  .why-grid p{color:var(--mid);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how{background:#e6d9c0;}
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px dashed var(--stitch);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;color:var(--oxblood);text-transform:uppercase;font-weight:600;}
+  .how-grid h3{font-family:var(--display);font-weight:400;font-size:20px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--ink);color:var(--cream);}
+  .testimonials .ticket-head{border-color:rgba(216,164,74,0.5);color:rgba(241,232,216,0.55);}
+  .t-quote{font-family:var(--display);font-weight:400;font-size:clamp(26px,3.8vw,56px);line-height:1.08;max-width:26ch;margin:0 0 24px;}
+  .t-quote em{font-style:italic;color:var(--stitch);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(241,232,216,0.55);margin-bottom:clamp(40px,5vw,64px);font-weight:600;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:3px dashed var(--stitch);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.7;margin:0 0 12px;color:rgba(241,232,216,0.85);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(241,232,216,0.5);font-weight:600;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — before/after wall, leather-tinted */
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(12px,1.6vw,20px);}
+  .g-grid figure{margin:0;border:3px solid var(--ink);position:relative;overflow:hidden;background:var(--ink);}
+  .g-grid img{width:100%;height:100%;object-fit:cover;filter:sepia(0.28) contrast(1.05);transition:0.3s;}
+  .g-grid figure:hover img{filter:none;}
+  .g-grid figure:nth-child(1){grid-column:span 4;} .g-grid figure:nth-child(1) img{aspect-ratio:16/9;}
+  .g-grid figure:nth-child(2){grid-column:span 2;} .g-grid figure:nth-child(2) img{aspect-ratio:8/9.05;}
+  .g-grid figure:nth-child(n+3){grid-column:span 2;} .g-grid figure:nth-child(n+3) img{aspect-ratio:4/3;}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--ink);color:var(--stitch);font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;padding:6px 10px;font-weight:600;}
+  @media(max-width:760px){.g-grid figure{grid-column:span 6 !important;} .g-grid figure img{aspect-ratio:4/3 !important;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:2px dashed var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:3px dashed var(--stitch);}
+  .faq-list summary{font-family:var(--display);font-weight:400;font-size:20px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.15;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"✂";color:var(--oxblood);flex-shrink:0;font-size:16px;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(-45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:11px 20px;border:2px solid var(--ink);background:#fff8ea;font-weight:600;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px dashed var(--stitch);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--oxblood);margin-bottom:8px;font-weight:600;}
+  .creds .detail{font-family:var(--display);font-size:16.5px;line-height:1.3;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff8ea;border:2px solid var(--ink);padding:34px;position:relative;}
+  .nap::before{content:"";position:absolute;top:12px;right:12px;width:13px;height:13px;border-radius:50%;background:var(--cream);border:2px solid var(--ink);}
+  .nap address{font-style:normal;font-family:var(--display);font-size:19px;line-height:1.4;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:2px dashed var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:600;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border:2px solid var(--ink);filter:sepia(0.4);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  /* CTA — oxblood shout with stitched frame */
+  .cta-band{background:var(--oxblood);color:var(--cream);padding:clamp(90px,11vw,160px) 0;}
+  .cta-band .inner{border:3px dashed var(--stitch);padding:clamp(36px,5vw,72px);}
+  .cta-band h2{font-family:var(--display);font-weight:400;font-size:clamp(42px,7.4vw,120px);line-height:0.94;margin:14px 0 22px;max-width:14ch;}
+  .cta-band h2 em{font-style:italic;color:var(--stitch);}
+  .cta-band p{color:rgba(241,232,216,0.85);max-width:46ch;margin:0 0 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--stitch);color:var(--ink);}
+  .cta-band .btn-primary:hover{background:var(--cream);}
+  .cta-band .btn-ghost{border-color:var(--cream);color:var(--cream);}
+  .cta-band .btn-ghost:hover{background:var(--cream);color:var(--oxblood);}
+
+  footer{background:var(--cream);border-top:3px dashed var(--stitch);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--oxblood);margin:0 0 14px;font-weight:600;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:2px dashed var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:600;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--oxblood);color:var(--cream);padding:14px 20px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;box-shadow:0 8px 26px rgba(94,20,32,0.35);}
+  .msg-fab a:hover{background:var(--ink);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Heel & Last","description":"Traditional shoe repair and leather workshop on Saddler Street, Durham. Resoles, welted repairs, leather care and key cutting since 1978.","url":"https://heelandlast.co.uk/","telephone":"+441913842217","email":"bench@heelandlast.co.uk","address":{"@type":"PostalAddress","streetAddress":"9 Saddler Street","addressLocality":"Durham","addressRegion":"County Durham","postalCode":"DH1 3NP","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":54.7753,"longitude":-1.5760},"areaServed":["Durham","Chester-le-Street","Bishop Auckland","County Durham"],"image":["https://images.unsplash.com/photo-1449505278894-297fdb3edbc1?w=1600"],"foundingDate":"1978"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Are my shoes worth repairing?","acceptedAnswer":{"@type":"Answer","text":"Bring them in for the free verdict. Welted or stitched: almost always. Cardboard midsole: we'll say so kindly."}},
+{"@type":"Question","name":"How long does a resole take?","acceptedAnswer":{"@type":"Answer","text":"Heels same day; full resoles about a week; welted work up to two. The ticket carries a real date."}},
+{"@type":"Question","name":"How much will it cost?","acceptedAnswer":{"@type":"Answer","text":"Quoted on sight, written on the ticket, honoured to the penny."}},
+{"@type":"Question","name":"Can you save suede / rain damage / dog incidents?","acceptedAnswer":{"@type":"Answer","text":"Usually. Bring them in before you grieve."}},
+{"@type":"Question","name":"Do you do while-you-wait?","acceptedAnswer":{"@type":"Answer","text":"Heels, taps, stretching tweaks and keys, yes — there's a chair and the paper."}},
+{"@type":"Question","name":"Why should I buy welted shoes?","acceptedAnswer":{"@type":"Answer","text":"Everything on them can be renewed from this bench for decades. Construction is the religion here."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Heel <span>&amp;</span> Last</a>
+    <nav class="nav-links">
+      <a href="#services">The price board</a><a href="#about">The bench</a><a href="#location">Find us</a><a href="#visit">Verdict</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v43">
+  <div class="wrap">
+    <div class="kicker-row"><span data-bind="hero.kicker">Shoe repair · leather work · Saddler Street, Durham · est. 1978</span><b>TICKET № 12,408 AND COUNTING</b></div>
+    <h1 data-comment-anchor="hero-headline">Buy good shoes once. <em>Bring them here forever.</em></h1>
+    <div class="hero-under">
+      <div>
+        <p class="lede" data-bind="hero.lede">Three generations at the same bench in the same window. Resoles, heels, welted repairs, stitching, stretching, dyeing — and the honest verdict on whether your shoes deserve it. (They usually do. That's why you're carrying them.)</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">The price of forever</a>
+          <a class="btn btn-ghost" href="#location" data-bind="hero.secondaryCta.label">Find the bench</a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1449505278894-297fdb3edbc1?w=2000&q=85&auto=format&fit=crop"
+             alt="Well-worn leather brogues on the cobbler's bench." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+        <div class="repair-ticket">
+          <span class="no">№ 12408</span>
+          <span class="hd">WELTED RESOLE</span>
+          READY: THURSDAY<br />KEEP THIS STUB
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the bench since 1978</span>
+    <span>Three generations</span>
+    <span>Master Shoe Repairers</span>
+    <span>Six-month written guarantee</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v9">
+  <div class="wrap">
+    <div class="ticket-head"><span>STUB 01 / THE SHOP</span><span>SADDLER STREET, APTLY</span></div>
+    <div class="about-grid">
+      <div class="photo">
+        <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+             src="https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=1200&q=85&auto=format&fit=crop"
+             alt="Cobbler working leather at the bench." />
+      </div>
+      <div class="about-prose">
+        <h2 class="h2">The bench <em>in the window.</em></h2>
+        <p>Heel &amp; Last opened in 1978 when Jim Aldred put his bench in the window of a shop on Saddler Street — on the theory, correct for forty-seven years now, that people trust a repair they can watch. His daughter runs the bench today; his grandson runs the stitching machine and the socials, in that order of importance.</p>
+        <p>The work hasn't changed: rip it back to what's sound, rebuild with materials at least as good as the factory used, and hand it back better balanced than it arrived. Oak-bark-tanned leather for the soles that earn it, proper rubber for the weather this city actually has.</p>
+        <p>The window bench also produces the shop's favourite genre of moment: someone collecting shoes they'd written off, turning them over twice, and asking if we've swapped them for new ones. We have not. That's the job.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v36">
+  <div class="wrap">
+    <div class="ticket-head"><span>STUB 02 / THE PRICE BOARD</span><span>QUOTED ON SIGHT · HONOURED TO THE PENNY</span></div>
+    <h2 class="h2">Tear off <em>a ticket.</em></h2>
+    <div class="stubs">
+      <div class="stub-card"><span class="jobno">JOB № 01</span><h3>Sole &amp; heel, done right</h3><p>Stitched or bonded to match how the shoe was born. Oak-bark leather or rubber compounds we'd wear ourselves. Balanced, finished, waxed.</p><span class="keep">· KEEP THIS STUB ·</span></div>
+      <div class="stub-card"><span class="jobno">JOB № 02</span><h3>Welted &amp; handmade repairs</h3><p>Goodyear and hand-welted work — the repairs most high streets send away, done at this bench with the welt respected.</p><span class="keep">· KEEP THIS STUB ·</span></div>
+      <div class="stub-card"><span class="jobno">JOB № 03</span><h3>Stretching, dyeing &amp; rescue</h3><p>Too tight, wrong colour, rain-ruined, dog-visited. Most "beyond saving" shoes aren't; bring them in before you grieve.</p><span class="keep">· KEEP THIS STUB ·</span></div>
+      <div class="stub-card"><span class="jobno">JOB № 04</span><h3>Boots, bags &amp; leather goods</h3><p>Zips replaced, straps stitched, satchels revived. If it's leather and it mattered enough to carry in, it's our problem now.</p><span class="keep">· KEEP THIS STUB ·</span></div>
+      <div class="stub-card"><span class="jobno">JOB № 05</span><h3>Care counter</h3><p>The polish wall, the right brushes, and a free five-minute lesson with any purchase. Shoe trees that will outlive the government.</p><span class="keep">· KEEP THIS STUB ·</span></div>
+      <div class="stub-card"><span class="jobno">JOB № 06</span><h3>Keys, while you watch</h3><p>Yes, cobblers cut keys — ours since 1981, on the machine by the door. Two minutes, done properly, no drama.</p><span class="keep">· KEEP THIS STUB ·</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section data-component="WHY-US" data-variant="v8">
+  <div class="wrap">
+    <div class="ticket-head"><span>STUB 03 / THE ARGUMENT</span><span>NAILED TO THE WALL SINCE '78</span></div>
+    <h2 class="h2">Why repair <em>wins.</em></h2>
+    <div class="why-grid">
+      <div><span class="num">1</span><h3>Repair over replace, on principle.</h3><p>A £180 resole on £400 shoes beats £400 of new shoes every time — better leather, broken in, and yours. We'll tell you when that maths fails, too.</p></div>
+      <div><span class="num">2</span><h3>Factory-grade or better.</h3><p>Oak-bark-tanned soles, proper welting thread, heels balanced to your wear pattern. The repair should outlast the original. It usually does.</p></div>
+      <div><span class="num">3</span><h3>Watch it happen.</h3><p>The bench has been in the window since 1978. No send-away, no mystery middleman — the person who quotes your job is the person holding the knife.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section class="how" data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="ticket-head"><span>STUB 04 / HOW IT GOES</span><span>COUNTER → BENCH → REVEAL</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Bring them in</h3><p>No appointment. Plonk them on the counter, tell us what they've been through. We've heard worse.</p></li>
+      <li><span class="step">STEP 02</span><h3>The verdict</h3><p>What's sound, what's gone, what it costs, whether it's worth it. Written on the ticket, honoured to the penny.</p></li>
+      <li><span class="step">STEP 03</span><h3>The bench</h3><p>Ripped back, rebuilt, rebalanced, refinished. Watch through the window; we're used to the audience.</p></li>
+      <li><span class="step">STEP 04</span><h3>The reveal</h3><p>Collect with the ticket stub. Turn them over twice. Ask if we've swapped them. We haven't.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v8">
+  <div class="wrap">
+    <div class="ticket-head"><span>STUB 05 / COLLECTED WITH THANKS</span><span>SAID AT THE COUNTER</span></div>
+    <blockquote class="t-quote">“Some shops fix shoes. <em>This one fixed something else.</em>”</blockquote>
+    <div class="t-attr">Michael D. — welted resole, his late father's brogues, worn to a wedding</div>
+    <div class="t-sub">
+      <figure><blockquote>“Fifteen-year-old boots, resoled twice here now. Each time they come back better balanced than I remember them ever being. I've stopped even looking at new boots.”</blockquote><figcaption>Sarah P. — boots, second resole</figcaption></figure>
+      <figure><blockquote>“They talked me OUT of a repair — ‘these weren't built to be fixed, spend the money on ones that are’ — then showed me what to look for. Those ones are on their first resole now.”</blockquote><figcaption>James L. — converted to buy-once</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v36">
+  <div class="wrap">
+    <div class="ticket-head"><span>STUB 06 / THE WINDOW</span><span>WHAT THE STREET SEES</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1449505278894-297fdb3edbc1?w=1600&q=85&auto=format&fit=crop" alt="Brogues on the bench." /><figcaption>ARRIVALS, MONDAY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=1600&q=85&auto=format&fit=crop" alt="Working leather at the bench." /><figcaption>THE BENCH, WORKING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1600&q=85&auto=format&fit=crop" alt="Tools of the trade." /><figcaption>LEATHER, CARRIED IN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=1600&q=85&auto=format&fit=crop" alt="Boots rebuilt and paired." /><figcaption>REBUILT, PAIRED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1542840410-3092f99611a3?w=1600&q=85&auto=format&fit=crop" alt="Finished pair, ready for collection." /><figcaption>READY FOR THE REVEAL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1560343090-f0409e92791a?w=1600&q=85&auto=format&fit=crop" alt="The polish wall." /><figcaption>THE POLISH WALL</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="ticket-head"><span>STUB 07 / ASKED AT THE COUNTER</span><span>SHOES IN HAND</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the counter.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441913842217" style="color:var(--oxblood);font-weight:700;">0191 384 2217</a>. If the stitcher's running we'll hear you second try.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Are my shoes worth repairing?</summary><p>Bring them in for the free verdict. Rule of thumb: welted or stitched construction, yes, almost always; glued fashion shoes, sometimes; anything with a cardboard midsole, we'll say so kindly and tell you what to buy instead.</p></details>
+        <details><summary>How long does a resole take?</summary><p>Heels while you wait or same day. Full resoles about a week; welted work up to two, because the welt sets the pace and we don't rush welts. The ticket carries a real date.</p></details>
+        <details><summary>How much will it cost?</summary><p>Quoted on sight, written on the ticket, honoured to the penny. Heels are a coffee-and-cake sum; full welted resoles are a serious-shoes sum. Either way it's a fraction of replacing anything worth repairing.</p></details>
+        <details><summary>Can you save suede / rain damage / dog incidents?</summary><p>Usually. Suede revives better than people fear, salt lines lift, and we have seen and reversed every category of dog incident. The only true fatalities are cracked-through soles on glued construction — and even then, ask.</p></details>
+        <details><summary>Do you do while-you-wait?</summary><p>Heels, taps, stretching tweaks and keys, yes — there's a chair and the paper. Bigger jobs deserve bench time; the window seat is for watching, not waiting.</p></details>
+        <details><summary>Why should I buy welted shoes?</summary><p>Because they're the last shoes you'll need to buy — everything on them can be renewed from this bench, for decades. Come in and we'll show you on a cutaway shoe what your money actually buys. No brand allegiance; construction is the religion here.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ticket-head"><span>STUB 08 / SHOES WALK IN FROM</span><span>COUNTY DURHAM &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Durham</li><li>Framwellgate Moor</li><li>Chester-le-Street</li><li>Bishop Auckland</li><li>Consett</li><li>Spennymoor</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ticket-head"><span>STUB 09 / THE PAPERWORK</span><span>WAX-THUMBED, VALID</span></div>
+    <div class="creds">
+      <div><div class="label">Est.</div><div class="detail">Same bench, same window, since 1978</div></div>
+      <div><div class="label">Guild</div><div class="detail">Society of Master Shoe Repairers</div></div>
+      <div><div class="label">Materials</div><div class="detail">Oak-bark-tanned leather, proper compounds</div></div>
+      <div><div class="label">Guarantee</div><div class="detail">Six months on every repair, in writing</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ticket-head"><span>STUB 10 / FIND US</span><span>9 SADDLER STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Heel &amp; Last</strong><br />
+          9 Saddler Street<br />
+          Durham DH1 3NP<br /><br />
+          <a href="tel:+441913842217" data-bind="business.phoneDisplay">0191 384 2217</a><br />
+          <a href="mailto:bench@heelandlast.co.uk" data-bind="business.email">bench@heelandlast.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>MON – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>SUN</span><span>THE BENCH RESTS</span></div>
+          <p class="gbp-note">Hours live on our Google Business Profile. On the hill up to the cathedral — the window with the bench in it, as it has been since 1978.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Heel &amp; Last, Saddler Street, Durham" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.5860%2C54.7720%2C-1.5660%2C54.7790&layer=mapnik&marker=54.7753%2C-1.5760"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="visit" class="cta-band" data-component="CTA-BAND" data-variant="v11">
+  <div class="wrap">
+    <div class="inner">
+      <div class="stub" style="color:var(--stitch);">STUB 11 / THE VERDICT</div>
+      <h2>Your shoes aren't done. <em>They're due.</em></h2>
+      <p data-bind="cta.body">No appointment. Plonk them on the counter and get the verdict — free, honest, occasionally life-extending.</p>
+      <div class="ctas">
+        <a class="btn btn-primary" href="#location" data-bind="cta.primary.label">Find the bench</a>
+        <a class="btn btn-ghost" href="tel:+441913842217" data-bind="cta.secondary.label">0191 384 2217</a>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441913842217" data-bind="messaging.whatsapp" aria-label="Message the bench">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">Heel <span style="color:var(--oxblood);">&amp;</span> Last</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A shoe repair and leather workshop on Saddler Street, Durham. Since 1978.</p>
+      </div>
+      <div>
+        <h4>The bench</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          9 Saddler Street<br />Durham DH1 3NP<br />
+          <a href="tel:+441913842217">0191 384 2217</a><br />
+          <a href="mailto:bench@heelandlast.co.uk">bench@heelandlast.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The price board</a><a href="#about">The bench</a><a href="#location">Find us</a><a href="#visit">The verdict</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> HEEL &amp; LAST (DURHAM) LTD</span>
+      <span>REPAIRED, NOT REPLACED · SINCE 1978</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

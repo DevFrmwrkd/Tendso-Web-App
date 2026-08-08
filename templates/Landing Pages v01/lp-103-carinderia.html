@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lutong Bahay ni Aling Puring — turo-turo carinderia, home-cooked ulam & unli rice in Sampaloc, Manila</title>
+<meta name="description" content="Lutong Bahay ni Aling Puring is a turo-turo carinderia in Sampaloc, Manila — point at the ulam, eat home-cooked adobo, kare-kare, sinigang and the fresh dish of the day with unli rice, dine-in or take-out, plus baon and simple catering. Cooking since 2003." />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;800;900&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Lutong Bahay ni Aling Puring", phone: "+63 917 555 0288", phoneDisplay: "0917 555 0288", email: "alingpuring.kusina@gmail.com", foundedYear: 2003 },
+  hero: {
+    kicker: "Turo-turo carinderia · lutong bahay · unli rice · Sampaloc, Manila",
+    headline: "Point at what you want. It's already cooked, and it tastes like home.",
+    lede: "A turo-turo carinderia in Sampaloc, where the ulam is laid out fresh every morning and you eat like you're at your Nanay's table — adobo, kare-kare, sinigang, ginisang gulay and the dish of the day, ladled hot over unli rice. Dine-in on the long tables, take-out in a bag, or order baon and simple catering. Sulit, mabilis, and home-cooked, every day.",
+    primaryCta: { label: "See today's ulam", href: "#book" },
+    secondaryCta: { label: "How turo-turo works", href: "#services" },
+    image: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A hot bowl of home-cooked ulam over rice."
+  },
+  trust: { years: "Feeding Sampaloc since 2003" },
+  about: {
+    heading: "No menu. Just what Nanay cooked this morning, still steaming in the tray.",
+    paragraphs: [
+      "Lutong Bahay ni Aling Puring is a carinderia — a turo-turo, from the word for 'point-point,' because that's exactly how you order: you look at the trays of ulam behind the glass, you point at what you want, and it lands on your plate over rice in about thirty seconds. There's no menu to read, no waiting on a kitchen, no fuss. What you see is what Aling Puring cooked this morning, and when a tray runs out, it's out.",
+      "We opened in 2003 with three dishes and a rice cooker, feeding students, jeepney drivers, construction workers and office staff on their lunch break — anyone who wants a proper, hot, home-cooked meal, fast and sulit. The food is lutong bahay in the truest sense: the adobo, sinigang, kare-kare, menudo, ginisang gulay and pritong isda you'd eat at home, cooked in big batches from scratch every day, seasoned by taste, not by packet.",
+      "The whole point of a carinderia is that a filling meal shouldn't cost the earth or take an hour. Unli rice keeps everyone full; the long communal tables keep it friendly; and the regulars have their orders down to a nod. We also pack baon for people on the go and cater simple trays for offices and gatherings. Come hungry, point at what looks good, and eat like you're home."
+    ],
+    portrait: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A home-cooked dish plated and ready to serve."
+  },
+  services: [
+    { name: "Point-at-it ulam", description: "The turo-turo heart of it: trays of fresh ulam behind the glass — point at one, two or three viands and eat in seconds. Adobo, menudo, ginisang gulay, pritong isda and more, all cooked this morning." },
+    { name: "The dish of the day", description: "A rotating special cooked in bigger batches — kare-kare, sinigang na baboy, bulalo, caldereta or whatever's good and in season. Ask what today's is; it's usually the first tray to empty." },
+    { name: "Unli rice & combos", description: "Rice keeps coming until you're full, and our silog and rice-meal combos make a fast, filling lunch for one price — the everyday sulit meal Sampaloc runs on. Add an egg, add soup, add another scoop." },
+    { name: "Take-out & baon", description: "Everything packs to go — a rice meal in a bag for the jeepney, or baon boxed up for work and school the night before. Same home-cooked food, wrapped for the road, ready in minutes." },
+    { name: "Merienda & soup", description: "Between the lunch and dinner rush: lugaw, arroz caldo, pancit, and whatever snack Nanay felt like making — the warm merienda that bridges the long afternoon on a student's budget." },
+    { name: "Simple catering & trays", description: "Bilao and trays of uland rice for offices, meetings, birthdays and small gatherings — home-cooked party food without the party price, delivered around Sampaloc. Order a day ahead." }
+  ],
+  why: [
+    { title: "Cooked fresh, every morning.", body: "Nothing sits from yesterday. Every tray is cooked from scratch in the morning, seasoned by taste, and when it's gone it's gone. What you point at is genuinely today's food." },
+    { title: "Sulit, and fast.", body: "A hot, filling, home-cooked meal with unli rice for the price of a snack elsewhere, on your plate in under a minute. This is what a carinderia is for — feeding real people on real budgets." },
+    { title: "It tastes like home.", body: "Lutong bahay, not restaurant food — the adobo and sinigang you grew up on, cooked the way a Filipino kitchen actually cooks. Students far from home come here to be fed like family." }
+  ],
+  how: [
+    { step: "01", title: "Look at the trays", body: "Come to the glass and see what's cooked today — the ulam is right there, no menu needed. Ask what the dish of the day is; ask what's freshest. We'll happily tell you." },
+    { step: "02", title: "Point at what you want", body: "Turo-turo: point at one, two or three viands. We ladle them over rice on the spot. Tell us if you want more sauce, more rice, an egg on top — it's your plate." },
+    { step: "03", title: "Dine in or take out", body: "Grab a spot at the long tables and eat with unli rice, or say 'take-out' and we'll bag it hot for the road in under a minute. Either way, you're eating fast." },
+    { step: "04", title: "Order baon or a tray", body: "Want lunch sorted for tomorrow, or feeding a group? Order baon or a catering tray a day ahead, message us the count, and pick it up or have it delivered around Sampaloc." }
+  ],
+  testimonials: [
+    { quote: "I studied in Sampaloc for four years and Aling Puring's carinderia basically raised me. Cheap, hot, unli rice, and it tasted like my mom's cooking when I missed home the most. The kare-kare on Wednesdays got me through college. Forever grateful, ma'am.", name: "Kevin O.", context: "student, 2015–2019" },
+    { quote: "As a jeepney driver I don't have time or money to waste on lunch. Here I point, I eat, I'm full, I'm back on the road in fifteen minutes, and it costs less than anywhere. Sarap, mabilis, sulit. The whole route eats here.", name: "Mang Celso", context: "jeepney driver, daily" },
+    { quote: "We order trays from Aling Puring for every office birthday now. Real home-cooked food, generous portions, delivered on time, and everyone always asks who catered. Way better than fast food and honestly cheaper. Our go-to, no question.", name: "Divine R.", context: "office catering, España" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1600&q=85&auto=format&fit=crop", alt: "A hot bowl of ulam over rice." },
+    { src: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1600&q=85&auto=format&fit=crop", alt: "A home-cooked dish plated." },
+    { src: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop", alt: "A plate of viand ready to eat." },
+    { src: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1600&q=85&auto=format&fit=crop", alt: "Steam rising from a pot on the stove." },
+    { src: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop", alt: "A cold drink beside a meal." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "The long tables of the carinderia." }
+  ],
+  faq: [
+    { q: "How does turo-turo actually work?", a: "Turo-turo means 'point-point,' and it's the simplest way to eat there is. You come up to the display where the day's cooked dishes — the ulam — are laid out in trays behind glass, you look at what's there, and you literally point at what you want. We ladle it straight onto a plate of rice and you're eating within about thirty seconds; there's no menu to read, no order ticket, and no waiting for a kitchen to cook because the food is already made. You can pick one viand or build a bigger plate with two or three, add extra rice or an egg, and ask for more sauce — it's entirely up to you and what looks good that day. Prices are per viand and clearly the point of the format: you see exactly what you're getting and roughly what it costs before it hits your plate. If you've never done it, just come to the glass and point; we'll guide you." },
+    { q: "Is the food really cooked fresh each day?", a: "Yes — everything is cooked from scratch in the morning, in big batches, and served through the day until it runs out, which is the whole discipline of a good carinderia. We don't carry dishes over from yesterday or stretch a tray with yesterday's leftovers; when a viand is gone, that tray is empty and that's that, which is exactly why the popular dishes disappear first and why regulars come early for the ones they love. Cooking fresh daily in volume is hard work — Aling Puring and the kitchen are at it before dawn — but it's the reason the food tastes like home rather than like a steam-table that's been sitting since who-knows-when. If you want a specific dish, it's worth asking what's cooked that day or coming at the start of the lunch rush, and if there's something you'd love us to make, tell us; a lot of our regular rotation started as a request." },
+    { q: "What does unli rice mean, and is it really unlimited?", a: "Unli is short for unlimited — unli rice means your rice keeps coming as long as you're still eating, at no extra charge, which together with a viand or two makes a genuinely filling meal for very little money. It's a staple of the carinderia and eatery world here because rice is the heart of a Filipino meal and nobody should leave hungry over a second scoop. In practice, order your ulam, and if you finish your rice before your viand, just ask for more and we'll top you up. It's meant honestly and used honestly — it's there so a hungry student, driver or worker gets full, not as a challenge — and it's a big part of why a carinderia meal is so sulit. Pair it with our soup of the day and you've eaten properly for the price of a snack elsewhere." },
+    { q: "Can I take the food out or order baon?", a: "Absolutely — take-out is half of what we do, and it's fast. Just tell us 'take-out' when you point at your ulam and we'll bag it hot with rice in under a minute, ready for the jeepney, the office desk or home. For baon — packed meals to bring to work or school — you can order the night before or in the morning and we'll box it up fresh for you to grab on the way; a lot of our regulars have a standing baon order so lunch is sorted without thinking about it. Everything on the tray travels well, and we pack rice and ulam separately when it helps keep things right. If you're grabbing baon for the family or the whole office, message us a rough count ahead of time so we can have it ready and you're not waiting; otherwise, just come by and point." },
+    { q: "Do you do catering or party trays?", a: "Yes — simple, home-cooked catering is something we're glad to do and it's become a real part of the business, especially for offices, meetings, birthdays, baptisms and small neighbourhood gatherings around Sampaloc. Think bilao and trays of the same lutong bahay we serve daily — pancit, adobo, menudo, kare-kare, rice and the rest — in party quantities, at carinderia prices rather than fancy-caterer prices, which is why our office regulars keep coming back for it. We ask for a day's notice so we can shop and cook properly for the numbers, more if it's a big order or a busy weekend, and we can deliver around the area or have it ready for pick-up. Tell us the headcount, the date and roughly what dishes you'd like (or let us suggest a spread), and we'll sort a menu and a fair price. It's genuine home-cooked party food without the party price." },
+    { q: "Is a carinderia clean and safe to eat at?", a: "Yes — and it's a fair thing to ask, because a carinderia lives or dies on its regulars trusting the food, and we've kept ours coming back since 2003. Cooking fresh in volume every day and selling out actually helps here: food doesn't sit around, the trays turn over fast, and there's nothing lingering from previous days. We keep the cooking area, the display and the tables clean, handle and store the food properly, and we're happy for you to see the kitchen — there's nothing to hide in a carinderia, where everything is cooked in plain sight. The long-running popularity of the place, packed with students, workers and families day after day, is its own answer: people who eat here every day of their lives wouldn't if it made them sick. Come and see for yourself; the busy tables tell you more than any sign could." }
+  ],
+  area: { places: ["Sampaloc", "España", "Dapitan", "University Belt", "Manila", "Baon & catering delivery"] },
+  credentials: [
+    { label: "Since 2003", detail: "Home-cooked turo-turo in Sampaloc" },
+    { label: "Cooked fresh", detail: "Every tray from scratch each morning" },
+    { label: "Unli rice", detail: "Sulit, filling meals on a real budget" },
+    { label: "Baon & trays", detail: "Take-out and simple catering around Manila" }
+  ],
+  location: { name: "Lutong Bahay ni Aling Puring", addressStreet: "38 Dapitan St, Sampaloc", addressLocality: "Manila", addressRegion: "Metro Manila", addressPostcode: "1008", addressCountry: "Philippines" },
+  cta: { heading: "Come hungry. Point at what looks good.", body: "Fresh home-cooked ulam over unli rice, dine-in on the long tables or bagged for the road, plus baon and simple catering — turo-turo in Sampaloc since 2003. See today's trays or message us to order.", primary: { label: "See today's ulam", href: "#book" }, secondary: { label: "0917 555 0288", href: "tel:+639175550288" } },
+  messaging: { whatsapp: "https://wa.me/639175550288", messenger: "https://m.me/alingpuringkusina" }
+};
+</script>
+
+<style>
+  :root {
+    --leaf:#1f4d2e; --leaf-2:#173d24; --coco:#faf3e2; --coco-2:#fffaef; --ink:#20291f; --ink-2:#43503f;
+    --tomato:#d63c2a; --kalamansi:#e0a92b; --pandan:#4f8f4a;
+    --mid:#7f8a79; --rule:rgba(32,41,31,0.14);
+    --disp:"Archivo",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--coco);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--tomato);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--tomato);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:900;font-size:clamp(38px,5.4vw,80px);line-height:0.96;margin:0 0 0.3em;letter-spacing:-0.02em;}
+  .h2 em{font-style:normal;color:var(--tomato);}
+  .body{color:var(--ink-2);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--tomato);color:var(--coco-2);} .btn-primary:hover{background:var(--leaf);}
+  .btn-ghost{border:2px solid var(--leaf);color:var(--leaf);} .btn-ghost:hover{background:var(--leaf);color:var(--coco-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);border-bottom:2px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,58px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(250,243,226,0.93);backdrop-filter:blur(10px);border-bottom:2px solid var(--leaf);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:900;font-size:20px;text-decoration:none;letter-spacing:-0.03em;color:var(--leaf);}
+  .wm span{color:var(--tomato);}
+  .nav-links{display:flex;gap:24px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-2);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,64px) 0 clamp(56px,7vw,96px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:900;font-size:clamp(40px,6.6vw,98px);line-height:0.92;letter-spacing:-0.03em;margin:0 0 32px;max-width:18ch;color:var(--leaf);}
+  .hero-headline .em{color:var(--tomato);}
+  .hero-lower{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(30px,4vw,60px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;border:3px solid var(--leaf);}
+  .hero-photo::after{content:"TURO-TURO · LUTONG BAHAY · UNLI RICE";position:absolute;left:-8px;top:-14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.08em;background:var(--kalamansi);color:var(--ink);padding:8px 14px;border-radius:4px;border:2.5px solid var(--leaf);transform:rotate(-2deg);}
+  .hero-right .lede{color:var(--ink-2);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--leaf);color:var(--coco-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,250,239,0.9);font-weight:700;}
+
+  .about{background:var(--coco-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:10px;border:3px solid var(--leaf);}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:var(--ink-2);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:2px solid var(--leaf);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(214,60,42,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;color:var(--pandan);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:800;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:1.0;letter-spacing:-0.02em;color:var(--leaf);}
+  .svc-row p{color:var(--ink-2);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--leaf);color:var(--coco-2);}
+  .why .sw-head{color:rgba(255,250,239,0.7);border-color:rgba(255,250,239,0.24);}
+  .why .h2{color:var(--coco-2);} .why .h2 em{color:var(--kalamansi);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--kalamansi);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:800;font-size:27px;margin:0 0 10px;line-height:1.0;letter-spacing:-0.02em;}
+  .why-grid p{color:rgba(255,250,239,0.86);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--tomato);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--pandan);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:800;font-size:23px;margin:8px 0 8px;line-height:1.02;letter-spacing:-0.02em;color:var(--leaf);}
+  .how-grid p{color:var(--ink-2);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--ink);color:var(--coco);}
+  .t-quote{font-family:var(--disp);font-weight:800;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:26ch;margin:0 0 24px;letter-spacing:-0.025em;}
+  .t-quote em{font-style:normal;color:var(--kalamansi);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--kalamansi);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid rgba(250,243,226,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:rgba(250,243,226,0.82);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(250,243,226,0.6);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:8px;border:3px solid var(--leaf);}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--tomato);color:var(--coco-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--leaf);}
+  .faq-list summary{font-family:var(--disp);font-weight:800;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.12;letter-spacing:-0.02em;color:var(--leaf);}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--tomato);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--ink-2);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--leaf);border-radius:2px;font-weight:700;color:var(--ink-2);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px solid var(--pandan);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--tomato);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:800;font-size:19px;line-height:1.12;letter-spacing:-0.02em;color:var(--leaf);}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--kalamansi);color:var(--ink);padding:34px;border-radius:10px;border:3px solid var(--leaf);}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:800;font-size:21px;line-height:1.26;letter-spacing:-0.02em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:600;color:var(--leaf-2);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:2px solid rgba(32,41,31,0.24);padding-top:18px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--leaf-2);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--leaf-2);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:10px;border:3px solid var(--leaf);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.15) contrast(1.02);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--tomato);color:var(--coco-2);padding:clamp(80px,10vw,144px) 0;text-align:center;}
+  .cta-band .kick{color:var(--coco-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:900;font-size:clamp(42px,6.5vw,106px);line-height:0.94;margin:14px auto 18px;max-width:15ch;letter-spacing:-0.03em;}
+  .cta-band h2 em{font-style:normal;color:var(--kalamansi);}
+  .cta-band p{color:rgba(255,250,239,0.92);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--coco-2);color:var(--tomato);} .cta-band .btn-primary:hover{background:var(--leaf);color:var(--coco-2);}
+  .cta-band .btn-ghost{border-color:var(--coco-2);color:var(--coco-2);} .cta-band .btn-ghost:hover{background:var(--coco-2);color:var(--tomato);}
+
+  footer{background:var(--leaf-2);color:var(--coco);border-top:3px solid var(--kalamansi);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--kalamansi);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:rgba(250,243,226,0.72);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(250,243,226,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(250,243,226,0.6);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--leaf);color:var(--coco-2);padding:13px 20px;border-radius:999px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 8px 24px rgba(31,77,46,0.4);border:2.5px solid var(--kalamansi);}
+  .msg-fab a:hover{background:var(--tomato);border-color:var(--coco-2);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Lutong Bahay ni Aling Puring","description":"Turo-turo carinderia in Sampaloc, Manila — home-cooked ulam over unli rice, adobo, kare-kare, sinigang and the dish of the day, dine-in or take-out, plus baon and simple catering. Cooking since 2003.","servesCuisine":"Filipino","url":"https://alingpuringkusina.ph/","telephone":"+639175550288","email":"alingpuring.kusina@gmail.com","address":{"@type":"PostalAddress","streetAddress":"38 Dapitan St, Sampaloc","addressLocality":"Manila","addressRegion":"Metro Manila","postalCode":"1008","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":14.6100,"longitude":120.9930},"areaServed":["Sampaloc","España","University Belt","Manila"],"image":["https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1600"],"foundingDate":"2003"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How does turo-turo actually work?","acceptedAnswer":{"@type":"Answer","text":"Turo-turo means 'point-point.' You come to the display where the day's cooked dishes are laid out in trays, look at what's there, and point at what you want. We ladle it onto rice and you're eating within about thirty seconds — no menu, no order ticket, no waiting for a kitchen. Pick one viand or build a plate with two or three, add rice or an egg. Prices are per viand so you see what you're getting before it hits the plate."}},
+{"@type":"Question","name":"Is the food really cooked fresh each day?","acceptedAnswer":{"@type":"Answer","text":"Yes — everything is cooked from scratch in the morning in big batches and served until it runs out. We don't carry dishes over from yesterday; when a viand is gone, that tray is empty, which is why popular dishes disappear first and regulars come early. Cooking fresh daily in volume is hard work but it's why the food tastes like home. Ask what's cooked that day, and tell us if there's something you'd love us to make."}},
+{"@type":"Question","name":"What does unli rice mean?","acceptedAnswer":{"@type":"Answer","text":"Unli is unlimited — your rice keeps coming as long as you're eating, at no extra charge, which with a viand or two makes a filling meal for very little. It's a carinderia staple because rice is the heart of a Filipino meal and nobody should leave hungry over a second scoop. Order your ulam and just ask for more rice when you need it. It's meant and used honestly, and a big part of why a carinderia meal is so sulit."}},
+{"@type":"Question","name":"Can I take the food out or order baon?","acceptedAnswer":{"@type":"Answer","text":"Yes — take-out is half of what we do. Say 'take-out' when you point and we'll bag it hot with rice in under a minute. For baon, order the night before or in the morning and we'll box it fresh to grab on the way; many regulars have a standing baon order. Everything travels well and we pack rice and ulam separately when it helps. For a family or office, message a rough count ahead so it's ready."}},
+{"@type":"Question","name":"Do you do catering or party trays?","acceptedAnswer":{"@type":"Answer","text":"Yes — simple home-cooked catering for offices, meetings, birthdays, baptisms and gatherings around Sampaloc: bilao and trays of the same lutong bahay we serve daily — pancit, adobo, menudo, kare-kare, rice — in party quantities at carinderia prices. We ask for a day's notice (more for big orders or busy weekends) and can deliver or set it for pick-up. Tell us the headcount, date and dishes, or let us suggest a spread, and we'll sort a fair price."}},
+{"@type":"Question","name":"Is a carinderia clean and safe to eat at?","acceptedAnswer":{"@type":"Answer","text":"Yes — a carinderia lives or dies on its regulars trusting the food, and we've kept ours since 2003. Cooking fresh in volume and selling out helps: nothing sits around and the trays turn over fast. We keep the cooking area, display and tables clean, handle and store food properly, and you're welcome to see the kitchen — everything is cooked in plain sight. The busy tables, packed with students, workers and families day after day, are their own answer."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Lutong Bahay ni <span>Aling Puring</span></a>
+    <nav class="nav-links">
+      <a href="#about">The carinderia</a><a href="#services">What's cooking</a><a href="#location">Find us</a><a href="#book">Order</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Turo-turo carinderia · lutong bahay · unli rice · Sampaloc, Manila</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Point at what you want. It's already cooked, and it tastes like <span class="em">home.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=2000&q=85&auto=format&fit=crop"
+             alt="A hot bowl of home-cooked ulam over rice." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A turo-turo carinderia in Sampaloc, where the ulam is laid out fresh every morning and you eat like you're at your Nanay's table — adobo, kare-kare, sinigang, ginisang gulay and the dish of the day, ladled hot over unli rice. Dine-in on the long tables, take-out in a bag, or order baon and simple catering. Sulit, mabilis, and home-cooked, every day.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">See today's ulam</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">How turo-turo works</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Feeding Sampaloc since 2003</span>
+    <span>Cooked fresh every morning</span>
+    <span>Unli rice, always</span>
+    <span>Dine-in · take-out · baon</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>TRAY 01 / THE CARINDERIA</span><span>NO MENU, JUST WHAT NANAY COOKED</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">No menu. Just what Nanay cooked this morning, still steaming in the <em>tray.</em></h2>
+        <p>Lutong Bahay ni Aling Puring is a carinderia — a turo-turo, from the word for "point-point," because that's exactly how you order: you look at the trays of ulam behind the glass, you point at what you want, and it lands on your plate over rice in about thirty seconds. There's no menu to read, no waiting on a kitchen, no fuss. What you see is what Aling Puring cooked this morning, and when a tray runs out, it's out.</p>
+        <p>We opened in 2003 with three dishes and a rice cooker, feeding students, jeepney drivers, construction workers and office staff on their lunch break — anyone who wants a proper, hot, home-cooked meal, fast and sulit. The food is lutong bahay in the truest sense: the adobo, sinigang, kare-kare, menudo, ginisang gulay and pritong isda you'd eat at home, cooked in big batches from scratch every day, seasoned by taste, not by packet.</p>
+        <p>The whole point of a carinderia is that a filling meal shouldn't cost the earth or take an hour. Unli rice keeps everyone full; the long communal tables keep it friendly; and the regulars have their orders down to a nod. We also pack baon for people on the go and cater simple trays for offices and gatherings. Come hungry, point at what looks good, and eat like you're home.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=85&auto=format&fit=crop"
+           alt="A home-cooked dish plated and ready to serve." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>TRAY 02 / WHAT'S COOKING</span><span>ULAM · RICE · BAON · CATERING</span></div>
+    <h2 class="h2">What's cooking.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Point-at-it ulam</h3><p>The turo-turo heart of it: trays of fresh ulam behind the glass — point at one, two or three viands and eat in seconds. Adobo, menudo, ginisang gulay, pritong isda and more, all cooked this morning.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>The dish of the day</h3><p>A rotating special cooked in bigger batches — kare-kare, sinigang na baboy, bulalo, caldereta or whatever's good and in season. Ask what today's is; it's usually the first tray to empty.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Unli rice &amp; combos</h3><p>Rice keeps coming until you're full, and our silog and rice-meal combos make a fast, filling lunch for one price — the everyday sulit meal Sampaloc runs on. Add an egg, add soup, add a scoop.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Take-out &amp; baon</h3><p>Everything packs to go — a rice meal in a bag for the jeepney, or baon boxed up for work and school the night before. Same home-cooked food, wrapped for the road, ready in minutes.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Merienda &amp; soup</h3><p>Between the lunch and dinner rush: lugaw, arroz caldo, pancit, and whatever snack Nanay felt like making — the warm merienda that bridges the long afternoon on a student's budget.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Simple catering &amp; trays</h3><p>Bilao and trays of ulam and rice for offices, meetings, birthdays and small gatherings — home-cooked party food without the party price, delivered around Sampaloc. Order a day ahead.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>TRAY 03 / THE DIFFERENCE</span><span>WHY THE TABLES ARE FULL</span></div>
+    <h2 class="h2">Why the tables are <em>full.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Cooked fresh, every morning.</h3><p>Nothing sits from yesterday. Every tray is cooked from scratch in the morning, seasoned by taste, and when it's gone it's gone. What you point at is genuinely today's food.</p></div>
+      <div><span class="no">02 / 03</span><h3>Sulit, and fast.</h3><p>A hot, filling, home-cooked meal with unli rice for the price of a snack elsewhere, on your plate in under a minute. This is what a carinderia is for — feeding real people on real budgets.</p></div>
+      <div><span class="no">03 / 03</span><h3>It tastes like home.</h3><p>Lutong bahay, not restaurant food — the adobo and sinigang you grew up on, cooked the way a Filipino kitchen actually cooks. Students far from home come here to be fed like family.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>TRAY 04 / HOW IT GOES</span><span>LOOK · POINT · EAT · TAKE HOME</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Look at the trays</h3><p>Come to the glass and see what's cooked today — the ulam is right there, no menu needed. Ask what the dish of the day is; ask what's freshest. We'll happily tell you.</p></li>
+      <li><span class="step">STEP 02</span><h3>Point at what you want</h3><p>Turo-turo: point at one, two or three viands. We ladle them over rice on the spot. Tell us if you want more sauce, more rice, an egg on top — it's your plate.</p></li>
+      <li><span class="step">STEP 03</span><h3>Dine in or take out</h3><p>Grab a spot at the long tables and eat with unli rice, or say 'take-out' and we'll bag it hot for the road in under a minute. Either way, you're eating fast.</p></li>
+      <li><span class="step">STEP 04</span><h3>Order baon or a tray</h3><p>Want lunch sorted for tomorrow, or feeding a group? Order baon or a catering tray a day ahead, message us the count, and pick it up or have it delivered around Sampaloc.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>TRAY 05 / FROM THE TABLES</span><span>SARAP · MABILIS · SULIT</span></div>
+    <blockquote class="t-quote">“Aling Puring's carinderia basically raised me. The kare-kare on Wednesdays got me through college. <em>Forever grateful, ma'am.</em>”</blockquote>
+    <div class="t-attr">Kevin O. — student, 2015–2019</div>
+    <div class="t-sub">
+      <figure><blockquote>“As a jeepney driver I don't have time or money to waste on lunch. Here I point, I eat, I'm full, I'm back on the road in fifteen minutes, and it costs less than anywhere. Sarap, mabilis, sulit. The whole route eats here.”</blockquote><figcaption>Mang Celso — jeepney driver, daily</figcaption></figure>
+      <figure><blockquote>“We order trays from Aling Puring for every office birthday now. Real home-cooked food, generous portions, delivered on time, and everyone always asks who catered. Way better than fast food and honestly cheaper. Our go-to, no question.”</blockquote><figcaption>Divine R. — office catering, España</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--coco-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>TRAY 06 / ON THE PLATE</span><span>LUTONG BAHAY, EVERY DAY</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=1600&q=85&auto=format&fit=crop" alt="A hot bowl of ulam over rice." /><figcaption>THE ULAM</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1600&q=85&auto=format&fit=crop" alt="A home-cooked dish plated." /><figcaption>THE VIAND</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop" alt="A plate of viand ready to eat." /><figcaption>THE PLATE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1600&q=85&auto=format&fit=crop" alt="Steam rising from a pot on the stove." /><figcaption>THE POT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop" alt="A cold drink beside a meal." /><figcaption>THE DRINK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="The long tables of the carinderia." /><figcaption>THE TABLES</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>TRAY 07 / GOOD TO KNOW</span><span>TURO-TURO, RICE &amp; TRAYS</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+639175550288" style="color:var(--tomato);font-weight:700;">0917 555 0288</a>. Or just come to the glass and point; that's the whole system.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How does turo-turo actually work?</summary><p>Turo-turo means "point-point," and it's the simplest way to eat there is. You come up to the display where the day's cooked dishes — the ulam — are laid out in trays behind glass, you look at what's there, and you literally point at what you want. We ladle it straight onto a plate of rice and you're eating within about thirty seconds; there's no menu to read, no order ticket, and no waiting for a kitchen because the food is already made. You can pick one viand or build a bigger plate with two or three, add extra rice or an egg, and ask for more sauce — it's entirely up to you and what looks good that day. Prices are per viand, so you see exactly what you're getting before it hits your plate.</p></details>
+        <details><summary>Is the food really cooked fresh each day?</summary><p>Yes — everything is cooked from scratch in the morning, in big batches, and served through the day until it runs out, which is the whole discipline of a good carinderia. We don't carry dishes over from yesterday or stretch a tray with leftovers; when a viand is gone, that tray is empty, which is exactly why the popular dishes disappear first and why regulars come early for the ones they love. Cooking fresh daily in volume is hard work — the kitchen is at it before dawn — but it's the reason the food tastes like home rather than like a steam-table that's been sitting for hours. If you want a specific dish, ask what's cooked that day, and if there's something you'd love us to make, tell us; a lot of our rotation started as a request.</p></details>
+        <details><summary>What does unli rice mean, and is it really unlimited?</summary><p>Unli is short for unlimited — unli rice means your rice keeps coming as long as you're still eating, at no extra charge, which together with a viand or two makes a genuinely filling meal for very little money. It's a staple of the carinderia world because rice is the heart of a Filipino meal and nobody should leave hungry over a second scoop. In practice, order your ulam, and if you finish your rice before your viand, just ask for more and we'll top you up. It's meant honestly and used honestly — it's there so a hungry student, driver or worker gets full — and it's a big part of why a carinderia meal is so sulit.</p></details>
+        <details><summary>Can I take the food out or order baon?</summary><p>Absolutely — take-out is half of what we do, and it's fast. Just tell us "take-out" when you point at your ulam and we'll bag it hot with rice in under a minute, ready for the jeepney, the office desk or home. For baon — packed meals to bring to work or school — you can order the night before or in the morning and we'll box it up fresh for you to grab on the way; a lot of our regulars have a standing baon order so lunch is sorted without thinking about it. Everything on the tray travels well, and we pack rice and ulam separately when it helps. For a family or the whole office, message us a rough count ahead of time so it's ready.</p></details>
+        <details><summary>Do you do catering or party trays?</summary><p>Yes — simple, home-cooked catering is something we're glad to do, especially for offices, meetings, birthdays, baptisms and small neighbourhood gatherings around Sampaloc. Think bilao and trays of the same lutong bahay we serve daily — pancit, adobo, menudo, kare-kare, rice and the rest — in party quantities, at carinderia prices rather than fancy-caterer prices. We ask for a day's notice so we can shop and cook properly for the numbers, more if it's a big order or a busy weekend, and we can deliver around the area or have it ready for pick-up. Tell us the headcount, the date and roughly what dishes you'd like, or let us suggest a spread, and we'll sort a menu and a fair price.</p></details>
+        <details><summary>Is a carinderia clean and safe to eat at?</summary><p>Yes — and it's a fair thing to ask, because a carinderia lives or dies on its regulars trusting the food, and we've kept ours coming back since 2003. Cooking fresh in volume every day and selling out actually helps: food doesn't sit around, the trays turn over fast, and there's nothing lingering from previous days. We keep the cooking area, the display and the tables clean, handle and store the food properly, and we're happy for you to see the kitchen — there's nothing to hide in a carinderia, where everything is cooked in plain sight. The busy tables, packed with students, workers and families day after day, are their own answer.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>TRAY 08 / WE FEED</span><span>SAMPALOC &amp; THE U-BELT</span></div>
+    <ul class="area-list">
+      <li>Sampaloc</li><li>España</li><li>Dapitan</li><li>University Belt</li><li>Manila</li><li>Baon &amp; catering delivery</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>TRAY 09 / THE ESSENTIALS</span><span>HOW WE COOK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2003</div><div class="detail">Home-cooked turo-turo in Sampaloc</div></div>
+      <div><div class="label">Cooked fresh</div><div class="detail">Every tray from scratch each morning</div></div>
+      <div><div class="label">Unli rice</div><div class="detail">Sulit, filling meals on a real budget</div></div>
+      <div><div class="label">Baon &amp; trays</div><div class="detail">Take-out &amp; simple catering around Manila</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>TRAY 10 / THE KUSINA</span><span>DAPITAN ST, SAMPALOC</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Lutong Bahay ni Aling Puring</strong><br />
+          38 Dapitan St, Sampaloc<br />
+          Manila 1008<br /><br />
+          <a href="tel:+639175550288" data-bind="business.phoneDisplay">0917 555 0288</a><br />
+          <a href="mailto:alingpuring.kusina@gmail.com" data-bind="business.email">alingpuring.kusina@gmail.com</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SAT</span><span>7AM – 8PM</span></div>
+          <div class="row"><span>LUNCH RUSH</span><span>11AM – 1PM</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on Dapitan near the U-Belt schools — come for the lunch rush, or early for the dish of the day before it runs out.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Lutong Bahay ni Aling Puring, Sampaloc" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=120.9780%2C14.6000%2C121.0080%2C14.6200&layer=mapnik&marker=14.6100%2C120.9930"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">TRAY 11 / COME EAT</div>
+    <h2 data-bind="cta.heading">Come hungry. Point at what looks <em>good.</em></h2>
+    <p data-bind="cta.body">Fresh home-cooked ulam over unli rice, dine-in on the long tables or bagged for the road, plus baon and simple catering — turo-turo in Sampaloc since 2003. See today's trays or message us to order.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">See today's ulam</a>
+      <a class="btn btn-ghost" href="tel:+639175550288" data-bind="cta.secondary.label">0917 555 0288</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/639175550288" data-bind="messaging.whatsapp" aria-label="Message the carinderia">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:20px;color:var(--coco);">Lutong Bahay ni <span style="color:var(--kalamansi);">Aling Puring</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:rgba(250,243,226,0.72);">A turo-turo carinderia in Sampaloc, Manila — home-cooked ulam over unli rice, dine-in, take-out and baon, since 2003.</p>
+      </div>
+      <div>
+        <h4>The carinderia</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:rgba(250,243,226,0.72);">
+          38 Dapitan St, Sampaloc<br />Manila 1008<br />
+          <a href="tel:+639175550288">0917 555 0288</a><br />
+          <a href="mailto:alingpuring.kusina@gmail.com">alingpuring.kusina@gmail.com</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What's cooking</a><a href="#about">The carinderia</a><a href="#location">Find us</a><a href="#book">Order</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> LUTONG BAHAY NI ALING PURING</span>
+      <span>SARAP · MABILIS · SULIT · SAMPALOC</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

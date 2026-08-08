@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crimp City — bouldering gym in Bristol, St Philip's</title>
+<meta name="description" content="Crimp City is a bouldering gym in a converted warehouse in St Philip's, Bristol. 200+ problems, weekly resets, beginner sessions, café and training boards." />
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@600;700;800&family=Archivo:wght@400;500;600;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Crimp City", phone: "+44 117 954 3320", phoneDisplay: "0117 954 3320", email: "hello@crimpcity.uk", foundedYear: 2021 },
+  hero: {
+    kicker: "Bouldering · no ropes, no experience needed · St Philip's, Bristol",
+    headline: "Falling off is the sport. We just made the landing soft.",
+    lede: "Two hundred problems across a converted tram depot, reset wall by wall every week. No ropes, no harness, no partner needed — shoes at the desk, mats everywhere else.",
+    primaryCta: { label: "First visit info", href: "#book" },
+    secondaryCta: { label: "This week's reset", href: "#services" },
+    image: "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Climber on a steep bouldering wall with colourful holds."
+  },
+  trust: { years: "Climbing in St Philip's since 2021" },
+  about: {
+    heading: "A tram depot with 200 problems.",
+    paragraphs: [
+      "Crimp City is what happened when three route-setters got the keys to a 1904 tram depot and a very patient bank manager. Eleven-metre ceilings, north skylights, and enough floor for four distinct bouldering zones plus a training area we're slightly too proud of.",
+      "The setting team is the product. Six setters, wall-by-wall resets every week, and a grading system — circuits by colour, V-grades on the tags — that's argued about in the café like it's league football.",
+      "You don't need experience, a partner, or your own shoes. You need socks. Everything else is at the desk, including the humans who'll show you how to fall before you climb."
+    ],
+    portrait: "https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Route-setter on a ladder placing holds."
+  },
+  services: [
+    { name: "Casual climbing", description: "Turn up, register once, climb. Entry covers the whole day — leave for lunch and come back." },
+    { name: "First Timers (assisted)", description: "A 45-minute intro with a coach: how to fall, how to read a problem, how not to use your arms for everything." },
+    { name: "Adult classes", description: "Beginner to advanced, six-week blocks. Small groups, same coach throughout, video review included." },
+    { name: "Youth club", description: "Ages 7–17, graded squads, NICAS accredited. Waiting list opens each term — join it early." },
+    { name: "Training area", description: "Kilter and moon boards, hangboards, campus rungs, weights. Induction required for the boards — it's quick." },
+    { name: "The café", description: "Proper coffee, big flapjacks, and the best spectating mezzanine in Bristol. No entry fee to sit and watch." }
+  ],
+  why: [
+    { title: "Reset weekly, wall by wall.", body: "A quarter of the gym is brand new every week. Regulars never run out of projects; the sweep is posted Sundays." },
+    { title: "Set for every body.", body: "Six setters of different heights, styles and strengths. Every circuit gets tested by a short climber and a tall one before it opens." },
+    { title: "Falling taught first.", body: "Every first-timer learns to fall before they climb. It's why our injury book is thinner than gyms half our size." }
+  ],
+  how: [
+    { step: "01", title: "Register online", body: "One waiver, once ever. Do it on your phone in the queue if you must." },
+    { step: "02", title: "Shoes at the desk", body: "Rental shoes and chalk at the counter. Socks compulsory, dignity optional." },
+    { step: "03", title: "Learn to fall", body: "First visit includes the five-minute falling briefing. Knees bent, don't reach back." },
+    { step: "04", title: "Pick a colour", body: "Circuits run green to black. Start two grades below your ego and work up." }
+  ],
+  testimonials: [
+    { quote: "I came for a birthday party I was dreading and now I own three pairs of climbing shoes and talk about 'projects'. Send help. Or don't.", name: "Leah S.", context: "climbing 18 months" },
+    { quote: "The weekly reset is the whole magic. Every Friday there's a new set to argue about and my mates and I have basically stopped going to the pub first.", name: "Kwame A.", context: "regular, blue-to-purple circuit" },
+    { quote: "My daughter's squad coach noticed her footwork issue in week one that her old gym missed for a year. NICAS levels are moving properly now.", name: "Rachel D.", context: "youth club parent" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1522163182402-834f871fd851?w=1600&q=85&auto=format&fit=crop", alt: "Climber on the steep wall." },
+    { src: "https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1600&q=85&auto=format&fit=crop", alt: "Setter placing holds from a ladder." },
+    { src: "https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=1600&q=85&auto=format&fit=crop", alt: "Chalked hands gripping a crimp." },
+    { src: "https://images.unsplash.com/photo-1601224335112-b74158e231a9?w=1600&q=85&auto=format&fit=crop", alt: "The slab zone at golden hour." },
+    { src: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=1600&q=85&auto=format&fit=crop", alt: "Training boards and hangboard area." },
+    { src: "https://images.unsplash.com/photo-1554284126-aa88f22d8b74?w=1600&q=85&auto=format&fit=crop", alt: "Climbers resting between attempts." }
+  ],
+  faq: [
+    { q: "I've never climbed. Can I just turn up?", a: "Yes. Register online or at the desk, take the falling briefing, and you're in. If you'd rather have a human guide the first hour, book the First Timers session — it's the best money you'll spend here." },
+    { q: "Do I need a partner?", a: "No — that's the point of bouldering. The walls top out at 4.5m over thick matting. Half our regulars climb alone and leave with more friends than they came with." },
+    { q: "What should I wear?", a: "Anything you can move in. Socks are compulsory for rental shoes. Leave the rings and watches in the lockers — crimps eat jewellery." },
+    { q: "How do the grades work?", a: "Circuits by colour, green (easiest) to black (film crew territory). Tags carry a V-grade range. Everyone argues the grades; that's a feature, not a bug." },
+    { q: "Is there an age limit?", a: "Supervised kids from 5, youth club from 7, unsupervised climbing from 14 with a competency sign-off. The mezzanine is free for spectating parents — the coffee is not." },
+    { q: "When is it quiet?", a: "Weekday mornings and Friday nights (everyone's at the pub, mistakenly). Peak is 6–9pm Tuesday to Thursday. Live occupancy is on our Google profile." },
+    { q: "Do you do parties and groups?", a: "Birthday parties, stag/hen dos brave enough, corporate groups. Coached, catered by the café, booked at least two weeks out." }
+  ],
+  area: { places: ["St Philip's", "Old Market", "Easton", "Totterdown", "Bedminster", "Temple Meads (8 min walk)"] },
+  credentials: [
+    { label: "ABC member", detail: "Association of British Climbing Walls" },
+    { label: "NICAS", detail: "Accredited youth scheme, levels 1–5" },
+    { label: "Coaches", detail: "Mountain Training CWI qualified, DBS checked" },
+    { label: "Matting", detail: "400mm impact matting, inspected quarterly" }
+  ],
+  location: { name: "Crimp City", addressStreet: "The Tram Depot, 9 Kingsland Road", addressLocality: "St Philip's, Bristol", addressRegion: "Bristol", addressPostcode: "BS2 0QX", addressCountry: "United Kingdom" },
+  cta: { heading: "Your first problem is the door. Solved.", body: "Register online, bring socks, and give us an hour. The rest tends to take care of itself.", primary: { label: "Plan a first visit", href: "#book" }, secondary: { label: "0117 954 3320", href: "tel:+441179543320" } },
+  messaging: { whatsapp: "https://wa.me/441179543320", messenger: "https://m.me/crimpcity" }
+};
+</script>
+
+<style>
+  :root {
+    --chalk:#f2f0eb; --concrete:#dcd9d2; --ink:#17171b; --dust:#6f6d68;
+    --signal:#ff5c1f; --volume:#2b2b31; --rule:rgba(23,23,27,0.15);
+    --sans:"Archivo",system-ui,sans-serif;
+    --wide:"Archivo Expanded","Archivo",sans-serif;
+    --mono:"Martian Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--chalk);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1300px,93vw);margin-inline:auto;}
+  .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--signal);font-weight:500;}
+  .h2{font-family:var(--wide);font-weight:800;font-size:clamp(30px,4.2vw,54px);line-height:1.0;letter-spacing:-0.02em;margin:0 0 0.45em;text-transform:uppercase;}
+  .body{color:var(--dust);line-height:1.68;}
+  section{padding:clamp(70px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;text-decoration:none;transition:0.18s;border-radius:8px;}
+  .btn-primary{background:var(--signal);color:var(--chalk);} .btn-primary:hover{background:var(--ink);}
+  .btn-ghost{border:2px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--chalk);}
+  .grade-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--dust);border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,58px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(242,240,235,0.94);backdrop-filter:blur(10px);border-bottom:2px solid var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--wide);font-weight:800;font-size:17px;text-decoration:none;text-transform:uppercase;letter-spacing:-0.01em;}
+  .wm .dot{color:var(--signal);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dust);font-weight:500;}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--signal);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — route-tag composition */
+  .hero{padding:clamp(48px,7vw,96px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1fr 0.92fr;gap:clamp(36px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--wide);font-weight:800;font-size:clamp(34px,4.6vw,66px);line-height:1.0;letter-spacing:-0.025em;margin:20px 0 24px;text-transform:uppercase;}
+  .hero h1 .lo{color:var(--signal);}
+  .hero .lede{color:var(--dust);max-width:44ch;line-height:1.68;font-size:clamp(15px,1.4vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:16px;}
+  .route-tag{position:absolute;bottom:20px;left:20px;background:var(--chalk);border-radius:10px;padding:14px 18px;box-shadow:0 10px 30px rgba(23,23,27,0.25);display:flex;gap:16px;align-items:center;}
+  .route-tag .swatch{width:34px;height:34px;border-radius:8px;background:var(--signal);}
+  .route-tag .txt{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;line-height:1.7;color:var(--ink);}
+  .route-tag .txt strong{display:block;font-size:12px;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--ink);color:var(--chalk);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(242,240,235,0.75);}
+
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,19px);line-height:1.72;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:16px;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — circuit rows with grade swatches */
+  .circuit{border-top:2px solid var(--ink);margin-top:clamp(26px,4vw,44px);}
+  .c-row{display:grid;grid-template-columns:64px 280px 1fr;gap:24px;padding:24px 0;border-bottom:1px solid var(--rule);align-items:center;}
+  .c-row .sw{width:40px;height:40px;border-radius:10px;}
+  .c-row:nth-child(1) .sw{background:#4caf6e;} .c-row:nth-child(2) .sw{background:#f3c623;}
+  .c-row:nth-child(3) .sw{background:#3d7bd9;} .c-row:nth-child(4) .sw{background:#9b59b6;}
+  .c-row:nth-child(5) .sw{background:var(--signal);} .c-row:nth-child(6) .sw{background:var(--ink);}
+  .c-row .name{font-family:var(--wide);font-weight:700;font-size:20px;letter-spacing:-0.01em;text-transform:uppercase;}
+  .c-row .desc{color:var(--dust);font-size:15px;max-width:56ch;}
+  @media(max-width:820px){.c-row{grid-template-columns:56px 1fr;} .c-row .desc{grid-column:2;}}
+
+  .why{background:var(--volume);color:var(--chalk);}
+  .why .h2{color:var(--chalk);}
+  .why .grade-head{border-color:rgba(242,240,235,0.4);color:rgba(242,240,235,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px);margin-top:clamp(26px,4vw,44px);}
+  .why-grid .vnum{font-family:var(--wide);font-weight:800;font-size:34px;color:var(--signal);display:block;margin-bottom:12px;line-height:1;}
+  .why-grid h3{font-family:var(--wide);font-weight:700;font-size:19px;letter-spacing:-0.01em;margin:0 0 10px;line-height:1.2;text-transform:uppercase;}
+  .why-grid p{color:rgba(242,240,235,0.68);margin:0;font-size:14.5px;line-height:1.65;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;background:var(--concrete);border-radius:14px;padding:24px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--signal);font-weight:500;}
+  .how-grid h3{font-family:var(--wide);font-weight:700;font-size:17px;letter-spacing:-0.01em;margin:10px 0 8px;text-transform:uppercase;}
+  .how-grid p{color:var(--dust);margin:0;font-size:13.5px;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .t-quote{font-family:var(--wide);font-weight:700;font-size:clamp(22px,3vw,40px);line-height:1.15;max-width:30ch;margin:0 0 22px;letter-spacing:-0.02em;text-transform:uppercase;}
+  .t-attr{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--dust);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid var(--ink);padding-top:34px;}
+  .t-sub blockquote{font-size:16.5px;line-height:1.62;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--dust);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — offset climbing wall grid */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,22px);}
+  .g-grid figure{margin:0;}
+  .g-grid figure:nth-child(2){transform:translateY(28px);}
+  .g-grid figure:nth-child(5){transform:translateY(28px);}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:16px;}
+  .g-grid figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dust);margin-top:8px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;} .g-grid figure:nth-child(2),.g-grid figure:nth-child(5){transform:none;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--ink);}
+  .faq-list summary{font-weight:700;font-size:17.5px;letter-spacing:-0.01em;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"▲";color:var(--signal);font-size:11px;flex-shrink:0;transform:rotate(180deg);transition:transform 0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(0);}
+  .faq-list p{margin:14px 0 0;color:var(--dust);font-size:14.5px;max-width:56ch;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 18px;border:2px solid var(--ink);border-radius:8px;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:2px solid var(--ink);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--signal);margin-bottom:8px;font-weight:500;}
+  .creds .detail{font-weight:700;font-size:16px;letter-spacing:-0.01em;line-height:1.35;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--concrete);border-radius:16px;padding:32px;}
+  .nap address{font-style:normal;font-weight:700;font-size:20px;line-height:1.5;letter-spacing:-0.01em;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--dust);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--dust);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;}
+  .map-frame{border-radius:16px;min-height:380px;overflow:hidden;border:2px solid var(--ink);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--signal);color:var(--chalk);padding:clamp(80px,10vw,140px) 0;}
+  .cta-band h2{font-family:var(--wide);font-weight:800;font-size:clamp(34px,5vw,74px);line-height:0.98;letter-spacing:-0.025em;margin:14px 0 18px;max-width:16ch;text-transform:uppercase;}
+  .cta-band p{color:rgba(242,240,235,0.92);max-width:44ch;margin:0 0 32px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--ink);color:var(--chalk);}
+  .cta-band .btn-primary:hover{background:var(--chalk);color:var(--ink);}
+  .cta-band .btn-ghost{border-color:var(--chalk);color:var(--chalk);}
+  .cta-band .btn-ghost:hover{background:var(--chalk);color:var(--signal);}
+
+  footer{background:var(--ink);color:rgba(242,240,235,0.85);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--signal);margin:0 0 14px;font-weight:500;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;color:var(--chalk);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(242,240,235,0.18);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(242,240,235,0.5);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--chalk);padding:13px 19px;border-radius:10px;text-decoration:none;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;box-shadow:0 8px 24px rgba(23,23,27,0.3);}
+  .msg-fab a:hover{background:var(--signal);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SportsActivityLocation","name":"Crimp City","description":"Bouldering gym in a converted tram depot in St Philip's, Bristol. 200+ problems, weekly resets, classes and café.","url":"https://crimpcity.uk/","telephone":"+441179543320","email":"hello@crimpcity.uk","address":{"@type":"PostalAddress","streetAddress":"The Tram Depot, 9 Kingsland Road","addressLocality":"Bristol","addressRegion":"Bristol","postalCode":"BS2 0QX","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.4545,"longitude":-2.5697},"areaServed":["Bristol","Bath","South West England"],"image":["https://images.unsplash.com/photo-1522163182402-834f871fd851?w=1600"],"foundingDate":"2021"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I've never climbed. Can I just turn up?","acceptedAnswer":{"@type":"Answer","text":"Yes. Register online or at the desk, take the falling briefing, and you're in."}},
+{"@type":"Question","name":"Do I need a partner?","acceptedAnswer":{"@type":"Answer","text":"No — walls top out at 4.5m over thick matting. Half our regulars climb alone."}},
+{"@type":"Question","name":"What should I wear?","acceptedAnswer":{"@type":"Answer","text":"Anything you can move in. Socks compulsory for rental shoes."}},
+{"@type":"Question","name":"How do the grades work?","acceptedAnswer":{"@type":"Answer","text":"Circuits by colour, green to black, with V-grade ranges on the tags."}},
+{"@type":"Question","name":"Is there an age limit?","acceptedAnswer":{"@type":"Answer","text":"Supervised kids from 5, youth club from 7, unsupervised from 14 with sign-off."}},
+{"@type":"Question","name":"When is it quiet?","acceptedAnswer":{"@type":"Answer","text":"Weekday mornings and Friday nights. Live occupancy on our Google profile."}},
+{"@type":"Question","name":"Do you do parties and groups?","acceptedAnswer":{"@type":"Answer","text":"Parties, stag/hen dos, corporate groups — coached, catered, booked two weeks out."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">CRIMP CITY<span class="dot">.</span></a>
+    <nav class="nav-links">
+      <a href="#about">The depot</a><a href="#services">Climb</a><a href="#location">Find us</a><a href="#book">First visit</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v18">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="tag" data-bind="hero.kicker">Bouldering · no ropes, no experience needed · St Philip's, Bristol</div>
+      <h1 data-bind="hero.headline">Falling off is the sport. <span class="lo">We just made the landing soft.</span></h1>
+      <p class="lede" data-bind="hero.lede">Two hundred problems across a converted tram depot, reset wall by wall every week. No ropes, no harness, no partner needed — shoes at the desk, mats everywhere else.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">First visit info</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">This week's reset</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1522163182402-834f871fd851?w=2000&q=85&auto=format&fit=crop"
+           alt="Climber on a steep bouldering wall with colourful holds." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="route-tag">
+        <div class="swatch"></div>
+        <div class="txt"><strong>ORANGE CIRCUIT</strong>V4–V6 · SET FRIDAY · WALL C</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Climbing in St Philip's since 2021</span>
+    <span>200+ problems</span>
+    <span>Weekly resets</span>
+    <span>ABC member · NICAS accredited</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v3">
+  <div class="wrap">
+    <div class="grade-head"><span>01 / THE DEPOT</span><span>BUILT 1904 · REBOLTED WEEKLY</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">A tram depot with 200 problems.</h2>
+        <p>Crimp City is what happened when three route-setters got the keys to a 1904 tram depot and a very patient bank manager. Eleven-metre ceilings, north skylights, and enough floor for four distinct bouldering zones plus a training area we're slightly too proud of.</p>
+        <p>The setting team is the product. Six setters, wall-by-wall resets every week, and a grading system that's argued about in the café like it's league football.</p>
+        <p>You don't need experience, a partner, or your own shoes. You need socks. Everything else is at the desk, including the humans who'll show you how to fall before you climb.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1200&q=85&auto=format&fit=crop"
+           alt="Route-setter on a ladder placing holds." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v11">
+  <div class="wrap">
+    <div class="grade-head"><span>02 / WAYS IN</span><span>GRADED LIKE THE WALLS</span></div>
+    <h2 class="h2">Pick your circuit.</h2>
+    <div class="circuit">
+      <div class="c-row"><span class="sw"></span><span class="name">Casual climbing</span><span class="desc">Turn up, register once, climb. Entry covers the whole day — leave for lunch and come back.</span></div>
+      <div class="c-row"><span class="sw"></span><span class="name">First Timers (assisted)</span><span class="desc">A 45-minute intro with a coach: how to fall, how to read a problem, how not to use your arms for everything.</span></div>
+      <div class="c-row"><span class="sw"></span><span class="name">Adult classes</span><span class="desc">Beginner to advanced, six-week blocks. Small groups, same coach throughout, video review included.</span></div>
+      <div class="c-row"><span class="sw"></span><span class="name">Youth club</span><span class="desc">Ages 7–17, graded squads, NICAS accredited. Waiting list opens each term — join it early.</span></div>
+      <div class="c-row"><span class="sw"></span><span class="name">Training area</span><span class="desc">Kilter and moon boards, hangboards, campus rungs, weights. Induction required for the boards — it's quick.</span></div>
+      <div class="c-row"><span class="sw"></span><span class="name">The café</span><span class="desc">Proper coffee, big flapjacks, and the best spectating mezzanine in Bristol. No entry fee to sit and watch.</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="grade-head"><span>03 / WHY HERE</span><span>THE BETA</span></div>
+    <h2 class="h2">The beta on us.</h2>
+    <div class="why-grid">
+      <div><span class="vnum">V1</span><h3>Reset weekly, wall by wall.</h3><p>A quarter of the gym is brand new every week. Regulars never run out of projects; the sweep is posted Sundays.</p></div>
+      <div><span class="vnum">V2</span><h3>Set for every body.</h3><p>Six setters of different heights, styles and strengths. Every circuit gets tested by a short climber and a tall one before it opens.</p></div>
+      <div><span class="vnum">V3</span><h3>Falling taught first.</h3><p>Every first-timer learns to fall before they climb. It's why our injury book is thinner than gyms half our size.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="grade-head"><span>04 / FIRST VISIT</span><span>DOOR → WALL IN 15 MIN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Register online</h3><p>One waiver, once ever. Do it on your phone in the queue if you must.</p></li>
+      <li><span class="step">STEP 02</span><h3>Shoes at the desk</h3><p>Rental shoes and chalk at the counter. Socks compulsory, dignity optional.</p></li>
+      <li><span class="step">STEP 03</span><h3>Learn to fall</h3><p>First visit includes the five-minute falling briefing. Knees bent, don't reach back.</p></li>
+      <li><span class="step">STEP 04</span><h3>Pick a colour</h3><p>Circuits run green to black. Start two grades below your ego and work up.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section data-component="TESTIMONIALS" data-variant="v2" style="background:var(--concrete);">
+  <div class="wrap">
+    <div class="grade-head"><span>05 / SENT</span><span>FROM THE MATS</span></div>
+    <blockquote class="t-quote">“I came for a birthday party I was dreading and now I own three pairs of climbing shoes and talk about ‘projects’.”</blockquote>
+    <div class="t-attr">Leah S. — climbing 18 months</div>
+    <div class="t-sub">
+      <figure><blockquote>“The weekly reset is the whole magic. Every Friday there's a new set to argue about and my mates and I have basically stopped going to the pub first.”</blockquote><figcaption>Kwame A. — blue-to-purple circuit</figcaption></figure>
+      <figure><blockquote>“My daughter's squad coach noticed her footwork issue in week one that her old gym missed for a year. NICAS levels are moving properly now.”</blockquote><figcaption>Rachel D. — youth club parent</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v11">
+  <div class="wrap">
+    <div class="grade-head"><span>06 / ON THE WALLS</span><span>THIS SEASON'S SET</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1522163182402-834f871fd851?w=1600&q=85&auto=format&fit=crop" alt="Climber on the steep wall." /><figcaption>WALL C · OVERHANG</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1564769662533-4f00a87b4056?w=1600&q=85&auto=format&fit=crop" alt="Setter placing holds from a ladder." /><figcaption>FRIDAY RESET</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1516592673884-4a382d1124c2?w=1600&q=85&auto=format&fit=crop" alt="Chalked hands gripping a crimp." /><figcaption>THE NAMESAKE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601224335112-b74158e231a9?w=1600&q=85&auto=format&fit=crop" alt="The slab zone at golden hour." /><figcaption>SLAB ZONE · 17:00</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=1600&q=85&auto=format&fit=crop" alt="Training boards and hangboard area." /><figcaption>TRAINING AREA</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1554284126-aa88f22d8b74?w=1600&q=85&auto=format&fit=crop" alt="Climbers resting between attempts." /><figcaption>BETWEEN ATTEMPTS</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="grade-head"><span>07 / FAQ</span><span>ASKED AT THE DESK DAILY</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you chalk up.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441179543320" style="color:var(--signal);">0117 954 3320</a>. The desk answers between briefings.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I've never climbed. Can I just turn up?</summary><p>Yes. Register online or at the desk, take the falling briefing, and you're in. If you'd rather have a human guide the first hour, book the First Timers session — it's the best money you'll spend here.</p></details>
+        <details><summary>Do I need a partner?</summary><p>No — that's the point of bouldering. The walls top out at 4.5m over thick matting. Half our regulars climb alone and leave with more friends than they came with.</p></details>
+        <details><summary>What should I wear?</summary><p>Anything you can move in. Socks are compulsory for rental shoes. Leave the rings and watches in the lockers — crimps eat jewellery.</p></details>
+        <details><summary>How do the grades work?</summary><p>Circuits by colour, green (easiest) to black (film crew territory). Tags carry a V-grade range. Everyone argues the grades; that's a feature, not a bug.</p></details>
+        <details><summary>Is there an age limit?</summary><p>Supervised kids from 5, youth club from 7, unsupervised climbing from 14 with a competency sign-off. The mezzanine is free for spectating parents — the coffee is not.</p></details>
+        <details><summary>When is it quiet?</summary><p>Weekday mornings and Friday nights (everyone's at the pub, mistakenly). Peak is 6–9pm Tuesday to Thursday. Live occupancy is on our Google profile.</p></details>
+        <details><summary>Do you do parties and groups?</summary><p>Birthday parties, stag/hen dos brave enough, corporate groups. Coached, catered by the café, booked at least two weeks out.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="grade-head"><span>08 / CATCHMENT</span><span>8 MIN FROM TEMPLE MEADS</span></div>
+    <ul class="area-list">
+      <li>St Philip's</li><li>Old Market</li><li>Easton</li><li>Totterdown</li><li>Bedminster</li><li>Temple Meads · 8 min walk</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="grade-head"><span>09 / SAFETY FILE</span><span>INSPECTED &amp; ACCREDITED</span></div>
+    <div class="creds">
+      <div><div class="label">ABC member</div><div class="detail">Association of British Climbing Walls</div></div>
+      <div><div class="label">NICAS</div><div class="detail">Accredited youth scheme, levels 1–5</div></div>
+      <div><div class="label">Coaches</div><div class="detail">Mountain Training CWI qualified, DBS checked</div></div>
+      <div><div class="label">Matting</div><div class="detail">400mm impact matting, inspected quarterly</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="grade-head"><span>10 / FIND US</span><span>THE TRAM DEPOT, KINGSLAND RD</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Crimp City</strong><br />
+          The Tram Depot, 9 Kingsland Road<br />
+          St Philip's, Bristol BS2 0QX<br /><br />
+          <a href="tel:+441179543320" data-bind="business.phoneDisplay">0117 954 3320</a><br />
+          <a href="mailto:hello@crimpcity.uk" data-bind="business.email">hello@crimpcity.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>MON – FRI</span><span>—</span></div>
+          <div class="row"><span>SAT – SUN</span><span>—</span></div>
+          <p class="gbp-note">Hours and live occupancy on our Google Business Profile. Bike racks out front, showers inside, van parking for the dirtbags.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Crimp City, Kingsland Road, Bristol" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.5770%2C51.4515%2C-2.5620%2C51.4575&layer=mapnik&marker=51.4545%2C-2.5697"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v3">
+  <div class="wrap">
+    <div class="tag" style="color:rgba(242,240,235,0.8);">11 / FIRST VISIT</div>
+    <h2 data-bind="cta.heading">Your first problem is the door. Solved.</h2>
+    <p data-bind="cta.body">Register online, bring socks, and give us an hour. The rest tends to take care of itself.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Plan a first visit</a>
+      <a class="btn btn-ghost" href="tel:+441179543320" data-bind="cta.secondary.label">0117 954 3320</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441179543320" data-bind="messaging.whatsapp" aria-label="Message the gym">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="color:var(--chalk);font-size:18px;">CRIMP CITY<span class="dot" style="color:var(--signal);">.</span></div>
+        <p style="margin-top:12px;max-width:34ch;color:rgba(242,240,235,0.6);font-size:14px;line-height:1.7;">A bouldering gym in a 1904 tram depot, St Philip's, Bristol. Reset weekly.</p>
+      </div>
+      <div>
+        <h4>The depot</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          9 Kingsland Road<br />Bristol BS2 0QX<br />
+          <a href="tel:+441179543320">0117 954 3320</a><br />
+          <a href="mailto:hello@crimpcity.uk">hello@crimpcity.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Climb</a><a href="#book">First visit</a><a href="#about">The depot</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> CRIMP CITY LTD</span>
+      <span>TRUST YOUR FEET</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

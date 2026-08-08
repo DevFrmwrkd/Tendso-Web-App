@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meridian & Sky — telescope shop and stargazing school in the Brecon Beacons</title>
+<meta name="description" content="Meridian & Sky is a telescope shop and stargazing school in the Brecon Beacons Dark Sky Reserve — telescopes and binoculars chosen honestly, setup and servicing, and guided nights under some of the darkest skies in Britain." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Meridian & Sky", phone: "+44 1874 610 250", phoneDisplay: "01874 610 250", email: "hello@meridianandsky.co.uk", foundedYear: 2011 },
+  hero: {
+    kicker: "Telescope shop & stargazing school · Brecon Beacons Dark Sky Reserve",
+    headline: "We don't sell magnification. We sell nights you'll remember.",
+    lede: "A telescope shop and stargazing school under one of the darkest skies in Britain. We fit the instrument to your eyes, your patience and your sky — not to the biggest number on the box — then teach you how to actually find things with it. Come for a scope, stay for a night out under the Milky Way.",
+    primaryCta: { label: "Book a stargazing night", href: "#book" },
+    secondaryCta: { label: "What we do", href: "#services" },
+    image: "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "The Milky Way over a dark landscape."
+  },
+  trust: { years: "Under the stars since 2011" },
+  about: {
+    heading: "The best telescope is the one you'll carry outside and actually use.",
+    paragraphs: [
+      "Meridian & Sky is a telescope shop and stargazing school on the edge of the Brecon Beacons Dark Sky Reserve, run by amateur astronomers who got tired of watching people buy the wrong scope. We opened in 2011 because the high-street telescope aisle is a trap — cheap tripods, useless magnification claims, and instruments so fiddly they end up in the loft after one frustrated night.",
+      "We sell telescopes, binoculars, mounts and eyepieces we actually use ourselves, and we fit them to the person: how dark your sky is, whether you'll drive somewhere for it, what you want to look at, and how much faff you'll tolerate at midnight in the cold. A good pair of binoculars beats a bad telescope every time, and we'll say so even when it costs us the bigger sale.",
+      "And because a scope is only half the story, we teach. Guided stargazing nights, beginners' courses, and setup sessions where we come out with you until you can find the rings of Saturn on your own. We're forty minutes from skies dark enough to see your own shadow by starlight — and we'd rather you saw them properly than squinted at a blur and gave up."
+    ],
+    portrait: "https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "The Andromeda galaxy in the dark sky."
+  },
+  services: [
+    { name: "Telescopes, chosen honestly", description: "We match a scope to your sky, your budget and your patience — and talk you out of the wrong one. Refractors, reflectors and Dobsonians we've used ourselves, not whatever has the biggest box." },
+    { name: "Binoculars & eyepieces", description: "Often the best first instrument and always a worthy upgrade. Astronomy binoculars, quality eyepieces and filters that make a real difference — fitted to your existing kit and eyes." },
+    { name: "Setup, service & collimation", description: "We set up your scope, collimate the optics, balance the mount and show you how — in the shop or out under the sky. Bring an old scope back to life or a new one into focus." },
+    { name: "Guided stargazing nights", description: "Small-group nights under the Dark Sky Reserve with our scopes and our guides — planets, nebulae, the Moon in detail and the Milky Way overhead. Hot drinks and no light pollution." },
+    { name: "Beginners' courses", description: "Learn the sky properly over a short course — how to star-hop, read a planisphere, find the season's best targets and drive your own scope with confidence rather than luck." },
+    { name: "Astrophotography starters", description: "Getting a camera onto the sky is its own art. We advise on mounts, trackers and settings, and run intro sessions so your first shots of the Moon and Milky Way are keepers." }
+  ],
+  why: [
+    { title: "We talk you out of the wrong scope.", body: "Magnification is a marketing number; aperture, mount and dark sky are what matter. We'll steer you to the instrument you'll actually use, even the cheaper one, because a scope in the loft helps nobody." },
+    { title: "A scope you can't drive is useless.", body: "Every instrument comes with the know-how to use it — setup, collimation and a lesson finding real objects. You leave able to point it at something and see it, not just own it." },
+    { title: "Genuinely dark skies on the doorstep.", body: "We're minutes from a Dark Sky Reserve, and our guided nights use it. There's no substitute for a truly black sky, and most people have simply never stood under one." }
+  ],
+  how: [
+    { step: "01", title: "Tell us your sky", body: "How dark is it where you'll observe? Will you travel for it? What pulls you — planets, deep sky, the Moon, photography? We start with you, not a product." },
+    { step: "02", title: "Try before you buy", body: "Handle the instruments in the shop, look through them on a clear evening, and feel the difference between aperture and hype before you spend a penny." },
+    { step: "03", title: "Set up & learn", body: "We set the scope up, collimate it and teach you to drive it — in the shop and, if you like, out under the stars until you can find things solo." },
+    { step: "04", title: "Come back for the sky", body: "Join a guided night, take a course, or just drop in when you're stuck. Buying the scope is the start of it, not the end." }
+  ],
+  testimonials: [
+    { quote: "I walked in ready to spend a fortune on a huge telescope. They sold me good binoculars for a fifth of the price, told me to learn the sky first, and invited me to a stargazing night. Best advice I've ever been given in a shop — I saw more in one evening than I ever expected.", name: "Rhian T.", context: "first-time buyer" },
+    { quote: "My son's Christmas telescope was hopeless and he'd given up. They serviced it, collimated it, came out one evening and had him finding Jupiter's moons himself within an hour. He's obsessed now. Worth every penny and then some.", name: "Dai M.", context: "setup & lesson" },
+    { quote: "The guided night under the Dark Sky Reserve genuinely changed how I see the world. Saturn's rings, the Andromeda galaxy, the Milky Way like a river overhead — and guides who could point to any of it and tell you what you were looking at. Book it. Just book it.", name: "Sophie L.", context: "guided stargazing night" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=1600&q=85&auto=format&fit=crop", alt: "The Milky Way over a dark landscape." },
+    { src: "https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=1600&q=85&auto=format&fit=crop", alt: "The Andromeda galaxy." },
+    { src: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85&auto=format&fit=crop", alt: "Earth and stars from above." },
+    { src: "https://images.unsplash.com/photo-1447433589675-4aaa569f3e05?w=1600&q=85&auto=format&fit=crop", alt: "The Moon in detail." },
+    { src: "https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1600&q=85&auto=format&fit=crop", alt: "A starry night sky." },
+    { src: "https://images.unsplash.com/photo-1610296669228-602fa827fc1f?w=1600&q=85&auto=format&fit=crop", alt: "The night sky full of stars." }
+  ],
+  faq: [
+    { q: "I'm a complete beginner — what should I buy first?", a: "Honestly? Very often a good pair of astronomy binoculars rather than a telescope, and we'll happily sell you the cheaper thing because it's the right thing. Binoculars are forgiving, portable, need no setup, and show you the Moon's craters, Jupiter's moons, star clusters and the Milky Way beautifully while you learn your way around the sky. Once you know a few constellations and what you enjoy looking at, a telescope makes far more sense and you'll choose it far better. If you're set on a scope, we'll steer you to a small Dobsonian reflector — the most sky for your money and simple to use. What we'll always talk you out of is a cheap, high-magnification department-store telescope on a wobbly tripod: they're the single biggest reason people give up on astronomy." },
+    { q: "Does magnification matter? The box says 675x!", a: "That number is the biggest lie in the telescope aisle. Useful magnification is limited by the aperture (the width of the main lens or mirror) and by the steadiness of the air, and on most nights anything above roughly 200x shows you a bigger, dimmer, blurrier mess rather than more detail. A telescope advertised at '675x' is telling you it's built for the box, not the sky. What actually matters is aperture (how much light it gathers), a stable mount that doesn't wobble when you touch it, and — more than any spec — how dark your sky is. We'll explain all of this in plain terms and match you to an instrument by what it'll really show you, not by a fantasy number." },
+    { q: "Can I really see planets and galaxies, or just dots?", a: "You can genuinely see wonderful things, with realistic expectations. Through a modest scope Saturn shows its rings, Jupiter its cloud belts and four moons, the Moon reveals craters and mountains in breathtaking detail, and many star clusters and brighter nebulae are lovely. Galaxies and fainter nebulae appear as soft grey smudges rather than the colourful Hubble images people picture — your eye can't collect light the way a long-exposure camera can — but seeing the Andromeda galaxy's glow with your own eye, knowing it's two and a half million light years away, is a genuinely moving thing. Dark skies make an enormous difference here, which is exactly why our guided nights are under the Dark Sky Reserve." },
+    { q: "What are your guided stargazing nights like?", a: "Small groups, our telescopes, our guides, and some of the darkest skies in Britain. We meet at a site within the Dark Sky Reserve well away from light pollution, let your eyes adapt to the dark, and spend the evening touring whatever the season offers — planets, the Moon, star clusters, nebulae and the Milky Way arching overhead. Our guides will point out constellations, explain what you're seeing through the scopes, and answer every question. We provide the instruments and hot drinks; you bring warm clothes (it gets cold standing still at night, even in summer) and a sense of wonder. They run on clear nights around the new moon for the darkest skies, and they book up — so reserve ahead." },
+    { q: "My old telescope doesn't work well. Can you help?", a: "Very often, yes, and it's some of our favourite work — rescuing a scope that's been written off or left in the loft. Most 'broken' telescopes aren't broken at all: they need collimating (aligning the optics), a decent eyepiece instead of the toy one supplied, a mount that actually holds still, or simply someone to show the owner how to use it. Bring it in and we'll assess it honestly, sort out what's fixable, and tell you plainly if it truly isn't worth saving. We'll also come out with you for a setup session so you leave able to find things with it, which is usually the real thing that was missing." },
+    { q: "Do you do children's parties, groups and gift vouchers?", a: "Yes to all three. Guided nights make brilliant group outings — birthdays, clubs, corporate away-days, and astronomy-mad children (we run sessions pitched for younger stargazers). Gift vouchers for a stargazing night or a beginners' course are one of the best presents you can give someone curious about the sky, and far more memorable than another gadget. We can also bring the telescopes to you for a private group event, sky permitting. Get in touch with your group size and what you're after and we'll put something together — and if the weather scuppers a night, we'll always rebook you rather than send you home with a cloud." }
+  ],
+  area: { places: ["Brecon", "Crickhowell", "Hay-on-Wye", "Abergavenny", "Merthyr Tydfil", "Talgarth"] },
+  credentials: [
+    { label: "Dark Sky Reserve", detail: "Guided nights under Brecon Beacons skies" },
+    { label: "Honest advice", detail: "We'll sell you the cheaper right instrument" },
+    { label: "Setup included", detail: "Every scope collimated and taught, not just sold" },
+    { label: "Since 2011", detail: "Amateur astronomers who observe every clear night" }
+  ],
+  location: { name: "Meridian & Sky", addressStreet: "8 The Watton", addressLocality: "Brecon", addressRegion: "Powys", addressPostcode: "LD3 7EF", addressCountry: "United Kingdom" },
+  cta: { heading: "Come and see a properly dark sky.", body: "Book a guided stargazing night, a beginners' course, or just come in and let us find you the right instrument. Forty minutes from skies dark enough to see your shadow by starlight.", primary: { label: "Book a stargazing night", href: "#book" }, secondary: { label: "01874 610 250", href: "tel:+441874610250" } },
+  messaging: { whatsapp: "https://wa.me/441874610250", messenger: "https://m.me/meridianandsky" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#0a0e1a; --ivory:#eef1f7; --amber:#e8b04b; --teal:#4fb0a8; --violet:#8a7bd8;
+    --ink:#0a0e1a; --mid:#6d7488; --mid-d:#9aa2b8; --rule:rgba(10,14,26,0.16); --rule-d:rgba(238,241,247,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--ivory);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--amber);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--amber);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--amber);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--amber);color:var(--void);} .btn-primary:hover{background:var(--ivory);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(238,241,247,0.4);color:var(--ivory);} .btn-ghost:hover{background:var(--ivory);color:var(--void);border-color:var(--ivory);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid rgba(238,241,247,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(10,14,26,0.9);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(238,241,247,0.14);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--amber);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(46px,8vw,124px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;max-width:15ch;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--violet);color:transparent;}
+  .hero-headline .em{color:var(--amber);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--amber);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(10,14,26,0.82);font-weight:700;}
+
+  .about{background:var(--ivory);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--teal);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#3c4256;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(238,241,247,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(238,241,247,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(232,176,75,0.08);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--amber);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--ivory);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--teal);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#3c4256;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(238,241,247,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--amber);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--amber);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(238,241,247,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--amber);color:var(--void);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(238,241,247,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(238,241,247,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--amber);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(238,241,247,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(238,241,247,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--ivory);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#3c4256;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(238,241,247,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.4) invert(0.92) hue-rotate(190deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--amber);color:var(--void);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--void);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(46px,7.5vw,124px);line-height:0.9;margin:14px auto 18px;max-width:15ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--void);color:transparent;}
+  .cta-band p{color:rgba(10,14,26,0.82);max-width:48ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--void);color:var(--ivory);} .cta-band .btn-primary:hover{background:var(--ivory);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(10,14,26,0.5);color:var(--void);} .cta-band .btn-ghost:hover{background:var(--void);color:var(--ivory);border-color:var(--void);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(238,241,247,0.14);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(238,241,247,0.14);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--amber);color:var(--void);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(232,176,75,0.4);}
+  .msg-fab a:hover{background:var(--ivory);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Meridian & Sky","description":"Telescope shop and stargazing school in the Brecon Beacons Dark Sky Reserve — telescopes and binoculars chosen honestly, setup and servicing, and guided nights under some of the darkest skies in Britain.","url":"https://meridianandsky.co.uk/","telephone":"+441874610250","email":"hello@meridianandsky.co.uk","address":{"@type":"PostalAddress","streetAddress":"8 The Watton","addressLocality":"Brecon","addressRegion":"Powys","postalCode":"LD3 7EF","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.9450,"longitude":-3.3870},"areaServed":["Brecon","Crickhowell","Hay-on-Wye","Abergavenny"],"image":["https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=1600"],"foundingDate":"2011"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I'm a complete beginner — what should I buy first?","acceptedAnswer":{"@type":"Answer","text":"Often a good pair of astronomy binoculars rather than a telescope — forgiving, portable, no setup, and they show the Moon, Jupiter's moons, clusters and the Milky Way while you learn the sky. If you want a scope, a small Dobsonian gives the most sky for your money. We'll always talk you out of a cheap high-magnification department-store telescope."}},
+{"@type":"Question","name":"Does magnification matter?","acceptedAnswer":{"@type":"Answer","text":"'675x' is the biggest lie in the telescope aisle. Useful magnification is limited by aperture and air steadiness; above ~200x you usually get a bigger, dimmer, blurrier image. What matters is aperture, a stable mount and dark skies. We match you by what an instrument really shows, not by a fantasy number."}},
+{"@type":"Question","name":"Can I really see planets and galaxies?","acceptedAnswer":{"@type":"Answer","text":"Yes, with realistic expectations. Saturn shows its rings, Jupiter its belts and moons, the Moon craters in fine detail, and many clusters and brighter nebulae are lovely. Galaxies appear as soft grey glows, not colourful Hubble images, since the eye can't collect light like a camera. Dark skies make a huge difference."}},
+{"@type":"Question","name":"What are your guided stargazing nights like?","acceptedAnswer":{"@type":"Answer","text":"Small groups, our telescopes and guides, under Dark Sky Reserve skies away from light pollution. We tour planets, the Moon, clusters, nebulae and the Milky Way, explaining as we go. We provide instruments and hot drinks; you bring warm clothes. They run on clear nights near new moon and book up fast."}},
+{"@type":"Question","name":"My old telescope doesn't work well. Can you help?","acceptedAnswer":{"@type":"Answer","text":"Very often yes — most 'broken' scopes need collimating, a decent eyepiece, a steadier mount, or just someone to show the owner how to use it. Bring it in for an honest assessment; we'll sort what's fixable, say plainly if it isn't worth saving, and run a setup session so you can find things with it."}},
+{"@type":"Question","name":"Do you do parties, groups and gift vouchers?","acceptedAnswer":{"@type":"Answer","text":"Yes — guided nights suit birthdays, clubs, away-days and astronomy-mad children, and gift vouchers for a night or a course make memorable presents. We can bring telescopes to a private group, sky permitting, and we always rebook rather than send you home under cloud."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Meridian <span>&amp;</span> Sky</a>
+    <nav class="nav-links">
+      <a href="#about">The shop</a><a href="#services">What we do</a><a href="#location">Find us</a><a href="#book">Book a night</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v74">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Telescope shop &amp; stargazing school · Brecon Beacons Dark Sky Reserve</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      We don't sell <span class="out">magnification.</span> We sell <span class="em">nights you'll remember.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=2000&q=85&auto=format&fit=crop"
+             alt="The Milky Way over a dark landscape." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A telescope shop and stargazing school under one of the darkest skies in Britain. We fit the instrument to your eyes, your patience and your sky — not to the biggest number on the box — then teach you how to actually find things with it. Come for a scope, stay for a night out under the Milky Way.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a stargazing night</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we do</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Under the stars since 2011</span>
+    <span>Dark Sky Reserve on the doorstep</span>
+    <span>Honest advice, not big numbers</span>
+    <span>Every scope taught, not just sold</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v40">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 01 / THE SHOP</span><span>APERTURE OVER HYPE</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">The best telescope is the one you'll carry outside and <em>actually use.</em></h2>
+        <p>Meridian &amp; Sky is a telescope shop and stargazing school on the edge of the Brecon Beacons Dark Sky Reserve, run by amateur astronomers who got tired of watching people buy the wrong scope. We opened in 2011 because the high-street telescope aisle is a trap — cheap tripods, useless magnification claims, and instruments so fiddly they end up in the loft after one frustrated night.</p>
+        <p>We sell telescopes, binoculars, mounts and eyepieces we actually use ourselves, and we fit them to the person: how dark your sky is, whether you'll drive somewhere for it, what you want to look at, and how much faff you'll tolerate at midnight in the cold. A good pair of binoculars beats a bad telescope every time, and we'll say so even when it costs us the bigger sale.</p>
+        <p>And because a scope is only half the story, we teach. Guided stargazing nights, beginners' courses, and setup sessions where we come out with you until you can find the rings of Saturn on your own. We're forty minutes from skies dark enough to see your own shadow by starlight — and we'd rather you saw them properly than squinted at a blur and gave up.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=1200&q=85&auto=format&fit=crop"
+           alt="The Andromeda galaxy in the dark sky." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v67" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 02 / WHAT WE DO</span><span>SCOPES & SKIES</span></div>
+    <h2 class="h2">What we do.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Telescopes, chosen honestly</h3><p>We match a scope to your sky, your budget and your patience — and talk you out of the wrong one. Refractors, reflectors and Dobsonians we've used ourselves, not whatever has the biggest box.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Binoculars &amp; eyepieces</h3><p>Often the best first instrument and always a worthy upgrade. Astronomy binoculars, quality eyepieces and filters that make a real difference — fitted to your existing kit and eyes.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Setup, service &amp; collimation</h3><p>We set up your scope, collimate the optics, balance the mount and show you how — in the shop or out under the sky. Bring an old scope back to life or a new one into focus.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Guided stargazing nights</h3><p>Small-group nights under the Dark Sky Reserve with our scopes and our guides — planets, nebulae, the Moon in detail and the Milky Way overhead. Hot drinks and no light pollution.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Beginners' courses</h3><p>Learn the sky properly over a short course — how to star-hop, read a planisphere, find the season's best targets and drive your own scope with confidence rather than luck.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Astrophotography starters</h3><p>Getting a camera onto the sky is its own art. We advise on mounts, trackers and settings, and run intro sessions so your first shots of the Moon and Milky Way are keepers.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v39">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 03 / THE DIFFERENCE</span><span>WHY PEOPLE COME BACK</span></div>
+    <h2 class="h2">Why people come back.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>We talk you out of the wrong scope.</h3><p>Magnification is a marketing number; aperture, mount and dark sky are what matter. We'll steer you to the instrument you'll actually use, even the cheaper one, because a scope in the loft helps nobody.</p></div>
+      <div><span class="no">02 / 03</span><h3>A scope you can't drive is useless.</h3><p>Every instrument comes with the know-how to use it — setup, collimation and a lesson finding real objects. You leave able to point it at something and see it, not just own it.</p></div>
+      <div><span class="no">03 / 03</span><h3>Genuinely dark skies on the doorstep.</h3><p>We're minutes from a Dark Sky Reserve, and our guided nights use it. There's no substitute for a truly black sky, and most people have simply never stood under one.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 04 / HOW IT GOES</span><span>SKY → TRY → SET UP → RETURN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us your sky</h3><p>How dark is it where you'll observe? Will you travel for it? What pulls you — planets, deep sky, the Moon, photography? We start with you, not a product.</p></li>
+      <li><span class="step">STEP 02</span><h3>Try before you buy</h3><p>Handle the instruments in the shop, look through them on a clear evening, and feel the difference between aperture and hype before you spend a penny.</p></li>
+      <li><span class="step">STEP 03</span><h3>Set up &amp; learn</h3><p>We set the scope up, collimate it and teach you to drive it — in the shop and, if you like, out under the stars until you can find things solo.</p></li>
+      <li><span class="step">STEP 04</span><h3>Come back for the sky</h3><p>Join a guided night, take a course, or just drop in when you're stuck. Buying the scope is the start of it, not the end.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v39">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 05 / FROM THE FIELD</span><span>WHAT THEY SAW</span></div>
+    <blockquote class="t-quote">“I saw more in one evening under a dark sky than I ever <em>expected to see.</em>”</blockquote>
+    <div class="t-attr">Rhian T. — first-time buyer</div>
+    <div class="t-sub">
+      <figure><blockquote>“My son's Christmas telescope was hopeless and he'd given up. They serviced it, collimated it, came out one evening and had him finding Jupiter's moons himself within an hour. He's obsessed now. Worth every penny and then some.”</blockquote><figcaption>Dai M. — setup &amp; lesson</figcaption></figure>
+      <figure><blockquote>“The guided night under the Dark Sky Reserve genuinely changed how I see the world. Saturn's rings, the Andromeda galaxy, the Milky Way like a river overhead — and guides who could point to any of it and tell you what you were looking at. Book it. Just book it.”</blockquote><figcaption>Sophie L. — guided stargazing night</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v67" class="about" style="background:var(--ivory);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>FIELD 06 / THE SKY</span><span>WHAT'S UP THERE</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1502134249126-9f3755a50d78?w=1600&q=85&auto=format&fit=crop" alt="The Milky Way over a dark landscape." /><figcaption>THE MILKY WAY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1543722530-d2c3201371e7?w=1600&q=85&auto=format&fit=crop" alt="The Andromeda galaxy." /><figcaption>ANDROMEDA</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=85&auto=format&fit=crop" alt="Earth and stars from above." /><figcaption>DEEP SKY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1447433589675-4aaa569f3e05?w=1600&q=85&auto=format&fit=crop" alt="The Moon in detail." /><figcaption>THE MOON</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1600&q=85&auto=format&fit=crop" alt="A starry night sky." /><figcaption>UNDER STARS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1610296669228-602fa827fc1f?w=1600&q=85&auto=format&fit=crop" alt="The night sky full of stars." /><figcaption>NO LIGHT POLLUTION</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 07 / ASKED BEFORE BUYING</span><span>BEFORE YOU SPEND</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked before buying.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441874610250" style="color:var(--amber);font-weight:700;">01874 610 250</a>. If it's a clear night we might be out observing, so leave a message.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I'm a complete beginner — what should I buy first?</summary><p>Honestly? Very often a good pair of astronomy binoculars rather than a telescope, and we'll happily sell you the cheaper thing because it's the right thing. Binoculars are forgiving, portable, need no setup, and show you the Moon's craters, Jupiter's moons, star clusters and the Milky Way beautifully while you learn your way around the sky. Once you know a few constellations and what you enjoy looking at, a telescope makes far more sense and you'll choose it far better. If you're set on a scope, we'll steer you to a small Dobsonian reflector — the most sky for your money and simple to use. What we'll always talk you out of is a cheap, high-magnification department-store telescope on a wobbly tripod: they're the single biggest reason people give up on astronomy.</p></details>
+        <details><summary>Does magnification matter? The box says 675x!</summary><p>That number is the biggest lie in the telescope aisle. Useful magnification is limited by the aperture (the width of the main lens or mirror) and by the steadiness of the air, and on most nights anything above roughly 200x shows you a bigger, dimmer, blurrier mess rather than more detail. A telescope advertised at "675x" is telling you it's built for the box, not the sky. What actually matters is aperture (how much light it gathers), a stable mount that doesn't wobble when you touch it, and — more than any spec — how dark your sky is. We'll explain all of this in plain terms and match you to an instrument by what it'll really show you, not by a fantasy number.</p></details>
+        <details><summary>Can I really see planets and galaxies, or just dots?</summary><p>You can genuinely see wonderful things, with realistic expectations. Through a modest scope Saturn shows its rings, Jupiter its cloud belts and four moons, the Moon reveals craters and mountains in breathtaking detail, and many star clusters and brighter nebulae are lovely. Galaxies and fainter nebulae appear as soft grey smudges rather than the colourful Hubble images people picture — your eye can't collect light the way a long-exposure camera can — but seeing the Andromeda galaxy's glow with your own eye, knowing it's two and a half million light years away, is a genuinely moving thing. Dark skies make an enormous difference here, which is exactly why our guided nights are under the Dark Sky Reserve.</p></details>
+        <details><summary>What are your guided stargazing nights like?</summary><p>Small groups, our telescopes, our guides, and some of the darkest skies in Britain. We meet at a site within the Dark Sky Reserve well away from light pollution, let your eyes adapt to the dark, and spend the evening touring whatever the season offers — planets, the Moon, star clusters, nebulae and the Milky Way arching overhead. Our guides will point out constellations, explain what you're seeing through the scopes, and answer every question. We provide the instruments and hot drinks; you bring warm clothes (it gets cold standing still at night, even in summer) and a sense of wonder. They run on clear nights around the new moon for the darkest skies, and they book up — so reserve ahead.</p></details>
+        <details><summary>My old telescope doesn't work well. Can you help?</summary><p>Very often, yes, and it's some of our favourite work — rescuing a scope that's been written off or left in the loft. Most "broken" telescopes aren't broken at all: they need collimating (aligning the optics), a decent eyepiece instead of the toy one supplied, a mount that actually holds still, or simply someone to show the owner how to use it. Bring it in and we'll assess it honestly, sort out what's fixable, and tell you plainly if it truly isn't worth saving. We'll also come out with you for a setup session so you leave able to find things with it, which is usually the real thing that was missing.</p></details>
+        <details><summary>Do you do children's parties, groups and gift vouchers?</summary><p>Yes to all three. Guided nights make brilliant group outings — birthdays, clubs, corporate away-days, and astronomy-mad children (we run sessions pitched for younger stargazers). Gift vouchers for a stargazing night or a beginners' course are one of the best presents you can give someone curious about the sky, and far more memorable than another gadget. We can also bring the telescopes to you for a private group event, sky permitting. Get in touch with your group size and what you're after and we'll put something together — and if the weather scuppers a night, we'll always rebook you rather than send you home with a cloud.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 08 / STARGAZERS FROM</span><span>ACROSS THE BEACONS & BORDERS</span></div>
+    <ul class="area-list">
+      <li>Brecon</li><li>Crickhowell</li><li>Hay-on-Wye</li><li>Abergavenny</li><li>Merthyr Tydfil</li><li>Talgarth</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v14" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Dark Sky Reserve</div><div class="detail">Guided nights under Brecon Beacons skies</div></div>
+      <div><div class="label">Honest advice</div><div class="detail">We'll sell you the cheaper right instrument</div></div>
+      <div><div class="label">Setup included</div><div class="detail">Every scope collimated and taught, not just sold</div></div>
+      <div><div class="label">Since 2011</div><div class="detail">Amateur astronomers who observe every clear night</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 10 / FIND THE SHOP</span><span>THE WATTON, BRECON</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Meridian &amp; Sky</strong><br />
+          8 The Watton<br />
+          Brecon LD3 7EF<br /><br />
+          <a href="tel:+441874610250" data-bind="business.phoneDisplay">01874 610 250</a><br />
+          <a href="mailto:hello@meridianandsky.co.uk" data-bind="business.email">hello@meridianandsky.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>SHOP</span><span>TUE – SAT</span></div>
+          <div class="row"><span>GUIDED NIGHTS</span><span>CLEAR NIGHTS, NEW MOON</span></div>
+          <p class="gbp-note">Live hours and the next available stargazing nights are on our Google Business Profile. The shop is on The Watton in Brecon; guided nights meet within the Dark Sky Reserve — details on booking.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Meridian & Sky, Brecon" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-3.3960%2C51.9410%2C-3.3780%2C51.9490&layer=mapnik&marker=51.9450%2C-3.3870"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v42">
+  <div class="wrap">
+    <div class="kick">FIELD 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Come and see a <em>properly dark</em> sky.</h2>
+    <p data-bind="cta.body">Book a guided stargazing night, a beginners' course, or just come in and let us find you the right instrument. Forty minutes from skies dark enough to see your shadow by starlight.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a stargazing night</a>
+      <a class="btn btn-ghost" href="tel:+441874610250" data-bind="cta.secondary.label">01874 610 250</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441874610250" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Meridian <span style="color:var(--amber);">&amp;</span> Sky</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A telescope shop and stargazing school under the Brecon Beacons Dark Sky Reserve. Observing since 2011.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          8 The Watton<br />Brecon LD3 7EF<br />
+          <a href="tel:+441874610250">01874 610 250</a><br />
+          <a href="mailto:hello@meridianandsky.co.uk">hello@meridianandsky.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we do</a><a href="#about">The shop</a><a href="#location">Find us</a><a href="#book">Book a night</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> MERIDIAN &amp; SKY</span>
+      <span>UNDER THE DARKEST SKIES IN BRITAIN</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

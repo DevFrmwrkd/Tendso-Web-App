@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gamp & Stick — handmade and repaired umbrellas in London</title>
+<meta name="description" content="Gamp & Stick make, sell and repair umbrellas in London — hand-framed English umbrellas built to last a lifetime, re-covering and repairs of any brolly, and bespoke wedding and city umbrellas. Keeping London dry, and out of landfill, since 1991." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Gamp & Stick", phone: "+44 20 7946 0338", phoneDisplay: "020 7946 0338", email: "shop@gampandstick.co.uk", foundedYear: 1991 },
+  hero: {
+    kicker: "Handmade umbrellas · re-covering · repairs · London",
+    headline: "A good umbrella is not a thing you replace. It's a thing you keep.",
+    lede: "An umbrella maker and repairer in London — hand-framed English umbrellas built to outlast every cheap folding brolly you've ever binned, expert re-covering and repair of any umbrella worth saving, and bespoke pieces for weddings and city gifts. We've kept London dry, and a mountain of umbrellas out of landfill, since 1991.",
+    primaryCta: { label: "Visit the shop", href: "#book" },
+    secondaryCta: { label: "What we do", href: "#services" },
+    image: "https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A person under an umbrella on a rainy city street."
+  },
+  trust: { years: "Keeping London dry since 1991" },
+  about: {
+    heading: "The world is drowning in broken umbrellas. We've spent thirty years bailing it out.",
+    paragraphs: [
+      "Gamp &amp; Stick is an umbrella maker and repair shop in London, and we exist because of a small, infuriating truth: almost every umbrella sold today is designed to be thrown away. It turns inside out in the first proper gust, a rib snaps, and into the bin it goes — millions of them a year. We started in 1991 to make and mend the other kind: umbrellas built on a proper frame, with real materials, that you carry for decades and hand on.",
+      "The umbrellas we make are hand-framed the traditional English way — a solid stick, a strong steel or hickory frame, a tightly-tailored canopy, a handle turned or bound to last — and assembled and finished by hand in our workshop. They are heavier and dearer than the folding thing in your bag, and that is exactly the point: a Gamp &amp; Stick umbrella is a lifetime object, weatherproof, wind-worthy and, frankly, a pleasure to be seen under. Buy once, carry for years.",
+      "But repair is half our soul. Bring us almost any umbrella of quality — a snapped rib, a canopy come away, a jammed runner, a handle worked loose, a beloved brolly your grandfather carried — and we'll very likely save it, often for a fraction of replacing it, and always in preference to the bin. We re-cover, re-rib, re-tip and re-handle; we make bespoke umbrellas for weddings and gifts; and we'll happily talk you out of buying a new one if yours can be mended. Kept, not binned."
+    ],
+    portrait: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Rain running down a window."
+  },
+  services: [
+    { name: "Handmade English umbrellas", description: "Hand-framed on a solid stick with a strong steel or hickory frame and a tailored canopy, assembled and finished by hand. Weatherproof, wind-worthy and built to carry for decades." },
+    { name: "Re-covering", description: "A sound frame with a torn, faded or perished canopy doesn't need replacing — it needs re-covering. We fit a fresh, tightly-tailored canopy to your existing frame and it's as good as new." },
+    { name: "Repairs of any brolly", description: "Snapped ribs, a jammed runner, a broken spring, a handle worked loose, tips lost — bring us almost any quality umbrella and we'll very likely mend it, usually for far less than replacing it." },
+    { name: "Handle & stick work", description: "Loose, cracked or tired handles re-fixed, re-bound or replaced, and sticks repaired — including on treasured and antique umbrellas where the handle is the whole point of the thing." },
+    { name: "Bespoke wedding & gift umbrellas", description: "Beautiful bespoke umbrellas for weddings (clear-canopy or coloured), christenings and city gifts — personalised, made to last, and a far finer present than anything off a shelf." },
+    { name: "Walking sticks & canes", description: "We also make, sell and repair walking sticks and canes in the same traditional way — turned and bound handles, sound sticks, and honest advice on height and fit." }
+  ],
+  why: [
+    { title: "Built to keep, not to bin.", body: "Our umbrellas are hand-framed lifetime objects, not disposable folding brollies. Heavier, dearer, and built so that you buy once and carry for decades — the opposite of everything in the supermarket bucket." },
+    { title: "We'd rather mend than sell.", body: "If your umbrella can be repaired, we'll repair it — and tell you so honestly, even when we'd make more money selling you a new one. A saved umbrella is one fewer in landfill, and that matters to us." },
+    { title: "Framed and finished by hand.", body: "Every umbrella we make and every repair we do is done by hand in our London workshop, by people who've framed thousands. The difference between hand-framed and mass-made is in every rib." }
+  ],
+  how: [
+    { step: "01", title: "Bring it or choose it", body: "Come in with the umbrella that's failed you, or to choose a new one. We'll assess a repair honestly, or match you to a handmade umbrella by weight, canopy, handle and how you'll carry it." },
+    { step: "02", title: "Assess & advise", body: "For a repair, we tell you straight whether it's worth mending and what it'll cost — and we'll talk you out of a needless new purchase. For a new umbrella, we fit it to your hand and your life." },
+    { step: "03", title: "Made or mended by hand", body: "We re-rib, re-cover, re-tip or re-handle your brolly in the workshop, or hand-frame and finish your new umbrella. Either way it leaves ready to face a London downpour with confidence." },
+    { step: "04", title: "Carry it for years", body: "Come back whenever it needs a service, a re-cover or a repair — a good umbrella, looked after, lasts a lifetime, and we'll keep yours going for as long as you carry it." }
+  ],
+  testimonials: [
+    { quote: "I'd been through a supermarket umbrella every few months for years. I finally bought a hand-framed one from Gamp & Stick, and three winters later it has shrugged off every gale on Waterloo Bridge without so much as a wobble. It has already cost me less than the pile of broken ones it replaced. Buy once, honestly.", name: "Marcus D.", context: "handmade umbrella" },
+    { quote: "My late father's umbrella — the one he carried my whole childhood — had a snapped rib and a canopy hanging off. I assumed it was sentimental scrap. They re-ribbed and re-covered it beautifully and it's whole again, and I cried a bit at the counter. You cannot put a price on that. Extraordinary, kind craftspeople.", name: "Helena R.", context: "repair & re-cover" },
+    { quote: "Ordered forty clear bespoke umbrellas for our (very British) outdoor wedding and they were perfect — beautifully made, delivered on time, and our guests took them home and actually still use them. Practical, gorgeous and a real talking point. So much better than the usual wedding tat.", name: "James & Aisha", context: "bespoke wedding umbrellas" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&q=85&auto=format&fit=crop", alt: "A person under an umbrella on a rainy street." },
+    { src: "https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1600&q=85&auto=format&fit=crop", alt: "Rain running down a window." },
+    { src: "https://images.unsplash.com/photo-1428592953211-077101b2021b?w=1600&q=85&auto=format&fit=crop", alt: "Rain falling on wet ground." },
+    { src: "https://images.unsplash.com/photo-1493314894560-5c412a56c17c?w=1600&q=85&auto=format&fit=crop", alt: "Rain bokeh through a window at night." },
+    { src: "https://images.unsplash.com/photo-1541919329513-35f7af297129?w=1600&q=85&auto=format&fit=crop", alt: "Raindrops on a windowpane." },
+    { src: "https://images.unsplash.com/photo-1438449805896-28a666819a20?w=1600&q=85&auto=format&fit=crop", alt: "Heavy rain on a dark street." }
+  ],
+  faq: [
+    { q: "Why buy an expensive umbrella when cheap ones exist?", a: "Because the cheap ones aren't cheap at all once you count how many you get through, and because a real umbrella is a genuinely better object to own and carry. A supermarket folding umbrella is engineered to a price: light, flimsy ribs, a thin canopy and joints that give way in the first proper wind, which is why most people replace them constantly and why millions end up in landfill every year. A hand-framed umbrella is built the opposite way — a solid stick, a strong steel or hickory frame that flexes with the wind instead of snapping, and a tightly-tailored canopy — so it lasts for decades, survives the gales that destroy cheap ones, and can be repaired rather than binned when something eventually wears. Yes, it costs more upfront and it's heavier to carry; but over the years it works out cheaper, it keeps you genuinely drier, and it's simply a pleasure to use. Buy one good umbrella, look after it, and you may never need to buy another." },
+    { q: "Can you really repair my umbrella, and is it worth it?", a: "Very probably yes, and very often yes — repairing umbrellas is half of what we do and we save the great majority of those brought to us. The common failures are all fixable: a snapped or bent rib can be replaced or straightened; a canopy that has torn, perished or come away from the frame can be repaired or the whole umbrella re-covered onto its sound frame; a runner that jams or a spring that has gone can be freed or replaced; lost tips can be re-fitted; and a handle that has worked loose or cracked can be re-fixed or replaced. Whether it's worth it depends on the umbrella: for a quality umbrella, and especially for one with sentimental value, a repair is almost always worthwhile and far cheaper than an equivalent new one; for a cheap disposable brolly, we'll tell you honestly if it isn't worth mending. Bring it in and we'll assess it for free and advise you straight — we would genuinely rather mend your umbrella than sell you a new one you don't need." },
+    { q: "What makes a handmade English umbrella different?", a: "It's the frame and the making, and once you've carried one you feel the difference immediately. A traditional English umbrella is built around a single solid stick running the full length, with a frame of properly-gauged steel (or, on our finest, hickory) whose ribs and stretchers are engineered to open taut and to flex in the wind rather than invert and snap. The canopy is cut and tailored to fit that frame tightly, so it sits drum-tight when open and furls slim and elegant when closed. The handle — crook or knob, in hardwood, horn, cane or bound leather — is fitted to last and to feel right in the hand. All of it is assembled and finished by hand, rib by rib, in our workshop. The result is heavier and dearer than a folding umbrella, but it's weatherproof, wind-worthy, repairable, and frankly handsome — an object you're glad to be seen with and glad to hand on. It is to a supermarket brolly what a good pair of Goodyear-welted shoes is to a pair of flip-flops." },
+    { q: "Do you make bespoke umbrellas for weddings and gifts?", a: "Yes, and they're some of our happiest commissions. For weddings we make beautiful bespoke umbrellas — elegant clear ('birdcage') canopies that keep the rain off without hiding the dress and the smiles, or coloured canopies to match your scheme — in whatever quantity you need for a very British outdoor wedding, and unlike the flimsy ones hired elsewhere, ours are properly made and your guests will genuinely keep and use them afterwards. For gifts, a handmade umbrella (optionally personalised, and beautifully boxed) is a present that's practical, lasting and quietly luxurious — ideal for a retirement, a big birthday, a christening, or anyone who could do with being kept dry in style. We can work to your colours, your timescale and your budget, and we'll advise on what works best for the occasion. Talk to us well ahead for weddings and larger orders, and we'll make sure everyone's covered — literally." },
+    { q: "Do you only make umbrellas, or walking sticks too?", a: "Both — the two trades have always gone together, and we make, sell and repair walking sticks and canes in the same traditional, hand-finished way as our umbrellas. That includes everyday walking sticks fitted properly to your height and stride, handsome canes with turned, bound or horn handles, and the repair and re-handling of treasured and antique sticks whose handle or shaft has been damaged. Getting a walking stick right matters more than people realise — the wrong height or handle can do more harm than good — so we take the time to fit it correctly and advise honestly, exactly as we would with an umbrella. Whether you need a dependable stick for daily support, a fine cane for occasions, or the careful repair of one that's been in the family, bring it in or come and talk to us. It's all part of the same craft: well-made things, carried in the hand, built and mended to last." },
+    { q: "Where are you, and can I post an umbrella in for repair?", a: "Our shop and workshop are in London and we'd always love you to visit — it's the best way to choose a new umbrella, and it lets us assess a repair on the spot and advise you face to face. But we know not everyone can get to us, so yes, you're very welcome to post an umbrella in for repair or re-covering: get in touch first (a quick call or email, ideally with a photograph or two of the umbrella and the problem) so we can give you a rough idea of whether it's worth doing and what it might cost, and we'll tell you how to pack and send it safely. We'll assess it properly on arrival, confirm the price before doing any work, carry out the repair, and post it back to you ready for the next downpour. Whether in person or by post, the promise is the same: an honest assessment, a proper hand repair, and a strong preference for mending your umbrella over selling you a new one." }
+  ],
+  area: { places: ["The City", "Westminster", "Bloomsbury", "Greater London", "By post", "UK-wide"] },
+  credentials: [
+    { label: "Since 1991", detail: "Making and mending in London for over 30 years" },
+    { label: "Hand-framed", detail: "Solid stick, steel or hickory, tailored canopy" },
+    { label: "Mend over sell", detail: "We'll repair yours rather than sell you new" },
+    { label: "Repairs by post", detail: "Send your umbrella in from anywhere in the UK" }
+  ],
+  location: { name: "Gamp & Stick", addressStreet: "11 Cecil Court", addressLocality: "London", addressRegion: "Greater London", addressPostcode: "WC2N 4EZ", addressCountry: "United Kingdom" },
+  cta: { heading: "Buy one that lasts. Or bring the one worth saving.", body: "Hand-framed umbrellas built for a lifetime, expert repairs and re-covering of any brolly worth keeping, and bespoke pieces for weddings. Come in, or post your umbrella to us — we'd rather mend than bin, always.", primary: { label: "Visit the shop", href: "#book" }, secondary: { label: "020 7946 0338", href: "tel:+442079460338" } },
+  messaging: { whatsapp: "https://wa.me/442079460338", messenger: "https://m.me/gampandstick" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#191c22; --chalk:#e9ecef; --oxblood:#8f3a44; --brass:#c39a54; --slateblue:#4a6fa0;
+    --ink:#191c22; --mid:#6a6f78; --mid-d:#a7adb7; --rule:rgba(25,28,34,0.16); --rule-d:rgba(233,236,239,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--chalk);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--brass);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--brass);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--oxblood);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--oxblood);color:var(--chalk);} .btn-primary:hover{background:var(--brass);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(233,236,239,0.4);color:var(--chalk);} .btn-ghost:hover{background:var(--chalk);color:var(--void);border-color:var(--chalk);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid rgba(233,236,239,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(25,28,34,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(233,236,239,0.16);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--oxblood);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7.4vw,112px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;max-width:16ch;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--slateblue);color:transparent;}
+  .hero-headline .em{color:var(--oxblood);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--brass);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(25,28,34,0.82);font-weight:700;}
+
+  .about{background:var(--chalk);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--oxblood);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#3a3f47;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(233,236,239,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(233,236,239,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(143,58,68,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--brass);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--chalk);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--oxblood);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#3a3f47;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(233,236,239,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--brass);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--oxblood);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(233,236,239,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--oxblood);color:var(--chalk);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(233,236,239,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(233,236,239,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--brass);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(233,236,239,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(233,236,239,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brass);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--chalk);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#3a3f47;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(233,236,239,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.4) invert(0.9) hue-rotate(190deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--oxblood);color:var(--chalk);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--chalk);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7vw,116px);line-height:0.9;margin:14px auto 18px;max-width:16ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--chalk);color:transparent;}
+  .cta-band p{color:rgba(233,236,239,0.9);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--chalk);color:var(--oxblood);} .cta-band .btn-primary:hover{background:var(--brass);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(233,236,239,0.6);color:var(--chalk);} .cta-band .btn-ghost:hover{background:var(--chalk);color:var(--oxblood);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(233,236,239,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brass);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(233,236,239,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--oxblood);color:var(--chalk);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(143,58,68,0.4);}
+  .msg-fab a:hover{background:var(--chalk);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Gamp & Stick","description":"Umbrella maker and repairer in London — hand-framed English umbrellas built to last a lifetime, re-covering and repairs of any brolly, and bespoke wedding and city umbrellas.","url":"https://gampandstick.co.uk/","telephone":"+442079460338","email":"shop@gampandstick.co.uk","address":{"@type":"PostalAddress","streetAddress":"11 Cecil Court","addressLocality":"London","addressRegion":"Greater London","postalCode":"WC2N 4EZ","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.5110,"longitude":-0.1270},"areaServed":["City of London","Westminster","Greater London","United Kingdom"],"image":["https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600"],"foundingDate":"1991"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why buy an expensive umbrella when cheap ones exist?","acceptedAnswer":{"@type":"Answer","text":"Because cheap ones aren't cheap once you count how many you get through. A hand-framed umbrella has a solid stick, a strong steel or hickory frame that flexes instead of snapping, and a tailored canopy, so it lasts decades, survives gales, and can be repaired rather than binned. It costs more upfront and weighs more, but works out cheaper, keeps you drier, and is a pleasure to use."}},
+{"@type":"Question","name":"Can you really repair my umbrella, and is it worth it?","acceptedAnswer":{"@type":"Answer","text":"Very probably yes. Snapped ribs, torn or perished canopies, jammed runners, lost tips and loose handles are all fixable, and we re-cover onto sound frames. For a quality or sentimental umbrella it's almost always worthwhile and far cheaper than new; for a cheap disposable one we'll say honestly if it isn't. We assess for free and would rather mend than sell."}},
+{"@type":"Question","name":"What makes a handmade English umbrella different?","acceptedAnswer":{"@type":"Answer","text":"A single solid stick, a properly-gauged steel or hickory frame engineered to flex in wind rather than invert, and a canopy tailored to sit drum-tight and furl slim. The handle is fitted to last. All assembled by hand, rib by rib. Heavier and dearer than a folding brolly, but weatherproof, wind-worthy, repairable and handsome — a lifetime object."}},
+{"@type":"Question","name":"Do you make bespoke umbrellas for weddings and gifts?","acceptedAnswer":{"@type":"Answer","text":"Yes. For weddings, elegant clear 'birdcage' canopies or coloured ones to match your scheme, properly made so guests keep and use them. For gifts, a handmade umbrella (optionally personalised and boxed) is practical, lasting and quietly luxurious. We work to your colours, timescale and budget — talk to us early for weddings and larger orders."}},
+{"@type":"Question","name":"Do you only make umbrellas, or walking sticks too?","acceptedAnswer":{"@type":"Answer","text":"Both — we make, sell and repair walking sticks and canes in the same traditional way: everyday sticks fitted to your height and stride, fine canes with turned, bound or horn handles, and repair or re-handling of treasured and antique sticks. Getting a stick's height and handle right matters, so we fit it correctly and advise honestly."}},
+{"@type":"Question","name":"Can I post an umbrella in for repair?","acceptedAnswer":{"@type":"Answer","text":"Yes. Get in touch first with a photo or two so we can give a rough idea of cost and worth, and we'll tell you how to pack and send it safely. We assess on arrival, confirm the price before any work, repair it, and post it back ready for the next downpour. In person or by post, the promise is the same: honest assessment, proper hand repair, mend over sell."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Gamp <span>&amp;</span> Stick</a>
+    <nav class="nav-links">
+      <a href="#about">The shop</a><a href="#services">What we do</a><a href="#location">Find us</a><a href="#book">Visit</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v84">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Handmade umbrellas · re-covering · repairs · London</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      A good umbrella is not a thing you <span class="out">replace.</span> It's a thing you <span class="em">keep.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=2000&q=85&auto=format&fit=crop"
+             alt="A person under an umbrella on a rainy city street." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">An umbrella maker and repairer in London — hand-framed English umbrellas built to outlast every cheap folding brolly you've ever binned, expert re-covering and repair of any umbrella worth saving, and bespoke pieces for weddings and city gifts. We've kept London dry, and a mountain of umbrellas out of landfill, since 1991.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Visit the shop</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we do</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Keeping London dry since 1991</span>
+    <span>Hand-framed to last a lifetime</span>
+    <span>We mend rather than sell</span>
+    <span>Repairs by post, UK-wide</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>RIB 01 / THE SHOP</span><span>KEPT, NOT BINNED</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">The world is drowning in broken umbrellas. We've spent thirty years <em>bailing it out.</em></h2>
+        <p>Gamp &amp; Stick is an umbrella maker and repair shop in London, and we exist because of a small, infuriating truth: almost every umbrella sold today is designed to be thrown away. It turns inside out in the first proper gust, a rib snaps, and into the bin it goes — millions of them a year. We started in 1991 to make and mend the other kind: umbrellas built on a proper frame, with real materials, that you carry for decades and hand on.</p>
+        <p>The umbrellas we make are hand-framed the traditional English way — a solid stick, a strong steel or hickory frame, a tightly-tailored canopy, a handle turned or bound to last — and assembled and finished by hand in our workshop. They are heavier and dearer than the folding thing in your bag, and that is exactly the point: a Gamp &amp; Stick umbrella is a lifetime object, weatherproof, wind-worthy and, frankly, a pleasure to be seen under. Buy once, carry for years.</p>
+        <p>But repair is half our soul. Bring us almost any umbrella of quality — a snapped rib, a canopy come away, a jammed runner, a handle worked loose, a beloved brolly your grandfather carried — and we'll very likely save it, often for a fraction of replacing it, and always in preference to the bin. We re-cover, re-rib, re-tip and re-handle; we make bespoke umbrellas for weddings and gifts; and we'll happily talk you out of buying a new one if yours can be mended. Kept, not binned.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1200&q=85&auto=format&fit=crop"
+           alt="Rain running down a window." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v77" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>RIB 02 / WHAT WE DO</span><span>MAKE · RE-COVER · REPAIR</span></div>
+    <h2 class="h2">What we do.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Handmade English umbrellas</h3><p>Hand-framed on a solid stick with a strong steel or hickory frame and a tailored canopy, assembled and finished by hand. Weatherproof, wind-worthy and built to carry for decades.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Re-covering</h3><p>A sound frame with a torn, faded or perished canopy doesn't need replacing — it needs re-covering. We fit a fresh, tightly-tailored canopy to your existing frame and it's as good as new.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Repairs of any brolly</h3><p>Snapped ribs, a jammed runner, a broken spring, a handle worked loose, tips lost — bring us almost any quality umbrella and we'll very likely mend it, usually for far less than replacing it.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Handle &amp; stick work</h3><p>Loose, cracked or tired handles re-fixed, re-bound or replaced, and sticks repaired — including on treasured and antique umbrellas where the handle is the whole point of the thing.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Bespoke wedding &amp; gift umbrellas</h3><p>Beautiful bespoke umbrellas for weddings (clear-canopy or coloured), christenings and city gifts — personalised, made to last, and a far finer present than anything off a shelf.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Walking sticks &amp; canes</h3><p>We also make, sell and repair walking sticks and canes in the same traditional way — turned and bound handles, sound sticks, and honest advice on height and fit.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v49">
+  <div class="wrap">
+    <div class="sw-head"><span>RIB 03 / THE DIFFERENCE</span><span>WHY GAMP & STICK</span></div>
+    <h2 class="h2">Why Gamp &amp; Stick.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Built to keep, not to bin.</h3><p>Our umbrellas are hand-framed lifetime objects, not disposable folding brollies. Heavier, dearer, and built so that you buy once and carry for decades — the opposite of everything in the supermarket bucket.</p></div>
+      <div><span class="no">02 / 03</span><h3>We'd rather mend than sell.</h3><p>If your umbrella can be repaired, we'll repair it — and tell you so honestly, even when we'd make more money selling you a new one. A saved umbrella is one fewer in landfill, and that matters to us.</p></div>
+      <div><span class="no">03 / 03</span><h3>Framed and finished by hand.</h3><p>Every umbrella we make and every repair we do is done by hand in our London workshop, by people who've framed thousands. The difference between hand-framed and mass-made is in every rib.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>RIB 04 / HOW IT GOES</span><span>BRING → ASSESS → MEND → CARRY</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Bring it or choose it</h3><p>Come in with the umbrella that's failed you, or to choose a new one. We'll assess a repair honestly, or match you to a handmade umbrella by weight, canopy, handle and how you'll carry it.</p></li>
+      <li><span class="step">STEP 02</span><h3>Assess &amp; advise</h3><p>For a repair, we tell you straight whether it's worth mending and what it'll cost — and we'll talk you out of a needless new purchase. For a new umbrella, we fit it to your hand and your life.</p></li>
+      <li><span class="step">STEP 03</span><h3>Made or mended by hand</h3><p>We re-rib, re-cover, re-tip or re-handle your brolly in the workshop, or hand-frame and finish your new umbrella. Either way it leaves ready to face a London downpour with confidence.</p></li>
+      <li><span class="step">STEP 04</span><h3>Carry it for years</h3><p>Come back whenever it needs a service, a re-cover or a repair — a good umbrella, looked after, lasts a lifetime, and we'll keep yours going for as long as you carry it.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v49">
+  <div class="wrap">
+    <div class="sw-head"><span>RIB 05 / FROM THE STREET</span><span>KEPT DRY, KEPT HAPPY</span></div>
+    <blockquote class="t-quote">“Three winters on, it has shrugged off every gale on Waterloo Bridge. Buy once, <em>honestly.</em>”</blockquote>
+    <div class="t-attr">Marcus D. — handmade umbrella</div>
+    <div class="t-sub">
+      <figure><blockquote>“My late father's umbrella — the one he carried my whole childhood — had a snapped rib and a canopy hanging off. I assumed it was sentimental scrap. They re-ribbed and re-covered it beautifully and it's whole again, and I cried a bit at the counter. You cannot put a price on that. Extraordinary, kind craftspeople.”</blockquote><figcaption>Helena R. — repair &amp; re-cover</figcaption></figure>
+      <figure><blockquote>“Ordered forty clear bespoke umbrellas for our (very British) outdoor wedding and they were perfect — beautifully made, delivered on time, and our guests took them home and actually still use them. Practical, gorgeous and a real talking point. So much better than the usual wedding tat.”</blockquote><figcaption>James &amp; Aisha — bespoke wedding umbrellas</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v77" class="about" style="background:var(--chalk);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>RIB 06 / COME RAIN</span><span>THE WEATHER WE'RE FOR</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1519692933481-e162a57d6721?w=1600&q=85&auto=format&fit=crop" alt="A person under an umbrella on a rainy street." /><figcaption>UNDER COVER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1515694346937-94d85e41e6f0?w=1600&q=85&auto=format&fit=crop" alt="Rain running down a window." /><figcaption>THE DOWNPOUR</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1428592953211-077101b2021b?w=1600&q=85&auto=format&fit=crop" alt="Rain falling on wet ground." /><figcaption>THE WET</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1493314894560-5c412a56c17c?w=1600&q=85&auto=format&fit=crop" alt="Rain bokeh through a window at night." /><figcaption>CITY RAIN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1541919329513-35f7af297129?w=1600&q=85&auto=format&fit=crop" alt="Raindrops on a windowpane." /><figcaption>THE DRIPS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1438449805896-28a666819a20?w=1600&q=85&auto=format&fit=crop" alt="Heavy rain on a dark street." /><figcaption>THE DELUGE</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>RIB 07 / ASKED AT THE COUNTER</span><span>BEFORE THE NEXT SHOWER</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+442079460338" style="color:var(--brass);font-weight:700;">020 7946 0338</a>, or bring the brolly in. Even the sorry inside-out ones; we've seen worse.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why buy an expensive umbrella when cheap ones exist?</summary><p>Because the cheap ones aren't cheap at all once you count how many you get through, and because a real umbrella is a genuinely better object to own and carry. A supermarket folding umbrella is engineered to a price: light, flimsy ribs, a thin canopy and joints that give way in the first proper wind, which is why most people replace them constantly and why millions end up in landfill every year. A hand-framed umbrella is built the opposite way — a solid stick, a strong steel or hickory frame that flexes with the wind instead of snapping, and a tightly-tailored canopy — so it lasts for decades, survives the gales that destroy cheap ones, and can be repaired rather than binned when something eventually wears. Yes, it costs more upfront and it's heavier to carry; but over the years it works out cheaper, it keeps you genuinely drier, and it's simply a pleasure to use. Buy one good umbrella, look after it, and you may never need to buy another.</p></details>
+        <details><summary>Can you really repair my umbrella, and is it worth it?</summary><p>Very probably yes, and very often yes — repairing umbrellas is half of what we do and we save the great majority of those brought to us. The common failures are all fixable: a snapped or bent rib can be replaced or straightened; a canopy that has torn, perished or come away from the frame can be repaired or the whole umbrella re-covered onto its sound frame; a runner that jams or a spring that has gone can be freed or replaced; lost tips can be re-fitted; and a handle that has worked loose or cracked can be re-fixed or replaced. Whether it's worth it depends on the umbrella: for a quality umbrella, and especially for one with sentimental value, a repair is almost always worthwhile and far cheaper than an equivalent new one; for a cheap disposable brolly, we'll tell you honestly if it isn't worth mending. Bring it in and we'll assess it for free and advise you straight — we would genuinely rather mend your umbrella than sell you a new one you don't need.</p></details>
+        <details><summary>What makes a handmade English umbrella different?</summary><p>It's the frame and the making, and once you've carried one you feel the difference immediately. A traditional English umbrella is built around a single solid stick running the full length, with a frame of properly-gauged steel (or, on our finest, hickory) whose ribs and stretchers are engineered to open taut and to flex in the wind rather than invert and snap. The canopy is cut and tailored to fit that frame tightly, so it sits drum-tight when open and furls slim and elegant when closed. The handle — crook or knob, in hardwood, horn, cane or bound leather — is fitted to last and to feel right in the hand. All of it is assembled and finished by hand, rib by rib, in our workshop. The result is heavier and dearer than a folding umbrella, but it's weatherproof, wind-worthy, repairable, and frankly handsome — an object you're glad to be seen with and glad to hand on. It is to a supermarket brolly what a good pair of Goodyear-welted shoes is to a pair of flip-flops.</p></details>
+        <details><summary>Do you make bespoke umbrellas for weddings and gifts?</summary><p>Yes, and they're some of our happiest commissions. For weddings we make beautiful bespoke umbrellas — elegant clear ("birdcage") canopies that keep the rain off without hiding the dress and the smiles, or coloured canopies to match your scheme — in whatever quantity you need for a very British outdoor wedding, and unlike the flimsy ones hired elsewhere, ours are properly made and your guests will genuinely keep and use them afterwards. For gifts, a handmade umbrella (optionally personalised, and beautifully boxed) is a present that's practical, lasting and quietly luxurious — ideal for a retirement, a big birthday, a christening, or anyone who could do with being kept dry in style. We can work to your colours, your timescale and your budget, and we'll advise on what works best for the occasion. Talk to us well ahead for weddings and larger orders, and we'll make sure everyone's covered — literally.</p></details>
+        <details><summary>Do you only make umbrellas, or walking sticks too?</summary><p>Both — the two trades have always gone together, and we make, sell and repair walking sticks and canes in the same traditional, hand-finished way as our umbrellas. That includes everyday walking sticks fitted properly to your height and stride, handsome canes with turned, bound or horn handles, and the repair and re-handling of treasured and antique sticks whose handle or shaft has been damaged. Getting a walking stick right matters more than people realise — the wrong height or handle can do more harm than good — so we take the time to fit it correctly and advise honestly, exactly as we would with an umbrella. Whether you need a dependable stick for daily support, a fine cane for occasions, or the careful repair of one that's been in the family, bring it in or come and talk to us. It's all part of the same craft: well-made things, carried in the hand, built and mended to last.</p></details>
+        <details><summary>Where are you, and can I post an umbrella in for repair?</summary><p>Our shop and workshop are in London and we'd always love you to visit — it's the best way to choose a new umbrella, and it lets us assess a repair on the spot and advise you face to face. But we know not everyone can get to us, so yes, you're very welcome to post an umbrella in for repair or re-covering: get in touch first (a quick call or email, ideally with a photograph or two of the umbrella and the problem) so we can give you a rough idea of whether it's worth doing and what it might cost, and we'll tell you how to pack and send it safely. We'll assess it properly on arrival, confirm the price before doing any work, carry out the repair, and post it back to you ready for the next downpour. Whether in person or by post, the promise is the same: an honest assessment, a proper hand repair, and a strong preference for mending your umbrella over selling you a new one.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>RIB 08 / CUSTOMERS FROM</span><span>LONDON & BY POST</span></div>
+    <ul class="area-list">
+      <li>The City</li><li>Westminster</li><li>Bloomsbury</li><li>Greater London</li><li>By post</li><li>UK-wide</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v24" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>RIB 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1991</div><div class="detail">Making and mending in London for over 30 years</div></div>
+      <div><div class="label">Hand-framed</div><div class="detail">Solid stick, steel or hickory, tailored canopy</div></div>
+      <div><div class="label">Mend over sell</div><div class="detail">We'll repair yours rather than sell you new</div></div>
+      <div><div class="label">Repairs by post</div><div class="detail">Send your umbrella in from anywhere in the UK</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>RIB 10 / FIND THE SHOP</span><span>CECIL COURT, WC2</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Gamp &amp; Stick</strong><br />
+          11 Cecil Court<br />
+          London WC2N 4EZ<br /><br />
+          <a href="tel:+442079460338" data-bind="business.phoneDisplay">020 7946 0338</a><br />
+          <a href="mailto:shop@gampandstick.co.uk" data-bind="business.email">shop@gampandstick.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SAT</span><span>10 – 6</span></div>
+          <div class="row"><span>SUN</span><span>CLOSED</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on Cecil Court, the little pedestrian lane between Charing Cross Road and St Martin's Lane. The repair bench is at the back — do come and watch.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Gamp & Stick, London" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.1360%2C51.5070%2C-0.1180%2C51.5150&layer=mapnik&marker=51.5110%2C-0.1270"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v52">
+  <div class="wrap">
+    <div class="kick">RIB 11 / VISIT</div>
+    <h2 data-bind="cta.heading">Buy one that lasts. Or bring the one <em>worth saving.</em></h2>
+    <p data-bind="cta.body">Hand-framed umbrellas built for a lifetime, expert repairs and re-covering of any brolly worth keeping, and bespoke pieces for weddings. Come in, or post your umbrella to us — we'd rather mend than bin, always.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Visit the shop</a>
+      <a class="btn btn-ghost" href="tel:+442079460338" data-bind="cta.secondary.label">020 7946 0338</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/442079460338" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Gamp <span style="color:var(--oxblood);">&amp;</span> Stick</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A traditional umbrella maker and repairer in London. Hand-framed to last, mended rather than binned, since 1991.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          11 Cecil Court<br />London WC2N 4EZ<br />
+          <a href="tel:+442079460338">020 7946 0338</a><br />
+          <a href="mailto:shop@gampandstick.co.uk">shop@gampandstick.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we do</a><a href="#about">The shop</a><a href="#location">Find us</a><a href="#book">Visit</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> GAMP &amp; STICK</span>
+      <span>KEPT · NOT BINNED · SINCE 1991</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

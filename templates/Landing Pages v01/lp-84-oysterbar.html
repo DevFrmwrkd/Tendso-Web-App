@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brine & Bivalve — oyster bar and raw bar in Whitstable</title>
+<meta name="description" content="Brine & Bivalve is an oyster and raw bar on the harbour in Whitstable — native and rock oysters shucked to order, a daily-changing raw bar, local beer and cold wine, and oysters by the dozen to take away." />
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Brine & Bivalve", phone: "+44 1227 280 440", phoneDisplay: "01227 280 440", email: "shuck@brineandbivalve.co.uk", foundedYear: 2017 },
+  hero: {
+    kicker: "Oyster bar & raw bar · on the harbour · Whitstable",
+    headline: "Shucked to order. Not a second before.",
+    lede: "A proper oyster bar on the Whitstable harbour, not a gastropub with a token half-dozen. Natives and rocks are graded, kept cold and shucked in front of you — never pre-opened, never sitting on melting ice. We'll tell you the bed each came from, because an oyster tastes of exactly where it grew.",
+    primaryCta: { label: "Book a stool", href: "#book" },
+    secondaryCta: { label: "What's on ice", href: "#services" },
+    image: "https://images.unsplash.com/photo-1633321094192-388268512e0f?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A plate of fresh oysters on ice with lemon."
+  },
+  trust: { years: "On the harbour since 2017" },
+  about: {
+    heading: "An oyster is a mouthful of the sea it grew in. Don't drown it.",
+    paragraphs: [
+      "We opened Brine & Bivalve in 2017 on the harbour where Whitstable has landed oysters since the Romans. We wanted a bar that treats an oyster the way a good wine merchant treats a bottle — graded, named, and served in its best condition, not smothered in sauce to hide that it was opened an hour ago in a back kitchen.",
+      "Everything is shucked to order at the bar in front of you. We work with native flats when they're in season — the R-months — and rock oysters year round, from beds we can name along this coast and beyond. We grade by size, keep them cold and cupped-side down, and open them so the liquor stays in the shell where it belongs.",
+      "Beyond the oysters there's a raw bar that changes with the boats: clams, cockles, dressed crab, prawns and whatever came in that morning. Cold local beer, crisp wine by the glass, good bread and proper butter. Simple, cold, fresh, and gone in one sitting — the way the sea intended."
+    ],
+    portrait: "https://images.unsplash.com/photo-1632027543405-925ae0b0f98c?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Oysters being shucked at the bar."
+  },
+  services: [
+    { name: "Oysters by the half-dozen", description: "Natives in season and rocks year round, graded by size and shucked to order. We'll name the bed and pour the mignonette; lemon and Tabasco on the side, never on top." },
+    { name: "The raw bar", description: "Clams, cockles, dressed crab, prawns and whatever the boats brought in — a daily-changing spread of cold shellfish, served simply on ice with bread and butter." },
+    { name: "Platters to share", description: "A tiered chiller of the day's best — oysters, crab, prawns, clams — built for two or for the table. The easiest, laziest, best lunch on the harbour." },
+    { name: "Beer, wine & extras", description: "Cold local ale and lager, crisp wine and fizz by the glass, plus the few things an oyster actually wants: sourdough, salted butter, and a squeeze of lemon." },
+    { name: "Oysters to take away", description: "By the dozen, graded and unopened, packed cold with a shucking knife loan if you need one. Bring them home, we'll show you how to open them without stitches." },
+    { name: "Events & wholesale", description: "Shucking stations for weddings and parties, and graded oysters supplied to kitchens along the coast. Tell us numbers and a date and we'll bring the ice." }
+  ],
+  why: [
+    { title: "Shucked in front of you.", body: "Never pre-opened, never sat on melting ice. An oyster opened to order keeps its liquor and its life; one opened an hour ago has already given up. You watch it happen." },
+    { title: "The bed, named.", body: "We tell you where each oyster grew, because that's where its flavour comes from — briny, sweet, coppery or clean depending on the water. Terroir is not just for wine." },
+    { title: "Cold, simple, gone.", body: "Great shellfish needs almost nothing: ice, lemon, bread, butter. We resist the urge to dress it to death and let the sea do the talking." }
+  ],
+  how: [
+    { step: "01", title: "Grab a stool", body: "Pull up to the bar or a harbour table. Tell us if you're an oyster veteran or trying your first — no judgement either way, everyone starts somewhere." },
+    { step: "02", title: "Pick your beds", body: "We'll talk you through what's on ice — native or rock, big or petite, briny or sweet — and build you a half-dozen or a dozen across the beds to compare." },
+    { step: "03", title: "Watch it shucked", body: "We open them to order at the bar, liquor kept in the shell, and set them down with mignonette, lemon and a wedge of bread. Cold wine optional but advised." },
+    { step: "04", title: "Slurp, don't chew", body: "Tip, sip the liquor, let it go. Then do it again. First-timers get a quick how-to; regulars just get another round and a top-up of the wine." }
+  ],
+  testimonials: [
+    { quote: "First oysters I've ever actually enjoyed, and it's because they explained the whole thing and let me try three different beds side by side. Turns out I like the briny ones. Now I'm the annoying friend who orders a dozen.", name: "Nadia S.", context: "convert, first-timer" },
+    { quote: "We sat at the bar for two hours eating our way through the raw bar and drinking cold wine while they shucked in front of us. Best afternoon we've had in ages. Felt like being let in on a secret the town's kept for centuries.", name: "Mark & Jo", context: "harbour lunch" },
+    { quote: "They ran the shucking station at our wedding and it was the thing everyone talked about. Fresh, theatrical, and the shuckers were lovely with the guests. Turned a drinks reception into an event. Worth every oyster.", name: "Ellen R.", context: "wedding, 120 guests" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1633321094192-388268512e0f?w=1600&q=85&auto=format&fit=crop", alt: "Oysters on ice with lemon." },
+    { src: "https://images.unsplash.com/photo-1715249792880-f15e279c18dc?w=1600&q=85&auto=format&fit=crop", alt: "A single oyster held up." },
+    { src: "https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=1600&q=85&auto=format&fit=crop", alt: "A seafood platter on ice." },
+    { src: "https://images.unsplash.com/photo-1710106405423-1815916eca12?w=1600&q=85&auto=format&fit=crop", alt: "Oysters with mignonette." },
+    { src: "https://images.unsplash.com/photo-1729269524124-1645db0b0ff5?w=1600&q=85&auto=format&fit=crop", alt: "Fresh oysters close up." },
+    { src: "https://images.unsplash.com/photo-1717251752308-2ef72f07484e?w=1600&q=85&auto=format&fit=crop", alt: "A dozen oysters on a tray." }
+  ],
+  faq: [
+    { q: "What's the difference between native and rock oysters?", a: "Native oysters (the flat, round Ostrea edulis) are the traditional British oyster, in season only in the R-months (September to April), with a deep, mineral, almost metallic flavour that oyster lovers prize — and a price to match, because they grow slowly. Rock oysters (the teardrop-shaped Pacific oyster) are available year round, generally milder, meatier and sweeter, and a friendlier place to start. We stock both when we can and we're happy to give you one of each to taste the difference; most people are surprised how distinct they are." },
+    { q: "Are oysters safe to eat raw, and when shouldn't I?", a: "Fresh, properly handled oysters kept cold and shucked to order are safe for most people to eat raw, and that's exactly how we serve them. That said, raw shellfish isn't advised for anyone pregnant, very young, elderly, or with a compromised immune system or liver condition — for those we're glad to serve other things from the menu. If an oyster ever smells off or its shell is open and won't close, it doesn't get served; we grade and check every one before it's shucked." },
+    { q: "How do I actually eat an oyster?", a: "Loosen it from the shell with the little fork if we haven't already, add a touch of mignonette or a squeeze of lemon if you like (a good oyster needs very little), then bring the shell to your lips, tip it back and let the oyster and its liquor slide in. Give it a chew or two to get the flavour — the 'just swallow it' advice sells the oyster short — then finish the liquor. If it's your first, tell us and we'll walk you through it at the bar; nobody's born knowing how." },
+    { q: "Can I buy oysters to take home?", a: "Yes — we sell them by the dozen, graded and unopened, packed cold to travel. Keep them in the fridge cupped-side down under a damp cloth, not in water or a sealed bag, and eat them within a day or two while they're at their best. We'll lend you a shucking knife and show you the safe way to open them (a tea towel and a twist, not brute force) so you keep your fingers. If you'd rather we shucked them for a party, we can do that too with a little notice." },
+    { q: "Do I need to book, and can you do big groups?", a: "For the bar and harbour tables we take bookings and strongly suggest them at weekends and through the summer, when the stools fill fast — but we always keep a few spaces for walk-ins, so it's worth trying your luck. For groups, parties and celebrations, book ahead and we'll set aside space and make sure there are enough oysters for everyone. For weddings and events we bring a shucking station to you; give us numbers and a date." },
+    { q: "Do you supply restaurants and events?", a: "We do — graded native and rock oysters supplied to kitchens along the coast, and full shucking stations for weddings, parties and corporate dos. For trade we'll keep you stocked to order with oysters we've graded and checked ourselves, so what reaches your pass is already sorted. For events we bring the ice, the chiller, the knives and the shuckers, and open to order in front of your guests. Tell us what you need and we'll make it work." }
+  ],
+  area: { places: ["Whitstable", "Herne Bay", "Canterbury", "Faversham", "Margate", "Broadstairs"] },
+  credentials: [
+    { label: "Shucked", detail: "To order at the bar, never pre-opened" },
+    { label: "Named", detail: "The bed each oyster grew on, every time" },
+    { label: "Graded", detail: "Checked and sized by hand before serving" },
+    { label: "Seasonal", detail: "Natives in the R-months, rocks year round" }
+  ],
+  location: { name: "Brine & Bivalve", addressStreet: "3 Harbour Wall", addressLocality: "Whitstable", addressRegion: "Kent", addressPostcode: "CT5 1AB", addressCountry: "United Kingdom" },
+  cta: { heading: "Come and slurp a dozen.", body: "Pull up a stool on the harbour, tell us how brave you're feeling, and we'll shuck you a flight across the beds. Cold wine, good bread, the sea over the wall. Or take a dozen home for later.", primary: { label: "Book a stool", href: "#book" }, secondary: { label: "01227 280 440", href: "tel:+441227280440" } },
+  messaging: { whatsapp: "https://wa.me/441227280440", messenger: "https://m.me/brineandbivalve" }
+};
+</script>
+
+<style>
+  :root {
+    --chalk:#eef1ee; --navy:#182b35; --brine:#2f7d7a; --lemon:#c9a02c;
+    --ink:#182b35; --mid:#5b6d72; --mid-d:#a8bcbf; --rule:rgba(24,43,53,0.16); --rule-d:rgba(238,241,238,0.2);
+    --disp:"Spectral",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--chalk);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--brine);}
+  .wrap{width:min(1240px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--brine);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:500;font-size:clamp(34px,4.6vw,64px);line-height:1.04;margin:0 0 0.42em;letter-spacing:-0.01em;}
+  .h2 em{font-style:italic;color:var(--brine);font-weight:400;}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--navy);color:var(--chalk);} .btn-primary:hover{background:var(--brine);}
+  .btn-ghost{border:1.5px solid var(--navy);} .btn-ghost:hover{background:var(--navy);color:var(--chalk);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--navy);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);font-weight:700;}
+  .light .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(238,241,238,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--navy);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:500;font-size:27px;text-decoration:none;letter-spacing:-0.01em;}
+  .wm span{color:var(--brine);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(48px,6.5vw,92px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:500;font-size:clamp(44px,6.2vw,90px);line-height:1.02;margin:18px 0 22px;letter-spacing:-0.02em;}
+  .hero h1 em{font-style:italic;color:var(--brine);font-weight:400;}
+  .hero .lede{color:var(--mid);max-width:50ch;line-height:1.72;font-size:clamp(15.5px,1.5vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:3px;}
+  .spec-card{position:absolute;bottom:22px;left:-16px;background:var(--chalk);border:1.5px solid var(--navy);padding:16px 20px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;line-height:2;text-transform:uppercase;font-weight:700;box-shadow:0 12px 30px rgba(24,43,53,0.22);}
+  .spec-card b{font-family:var(--disp);font-weight:500;font-size:18px;display:block;letter-spacing:-0.01em;text-transform:none;color:var(--brine);margin-bottom:6px;}
+  .spec-card .row{display:flex;justify-content:space-between;gap:26px;color:var(--mid);}
+  .spec-card .row span:last-child{color:var(--ink);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .hero-photo{max-width:420px;}}
+
+  .trust{padding:0;background:var(--navy);color:var(--chalk);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(238,241,238,0.85);font-weight:700;}
+
+  .about{background:var(--navy);color:var(--chalk);}
+  .about .h2{color:var(--chalk);} .about .h2 em{color:var(--brine);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:rgba(238,241,238,0.84);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--navy);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(47,125,122,0.08);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--brine);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:500;font-size:clamp(23px,2.4vw,32px);margin:0;line-height:1.04;letter-spacing:-0.01em;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--brine);color:var(--chalk);}
+  .why .sw-head{border-color:rgba(238,241,238,0.4);color:rgba(238,241,238,0.82);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--chalk);opacity:0.75;display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:500;font-size:27px;margin:0 0 10px;line-height:1.04;letter-spacing:-0.01em;}
+  .why-grid p{color:rgba(238,241,238,0.92);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--navy);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--brine);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:500;font-size:23px;margin:8px 0 8px;line-height:1.06;letter-spacing:-0.01em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#e2e7e3;}
+  .t-quote{font-family:var(--disp);font-weight:500;font-size:clamp(26px,3.5vw,48px);line-height:1.08;max-width:26ch;margin:0 0 24px;letter-spacing:-0.01em;}
+  .t-quote em{font-style:italic;color:var(--brine);font-weight:400;}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--navy);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:3px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--navy);color:var(--lemon);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--navy);}
+  .faq-list summary{font-family:var(--disp);font-weight:500;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;letter-spacing:-0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--brine);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--navy);border-radius:2px;font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--navy);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brine);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.18;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--navy);color:var(--chalk);padding:34px;border-radius:3px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:500;font-size:22px;line-height:1.3;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(238,241,238,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(238,241,238,0.78);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(238,241,238,0.72);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:3px;border:1.5px solid var(--navy);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.2) brightness(0.98);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--navy);color:var(--chalk);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--lemon);}
+  .cta-band h2{font-family:var(--disp);font-weight:500;font-size:clamp(40px,6vw,92px);line-height:1.04;margin:14px auto 18px;max-width:17ch;letter-spacing:-0.02em;}
+  .cta-band h2 em{font-style:italic;color:var(--brine);font-weight:400;}
+  .cta-band p{color:rgba(238,241,238,0.86);max-width:48ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--lemon);color:var(--navy);}
+  .cta-band .btn-primary:hover{background:var(--chalk);color:var(--navy);}
+  .cta-band .btn-ghost{border-color:rgba(238,241,238,0.6);color:var(--chalk);}
+  .cta-band .btn-ghost:hover{background:var(--chalk);color:var(--navy);}
+
+  footer{background:var(--chalk);border-top:1.5px solid var(--navy);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brine);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--brine);color:var(--chalk);padding:13px 20px;border-radius:2px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(47,125,122,0.4);}
+  .msg-fab a:hover{background:var(--navy);color:var(--chalk);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Brine & Bivalve","description":"Oyster and raw bar on the harbour in Whitstable — native and rock oysters shucked to order, a daily-changing raw bar, local beer and cold wine, oysters to take away.","servesCuisine":"Seafood","url":"https://brineandbivalve.co.uk/","telephone":"+441227280440","email":"shuck@brineandbivalve.co.uk","address":{"@type":"PostalAddress","streetAddress":"3 Harbour Wall","addressLocality":"Whitstable","addressRegion":"Kent","postalCode":"CT5 1AB","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.3610,"longitude":1.0260},"areaServed":["Whitstable","Herne Bay","Canterbury","Faversham"],"image":["https://images.unsplash.com/photo-1633321094192-388268512e0f?w=1600"],"foundingDate":"2017"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What's the difference between native and rock oysters?","acceptedAnswer":{"@type":"Answer","text":"Natives are the flat, round British oyster, in season in the R-months, deep and mineral. Rocks are the teardrop Pacific oyster, year round, milder, meatier and sweeter. We stock both and will give you one of each to compare."}},
+{"@type":"Question","name":"Are oysters safe to eat raw?","acceptedAnswer":{"@type":"Answer","text":"Fresh, cold, shucked-to-order oysters are safe for most people raw. Not advised for anyone pregnant, very young, elderly or immunocompromised — we'll serve other things instead. Every oyster is graded and checked before shucking."}},
+{"@type":"Question","name":"How do I eat an oyster?","acceptedAnswer":{"@type":"Answer","text":"Loosen it, add a little mignonette or lemon, tip the shell to your lips, let it slide in, chew once or twice for the flavour, then finish the liquor. First-timers get a walk-through at the bar."}},
+{"@type":"Question","name":"Can I buy oysters to take home?","acceptedAnswer":{"@type":"Answer","text":"Yes — by the dozen, graded and unopened, packed cold. Keep them cupped-side down under a damp cloth in the fridge and eat within a day or two. We'll lend a knife and show you how to open them safely."}},
+{"@type":"Question","name":"Do I need to book?","acceptedAnswer":{"@type":"Answer","text":"Bookings advised at weekends and in summer, though we keep spaces for walk-ins. Book ahead for groups; for weddings and events we bring a shucking station to you."}},
+{"@type":"Question","name":"Do you supply restaurants and events?","acceptedAnswer":{"@type":"Answer","text":"Yes — graded oysters to kitchens along the coast, and full shucking stations for weddings and parties, opened to order in front of your guests."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Brine <span>&amp;</span> Bivalve</a>
+    <nav class="nav-links">
+      <a href="#about">The bar</a><a href="#services">What's on ice</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v70">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Oyster bar &amp; raw bar · on the harbour · Whitstable</div>
+      <h1 data-comment-anchor="hero-headline">Shucked to order. <em>Not a second before.</em></h1>
+      <p class="lede" data-bind="hero.lede">A proper oyster bar on the Whitstable harbour, not a gastropub with a token half-dozen. Natives and rocks are graded, kept cold and shucked in front of you — never pre-opened, never sitting on melting ice. We'll tell you the bed each came from, because an oyster tastes of exactly where it grew.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a stool</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What's on ice</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1633321094192-388268512e0f?w=2000&q=85&auto=format&fit=crop"
+           alt="A plate of fresh oysters on ice with lemon." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="spec-card">
+        <b>On ice today</b>
+        <div class="row"><span>Native</span><span>In season</span></div>
+        <div class="row"><span>Rock</span><span>No. 2 grade</span></div>
+        <div class="row"><span>Shucked</span><span>To order</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">On the harbour since 2017</span>
+    <span>Shucked to order</span>
+    <span>The bed always named</span>
+    <span>Graded by hand</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v36">
+  <div class="wrap">
+    <div class="sw-head"><span>TIDE 01 / THE BAR</span><span>A MOUTHFUL OF THE SEA</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1632027543405-925ae0b0f98c?w=1200&q=85&auto=format&fit=crop"
+           alt="Oysters being shucked at the bar." />
+      <div class="about-prose">
+        <h2 class="h2">An oyster is a mouthful of the sea it grew in. <em>Don't drown it.</em></h2>
+        <p>We opened Brine &amp; Bivalve in 2017 on the harbour where Whitstable has landed oysters since the Romans. We wanted a bar that treats an oyster the way a good wine merchant treats a bottle — graded, named, and served in its best condition, not smothered in sauce to hide that it was opened an hour ago in a back kitchen.</p>
+        <p>Everything is shucked to order at the bar in front of you. We work with native flats when they're in season — the R-months — and rock oysters year round, from beds we can name along this coast and beyond. We grade by size, keep them cold and cupped-side down, and open them so the liquor stays in the shell where it belongs.</p>
+        <p>Beyond the oysters there's a raw bar that changes with the boats: clams, cockles, dressed crab, prawns and whatever came in that morning. Cold local beer, crisp wine by the glass, good bread and proper butter. Simple, cold, fresh, and gone in one sitting — the way the sea intended.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v63">
+  <div class="wrap">
+    <div class="sw-head"><span>TIDE 02 / WHAT'S ON ICE</span><span>BOAT TO BAR</span></div>
+    <h2 class="h2">What's on ice.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Oysters by the half-dozen</h3><p>Natives in season and rocks year round, graded by size and shucked to order. We'll name the bed and pour the mignonette; lemon and Tabasco on the side, never on top.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>The raw bar</h3><p>Clams, cockles, dressed crab, prawns and whatever the boats brought in — a daily-changing spread of cold shellfish, served simply on ice with bread and butter.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Platters to share</h3><p>A tiered chiller of the day's best — oysters, crab, prawns, clams — built for two or for the table. The easiest, laziest, best lunch on the harbour.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Beer, wine &amp; extras</h3><p>Cold local ale and lager, crisp wine and fizz by the glass, plus the few things an oyster actually wants: sourdough, salted butter, and a squeeze of lemon.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Oysters to take away</h3><p>By the dozen, graded and unopened, packed cold with a shucking knife loan if you need one. Bring them home, we'll show you how to open them without stitches.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Events &amp; wholesale</h3><p>Shucking stations for weddings and parties, and graded oysters supplied to kitchens along the coast. Tell us numbers and a date and we'll bring the ice.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v35">
+  <div class="wrap">
+    <div class="sw-head"><span>TIDE 03 / THE DIFFERENCE</span><span>WHY IT TASTES OF THE SEA</span></div>
+    <h2 class="h2" style="color:var(--chalk);">Why it tastes of the sea.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Shucked in front of you.</h3><p>Never pre-opened, never sat on melting ice. An oyster opened to order keeps its liquor and its life; one opened an hour ago has already given up. You watch it happen.</p></div>
+      <div><span class="no">02 / 03</span><h3>The bed, named.</h3><p>We tell you where each oyster grew, because that's where its flavour comes from — briny, sweet, coppery or clean depending on the water. Terroir is not just for wine.</p></div>
+      <div><span class="no">03 / 03</span><h3>Cold, simple, gone.</h3><p>Great shellfish needs almost nothing: ice, lemon, bread, butter. We resist the urge to dress it to death and let the sea do the talking.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>TIDE 04 / HOW IT GOES</span><span>SIT → PICK → SHUCK → SLURP</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Grab a stool</h3><p>Pull up to the bar or a harbour table. Tell us if you're an oyster veteran or trying your first — no judgement either way, everyone starts somewhere.</p></li>
+      <li><span class="step">STEP 02</span><h3>Pick your beds</h3><p>We'll talk you through what's on ice — native or rock, big or petite, briny or sweet — and build you a half-dozen or a dozen across the beds to compare.</p></li>
+      <li><span class="step">STEP 03</span><h3>Watch it shucked</h3><p>We open them to order at the bar, liquor kept in the shell, and set them down with mignonette, lemon and a wedge of bread. Cold wine optional but advised.</p></li>
+      <li><span class="step">STEP 04</span><h3>Slurp, don't chew</h3><p>Tip, sip the liquor, let it go. Then do it again. First-timers get a quick how-to; regulars just get another round and a top-up of the wine.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v35">
+  <div class="wrap">
+    <div class="sw-head"><span>TIDE 05 / FROM THE BAR</span><span>SAID OVER THE ICE</span></div>
+    <blockquote class="t-quote">“First oysters I've ever actually enjoyed — they let me try three beds <em>side by side.</em>”</blockquote>
+    <div class="t-attr">Nadia S. — convert, first-timer</div>
+    <div class="t-sub">
+      <figure><blockquote>“We sat at the bar for two hours eating our way through the raw bar and drinking cold wine while they shucked in front of us. Best afternoon we've had in ages. Felt like being let in on a secret the town's kept for centuries.”</blockquote><figcaption>Mark &amp; Jo — harbour lunch</figcaption></figure>
+      <figure><blockquote>“They ran the shucking station at our wedding and it was the thing everyone talked about. Fresh, theatrical, and the shuckers were lovely with the guests. Turned a drinks reception into an event. Worth every oyster.”</blockquote><figcaption>Ellen R. — wedding, 120 guests</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v63">
+  <div class="wrap">
+    <div class="sw-head"><span>TIDE 06 / ON THE ICE</span><span>SHUCKED &amp; SERVED</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1633321094192-388268512e0f?w=1600&q=85&auto=format&fit=crop" alt="Oysters on ice with lemon." /><figcaption>THE HALF-DOZEN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1715249792880-f15e279c18dc?w=1600&q=85&auto=format&fit=crop" alt="A single oyster held up." /><figcaption>NAMED THE BED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1559737558-2f5a35f4523b?w=1600&q=85&auto=format&fit=crop" alt="A seafood platter on ice." /><figcaption>THE RAW BAR</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1710106405423-1815916eca12?w=1600&q=85&auto=format&fit=crop" alt="Oysters with mignonette." /><figcaption>MIGNONETTE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1729269524124-1645db0b0ff5?w=1600&q=85&auto=format&fit=crop" alt="Fresh oysters close up." /><figcaption>KEPT COLD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1717251752308-2ef72f07484e?w=1600&q=85&auto=format&fit=crop" alt="A dozen oysters on a tray." /><figcaption>BY THE DOZEN</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>TIDE 07 / ASKED AT THE BAR</span><span>OVER A DOZEN</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the bar.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441227280440" style="color:var(--brine);font-weight:700;">01227 280 440</a>. If we're mid-service we'll call you back once the rush is shucked.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What's the difference between native and rock oysters?</summary><p>Native oysters (the flat, round Ostrea edulis) are the traditional British oyster, in season only in the R-months (September to April), with a deep, mineral, almost metallic flavour that oyster lovers prize — and a price to match, because they grow slowly. Rock oysters (the teardrop-shaped Pacific oyster) are available year round, generally milder, meatier and sweeter, and a friendlier place to start. We stock both when we can and we're happy to give you one of each to taste the difference; most people are surprised how distinct they are.</p></details>
+        <details><summary>Are oysters safe to eat raw, and when shouldn't I?</summary><p>Fresh, properly handled oysters kept cold and shucked to order are safe for most people to eat raw, and that's exactly how we serve them. That said, raw shellfish isn't advised for anyone pregnant, very young, elderly, or with a compromised immune system or liver condition — for those we're glad to serve other things from the menu. If an oyster ever smells off or its shell is open and won't close, it doesn't get served; we grade and check every one before it's shucked.</p></details>
+        <details><summary>How do I actually eat an oyster?</summary><p>Loosen it from the shell with the little fork if we haven't already, add a touch of mignonette or a squeeze of lemon if you like (a good oyster needs very little), then bring the shell to your lips, tip it back and let the oyster and its liquor slide in. Give it a chew or two to get the flavour — the "just swallow it" advice sells the oyster short — then finish the liquor. If it's your first, tell us and we'll walk you through it at the bar; nobody's born knowing how.</p></details>
+        <details><summary>Can I buy oysters to take home?</summary><p>Yes — we sell them by the dozen, graded and unopened, packed cold to travel. Keep them in the fridge cupped-side down under a damp cloth, not in water or a sealed bag, and eat them within a day or two while they're at their best. We'll lend you a shucking knife and show you the safe way to open them (a tea towel and a twist, not brute force) so you keep your fingers. If you'd rather we shucked them for a party, we can do that too with a little notice.</p></details>
+        <details><summary>Do I need to book, and can you do big groups?</summary><p>For the bar and harbour tables we take bookings and strongly suggest them at weekends and through the summer, when the stools fill fast — but we always keep a few spaces for walk-ins, so it's worth trying your luck. For groups, parties and celebrations, book ahead and we'll set aside space and make sure there are enough oysters for everyone. For weddings and events we bring a shucking station to you; give us numbers and a date.</p></details>
+        <details><summary>Do you supply restaurants and events?</summary><p>We do — graded native and rock oysters supplied to kitchens along the coast, and full shucking stations for weddings, parties and corporate dos. For trade we'll keep you stocked to order with oysters we've graded and checked ourselves, so what reaches your pass is already sorted. For events we bring the ice, the chiller, the knives and the shuckers, and open to order in front of your guests. Tell us what you need and we'll make it work.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>TIDE 08 / GUESTS COME FROM</span><span>ACROSS EAST KENT</span></div>
+    <ul class="area-list">
+      <li>Whitstable</li><li>Herne Bay</li><li>Canterbury</li><li>Faversham</li><li>Margate</li><li>Broadstairs</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v10" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>TIDE 09 / THE ESSENTIALS</span><span>HOW WE SERVE</span></div>
+    <div class="creds">
+      <div><div class="label">Shucked</div><div class="detail">To order at the bar, never pre-opened</div></div>
+      <div><div class="label">Named</div><div class="detail">The bed each oyster grew on, every time</div></div>
+      <div><div class="label">Graded</div><div class="detail">Checked and sized by hand before serving</div></div>
+      <div><div class="label">Seasonal</div><div class="detail">Natives in the R-months, rocks year round</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>TIDE 10 / FIND US</span><span>3 HARBOUR WALL, WHITSTABLE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Brine &amp; Bivalve</strong><br />
+          3 Harbour Wall<br />
+          Whitstable CT5 1AB<br /><br />
+          <a href="tel:+441227280440" data-bind="business.phoneDisplay">01227 280 440</a><br />
+          <a href="mailto:shuck@brineandbivalve.co.uk" data-bind="business.email">shuck@brineandbivalve.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>WED – SUN</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>EVENTS</span><span>BY BOOKING</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on the harbour wall with the ice counter in the window and the boats over the road — follow the smell of the sea.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Brine & Bivalve, Whitstable" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=1.0170%2C51.3570%2C1.0350%2C51.3650&layer=mapnik&marker=51.3610%2C1.0260"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v38">
+  <div class="wrap">
+    <div class="kick">TIDE 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Come and <em>slurp a dozen.</em></h2>
+    <p data-bind="cta.body">Pull up a stool on the harbour, tell us how brave you're feeling, and we'll shuck you a flight across the beds. Cold wine, good bread, the sea over the wall. Or take a dozen home for later.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a stool</a>
+      <a class="btn btn-ghost" href="tel:+441227280440" data-bind="cta.secondary.label">01227 280 440</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441227280440" data-bind="messaging.whatsapp" aria-label="Message the oyster bar">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:27px;">Brine <span style="color:var(--brine);font-style:italic;">&amp;</span> Bivalve</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">An oyster and raw bar on the harbour in Whitstable. On the harbour since 2017.</p>
+      </div>
+      <div>
+        <h4>The bar</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;">
+          3 Harbour Wall<br />Whitstable CT5 1AB<br />
+          <a href="tel:+441227280440">01227 280 440</a><br />
+          <a href="mailto:shuck@brineandbivalve.co.uk">shuck@brineandbivalve.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What's on ice</a><a href="#about">The bar</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> BRINE &amp; BIVALVE LTD</span>
+      <span>SHUCKED ON THE WHITSTABLE HARBOUR</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mainspring &amp; Co — watchmaker &amp; repair workshop in Chester</title>
+<meta name="description" content="Mainspring &amp; Co is a watch repair workshop in Chester's Rows — mechanical servicing, restorations and vintage sales at one bench, by a BHI-qualified watchmaker." />
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@400;600;700;800;900&family=Saira:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Mainspring & Co", phone: "+44 1244 318 552", phoneDisplay: "01244 318 552", email: "bench@mainspringand.co", foundedYear: 2011 },
+  hero: {
+    kicker: "Watchmaker · service, restoration, vintage · The Rows, Chester",
+    headline: "292 PARTS. ONE PAIR OF HANDS.",
+    lede: "A mechanical watch is a machine that lives on your wrist and asks for attention every five years. Mainspring & Co is where it gets that attention: full services, restorations and honest triage at one bench, under one loupe, by one BHI-qualified watchmaker.",
+    primaryCta: { label: "Book the bench", href: "#book" },
+    secondaryCta: { label: "What we service", href: "#services" },
+    image: "https://images.unsplash.com/photo-1495856458515-0637185db551?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Watch movement under the watchmaker's loupe."
+  },
+  trust: { years: "At the bench since 2011" },
+  about: {
+    heading: "One bench above the Rows.",
+    paragraphs: [
+      "The workshop sits above Chester's medieval Rows, up a staircase that predates the pendulum. On the bench: a 1962 timing machine that still tells the truth, a modern one that agrees with it, and whatever movement is currently in 292 pieces between them.",
+      "Training was five years at the British Horological Institute and a decade of other people's heirlooms since. The specialism, if forced to name one: watches that matter more than they cost. The grandfather's Omega. The wedding Seiko. The Smiths that went up Everest's little brother.",
+      "Every service is documented photographically — the movement before, during and after — because you're trusting a stranger with a time machine, and the least the stranger can do is show his work."
+    ],
+    portrait: "https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Watchmaker at work with tweezers and loupe."
+  },
+  services: [
+    { name: "The full service", description: "Complete strip-down, ultrasonic clean, new mainspring and gaskets, oiling to spec, regulation in five positions. The five-year ritual, done properly." },
+    { name: "Vintage restoration", description: "Sympathetic work on watches with history — original parts hunted, dials conserved not butchered, patina respected. Slow by design." },
+    { name: "Battery, seals & straps", description: "While-you-wait quartz service with a proper pressure test, not a kiosk stab. Straps fitted, sized and argued about." },
+    { name: "Accident & water damage", description: "Dropped, flooded, sat on, washed. Triage first, honesty second, heroics where justified. Bring it in fast — rust doesn't wait." },
+    { name: "Valuations & paperwork", description: "Written condition reports for insurance and probate. What it is, what it's worth, what it needs. Sealed and signed." },
+    { name: "The vintage cabinet", description: "A small rotating case of serviced, warrantied vintage pieces — each one through the full bench treatment before it earns the shelf." }
+  ],
+  why: [
+    { title: "One watchmaker, start to finish.", body: "No send-away service centre, no queue of apprentices. The person who takes your watch apart is the person who puts it back together." },
+    { title: "Photographed at every stage.", body: "Your movement, documented before, during and after. Every replaced part returned to you in a labelled bag. Show-your-work horology." },
+    { title: "Regulated in five positions.", body: "Dial up, dial down, crown left, crown up, crown down — because your wrist moves and a timing machine doesn't. Spec-sheet accuracy, verified twice." }
+  ],
+  how: [
+    { step: "01", title: "Bring the watch", body: "By appointment or drop in Tuesday to Saturday. Bring the story too — it changes what 'right' looks like." },
+    { step: "02", title: "Assessment under the loupe", body: "Free, while you watch if you like. Written quote, honest timeframe, and a no-surprises rule in writing." },
+    { step: "03", title: "The bench", body: "Strip, clean, replace, oil, regulate. Photos at each stage; parts in labelled bags; tea consumed in quantity." },
+    { step: "04", title: "Timed, tested, returned", body: "Five positions on the timing machine, pressure test if sealed, then a fortnight on the wrist-test rota before handover." }
+  ],
+  testimonials: [
+    { quote: "My grandfather's Omega hadn't ticked since 1987. It came back keeping four seconds a day, with photographs of its insides like a medical file. I wear it every day and think of them both.", name: "Robert C.", context: "1958 Seamaster, full restoration" },
+    { quote: "Two jewellers said my Seiko wasn't worth servicing. Mainspring said 'it's worth what it means' and fixed it for less than the jewellers quoted for looking at it.", name: "Farah N.", context: "wedding Seiko, full service" },
+    { quote: "Watched him assess my dive watch under the loupe, narrating like a surgeon teaching a class. The pressure test failed — his own work, redone free, retested, documented. That's the shop.", name: "Ian T.", context: "dive watch, seals & service" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1495856458515-0637185db551?w=1600&q=85&auto=format&fit=crop", alt: "Movement under the loupe." },
+    { src: "https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=1600&q=85&auto=format&fit=crop", alt: "Tweezers and balance wheel." },
+    { src: "https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=1600&q=85&auto=format&fit=crop", alt: "The bench, mid-service." },
+    { src: "https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=1600&q=85&auto=format&fit=crop", alt: "A restored dial, done breathing." },
+    { src: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=1600&q=85&auto=format&fit=crop", alt: "The vintage cabinet, current residents." },
+    { src: "https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=1600&q=85&auto=format&fit=crop", alt: "Cased up, timed, waiting for its wrist." }
+  ],
+  faq: [
+    { q: "How much does a service cost?", a: "Quoted per movement after assessment, never before — a three-hander and a chronograph are different animals. The assessment is free, the quote is written, and it doesn't move once you've agreed it." },
+    { q: "How long will it take?", a: "A straightforward service, four to six weeks; restorations longer, especially if parts need hunting. The bottleneck is doing it once, correctly, with a fortnight of timing tests at the end. We give real dates, not hopeful ones." },
+    { q: "Is my watch worth servicing?", a: "The bench answer: if it matters to you, yes. The honest answer for resale: sometimes no, and we'll say so. What we won't do is talk you out of fixing your grandmother's watch because a spreadsheet frowned." },
+    { q: "Do you work on Rolex / Omega / vintage?", a: "Yes, yes, and enthusiastically — with correct parts where obtainable and full disclosure where not. What we decline: fakes, franken-watches presented as original, and anything a previous 'repairer' glued." },
+    { q: "Will you replace the dial? It looks old.", a: "We'd rather not, and we'll show you why: originality is most of a vintage watch's value and all of its face. Conservation over replacement, always — unless you overrule us in writing, which has happened twice in fourteen years." },
+    { q: "Is the watch insured while you have it?", a: "Fully, at declared value, from handover to handover — the certificate is on the wall and the values are reviewed annually. Sleep fine; the safe is better than ours at home." }
+  ],
+  area: { places: ["Chester", "Wrexham", "Ellesmere Port", "Mold", "Northwich", "Wirral"] },
+  credentials: [
+    { label: "Qualified", detail: "BHI Diploma in Clock & Watch Servicing" },
+    { label: "Insured", detail: "All watches covered at declared value on site" },
+    { label: "Documented", detail: "Photographic record of every service" },
+    { label: "Warranty", detail: "Twelve months on every full service" }
+  ],
+  location: { name: "Mainspring & Co", addressStreet: "First floor, 27 Watergate Row", addressLocality: "Chester", addressRegion: "Cheshire", addressPostcode: "CH1 2LE", addressCountry: "United Kingdom" },
+  cta: { heading: "IT'S TIME. LITERALLY.", body: "If it's been five years — or forty — bring it up the old staircase. Assessment free, under the loupe, while you watch.", primary: { label: "Book the bench", href: "#book" }, secondary: { label: "01244 318 552", href: "tel:+441244318552" } },
+  messaging: { whatsapp: "https://wa.me/441244318552", messenger: "https://m.me/mainspringandco" }
+};
+</script>
+
+<style>
+  :root {
+    --case:#101418; --lume:#b8f24b; --steel:#c9d1d6; --brass:#c8a24b;
+    --dial:#1a2027; --mid:#7d8891; --rule:rgba(201,209,214,0.16);
+    --cond:"Saira Condensed",sans-serif; --sans:"Saira",sans-serif; --mono:"IBM Plex Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--case);color:var(--steel);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--lume);}
+  .wrap{width:min(1320px,94vw);margin-inline:auto;}
+  .cal{font-family:var(--mono);font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:var(--lume);}
+  .h2{font-family:var(--cond);font-weight:900;font-size:clamp(44px,6.5vw,104px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 0.4em;color:#fff;}
+  .h2 .ghost{color:transparent;-webkit-text-stroke:1.5px var(--steel);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(72px,9vw,130px) 0;position:relative;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:600;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.15s;}
+  .btn-primary{background:var(--lume);color:var(--case);} .btn-primary:hover{background:#fff;color:var(--case);}
+  .btn-ghost{border:1.5px solid var(--steel);color:var(--steel);} .btn-ghost:hover{background:var(--steel);color:var(--case);}
+  .ref-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--mid);border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);}
+
+  /* tick rail — fixed left ruler */
+  .tickrail{position:fixed;left:0;top:0;bottom:0;width:26px;background:repeating-linear-gradient(to bottom,transparent 0 14px,var(--rule) 14px 15px);border-right:1px solid var(--rule);z-index:40;pointer-events:none;}
+  @media(max-width:900px){.tickrail{display:none;}}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(16,20,24,0.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--cond);font-weight:900;font-size:21px;text-transform:uppercase;letter-spacing:0.04em;text-decoration:none;color:#fff;}
+  .wm span{color:var(--lume);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — colossal condensed type over a huge dial circle; image set in the dial */
+  .hero{padding:clamp(48px,6vw,88px) 0 0;overflow:hidden;}
+  .hero .kicker-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);}
+  .hero .kicker-row b{color:var(--lume);font-weight:500;}
+  .hero h1{font-family:var(--cond);font-weight:900;text-transform:uppercase;line-height:0.85;letter-spacing:0.005em;margin:28px 0 0;font-size:clamp(64px,13.5vw,230px);color:#fff;}
+  .hero h1 .row2{display:flex;align-items:center;gap:3vw;}
+  .hero h1 .ghost{color:transparent;-webkit-text-stroke:2px var(--steel);}
+  .hero h1 .lume{color:var(--lume);}
+  .hero-dial{position:relative;flex:0 0 auto;width:clamp(90px,16vw,260px);aspect-ratio:1/1;border-radius:50%;overflow:hidden;border:2px solid var(--steel);}
+  .hero-dial img{width:100%;height:100%;object-fit:cover;}
+  .hero-under{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,5vw,80px);align-items:start;margin-top:clamp(36px,4.5vw,64px);border-top:1px solid var(--rule);padding-top:clamp(26px,3vw,44px);}
+  .hero-under .lede{font-size:clamp(15.5px,1.5vw,19px);line-height:1.65;color:var(--steel);max-width:52ch;margin:0;}
+  .hero-specs{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);display:grid;gap:10px;align-content:start;}
+  .hero-specs .row{display:flex;justify-content:space-between;border-bottom:1px dashed var(--rule);padding-bottom:8px;}
+  .hero-specs b{color:var(--lume);font-weight:500;}
+  .hero-ctas{margin-top:26px;display:flex;gap:14px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-under{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--lume);color:var(--case);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;}
+
+  /* ABOUT — brass section with giant calibre ref behind */
+  .about{background:var(--dial);}
+  .about .megaref{position:absolute;bottom:-4vw;left:-1vw;font-family:var(--cond);font-weight:900;font-size:clamp(140px,26vw,420px);line-height:0.8;color:transparent;-webkit-text-stroke:1px rgba(201,209,214,0.1);pointer-events:none;user-select:none;text-transform:uppercase;}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;position:relative;}
+  .about-grid .photo{position:relative;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  .about-grid .photo::after{content:"";position:absolute;inset:0;border:1px solid var(--rule);transform:translate(14px,14px);pointer-events:none;}
+  .about-prose p{font-size:clamp(16px,1.55vw,18.5px);line-height:1.74;margin:0 0 1em;color:var(--steel);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — calibre reference table */
+  .ref-rows{border-top:1px solid var(--steel);}
+  .ref-row{display:grid;grid-template-columns:170px 1fr 1.3fr;gap:clamp(18px,3vw,44px);padding:30px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;position:relative;}
+  .ref-row:hover{background:linear-gradient(90deg,rgba(184,242,75,0.06),transparent 70%);padding-left:14px;}
+  .ref-row .ref{font-family:var(--cond);font-weight:800;font-size:clamp(24px,2.6vw,36px);color:var(--lume);text-transform:uppercase;letter-spacing:0.02em;line-height:1;}
+  .ref-row h3{font-family:var(--cond);font-weight:800;font-size:clamp(22px,2.3vw,30px);margin:0;line-height:1.05;text-transform:uppercase;color:#fff;}
+  .ref-row p{color:var(--mid);margin:0;font-size:14.5px;line-height:1.66;}
+  @media(max-width:760px){.ref-row{grid-template-columns:1fr;gap:8px;}}
+
+  /* WHY — lume panel */
+  .why{background:var(--lume);color:var(--case);}
+  .why .h2{color:var(--case);}
+  .why .h2 .ghost{-webkit-text-stroke:1.5px var(--case);}
+  .why .ref-head{border-color:rgba(16,20,24,0.3);color:rgba(16,20,24,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,64px);}
+  .why-grid .num{font-family:var(--cond);font-weight:900;font-size:clamp(72px,8vw,120px);line-height:0.85;display:block;margin-bottom:16px;}
+  .why-grid h3{font-family:var(--cond);font-weight:800;font-size:23px;text-transform:uppercase;margin:0 0 10px;line-height:1.05;}
+  .why-grid p{color:rgba(16,20,24,0.75);margin:0;font-size:14.5px;line-height:1.68;font-weight:500;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;counter-reset:step;}
+  .how-grid > li{list-style:none;border-top:1px solid var(--steel);padding-top:18px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.22em;color:var(--lume);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--cond);font-weight:800;font-size:20px;text-transform:uppercase;margin:10px 0 8px;color:#fff;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--dial);}
+  .t-quote{font-family:var(--cond);font-weight:900;font-size:clamp(30px,4.6vw,68px);line-height:0.94;text-transform:uppercase;max-width:24ch;margin:0 0 24px;color:#fff;}
+  .t-quote em{font-style:normal;color:var(--lume);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(40px,5vw,64px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--rule);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--steel);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — macro plates, one circular like a caseback */
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(10px,1.4vw,18px);}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;}
+  .g-grid img{width:100%;height:100%;object-fit:cover;filter:saturate(0.8) contrast(1.08);transition:0.3s;}
+  .g-grid figure:hover img{filter:none;}
+  .g-grid figure:nth-child(1){grid-column:span 4;grid-row:span 2;} .g-grid figure:nth-child(1) img{aspect-ratio:16/11;}
+  .g-grid figure:nth-child(2){grid-column:span 2;} .g-grid figure:nth-child(2) img{aspect-ratio:1/1;border-radius:50%;border:1.5px solid var(--steel);}
+  .g-grid figure:nth-child(n+3){grid-column:span 2;} .g-grid figure:nth-child(n+3) img{aspect-ratio:1/1;}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--case);color:var(--lume);font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;padding:6px 10px;}
+  .g-grid figure:nth-child(2) figcaption{left:50%;transform:translateX(-50%);bottom:6px;}
+  @media(max-width:760px){.g-grid figure{grid-column:span 6 !important;grid-row:auto !important;} .g-grid figure img{border-radius:0 !important;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--steel);}
+  .faq-list summary{font-family:var(--cond);font-weight:800;font-size:21px;text-transform:uppercase;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.1;color:#fff;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--lume);flex-shrink:0;font-size:22px;transition:0.2s;line-height:1;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;padding:11px 20px;border:1px solid var(--rule);color:var(--steel);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1px solid var(--steel);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--lume);margin-bottom:8px;}
+  .creds .detail{font-family:var(--cond);font-weight:800;font-size:18px;line-height:1.25;text-transform:uppercase;color:#fff;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--dial);border:1px solid var(--rule);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--cond);font-weight:800;font-size:22px;line-height:1.35;text-transform:uppercase;color:#fff;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.14em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.64;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:1px solid var(--rule);filter:grayscale(1) invert(0.92) contrast(0.9);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{padding:clamp(90px,11vw,160px) 0;overflow:hidden;background:radial-gradient(circle at 50% 130%,rgba(184,242,75,0.16),transparent 60%),var(--case);text-align:center;}
+  .cta-band h2{font-family:var(--cond);font-weight:900;font-size:clamp(56px,11vw,190px);line-height:0.85;text-transform:uppercase;margin:16px auto 22px;color:#fff;max-width:12ch;}
+  .cta-band h2 em{font-style:normal;color:var(--lume);}
+  .cta-band p{color:var(--mid);max-width:46ch;margin:0 auto 34px;font-size:16.5px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+
+  footer{background:var(--case);border-top:1px solid var(--rule);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--lume);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;color:var(--mid);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--lume);color:var(--case);padding:14px 20px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;box-shadow:0 8px 28px rgba(184,242,75,0.3);}
+  .msg-fab a:hover{background:#fff;color:var(--case);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Mainspring & Co","description":"Watch repair workshop in Chester's Rows — mechanical servicing, restorations and vintage sales by a BHI-qualified watchmaker.","url":"https://mainspringand.co/","telephone":"+441244318552","email":"bench@mainspringand.co","address":{"@type":"PostalAddress","streetAddress":"First floor, 27 Watergate Row","addressLocality":"Chester","addressRegion":"Cheshire","postalCode":"CH1 2LE","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.1901,"longitude":-2.8945},"areaServed":["Chester","Wrexham","Wirral","Cheshire"],"image":["https://images.unsplash.com/photo-1495856458515-0637185db551?w=1600"],"foundingDate":"2011"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How much does a service cost?","acceptedAnswer":{"@type":"Answer","text":"Quoted per movement after a free assessment. The written quote doesn't move once agreed."}},
+{"@type":"Question","name":"How long will it take?","acceptedAnswer":{"@type":"Answer","text":"Four to six weeks for a straightforward service; restorations longer. Real dates, not hopeful ones."}},
+{"@type":"Question","name":"Is my watch worth servicing?","acceptedAnswer":{"@type":"Answer","text":"If it matters to you, yes. For resale, sometimes no — and we'll say so."}},
+{"@type":"Question","name":"Do you work on Rolex / Omega / vintage?","acceptedAnswer":{"@type":"Answer","text":"Yes, with correct parts where obtainable and full disclosure where not."}},
+{"@type":"Question","name":"Will you replace the dial?","acceptedAnswer":{"@type":"Answer","text":"We'd rather conserve than replace — originality is most of a vintage watch's value."}},
+{"@type":"Question","name":"Is the watch insured while you have it?","acceptedAnswer":{"@type":"Answer","text":"Fully, at declared value, from handover to handover."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<div class="tickrail" aria-hidden="true"></div>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">MAINSPRING <span>&amp;</span> CO</a>
+    <nav class="nav-links">
+      <a href="#services">The bench</a><a href="#about">The workshop</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v39">
+  <div class="wrap">
+    <div class="kicker-row"><span data-bind="hero.kicker">Watchmaker · service, restoration, vintage · The Rows, Chester</span><b>REF. MS-45 / BEAT 28,800</b></div>
+    <h1 data-comment-anchor="hero-headline" aria-label="292 parts. One pair of hands.">
+      <span>292 PARTS.</span>
+      <span class="row2"><span class="ghost">ONE PAIR</span>
+        <span class="hero-dial"><img src="https://images.unsplash.com/photo-1495856458515-0637185db551?w=1200&q=85&auto=format&fit=crop" alt="Watch movement under the watchmaker's loupe." data-bind="hero.image" data-bind-alt="hero.imageAlt" /></span>
+      </span>
+      <span class="lume">OF HANDS.</span>
+    </h1>
+    <div class="hero-under">
+      <div>
+        <p class="lede" data-bind="hero.lede">A mechanical watch is a machine that lives on your wrist and asks for attention every five years. Mainspring &amp; Co is where it gets that attention: full services, restorations and honest triage at one bench, under one loupe, by one BHI-qualified watchmaker.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book the bench</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we service</a>
+        </div>
+      </div>
+      <div class="hero-specs">
+        <div class="row"><span>ASSESSMENT</span><b>FREE, UNDER THE LOUPE</b></div>
+        <div class="row"><span>REGULATION</span><b>FIVE POSITIONS</b></div>
+        <div class="row"><span>DOCUMENTATION</span><b>PHOTOGRAPHED THROUGHOUT</b></div>
+        <div class="row"><span>WARRANTY</span><b>TWELVE MONTHS</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the bench since 2011</span>
+    <span>BHI qualified</span>
+    <span>Insured at declared value</span>
+    <span>Every part returned, bagged</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v5">
+  <div class="megaref" aria-hidden="true">CAL.11</div>
+  <div class="wrap">
+    <div class="ref-head"><span>REF. 01 / THE WORKSHOP</span><span>ABOVE THE ROWS · UP THE OLD STAIRS</span></div>
+    <div class="about-grid">
+      <div class="photo">
+        <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+             src="https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=1200&q=85&auto=format&fit=crop"
+             alt="Watchmaker at work with tweezers and loupe." />
+      </div>
+      <div class="about-prose">
+        <h2 class="h2">One bench <span class="ghost">above the Rows.</span></h2>
+        <p>The workshop sits above Chester's medieval Rows, up a staircase that predates the pendulum. On the bench: a 1962 timing machine that still tells the truth, a modern one that agrees with it, and whatever movement is currently in 292 pieces between them.</p>
+        <p>Training was five years at the British Horological Institute and a decade of other people's heirlooms since. The specialism, if forced to name one: watches that matter more than they cost. The grandfather's Omega. The wedding Seiko. The Smiths that went up Everest's little brother.</p>
+        <p>Every service is documented photographically — the movement before, during and after — because you're trusting a stranger with a time machine, and the least the stranger can do is show his work.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v32">
+  <div class="wrap">
+    <div class="ref-head"><span>REF. 02 / THE BENCH BOOK</span><span>QUOTED AFTER ASSESSMENT, NEVER BEFORE</span></div>
+    <h2 class="h2">The bench <span class="ghost">book.</span></h2>
+    <div class="ref-rows">
+      <div class="ref-row"><span class="ref">MS-01</span><h3>The full service</h3><p>Complete strip-down, ultrasonic clean, new mainspring and gaskets, oiling to spec, regulation in five positions. The five-year ritual, done properly.</p></div>
+      <div class="ref-row"><span class="ref">MS-02</span><h3>Vintage restoration</h3><p>Sympathetic work on watches with history — original parts hunted, dials conserved not butchered, patina respected. Slow by design.</p></div>
+      <div class="ref-row"><span class="ref">MS-03</span><h3>Battery, seals &amp; straps</h3><p>While-you-wait quartz service with a proper pressure test, not a kiosk stab. Straps fitted, sized and argued about.</p></div>
+      <div class="ref-row"><span class="ref">MS-04</span><h3>Accident &amp; water damage</h3><p>Dropped, flooded, sat on, washed. Triage first, honesty second, heroics where justified. Bring it in fast — rust doesn't wait.</p></div>
+      <div class="ref-row"><span class="ref">MS-05</span><h3>Valuations &amp; paperwork</h3><p>Written condition reports for insurance and probate. What it is, what it's worth, what it needs. Sealed and signed.</p></div>
+      <div class="ref-row"><span class="ref">MS-06</span><h3>The vintage cabinet</h3><p>A small rotating case of serviced, warrantied vintage pieces — each one through the full bench treatment before it earns the shelf.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v4">
+  <div class="wrap">
+    <div class="ref-head"><span>REF. 03 / THE STANDARD</span><span>ENGRAVED, NOT PRINTED</span></div>
+    <h2 class="h2">The house standard.</h2>
+    <div class="why-grid">
+      <div><span class="num">01</span><h3>One watchmaker, start to finish.</h3><p>No send-away service centre, no queue of apprentices. The person who takes your watch apart is the person who puts it back together.</p></div>
+      <div><span class="num">02</span><h3>Photographed at every stage.</h3><p>Your movement, documented before, during and after. Every replaced part returned to you in a labelled bag. Show-your-work horology.</p></div>
+      <div><span class="num">03</span><h3>Regulated in five positions.</h3><p>Dial up, dial down, crown left, crown up, crown down — because your wrist moves and a timing machine doesn't. Spec-sheet accuracy, verified twice.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="ref-head"><span>REF. 04 / A SERVICE</span><span>HANDOVER → HANDOVER</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STAGE 01</span><h3>Bring the watch</h3><p>By appointment or drop in Tuesday to Saturday. Bring the story too — it changes what "right" looks like.</p></li>
+      <li><span class="step">STAGE 02</span><h3>Assessment under the loupe</h3><p>Free, while you watch if you like. Written quote, honest timeframe, and a no-surprises rule in writing.</p></li>
+      <li><span class="step">STAGE 03</span><h3>The bench</h3><p>Strip, clean, replace, oil, regulate. Photos at each stage; parts in labelled bags; tea consumed in quantity.</p></li>
+      <li><span class="step">STAGE 04</span><h3>Timed, tested, returned</h3><p>Five positions on the timing machine, pressure test if sealed, then a fortnight on the wrist-test rota before handover.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v4">
+  <div class="wrap">
+    <div class="ref-head"><span>REF. 05 / OWNERS</span><span>RECORDED AT HANDOVER</span></div>
+    <blockquote class="t-quote">“It hadn't ticked since 1987. It came back keeping <em>four seconds a day.</em>”</blockquote>
+    <div class="t-attr">Robert C. — 1958 Seamaster, full restoration</div>
+    <div class="t-sub">
+      <figure><blockquote>“Two jewellers said my Seiko wasn't worth servicing. Mainspring said ‘it's worth what it means’ and fixed it for less than the jewellers quoted for looking at it.”</blockquote><figcaption>Farah N. — wedding Seiko, full service</figcaption></figure>
+      <figure><blockquote>“The pressure test failed — his own work, redone free, retested, documented. That's the shop.”</blockquote><figcaption>Ian T. — dive watch, seals &amp; service</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v32">
+  <div class="wrap">
+    <div class="ref-head"><span>REF. 06 / MACRO PLATES</span><span>THE BENCH, MAGNIFIED</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1495856458515-0637185db551?w=1600&q=85&auto=format&fit=crop" alt="Movement under the loupe." /><figcaption>PLATE 1 · THE MOVEMENT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1548171915-e79a380a2a4b?w=1600&q=85&auto=format&fit=crop" alt="Tweezers and balance wheel." /><figcaption>CASEBACK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1509048191080-d2984bad6ae5?w=1600&q=85&auto=format&fit=crop" alt="The bench, mid-service." /><figcaption>PLATE 3 · THE BENCH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1547996160-81dfa63595aa?w=1600&q=85&auto=format&fit=crop" alt="A restored dial." /><figcaption>PLATE 4 · THE DIAL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=1600&q=85&auto=format&fit=crop" alt="The vintage cabinet." /><figcaption>PLATE 5 · THE CABINET</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1524805444758-089113d48a6d?w=1600&q=85&auto=format&fit=crop" alt="Cased up and timed." /><figcaption>PLATE 6 · READY</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="ref-head"><span>REF. 07 / ASKED AT THE COUNTER</span><span>USUALLY HOLDING AN HEIRLOOM</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the <span class="ghost">counter.</span></h2>
+        <p class="body">Anything else — ring <a href="tel:+441244318552" style="color:var(--lume);">01244 318 552</a>. Mid-assembly the phone waits; a hairspring outranks everything.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How much does a service cost?</summary><p>Quoted per movement after assessment, never before — a three-hander and a chronograph are different animals. The assessment is free, the quote is written, and it doesn't move once you've agreed it.</p></details>
+        <details><summary>How long will it take?</summary><p>A straightforward service, four to six weeks; restorations longer, especially if parts need hunting. The bottleneck is doing it once, correctly, with a fortnight of timing tests at the end. We give real dates, not hopeful ones.</p></details>
+        <details><summary>Is my watch worth servicing?</summary><p>The bench answer: if it matters to you, yes. The honest answer for resale: sometimes no, and we'll say so. What we won't do is talk you out of fixing your grandmother's watch because a spreadsheet frowned.</p></details>
+        <details><summary>Do you work on Rolex / Omega / vintage?</summary><p>Yes, yes, and enthusiastically — with correct parts where obtainable and full disclosure where not. What we decline: fakes, franken-watches presented as original, and anything a previous "repairer" glued.</p></details>
+        <details><summary>Will you replace the dial? It looks old.</summary><p>We'd rather not, and we'll show you why: originality is most of a vintage watch's value and all of its face. Conservation over replacement, always — unless you overrule us in writing, which has happened twice in fourteen years.</p></details>
+        <details><summary>Is the watch insured while you have it?</summary><p>Fully, at declared value, from handover to handover — the certificate is on the wall and the values are reviewed annually. Sleep fine; the safe is better than ours at home.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ref-head"><span>REF. 08 / WRISTS ARRIVE FROM</span><span>CHESHIRE &amp; NORTH WALES</span></div>
+    <ul class="area-list">
+      <li>Chester</li><li>Wrexham</li><li>Ellesmere Port</li><li>Mold</li><li>Northwich</li><li>Wirral</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ref-head"><span>REF. 09 / THE PAPERWORK</span><span>ON THE WALL, IN DATE</span></div>
+    <div class="creds">
+      <div><div class="label">Qualified</div><div class="detail">BHI Diploma in Clock &amp; Watch Servicing</div></div>
+      <div><div class="label">Insured</div><div class="detail">All watches covered at declared value on site</div></div>
+      <div><div class="label">Documented</div><div class="detail">Photographic record of every service</div></div>
+      <div><div class="label">Warranty</div><div class="detail">Twelve months on every full service</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ref-head"><span>REF. 10 / FIND US</span><span>27 WATERGATE ROW, FIRST FLOOR</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Mainspring &amp; Co</strong><br />
+          First floor, 27 Watergate Row<br />
+          Chester CH1 2LE<br /><br />
+          <a href="tel:+441244318552" data-bind="business.phoneDisplay">01244 318 552</a><br />
+          <a href="mailto:bench@mainspringand.co" data-bind="business.email">bench@mainspringand.co</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>SUN – MON</span><span>THE BENCH RESTS</span></div>
+          <p class="gbp-note">Hours live on our Google Business Profile. Up the black staircase between the glover and the tea shop — mind your head on the 1652 beam.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Mainspring &amp; Co, Watergate Row, Chester" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.9040%2C53.1870%2C-2.8850%2C53.1940&layer=mapnik&marker=53.1901%2C-2.8945"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v7">
+  <div class="wrap">
+    <div class="cal">REF. 11 / BOOK</div>
+    <h2>IT'S TIME. <em>LITERALLY.</em></h2>
+    <p data-bind="cta.body">If it's been five years — or forty — bring it up the old staircase. Assessment free, under the loupe, while you watch.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book the bench</a>
+      <a class="btn btn-ghost" href="tel:+441244318552" data-bind="cta.secondary.label">01244 318 552</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441244318552" data-bind="messaging.whatsapp" aria-label="Message the workshop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">MAINSPRING <span style="color:var(--lume);">&amp;</span> CO</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A watch repair workshop above Chester's Rows. Since 2011.</p>
+      </div>
+      <div>
+        <h4>The workshop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;color:var(--mid);">
+          First floor, 27 Watergate Row<br />Chester CH1 2LE<br />
+          <a href="tel:+441244318552">01244 318 552</a><br />
+          <a href="mailto:bench@mainspringand.co">bench@mainspringand.co</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The bench book</a><a href="#about">The workshop</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> MAINSPRING &amp; CO</span>
+      <span>28,800 BPH · ALL OF THEM COUNTED</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

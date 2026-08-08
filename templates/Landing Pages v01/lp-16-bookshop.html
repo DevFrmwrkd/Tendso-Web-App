@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Long Sentence — independent bookshop in Norwich Lanes</title>
+<meta name="description" content="The Long Sentence is an independent bookshop in the Norwich Lanes — new fiction, poetry, a serious translation wall, a reading room upstairs, and events most Thursdays." />
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "The Long Sentence", phone: "+44 1603 219 884", phoneDisplay: "01603 219 884", email: "post@thelongsentence.uk", foundedYear: 2016 },
+  hero: {
+    kicker: "Bookshop · Norwich Lanes · est. 2016",
+    headline: "A shop for people who read the last page first, and people who would never.",
+    lede: "Two floors in the Lanes: new fiction and poetry below, a reading room above, a translation wall we're quietly famous for, and events most Thursdays. We will order anything in print.",
+    primaryCta: { label: "What's on", href: "#services" },
+    secondaryCta: { label: "Find the shop", href: "#location" },
+    image: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1800&q=85&auto=format&fit=crop",
+    imageAlt: "Tall bookshop shelves in warm lamplight."
+  },
+  trust: { years: "Bookselling in the Lanes since 2016" },
+  about: {
+    heading: "Small shop, long memory.",
+    paragraphs: [
+      "The Long Sentence opened in 2016 in a crooked building in the Norwich Lanes that has been, at various points, a milliner's, a locksmith's, and — according to one customer with strong opinions — a place that sold nothing but buttons. The floors slope. The books don't mind.",
+      "Downstairs is new fiction, poetry, essays and the translation wall: four hundred titles in English from everywhere else, hand-picked, argued over, and re-shelved weekly. Upstairs is the reading room — armchairs, a kettle, and a strictly enforced rule that nobody will talk to you unless you start it.",
+      "There are three of us. Between us we've read most of the shop, and we'll say so honestly when we haven't. Recommendations come with a returns promise: hated it in fifty pages, bring it back."
+    ],
+    portrait: "https://images.unsplash.com/photo-1526243741027-444d633d7365?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "The shop counter stacked with staff picks."
+  },
+  services: [
+    { name: "The shop floor", description: "New fiction, poetry, essays, children's — chosen by hand, not by algorithm. Staff picks change every Friday." },
+    { name: "The translation wall", description: "Four hundred titles in translation, the shop's pride. If it's good and it crossed a language to get here, it's on this wall." },
+    { name: "Orders", description: "Anything in print, usually within 48 hours, at cover price. We'll ring you when it lands." },
+    { name: "The reading room", description: "Upstairs. Armchairs, a kettle, no talking unless you start it. Open whenever the shop is." },
+    { name: "Thursday events", description: "Readings, launches, and our monthly translation book club. Tickets cheap, redeemable against the book." },
+    { name: "Subscriptions", description: "A book a month, chosen for you after one conversation. Three, six, or twelve months. The letter that comes with it is half the point." }
+  ],
+  why: [
+    { title: "Hand-picked, honestly sold.", body: "We've read most of the shop. When we haven't, we say so. When you'll hate it, we say that too." },
+    { title: "The fifty-page promise.", body: "Any recommendation of ours you hate inside fifty pages comes back for a full swap. It's used about twice a month, and we like it that way." },
+    { title: "A room to read in.", body: "The reading room upstairs is free, quiet, and yours. Buy nothing. Stay all afternoon. The kettle is the honesty system." }
+  ],
+  how: [
+    { step: "01", title: "Come in", body: "Browse, sit, read. Nobody hovers. The good chair is by the window." },
+    { step: "02", title: "Ask, if you like", body: "Tell us the last three books you loved and one you didn't finish. That's all we need." },
+    { step: "03", title: "Order anything", body: "In print means in reach — usually 48 hours, cover price, we ring when it lands." },
+    { step: "04", title: "Come back Thursday", body: "Readings, launches, the translation club. Ticket price comes off the book." }
+  ],
+  testimonials: [
+    { quote: "I told them three books I loved and they handed me a Hungarian novel I'd never heard of. It's now my favourite book. This has happened four times.", name: "Miriam J.", context: "translation wall convert" },
+    { quote: "The subscription letter is better than most published essays. My daughter frames them.", name: "Geoff W.", context: "twelve-month subscriber, twice over" },
+    { quote: "The reading room saved my dissertation and possibly my sanity. I've bought every book I can afford there since, out of sheer loyalty.", name: "Tom A.", context: "UEA postgrad" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1600&q=85&auto=format&fit=crop", alt: "Tall shelves in warm lamplight." },
+    { src: "https://images.unsplash.com/photo-1526243741027-444d633d7365?w=1600&q=85&auto=format&fit=crop", alt: "The counter stacked with staff picks." },
+    { src: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1600&q=85&auto=format&fit=crop", alt: "A reading corner between the stacks." },
+    { src: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1600&q=85&auto=format&fit=crop", alt: "An open book under a reading lamp." },
+    { src: "https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1600&q=85&auto=format&fit=crop", alt: "The upstairs reading room." },
+    { src: "https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=1600&q=85&auto=format&fit=crop", alt: "Spines on the translation wall." }
+  ],
+  faq: [
+    { q: "Can you order any book?", a: "Anything in print in the UK, usually within 48 hours, at cover price. Out-of-print hunting we'll try too — no promises, no charge for looking." },
+    { q: "How does the subscription work?", a: "One conversation (in person or by phone) about what you love and what you've bounced off. Then a book a month, wrapped, with a letter about why we chose it. Three, six or twelve months; gift options at all lengths." },
+    { q: "What's the fifty-page promise?", a: "If we recommended it and you hate it within fifty pages, bring it back for a straight swap. Applies to our recommendations, not your own gambles — those you have to live with, like the rest of us." },
+    { q: "Is the reading room really free?", a: "Really free. No minimum, no time limit, no guilt. Tea and coffee run on an honesty tin. The only rule is quiet." },
+    { q: "Do you buy second-hand books?", a: "No — we're new books only, except the poetry shelf's 'orphans' box, which works on donation and rehoming rather than money." },
+    { q: "How do Thursday events work?", a: "Doors at seven, reading at half past. Tickets are a few pounds and come off any book that night. The translation club is the first Thursday of the month — the book is announced six weeks ahead." },
+    { q: "Is the shop accessible?", a: "The ground floor is step-free from the Lanes. The reading room is up a 400-year-old staircase we can't alter — but we'll bring the kettle and any book down to you, gladly." },
+    { q: "Do you do school or library orders?", a: "Yes — educational discount, invoicing, and we'll come talk to a class about books for the price of a biscuit." }
+  ],
+  area: { places: ["Norwich Lanes", "Golden Triangle", "Tombland", "UEA", "Eaton", "Thorpe", "and by post, anywhere"] },
+  credentials: [
+    { label: "Booksellers Association", detail: "Member since opening" },
+    { label: "Independent Bookshop Week", detail: "Participating shop, every year" },
+    { label: "Living Wage Employer", detail: "Accredited" },
+    { label: "Norwich BID", detail: "Lanes independent member" }
+  ],
+  location: { name: "The Long Sentence", addressStreet: "7 Pottergate", addressLocality: "Norwich Lanes, Norwich", addressRegion: "Norfolk", addressPostcode: "NR2 1DS", addressCountry: "United Kingdom" },
+  cta: { heading: "The good chair is by the window.", body: "Open six days. Events most Thursdays. The kettle is always on.", primary: { label: "Find the shop", href: "#location" }, secondary: { label: "01603 219 884", href: "tel:+441603219884" } },
+  messaging: { whatsapp: "https://wa.me/441603219884", messenger: "https://m.me/thelongsentence" }
+};
+</script>
+
+<style>
+  :root {
+    --paper:#f6f1e7; --paper2:#ede5d3; --ink:#33302a; --soft:#6f6a5e;
+    --oxblood:#7b3b2d; --navy:#2e4756; --gold:#b98a2f; --rule:rgba(51,48,42,0.16);
+    --serif:"Lora",Georgia,serif; --sans:"Public Sans",system-ui,sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--serif);font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1140px,92vw);margin-inline:auto;}
+  .kicker{font-family:var(--sans);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--oxblood);}
+  .h2{font-family:var(--serif);font-weight:500;font-size:clamp(30px,4vw,52px);line-height:1.12;letter-spacing:-0.005em;margin:0 0 0.5em;}
+  .h2 em{font-style:italic;color:var(--oxblood);}
+  .body{color:var(--soft);line-height:1.75;}
+  section{padding:clamp(68px,8.5vw,118px) 0;}
+  .btn{display:inline-flex;gap:10px;padding:14px 24px;font-family:var(--sans);font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--oxblood);color:var(--paper);} .btn-primary:hover{background:var(--ink);}
+  .btn-ghost{border:1.5px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--paper);}
+  .rule-orn{text-align:center;color:var(--gold);font-size:18px;letter-spacing:0.8em;padding-left:0.8em;margin-bottom:18px;}
+
+  .nav{position:sticky;top:0;z-index:50;background:color-mix(in oklab,var(--paper) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
+  .wm{font-family:var(--serif);font-style:italic;font-size:22px;font-weight:500;text-decoration:none;}
+  .nav-links{display:flex;gap:26px;font-family:var(--sans);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;font-weight:600;color:var(--soft);}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--oxblood);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — title page */
+  .hero{padding:clamp(56px,8vw,110px) 0 clamp(48px,6vw,84px);text-align:center;}
+  .hero h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,4.8vw,66px);line-height:1.15;letter-spacing:-0.008em;margin:24px auto 26px;max-width:26ch;}
+  .hero h1 em{font-style:italic;color:var(--oxblood);}
+  .hero .lede{font-size:clamp(16px,1.4vw,19px);color:var(--soft);max-width:56ch;margin:0 auto;line-height:1.7;}
+  .hero-ctas{margin-top:36px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .hero-figure{margin:clamp(48px,7vw,90px) 0 0;}
+  .hero-figure img{width:100%;aspect-ratio:21/9;object-fit:cover;border:1px solid var(--rule);}
+  .hero-figure figcaption{font-family:var(--sans);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--soft);display:flex;justify-content:space-between;padding-top:12px;}
+  @media(max-width:760px){.hero-figure img{aspect-ratio:4/3;}}
+
+  .trust{padding:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);background:var(--paper2);}
+  .trust .row{display:flex;justify-content:center;gap:clamp(18px,3vw,44px);flex-wrap:wrap;padding:18px 0;font-family:var(--sans);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--soft);}
+  .trust .o{color:var(--gold);}
+
+  .about-grid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-prose p{font-size:clamp(17px,1.5vw,20px);line-height:1.75;margin:0 0 1em;}
+  .about-prose p:first-of-type::first-letter{font-size:4.4em;line-height:0.82;float:left;padding:8px 12px 0 0;color:var(--oxblood);font-style:italic;}
+  .about-grid img{aspect-ratio:3/4;object-fit:cover;width:100%;border:1px solid var(--rule);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — chapter list */
+  .chapters{max-width:820px;margin:clamp(30px,4vw,50px) auto 0;border-top:1px solid var(--ink);}
+  .chapter{display:grid;grid-template-columns:110px 1fr;gap:24px;padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;}
+  .chapter .no{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--gold);}
+  .chapter h3{font-family:var(--serif);font-weight:500;font-size:26px;margin:0 0 8px;line-height:1.15;}
+  .chapter p{margin:0;color:var(--soft);font-size:15.5px;line-height:1.65;}
+  @media(max-width:640px){.chapter{grid-template-columns:1fr;gap:6px;}}
+
+  .why{background:var(--navy);color:var(--paper);}
+  .why .h2{color:var(--paper);} .why .h2 em{color:var(--gold);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(28px,4.5vw,64px);margin-top:clamp(30px,4vw,50px);}
+  .why-grid .num{font-family:var(--serif);font-style:italic;font-size:38px;color:var(--gold);display:block;margin-bottom:16px;line-height:1;}
+  .why-grid h3{font-family:var(--serif);font-weight:500;font-size:23px;margin:0 0 10px;line-height:1.25;}
+  .why-grid p{color:rgba(246,241,231,0.72);margin:0;font-size:15px;line-height:1.65;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(22px,3vw,40px);margin-top:clamp(30px,4vw,50px);padding:0;}
+  .how-grid > li{list-style:none;border-top:2px solid var(--gold);padding-top:16px;}
+  .how-grid .step{font-family:var(--sans);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--oxblood);}
+  .how-grid h3{font-family:var(--serif);font-weight:500;font-size:21px;margin:10px 0 8px;}
+  .how-grid p{color:var(--soft);margin:0;font-size:14.5px;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--paper2);}
+  .t-quote{font-family:var(--serif);font-style:italic;font-size:clamp(24px,3vw,40px);line-height:1.3;text-align:center;max-width:30ch;margin:0 auto 22px;}
+  .t-attr{text-align:center;font-family:var(--sans);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--soft);margin-bottom:clamp(40px,5vw,64px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,80px);border-top:1px solid var(--rule);padding-top:36px;}
+  .t-sub blockquote{font-style:italic;font-size:19px;line-height:1.6;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--sans);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--soft);}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-top:clamp(30px,4vw,50px);}
+  .g-grid figure{margin:0;border:1px solid var(--rule);}
+  .g-grid img{width:100%;height:100%;object-fit:cover;}
+  .g-grid figure:nth-child(1){grid-column:span 4;aspect-ratio:16/10;}
+  .g-grid figure:nth-child(2){grid-column:span 2;aspect-ratio:4/5;}
+  .g-grid figure:nth-child(n+3){grid-column:span 2;aspect-ratio:1/1;}
+  @media(max-width:760px){.g-grid figure{grid-column:span 6 !important;aspect-ratio:4/3 !important;}}
+
+  .faq-list{max-width:780px;margin:clamp(30px,4vw,50px) auto 0;}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:24px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--ink);}
+  .faq-list summary{font-family:var(--serif);font-weight:500;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:22px;line-height:1.3;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"¶";color:var(--gold);font-size:18px;flex-shrink:0;}
+  .faq-list details[open] summary::after{color:var(--oxblood);}
+  .faq-list p{margin:14px 0 0;color:var(--soft);font-size:15.5px;max-width:60ch;line-height:1.7;}
+
+  .area{text-align:center;}
+  .area-list{display:flex;flex-wrap:wrap;gap:8px 24px;justify-content:center;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--serif);font-style:italic;font-size:20px;color:var(--soft);}
+  .area-list li::after{content:" ·";color:var(--gold);}
+  .area-list li:last-child::after{content:"";}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:clamp(28px,4vw,48px);}
+  .creds > div{background:var(--paper);padding:26px;text-align:center;}
+  .creds .label{font-family:var(--sans);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--oxblood);margin-bottom:10px;}
+  .creds .detail{font-family:var(--serif);font-size:17px;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(30px,4vw,50px);}
+  .nap{border:1px solid var(--rule);background:var(--paper2);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--serif);font-size:22px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--sans);font-size:11px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--soft);}
+  .hours .gbp-note{font-family:var(--serif);font-size:13.5px;color:var(--soft);margin-top:14px;line-height:1.65;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{border:1px solid var(--rule);min-height:380px;filter:sepia(0.25) saturate(0.85);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--oxblood);color:var(--paper);text-align:center;padding:clamp(80px,10vw,140px) 0;}
+  .cta-band h2{font-family:var(--serif);font-weight:500;font-size:clamp(32px,4.6vw,62px);line-height:1.12;margin:16px auto 18px;max-width:22ch;}
+  .cta-band h2 em{font-style:italic;color:#e8c98d;}
+  .cta-band p{color:rgba(246,241,231,0.82);max-width:44ch;margin:0 auto 34px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--paper);color:var(--oxblood);}
+  .cta-band .btn-ghost{border-color:var(--paper);color:var(--paper);}
+  .cta-band .btn-ghost:hover{background:var(--paper);color:var(--oxblood);}
+
+  footer{background:var(--ink);color:rgba(246,241,231,0.85);padding:60px 0 32px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--sans);font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:600;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;color:var(--paper);}
+  .colophon{margin-top:52px;padding-top:20px;border-top:1px solid rgba(246,241,231,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--sans);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(246,241,231,0.5);font-weight:600;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:var(--paper);padding:13px 19px;text-decoration:none;font-family:var(--sans);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;box-shadow:0 8px 24px rgba(46,71,86,0.3);}
+  .msg-fab a:hover{background:var(--oxblood);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BookStore","name":"The Long Sentence","description":"Independent bookshop in the Norwich Lanes — new fiction, poetry, translation wall, reading room, weekly events.","url":"https://thelongsentence.uk/","telephone":"+441603219884","email":"post@thelongsentence.uk","address":{"@type":"PostalAddress","streetAddress":"7 Pottergate","addressLocality":"Norwich","addressRegion":"Norfolk","postalCode":"NR2 1DS","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":52.6300,"longitude":1.2920},"areaServed":["Norwich","Norfolk","UK by post"],"image":["https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1600"],"foundingDate":"2016"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Can you order any book?","acceptedAnswer":{"@type":"Answer","text":"Anything in print in the UK, usually within 48 hours, at cover price."}},
+{"@type":"Question","name":"How does the subscription work?","acceptedAnswer":{"@type":"Answer","text":"One conversation, then a book a month with a letter. Three, six or twelve months."}},
+{"@type":"Question","name":"What's the fifty-page promise?","acceptedAnswer":{"@type":"Answer","text":"Hate our recommendation within fifty pages, bring it back for a straight swap."}},
+{"@type":"Question","name":"Is the reading room really free?","acceptedAnswer":{"@type":"Answer","text":"Really free. No minimum, no time limit. Tea runs on an honesty tin."}},
+{"@type":"Question","name":"Do you buy second-hand books?","acceptedAnswer":{"@type":"Answer","text":"No — new books only, except the poetry orphans box."}},
+{"@type":"Question","name":"How do Thursday events work?","acceptedAnswer":{"@type":"Answer","text":"Doors at seven. Tickets are a few pounds and come off any book that night."}},
+{"@type":"Question","name":"Is the shop accessible?","acceptedAnswer":{"@type":"Answer","text":"Ground floor step-free. The reading room is up an unalterable old staircase, but we'll bring anything down to you."}},
+{"@type":"Question","name":"Do you do school or library orders?","acceptedAnswer":{"@type":"Answer","text":"Yes — educational discount and invoicing."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">The Long Sentence</a>
+    <nav class="nav-links">
+      <a href="#about">The shop</a><a href="#services">Shelves</a><a href="#location">Find us</a><a href="#faq">Questions</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v8">
+  <div class="wrap">
+    <div class="rule-orn">❦</div>
+    <div class="kicker" data-bind="hero.kicker">Bookshop · Norwich Lanes · est. 2016</div>
+    <h1 data-bind="hero.headline">A shop for people who read the last page first, <em>and people who would never.</em></h1>
+    <p class="lede" data-bind="hero.lede">Two floors in the Lanes: new fiction and poetry below, a reading room above, a translation wall we're quietly famous for, and events most Thursdays. We will order anything in print.</p>
+    <div class="hero-ctas">
+      <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">What's on</a>
+      <a class="btn btn-ghost" href="#location" data-bind="hero.secondaryCta.label">Find the shop</a>
+    </div>
+    <figure class="hero-figure">
+      <img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1800&q=85&auto=format&fit=crop"
+           alt="Tall bookshop shelves in warm lamplight." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <figcaption><span>The ground floor, five o'clock light</span><span>7 Pottergate</span></figcaption>
+    </figure>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Bookselling in the Lanes since 2016</span>
+    <span class="o">❦</span><span>Booksellers Association member</span>
+    <span class="o">❦</span><span>Living Wage employer</span>
+    <span class="o">❦</span><span>Anything in print, ordered</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap about-grid">
+    <div class="about-prose">
+      <div class="kicker">The shop</div>
+      <h2 class="h2" data-bind="about.heading">Small shop, <em>long memory.</em></h2>
+      <p>The Long Sentence opened in 2016 in a crooked building in the Norwich Lanes that has been, at various points, a milliner's, a locksmith's, and — according to one customer with strong opinions — a place that sold nothing but buttons. The floors slope. The books don't mind.</p>
+      <p>Downstairs is new fiction, poetry, essays and the translation wall: four hundred titles in English from everywhere else, hand-picked, argued over, and re-shelved weekly. Upstairs is the reading room — armchairs, a kettle, and a strictly enforced rule that nobody will talk to you unless you start it.</p>
+      <p>There are three of us. Between us we've read most of the shop, and we'll say so honestly when we haven't.</p>
+    </div>
+    <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+         src="https://images.unsplash.com/photo-1526243741027-444d633d7365?w=1200&q=85&auto=format&fit=crop"
+         alt="The shop counter stacked with staff picks." />
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v6">
+  <div class="wrap" style="text-align:center;">
+    <div class="rule-orn">❦ ❦ ❦</div>
+    <div class="kicker">Contents</div>
+    <h2 class="h2">The shop, <em>in six chapters.</em></h2>
+    <div class="chapters" style="text-align:left;">
+      <div class="chapter"><span class="no">Chapter I</span><div><h3>The shop floor</h3><p>New fiction, poetry, essays, children's — chosen by hand, not by algorithm. Staff picks change every Friday.</p></div></div>
+      <div class="chapter"><span class="no">Chapter II</span><div><h3>The translation wall</h3><p>Four hundred titles in translation, the shop's pride. If it's good and it crossed a language to get here, it's on this wall.</p></div></div>
+      <div class="chapter"><span class="no">Chapter III</span><div><h3>Orders</h3><p>Anything in print, usually within 48 hours, at cover price. We'll ring you when it lands.</p></div></div>
+      <div class="chapter"><span class="no">Chapter IV</span><div><h3>The reading room</h3><p>Upstairs. Armchairs, a kettle, no talking unless you start it. Open whenever the shop is.</p></div></div>
+      <div class="chapter"><span class="no">Chapter V</span><div><h3>Thursday events</h3><p>Readings, launches, and our monthly translation book club. Tickets cheap, redeemable against the book.</p></div></div>
+      <div class="chapter"><span class="no">Chapter VI</span><div><h3>Subscriptions</h3><p>A book a month, chosen for you after one conversation. Three, six, or twelve months. The letter that comes with it is half the point.</p></div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker" style="color:var(--gold);">Why this shop</div>
+    <h2 class="h2">Three promises, <em>kept daily.</em></h2>
+    <div class="why-grid">
+      <div><span class="num">i.</span><h3>Hand-picked, honestly sold.</h3><p>We've read most of the shop. When we haven't, we say so. When you'll hate it, we say that too.</p></div>
+      <div><span class="num">ii.</span><h3>The fifty-page promise.</h3><p>Any recommendation of ours you hate inside fifty pages comes back for a full swap. It's used about twice a month, and we like it that way.</p></div>
+      <div><span class="num">iii.</span><h3>A room to read in.</h3><p>The reading room upstairs is free, quiet, and yours. Buy nothing. Stay all afternoon. The kettle is the honesty system.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">A first visit</div>
+    <h2 class="h2">How the shop works.</h2>
+    <ol class="how-grid">
+      <li><span class="step">First</span><h3>Come in</h3><p>Browse, sit, read. Nobody hovers. The good chair is by the window.</p></li>
+      <li><span class="step">Second</span><h3>Ask, if you like</h3><p>Tell us the last three books you loved and one you didn't finish. That's all we need.</p></li>
+      <li><span class="step">Third</span><h3>Order anything</h3><p>In print means in reach — usually 48 hours, cover price, we ring when it lands.</p></li>
+      <li><span class="step">Fourth</span><h3>Come back Thursday</h3><p>Readings, launches, the translation club. Ticket price comes off the book.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="rule-orn">❦</div>
+    <blockquote class="t-quote">“I told them three books I loved and they handed me a Hungarian novel I'd never heard of. It's now my favourite book. This has happened four times.”</blockquote>
+    <div class="t-attr">Miriam J. — translation wall convert</div>
+    <div class="t-sub">
+      <figure><blockquote>“The subscription letter is better than most published essays. My daughter frames them.”</blockquote><figcaption>Geoff W. — twelve-month subscriber, twice over</figcaption></figure>
+      <figure><blockquote>“The reading room saved my dissertation and possibly my sanity. I've bought every book I can afford there since, out of sheer loyalty.”</blockquote><figcaption>Tom A. — UEA postgrad</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v1">
+  <div class="wrap">
+    <div class="kicker">Between the stacks</div>
+    <h2 class="h2">The shop, <em>photographed.</em></h2>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=1600&q=85&auto=format&fit=crop" alt="Tall shelves in warm lamplight." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1526243741027-444d633d7365?w=1600&q=85&auto=format&fit=crop" alt="The counter stacked with staff picks." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=1600&q=85&auto=format&fit=crop" alt="A reading corner between the stacks." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1600&q=85&auto=format&fit=crop" alt="An open book under a reading lamp." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1507842217343-583bb7270b66?w=1600&q=85&auto=format&fit=crop" alt="The upstairs reading room." /></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519682337058-a94d519337bc?w=1600&q=85&auto=format&fit=crop" alt="Spines on the translation wall." /></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section id="faq" data-component="FAQ" data-variant="v1">
+  <div class="wrap" style="text-align:center;">
+    <div class="kicker">Questions</div>
+    <h2 class="h2">Asked at <em>the counter.</em></h2>
+    <div class="faq-list" style="text-align:left;">
+      <details><summary>Can you order any book?</summary><p>Anything in print in the UK, usually within 48 hours, at cover price. Out-of-print hunting we'll try too — no promises, no charge for looking.</p></details>
+      <details><summary>How does the subscription work?</summary><p>One conversation (in person or by phone) about what you love and what you've bounced off. Then a book a month, wrapped, with a letter about why we chose it. Three, six or twelve months; gift options at all lengths.</p></details>
+      <details><summary>What's the fifty-page promise?</summary><p>If we recommended it and you hate it within fifty pages, bring it back for a straight swap. Applies to our recommendations, not your own gambles — those you have to live with, like the rest of us.</p></details>
+      <details><summary>Is the reading room really free?</summary><p>Really free. No minimum, no time limit, no guilt. Tea and coffee run on an honesty tin. The only rule is quiet.</p></details>
+      <details><summary>Do you buy second-hand books?</summary><p>No — we're new books only, except the poetry shelf's 'orphans' box, which works on donation and rehoming rather than money.</p></details>
+      <details><summary>How do Thursday events work?</summary><p>Doors at seven, reading at half past. Tickets are a few pounds and come off any book that night. The translation club is the first Thursday of the month.</p></details>
+      <details><summary>Is the shop accessible?</summary><p>The ground floor is step-free from the Lanes. The reading room is up a 400-year-old staircase we can't alter — but we'll bring the kettle and any book down to you, gladly.</p></details>
+      <details><summary>Do you do school or library orders?</summary><p>Yes — educational discount, invoicing, and we'll come talk to a class about books for the price of a biscuit.</p></details>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section class="area" data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker">Readers come from</div>
+    <ul class="area-list">
+      <li>Norwich Lanes</li><li>Golden Triangle</li><li>Tombland</li><li>UEA</li>
+      <li>Eaton</li><li>Thorpe</li><li>and by post, anywhere</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker" style="text-align:center;display:block;">For the record</div>
+    <div class="creds">
+      <div><div class="label">Booksellers Association</div><div class="detail">Member since opening</div></div>
+      <div><div class="label">Indie Bookshop Week</div><div class="detail">Participating shop, every year</div></div>
+      <div><div class="label">Living Wage Employer</div><div class="detail">Accredited</div></div>
+      <div><div class="label">Norwich BID</div><div class="detail">Lanes independent member</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kicker">The crooked building</div>
+    <h2 class="h2">7 Pottergate, <em>the Lanes.</em></h2>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">The Long Sentence</strong><br />
+          7 Pottergate<br />
+          Norwich Lanes, Norwich NR2 1DS<br /><br />
+          <a href="tel:+441603219884" data-bind="business.phoneDisplay">01603 219 884</a><br />
+          <a href="mailto:post@thelongsentence.uk" data-bind="business.email">post@thelongsentence.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>Mon – Sat</span><span>—</span></div>
+          <div class="row"><span>Sunday</span><span>—</span></div>
+          <div class="row"><span>Thursdays</span><span>late, for events</span></div>
+          <p class="gbp-note">Hours kept current on our Google Business Profile. Event nights we're open until the last question.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of The Long Sentence, Pottergate, Norwich" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=1.2850%2C52.6275%2C1.2990%2C52.6330&layer=mapnik&marker=52.6300%2C1.2920"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section class="cta-band" data-component="CTA-BAND" data-variant="v5">
+  <div class="wrap">
+    <div class="rule-orn" style="color:#e8c98d;">❦</div>
+    <h2 data-bind="cta.heading">The good chair is <em>by the window.</em></h2>
+    <p data-bind="cta.body">Open six days. Events most Thursdays. The kettle is always on.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#location" data-bind="cta.primary.label">Find the shop</a>
+      <a class="btn btn-ghost" href="tel:+441603219884" data-bind="cta.secondary.label">01603 219 884</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441603219884" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Ask us
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a class="wm" href="#" style="font-size:26px;color:var(--paper);">The Long Sentence</a>
+        <p class="body" style="margin-top:12px;max-width:36ch;color:rgba(246,241,231,0.65);">An independent bookshop in a crooked building in the Norwich Lanes. Since 2016.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          7 Pottergate<br />Norwich NR2 1DS<br />
+          <a href="tel:+441603219884">01603 219 884</a><br />
+          <a href="mailto:post@thelongsentence.uk">post@thelongsentence.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Shelves</a><a href="#about">The shop</a><a href="#faq">Questions</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> The Long Sentence Ltd · Co. № 10221844</span>
+      <span>Set in Lora · Sloping floors original</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

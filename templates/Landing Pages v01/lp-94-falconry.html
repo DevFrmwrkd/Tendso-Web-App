@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hawthorn & Hood — falconry centre, experiences and flying displays, Northumberland</title>
+<meta name="description" content="Hawthorn & Hood is a falconry centre in Northumberland — hawk walks and owl encounters, full falconry experience days, flying displays, and welfare-first care of birds of prey. Flying birds since 2006." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Hawthorn & Hood", phone: "+44 1434 555 118", phoneDisplay: "01434 555 118", email: "fly@hawthornandhood.co.uk", foundedYear: 2006 },
+  hero: {
+    kicker: "Falconry centre · hawk walks · experiences · displays · Northumberland",
+    headline: "The oldest partnership between people and wild birds, kept properly.",
+    lede: "A falconry centre in the Northumberland hills — where you can walk a Harris's hawk to your glove through open woodland, meet an owl eye to eye, spend a whole day learning the ancient art, or watch our birds fly free at a display. Welfare comes before everything: these are working relationships with wild raptors, kept the right way, since 2006.",
+    primaryCta: { label: "Book an experience", href: "#book" },
+    secondaryCta: { label: "What we offer", href: "#services" },
+    image: "https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A hawk perched on a falconer's gloved hand."
+  },
+  trust: { years: "Flying birds since 2006" },
+  about: {
+    heading: "You don't tame a hawk. You earn a partnership with one, day by day.",
+    paragraphs: [
+      "Hawthorn &amp; Hood is a falconry centre set in the woods and heather of the Northumberland hills, and it exists to share one of the oldest and most humbling relationships in the world — the one between a falconer and a bird of prey. We opened in 2006 with a handful of Harris's hawks and a conviction that these birds are best understood not through a cage at a distance but with one on your glove and the wind in the trees. Thousands of glove-first moments later, we still feel it every time.",
+      "Everything here is built around the welfare of the birds, and we won't ever apologise for putting them first, because a falconry bird is not a pet or a prop — it's a wild predator in a working partnership, and that partnership only exists on the bird's terms. Our hawks, falcons and owls are flown by weight and by trust, handled by experienced falconers, and never made to perform when they don't want to. We keep our groups small, our sessions unhurried, and our birds' wellbeing absolutely non-negotiable. Guests always feel the difference.",
+      "We offer hawk walks where a Harris's hawk follows you through the woods and flies to your glove, owl encounters that enchant children and adults alike, full falconry experience days for the truly bitten, and flying displays that show these birds doing what they were born to do. Whether you come for an hour, a day, or to stand in a field and watch a falcon stoop from the sky, you'll leave with a new respect for a creature that chooses, each time, to come back to the glove."
+    ],
+    portrait: "https://images.unsplash.com/photo-1553264701-d138db4fd5d4?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A close-up of an owl's face."
+  },
+  services: [
+    { name: "Hawk walks", description: "Walk through open woodland with a Harris's hawk following from tree to tree and swooping down to your gloved fist. An hour or a half-day, and the classic first taste of falconry — utterly unforgettable." },
+    { name: "Owl encounters", description: "Meet our owls up close, learn how these silent hunters live, and have one fly to your glove. Gentle, magical and perfect for families and children (and quietly moving for adults)." },
+    { name: "Falconry experience days", description: "A whole day as a falconer — handling hawks, falcons and owls, learning the equipment, the weight-management and the history, and flying several birds. For the truly bitten, and many are." },
+    { name: "Flying displays", description: "Watch our birds fly free — a falcon stooping from height, a hawk working the treeline, an owl gliding silent over the crowd — with commentary that explains the ancient craft as it happens." },
+    { name: "Photography sessions", description: "Small-group or private sessions to photograph birds of prey in beautiful natural settings, with the birds and light managed for you by falconers who know exactly how to get the shot." },
+    { name: "Gift experiences", description: "Hawk walks, owl encounters and full days as open-dated gift vouchers — the present for the nature-lover who has everything, valid across the season and endlessly memorable." }
+  ],
+  why: [
+    { title: "Welfare before everything.", body: "Our birds are never made to perform, never flown when they don't want to be, and cared for by weight and trust by experienced falconers. If a bird's not right for a session, it doesn't fly. No exceptions, ever." },
+    { title: "Glove-first, not glass-first.", body: "You don't watch our birds through a fence; you have one on your fist in the woods. Real, close, careful contact — supervised and safe — is how respect for these creatures is truly earned." },
+    { title: "Small groups, unhurried.", body: "We keep numbers low and sessions relaxed, for the birds' sake and yours. This is not a conveyor belt; it's time in the company of a wild predator, taken at the pace that keeps it calm and real." }
+  ],
+  how: [
+    { step: "01", title: "Choose your encounter", body: "An hour's hawk walk, an owl encounter, a full experience day, or a display to watch? We'll help you pick the right one for your age, group and how deep you want to go." },
+    { step: "02", title: "Meet the falconer", body: "You're paired with an experienced falconer who introduces the birds, the equipment and the safety, and reads the day — which birds are keen, what the weather allows, how it'll flow." },
+    { step: "03", title: "Glove up & fly", body: "On goes the glove, and a hawk or owl flies to your fist through the Northumberland woods. Close, careful, and quite unlike anything else — most people are lost for words the first time." },
+    { step: "04", title: "Carry it with you", body: "Leave with photographs, a certificate on experience days, and a lasting respect for birds of prey. Many guests come back for the next level — and a good few catch the craft for life." }
+  ],
+  testimonials: [
+    { quote: "The moment that Harris's hawk dropped out of an oak and landed on my glove I actually gasped — I've never felt so close to something so wild. The falconer's knowledge and obvious love for the birds was extraordinary, and you could see the welfare comes first in everything. Magical, genuinely.", name: "Rebecca M.", context: "hawk walk" },
+    { quote: "Booked an owl encounter for my son's birthday and both of us were spellbound. They were wonderful with the children — patient, funny, endlessly knowledgeable — and never pushed a bird that wasn't in the mood. He talks about 'his' owl constantly. The best gift we've ever given him.", name: "The Okafor family", context: "owl encounter" },
+    { quote: "Did the full experience day and it exceeded everything I'd hoped. Flying a falcon, handling the hawks, learning the weight-management and the history from someone who lives it — I came away with a completely changed understanding of these birds. I've already booked to go back. Superb.", name: "Graham T.", context: "falconry experience day" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=1600&q=85&auto=format&fit=crop", alt: "A hawk perched on a falconer's gloved hand." },
+    { src: "https://images.unsplash.com/photo-1553264701-d138db4fd5d4?w=1600&q=85&auto=format&fit=crop", alt: "A close-up of an owl's face." },
+    { src: "https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=1600&q=85&auto=format&fit=crop", alt: "A bird of prey in flight." },
+    { src: "https://images.unsplash.com/photo-1553264701-d138db4fd5d4?w=1600&q=85&auto=format&fit=crop", alt: "An eagle owl with striking eyes." },
+    { src: "https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=1600&q=85&auto=format&fit=crop", alt: "A falcon with its wings spread." },
+    { src: "https://images.unsplash.com/photo-1444464666168-49d633b86797?w=1600&q=85&auto=format&fit=crop", alt: "A bird of prey close up." }
+  ],
+  faq: [
+    { q: "Is it safe, and will the bird hurt me?", a: "Falconry with us is very safe when you follow the falconer's guidance, and injuries to guests are genuinely rare — but let's be honest about what these birds are, because that honesty is part of the respect. Hawks, falcons and owls are wild predators with sharp talons and beaks, and we never pretend otherwise; that's precisely why every session is supervised closely by an experienced falconer, why you're taught exactly how to hold the glove and stand, and why we read each bird's mood before it flies. Worn correctly, the falconry glove protects your hand where the bird lands, and the birds are focused on the food reward, not on you. Children are very welcome and we adjust everything for them. The golden rule is simple: listen to your falconer, do as they say, and you'll be completely fine — and you'll have one of the most thrilling wildlife experiences of your life." },
+    { q: "Do the birds actually want to do this, or is it cruel?", a: "This is the most important question anyone can ask, and we're glad when people do, because the welfare of our birds is the reason this centre exists in the form it does. Falconry, done properly, is not cruel — it's a working partnership rooted in the bird's own instincts, and the birds fly to the glove because they choose to, motivated by food, in a relationship built on trust and managed by careful daily weight-monitoring. A falconry bird that doesn't want to fly simply won't, and we never force one; if a bird is off-colour, moody, moulting or just not keen on a given day, it stays on its perch and we fly another or adjust the session. Our birds are not performing tricks; they're doing what they were born to do — hunt and fly — with a human partner. We'd rather cancel or change an experience than push a bird, and we do exactly that whenever needed. If you watch closely, you'll see birds in fine feather and good weight, calm and willing. That's not an accident; it's the whole point." },
+    { q: "What should I wear, and does the weather stop it?", a: "Dress for being outdoors in the Northumberland countryside whatever the forecast — layers, a warm top even in summer (it's breezy in the hills), and flat, sturdy, closed shoes or walking boots, as hawk walks cross uneven woodland ground. Avoid bright, flappy clothing and dangling accessories, which can unsettle the birds, and leave umbrellas behind (we'll advise on wet days). We provide the gloves and all the equipment. As for weather: falconry happens in most conditions and a bit of British drizzle rarely stops us, but we won't fly birds in genuinely unsafe conditions — high winds in particular are dangerous for the birds and we'll postpone rather than risk one. If we ever have to cancel for weather or for a bird's welfare, we'll rebook you at no charge. Come prepared for the outdoors and a little mud, and you'll be comfortable and free to focus on the birds." },
+    { q: "Are experiences suitable for children, and is there an age limit?", a: "Yes — many of our experiences are wonderful for children, and watching a child meet an owl or have a hawk fly to their glove is one of the joys of what we do. Owl encounters and shorter hawk walks are especially well-suited to younger visitors, and our falconers are brilliant with children: patient, engaging and safety-focused. We do set sensible minimum ages for the more involved experiences (handling larger birds needs a certain size and steadiness), and younger children are always closely supervised and helped by a falconer, sometimes sharing a glove with an adult. Full experience days suit older children, teenagers and adults. When you book, just tell us the ages in your group and we'll recommend exactly the right experience and explain what each child will be able to do. Family groups are some of our favourite bookings — there's something for everyone, and the grown-ups are usually every bit as spellbound as the kids." },
+    { q: "Can I book a private experience, a gift, or a photography session?", a: "Yes to all three. Private experiences give your group exclusive time with the birds and a falconer, ideal for families, couples, special occasions or anyone who'd prefer not to share the session — a lovely way to mark a birthday or anniversary. Gift vouchers are available for every experience, from a short owl encounter to a full falconry day, are open-dated and valid across the season, and make an unforgettable present for the nature-lover who's hard to buy for (we can send a gift pack). Photography sessions, in small groups or privately, are designed for keen photographers who want time and guidance to capture birds of prey in beautiful natural light — the falconer positions the birds and manages the flying so you can concentrate on the shot, and you'll come away with images most people never get the chance to take. Tell us what you're after and we'll build the right session." },
+    { q: "Do you take in injured or unwanted birds of prey?", a: "We're first and foremost a falconry and experience centre rather than a dedicated raptor rescue or hospital, so we can't always take in birds, and a genuinely injured wild bird of prey is best reported to the RSPCA or a licensed wildlife rehabilitator who can give it proper veterinary care and, ideally, return it to the wild. That said, we care deeply about the welfare of these birds beyond our own aviaries, and we're always happy to offer advice, point you to the right specialist rescue, and help where we sensibly can. We occasionally rehome captive-bred falconry birds whose owners can no longer keep them, when we have the space, the right setup and confidence we can give the bird a good life — this is assessed very carefully and never taken on lightly. If you've found an injured wild raptor or have a captive bird that needs a new home, do call us; even when we can't take the bird ourselves, we'll do our best to make sure it reaches someone who can help." }
+  ],
+  area: { places: ["Hexham", "Corbridge", "Northumberland", "Newcastle", "Tyne Valley", "Hadrian's Wall country"] },
+  credentials: [
+    { label: "Since 2006", detail: "Nearly two decades flying birds of prey" },
+    { label: "Welfare first", detail: "Birds never made to fly when they don't want to" },
+    { label: "Glove-first", detail: "A bird on your fist, not behind glass" },
+    { label: "Small groups", detail: "Unhurried sessions, for the birds and for you" }
+  ],
+  location: { name: "Hawthorn & Hood", addressStreet: "Beechburn Wood, off the B6306", addressLocality: "Hexham", addressRegion: "Northumberland", addressPostcode: "NE46 2JQ", addressCountry: "United Kingdom" },
+  cta: { heading: "Put on the glove. Meet a wild thing that chooses to come back.", body: "Hawk walks, owl encounters, full falconry days and flying displays in the Northumberland hills — welfare-first, glove-first, and quite unlike anything else. Come and earn a moment with a bird of prey.", primary: { label: "Book an experience", href: "#book" }, secondary: { label: "01434 555 118", href: "tel:+441434555118" } },
+  messaging: { whatsapp: "https://wa.me/441434555118", messenger: "https://m.me/hawthornandhood" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#20241a; --oat:#efeadd; --rust:#b5623a; --gold:#cf9f45; --moss:#5f7048;
+    --ink:#20241a; --mid:#6f6f5e; --mid-d:#b1ad98; --rule:rgba(32,36,26,0.16); --rule-d:rgba(239,234,221,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--oat);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--gold);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--rust);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--rust);color:var(--oat);} .btn-primary:hover{background:var(--gold);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(239,234,221,0.4);color:var(--oat);} .btn-ghost:hover{background:var(--oat);color:var(--void);border-color:var(--oat);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid rgba(239,234,221,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(32,36,26,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(239,234,221,0.16);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--rust);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7.4vw,112px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;max-width:17ch;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--moss);color:transparent;}
+  .hero-headline .em{color:var(--rust);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--gold);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(32,36,26,0.82);font-weight:700;}
+
+  .about{background:var(--oat);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--rust);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#42432f;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(239,234,221,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(239,234,221,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(181,98,58,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--oat);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--rust);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#42432f;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(239,234,221,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--rust);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(239,234,221,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--gold);color:var(--void);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(239,234,221,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(239,234,221,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--gold);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(239,234,221,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(239,234,221,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--oat);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#42432f;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(239,234,221,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.4) invert(0.9) hue-rotate(60deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--rust);color:var(--oat);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--oat);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7vw,116px);line-height:0.9;margin:14px auto 18px;max-width:16ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--oat);color:transparent;}
+  .cta-band p{color:rgba(239,234,221,0.9);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--oat);color:var(--rust);} .cta-band .btn-primary:hover{background:var(--gold);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(239,234,221,0.6);color:var(--oat);} .cta-band .btn-ghost:hover{background:var(--oat);color:var(--rust);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(239,234,221,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(239,234,221,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--rust);color:var(--oat);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(181,98,58,0.4);}
+  .msg-fab a:hover{background:var(--oat);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"TouristAttraction","name":"Hawthorn & Hood","description":"Falconry centre in Northumberland — hawk walks and owl encounters, full falconry experience days, flying displays, and welfare-first care of birds of prey.","url":"https://hawthornandhood.co.uk/","telephone":"+441434555118","email":"fly@hawthornandhood.co.uk","address":{"@type":"PostalAddress","streetAddress":"Beechburn Wood, off the B6306","addressLocality":"Hexham","addressRegion":"Northumberland","postalCode":"NE46 2JQ","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":54.9500,"longitude":-2.1300},"areaServed":["Hexham","Corbridge","Northumberland","Newcastle"],"image":["https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=1600"],"foundingDate":"2006"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is it safe, and will the bird hurt me?","acceptedAnswer":{"@type":"Answer","text":"Very safe when you follow the falconer's guidance, and guest injuries are rare. These are wild predators, so every session is closely supervised, you're taught how to hold the glove and stand, and we read each bird's mood. The glove protects your hand and the birds focus on the food reward. Children are welcome. Listen to your falconer and you'll be fine."}},
+{"@type":"Question","name":"Do the birds want to do this, or is it cruel?","acceptedAnswer":{"@type":"Answer","text":"Done properly it isn't cruel — it's a partnership rooted in the bird's instincts. Birds fly to the glove because they choose to, motivated by food and managed by careful daily weight-monitoring. A bird that doesn't want to fly won't, and we never force one. Our birds do what they were born to do, in good feather and good weight. We'd rather change an experience than push a bird."}},
+{"@type":"Question","name":"What should I wear and does weather stop it?","acceptedAnswer":{"@type":"Answer","text":"Dress for the outdoors — layers, a warm top, flat sturdy closed shoes or boots for uneven woodland. Avoid bright flappy clothing. We provide gloves and equipment. Falconry runs in most conditions but not in genuinely unsafe wind, when we'll postpone and rebook at no charge."}},
+{"@type":"Question","name":"Are experiences suitable for children?","acceptedAnswer":{"@type":"Answer","text":"Yes — owl encounters and shorter hawk walks suit younger visitors and our falconers are excellent with children. Sensible minimum ages apply to more involved experiences, and younger children are closely supervised, sometimes sharing a glove with an adult. Tell us the ages when you book and we'll recommend the right experience."}},
+{"@type":"Question","name":"Can I book a private experience, gift or photography session?","acceptedAnswer":{"@type":"Answer","text":"Yes to all three. Private experiences give your group exclusive time with the birds. Gift vouchers cover every experience, are open-dated and valid across the season. Photography sessions give keen photographers time and guidance to capture birds of prey in natural light. Tell us what you're after and we'll build the session."}},
+{"@type":"Question","name":"Do you take in injured or unwanted birds of prey?","acceptedAnswer":{"@type":"Answer","text":"We're an experience centre rather than a rescue, so we can't always take birds. Report injured wild raptors to the RSPCA or a licensed rehabilitator. We occasionally rehome captive-bred falconry birds when we have the right space and setup, assessed carefully. Call us — even when we can't help directly, we'll point you to someone who can."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Hawthorn <span>&amp;</span> Hood</a>
+    <nav class="nav-links">
+      <a href="#about">The centre</a><a href="#services">Experiences</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v80">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Falconry centre · hawk walks · experiences · displays · Northumberland</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      The oldest partnership between <span class="out">people and wild birds,</span> kept <span class="em">properly.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=2000&q=85&auto=format&fit=crop"
+             alt="A hawk perched on a falconer's gloved hand." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A falconry centre in the Northumberland hills — where you can walk a Harris's hawk to your glove through open woodland, meet an owl eye to eye, spend a whole day learning the ancient art, or watch our birds fly free at a display. Welfare comes before everything: these are working relationships with wild raptors, kept the right way, since 2006.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book an experience</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we offer</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Flying birds since 2006</span>
+    <span>Welfare before everything</span>
+    <span>A bird on your glove, not behind glass</span>
+    <span>Small groups, unhurried</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v46">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 01 / THE CENTRE</span><span>A PARTNERSHIP, NOT A CAGE</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">You don't tame a hawk. You earn a partnership with one, <em>day by day.</em></h2>
+        <p>Hawthorn &amp; Hood is a falconry centre set in the woods and heather of the Northumberland hills, and it exists to share one of the oldest and most humbling relationships in the world — the one between a falconer and a bird of prey. We opened in 2006 with a handful of Harris's hawks and a conviction that these birds are best understood not through a cage at a distance but with one on your glove and the wind in the trees. Thousands of glove-first moments later, we still feel it every time.</p>
+        <p>Everything here is built around the welfare of the birds, and we won't ever apologise for putting them first, because a falconry bird is not a pet or a prop — it's a wild predator in a working partnership, and that partnership only exists on the bird's terms. Our hawks, falcons and owls are flown by weight and by trust, handled by experienced falconers, and never made to perform when they don't want to. We keep our groups small, our sessions unhurried, and our birds' wellbeing absolutely non-negotiable. Guests always feel the difference.</p>
+        <p>We offer hawk walks where a Harris's hawk follows you through the woods and flies to your glove, owl encounters that enchant children and adults alike, full falconry experience days for the truly bitten, and flying displays that show these birds doing what they were born to do. Whether you come for an hour, a day, or to stand in a field and watch a falcon stoop from the sky, you'll leave with a new respect for a creature that chooses, each time, to come back to the glove.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1553264701-d138db4fd5d4?w=1200&q=85&auto=format&fit=crop"
+           alt="A close-up of an owl's face." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v73" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 02 / EXPERIENCES</span><span>WALK · MEET · LEARN · WATCH</span></div>
+    <h2 class="h2">What we offer.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Hawk walks</h3><p>Walk through open woodland with a Harris's hawk following from tree to tree and swooping down to your gloved fist. An hour or a half-day, and the classic first taste of falconry — utterly unforgettable.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Owl encounters</h3><p>Meet our owls up close, learn how these silent hunters live, and have one fly to your glove. Gentle, magical and perfect for families and children (and quietly moving for adults).</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Falconry experience days</h3><p>A whole day as a falconer — handling hawks, falcons and owls, learning the equipment, the weight-management and the history, and flying several birds. For the truly bitten, and many are.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Flying displays</h3><p>Watch our birds fly free — a falcon stooping from height, a hawk working the treeline, an owl gliding silent over the crowd — with commentary that explains the ancient craft as it happens.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Photography sessions</h3><p>Small-group or private sessions to photograph birds of prey in beautiful natural settings, with the birds and light managed for you by falconers who know exactly how to get the shot.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Gift experiences</h3><p>Hawk walks, owl encounters and full days as open-dated gift vouchers — the present for the nature-lover who has everything, valid across the season and endlessly memorable.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v45">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 03 / THE DIFFERENCE</span><span>WHY THIS CENTRE</span></div>
+    <h2 class="h2">Why this centre.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Welfare before everything.</h3><p>Our birds are never made to perform, never flown when they don't want to be, and cared for by weight and trust by experienced falconers. If a bird's not right for a session, it doesn't fly. No exceptions, ever.</p></div>
+      <div><span class="no">02 / 03</span><h3>Glove-first, not glass-first.</h3><p>You don't watch our birds through a fence; you have one on your fist in the woods. Real, close, careful contact — supervised and safe — is how respect for these creatures is truly earned.</p></div>
+      <div><span class="no">03 / 03</span><h3>Small groups, unhurried.</h3><p>We keep numbers low and sessions relaxed, for the birds' sake and yours. This is not a conveyor belt; it's time in the company of a wild predator, taken at the pace that keeps it calm and real.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 04 / HOW IT GOES</span><span>CHOOSE → MEET → FLY → CARRY IT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Choose your encounter</h3><p>An hour's hawk walk, an owl encounter, a full experience day, or a display to watch? We'll help you pick the right one for your age, group and how deep you want to go.</p></li>
+      <li><span class="step">STEP 02</span><h3>Meet the falconer</h3><p>You're paired with an experienced falconer who introduces the birds, the equipment and the safety, and reads the day — which birds are keen, what the weather allows, how it'll flow.</p></li>
+      <li><span class="step">STEP 03</span><h3>Glove up &amp; fly</h3><p>On goes the glove, and a hawk or owl flies to your fist through the Northumberland woods. Close, careful, and quite unlike anything else — most people are lost for words the first time.</p></li>
+      <li><span class="step">STEP 04</span><h3>Carry it with you</h3><p>Leave with photographs, a certificate on experience days, and a lasting respect for birds of prey. Many guests come back for the next level — and a good few catch the craft for life.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v45">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 05 / FROM THE GLOVE</span><span>WHAT THEY FELT</span></div>
+    <blockquote class="t-quote">“That hawk dropped out of an oak and landed on my glove — I actually <em>gasped.</em>”</blockquote>
+    <div class="t-attr">Rebecca M. — hawk walk</div>
+    <div class="t-sub">
+      <figure><blockquote>“Booked an owl encounter for my son's birthday and both of us were spellbound. They were wonderful with the children — patient, funny, endlessly knowledgeable — and never pushed a bird that wasn't in the mood. He talks about 'his' owl constantly. The best gift we've ever given him.”</blockquote><figcaption>The Okafor family — owl encounter</figcaption></figure>
+      <figure><blockquote>“Did the full experience day and it exceeded everything I'd hoped. Flying a falcon, handling the hawks, learning the weight-management and the history from someone who lives it — I came away with a completely changed understanding of these birds. I've already booked to go back. Superb.”</blockquote><figcaption>Graham T. — falconry experience day</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v73" class="about" style="background:var(--oat);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>FIELD 06 / THE BIRDS</span><span>HAWK, OWL &amp; FALCON</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=1600&q=85&auto=format&fit=crop" alt="A hawk perched on a falconer's gloved hand." /><figcaption>ON THE GLOVE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1553264701-d138db4fd5d4?w=1600&q=85&auto=format&fit=crop" alt="A close-up of an owl's face." /><figcaption>THE OWL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1552728089-57bdde30beb3?w=1600&q=85&auto=format&fit=crop" alt="A bird of prey in flight." /><figcaption>IN FLIGHT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1553264701-d138db4fd5d4?w=1600&q=85&auto=format&fit=crop" alt="An owl at close range." /><figcaption>THE EYES</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1611689342806-0863700ce1e4?w=1600&q=85&auto=format&fit=crop" alt="A bird of prey with wings spread." /><figcaption>WINGS OUT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1444464666168-49d633b86797?w=1600&q=85&auto=format&fit=crop" alt="A bird of prey close up." /><figcaption>THE HUNTER</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 07 / BEFORE YOU VISIT</span><span>SAFETY, WELFARE & THE DAY</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you visit.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441434555118" style="color:var(--gold);font-weight:700;">01434 555 118</a>. We love talking about the birds, and we'll always be honest about welfare.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Is it safe, and will the bird hurt me?</summary><p>Falconry with us is very safe when you follow the falconer's guidance, and injuries to guests are genuinely rare — but let's be honest about what these birds are, because that honesty is part of the respect. Hawks, falcons and owls are wild predators with sharp talons and beaks, and we never pretend otherwise; that's precisely why every session is supervised closely by an experienced falconer, why you're taught exactly how to hold the glove and stand, and why we read each bird's mood before it flies. Worn correctly, the falconry glove protects your hand where the bird lands, and the birds are focused on the food reward, not on you. Children are very welcome and we adjust everything for them. The golden rule is simple: listen to your falconer, do as they say, and you'll be completely fine — and you'll have one of the most thrilling wildlife experiences of your life.</p></details>
+        <details><summary>Do the birds actually want to do this, or is it cruel?</summary><p>This is the most important question anyone can ask, and we're glad when people do, because the welfare of our birds is the reason this centre exists in the form it does. Falconry, done properly, is not cruel — it's a working partnership rooted in the bird's own instincts, and the birds fly to the glove because they choose to, motivated by food, in a relationship built on trust and managed by careful daily weight-monitoring. A falconry bird that doesn't want to fly simply won't, and we never force one; if a bird is off-colour, moody, moulting or just not keen on a given day, it stays on its perch and we fly another or adjust the session. Our birds are not performing tricks; they're doing what they were born to do — hunt and fly — with a human partner. We'd rather cancel or change an experience than push a bird, and we do exactly that whenever needed. If you watch closely, you'll see birds in fine feather and good weight, calm and willing. That's not an accident; it's the whole point.</p></details>
+        <details><summary>What should I wear, and does the weather stop it?</summary><p>Dress for being outdoors in the Northumberland countryside whatever the forecast — layers, a warm top even in summer (it's breezy in the hills), and flat, sturdy, closed shoes or walking boots, as hawk walks cross uneven woodland ground. Avoid bright, flappy clothing and dangling accessories, which can unsettle the birds, and leave umbrellas behind (we'll advise on wet days). We provide the gloves and all the equipment. As for weather: falconry happens in most conditions and a bit of British drizzle rarely stops us, but we won't fly birds in genuinely unsafe conditions — high winds in particular are dangerous for the birds and we'll postpone rather than risk one. If we ever have to cancel for weather or for a bird's welfare, we'll rebook you at no charge. Come prepared for the outdoors and a little mud, and you'll be comfortable and free to focus on the birds.</p></details>
+        <details><summary>Are experiences suitable for children, and is there an age limit?</summary><p>Yes — many of our experiences are wonderful for children, and watching a child meet an owl or have a hawk fly to their glove is one of the joys of what we do. Owl encounters and shorter hawk walks are especially well-suited to younger visitors, and our falconers are brilliant with children: patient, engaging and safety-focused. We do set sensible minimum ages for the more involved experiences (handling larger birds needs a certain size and steadiness), and younger children are always closely supervised and helped by a falconer, sometimes sharing a glove with an adult. Full experience days suit older children, teenagers and adults. When you book, just tell us the ages in your group and we'll recommend exactly the right experience and explain what each child will be able to do. Family groups are some of our favourite bookings — there's something for everyone, and the grown-ups are usually every bit as spellbound as the kids.</p></details>
+        <details><summary>Can I book a private experience, a gift, or a photography session?</summary><p>Yes to all three. Private experiences give your group exclusive time with the birds and a falconer, ideal for families, couples, special occasions or anyone who'd prefer not to share the session — a lovely way to mark a birthday or anniversary. Gift vouchers are available for every experience, from a short owl encounter to a full falconry day, are open-dated and valid across the season, and make an unforgettable present for the nature-lover who's hard to buy for (we can send a gift pack). Photography sessions, in small groups or privately, are designed for keen photographers who want time and guidance to capture birds of prey in beautiful natural light — the falconer positions the birds and manages the flying so you can concentrate on the shot, and you'll come away with images most people never get the chance to take. Tell us what you're after and we'll build the right session.</p></details>
+        <details><summary>Do you take in injured or unwanted birds of prey?</summary><p>We're first and foremost a falconry and experience centre rather than a dedicated raptor rescue or hospital, so we can't always take in birds, and a genuinely injured wild bird of prey is best reported to the RSPCA or a licensed wildlife rehabilitator who can give it proper veterinary care and, ideally, return it to the wild. That said, we care deeply about the welfare of these birds beyond our own aviaries, and we're always happy to offer advice, point you to the right specialist rescue, and help where we sensibly can. We occasionally rehome captive-bred falconry birds whose owners can no longer keep them, when we have the space, the right setup and confidence we can give the bird a good life — this is assessed very carefully and never taken on lightly. If you've found an injured wild raptor or have a captive bird that needs a new home, do call us; even when we can't take the bird ourselves, we'll do our best to make sure it reaches someone who can help.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 08 / VISITORS FROM</span><span>NORTHUMBERLAND & BEYOND</span></div>
+    <ul class="area-list">
+      <li>Hexham</li><li>Corbridge</li><li>Northumberland</li><li>Newcastle</li><li>Tyne Valley</li><li>Hadrian's Wall country</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v20" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2006</div><div class="detail">Nearly two decades flying birds of prey</div></div>
+      <div><div class="label">Welfare first</div><div class="detail">Birds never made to fly when they don't want to</div></div>
+      <div><div class="label">Glove-first</div><div class="detail">A bird on your fist, not behind glass</div></div>
+      <div><div class="label">Small groups</div><div class="detail">Unhurried sessions, for the birds and for you</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>FIELD 10 / FIND THE CENTRE</span><span>BEECHBURN WOOD, HEXHAM</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Hawthorn &amp; Hood</strong><br />
+          Beechburn Wood, off the B6306<br />
+          Hexham NE46 2JQ<br /><br />
+          <a href="tel:+441434555118" data-bind="business.phoneDisplay">01434 555 118</a><br />
+          <a href="mailto:fly@hawthornandhood.co.uk" data-bind="business.email">fly@hawthornandhood.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>WED – SUN</span><span>10 – 4</span></div>
+          <div class="row"><span>MON – TUE</span><span>CLOSED</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. Experiences and displays by booking. We're in Beechburn Wood off the B6306 — follow the brown falconry signs from the lane.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Hawthorn & Hood, Hexham" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.1390%2C54.9460%2C-2.1210%2C54.9540&layer=mapnik&marker=54.9500%2C-2.1300"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v48">
+  <div class="wrap">
+    <div class="kick">FIELD 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Put on the glove. Meet a wild thing that <em>chooses to come back.</em></h2>
+    <p data-bind="cta.body">Hawk walks, owl encounters, full falconry days and flying displays in the Northumberland hills — welfare-first, glove-first, and quite unlike anything else. Come and earn a moment with a bird of prey.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book an experience</a>
+      <a class="btn btn-ghost" href="tel:+441434555118" data-bind="cta.secondary.label">01434 555 118</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441434555118" data-bind="messaging.whatsapp" aria-label="Message the centre">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Hawthorn <span style="color:var(--rust);">&amp;</span> Hood</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A welfare-first falconry centre in the Northumberland hills. Hawk walks, owl encounters and flying displays since 2006.</p>
+      </div>
+      <div>
+        <h4>The centre</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          Beechburn Wood, off the B6306<br />Hexham NE46 2JQ<br />
+          <a href="tel:+441434555118">01434 555 118</a><br />
+          <a href="mailto:fly@hawthornandhood.co.uk">fly@hawthornandhood.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Experiences</a><a href="#about">The centre</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> HAWTHORN &amp; HOOD</span>
+      <span>WELFARE FIRST · GLOVE FIRST · ALWAYS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

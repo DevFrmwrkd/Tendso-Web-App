@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Buko Pie Original — young-coconut pie baked fresh daily, the pasalubong stop in Los Baños, Laguna</title>
+<meta name="description" content="Buko Pie Original is a buko pie bakery in Los Baños, Laguna — creamy young-coconut pie baked fresh every morning in a flaky crust, no preservatives, best within days, plus buko tarts, espasol and yema for pasalubong on the road home. Baking since 1988." />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Buko Pie Original", phone: "+63 49 555 0147", phoneDisplay: "(049) 555 0147", email: "orders@bukopieoriginal.ph", foundedYear: 1988 },
+  hero: {
+    kicker: "Buko pie bakery · baked fresh daily · pasalubong · Los Baños, Laguna",
+    headline: "The whole province knows: you don't drive past Laguna without one.",
+    lede: "A buko pie bakery on the old Los Baños road, baking the pie that made Laguna a pasalubong pilgrimage — soft strips of fresh young coconut in a creamy custard, under a flaky, buttery crust, baked every morning with no preservatives. Grab one warm on the way home, plus buko tarts, espasol and yema for the whole barkada. The Laguna stop since 1988.",
+    primaryCta: { label: "Order or reserve", href: "#book" },
+    secondaryCta: { label: "What we bake", href: "#services" },
+    image: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A golden, flaky pie fresh from the oven."
+  },
+  trust: { years: "The Laguna pasalubong stop since 1988" },
+  about: {
+    heading: "Fresh buko, real custard, no preservatives. That's why it can't wait.",
+    paragraphs: [
+      "Buko Pie Original is a buko pie bakery in Los Baños, Laguna, on the road that generations of families have stopped along on the way home from Laguna and beyond. Buko pie is Laguna's signature pasalubong — a pie filled with buko, the soft flesh of young coconut, in a light custard, under a flaky pastry crust. It sounds simple; it is anything but easy to do well, and the province has strong opinions about who does.",
+      "We've baked ours the same way since 1988. Fresh young coconut is scraped into soft strips — never the tough mature kind, never desiccated — folded into a custard we make from scratch, and sealed in a butter crust that shatters at the fork. Crucially, we use no preservatives, which is exactly why our pie is best eaten within a few days and why it tastes the way pasalubong is supposed to: like something baked this morning, not something engineered to last a month.",
+      "That freshness is the whole point and the whole discipline. We bake in waves through the day so there's warm pie for the afternoon crowd, and we've become one of the fixed stops on the Laguna route — the place you factor into the drive. Beyond the pies we make buko tarts, espasol, yema and the Laguna sweets that ride home in the same box. Reserve ahead for a big run, or just pull over; the oven's on."
+    ],
+    portrait: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Fresh-baked goods cooling on wooden racks."
+  },
+  services: [
+    { name: "The classic buko pie", description: "The one you drove for: soft strips of fresh young coconut in a creamy custard under a flaky, buttery crust, baked fresh every morning with no preservatives. Whole pie, boxed for the road. Buy two — one won't survive the drive." },
+    { name: "Buko tarts", description: "The pie's little cousins — individual buko tarts, same fresh-coconut filling in bite-sized pastry, perfect for sharing in the car or handing round the office. Sold by the box, the ideal spread-it-around pasalubong." },
+    { name: "Espasol & Laguna sweets", description: "Espasol — sweet rice logs dusted in toasted rice flour — plus the Laguna kakanin that belong beside a buko pie. The regional sweets that make your pasalubong box a proper tour of the province." },
+    { name: "Yema & pastillas", description: "Soft milk-and-egg yema and pastillas, wrapped for gifting and long car rides — the sweet, milky candies that keep the kids quiet on the drive and round out a pasalubong haul nicely." },
+    { name: "Reserve ahead for big runs", description: "Heading home with a convoy, or buying for the office, a reunion or a fiesta? Reserve a batch ahead and we'll have your pies boxed fresh and waiting, so you don't arrive to find the afternoon's already sold out." },
+    { name: "Pasalubong boxes", description: "Mixed boxes — a couple of pies, tarts, espasol and yema together — packed for travel and gifting, the whole Laguna spread in one grab-and-go carton. The easy answer to 'what did you bring us?'" }
+  ],
+  why: [
+    { title: "Fresh young coconut only.", body: "Soft strips of genuine buko scraped fresh — never tough mature coconut, never desiccated. That tender, milky texture is the soul of the pie, and there's no shortcut to it that we're willing to take." },
+    { title: "No preservatives, ever.", body: "Our pie is meant to be eaten within days, not to sit on a shelf for a month. That's not a flaw — it's the promise. It tastes fresh because it is fresh, and that's why it can't wait." },
+    { title: "Baked fresh, all day.", body: "We bake in waves from morning through afternoon so the pie you grab is warm, not this morning's leftover. On the Laguna road, being freshly baked when you pull over is the entire job." }
+  ],
+  how: [
+    { step: "01", title: "Pull over, or reserve", body: "Just driving through? Pull in and grab what's on the racks. Buying for a crowd or a specific time? Reserve ahead so a fresh batch is boxed and waiting — the afternoon can sell out fast." },
+    { step: "02", title: "Grab it warm", body: "Buy your pie fresh, ideally while it's still warm from the oven, plus tarts and sweets for the road. We box everything for travel so it rides home flat and intact in the car." },
+    { step: "03", title: "Eat it soon", body: "No preservatives means best within a few days — keep it cool, and it's happiest eaten within a day or two. Honestly, most don't last the drive home, which is exactly as it should be." },
+    { step: "04", title: "Come back next trip", body: "You'll be through Laguna again — everyone is. We'll be here, oven on, ready with a fresh one. Reserve ahead next time if you're bringing the whole family or the office." }
+  ],
+  testimonials: [
+    { quote: "My family has stopped here on every single Laguna trip for as long as I can remember. The crust is flaky, the buko is soft and creamy, and it genuinely tastes fresh because it is. We always buy three and always arrive home with maybe one. This is THE pasalubong, full stop.", name: "Marissa L.", context: "customer for 20+ years" },
+    { quote: "I did a taste test of buko pies from three Laguna spots for a road trip and this one won unanimously. Real coconut strips, not mush, and a custard that isn't too sweet. You can taste that there's no preservatives — it's just clean and fresh. We reserved a dozen for the office the next week.", name: "Paolo & friends", context: "road-trip taste test" },
+    { quote: "Reserved eight pies plus tarts and espasol for a family reunion and it was the hit of the whole day. Everyone took a box home. Fresh, generous, fairly priced, and ready exactly when they said. My titas are still talking about the crust. Salamat, Buko Pie Original!", name: "The Almeda clan", context: "reunion order" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1600&q=85&auto=format&fit=crop", alt: "A golden, flaky pie fresh from the oven." },
+    { src: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1600&q=85&auto=format&fit=crop", alt: "Baked goods cooling on wooden racks." },
+    { src: "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1600&q=85&auto=format&fit=crop", alt: "A baker preparing pastry by hand." },
+    { src: "https://images.unsplash.com/photo-1519915028121-7d3463d20b13?w=1600&q=85&auto=format&fit=crop", alt: "A slice of custard pie on a plate." },
+    { src: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop", alt: "Coffee beside a slice of pie." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "The bakery shopfront on the road." }
+  ],
+  faq: [
+    { q: "What exactly is buko pie, and why is Laguna famous for it?", a: "Buko pie is a Filipino pie filled with buko — the soft, tender flesh of young coconut — bound in a light, creamy custard and baked in a flaky pastry crust. It's distinct from mature-coconut desserts because young coconut is soft, milky and delicate rather than firm and fibrous, which gives buko pie its signature tender, almost silky filling. Laguna, and Los Baños in particular, became famous for it decades ago as the pie you buy on the road home, and it's now so tied to the province that 'buko pie' and 'Laguna pasalubong' are practically the same phrase. The region has whole rows of bakeries competing on it, and locals and regular travellers have firm favourites. It endured as the classic pasalubong because it travels reasonably well in a box, it's generous and shareable, and — when it's made properly with fresh coconut and no shortcuts — it simply tastes like a treat worth stopping for." },
+    { q: "Why does your pie need to be eaten within a few days?", a: "Because we don't use preservatives — and that's a deliberate choice, not a limitation. Our buko pie is made with fresh young coconut, a real custard and butter pastry, all of which are meant to be enjoyed fresh, so without artificial preservatives the pie is at its best within a couple of days and should be kept cool in the meantime. We think that's exactly how pasalubong should be: something baked that morning with real ingredients, tasting clean and fresh, rather than something formulated to survive a month on a shelf. It does mean a little planning on your part — buy it close to when you'll eat it, keep it cool on the drive, and don't treat it like a product that lasts forever. Honestly, in our experience the bigger risk isn't spoilage but that the pie disappears in the car long before freshness is ever a question. If you need pies for a specific day, reserve ahead and we'll bake them close to your pick-up." },
+    { q: "Can I reserve pies ahead for a trip or a crowd?", a: "Yes, and we recommend it for anything beyond a pie or two, especially at weekends, holidays and long-weekend getaways when the Laguna road is busy and the afternoon batches can sell out. If you're travelling with a convoy, buying for an office, a reunion or a fiesta, or you simply want to be sure of getting pies at a particular time, reserve ahead and we'll have a fresh batch boxed and waiting for you rather than leaving it to chance. It's the difference between a smooth pit stop and pulling in to find the racks bare. Just tell us how many pies, tarts and sweets you'd like, and roughly when you'll pass through, and we'll confirm. Reserving also means your pies are baked close to your pick-up time, so they're as fresh as possible for the drive — which, given the no-preservatives thing, genuinely matters." },
+    { q: "How should I keep and transport buko pie?", a: "Keep it cool and eat it soon — those are the two rules. On the drive, keep the box out of direct sun and heat (the boot of a hot car parked in the sun is the enemy), and if it's a long trip in warm weather, a cooler or the air-conditioned cabin is ideal. Transport it flat and level so the custard and crust stay intact; we box our pies specifically to travel, but they're still baked goods, not bricks, so treat them gently. Once home, keep the pie cool — refrigerate if you won't eat it within the day — and bring it back towards room temperature, or warm it briefly, before serving for the best flavour and texture. Because there are no preservatives, aim to enjoy it within a couple of days rather than stretching it out. Tarts, espasol and yema travel similarly well and keep a little differently; we'll give you guidance when you buy." },
+    { q: "What else do you sell for pasalubong besides the pie?", a: "Quite a spread, because a good pasalubong run is rarely just one thing. Alongside the classic whole buko pie, we make buko tarts — individual, bite-sized versions of the same fresh-coconut filling in pastry, perfect for sharing around and for people who want a taste without committing to a whole pie. We also do espasol, the soft sweet rice logs dusted in toasted rice flour that are a Laguna staple, plus yema and pastillas, the soft milk-and-egg candies that are ideal for gifting and for keeping kids happy on a long drive. For convenience we put together mixed pasalubong boxes — a couple of pies with tarts, espasol and sweets together — which are the easy grab-and-go answer when you want to bring home a proper taste of the province rather than deciding item by item. Tell us who it's for and how many you're feeding and we'll help you build the right box." },
+    { q: "Is it worth stopping if I'm just passing through?", a: "Yes — that's literally the whole idea, and it's how the buko pie tradition works. The pie is designed to be an easy, rewarding pit stop on the Laguna route: pull in, grab a warm pie (or three) and some tarts and sweets, and you've got both a treat for the drive and pasalubong for whoever's waiting at home, all in a few minutes. You don't need to plan or reserve for a small purchase — just come by while we're open and buy what's fresh on the racks. If you're passing through at a busy time or want a specific quantity, a quick call ahead saves you any risk of the afternoon selling out, but for a spontaneous stop, spontaneity is fine. Generations of Filipino families have made this exact stop part of the trip home, and there's a simple reason it stuck: warm, fresh, generous pie, ready when you are, right on the road you're already driving. Don't drive past — that's the one regret people mention." }
+  ],
+  area: { places: ["Los Baños", "Calamba", "Bay", "Santa Cruz", "Laguna", "On the road home"] },
+  credentials: [
+    { label: "Since 1988", detail: "A fixed stop on the Laguna road" },
+    { label: "Fresh buko", detail: "Soft young-coconut strips, scraped fresh" },
+    { label: "No preservatives", detail: "Best within days — fresh because it is" },
+    { label: "Baked all day", detail: "In waves, so the afternoon pie is warm" }
+  ],
+  location: { name: "Buko Pie Original", addressStreet: "Km 63 National Highway, Anos", addressLocality: "Los Baños", addressRegion: "Laguna", addressPostcode: "4030", addressCountry: "Philippines" },
+  cta: { heading: "Don't drive past. The oven's on.", body: "Fresh young-coconut buko pie in a flaky butter crust, baked every morning with no preservatives, plus tarts, espasol and yema for the whole barkada — the Laguna pasalubong stop since 1988. Reserve ahead or just pull over.", primary: { label: "Order or reserve", href: "#book" }, secondary: { label: "(049) 555 0147", href: "tel:+63495550147" } },
+  messaging: { whatsapp: "https://wa.me/63495550147", messenger: "https://m.me/bukopieoriginal" }
+};
+</script>
+
+<style>
+  :root {
+    --husk:#3a2a17; --husk-2:#2c2011; --cream:#f6eeda; --cream-2:#fdf7e8; --buko:#e7c25a; --leaf:#4f7a3f; --nutmeg:#b06a34;
+    --mid:#8a7550; --mid-d:#cbb583; --rule:rgba(58,42,23,0.14); --rule-d:rgba(246,238,218,0.16);
+    --disp:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--husk);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--nutmeg);}
+  .wrap{width:min(1240px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--nutmeg);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:500;font-size:clamp(38px,5.4vw,80px);line-height:1.02;margin:0 0 0.32em;letter-spacing:-0.01em;}
+  .h2 em{font-style:italic;color:var(--nutmeg);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:3px;}
+  .btn-primary{background:var(--leaf);color:var(--cream-2);} .btn-primary:hover{background:var(--nutmeg);}
+  .btn-ghost{border:1.5px solid var(--husk);color:var(--husk);} .btn-ghost:hover{background:var(--husk);color:var(--cream-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(246,238,218,0.93);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--husk);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:500;font-size:25px;text-decoration:none;letter-spacing:-0.01em;color:var(--husk);}
+  .wm span{color:var(--nutmeg);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,66px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:500;font-size:clamp(42px,6.6vw,100px);line-height:1.0;letter-spacing:-0.02em;margin:0 0 34px;max-width:17ch;color:var(--husk);}
+  .hero-headline em{font-style:italic;color:var(--nutmeg);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:4px;}
+  .hero-photo::after{content:"BAKED FRESH DAILY · SINCE 1988";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.12em;background:var(--buko);color:var(--husk);padding:7px 12px;border-radius:3px;}
+  .hero-right .lede{color:var(--mid);font-size:clamp(15px,1.5vw,17.5px);line-height:1.74;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--leaf);color:var(--cream-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(253,247,232,0.9);font-weight:700;}
+
+  .about{background:var(--cream-2);color:var(--husk);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:4px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.78;margin:0 0 1em;color:#4d3a22;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--husk);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(176,106,52,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;color:var(--leaf);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:500;font-size:clamp(25px,2.7vw,36px);margin:0;line-height:1.04;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--husk);color:var(--cream);}
+  .why .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+  .why .h2{color:var(--cream);} .why .h2 em{color:var(--buko);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--buko);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:500;font-size:28px;margin:0 0 10px;line-height:1.08;}
+  .why-grid p{color:var(--mid-d);margin:0;font-size:14.5px;line-height:1.72;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--rule);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--leaf);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:500;font-size:24px;margin:8px 0 8px;line-height:1.1;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--husk-2);color:var(--cream);}
+  .t-quote{font-family:var(--disp);font-weight:500;font-size:clamp(28px,3.7vw,54px);line-height:1.1;max-width:26ch;margin:0 0 24px;}
+  .t-quote em{font-style:italic;color:var(--buko);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--buko);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.74;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:4px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--leaf);color:var(--cream-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--husk);}
+  .faq-list summary{font-family:var(--disp);font-weight:500;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--nutmeg);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:64ch;line-height:1.74;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--husk);border-radius:3px;font-weight:700;color:var(--mid);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--nutmeg);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:20px;line-height:1.18;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--husk);color:var(--cream);padding:34px;border-radius:4px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:500;font-size:23px;line-height:1.3;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:var(--mid-d);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule-d);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid-d);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid-d);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:4px;border:1.5px solid var(--husk);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.25) contrast(1.02) sepia(0.15);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--nutmeg);color:var(--cream-2);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--cream-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:500;font-size:clamp(44px,6.5vw,108px);line-height:1.0;margin:14px auto 18px;max-width:15ch;}
+  .cta-band h2 em{font-style:italic;color:var(--buko);}
+  .cta-band p{color:rgba(253,247,232,0.92);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--cream-2);color:var(--nutmeg);} .cta-band .btn-primary:hover{background:var(--husk);color:var(--cream-2);}
+  .cta-band .btn-ghost{border-color:var(--cream-2);color:var(--cream-2);} .cta-band .btn-ghost:hover{background:var(--cream-2);color:var(--nutmeg);}
+
+  footer{background:var(--husk-2);color:var(--cream);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--buko);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--leaf);color:var(--cream-2);padding:13px 20px;border-radius:3px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(79,122,63,0.4);}
+  .msg-fab a:hover{background:var(--nutmeg);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Bakery","name":"Buko Pie Original","description":"Buko pie bakery in Los Baños, Laguna — creamy young-coconut pie baked fresh every morning in a flaky crust with no preservatives, plus buko tarts, espasol and yema for pasalubong. Baking since 1988.","url":"https://bukopieoriginal.ph/","telephone":"+63495550147","email":"orders@bukopieoriginal.ph","address":{"@type":"PostalAddress","streetAddress":"Km 63 National Highway, Anos","addressLocality":"Los Baños","addressRegion":"Laguna","postalCode":"4030","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":14.1700,"longitude":121.2410},"areaServed":["Los Baños","Calamba","Bay","Santa Cruz"],"image":["https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1600"],"foundingDate":"1988"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is buko pie and why is Laguna famous for it?","acceptedAnswer":{"@type":"Answer","text":"Buko pie is a pie filled with buko — the soft flesh of young coconut — in a light custard under a flaky crust. Young coconut is soft and milky rather than firm and fibrous, giving the pie its tender filling. Laguna, and Los Baños especially, became famous for it decades ago as the pie you buy on the road home, and it's now practically synonymous with Laguna pasalubong. It endured because it travels reasonably in a box, is generous and shareable, and — made with fresh coconut and no shortcuts — tastes worth stopping for."}},
+{"@type":"Question","name":"Why does your pie need to be eaten within a few days?","acceptedAnswer":{"@type":"Answer","text":"Because we don't use preservatives — a deliberate choice. Made with fresh young coconut, real custard and butter pastry, it's at its best within a couple of days and should be kept cool. That's how pasalubong should be: baked that morning with real ingredients, tasting clean and fresh, not formulated to last a month. Buy it close to when you'll eat it and keep it cool. If you need pies for a specific day, reserve ahead and we'll bake them close to your pick-up."}},
+{"@type":"Question","name":"Can I reserve pies ahead for a trip or a crowd?","acceptedAnswer":{"@type":"Answer","text":"Yes, and we recommend it beyond a pie or two, especially at weekends and holidays when the afternoon batches can sell out. Travelling with a convoy, buying for an office, reunion or fiesta, or wanting pies at a set time? Reserve ahead and we'll have a fresh batch boxed and waiting. Tell us how many pies, tarts and sweets and roughly when you'll pass through. Reserving means your pies are baked close to pick-up, so they're as fresh as possible — which, with no preservatives, genuinely matters."}},
+{"@type":"Question","name":"How should I keep and transport buko pie?","acceptedAnswer":{"@type":"Answer","text":"Keep it cool and eat it soon. On the drive, keep the box out of direct sun and heat; for a long trip in warm weather, use a cooler or the air-conditioned cabin. Transport it flat and level so custard and crust stay intact. At home, refrigerate if you won't eat it within the day, and bring it back to room temperature or warm it briefly before serving. With no preservatives, aim to enjoy it within a couple of days. Tarts, espasol and yema travel similarly; we'll give guidance when you buy."}},
+{"@type":"Question","name":"What else do you sell for pasalubong?","acceptedAnswer":{"@type":"Answer","text":"Alongside the whole buko pie, we make buko tarts — bite-sized versions of the same filling, great for sharing — plus espasol (soft sweet rice logs dusted in toasted rice flour) and yema and pastillas (soft milk-and-egg candies, ideal for gifting and long drives). For convenience we do mixed pasalubong boxes with a couple of pies plus tarts, espasol and sweets together. Tell us who it's for and how many you're feeding and we'll help build the right box."}},
+{"@type":"Question","name":"Is it worth stopping if I'm just passing through?","acceptedAnswer":{"@type":"Answer","text":"Yes — that's the whole idea. The pie is made to be an easy pit stop on the Laguna route: pull in, grab a warm pie (or three) and some tarts and sweets, and you've got a treat for the drive and pasalubong for home in a few minutes. No need to reserve for a small purchase — just come by while we're open. At busy times a quick call ahead avoids the afternoon selling out. Generations of families have made this stop part of the trip home for good reason: warm, fresh, generous pie, ready when you are."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Buko Pie <span>Original</span></a>
+    <nav class="nav-links">
+      <a href="#about">The bakery</a><a href="#services">What we bake</a><a href="#location">Find us</a><a href="#book">Reserve</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Buko pie bakery · baked fresh daily · pasalubong · Los Baños, Laguna</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      The whole province knows: you don't drive past Laguna <em>without one.</em>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=2000&q=85&auto=format&fit=crop"
+             alt="A golden, flaky pie fresh from the oven." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A buko pie bakery on the old Los Baños road, baking the pie that made Laguna a pasalubong pilgrimage — soft strips of fresh young coconut in a creamy custard, under a flaky, buttery crust, baked every morning with no preservatives. Grab one warm on the way home, plus buko tarts, espasol and yema for the whole barkada. The Laguna stop since 1988.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Order or reserve</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we bake</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">The Laguna pasalubong stop since 1988</span>
+    <span>Fresh young-coconut filling</span>
+    <span>No preservatives</span>
+    <span>Baked fresh, all day</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>SLICE 01 / THE BAKERY</span><span>ON THE LOS BAÑOS ROAD</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Fresh buko, real custard, no preservatives. That's why it <em>can't wait.</em></h2>
+        <p>Buko Pie Original is a buko pie bakery in Los Baños, Laguna, on the road that generations of families have stopped along on the way home from Laguna and beyond. Buko pie is Laguna's signature pasalubong — a pie filled with buko, the soft flesh of young coconut, in a light custard, under a flaky pastry crust. It sounds simple; it is anything but easy to do well, and the province has strong opinions about who does.</p>
+        <p>We've baked ours the same way since 1988. Fresh young coconut is scraped into soft strips — never the tough mature kind, never desiccated — folded into a custard we make from scratch, and sealed in a butter crust that shatters at the fork. Crucially, we use no preservatives, which is exactly why our pie is best eaten within a few days and why it tastes the way pasalubong is supposed to: like something baked this morning, not something engineered to last a month.</p>
+        <p>That freshness is the whole point and the whole discipline. We bake in waves through the day so there's warm pie for the afternoon crowd, and we've become one of the fixed stops on the Laguna route — the place you factor into the drive. Beyond the pies we make buko tarts, espasol, yema and the Laguna sweets that ride home in the same box. Reserve ahead for a big run, or just pull over; the oven's on.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1200&q=85&auto=format&fit=crop"
+           alt="Fresh-baked goods cooling on wooden racks." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>SLICE 02 / WHAT WE BAKE</span><span>PIE · TARTS · ESPASOL · YEMA</span></div>
+    <h2 class="h2">What we bake.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>The classic buko pie</h3><p>The one you drove for: soft strips of fresh young coconut in a creamy custard under a flaky, buttery crust, baked fresh every morning with no preservatives. Whole pie, boxed for the road. Buy two.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Buko tarts</h3><p>The pie's little cousins — individual buko tarts, same fresh-coconut filling in bite-sized pastry, perfect for sharing in the car or handing round the office. Sold by the box.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Espasol &amp; Laguna sweets</h3><p>Espasol — sweet rice logs dusted in toasted rice flour — plus the Laguna kakanin that belong beside a buko pie. The regional sweets that make your pasalubong box a proper tour of the province.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Yema &amp; pastillas</h3><p>Soft milk-and-egg yema and pastillas, wrapped for gifting and long car rides — the sweet, milky candies that keep the kids quiet on the drive and round out a pasalubong haul.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Reserve ahead for big runs</h3><p>Heading home with a convoy, or buying for the office, a reunion or a fiesta? Reserve a batch ahead and we'll have your pies boxed fresh and waiting, so the afternoon doesn't sell out on you.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Pasalubong boxes</h3><p>Mixed boxes — a couple of pies, tarts, espasol and yema together — packed for travel and gifting, the whole Laguna spread in one grab-and-go carton. The easy answer to "what did you bring us?"</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>SLICE 03 / THE DIFFERENCE</span><span>WHY IT'S THE ONE</span></div>
+    <h2 class="h2">Why it's the <em>one.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Fresh young coconut only.</h3><p>Soft strips of genuine buko scraped fresh — never tough mature coconut, never desiccated. That tender, milky texture is the soul of the pie, and there's no shortcut we're willing to take.</p></div>
+      <div><span class="no">02 / 03</span><h3>No preservatives, ever.</h3><p>Our pie is meant to be eaten within days, not to sit on a shelf for a month. That's not a flaw — it's the promise. It tastes fresh because it is fresh, and that's why it can't wait.</p></div>
+      <div><span class="no">03 / 03</span><h3>Baked fresh, all day.</h3><p>We bake in waves from morning through afternoon so the pie you grab is warm, not this morning's leftover. On the Laguna road, being freshly baked when you pull over is the entire job.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>SLICE 04 / HOW IT GOES</span><span>PULL OVER · GRAB · EAT · RETURN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Pull over, or reserve</h3><p>Just driving through? Pull in and grab what's on the racks. Buying for a crowd or a specific time? Reserve ahead so a fresh batch is boxed and waiting — the afternoon can sell out fast.</p></li>
+      <li><span class="step">STEP 02</span><h3>Grab it warm</h3><p>Buy your pie fresh, ideally while it's still warm from the oven, plus tarts and sweets for the road. We box everything for travel so it rides home flat and intact in the car.</p></li>
+      <li><span class="step">STEP 03</span><h3>Eat it soon</h3><p>No preservatives means best within a few days — keep it cool, and it's happiest eaten within a day or two. Honestly, most don't last the drive home, which is exactly as it should be.</p></li>
+      <li><span class="step">STEP 04</span><h3>Come back next trip</h3><p>You'll be through Laguna again — everyone is. We'll be here, oven on, ready with a fresh one. Reserve ahead next time if you're bringing the whole family or the office.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>SLICE 05 / FROM THE ROAD</span><span>THE PASALUBONG, FULL STOP</span></div>
+    <blockquote class="t-quote">“We always buy three and always arrive home with maybe one. This is <em>THE pasalubong, full stop.</em>”</blockquote>
+    <div class="t-attr">Marissa L. — customer for 20+ years</div>
+    <div class="t-sub">
+      <figure><blockquote>“I did a taste test of buko pies from three Laguna spots for a road trip and this one won unanimously. Real coconut strips, not mush, and a custard that isn't too sweet. You can taste that there's no preservatives — clean and fresh. We reserved a dozen for the office the next week.”</blockquote><figcaption>Paolo &amp; friends — road-trip taste test</figcaption></figure>
+      <figure><blockquote>“Reserved eight pies plus tarts and espasol for a family reunion and it was the hit of the whole day. Everyone took a box home. Fresh, generous, fairly priced, and ready exactly when they said. My titas are still talking about the crust. Salamat, Buko Pie Original!”</blockquote><figcaption>The Almeda clan — reunion order</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--cream-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>SLICE 06 / FROM THE OVEN</span><span>COCONUT, CUSTARD &amp; CRUST</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1464349095431-e9a21285b5f3?w=1600&q=85&auto=format&fit=crop" alt="A golden, flaky pie fresh from the oven." /><figcaption>THE PIE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1600&q=85&auto=format&fit=crop" alt="Baked goods cooling on wooden racks." /><figcaption>THE RACKS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1600&q=85&auto=format&fit=crop" alt="A baker preparing pastry by hand." /><figcaption>THE CRUST</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519915028121-7d3463d20b13?w=1600&q=85&auto=format&fit=crop" alt="A slice of custard pie on a plate." /><figcaption>THE SLICE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop" alt="Coffee beside a slice of pie." /><figcaption>THE MERIENDA</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="The bakery shopfront on the road." /><figcaption>THE STOP</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>SLICE 07 / BEFORE YOU STOP</span><span>FRESHNESS, KEEPING &amp; RESERVING</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you stop.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63495550147" style="color:var(--nutmeg);font-weight:700;">(049) 555 0147</a>. Reserving ahead for a big run saves you finding the racks bare.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What exactly is buko pie, and why is Laguna famous for it?</summary><p>Buko pie is a Filipino pie filled with buko — the soft, tender flesh of young coconut — bound in a light, creamy custard and baked in a flaky pastry crust. It's distinct from mature-coconut desserts because young coconut is soft, milky and delicate rather than firm and fibrous, which gives buko pie its signature tender, almost silky filling. Laguna, and Los Baños in particular, became famous for it decades ago as the pie you buy on the road home, and it's now so tied to the province that 'buko pie' and 'Laguna pasalubong' are practically the same phrase. It endured as the classic pasalubong because it travels reasonably well in a box, it's generous and shareable, and — when it's made properly with fresh coconut and no shortcuts — it simply tastes like a treat worth stopping for.</p></details>
+        <details><summary>Why does your pie need to be eaten within a few days?</summary><p>Because we don't use preservatives — and that's a deliberate choice, not a limitation. Our buko pie is made with fresh young coconut, a real custard and butter pastry, all of which are meant to be enjoyed fresh, so without artificial preservatives the pie is at its best within a couple of days and should be kept cool in the meantime. We think that's exactly how pasalubong should be: something baked that morning with real ingredients, tasting clean and fresh, rather than something formulated to survive a month on a shelf. It does mean a little planning — buy it close to when you'll eat it, keep it cool on the drive, and don't treat it like a product that lasts forever. Honestly, the bigger risk isn't spoilage but that the pie disappears in the car long before freshness is a question. If you need pies for a specific day, reserve ahead and we'll bake them close to your pick-up.</p></details>
+        <details><summary>Can I reserve pies ahead for a trip or a crowd?</summary><p>Yes, and we recommend it for anything beyond a pie or two, especially at weekends, holidays and long-weekend getaways when the Laguna road is busy and the afternoon batches can sell out. If you're travelling with a convoy, buying for an office, a reunion or a fiesta, or you simply want to be sure of getting pies at a particular time, reserve ahead and we'll have a fresh batch boxed and waiting for you rather than leaving it to chance. Just tell us how many pies, tarts and sweets you'd like, and roughly when you'll pass through, and we'll confirm. Reserving also means your pies are baked close to your pick-up time, so they're as fresh as possible for the drive — which, given the no-preservatives thing, genuinely matters.</p></details>
+        <details><summary>How should I keep and transport buko pie?</summary><p>Keep it cool and eat it soon — those are the two rules. On the drive, keep the box out of direct sun and heat (the boot of a hot car parked in the sun is the enemy), and if it's a long trip in warm weather, a cooler or the air-conditioned cabin is ideal. Transport it flat and level so the custard and crust stay intact; we box our pies specifically to travel, but they're still baked goods, so treat them gently. Once home, keep the pie cool — refrigerate if you won't eat it within the day — and bring it back towards room temperature, or warm it briefly, before serving for the best flavour and texture. Because there are no preservatives, aim to enjoy it within a couple of days. Tarts, espasol and yema travel similarly well; we'll give you guidance when you buy.</p></details>
+        <details><summary>What else do you sell for pasalubong besides the pie?</summary><p>Quite a spread, because a good pasalubong run is rarely just one thing. Alongside the classic whole buko pie, we make buko tarts — individual, bite-sized versions of the same fresh-coconut filling in pastry, perfect for sharing around. We also do espasol, the soft sweet rice logs dusted in toasted rice flour that are a Laguna staple, plus yema and pastillas, the soft milk-and-egg candies that are ideal for gifting and for keeping kids happy on a long drive. For convenience we put together mixed pasalubong boxes — a couple of pies with tarts, espasol and sweets together — which are the easy grab-and-go answer when you want to bring home a proper taste of the province. Tell us who it's for and how many you're feeding and we'll help you build the right box.</p></details>
+        <details><summary>Is it worth stopping if I'm just passing through?</summary><p>Yes — that's literally the whole idea, and it's how the buko pie tradition works. The pie is designed to be an easy, rewarding pit stop on the Laguna route: pull in, grab a warm pie (or three) and some tarts and sweets, and you've got both a treat for the drive and pasalubong for whoever's waiting at home, all in a few minutes. You don't need to plan or reserve for a small purchase — just come by while we're open and buy what's fresh on the racks. If you're passing at a busy time or want a specific quantity, a quick call ahead saves you any risk of the afternoon selling out. Generations of Filipino families have made this exact stop part of the trip home, and there's a simple reason it stuck: warm, fresh, generous pie, ready when you are, right on the road you're already driving.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SLICE 08 / ON THE ROUTE</span><span>LAGUNA &amp; THE ROAD HOME</span></div>
+    <ul class="area-list">
+      <li>Los Baños</li><li>Calamba</li><li>Bay</li><li>Santa Cruz</li><li>Laguna</li><li>On the road home</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SLICE 09 / THE ESSENTIALS</span><span>HOW WE BAKE</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1988</div><div class="detail">A fixed stop on the Laguna road</div></div>
+      <div><div class="label">Fresh buko</div><div class="detail">Soft young-coconut strips, scraped fresh</div></div>
+      <div><div class="label">No preservatives</div><div class="detail">Best within days — fresh because it is</div></div>
+      <div><div class="label">Baked all day</div><div class="detail">In waves, so the afternoon pie is warm</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>SLICE 10 / THE STOP</span><span>KM 63, LOS BAÑOS</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Buko Pie Original</strong><br />
+          Km 63 National Highway, Anos<br />
+          Los Baños, Laguna 4030<br /><br />
+          <a href="tel:+63495550147" data-bind="business.phoneDisplay">(049) 555 0147</a><br />
+          <a href="mailto:orders@bukopieoriginal.ph" data-bind="business.email">orders@bukopieoriginal.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>DAILY</span><span>6AM – 8PM</span></div>
+          <div class="row"><span>FRESH BATCHES</span><span>MORNING &amp; MIDDAY</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're right on the National Highway at Km 63 in Anos — easy to pull into, easy to pull out. Reserve ahead for big runs.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Buko Pie Original, Los Baños" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=121.2260%2C14.1600%2C121.2560%2C14.1800&layer=mapnik&marker=14.1700%2C121.2410"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">SLICE 11 / RESERVE</div>
+    <h2 data-bind="cta.heading">Don't drive past. The oven's <em>on.</em></h2>
+    <p data-bind="cta.body">Fresh young-coconut buko pie in a flaky butter crust, baked every morning with no preservatives, plus tarts, espasol and yema for the whole barkada — the Laguna pasalubong stop since 1988. Reserve ahead or just pull over.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Order or reserve</a>
+      <a class="btn btn-ghost" href="tel:+63495550147" data-bind="cta.secondary.label">(049) 555 0147</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63495550147" data-bind="messaging.whatsapp" aria-label="Message the bakery">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;color:var(--cream);">Buko Pie <span style="color:var(--buko);font-style:italic;">Original</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:var(--mid-d);">A buko pie bakery in Los Baños, Laguna — fresh young-coconut pie, no preservatives, the pasalubong stop since 1988.</p>
+      </div>
+      <div>
+        <h4>The bakery</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          Km 63 National Highway, Anos<br />Los Baños, Laguna 4030<br />
+          <a href="tel:+63495550147">(049) 555 0147</a><br />
+          <a href="mailto:orders@bukopieoriginal.ph">orders@bukopieoriginal.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we bake</a><a href="#about">The bakery</a><a href="#location">Find us</a><a href="#book">Reserve</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> BUKO PIE ORIGINAL</span>
+      <span>BAKED FRESH DAILY · LAGUNA</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

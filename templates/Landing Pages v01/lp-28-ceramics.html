@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cone Six — ceramics studio &amp; classes in Margate</title>
+<meta name="description" content="Cone Six is a working ceramics studio in Margate's old town. Wheel courses, memberships, kiln firing services and a shop of seconds that aren't very second." />
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800&family=Gelasio:ital@0;1&family=Fragment+Mono&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Cone Six", phone: "+44 1843 229 461", phoneDisplay: "01843 229 461", email: "kiln@conesix.uk", foundedYear: 2018 },
+  hero: {
+    kicker: "Working studio · wheel courses · kiln services · Margate old town",
+    headline: "Clay doesn't care about your job title. That's the whole appeal.",
+    lede: "A working ceramics studio two streets from the sea. Eight wheels, three kilns, courses that start at absolute zero, and a membership bench for people who never want to stop.",
+    primaryCta: { label: "Book a course", href: "#book" },
+    secondaryCta: { label: "Studio & kilns", href: "#services" },
+    image: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Hands centering clay on a potter's wheel."
+  },
+  trust: { years: "Firing in Margate since 2018" },
+  about: {
+    heading: "Eight wheels. Three kilns. Zero precious attitude.",
+    paragraphs: [
+      "Cone Six is named for the kiln temperature most of our glazes mature at — about 1220°C, which is also roughly the temperature of a beginner's frustration in week two, right before it all clicks.",
+      "The studio runs three lives at once: courses for people who've never touched clay, a members' bench for the hooked, and kiln services for potters across Thanet who need reliable firings without owning a kiln.",
+      "The teaching style is patient and specific. Nobody floats around saying 'just feel the clay'. You'll be shown where your elbow should be, why your cylinder is a bowl, and how to fix it — in that order."
+    ],
+    portrait: "https://images.unsplash.com/photo-1556760544-74068565f05c?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Shelves of bisque-fired pots waiting for glaze."
+  },
+  services: [
+    { name: "Beginners' wheel course", description: "Six weeks, two hours a week, everything included. You'll leave with three finished pots and one new personality trait." },
+    { name: "Improvers & throwing clinics", description: "For people stuck at cylinder-shaped-object. Taller, thinner, rounder — pick the problem, we'll fix the technique." },
+    { name: "Membership", description: "Bench space, wheel time, glaze library and shelf storage. Two tiers: evenings-and-weekends or the full anytime key." },
+    { name: "Kiln firing service", description: "Bisque and glaze firings for outside work, priced by shelf. Drop off Tuesday, collect Friday. Reliable enough to build a business on." },
+    { name: "Taster sessions", description: "Two hours, one lump of clay, one wheel, one very patient teacher. The gateway drug, honestly." },
+    { name: "The seconds shelf", description: "Members' and teachers' work with small flaws, sold cheap. The flaws are usually invisible; the queue on restock day is not." }
+  ],
+  why: [
+    { title: "Taught, not vibed.", body: "Specific, mechanical, fixable instruction. 'Move your elbow to your hip' beats 'listen to the clay' every single week." },
+    { title: "Kilns you can plan around.", body: "Firings run on a published schedule and have missed it twice in six years — both times storms took the power grid with them." },
+    { title: "A real community bench.", body: "Members range from 19 to 81. The kettle is communal, the glazes are shared, and someone will always look at your wobbly rim with total seriousness." }
+  ],
+  how: [
+    { step: "01", title: "Start with a taster", body: "Two hours on the wheel. You'll know by the end whether clay is your thing. (It's your thing.)" },
+    { step: "02", title: "Take the course", body: "Six weeks of fundamentals: centering, pulling, trimming, glazing. Small groups, same teacher." },
+    { step: "03", title: "We fire everything", body: "Your work is bisqued, you glaze it, we fire to cone six. Collection day feels like Christmas." },
+    { step: "04", title: "Join the bench", body: "Course graduates get first refusal on membership spots. Fair warning: there's a waiting list." }
+  ],
+  testimonials: [
+    { quote: "I signed up for six weeks after a bad year. That was two years ago; I'm a member now and my whole kitchen is bowls. It rebuilt me, one wobbly cylinder at a time.", name: "Nadia R.", context: "member, ex-beginner" },
+    { quote: "As a production potter without my own kiln, their firing schedule is my business's backbone. Published dates, honest shelf prices, never a cracked pot from careless loading.", name: "Ed M.", context: "kiln services customer" },
+    { quote: "The teacher spotted in week one that I was strangling the clay and fixed my grip in one sentence. Every previous class had just told me to relax.", name: "Christine B.", context: "improvers' clinic" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=1600&q=85&auto=format&fit=crop", alt: "Centering clay on the wheel." },
+    { src: "https://images.unsplash.com/photo-1556760544-74068565f05c?w=1600&q=85&auto=format&fit=crop", alt: "Bisque ware on the shelves." },
+    { src: "https://images.unsplash.com/photo-1493106819501-66d381c466f1?w=1600&q=85&auto=format&fit=crop", alt: "Trimming a bowl on the wheel." },
+    { src: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=1600&q=85&auto=format&fit=crop", alt: "Glazed pots fresh from the kiln." },
+    { src: "https://images.unsplash.com/photo-1604357209793-fca5dca89f97?w=1600&q=85&auto=format&fit=crop", alt: "The members' bench mid-session." },
+    { src: "https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=1600&q=85&auto=format&fit=crop", alt: "Glaze test tiles on the studio wall." }
+  ],
+  faq: [
+    { q: "I've never touched clay. Where do I start?", a: "The taster session. Two hours, everything provided, aprons included because you will need the apron. If it clicks — it usually clicks — course dates are released monthly." },
+    { q: "What do I get at the end of a course?", a: "Three finished, food-safe pots of your choice from everything you make, glazed and fired. The rest gets recycled back to the clay bin, which is character-building." },
+    { q: "How does the firing service work?", a: "Drop off Tuesday, collect from Friday. Bisque and cone-six glaze firings priced by shelf; odd sizes quoted on sight. Work must be bone dry — we check, because explosions are communal events in a kiln." },
+    { q: "What's included in membership?", a: "Bench space, wheels, the house glaze library, a storage shelf, and firing at member rates. Clay is bought from us at cost. Two tiers; the anytime tier includes a door key and the accompanying sense of ownership." },
+    { q: "Can I buy the pottery?", a: "The seconds shelf sells members' and teachers' work with minor flaws at friendly prices. Restocked most Saturdays. Firsts go to the makers' own shops and markets — we'll point you at them." },
+    { q: "Is it suitable for kids?", a: "Family hand-building sessions run in school holidays, ages 6+. The wheel needs a bit more leg, so wheel courses start at 14." },
+    { q: "I have wrist/back issues. Can I still throw?", a: "Often yes — throwing can be adapted (standing wheels, lighter clay weights). Book a one-to-one first and we'll find what works before you commit to a course." }
+  ],
+  area: { places: ["Margate old town", "Cliftonville", "Broadstairs", "Ramsgate", "Westgate", "kiln services across Thanet"] },
+  credentials: [
+    { label: "Kilns", detail: "Three electric kilns, serviced annually, cone 6 & 04" },
+    { label: "Glazes", detail: "House glazes food-safe certified" },
+    { label: "Teaching", detail: "Craft Potters Association members" },
+    { label: "Insurance", detail: "Full studio & public liability" }
+  ],
+  location: { name: "Cone Six", addressStreet: "14 King Street", addressLocality: "Margate Old Town", addressRegion: "Kent", addressPostcode: "CT9 1DA", addressCountry: "United Kingdom" },
+  cta: { heading: "Week two is hard. Week six is worth it.", body: "Tasters run weekly, courses release monthly, and the clay bin forgives everything.", primary: { label: "Book a course", href: "#book" }, secondary: { label: "01843 229 461", href: "tel:+441843229461" } },
+  messaging: { whatsapp: "https://wa.me/441843229461", messenger: "https://m.me/conesixmargate" }
+};
+</script>
+
+<style>
+  :root {
+    --slip:#f5f1ea; --bisque:#e8ddcc; --terracotta:#b2502e; --iron:#33291f;
+    --glaze:#41668a; --rule:rgba(51,41,31,0.16);
+    --sans:"Epilogue",system-ui,sans-serif;
+    --serif:"Gelasio",Georgia,serif;
+    --mono:"Fragment Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--slip);color:var(--iron);font-family:var(--sans);font-size:16px;line-height:1.58;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1260px,93vw);margin-inline:auto;}
+  .cone{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--terracotta);}
+  .h2{font-weight:700;font-size:clamp(32px,4.4vw,58px);line-height:1.02;letter-spacing:-0.03em;margin:0 0 0.45em;}
+  .h2 em{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:0;}
+  .body{color:#7a6e5e;line-height:1.7;}
+  section{padding:clamp(72px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 27px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;text-decoration:none;transition:0.18s;border-radius:3px;}
+  .btn-primary{background:var(--terracotta);color:var(--slip);} .btn-primary:hover{background:var(--iron);}
+  .btn-ghost{border:1.5px solid var(--iron);} .btn-ghost:hover{background:var(--iron);color:var(--slip);}
+  .kiln-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#a08c72;border-bottom:1.5px solid var(--iron);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,60px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(245,241,234,0.94);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--iron);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-weight:800;font-size:18px;letter-spacing:-0.02em;text-decoration:none;}
+  .wm .deg{font-family:var(--mono);font-size:11px;color:var(--terracotta);letter-spacing:0.04em;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#a08c72;}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--terracotta);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — kiln-log split with temp strip */
+  .hero{padding:clamp(48px,7vw,96px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.02fr 0.98fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .hero h1{font-weight:800;font-size:clamp(36px,4.9vw,70px);line-height:1.0;letter-spacing:-0.035em;margin:20px 0 24px;}
+  .hero h1 em{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:0;}
+  .hero .lede{color:#7a6e5e;max-width:44ch;line-height:1.7;font-size:clamp(15px,1.4vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:6px 120px 6px 6px;}
+  .kiln-log{display:flex;gap:0;margin-top:14px;border:1.5px solid var(--iron);border-radius:3px;overflow:hidden;}
+  .kiln-log > div{flex:1;padding:10px 14px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;text-align:center;color:#7a6e5e;}
+  .kiln-log > div + div{border-left:1.5px solid var(--iron);}
+  .kiln-log strong{display:block;font-size:13px;color:var(--iron);letter-spacing:0.02em;margin-bottom:2px;}
+  .kiln-log .hot strong{color:var(--terracotta);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;border-top:1.5px solid var(--iron);border-bottom:1.5px solid var(--iron);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:#a08c72;}
+
+  .about{background:var(--bisque);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,19px);line-height:1.75;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:6px;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — glaze-swatch cards */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);margin-top:clamp(26px,4vw,44px);}
+  .svc-card{background:#fff;border:1.5px solid var(--iron);border-radius:6px;overflow:hidden;transition:0.18s;}
+  .svc-card:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(51,41,31,0.14);}
+  .svc-card .glaze-strip{height:10px;}
+  .svc-card:nth-child(1) .glaze-strip{background:var(--terracotta);}
+  .svc-card:nth-child(2) .glaze-strip{background:var(--glaze);}
+  .svc-card:nth-child(3) .glaze-strip{background:#7d8c5c;}
+  .svc-card:nth-child(4) .glaze-strip{background:var(--iron);}
+  .svc-card:nth-child(5) .glaze-strip{background:#c9a13b;}
+  .svc-card:nth-child(6) .glaze-strip{background:#8a5a74;}
+  .svc-card .inner{padding:clamp(20px,2.6vw,30px);}
+  .svc-card .cno{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;color:var(--terracotta);display:block;margin-bottom:12px;text-transform:uppercase;}
+  .svc-card h3{font-weight:700;font-size:20px;letter-spacing:-0.02em;margin:0 0 8px;line-height:1.15;}
+  .svc-card p{color:#7a6e5e;margin:0;font-size:14px;line-height:1.62;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;}}
+
+  .why{background:var(--iron);color:var(--slip);}
+  .why .h2{color:var(--slip);}
+  .why .kiln-head{border-color:rgba(245,241,234,0.35);color:rgba(245,241,234,0.55);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px);margin-top:clamp(26px,4vw,44px);}
+  .why-grid .t{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:#e0a06e;display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-weight:700;font-size:21px;letter-spacing:-0.02em;margin:0 0 10px;line-height:1.15;}
+  .why-grid p{color:rgba(245,241,234,0.68);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--iron);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;color:var(--terracotta);text-transform:uppercase;}
+  .how-grid h3{font-weight:700;font-size:19px;letter-spacing:-0.02em;margin:10px 0 8px;}
+  .how-grid p{color:#7a6e5e;margin:0;font-size:13.5px;line-height:1.62;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--bisque);}
+  .t-quote{font-family:var(--serif);font-style:italic;font-size:clamp(24px,3.3vw,44px);line-height:1.28;max-width:30ch;margin:0 0 22px;}
+  .t-attr{font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:#a08c72;margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--iron);padding-top:34px;}
+  .t-sub blockquote{font-size:16.5px;line-height:1.65;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:#a08c72;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — kiln-shelf rows */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,24px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:6px;}
+  .g-grid figure:first-child img{border-radius:6px 120px 6px 6px;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#a08c72;margin-top:8px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--iron);}
+  .faq-list summary{font-weight:700;font-size:17.5px;letter-spacing:-0.015em;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"◭";color:var(--terracotta);font-size:13px;flex-shrink:0;transition:transform 0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(180deg);}
+  .faq-list p{margin:14px 0 0;color:#7a6e5e;font-size:14.5px;max-width:56ch;line-height:1.68;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px 18px;border:1.5px solid var(--iron);border-radius:3px;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--iron);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--terracotta);margin-bottom:8px;}
+  .creds .detail{font-weight:700;font-size:16px;letter-spacing:-0.015em;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{border:1.5px solid var(--iron);border-radius:6px;padding:32px;background:var(--bisque);}
+  .nap address{font-style:normal;font-weight:700;font-size:20px;line-height:1.5;letter-spacing:-0.015em;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:#7a6e5e;}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:#7a6e5e;margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{border:1.5px solid var(--iron);border-radius:6px;min-height:380px;overflow:hidden;}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--terracotta);color:var(--slip);padding:clamp(80px,10vw,140px) 0;}
+  .cta-band h2{font-weight:800;font-size:clamp(36px,5.2vw,78px);line-height:0.98;letter-spacing:-0.035em;margin:14px 0 18px;max-width:16ch;}
+  .cta-band h2 em{font-family:var(--serif);font-style:italic;font-weight:400;}
+  .cta-band p{color:rgba(245,241,234,0.9);max-width:44ch;margin:0 0 32px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--iron);color:var(--slip);}
+  .cta-band .btn-primary:hover{background:var(--slip);color:var(--iron);}
+  .cta-band .btn-ghost{border-color:var(--slip);color:var(--slip);}
+  .cta-band .btn-ghost:hover{background:var(--slip);color:var(--terracotta);}
+
+  footer{background:var(--iron);color:rgba(245,241,234,0.85);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:#e0a06e;margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;color:var(--slip);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(245,241,234,0.18);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(245,241,234,0.5);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--iron);color:var(--slip);padding:13px 19px;border-radius:3px;text-decoration:none;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;box-shadow:0 8px 24px rgba(51,41,31,0.28);}
+  .msg-fab a:hover{background:var(--terracotta);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Cone Six","description":"Working ceramics studio in Margate old town. Wheel courses, memberships, kiln firing services.","url":"https://conesix.uk/","telephone":"+441843229461","email":"kiln@conesix.uk","address":{"@type":"PostalAddress","streetAddress":"14 King Street","addressLocality":"Margate","addressRegion":"Kent","postalCode":"CT9 1DA","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.3893,"longitude":1.3826},"areaServed":["Margate","Cliftonville","Broadstairs","Ramsgate","Thanet"],"image":["https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=1600"],"foundingDate":"2018"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I've never touched clay. Where do I start?","acceptedAnswer":{"@type":"Answer","text":"The taster session — two hours, everything provided. Course dates release monthly."}},
+{"@type":"Question","name":"What do I get at the end of a course?","acceptedAnswer":{"@type":"Answer","text":"Three finished, food-safe pots of your choice, glazed and fired."}},
+{"@type":"Question","name":"How does the firing service work?","acceptedAnswer":{"@type":"Answer","text":"Drop off Tuesday, collect Friday. Bisque and cone-six glaze firings priced by shelf."}},
+{"@type":"Question","name":"What's included in membership?","acceptedAnswer":{"@type":"Answer","text":"Bench space, wheels, glaze library, storage shelf, member firing rates. Two tiers."}},
+{"@type":"Question","name":"Can I buy the pottery?","acceptedAnswer":{"@type":"Answer","text":"The seconds shelf sells members' and teachers' work with minor flaws, restocked most Saturdays."}},
+{"@type":"Question","name":"Is it suitable for kids?","acceptedAnswer":{"@type":"Answer","text":"Family hand-building in school holidays from age 6; wheel courses from 14."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">CONE SIX <span class="deg">Δ6 · 1220°C</span></a>
+    <nav class="nav-links">
+      <a href="#about">Studio</a><a href="#services">Courses &amp; kilns</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v22">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="cone" data-bind="hero.kicker">Working studio · wheel courses · kiln services · Margate old town</div>
+      <h1 data-bind="hero.headline">Clay doesn't care about your job title. <em>That's the whole appeal.</em></h1>
+      <p class="lede" data-bind="hero.lede">A working ceramics studio two streets from the sea. Eight wheels, three kilns, courses that start at absolute zero, and a membership bench for people who never want to stop.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a course</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">Studio &amp; kilns</a>
+      </div>
+    </div>
+    <div>
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=2000&q=85&auto=format&fit=crop"
+             alt="Hands centering clay on a potter's wheel." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="kiln-log">
+        <div><strong>KILN 1</strong>BISQUE · 04</div>
+        <div class="hot"><strong>KILN 2</strong>GLAZE · Δ6</div>
+        <div><strong>KILN 3</strong>COOLING</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Firing in Margate since 2018</span>
+    <span>Eight wheels, three kilns</span>
+    <span>Food-safe glazes</span>
+    <span>CPA members</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v3">
+  <div class="wrap">
+    <div class="kiln-head"><span>01 / THE STUDIO</span><span>TWO STREETS FROM THE SEA</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1556760544-74068565f05c?w=1200&q=85&auto=format&fit=crop"
+           alt="Shelves of bisque-fired pots waiting for glaze." />
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">Eight wheels. Three kilns. <em>Zero precious attitude.</em></h2>
+        <p>Cone Six is named for the kiln temperature most of our glazes mature at — about 1220°C, which is also roughly the temperature of a beginner's frustration in week two, right before it all clicks.</p>
+        <p>The studio runs three lives at once: courses for people who've never touched clay, a members' bench for the hooked, and kiln services for potters across Thanet who need reliable firings without owning a kiln.</p>
+        <p>Nobody here floats around saying "just feel the clay". You'll be shown where your elbow should be, why your cylinder is a bowl, and how to fix it — in that order.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v15">
+  <div class="wrap">
+    <div class="kiln-head"><span>02 / COURSES &amp; KILNS</span><span>SIX WAYS INTO THE MUD</span></div>
+    <h2 class="h2">What's on <em>the shelf.</em></h2>
+    <div class="svc-grid">
+      <div class="svc-card"><div class="glaze-strip"></div><div class="inner"><span class="cno">Δ 01</span><h3>Beginners' wheel course</h3><p>Six weeks, two hours a week, everything included. You'll leave with three finished pots and one new personality trait.</p></div></div>
+      <div class="svc-card"><div class="glaze-strip"></div><div class="inner"><span class="cno">Δ 02</span><h3>Improvers &amp; throwing clinics</h3><p>For people stuck at cylinder-shaped-object. Taller, thinner, rounder — pick the problem, we'll fix the technique.</p></div></div>
+      <div class="svc-card"><div class="glaze-strip"></div><div class="inner"><span class="cno">Δ 03</span><h3>Membership</h3><p>Bench space, wheel time, glaze library and shelf storage. Two tiers: evenings-and-weekends or the full anytime key.</p></div></div>
+      <div class="svc-card"><div class="glaze-strip"></div><div class="inner"><span class="cno">Δ 04</span><h3>Kiln firing service</h3><p>Bisque and glaze firings for outside work, priced by shelf. Drop off Tuesday, collect Friday.</p></div></div>
+      <div class="svc-card"><div class="glaze-strip"></div><div class="inner"><span class="cno">Δ 05</span><h3>Taster sessions</h3><p>Two hours, one lump of clay, one wheel, one very patient teacher. The gateway drug, honestly.</p></div></div>
+      <div class="svc-card"><div class="glaze-strip"></div><div class="inner"><span class="cno">Δ 06</span><h3>The seconds shelf</h3><p>Members' and teachers' work with small flaws, sold cheap. The flaws are usually invisible; the queue on restock day is not.</p></div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="kiln-head"><span>03 / WHY THIS STUDIO</span><span>THREE FIRING NOTES</span></div>
+    <h2 class="h2">Firing <em>notes.</em></h2>
+    <div class="why-grid">
+      <div><span class="t">NOTE · 980°C</span><h3>Taught, not vibed.</h3><p>Specific, mechanical, fixable instruction. "Move your elbow to your hip" beats "listen to the clay" every single week.</p></div>
+      <div><span class="t">NOTE · 1120°C</span><h3>Kilns you can plan around.</h3><p>Firings run on a published schedule and have missed it twice in six years — both times storms took the power grid with them.</p></div>
+      <div><span class="t">NOTE · 1220°C</span><h3>A real community bench.</h3><p>Members range from 19 to 81. The kettle is communal, the glazes are shared, and someone will always look at your wobbly rim with total seriousness.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="kiln-head"><span>04 / THE PATH</span><span>TASTER → BENCH</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Start with a taster</h3><p>Two hours on the wheel. You'll know by the end whether clay is your thing. (It's your thing.)</p></li>
+      <li><span class="step">STEP 02</span><h3>Take the course</h3><p>Six weeks of fundamentals: centering, pulling, trimming, glazing. Small groups, same teacher.</p></li>
+      <li><span class="step">STEP 03</span><h3>We fire everything</h3><p>Your work is bisqued, you glaze it, we fire to cone six. Collection day feels like Christmas.</p></li>
+      <li><span class="step">STEP 04</span><h3>Join the bench</h3><p>Course graduates get first refusal on membership spots. Fair warning: there's a waiting list.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="kiln-head"><span>05 / OUT OF THE KILN</span><span>THREE VOICES</span></div>
+    <blockquote class="t-quote">“I signed up for six weeks after a bad year. That was two years ago; I'm a member now and my whole kitchen is bowls. It rebuilt me, one wobbly cylinder at a time.”</blockquote>
+    <div class="t-attr">Nadia R. — member, ex-beginner</div>
+    <div class="t-sub">
+      <figure><blockquote>“As a production potter without my own kiln, their firing schedule is my business's backbone. Published dates, honest shelf prices, never a cracked pot from careless loading.”</blockquote><figcaption>Ed M. — kiln services customer</figcaption></figure>
+      <figure><blockquote>“The teacher spotted in week one that I was strangling the clay and fixed my grip in one sentence. Every previous class had just told me to relax.”</blockquote><figcaption>Christine B. — improvers' clinic</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v15">
+  <div class="wrap">
+    <div class="kiln-head"><span>06 / THE SHELVES</span><span>THIS MONTH'S FIRINGS</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=1600&q=85&auto=format&fit=crop" alt="Centering clay on the wheel." /><figcaption>CENTERING · WEEK ONE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1556760544-74068565f05c?w=1600&q=85&auto=format&fit=crop" alt="Bisque ware on the shelves." /><figcaption>BISQUE SHELF · TUESDAY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1493106819501-66d381c466f1?w=1600&q=85&auto=format&fit=crop" alt="Trimming a bowl on the wheel." /><figcaption>TRIMMING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=1600&q=85&auto=format&fit=crop" alt="Glazed pots fresh from the kiln." /><figcaption>KILN 2 · UNLOADED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1604357209793-fca5dca89f97?w=1600&q=85&auto=format&fit=crop" alt="The members' bench mid-session." /><figcaption>MEMBERS' BENCH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=1600&q=85&auto=format&fit=crop" alt="Glaze test tiles on the studio wall." /><figcaption>GLAZE TESTS · THE WALL</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="kiln-head"><span>07 / ASKED AT THE SINK</span><span>WHILE WASHING UP</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you get <em>muddy.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441843229461" style="color:var(--terracotta);">01843 229 461</a>. Hands are usually wet; leave a message and we'll ring back dry.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I've never touched clay. Where do I start?</summary><p>The taster session. Two hours, everything provided, aprons included because you will need the apron. If it clicks — it usually clicks — course dates are released monthly.</p></details>
+        <details><summary>What do I get at the end of a course?</summary><p>Three finished, food-safe pots of your choice from everything you make, glazed and fired. The rest gets recycled back to the clay bin, which is character-building.</p></details>
+        <details><summary>How does the firing service work?</summary><p>Drop off Tuesday, collect from Friday. Bisque and cone-six glaze firings priced by shelf; odd sizes quoted on sight. Work must be bone dry — we check, because explosions are communal events in a kiln.</p></details>
+        <details><summary>What's included in membership?</summary><p>Bench space, wheels, the house glaze library, a storage shelf, and firing at member rates. Clay is bought from us at cost. Two tiers; the anytime tier includes a door key and the accompanying sense of ownership.</p></details>
+        <details><summary>Can I buy the pottery?</summary><p>The seconds shelf sells members' and teachers' work with minor flaws at friendly prices. Restocked most Saturdays. Firsts go to the makers' own shops and markets — we'll point you at them.</p></details>
+        <details><summary>Is it suitable for kids?</summary><p>Family hand-building sessions run in school holidays, ages 6+. The wheel needs a bit more leg, so wheel courses start at 14.</p></details>
+        <details><summary>I have wrist/back issues. Can I still throw?</summary><p>Often yes — throwing can be adapted (standing wheels, lighter clay weights). Book a one-to-one first and we'll find what works before you commit to a course.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kiln-head"><span>08 / WHO COMES</span><span>STUDIO + KILN SERVICES</span></div>
+    <ul class="area-list">
+      <li>Margate old town</li><li>Cliftonville</li><li>Broadstairs</li><li>Ramsgate</li><li>Westgate</li><li>Kiln services across Thanet</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kiln-head"><span>09 / THE TECHNICAL BIT</span><span>KILNS &amp; COVER</span></div>
+    <div class="creds">
+      <div><div class="label">Kilns</div><div class="detail">Three electric kilns, serviced annually, cone 6 &amp; 04</div></div>
+      <div><div class="label">Glazes</div><div class="detail">House glazes food-safe certified</div></div>
+      <div><div class="label">Teaching</div><div class="detail">Craft Potters Association members</div></div>
+      <div><div class="label">Insurance</div><div class="detail">Full studio &amp; public liability</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="kiln-head"><span>10 / FIND US</span><span>14 KING STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Cone Six</strong><br />
+          14 King Street<br />
+          Margate Old Town CT9 1DA<br /><br />
+          <a href="tel:+441843229461" data-bind="business.phoneDisplay">01843 229 461</a><br />
+          <a href="mailto:kiln@conesix.uk" data-bind="business.email">kiln@conesix.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>WED – SUN</span><span>—</span></div>
+          <div class="row"><span>MEMBERS</span><span>KEY ACCESS</span></div>
+          <p class="gbp-note">Hours current on our Google Business Profile. Follow the smell of wet clay; the blue door sticks, push harder.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Cone Six, King Street, Margate" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=1.3750%2C51.3865%2C1.3900%2C51.3920&layer=mapnik&marker=51.3893%2C1.3826"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v6">
+  <div class="wrap">
+    <div class="cone" style="color:rgba(245,241,234,0.75);">11 / BOOKING</div>
+    <h2 data-bind="cta.heading">Week two is hard. <em>Week six is worth it.</em></h2>
+    <p data-bind="cta.body">Tasters run weekly, courses release monthly, and the clay bin forgives everything.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a course</a>
+      <a class="btn btn-ghost" href="tel:+441843229461" data-bind="cta.secondary.label">01843 229 461</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441843229461" data-bind="messaging.whatsapp" aria-label="Message the studio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="color:var(--slip);font-size:20px;">CONE SIX <span class="deg" style="color:#e0a06e;">Δ6 · 1220°C</span></div>
+        <p style="margin-top:12px;max-width:34ch;color:rgba(245,241,234,0.6);font-size:14px;line-height:1.7;">A working ceramics studio in Margate old town. Courses, membership, kiln services.</p>
+      </div>
+      <div>
+        <h4>The studio</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          14 King Street<br />Margate CT9 1DA<br />
+          <a href="tel:+441843229461">01843 229 461</a><br />
+          <a href="mailto:kiln@conesix.uk">kiln@conesix.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Courses &amp; kilns</a><a href="#book">Book</a><a href="#about">Studio</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> CONE SIX STUDIO LTD</span>
+      <span>BONE DRY OR IT DOESN'T GO IN</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

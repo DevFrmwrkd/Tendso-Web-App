@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Crown &amp; Brim — milliner &amp; hat maker in Cheltenham</title>
+<meta name="description" content="Crown &amp; Brim is a milliner in Cheltenham blocking hats by hand for race days, weddings and everyday wear — fitted to your head, your outfit and your nerve, with a hire rail for one-off occasions." />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Outfit:wght@400;500;600;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Crown & Brim", phone: "+44 1242 512 776", phoneDisplay: "01242 512 776", email: "studio@crownandbrim.co.uk", foundedYear: 2014 },
+  hero: {
+    kicker: "Milliner · blocked by hand · Montpellier, Cheltenham",
+    headline: "A hat that fits your head, your outfit, and your nerve.",
+    lede: "Hand-blocked hats and headpieces for race days, weddings and the ordinary Tuesdays that deserve better. Fitted to the actual measurements of your actual head — not a one-size elastic — and balanced to how bold you actually are, not how bold the magazine says you should be.",
+    primaryCta: { label: "Book a fitting", href: "#book" },
+    secondaryCta: { label: "The workroom", href: "#services" },
+    image: "https://images.unsplash.com/photo-1533827432537-70133748f5c8?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A wide-brimmed hat on a wooden hat block."
+  },
+  trust: { years: "Blocking since 2014" },
+  about: {
+    heading: "Steam, straw, and a wooden block.",
+    paragraphs: [
+      "A proper hat is built, not bought. At Crown & Brim the felt or straw is softened with steam, pulled over a wooden block carved for the shape, pinned, dried, wired and trimmed by hand over days. It's slow, it's a little bit alchemy, and it's why our hats sit where they're meant to and stay there when the wind gets ideas.",
+      "The studio started for Cheltenham race week — a town that takes its hats seriously has to — and grew into weddings, mother-of-the-bride headpieces, and a devoted following who simply like wearing a good hat to the shops. We block for all of it, and we hire for the once-in-a-lifetime days you'd rather not buy for.",
+      "Everything is fitted. We measure your head properly, ask about your outfit and your hair, and — crucially — read how much hat you actually want to wear. The best hat is the boldest one you'll still feel like yourself in. Finding that line is the whole job."
+    ],
+    portrait: "https://images.unsplash.com/photo-1490725263030-1f0521cec8ec?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A milliner shaping a hat in the studio."
+  },
+  services: [
+    { name: "Bespoke hats", description: "Blocked from scratch to your head, your occasion and your outfit. Felt for winter, straw for summer, and a shape argued over kindly until it's right." },
+    { name: "Occasion headpieces", description: "Fascinators, cocktail hats and disc pieces for weddings and the races — the lighter end of millinery, no less carefully balanced or pinned to survive a dance floor." },
+    { name: "The hire rail", description: "Beautiful hats for once-only days, fitted and hired for a fraction of buying. Perfect for a wedding guest who refuses to be photographed in the same hat twice." },
+    { name: "Bridal millinery", description: "Veils, combs, halos and blocked bridal hats, worked alongside your dressmaker so the whole silhouette agrees with itself. Trials included, nerves expected." },
+    { name: "Restoration & reblocking", description: "A grandmother's hat reshaped, a squashed felt brought back, a tired trim replaced. We reblock and re-trim heirlooms rather than let them retire to a box." },
+    { name: "Millinery classes", description: "Half-day and full-day workshops on the blocks — make a headpiece, learn to wire a brim, and understand forever why a good hat costs what it does." }
+  ],
+  why: [
+    { title: "Blocked, not bought in.", body: "Every hat is shaped by hand over a wooden block in this studio. No factory shells re-trimmed and sold as bespoke — steam, straw and days of work, done here." },
+    { title: "Fitted to your actual head.", body: "We measure properly and block to it, so the hat sits level and stays put. No one-size elastic biting a groove into your forehead by the second race." },
+    { title: "Bold as you, not as the magazine.", body: "We read how much hat you'll actually enjoy wearing and land exactly there. The best hat is the one you forget you're wearing until the compliments start." }
+  ],
+  how: [
+    { step: "01", title: "Bring the outfit", body: "Or a photo, a swatch, the shoes — whatever you've got. We start from the occasion and the outfit, never from a hat in isolation." },
+    { step: "02", title: "Find the shape", body: "We try blocks and proportions against your face and hair, and read your nerve honestly. This is the fun part and the important one." },
+    { step: "03", title: "Blocked by hand", body: "Steamed, blocked, dried, wired and trimmed over days. You'll get a fitting mid-way to adjust the angle and the tilt." },
+    { step: "04", title: "The final fitting", body: "Pinned to sit right on the day, with a lesson in putting it on and taking it off without a disaster. Hatpins supplied; confidence included." }
+  ],
+  testimonials: [
+    { quote: "Three race weeks I'd worn hats that gave me a headache by lunch. Crown & Brim blocked one to my head and I forgot I had it on — until four separate strangers asked where it was from.", name: "Fiona L.", context: "Gold Cup, blocked felt" },
+    { quote: "I wanted something dramatic; they gently steered me to something I'd actually wear all day. They were completely right, and I've since worn it to two more weddings.", name: "Amanda R.", context: "mother of the bride" },
+    { quote: "The hire rail saved me a fortune and a wardrobe argument. Fitted properly, gorgeous in the photos, back the next morning. I've hired three times now.", name: "Priya M.", context: "hire rail regular" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1533827432537-70133748f5c8?w=1600&q=85&auto=format&fit=crop", alt: "Felt hats on a shelf." },
+    { src: "https://images.unsplash.com/photo-1490725263030-1f0521cec8ec?w=1600&q=85&auto=format&fit=crop", alt: "Shaping a hat in the studio." },
+    { src: "https://images.unsplash.com/photo-1572307480813-ceb0e59d8325?w=1600&q=85&auto=format&fit=crop", alt: "A felt hat, finished." },
+    { src: "https://images.unsplash.com/photo-1529958030586-3aae4ca485ff?w=1600&q=85&auto=format&fit=crop", alt: "Straw and felt hats on display." },
+    { src: "https://images.unsplash.com/photo-1533055640609-24b498dfd74c?w=1600&q=85&auto=format&fit=crop", alt: "Hats lined up on a rail." },
+    { src: "https://images.unsplash.com/photo-1514327605112-b887c0e61c0a?w=1600&q=85&auto=format&fit=crop", alt: "A finished occasion hat." }
+  ],
+  faq: [
+    { q: "How far ahead should I book for the races or a wedding?", a: "For bespoke, six to eight weeks is comfortable — blocking, drying and trimming can't be rushed and a mid-way fitting matters. Closer than that, talk to us anyway; the hire rail and semi-bespoke reblocks can rescue a shorter timeline more often than you'd think." },
+    { q: "I've never worn a hat and I'm nervous. Help.", a: "That's most first-timers, and it's the best possible starting point. We fit against your face, your hair and your nerve, and land on a hat you feel like yourself in. Nobody leaves in something that wears them; that's a promise, not a slogan." },
+    { q: "Bespoke or hire — which is right for me?", a: "Hire is ideal for a one-off day you won't repeat — a single wedding, a big race. Bespoke is for a hat you'll wear for years, or a bridal piece that has to be exactly right. We'll tell you honestly which suits your occasion and budget; sometimes the answer is hire, and we say so." },
+    { q: "Can you match a specific outfit colour?", a: "Yes — bring a swatch, the actual garment, or a very good photo. We dye and trim to match, and we're candid when an exact match would look worse than a considered contrast. Matching the hat to the shoes is usually a happier plan than matching it to the dress." },
+    { q: "Do you reblock or restore old hats?", a: "Gladly — it's some of our favourite work. A squashed felt, an inherited hat that needs resizing, a tired trim: most can be steamed, reblocked and re-trimmed back to life. Bring it in and we'll assess honestly whether it's worth the work." },
+    { q: "How do I keep a hat on in the wind?", a: "A properly fitted hat and the right hatpins do most of it — the fit is why bespoke stays put where elastic doesn't. At the final fitting we show you exactly how to pin it to your hair, and send you off with pins and the confidence to trust them." }
+  ],
+  area: { places: ["Cheltenham", "Gloucester", "Tewkesbury", "Stroud", "Cirencester", "Broadway"] },
+  credentials: [
+    { label: "Blocked here", detail: "Hand-blocked on wooden blocks in-studio" },
+    { label: "Fitted", detail: "Measured to your head, not one-size elastic" },
+    { label: "Hire rail", detail: "Fitted occasion hats for one-off days" },
+    { label: "Restoration", detail: "Reblocking & re-trimming of heirloom hats" }
+  ],
+  location: { name: "Crown & Brim", addressStreet: "5 Montpellier Walk", addressLocality: "Cheltenham", addressRegion: "Gloucestershire", addressPostcode: "GL50 1SD", addressCountry: "United Kingdom" },
+  cta: { heading: "Find the hat you forget you're wearing.", body: "Book a fitting for a bespoke hat, or take a beauty off the hire rail for the day. Bring the outfit.", primary: { label: "Book a fitting", href: "#book" }, secondary: { label: "01242 512 776", href: "tel:+441242512776" } },
+  messaging: { whatsapp: "https://wa.me/441242512776", messenger: "https://m.me/crownandbrim" }
+};
+</script>
+
+<style>
+  :root {
+    --shell:#f3ede4; --plum:#4a2540; --rose:#c98a8e; --sage:#8a9a7b; --gilt:#b28a3c;
+    --ink:#2c2028; --mid:#7d6f78; --mid-d:#c3b3bd; --rule:rgba(44,32,40,0.15); --rule-d:rgba(243,237,228,0.2);
+    --disp:"Cormorant Garamond",serif; --sans:"Outfit",system-ui,sans-serif; --mono:"Martian Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--shell);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--plum);}
+  .wrap{width:min(1200px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--plum);}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(34px,5vw,66px);line-height:1;margin:0 0 0.42em;letter-spacing:-0.005em;}
+  .h2 em{font-style:italic;color:var(--plum);}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(74px,9vw,128px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--sans);font-weight:600;font-size:13.5px;text-decoration:none;transition:0.18s;border-radius:999px;}
+  .btn-primary{background:var(--plum);color:var(--shell);} .btn-primary:hover{background:var(--ink);}
+  .btn-ghost{border:1.5px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--shell);}
+  .idx-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--plum);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,60px);}
+  .light .idx-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(243,237,228,0.94);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--plum);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:23px;text-decoration:none;letter-spacing:0.01em;}
+  .wm em{font-style:italic;color:var(--plum);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.13em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — hat-block portrait with brim-measure arc */
+  .hero{padding:clamp(50px,7vw,100px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.04fr 0.96fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:600;font-size:clamp(42px,6vw,90px);line-height:0.98;letter-spacing:-0.01em;margin:20px 0 24px;}
+  .hero h1 em{font-style:italic;color:var(--plum);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.74;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:280px 280px 12px 12px;}
+  .block-tag{position:absolute;bottom:22px;left:-14px;background:var(--shell);border:1.5px solid var(--plum);border-radius:10px;padding:13px 17px;font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;line-height:1.8;box-shadow:0 12px 30px rgba(44,32,40,0.18);}
+  .block-tag .hd{color:var(--rose);letter-spacing:0.14em;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .block-tag{left:8px;}}
+
+  .trust{padding:0;background:var(--plum);color:var(--shell);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(243,237,228,0.85);}
+
+  .about{background:var(--plum);color:var(--shell);}
+  .about .h2{color:var(--shell);}
+  .about .h2 em{color:var(--rose);}
+  .about-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.76;margin:0 0 1em;color:rgba(243,237,228,0.85);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:220px 220px 12px 12px;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--plum);}
+  .svc-row{display:grid;grid-template-columns:100px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(74,37,64,0.05);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--rose);text-transform:uppercase;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(22px,2.4vw,30px);margin:0;line-height:1.08;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--sage);color:var(--ink);}
+  .why .idx-head{border-color:rgba(44,32,40,0.25);color:rgba(44,32,40,0.65);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--plum);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:25px;margin:0 0 10px;line-height:1.06;}
+  .why-grid p{color:rgba(44,32,40,0.78);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--plum);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--rose);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:21px;margin:8px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#ece2d6;}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(25px,3.3vw,44px);line-height:1.12;max-width:32ch;margin:0 0 22px;font-style:italic;}
+  .t-attr{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--plum);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:180px 180px 8px 8px;}
+  .g-grid figure:nth-child(even) img{border-radius:8px 8px 180px 180px;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-top:10px;text-align:center;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--plum);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:21px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--plum);font-size:20px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--plum);border-radius:999px;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--plum);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--rose);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-weight:600;font-size:17px;line-height:1.35;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--plum);color:var(--shell);border-radius:10px;padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:21px;line-height:1.45;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid rgba(243,237,228,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(243,237,228,0.75);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(243,237,228,0.7);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{border-radius:10px;min-height:380px;overflow:hidden;border:1.5px solid var(--plum);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--plum);color:var(--shell);padding:clamp(84px,10vw,148px) 0;text-align:center;}
+  .cta-band .kick{color:var(--rose);}
+  .cta-band h2{font-family:var(--disp);font-weight:600;font-size:clamp(38px,5.6vw,84px);line-height:0.98;margin:16px auto 18px;max-width:16ch;}
+  .cta-band h2 em{font-style:italic;color:var(--rose);}
+  .cta-band p{color:rgba(243,237,228,0.85);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--shell);color:var(--plum);}
+  .cta-band .btn-primary:hover{background:var(--rose);color:var(--ink);}
+  .cta-band .btn-ghost{border-color:rgba(243,237,228,0.6);color:var(--shell);}
+  .cta-band .btn-ghost:hover{background:var(--shell);color:var(--plum);}
+
+  footer{background:var(--shell);border-top:1.5px solid var(--plum);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--rose);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--plum);color:var(--shell);padding:13px 20px;border-radius:999px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(74,37,64,0.35);}
+  .msg-fab a:hover{background:var(--ink);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Crown & Brim","description":"Milliner and hat maker in Cheltenham — hand-blocked hats and headpieces for race days, weddings and everyday wear, with a hire rail.","url":"https://crownandbrim.co.uk/","telephone":"+441242512776","email":"studio@crownandbrim.co.uk","address":{"@type":"PostalAddress","streetAddress":"5 Montpellier Walk","addressLocality":"Cheltenham","addressRegion":"Gloucestershire","postalCode":"GL50 1SD","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.8940,"longitude":-2.0790},"areaServed":["Cheltenham","Gloucester","Tewkesbury","Cirencester"],"image":["https://images.unsplash.com/photo-1521369909029-2afed882baee?w=1600"],"foundingDate":"2014"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How far ahead should I book for the races or a wedding?","acceptedAnswer":{"@type":"Answer","text":"For bespoke, six to eight weeks is comfortable. Closer than that, the hire rail and semi-bespoke reblocks can often rescue a shorter timeline."}},
+{"@type":"Question","name":"I've never worn a hat and I'm nervous.","acceptedAnswer":{"@type":"Answer","text":"That's the best starting point. We fit against your face, hair and nerve, and land on a hat you feel like yourself in."}},
+{"@type":"Question","name":"Bespoke or hire — which is right for me?","acceptedAnswer":{"@type":"Answer","text":"Hire suits a one-off day; bespoke suits a hat you'll wear for years or a bridal piece. We'll tell you honestly which fits."}},
+{"@type":"Question","name":"Can you match a specific outfit colour?","acceptedAnswer":{"@type":"Answer","text":"Yes — bring a swatch or the garment. We dye and trim to match, and advise when a contrast would look better."}},
+{"@type":"Question","name":"Do you reblock or restore old hats?","acceptedAnswer":{"@type":"Answer","text":"Gladly — squashed felts, inherited hats and tired trims can usually be steamed, reblocked and re-trimmed back to life."}},
+{"@type":"Question","name":"How do I keep a hat on in the wind?","acceptedAnswer":{"@type":"Answer","text":"A properly fitted hat and the right hatpins do most of it. At the final fitting we show you exactly how to pin it."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Crown <em>&amp;</em> Brim</a>
+    <nav class="nav-links">
+      <a href="#about">The workroom</a><a href="#services">Hats</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v52">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Milliner · blocked by hand · Montpellier, Cheltenham</div>
+      <h1 data-comment-anchor="hero-headline">A hat that fits your head, your outfit, <em>and your nerve.</em></h1>
+      <p class="lede" data-bind="hero.lede">Hand-blocked hats and headpieces for race days, weddings and the ordinary Tuesdays that deserve better. Fitted to the actual measurements of your actual head — not a one-size elastic — and balanced to how bold you actually are, not how bold the magazine says you should be.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a fitting</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">The workroom</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1533827432537-70133748f5c8?w=2000&q=85&auto=format&fit=crop"
+           alt="A wide-brimmed hat on a wooden hat block." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="block-tag">
+        <div class="hd">BLOCK № 7 · WIDE BRIM</div>
+        HEAD · 57CM<br />FELT · FUR FELT, PLUM<br />BLOCKED BY HAND
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Blocking since 2014</span>
+    <span>Blocked by hand</span>
+    <span>Fitted to your head</span>
+    <span>Hire rail for one-off days</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v18">
+  <div class="wrap">
+    <div class="idx-head"><span>BLOCK 01 / THE WORKROOM</span><span>STEAM · STRAW · WOODEN BLOCK</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1490725263030-1f0521cec8ec?w=1200&q=85&auto=format&fit=crop"
+           alt="A milliner shaping a hat in the studio." />
+      <div class="about-prose">
+        <h2 class="h2">Steam, straw, and <em>a wooden block.</em></h2>
+        <p>A proper hat is built, not bought. At Crown &amp; Brim the felt or straw is softened with steam, pulled over a wooden block carved for the shape, pinned, dried, wired and trimmed by hand over days. It's slow, it's a little bit alchemy, and it's why our hats sit where they're meant to and stay there when the wind gets ideas.</p>
+        <p>The studio started for Cheltenham race week — a town that takes its hats seriously has to — and grew into weddings, mother-of-the-bride headpieces, and a devoted following who simply like wearing a good hat to the shops. We block for all of it, and we hire for the once-in-a-lifetime days you'd rather not buy for.</p>
+        <p>Everything is fitted. We measure your head properly, ask about your outfit and your hair, and — crucially — read how much hat you actually want to wear. The best hat is the boldest one you'll still feel like yourself in. Finding that line is the whole job.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v45">
+  <div class="wrap">
+    <div class="idx-head"><span>BLOCK 02 / THE STUDIO</span><span>WHAT WE MAKE</span></div>
+    <h2 class="h2">On the blocks.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Block 01</span><h3>Bespoke hats</h3><p>Blocked from scratch to your head, your occasion and your outfit. Felt for winter, straw for summer, and a shape argued over kindly until it's right.</p></div>
+      <div class="svc-row"><span class="no">Block 02</span><h3>Occasion headpieces</h3><p>Fascinators, cocktail hats and disc pieces for weddings and the races — the lighter end of millinery, no less carefully balanced or pinned to survive a dance floor.</p></div>
+      <div class="svc-row"><span class="no">Block 03</span><h3>The hire rail</h3><p>Beautiful hats for once-only days, fitted and hired for a fraction of buying. Perfect for a wedding guest who refuses to be photographed in the same hat twice.</p></div>
+      <div class="svc-row"><span class="no">Block 04</span><h3>Bridal millinery</h3><p>Veils, combs, halos and blocked bridal hats, worked alongside your dressmaker so the whole silhouette agrees with itself. Trials included, nerves expected.</p></div>
+      <div class="svc-row"><span class="no">Block 05</span><h3>Restoration &amp; reblocking</h3><p>A grandmother's hat reshaped, a squashed felt brought back, a tired trim replaced. We reblock and re-trim heirlooms rather than let them retire to a box.</p></div>
+      <div class="svc-row"><span class="no">Block 06</span><h3>Millinery classes</h3><p>Half-day and full-day workshops on the blocks — make a headpiece, learn to wire a brim, and understand forever why a good hat costs what it does.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v17">
+  <div class="wrap">
+    <div class="idx-head"><span>BLOCK 03 / THE DIFFERENCE</span><span>THREE THINGS ELASTIC CAN'T DO</span></div>
+    <h2 class="h2">Why blocked beats bought.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Blocked, not bought in.</h3><p>Every hat is shaped by hand over a wooden block in this studio. No factory shells re-trimmed and sold as bespoke — steam, straw and days of work, done here.</p></div>
+      <div><span class="no">02 / 03</span><h3>Fitted to your actual head.</h3><p>We measure properly and block to it, so the hat sits level and stays put. No one-size elastic biting a groove into your forehead by the second race.</p></div>
+      <div><span class="no">03 / 03</span><h3>Bold as you, not the magazine.</h3><p>We read how much hat you'll actually enjoy wearing and land exactly there. The best hat is the one you forget you're wearing until the compliments start.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>BLOCK 04 / A FITTING</span><span>OUTFIT → SHAPE → BLOCK → PIN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Bring the outfit</h3><p>Or a photo, a swatch, the shoes — whatever you've got. We start from the occasion and the outfit, never from a hat in isolation.</p></li>
+      <li><span class="step">Step 02</span><h3>Find the shape</h3><p>We try blocks and proportions against your face and hair, and read your nerve honestly. This is the fun part and the important one.</p></li>
+      <li><span class="step">Step 03</span><h3>Blocked by hand</h3><p>Steamed, blocked, dried, wired and trimmed over days. You'll get a fitting mid-way to adjust the angle and the tilt.</p></li>
+      <li><span class="step">Step 04</span><h3>The final fitting</h3><p>Pinned to sit right on the day, with a lesson in putting it on and taking it off without a disaster. Hatpins supplied; confidence included.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v17">
+  <div class="wrap">
+    <div class="idx-head"><span>BLOCK 05 / WEARERS</span><span>OVERHEARD IN THE PADDOCK</span></div>
+    <blockquote class="t-quote">“I forgot I had it on — until four separate strangers asked where it was from.”</blockquote>
+    <div class="t-attr">Fiona L. — Gold Cup, blocked felt</div>
+    <div class="t-sub">
+      <figure><blockquote>“I wanted something dramatic; they gently steered me to something I'd actually wear all day. They were completely right, and I've since worn it to two more weddings.”</blockquote><figcaption>Amanda R. — mother of the bride</figcaption></figure>
+      <figure><blockquote>“The hire rail saved me a fortune and a wardrobe argument. Fitted properly, gorgeous in the photos, back the next morning. I've hired three times now.”</blockquote><figcaption>Priya M. — hire rail regular</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v45">
+  <div class="wrap">
+    <div class="idx-head"><span>BLOCK 06 / THE RAIL</span><span>BLOCKED, TRIMMED, READY</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1533827432537-70133748f5c8?w=1600&q=85&auto=format&fit=crop" alt="Felt hats on a shelf." /><figcaption>FELT, ON THE SHELF</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1490725263030-1f0521cec8ec?w=1600&q=85&auto=format&fit=crop" alt="Shaping a hat in the studio." /><figcaption>SHAPING BY HAND</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1572307480813-ceb0e59d8325?w=1600&q=85&auto=format&fit=crop" alt="A felt hat, finished." /><figcaption>FUR FELT, FINISHED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1529958030586-3aae4ca485ff?w=1600&q=85&auto=format&fit=crop" alt="Straw and felt hats on display." /><figcaption>SUMMER STRAW</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1533055640609-24b498dfd74c?w=1600&q=85&auto=format&fit=crop" alt="Hats lined up on a rail." /><figcaption>THE HIRE RAIL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1514327605112-b887c0e61c0a?w=1600&q=85&auto=format&fit=crop" alt="A finished occasion hat." /><figcaption>OCCASION PIECE</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>BLOCK 07 / ASKED AT THE FITTING</span><span>MIRROR IN HAND</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the fitting.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441242512776" style="color:var(--plum);">01242 512 776</a>. In race week we're steaming till late; leave a message and we'll call back.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How far ahead should I book for the races or a wedding?</summary><p>For bespoke, six to eight weeks is comfortable — blocking, drying and trimming can't be rushed and a mid-way fitting matters. Closer than that, talk to us anyway; the hire rail and semi-bespoke reblocks can rescue a shorter timeline more often than you'd think.</p></details>
+        <details><summary>I've never worn a hat and I'm nervous. Help.</summary><p>That's most first-timers, and it's the best possible starting point. We fit against your face, your hair and your nerve, and land on a hat you feel like yourself in. Nobody leaves in something that wears them; that's a promise, not a slogan.</p></details>
+        <details><summary>Bespoke or hire — which is right for me?</summary><p>Hire is ideal for a one-off day you won't repeat — a single wedding, a big race. Bespoke is for a hat you'll wear for years, or a bridal piece that has to be exactly right. We'll tell you honestly which suits your occasion and budget; sometimes the answer is hire, and we say so.</p></details>
+        <details><summary>Can you match a specific outfit colour?</summary><p>Yes — bring a swatch, the actual garment, or a very good photo. We dye and trim to match, and we're candid when an exact match would look worse than a considered contrast. Matching the hat to the shoes is usually a happier plan than matching it to the dress.</p></details>
+        <details><summary>Do you reblock or restore old hats?</summary><p>Gladly — it's some of our favourite work. A squashed felt, an inherited hat that needs resizing, a tired trim: most can be steamed, reblocked and re-trimmed back to life. Bring it in and we'll assess honestly whether it's worth the work.</p></details>
+        <details><summary>How do I keep a hat on in the wind?</summary><p>A properly fitted hat and the right hatpins do most of it — the fit is why bespoke stays put where elastic doesn't. At the final fitting we show you exactly how to pin it to your hair, and send you off with pins and the confidence to trust them.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>BLOCK 08 / CLIENTS COME FROM</span><span>CHELTENHAM &amp; THE COTSWOLDS</span></div>
+    <ul class="area-list">
+      <li>Cheltenham</li><li>Gloucester</li><li>Tewkesbury</li><li>Stroud</li><li>Cirencester</li><li>Broadway</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>BLOCK 09 / THE ESSENTIALS</span><span>IN THE STUDIO</span></div>
+    <div class="creds">
+      <div><div class="label">Blocked here</div><div class="detail">Hand-blocked on wooden blocks in-studio</div></div>
+      <div><div class="label">Fitted</div><div class="detail">Measured to your head, not one-size elastic</div></div>
+      <div><div class="label">Hire rail</div><div class="detail">Fitted occasion hats for one-off days</div></div>
+      <div><div class="label">Restoration</div><div class="detail">Reblocking &amp; re-trimming of heirloom hats</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>BLOCK 10 / FIND US</span><span>5 MONTPELLIER WALK</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Crown &amp; Brim</strong><br />
+          5 Montpellier Walk<br />
+          Cheltenham GL50 1SD<br /><br />
+          <a href="tel:+441242512776" data-bind="business.phoneDisplay">01242 512 776</a><br />
+          <a href="mailto:studio@crownandbrim.co.uk" data-bind="business.email">studio@crownandbrim.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>FITTINGS</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. Under the caryatids on Montpellier Walk — the studio with the hat blocks in the window.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Crown &amp; Brim, Montpellier Walk, Cheltenham" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.0880%2C51.8900%2C-2.0700%2C51.8980&layer=mapnik&marker=51.8940%2C-2.0790"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v20">
+  <div class="wrap">
+    <div class="kick">BLOCK 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Find the hat you forget <em>you're wearing.</em></h2>
+    <p data-bind="cta.body">Book a fitting for a bespoke hat, or take a beauty off the hire rail for the day. Bring the outfit.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a fitting</a>
+      <a class="btn btn-ghost" href="tel:+441242512776" data-bind="cta.secondary.label">01242 512 776</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441242512776" data-bind="messaging.whatsapp" aria-label="Message the studio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:23px;">Crown <em style="color:var(--plum);">&amp;</em> Brim</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A milliner and hat maker on Montpellier Walk, Cheltenham. Blocking by hand since 2014.</p>
+      </div>
+      <div>
+        <h4>The studio</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          5 Montpellier Walk<br />Cheltenham GL50 1SD<br />
+          <a href="tel:+441242512776">01242 512 776</a><br />
+          <a href="mailto:studio@crownandbrim.co.uk">studio@crownandbrim.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Hats</a><a href="#about">The workroom</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> CROWN &amp; BRIM MILLINERY LTD</span>
+      <span>BLOCKED BY HAND · FITTED TO YOU</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

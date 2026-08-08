@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tadhana Rattan — handwoven rattan & wicker furniture, custom & restored, Cebu</title>
+<meta name="description" content="Tadhana Rattan is a rattan and wicker furniture workshop in Mandaue, Cebu — handwoven peacock chairs, sofas, headboards and lighting from solid rattan poles and abaca, made to order, restored and re-caned, and exported worldwide. Bending cane by hand since 1988." />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Tadhana Rattan", phone: "+63 32 555 0166", phoneDisplay: "(032) 555 0166", email: "weave@tadhanarattan.ph", foundedYear: 1988 },
+  hero: {
+    kicker: "Handwoven rattan & wicker · custom & restored · export · Mandaue, Cebu",
+    headline: "Bent by steam, woven by hand, made to outlast the person who bought it.",
+    lede: "A rattan and wicker furniture workshop in Mandaue, the heart of Cebu's furniture trade — solid rattan poles steamed and bent by hand, then woven with cane and abaca into peacock chairs, sofas, headboards, lamps and the pieces that made Philippine rattan famous worldwide. Made to order, restored and re-caned, and shipped to homes, resorts and designers across the globe.",
+    primaryCta: { label: "Commission a piece", href: "#book" },
+    secondaryCta: { label: "What we weave", href: "#services" },
+    image: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A woven rattan chair in a bright interior."
+  },
+  trust: { years: "Bending cane by hand since 1988" },
+  about: {
+    heading: "Rattan is a grass, not a tree. Worked right, it's stronger than furniture has any right to be.",
+    paragraphs: [
+      "Tadhana Rattan is a furniture workshop in Mandaue, Cebu — the city that turned the Philippines into one of the world's great rattan-furniture makers, exporting the handwoven pieces you've seen in homes and resorts everywhere. Rattan is a climbing palm, a solid, flexible cane that grows fast in our forests; steamed, it bends into curves no timber could manage, and once cooled it holds that shape with astonishing strength. We've been bending and weaving it here since 1988.",
+      "The craft is genuinely a craft. We heat the solid rattan poles with steam and bend them by hand around forms to build the frame — the graceful loops of a peacock chair, the arc of a headboard, the sweep of a sofa arm. Then the weavers take over, wrapping joints and binding panels with split rattan skin, cane and abaca in the tight, even patterns that are the whole beauty of wickerwork. It's slow, skilled, human work. A machine cannot bend a pole to the eye or weave a curve to the hand.",
+      "We make furniture to order for homes, interior designers, resorts and hospitality; we restore and re-cane heirloom and vintage rattan that's sagged or split; and we export worldwide, because Philippine rattan is prized far beyond our shores. Rattan is also genuinely sustainable — a fast-growing, renewable vine, not a slow hardwood — which is part of why the world is coming back to it. Commission a piece and it'll be woven by hand to last for decades, then re-woven when it finally needs it."
+    ],
+    portrait: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Close-up of woven rattan detail."
+  },
+  services: [
+    { name: "The peacock chair & classics", description: "The iconic high-fan peacock chair, the papasan, the planter's chair and the rattan classics that made Philippine wickerwork famous — woven by hand from solid cane, as striking now as they've ever been." },
+    { name: "Made-to-order furniture", description: "Sofas, lounge sets, dining chairs, headboards, tables, shelving and daybeds — designed and woven to your dimensions, finish and cushion fabric. Bring a brief, a room, or a picture; we'll build to it." },
+    { name: "Rattan lighting & accents", description: "Woven pendant lamps, lampshades, mirrors, baskets, room dividers and the smaller wicker pieces that warm a room — the accents designers reach for, handmade and made to match your larger pieces." },
+    { name: "Restoration & re-caning", description: "Sagged seats re-caned, split binding rewoven, wobbly frames re-glued and re-lashed — heirloom and vintage rattan brought back to life. A well-made rattan piece is meant to be repaired, not replaced." },
+    { name: "Contract & hospitality", description: "Volume orders for resorts, hotels, restaurants and cafés — matched sets woven to a consistent spec and finish, built for the wear of commercial use. The tropical look, made properly and at scale." },
+    { name: "Worldwide export", description: "We crate and ship rattan furniture to homes, designers and buyers across the globe, as generations of Cebu makers have — advising on what travels, what packs flat, and how to order from afar with confidence." }
+  ],
+  why: [
+    { title: "Steam-bent by hand.", body: "We bend solid rattan poles by hand with steam and forms — the only way to get those clean, strong curves. It's the difference between furniture that looks handmade and furniture that merely looks like it." },
+    { title: "Woven tight, woven right.", body: "The binding and panels are wrapped by weavers with decades in their hands, in patterns that are both the strength and the beauty of the piece. Loose, lazy weaving shows and fails; ours holds for decades." },
+    { title: "Repairable by design.", body: "A hand-woven rattan piece can be re-caned and re-lashed when it eventually wears, which is why good rattan gets handed down. We build to last, and we're here to restore it when the years catch up." }
+  ],
+  how: [
+    { step: "01", title: "Tell us the piece", body: "A classic peacock chair, a made-to-order sofa, a resort's worth of matched sets, or an heirloom to restore? Share the brief, dimensions, finish and any references, and we'll advise honestly on what works." },
+    { step: "02", title: "Design & quote", body: "We confirm the design, materials, finish and cushions, and give you a clear quote and timeline. For custom and contract work we'll often sample the weave or finish so you know exactly what you're getting." },
+    { step: "03", title: "Bent, woven & finished", body: "Frames steam-bent by hand, joints and panels woven, then sanded, stained or lacquered and cushioned. It takes time — hand-weaving can't be hurried — and we'll keep you posted through the build." },
+    { step: "04", title: "Delivered or shipped", body: "Delivered around Cebu, sent nationwide, or crated for export worldwide — packed to travel safely. And whenever a piece needs re-caning down the years, bring it back; we'll re-weave it good as new." }
+  ],
+  testimonials: [
+    { quote: "We furnished our whole beach house with Tadhana's rattan and it's exactly the timeless, tropical look we wanted — the peacock chairs are showstoppers and everything is built like a tank. Custom sizes, beautiful weaving, honest pricing. This is the real Cebu craftsmanship people fly here for.", name: "Homeowner, Mactan", context: "full-home commission" },
+    { quote: "As an interior designer I source rattan from Tadhana for clients here and abroad. The weaving quality is consistently superb, they nail custom dimensions and finishes, and they crate for export properly so nothing arrives damaged. A workshop I trust completely and recommend without hesitation.", name: "Interior designer", context: "trade account" },
+    { quote: "They restored my lola's peacock chair that I thought was beyond saving — re-caned the seat, rewove the split binding, and it looks better than it has in thirty years. To keep a family piece alive like that meant the world. True craftspeople who clearly love what they do. Salamat.", name: "Cristina D.", context: "heirloom restoration" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1600&q=85&auto=format&fit=crop", alt: "A woven rattan chair in a bright interior." },
+    { src: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=1600&q=85&auto=format&fit=crop", alt: "Close-up of woven rattan detail." },
+    { src: "https://images.unsplash.com/photo-1503602642458-232111445657?w=1600&q=85&auto=format&fit=crop", alt: "A rattan chair against a plain wall." },
+    { src: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1600&q=85&auto=format&fit=crop", alt: "A bright room with woven furniture." },
+    { src: "https://images.unsplash.com/photo-1567016432779-094069958ea5?w=1600&q=85&auto=format&fit=crop", alt: "Woven pendant lighting." },
+    { src: "https://images.unsplash.com/photo-1493666438817-866a91353ca9?w=1600&q=85&auto=format&fit=crop", alt: "A styled interior with natural materials." }
+  ],
+  faq: [
+    { q: "What's the difference between rattan and wicker — and is rattan the same as bamboo?", a: "These get mixed up constantly, so here's the clear version. Rattan is a material: it's a climbing palm (a solid, flexible vine-like cane) that grows in tropical forests, and it's the raw stuff furniture is made from. Wicker is not a material at all — it's a weaving technique, the process of weaving pliable material into furniture. So a piece is made of rattan (or cane, or abaca, or even synthetic fibre) and woven in the wicker style; 'wicker furniture' just means woven furniture. Bamboo is different again: bamboo is a hollow grass with rigid, jointed stalks, whereas rattan is solid all the way through and far more flexible, which is exactly why rattan can be steam-bent into the flowing curves you see in a peacock chair while bamboo tends to be used in straighter, jointed constructions. In short: rattan is the solid, bendable cane we build with; wicker is how we weave it; bamboo is a different, hollow plant altogether. We work primarily in real rattan, with cane and abaca for the weaving." },
+    { q: "Is rattan furniture actually durable, or is it delicate?", a: "Properly made rattan furniture is genuinely durable — often surprisingly so — which is a big part of why it's been prized for generations and why antique rattan pieces are still in use. Solid rattan pole, steam-bent and well-jointed, makes a strong, resilient frame; it has a bit of natural give that helps it absorb stress rather than crack, and a good hand-woven binding is tight and load-bearing, not decorative. The cases where rattan gets a 'delicate' reputation are usually cheaply made pieces with thin poles, sloppy weaving, or damage from misuse and the elements. Treated well, a quality rattan chair comfortably lasts decades. The honest caveats: natural rattan is happiest indoors or in covered outdoor areas, as prolonged direct sun and rain will dry, fade and weaken it over time (for fully exposed outdoor use, synthetic 'all-weather' wicker is the better tool); and like all fine furniture it benefits from care. But within its element, well-made rattan is a workhorse, not a fragile ornament — and crucially, when it does eventually wear, it can be repaired rather than binned." },
+    { q: "Can you make furniture to my own design or measurements?", a: "Yes — made-to-order is central to what we do, and it's one of the real advantages of buying from a genuine workshop rather than off a showroom floor. Because every piece is built and woven by hand, we can work to your specific dimensions, proportions, weave pattern, frame style, finish colour and cushion fabric, whether you're matching an existing set, fitting an awkward space, realising a designer's drawing, or reimagining a classic form in your own way. You can come to us with as much or as little as you have: a precise technical drawing and spec, a photo of something you love, or just a description of the room and the feeling you're after — we'll turn it into a buildable design and an honest quote. We work regularly with interior designers and architects on bespoke and contract pieces, so we're comfortable reading plans and hitting a specific brief and finish. For anything custom we'll usually confirm the details carefully, and often sample the weave or finish, before we start, so there are no surprises when it's delivered." },
+    { q: "Do you restore old or heirloom rattan furniture?", a: "Yes, and it's some of the most satisfying work we do. One of the best things about well-made rattan is that it's designed to be repaired rather than thrown away — the frame typically long outlives the woven parts, so a piece that looks 'finished' is very often thoroughly rescuable. We re-cane sagged or broken seats, rewove split or unravelled binding and panels, re-glue and re-lash loosened joints, and refinish tired surfaces, bringing heirloom peacock chairs, planter's chairs, vintage sofas and family pieces back to full strength and beauty. Because we make rattan from scratch, we can match weave patterns, cane thickness and finishes closely to the original, so a restoration blends in rather than looking patched. If you've got a family piece — a lola's chair, an inherited set — that's sagging, splitting or wobbling, don't assume it's beyond help; bring it in or send us clear photos of the whole piece and the damage, and we'll assess it honestly and tell you what's worth doing. Keeping a good piece in the family for another generation is exactly what the craft is for." },
+    { q: "Is rattan an eco-friendly, sustainable choice?", a: "Broadly, yes — rattan is one of the more genuinely sustainable materials in furniture, and it's a real part of its appeal today. Rattan is a fast-growing climbing palm that matures far more quickly than hardwood timber, regenerates after harvesting, and grows naturally within tropical forest ecosystems, which means well-managed rattan harvesting can provide income without clearing forest — it can actually give standing forest an economic value that encourages its preservation. It's renewable, biodegradable, and lightweight (which lowers shipping emissions compared to heavy materials). As with anything, the sustainability depends on responsible sourcing and management rather than the material alone, and we care about that. It's also worth being honest about the distinction between natural rattan and synthetic 'all-weather' rattan, which is a plastic (usually polyethylene) woven to look like rattan: synthetic is more weatherproof for fully exposed outdoor use, but it isn't the natural, renewable material and doesn't biodegrade. We work primarily in real, natural rattan, and if durability outdoors is your priority we'll talk you through the honest trade-offs so you choose the right material for the job." },
+    { q: "Can you ship a piece to me abroad?", a: "Yes — export is part of our heritage, not an afterthought. Cebu built its reputation as a global furniture hub partly on exporting handwoven rattan around the world, and we crate and ship pieces to homes, interior designers and buyers internationally as a matter of course. Rattan has a real advantage here: it's relatively lightweight for its size, and many pieces can be built or partly knocked down to pack efficiently, which helps keep freight sensible. When you order from abroad, we'll advise you honestly on what ships well, what can be flat-packed or nested, lead times, and how the piece should be crated and protected so it arrives in perfect condition, and we'll help you understand the logistics. For designers and trade buyers placing larger or repeat orders, we're set up for contract-scale export with consistent quality across a run. Whether you want a single peacock chair sent to your apartment overseas or a container of matched sets for a project, get in touch with what you need and where it's going, and we'll walk you through ordering from afar with confidence. Distance is genuinely not an obstacle — it's what Cebu rattan has always done." }
+  ],
+  area: { places: ["Mandaue", "Cebu City", "Lapu-Lapu / Mactan", "Cebu Province", "Nationwide delivery", "Worldwide export"] },
+  credentials: [
+    { label: "Since 1988", detail: "Bending & weaving rattan in Cebu" },
+    { label: "Steam-bent by hand", detail: "Solid rattan poles, curved by hand" },
+    { label: "Made & restored", detail: "Custom pieces & heirloom re-caning" },
+    { label: "Worldwide export", detail: "Crated & shipped, as Cebu always has" }
+  ],
+  location: { name: "Tadhana Rattan", addressStreet: "31 A.S. Fortuna Street", addressLocality: "Mandaue", addressRegion: "Cebu", addressPostcode: "6014", addressCountry: "Philippines" },
+  cta: { heading: "Commission a piece woven to last a lifetime.", body: "Handwoven rattan and wicker — peacock chairs, custom sofas, headboards and lighting, plus restoration and worldwide export — steam-bent and woven by hand in Mandaue, Cebu since 1988. Bring your room or your drawing and we'll build to it.", primary: { label: "Commission a piece", href: "#book" }, secondary: { label: "(032) 555 0166", href: "tel:+63325550166" } },
+  messaging: { whatsapp: "https://wa.me/63325550166", messenger: "https://m.me/tadhanarattan" }
+};
+</script>
+
+<style>
+  :root {
+    --umber:#40301d; --umber-2:#2f2315; --linen:#f4ecdc; --linen-2:#faf4e7; --ink:#33291c; --ink-2:#5a4c39;
+    --cane:#c69a4e; --terra:#b5623a; --palm:#5f7a48;
+    --mid:#93805f; --mid-d:#cbb891; --rule:rgba(64,48,29,0.14); --rule-d:rgba(244,236,220,0.16);
+    --disp:"Fraunces",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--linen);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--terra);}
+  .wrap{width:min(1240px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--terra);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(38px,5.4vw,80px);line-height:1.03;margin:0 0 0.32em;letter-spacing:-0.005em;}
+  .h2 em{font-style:italic;color:var(--terra);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:3px;}
+  .btn-primary{background:var(--umber);color:var(--linen-2);} .btn-primary:hover{background:var(--terra);}
+  .btn-ghost{border:1.5px solid var(--umber);color:var(--umber);} .btn-ghost:hover{background:var(--umber);color:var(--linen-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(244,236,220,0.93);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--umber);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:400;font-size:25px;text-decoration:none;letter-spacing:-0.01em;color:var(--umber);}
+  .wm span{color:var(--terra);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,66px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:400;font-size:clamp(40px,6.2vw,96px);line-height:1.0;letter-spacing:-0.015em;margin:0 0 34px;max-width:18ch;color:var(--umber);}
+  .hero-headline em{font-style:italic;color:var(--terra);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:4px;}
+  .hero-photo::after{content:"WOVEN BY HAND · SINCE 1988";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.12em;background:var(--cane);color:var(--umber);padding:7px 12px;border-radius:3px;}
+  .hero-right .lede{color:var(--mid);font-size:clamp(15px,1.5vw,17.5px);line-height:1.74;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--umber);color:var(--linen-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(250,244,231,0.86);font-weight:700;}
+
+  .about{background:var(--linen-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:4px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.78;margin:0 0 1em;color:#4d3f2c;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--umber);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(181,98,58,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;color:var(--palm);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(25px,2.7vw,36px);margin:0;line-height:1.04;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--umber);color:var(--linen);}
+  .why .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+  .why .h2{color:var(--linen);} .why .h2 em{color:var(--cane);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--cane);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:28px;margin:0 0 10px;line-height:1.1;}
+  .why-grid p{color:var(--mid-d);margin:0;font-size:14.5px;line-height:1.72;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--rule);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--palm);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:24px;margin:8px 0 8px;line-height:1.1;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--umber-2);color:var(--linen);}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(28px,3.7vw,54px);line-height:1.12;max-width:26ch;margin:0 0 24px;}
+  .t-quote em{font-style:italic;color:var(--cane);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--cane);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.74;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:4px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--terra);color:var(--linen-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--umber);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--terra);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:64ch;line-height:1.74;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--umber);border-radius:3px;font-weight:700;color:var(--mid);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--terra);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:20px;line-height:1.18;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--umber);color:var(--linen);padding:34px;border-radius:4px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:400;font-size:23px;line-height:1.3;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:var(--mid-d);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule-d);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid-d);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid-d);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:4px;border:1.5px solid var(--umber);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(150deg) brightness(0.92) sepia(0.2);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--terra);color:var(--linen-2);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--linen-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(42px,6vw,100px);line-height:1.02;margin:14px auto 18px;max-width:16ch;}
+  .cta-band h2 em{font-style:italic;color:var(--cane);}
+  .cta-band p{color:rgba(250,244,231,0.9);max-width:54ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--linen-2);color:var(--terra);} .cta-band .btn-primary:hover{background:var(--umber);color:var(--linen-2);}
+  .cta-band .btn-ghost{border-color:var(--linen-2);color:var(--linen-2);} .cta-band .btn-ghost:hover{background:var(--linen-2);color:var(--terra);}
+
+  footer{background:var(--umber-2);color:var(--linen);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--cane);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--umber);color:var(--linen-2);padding:13px 20px;border-radius:3px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(64,48,29,0.4);}
+  .msg-fab a:hover{background:var(--terra);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FurnitureStore","name":"Tadhana Rattan","description":"Rattan and wicker furniture workshop in Mandaue, Cebu — handwoven peacock chairs, sofas, headboards and lighting from solid rattan and abaca, made to order, restored and re-caned, and exported worldwide. Since 1988.","url":"https://tadhanarattan.ph/","telephone":"+63325550166","email":"weave@tadhanarattan.ph","address":{"@type":"PostalAddress","streetAddress":"31 A.S. Fortuna Street","addressLocality":"Mandaue","addressRegion":"Cebu","postalCode":"6014","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":10.3350,"longitude":123.9420},"areaServed":["Mandaue","Cebu City","Lapu-Lapu","Cebu Province"],"image":["https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1600"],"foundingDate":"1988"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What's the difference between rattan and wicker, and is rattan bamboo?","acceptedAnswer":{"@type":"Answer","text":"Rattan is a material — a solid, flexible climbing palm that furniture is made from. Wicker isn't a material at all; it's the weaving technique, so 'wicker furniture' just means woven furniture. Bamboo is different again: a hollow, rigid, jointed grass, whereas rattan is solid and bendable, which is why rattan can be steam-bent into flowing curves like a peacock chair. In short: rattan is the cane we build with, wicker is how we weave it, bamboo is a different hollow plant. We work primarily in real rattan with cane and abaca."}},
+{"@type":"Question","name":"Is rattan furniture durable or delicate?","acceptedAnswer":{"@type":"Answer","text":"Properly made rattan is genuinely durable — solid pole, steam-bent and well-jointed, makes a strong, resilient frame with natural give, and tight hand-woven binding is load-bearing. Its 'delicate' reputation comes from cheap thin-pole pieces, sloppy weaving or weather damage. Treated well, a quality rattan chair lasts decades. Caveats: natural rattan prefers indoors or covered areas (sun and rain weaken it; use synthetic all-weather wicker for full exposure), and when it does wear, it can be repaired rather than binned."}},
+{"@type":"Question","name":"Can you make furniture to my design or measurements?","acceptedAnswer":{"@type":"Answer","text":"Yes — made-to-order is central to what we do. Because every piece is built and woven by hand, we work to your dimensions, weave pattern, frame style, finish and cushion fabric, whether matching a set, fitting a space, or realising a designer's drawing. Bring a technical spec, a photo, or just a description of the room and feeling. We work regularly with designers and architects, read plans, and usually confirm details and sample the weave or finish before starting so there are no surprises."}},
+{"@type":"Question","name":"Do you restore old or heirloom rattan furniture?","acceptedAnswer":{"@type":"Answer","text":"Yes — and it's satisfying work, because good rattan is designed to be repaired. The frame usually outlives the woven parts, so a piece that looks finished is often rescuable. We re-cane seats, reweave split binding and panels, re-glue and re-lash joints, and refinish surfaces. Because we make rattan from scratch, we match weave, cane thickness and finish closely so a restoration blends in. Bring a family piece in or send clear photos of the whole piece and the damage and we'll assess it honestly."}},
+{"@type":"Question","name":"Is rattan an eco-friendly, sustainable choice?","acceptedAnswer":{"@type":"Answer","text":"Broadly yes — rattan is a fast-growing climbing palm that matures far quicker than hardwood, regenerates after harvesting and grows within forest ecosystems, so well-managed harvesting can give standing forest economic value. It's renewable, biodegradable and lightweight (lower shipping emissions). Sustainability depends on responsible sourcing, which we care about. Note the difference from synthetic 'all-weather' rattan, which is a plastic woven to look like rattan — more weatherproof outdoors but not natural or biodegradable. We work primarily in real rattan and will talk you through the trade-offs."}},
+{"@type":"Question","name":"Can you ship a piece to me abroad?","acceptedAnswer":{"@type":"Answer","text":"Yes — export is part of our heritage. Cebu built its reputation partly on exporting handwoven rattan worldwide, and we crate and ship to homes, designers and buyers internationally as a matter of course. Rattan is relatively light for its size and many pieces pack efficiently or knock down, keeping freight sensible. We advise on what ships well, lead times, and crating so it arrives perfect, and we're set up for contract-scale export with consistent quality. Tell us what you need and where it's going and we'll walk you through ordering from afar."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Tadhana <span>Rattan</span></a>
+    <nav class="nav-links">
+      <a href="#about">The workshop</a><a href="#services">What we weave</a><a href="#location">Find us</a><a href="#book">Commission</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Handwoven rattan & wicker · custom & restored · export · Mandaue, Cebu</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Bent by steam, woven by hand, made to <em>outlast</em> the person who bought it.
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=2000&q=85&auto=format&fit=crop"
+             alt="A woven rattan chair in a bright interior." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A rattan and wicker furniture workshop in Mandaue, the heart of Cebu's furniture trade — solid rattan poles steamed and bent by hand, then woven with cane and abaca into peacock chairs, sofas, headboards, lamps and the pieces that made Philippine rattan famous worldwide. Made to order, restored and re-caned, and shipped to homes, resorts and designers across the globe.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Commission a piece</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we weave</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Bending cane by hand since 1988</span>
+    <span>Steam-bent solid rattan</span>
+    <span>Made, restored &amp; re-caned</span>
+    <span>Exported worldwide</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>WEAVE 01 / THE WORKSHOP</span><span>MANDAUE, FURNITURE CITY</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Rattan is a grass, not a tree. Worked right, it's stronger than furniture has any right to <em>be.</em></h2>
+        <p>Tadhana Rattan is a furniture workshop in Mandaue, Cebu — the city that turned the Philippines into one of the world's great rattan-furniture makers, exporting the handwoven pieces you've seen in homes and resorts everywhere. Rattan is a climbing palm, a solid, flexible cane that grows fast in our forests; steamed, it bends into curves no timber could manage, and once cooled it holds that shape with astonishing strength. We've been bending and weaving it here since 1988.</p>
+        <p>The craft is genuinely a craft. We heat the solid rattan poles with steam and bend them by hand around forms to build the frame — the graceful loops of a peacock chair, the arc of a headboard, the sweep of a sofa arm. Then the weavers take over, wrapping joints and binding panels with split rattan skin, cane and abaca in the tight, even patterns that are the whole beauty of wickerwork. It's slow, skilled, human work. A machine cannot bend a pole to the eye or weave a curve to the hand.</p>
+        <p>We make furniture to order for homes, interior designers, resorts and hospitality; we restore and re-cane heirloom and vintage rattan that's sagged or split; and we export worldwide, because Philippine rattan is prized far beyond our shores. Rattan is also genuinely sustainable — a fast-growing, renewable vine, not a slow hardwood — which is part of why the world is coming back to it. Commission a piece and it'll be woven by hand to last for decades, then re-woven when it finally needs it.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=1200&q=85&auto=format&fit=crop"
+           alt="Close-up of woven rattan detail." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>WEAVE 02 / WHAT WE WEAVE</span><span>CLASSICS · CUSTOM · RESTORE · EXPORT</span></div>
+    <h2 class="h2">What we weave.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>The peacock chair &amp; classics</h3><p>The iconic high-fan peacock chair, the papasan, the planter's chair and the rattan classics that made Philippine wickerwork famous — woven by hand from solid cane, as striking now as ever.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Made-to-order furniture</h3><p>Sofas, lounge sets, dining chairs, headboards, tables, shelving and daybeds — designed and woven to your dimensions, finish and cushion fabric. Bring a brief, a room, or a picture; we'll build to it.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Rattan lighting &amp; accents</h3><p>Woven pendant lamps, lampshades, mirrors, baskets, room dividers and the smaller wicker pieces that warm a room — the accents designers reach for, handmade and made to match your larger pieces.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Restoration &amp; re-caning</h3><p>Sagged seats re-caned, split binding rewoven, wobbly frames re-glued and re-lashed — heirloom and vintage rattan brought back to life. A well-made rattan piece is meant to be repaired, not replaced.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Contract &amp; hospitality</h3><p>Volume orders for resorts, hotels, restaurants and cafés — matched sets woven to a consistent spec and finish, built for the wear of commercial use. The tropical look, made properly and at scale.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Worldwide export</h3><p>We crate and ship rattan furniture to homes, designers and buyers across the globe, as generations of Cebu makers have — advising on what travels, what packs flat, and how to order from afar with confidence.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>WEAVE 03 / THE DIFFERENCE</span><span>WHY HANDWOVEN HOLDS</span></div>
+    <h2 class="h2">Why handwoven <em>holds.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Steam-bent by hand.</h3><p>We bend solid rattan poles by hand with steam and forms — the only way to get those clean, strong curves. The difference between furniture that looks handmade and furniture that merely looks like it.</p></div>
+      <div><span class="no">02 / 03</span><h3>Woven tight, woven right.</h3><p>The binding and panels are wrapped by weavers with decades in their hands, in patterns that are both the strength and the beauty of the piece. Loose, lazy weaving shows and fails; ours holds for decades.</p></div>
+      <div><span class="no">03 / 03</span><h3>Repairable by design.</h3><p>A hand-woven rattan piece can be re-caned and re-lashed when it eventually wears, which is why good rattan gets handed down. We build to last, and we're here to restore it when the years catch up.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>WEAVE 04 / HOW IT GOES</span><span>BRIEF · DESIGN · WEAVE · SHIP</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us the piece</h3><p>A classic peacock chair, a made-to-order sofa, a resort's worth of matched sets, or an heirloom to restore? Share the brief, dimensions, finish and references, and we'll advise honestly on what works.</p></li>
+      <li><span class="step">STEP 02</span><h3>Design &amp; quote</h3><p>We confirm the design, materials, finish and cushions, and give you a clear quote and timeline. For custom and contract work we'll often sample the weave or finish so you know exactly what you're getting.</p></li>
+      <li><span class="step">STEP 03</span><h3>Bent, woven &amp; finished</h3><p>Frames steam-bent by hand, joints and panels woven, then sanded, stained or lacquered and cushioned. It takes time — hand-weaving can't be hurried — and we'll keep you posted through the build.</p></li>
+      <li><span class="step">STEP 04</span><h3>Delivered or shipped</h3><p>Delivered around Cebu, sent nationwide, or crated for export worldwide — packed to travel safely. And whenever a piece needs re-caning down the years, bring it back; we'll re-weave it good as new.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>WEAVE 05 / FROM THE ROOM</span><span>REAL CEBU CRAFTSMANSHIP</span></div>
+    <blockquote class="t-quote">“The peacock chairs are showstoppers and everything is built like a tank. This is the real Cebu craftsmanship people <em>fly here for.</em>”</blockquote>
+    <div class="t-attr">Homeowner, Mactan — full-home commission</div>
+    <div class="t-sub">
+      <figure><blockquote>“As an interior designer I source rattan from Tadhana for clients here and abroad. The weaving quality is consistently superb, they nail custom dimensions and finishes, and they crate for export properly so nothing arrives damaged. A workshop I trust completely and recommend without hesitation.”</blockquote><figcaption>Interior designer — trade account</figcaption></figure>
+      <figure><blockquote>“They restored my lola's peacock chair that I thought was beyond saving — re-caned the seat, rewove the split binding, and it looks better than it has in thirty years. To keep a family piece alive like that meant the world. True craftspeople who clearly love what they do. Salamat.”</blockquote><figcaption>Cristina D. — heirloom restoration</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--linen-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>WEAVE 06 / FROM THE BENCH</span><span>CANE, CURVE &amp; PATTERN</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1600&q=85&auto=format&fit=crop" alt="A woven rattan chair in a bright interior." /><figcaption>THE PEACOCK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=1600&q=85&auto=format&fit=crop" alt="Close-up of woven rattan detail." /><figcaption>THE WEAVE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1503602642458-232111445657?w=1600&q=85&auto=format&fit=crop" alt="A rattan chair against a plain wall." /><figcaption>THE FORM</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=1600&q=85&auto=format&fit=crop" alt="A bright room with woven furniture." /><figcaption>THE ROOM</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1567016432779-094069958ea5?w=1600&q=85&auto=format&fit=crop" alt="Woven pendant lighting." /><figcaption>THE LIGHT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1493666438817-866a91353ca9?w=1600&q=85&auto=format&fit=crop" alt="A styled interior with natural materials." /><figcaption>THE STYLE</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>WEAVE 07 / BEFORE YOU COMMISSION</span><span>MATERIAL, CARE &amp; EXPORT</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you commission.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63325550166" style="color:var(--terra);font-weight:700;">(032) 555 0166</a>. Bring a room, a drawing or an heirloom, and we'll take it from there.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What's the difference between rattan and wicker — and is rattan the same as bamboo?</summary><p>These get mixed up constantly, so here's the clear version. Rattan is a material: a climbing palm (a solid, flexible vine-like cane) that grows in tropical forests, and it's the raw stuff furniture is made from. Wicker is not a material at all — it's a weaving technique, the process of weaving pliable material into furniture. So a piece is made of rattan (or cane, or abaca, or even synthetic fibre) and woven in the wicker style; 'wicker furniture' just means woven furniture. Bamboo is different again: a hollow grass with rigid, jointed stalks, whereas rattan is solid all the way through and far more flexible, which is exactly why rattan can be steam-bent into the flowing curves of a peacock chair while bamboo tends to be used in straighter constructions. In short: rattan is the solid bendable cane we build with, wicker is how we weave it, bamboo is a different hollow plant. We work primarily in real rattan, with cane and abaca for the weaving.</p></details>
+        <details><summary>Is rattan furniture actually durable, or is it delicate?</summary><p>Properly made rattan furniture is genuinely durable — often surprisingly so — which is why it's been prized for generations and why antique rattan is still in use. Solid rattan pole, steam-bent and well-jointed, makes a strong, resilient frame; it has a bit of natural give that helps it absorb stress rather than crack, and good hand-woven binding is tight and load-bearing, not decorative. The 'delicate' reputation usually comes from cheaply made pieces with thin poles, sloppy weaving, or damage from misuse and the elements. Treated well, a quality rattan chair comfortably lasts decades. The honest caveats: natural rattan is happiest indoors or in covered outdoor areas, as prolonged direct sun and rain will dry, fade and weaken it (for fully exposed outdoor use, synthetic all-weather wicker is the better tool); and like all fine furniture it benefits from care. But within its element, well-made rattan is a workhorse, and when it does wear, it can be repaired.</p></details>
+        <details><summary>Can you make furniture to my own design or measurements?</summary><p>Yes — made-to-order is central to what we do, and a real advantage of buying from a genuine workshop rather than off a showroom floor. Because every piece is built and woven by hand, we can work to your specific dimensions, proportions, weave pattern, frame style, finish colour and cushion fabric, whether you're matching an existing set, fitting an awkward space, realising a designer's drawing, or reimagining a classic in your own way. Come with as much or as little as you have: a precise technical drawing, a photo of something you love, or just a description of the room and the feeling. We work regularly with interior designers and architects on bespoke and contract pieces, so we're comfortable reading plans and hitting a specific brief and finish. For anything custom we'll usually confirm details carefully, and often sample the weave or finish, before we start.</p></details>
+        <details><summary>Do you restore old or heirloom rattan furniture?</summary><p>Yes, and it's some of the most satisfying work we do. One of the best things about well-made rattan is that it's designed to be repaired rather than thrown away — the frame typically long outlives the woven parts, so a piece that looks 'finished' is very often thoroughly rescuable. We re-cane sagged or broken seats, reweave split or unravelled binding and panels, re-glue and re-lash loosened joints, and refinish tired surfaces, bringing heirloom peacock chairs, planter's chairs, vintage sofas and family pieces back to full strength and beauty. Because we make rattan from scratch, we can match weave patterns, cane thickness and finishes closely to the original, so a restoration blends in rather than looking patched. If you've got a family piece that's sagging, splitting or wobbling, don't assume it's beyond help; bring it in or send clear photos of the whole piece and the damage, and we'll assess it honestly.</p></details>
+        <details><summary>Is rattan an eco-friendly, sustainable choice?</summary><p>Broadly, yes — rattan is one of the more genuinely sustainable materials in furniture, and part of its appeal today. Rattan is a fast-growing climbing palm that matures far more quickly than hardwood timber, regenerates after harvesting, and grows naturally within tropical forest ecosystems, which means well-managed rattan harvesting can provide income without clearing forest — it can actually give standing forest economic value that encourages its preservation. It's renewable, biodegradable, and lightweight (which lowers shipping emissions). As with anything, sustainability depends on responsible sourcing rather than the material alone, and we care about that. It's also worth being honest about synthetic 'all-weather' rattan, which is a plastic woven to look like rattan: more weatherproof for exposed outdoor use, but not natural or biodegradable. We work primarily in real, natural rattan, and if outdoor durability is your priority we'll talk you through the trade-offs.</p></details>
+        <details><summary>Can you ship a piece to me abroad?</summary><p>Yes — export is part of our heritage, not an afterthought. Cebu built its reputation as a global furniture hub partly on exporting handwoven rattan around the world, and we crate and ship pieces to homes, interior designers and buyers internationally as a matter of course. Rattan has a real advantage here: it's relatively lightweight for its size, and many pieces can be built or partly knocked down to pack efficiently, which keeps freight sensible. When you order from abroad, we'll advise honestly on what ships well, what can be flat-packed or nested, lead times, and how the piece should be crated and protected so it arrives in perfect condition. For designers and trade buyers placing larger or repeat orders, we're set up for contract-scale export with consistent quality across a run. Whether it's a single peacock chair to your apartment overseas or a container of matched sets for a project, tell us what you need and where it's going, and we'll walk you through it.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>WEAVE 08 / WE SUPPLY</span><span>CEBU &amp; THE WORLD</span></div>
+    <ul class="area-list">
+      <li>Mandaue</li><li>Cebu City</li><li>Lapu-Lapu / Mactan</li><li>Cebu Province</li><li>Nationwide delivery</li><li>Worldwide export</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>WEAVE 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1988</div><div class="detail">Bending &amp; weaving rattan in Cebu</div></div>
+      <div><div class="label">Steam-bent by hand</div><div class="detail">Solid rattan poles, curved by hand</div></div>
+      <div><div class="label">Made &amp; restored</div><div class="detail">Custom pieces &amp; heirloom re-caning</div></div>
+      <div><div class="label">Worldwide export</div><div class="detail">Crated &amp; shipped, as Cebu always has</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>WEAVE 10 / THE WORKSHOP</span><span>A.S. FORTUNA ST, MANDAUE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Tadhana Rattan</strong><br />
+          31 A.S. Fortuna Street<br />
+          Mandaue, Cebu 6014<br /><br />
+          <a href="tel:+63325550166" data-bind="business.phoneDisplay">(032) 555 0166</a><br />
+          <a href="mailto:weave@tadhanarattan.ph" data-bind="business.email">weave@tadhanarattan.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SAT</span><span>8AM – 6PM</span></div>
+          <div class="row"><span>SHOWROOM</span><span>WALK-IN</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The workshop and showroom are on A.S. Fortuna Street in Mandaue. Come see pieces being woven, or enquire for custom, contract and export.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Tadhana Rattan, Mandaue" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=123.9270%2C10.3250%2C123.9570%2C10.3450&layer=mapnik&marker=10.3350%2C123.9420"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">WEAVE 11 / COMMISSION</div>
+    <h2 data-bind="cta.heading">Commission a piece woven to last a <em>lifetime.</em></h2>
+    <p data-bind="cta.body">Handwoven rattan and wicker — peacock chairs, custom sofas, headboards and lighting, plus restoration and worldwide export — steam-bent and woven by hand in Mandaue, Cebu since 1988. Bring your room or your drawing and we'll build to it.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Commission a piece</a>
+      <a class="btn btn-ghost" href="tel:+63325550166" data-bind="cta.secondary.label">(032) 555 0166</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63325550166" data-bind="messaging.whatsapp" aria-label="Message the workshop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;color:var(--linen);">Tadhana <span style="color:var(--cane);font-style:italic;">Rattan</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:var(--mid-d);">A rattan &amp; wicker workshop in Mandaue, Cebu — handwoven, custom, restored and exported worldwide, since 1988.</p>
+      </div>
+      <div>
+        <h4>The workshop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          31 A.S. Fortuna Street<br />Mandaue, Cebu 6014<br />
+          <a href="tel:+63325550166">(032) 555 0166</a><br />
+          <a href="mailto:weave@tadhanarattan.ph">weave@tadhanarattan.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we weave</a><a href="#about">The workshop</a><a href="#location">Find us</a><a href="#book">Commission</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> TADHANA RATTAN</span>
+      <span>WOVEN BY HAND · CEBU</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

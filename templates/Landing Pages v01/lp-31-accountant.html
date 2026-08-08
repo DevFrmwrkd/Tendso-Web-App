@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ledger &amp; Sons — chartered accountants for small business, Stirling</title>
+<meta name="description" content="Ledger &amp; Sons is a chartered accountancy practice in Stirling for small businesses and sole traders. Fixed fees, plain English, phone calls answered by accountants." />
+<link href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Public+Sans:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Ledger & Sons", phone: "+44 1786 448 220", phoneDisplay: "01786 448 220", email: "office@ledgerandsons.co.uk", foundedYear: 1979 },
+  hero: {
+    kicker: "Chartered accountants · fixed fees · plain English · Stirling",
+    headline: "Your accounts, balanced. Your phone calls, answered.",
+    lede: "A three-partner chartered practice for small businesses, sole traders and landlords. Fixed annual fees agreed in writing, deadlines we chase so you don't have to, and a person — not a portal — when something goes wrong.",
+    primaryCta: { label: "Book a free first meeting", href: "#book" },
+    secondaryCta: { label: "What we do", href: "#services" },
+    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Accountant working through figures at a desk."
+  },
+  trust: { years: "Balancing Stirling's books since 1979" },
+  about: {
+    heading: "Small firm. On purpose. Since 1979.",
+    paragraphs: [
+      "Ledger & Sons is the family name, and yes, we've heard every joke. The firm was started by Ian Ledger in 1979 with a calculator, a filing cabinet, and the view that an accountant's job is to make the client's year quieter. Two of the current three partners are his sons; the third out-argues them both.",
+      "We act for around four hundred clients — trades, shops, cafés, consultancies, farms, landlords — and we know most of them by voice. The phone gets answered by someone who can actually answer the question, because a receptionist relay is just a slower way of saying 'we'll call you back'.",
+      "Fees are fixed for the year, agreed in writing before any work starts, reviewed annually, and never padded by surprise 'phone call charges'. If you ring to ask a quick question, the answer is included. That's the whole point of having an accountant."
+    ],
+    portrait: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Partner reviewing a set of accounts with a pen."
+  },
+  services: [
+    { name: "Annual accounts & tax returns", description: "Sole traders, partnerships, limited companies. Filed early, explained in one page of plain English." },
+    { name: "Bookkeeping & VAT", description: "Monthly or quarterly, on software we set up for you. VAT returns checked by a human before anything is submitted." },
+    { name: "Payroll & pensions", description: "Weekly or monthly payroll runs, auto-enrolment handled, payslips on time even when you forgot to send the hours." },
+    { name: "Self-assessment", description: "For directors, landlords and the self-employed. We chase you in September, not panic you in January." },
+    { name: "Starting a business", description: "Company or sole trader, VAT or not, what to put aside. One meeting that saves a year of guessing." },
+    { name: "HMRC letters & enquiries", description: "The brown envelope service. Send it to us unopened if you like; plenty do. We answer HMRC so you don't have to." }
+  ],
+  why: [
+    { title: "Fixed fees, in writing.", body: "One agreed annual figure, monthly if you prefer, covering everything listed — including the quick phone calls. No time-sheet ambushes." },
+    { title: "Deadlines chased forward.", body: "We ask for your records in autumn and file early. Nobody here has ever billed a client a January panic premium, because there is no January panic." },
+    { title: "Answered by accountants.", body: "Ring the office and a qualified person picks up. Forty years of clients stayed for exactly this reason." }
+  ],
+  how: [
+    { step: "01", title: "Free first meeting", body: "An hour, no charge, no obligation. Bring last year's accounts if you have them, questions if you don't." },
+    { step: "02", title: "Fixed quote", body: "A written fee for the year's work. Compare it to anyone; we'll wait." },
+    { step: "03", title: "Handover", body: "We collect what we need from your old accountant. You do approximately nothing." },
+    { step: "04", title: "A quieter year", body: "Records in by autumn, filed early, and a phone number that answers. That's the service." }
+  ],
+  testimonials: [
+    { quote: "They found four years of overpaid tax the big firm's software never questioned, and recovered it. The fee paid for itself for a decade.", name: "Alan McG.", context: "electrical contractor" },
+    { quote: "I send the brown envelopes to them unopened. My blood pressure has genuinely improved. That is worth every penny of the fixed fee.", name: "Fiona D.", context: "café owner" },
+    { quote: "Rang at 4pm with a payroll disaster of my own making. Sorted by 5. A human answered, knew my business, and fixed it — that's the whole review.", name: "Craig B.", context: "joinery firm, 12 staff" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1600&q=85&auto=format&fit=crop", alt: "Working through the figures." },
+    { src: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1600&q=85&auto=format&fit=crop", alt: "Reviewing accounts with a pen." },
+    { src: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1600&q=85&auto=format&fit=crop", alt: "A client meeting at the office." },
+    { src: "https://images.unsplash.com/photo-1586486855514-8c633cc6fd38?w=1600&q=85&auto=format&fit=crop", alt: "The office on Dumbarton Road." },
+    { src: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1600&q=85&auto=format&fit=crop", alt: "Files and working papers." },
+    { src: "https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=1600&q=85&auto=format&fit=crop", alt: "Year-end figures on the desk." }
+  ],
+  faq: [
+    { q: "What does 'fixed fee' actually cover?", a: "Everything in your engagement letter: the accounts, returns, filings, payroll if agreed — and the phone calls, emails and 'quick questions' in between. If something genuinely new comes up (an HMRC enquiry, a company purchase), we quote it separately before starting. You will never receive a bill you didn't see coming." },
+    { q: "How painful is switching accountants?", a: "For you: one email giving your old accountant permission to talk to us. For us: a standard professional handover we've done hundreds of times. Nobody's feelings get hurt; it's the most routine letter in accountancy." },
+    { q: "I'm behind on my returns. How much trouble am I in?", a: "Less than you fear, more than you'd like. Come in this week — penalties grow with delay, and HMRC treats voluntary disclosure far more kindly than discovery. We've unpicked worse than yours. Genuinely, whatever it is: worse." },
+    { q: "Do you work with cloud bookkeeping software?", a: "Yes — we set clients up on the mainstream platforms and train you on the fifteen minutes a week that keep things clean. We're deliberately not tied to one vendor; the right tool depends on your business." },
+    { q: "Can you help me decide between sole trader and limited company?", a: "That's the most common first-meeting question and the answer is an honest 'it depends' with numbers attached. We'll model both against your actual situation — tax, admin, risk — and give you a recommendation, not a shrug." },
+    { q: "What do you need from me and when?", a: "Records after your year-end, ideally by autumn. A shoebox of receipts is accepted with a sigh and a small smile; a tidy folder is accepted with visible joy. Either way it gets done." },
+    { q: "Are you taking new clients?", a: "Yes, at a pace that keeps the phone answerable. If we're at capacity we'll say so and suggest a date rather than letting service quietly rot." }
+  ],
+  area: { places: ["Stirling", "Bridge of Allan", "Dunblane", "Alloa", "Falkirk", "clients across central Scotland"] },
+  credentials: [
+    { label: "ICAS", detail: "Chartered accountants, ICAS regulated" },
+    { label: "Est. 1979", detail: "Three partners, second generation" },
+    { label: "AML", detail: "Anti-money-laundering supervised" },
+    { label: "PII", detail: "Professional indemnity insured" }
+  ],
+  location: { name: "Ledger & Sons", addressStreet: "41 Dumbarton Road", addressLocality: "Stirling", addressRegion: "Stirlingshire", addressPostcode: "FK8 2LQ", addressCountry: "United Kingdom" },
+  cta: { heading: "The first meeting is free. The relief is immediate.", body: "Bring the shoebox, the brown envelopes, the questions. An hour with a partner, no obligation.", primary: { label: "Book the free meeting", href: "#book" }, secondary: { label: "01786 448 220", href: "tel:+441786448220" } },
+  messaging: { whatsapp: "https://wa.me/441786448220", messenger: "https://m.me/ledgerandsons" }
+};
+</script>
+
+<style>
+  :root {
+    --ledger:#f4f2ec; --grid-tint:#e9e5d8; --ink:#1e2a23; --green:#1f4d38;
+    --pencil:#77716180; --soft:#6f6a5c; --red-ink:#a33327; --rule:rgba(30,42,35,0.15);
+    --serif:"Spectral",Georgia,serif;
+    --sans:"Public Sans",system-ui,sans-serif;
+    --mono:"Spline Sans Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--ledger);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.58;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1200px,92vw);margin-inline:auto;}
+  .acct{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--red-ink);font-weight:500;}
+  .h2{font-family:var(--serif);font-weight:600;font-size:clamp(32px,4.4vw,56px);line-height:1.06;letter-spacing:-0.015em;margin:0 0 0.45em;}
+  .h2 em{font-style:italic;font-weight:400;}
+  .body{color:var(--soft);line-height:1.72;}
+  section{padding:clamp(72px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:14px 26px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--green);color:var(--ledger);} .btn-primary:hover{background:var(--ink);}
+  .btn-ghost{border:1.5px solid var(--green);color:var(--green);} .btn-ghost:hover{background:var(--green);color:var(--ledger);}
+  /* double-rule = "total" line device */
+  .total-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--soft);border-bottom:3px double var(--ink);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,60px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(244,242,236,0.95);backdrop-filter:blur(10px);border-bottom:3px double var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--serif);font-weight:600;font-size:20px;text-decoration:none;}
+  .wm .amp{font-style:italic;color:var(--red-ink);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--soft);font-weight:500;}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--green);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — trial-balance composition */
+  .hero{padding:clamp(52px,7vw,100px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .hero h1{font-family:var(--serif);font-weight:600;font-size:clamp(34px,4.6vw,64px);line-height:1.06;letter-spacing:-0.02em;margin:20px 0 24px;}
+  .hero h1 em{font-style:italic;font-weight:400;}
+  .hero .lede{color:var(--soft);max-width:46ch;line-height:1.72;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .tb{position:absolute;bottom:-22px;right:-14px;background:#fff;border:1.5px solid var(--ink);padding:16px 20px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.06em;line-height:2;box-shadow:6px 6px 0 var(--green);}
+  .tb .r{display:flex;justify-content:space-between;gap:28px;}
+  .tb .tot{border-top:3px double var(--ink);margin-top:4px;padding-top:4px;font-weight:600;}
+  .tb .g{color:var(--green);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .tb{right:10px;}}
+
+  .trust{padding:0;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);background:var(--grid-tint);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--soft);}
+
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-prose p{font-family:var(--serif);font-size:clamp(17px,1.6vw,20px);line-height:1.72;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border:1.5px solid var(--ink);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — ledger table with account codes */
+  .ledger-tbl{border:1.5px solid var(--ink);margin-top:clamp(26px,4vw,44px);background:#fff;}
+  .ledger-tbl .l-head{display:grid;grid-template-columns:110px 300px 1fr;gap:24px;padding:12px 24px;background:var(--ink);color:var(--ledger);font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;}
+  .l-row{display:grid;grid-template-columns:110px 300px 1fr;gap:24px;padding:22px 24px;border-top:1px solid var(--rule);align-items:baseline;}
+  .l-row:hover{background:var(--ledger);}
+  .l-row .code{font-family:var(--mono);font-size:11px;color:var(--red-ink);font-weight:500;}
+  .l-row .name{font-family:var(--serif);font-weight:600;font-size:21px;}
+  .l-row .desc{color:var(--soft);font-size:14.5px;max-width:54ch;line-height:1.66;}
+  @media(max-width:820px){.ledger-tbl .l-head{display:none;} .l-row{grid-template-columns:90px 1fr;} .l-row .desc{grid-column:1/-1;}}
+
+  .why{background:var(--green);color:var(--ledger);}
+  .why .h2{color:var(--ledger);}
+  .why .total-head{border-color:rgba(244,242,236,0.5);color:rgba(244,242,236,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px);margin-top:clamp(26px,4vw,44px);}
+  .why-grid .tick{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:#d8b968;display:block;margin-bottom:14px;}
+  .why-grid h3{font-family:var(--serif);font-weight:600;font-size:23px;margin:0 0 10px;line-height:1.15;}
+  .why-grid p{color:rgba(244,242,236,0.72);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px double var(--ink);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;color:var(--red-ink);font-weight:500;}
+  .how-grid h3{font-family:var(--serif);font-weight:600;font-size:20px;margin:10px 0 8px;}
+  .how-grid p{color:var(--soft);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--grid-tint);}
+  .t-quote{font-family:var(--serif);font-style:italic;font-size:clamp(24px,3.2vw,42px);line-height:1.3;max-width:30ch;margin:0 0 22px;}
+  .t-attr{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--soft);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:3px double var(--ink);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.68;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--soft);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,24px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;border:1.5px solid var(--ink);}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--soft);margin-top:8px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:3px double var(--ink);}
+  .faq-list summary{font-family:var(--serif);font-weight:600;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"§";color:var(--red-ink);font-size:16px;flex-shrink:0;}
+  .faq-list p{margin:14px 0 0;color:var(--soft);font-size:14.5px;max-width:58ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px 18px;border:1.5px solid var(--ink);background:#fff;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px double var(--ink);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--red-ink);margin-bottom:8px;font-weight:500;}
+  .creds .detail{font-family:var(--serif);font-weight:600;font-size:17px;line-height:1.42;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{border:1.5px solid var(--ink);padding:32px;background:#fff;box-shadow:6px 6px 0 var(--green);}
+  .nap address{font-style:normal;font-family:var(--serif);font-weight:600;font-size:21px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--soft);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--soft);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{border:1.5px solid var(--ink);min-height:380px;}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--ink);color:var(--ledger);padding:clamp(80px,10vw,140px) 0;}
+  .cta-band h2{font-family:var(--serif);font-weight:600;font-size:clamp(34px,4.8vw,70px);line-height:1.04;letter-spacing:-0.02em;margin:14px 0 18px;max-width:18ch;}
+  .cta-band h2 em{font-style:italic;font-weight:400;}
+  .cta-band p{color:rgba(244,242,236,0.8);max-width:46ch;margin:0 0 32px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--ledger);color:var(--ink);}
+  .cta-band .btn-primary:hover{background:#d8b968;}
+  .cta-band .btn-ghost{border-color:rgba(244,242,236,0.6);color:var(--ledger);}
+  .cta-band .btn-ghost:hover{background:var(--ledger);color:var(--ink);}
+
+  footer{background:var(--ledger);border-top:3px double var(--ink);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--red-ink);margin:0 0 14px;font-weight:500;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--soft);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--green);color:var(--ledger);padding:13px 19px;text-decoration:none;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;box-shadow:0 8px 24px rgba(31,77,56,0.28);}
+  .msg-fab a:hover{background:var(--ink);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"AccountingService","name":"Ledger & Sons","description":"Chartered accountancy practice in Stirling for small businesses and sole traders. Fixed fees, plain English.","url":"https://ledgerandsons.co.uk/","telephone":"+441786448220","email":"office@ledgerandsons.co.uk","address":{"@type":"PostalAddress","streetAddress":"41 Dumbarton Road","addressLocality":"Stirling","addressRegion":"Stirlingshire","postalCode":"FK8 2LQ","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":56.1165,"longitude":-3.9407},"areaServed":["Stirling","Bridge of Allan","Dunblane","Alloa","Falkirk","Central Scotland"],"image":["https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1600"],"foundingDate":"1979"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What does 'fixed fee' actually cover?","acceptedAnswer":{"@type":"Answer","text":"Everything in your engagement letter, including calls and quick questions. Genuinely new work is quoted before starting."}},
+{"@type":"Question","name":"How painful is switching accountants?","acceptedAnswer":{"@type":"Answer","text":"One email from you; a routine professional handover from us."}},
+{"@type":"Question","name":"I'm behind on my returns. How much trouble am I in?","acceptedAnswer":{"@type":"Answer","text":"Come in this week — penalties grow with delay, and voluntary disclosure is treated far more kindly."}},
+{"@type":"Question","name":"Do you work with cloud bookkeeping software?","acceptedAnswer":{"@type":"Answer","text":"Yes, mainstream platforms; we set you up and train you."}},
+{"@type":"Question","name":"Sole trader or limited company?","acceptedAnswer":{"@type":"Answer","text":"We model both against your actual numbers and give a recommendation, not a shrug."}},
+{"@type":"Question","name":"Are you taking new clients?","acceptedAnswer":{"@type":"Answer","text":"Yes, at a pace that keeps the phone answerable."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Ledger <span class="amp">&amp;</span> Sons</a>
+    <nav class="nav-links">
+      <a href="#about">The firm</a><a href="#services">Services</a><a href="#location">Find us</a><a href="#book">First meeting</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v25">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="acct" data-bind="hero.kicker">Chartered accountants · fixed fees · plain English · Stirling</div>
+      <h1 data-bind="hero.headline">Your accounts, balanced. <em>Your phone calls, answered.</em></h1>
+      <p class="lede" data-bind="hero.lede">A three-partner chartered practice for small businesses, sole traders and landlords. Fixed annual fees agreed in writing, deadlines we chase so you don't have to, and a person — not a portal — when something goes wrong.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a free first meeting</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we do</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=2000&q=85&auto=format&fit=crop"
+           alt="Accountant working through figures at a desk." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="tb" aria-hidden="true">
+        <div class="r"><span>YOUR TIME BACK</span><span class="g">DR</span></div>
+        <div class="r"><span>YOUR JANUARY PANIC</span><span class="g">CR</span></div>
+        <div class="r tot"><span>BALANCE</span><span class="g">✓ AGREED</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Balancing Stirling's books since 1979</span>
+    <span>ICAS chartered</span>
+    <span>Fixed fees in writing</span>
+    <span>~400 clients, known by voice</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap">
+    <div class="total-head"><span>A/C 01 — THE FIRM</span><span>SECOND GENERATION</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">Small firm. On purpose. <em>Since 1979.</em></h2>
+        <p>Ledger &amp; Sons is the family name, and yes, we've heard every joke. The firm was started by Ian Ledger in 1979 with a calculator, a filing cabinet, and the view that an accountant's job is to make the client's year quieter. Two of the current three partners are his sons; the third out-argues them both.</p>
+        <p>We act for around four hundred clients and know most of them by voice. The phone gets answered by someone who can actually answer the question.</p>
+        <p>Fees are fixed for the year, agreed in writing before any work starts, and never padded by surprise "phone call charges". If you ring with a quick question, the answer is included. That's the whole point of having an accountant.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1200&q=85&auto=format&fit=crop"
+           alt="Partner reviewing a set of accounts with a pen." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v18">
+  <div class="wrap">
+    <div class="total-head"><span>A/C 02 — SERVICES</span><span>THE NOMINAL LEDGER</span></div>
+    <h2 class="h2">The nominal <em>ledger.</em></h2>
+    <div class="ledger-tbl">
+      <div class="l-head"><span>CODE</span><span>ACCOUNT</span><span>DESCRIPTION</span></div>
+      <div class="l-row"><span class="code">0100</span><span class="name">Annual accounts &amp; tax</span><span class="desc">Sole traders, partnerships, limited companies. Filed early, explained in one page of plain English.</span></div>
+      <div class="l-row"><span class="code">0200</span><span class="name">Bookkeeping &amp; VAT</span><span class="desc">Monthly or quarterly, on software we set up for you. VAT returns checked by a human before anything is submitted.</span></div>
+      <div class="l-row"><span class="code">0300</span><span class="name">Payroll &amp; pensions</span><span class="desc">Weekly or monthly runs, auto-enrolment handled, payslips on time even when you forgot to send the hours.</span></div>
+      <div class="l-row"><span class="code">0400</span><span class="name">Self-assessment</span><span class="desc">For directors, landlords and the self-employed. We chase you in September, not panic you in January.</span></div>
+      <div class="l-row"><span class="code">0500</span><span class="name">Starting a business</span><span class="desc">Company or sole trader, VAT or not, what to put aside. One meeting that saves a year of guessing.</span></div>
+      <div class="l-row"><span class="code">0600</span><span class="name">HMRC letters &amp; enquiries</span><span class="desc">The brown envelope service. Send it to us unopened if you like; plenty do.</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="total-head"><span>A/C 03 — WHY THIS FIRM</span><span>THREE ENTRIES, RECONCILED</span></div>
+    <h2 class="h2">Three entries, <em>reconciled.</em></h2>
+    <div class="why-grid">
+      <div><span class="tick">ENTRY ✓ 1</span><h3>Fixed fees, in writing.</h3><p>One agreed annual figure, monthly if you prefer, covering everything listed — including the quick phone calls. No time-sheet ambushes.</p></div>
+      <div><span class="tick">ENTRY ✓ 2</span><h3>Deadlines chased forward.</h3><p>We ask for your records in autumn and file early. There is no January panic here, so nobody bills you a premium for one.</p></div>
+      <div><span class="tick">ENTRY ✓ 3</span><h3>Answered by accountants.</h3><p>Ring the office and a qualified person picks up. Forty years of clients stayed for exactly this reason.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="total-head"><span>A/C 04 — ONBOARDING</span><span>MEETING → QUIET YEAR</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Free first meeting</h3><p>An hour, no charge, no obligation. Bring last year's accounts if you have them, questions if you don't.</p></li>
+      <li><span class="step">STEP 02</span><h3>Fixed quote</h3><p>A written fee for the year's work. Compare it to anyone; we'll wait.</p></li>
+      <li><span class="step">STEP 03</span><h3>Handover</h3><p>We collect what we need from your old accountant. You do approximately nothing.</p></li>
+      <li><span class="step">STEP 04</span><h3>A quieter year</h3><p>Records in by autumn, filed early, and a phone number that answers. That's the service.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="total-head"><span>A/C 05 — CLIENT RECORD</span><span>THREE STATEMENTS</span></div>
+    <blockquote class="t-quote">“I send the brown envelopes to them unopened. My blood pressure has genuinely improved. That is worth every penny of the fixed fee.”</blockquote>
+    <div class="t-attr">Fiona D. — café owner</div>
+    <div class="t-sub">
+      <figure><blockquote>“They found four years of overpaid tax the big firm's software never questioned, and recovered it. The fee paid for itself for a decade.”</blockquote><figcaption>Alan McG. — electrical contractor</figcaption></figure>
+      <figure><blockquote>“Rang at 4pm with a payroll disaster of my own making. Sorted by 5. A human answered, knew my business, and fixed it — that's the whole review.”</blockquote><figcaption>Craig B. — joinery firm, 12 staff</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v18">
+  <div class="wrap">
+    <div class="total-head"><span>A/C 06 — THE OFFICE</span><span>DUMBARTON ROAD</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1600&q=85&auto=format&fit=crop" alt="Working through the figures." /><figcaption>THE WORKING PAPERS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=1600&q=85&auto=format&fit=crop" alt="Reviewing accounts with a pen." /><figcaption>PARTNER REVIEW</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=1600&q=85&auto=format&fit=crop" alt="A client meeting at the office." /><figcaption>FIRST MEETINGS, FREE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1586486855514-8c633cc6fd38?w=1600&q=85&auto=format&fit=crop" alt="The office on Dumbarton Road." /><figcaption>41 DUMBARTON ROAD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1600&q=85&auto=format&fit=crop" alt="Files and working papers." /><figcaption>THE FILES</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1553729459-efe14ef6055d?w=1600&q=85&auto=format&fit=crop" alt="Year-end figures on the desk." /><figcaption>YEAR-END</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="total-head"><span>A/C 07 — ENQUIRIES</span><span>ASKED ACROSS THE DESK</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked across <em>the desk.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441786448220" style="color:var(--red-ink);">01786 448 220</a>. An accountant answers. That's not a slogan, it's the rota.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What does 'fixed fee' actually cover?</summary><p>Everything in your engagement letter: the accounts, returns, filings, payroll if agreed — and the phone calls, emails and "quick questions" in between. Genuinely new work (an HMRC enquiry, a company purchase) is quoted separately before starting. You will never receive a bill you didn't see coming.</p></details>
+        <details><summary>How painful is switching accountants?</summary><p>For you: one email giving your old accountant permission to talk to us. For us: a standard professional handover we've done hundreds of times. Nobody's feelings get hurt; it's the most routine letter in accountancy.</p></details>
+        <details><summary>I'm behind on my returns. How much trouble am I in?</summary><p>Less than you fear, more than you'd like. Come in this week — penalties grow with delay, and HMRC treats voluntary disclosure far more kindly than discovery. We've unpicked worse than yours. Genuinely, whatever it is: worse.</p></details>
+        <details><summary>Do you work with cloud bookkeeping software?</summary><p>Yes — we set clients up on the mainstream platforms and train you on the fifteen minutes a week that keep things clean. We're deliberately not tied to one vendor.</p></details>
+        <details><summary>Sole trader or limited company?</summary><p>The most common first-meeting question, and the answer is an honest "it depends" with numbers attached. We'll model both against your actual situation and give you a recommendation, not a shrug.</p></details>
+        <details><summary>What do you need from me and when?</summary><p>Records after your year-end, ideally by autumn. A shoebox of receipts is accepted with a sigh and a small smile; a tidy folder is accepted with visible joy. Either way it gets done.</p></details>
+        <details><summary>Are you taking new clients?</summary><p>Yes, at a pace that keeps the phone answerable. If we're at capacity we'll say so and suggest a date rather than letting service quietly rot.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="total-head"><span>A/C 08 — CLIENTS FROM</span><span>CENTRAL SCOTLAND</span></div>
+    <ul class="area-list">
+      <li>Stirling</li><li>Bridge of Allan</li><li>Dunblane</li><li>Alloa</li><li>Falkirk</li><li>Central Scotland</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="total-head"><span>A/C 09 — REGULATION</span><span>IN GOOD STANDING</span></div>
+    <div class="creds">
+      <div><div class="label">ICAS</div><div class="detail">Chartered accountants, ICAS regulated</div></div>
+      <div><div class="label">Est. 1979</div><div class="detail">Three partners, second generation</div></div>
+      <div><div class="label">AML</div><div class="detail">Anti-money-laundering supervised</div></div>
+      <div><div class="label">PII</div><div class="detail">Professional indemnity insured</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="total-head"><span>A/C 10 — FIND US</span><span>41 DUMBARTON ROAD</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Ledger &amp; Sons</strong><br />
+          41 Dumbarton Road<br />
+          Stirling FK8 2LQ<br /><br />
+          <a href="tel:+441786448220" data-bind="business.phoneDisplay">01786 448 220</a><br />
+          <a href="mailto:office@ledgerandsons.co.uk" data-bind="business.email">office@ledgerandsons.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>MON – FRI</span><span>—</span></div>
+          <div class="row"><span>JAN WEEKENDS</span><span>BY ARRANGEMENT</span></div>
+          <p class="gbp-note">Hours current on our Google Business Profile. Free parking behind the building; the meeting room has decent biscuits.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Ledger & Sons, Dumbarton Road, Stirling" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-3.9480%2C56.1140%2C-3.9330%2C56.1195&layer=mapnik&marker=56.1165%2C-3.9407"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v1">
+  <div class="wrap">
+    <div class="acct" style="color:#d8b968;">A/C 11 — FIRST MEETING</div>
+    <h2 data-bind="cta.heading">The first meeting is free. <em>The relief is immediate.</em></h2>
+    <p data-bind="cta.body">Bring the shoebox, the brown envelopes, the questions. An hour with a partner, no obligation.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book the free meeting</a>
+      <a class="btn btn-ghost" href="tel:+441786448220" data-bind="cta.secondary.label">01786 448 220</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441786448220" data-bind="messaging.whatsapp" aria-label="Message the office">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">Ledger <span class="amp">&amp;</span> Sons</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">Chartered accountants for small business. Stirling, since 1979.</p>
+      </div>
+      <div>
+        <h4>The office</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          41 Dumbarton Road<br />Stirling FK8 2LQ<br />
+          <a href="tel:+441786448220">01786 448 220</a><br />
+          <a href="mailto:office@ledgerandsons.co.uk">office@ledgerandsons.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Services</a><a href="#book">First meeting</a><a href="#about">The firm</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> LEDGER &amp; SONS CA · ICAS FIRM № 1979-041</span>
+      <span>DEBITS ON THE LEFT, ALWAYS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Counterpoint — dance studio for adults in Chichester</title>
+<meta name="description" content="The Counterpoint is a dance studio for adults in Chichester — ballet, contemporary, tap and swing, from absolute beginner upward. Sprung floor, live piano on Saturdays, no exams, no mirrors row." />
+<link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Jost:ital,wght@0,400;0,500;0,600;1,400&family=Xanh+Mono:ital@0;1&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "The Counterpoint", phone: "+44 1243 787 464", phoneDisplay: "01243 787 464", email: "floor@thecounterpoint.dance", foundedYear: 2015 },
+  hero: {
+    kicker: "Dance for adults · beginner upward · Priory Lane, Chichester",
+    headline: "You didn't miss your chance to dance. It's Tuesday, 7pm.",
+    lede: "The Counterpoint teaches adults who thought that door had closed: ballet from absolute zero, contemporary, tap, and a swing class of dangerous popularity. Sprung floor, small classes, live piano on Saturdays, and a firm house rule against the phrase 'at my age'.",
+    primaryCta: { label: "Find your class", href: "#services" },
+    secondaryCta: { label: "Book a free taster", href: "#book" },
+    image: "https://images.unsplash.com/photo-1519925610903-381054cc2a1c?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A dancer mid-line, silhouetted."
+  },
+  trust: { years: "Dancing since 2015" },
+  about: {
+    heading: "A studio for the ones who almost did.",
+    paragraphs: [
+      "Everyone who walks in here has a version of the same story: danced as a kid and stopped, always wanted to and never started, or watched from the wings while life happened. Our founder — twelve years with a touring contemporary company, one retired knee — built this studio specifically for that person.",
+      "Classes are small and levelled honestly. Beginner means beginner: first positions, no assumed vocabulary, no teenager in the corner making it look effortless. Improvers move up when they're ready, which is a conversation, not an exam. There are no exams anywhere in the building.",
+      "The floor is sprung, the piano is real on Saturdays, and the mirrors have curtains — drawn for the first month of every beginners' course, on purpose. You learn to feel it before you're asked to watch it."
+    ],
+    portrait: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Dancer mid-movement in the studio."
+  },
+  services: [
+    { name: "Ballet from zero", description: "The flagship: a twelve-week beginners' course that assumes nothing. First position to first arabesque, with the mirrors curtained till week four." },
+    { name: "Continuing ballet", description: "For graduates of zero and returners from long ago. Barre, centre, and the slow reclamation of things your body half-remembers." },
+    { name: "Contemporary", description: "Floor work, release, momentum. The class where falling over is technique and socks are equipment. Beginners welcome from month one." },
+    { name: "Tap", description: "Loud, precise, unreasonably joyful. The downstairs neighbours were consulted and have chosen to move." },
+    { name: "Swing & lindy social", description: "Thursday nights, rotating partners, zero experience needed. The class with a waiting list and, twice now, a wedding." },
+    { name: "Private lessons & choreography", description: "One-to-one technique, first-dance choreography for weddings, and audition prep for the brave. Your goals, our floor." }
+  ],
+  why: [
+    { title: "Adults only, beginner honest.", body: "No children's syllabus rebadged, no drop-ins who trained at the Royal. When we say beginner, the whole room is one. That changes everything about how it feels." },
+    { title: "No exams, no gradings.", body: "You're not eight. Progress here is measured in what your body can do in October that it couldn't in June — and in whether you're still coming." },
+    { title: "The curtained mirrors.", body: "Beginners learn to feel movement before watching it. It's the single most-praised decision in the building. The mirrors earn their reveal at week four." }
+  ],
+  how: [
+    { step: "01", title: "Book a free taster", body: "Any beginner class, no obligation, no kit needed beyond clothes you can move in. Socks for contemporary; bare feet optional." },
+    { step: "02", title: "Start at zero", body: "Twelve-week courses begin every term. Everyone starts together, which is the whole point — nobody's catching up." },
+    { step: "03", title: "Find your rhythm", body: "One class a week is plenty. Two is a habit. Three is a personality change your friends will comment on." },
+    { step: "04", title: "Stay for the socials", body: "Termly studio socials, the Christmas piano night, and the swing class spilling into the pub. Dancing was always social; we keep it that way." }
+  ],
+  testimonials: [
+    { quote: "I'm 54 and did my first arabesque in October. I called my sister from the car park. We both cried. That studio gives you back something you'd quietly written off.", name: "Karen W.", context: "ballet from zero, cohort 12" },
+    { quote: "The curtained mirrors sound like a gimmick until week four, when they open and you see a dancer where you expected to see yourself.", name: "Rob H.", context: "continuing ballet" },
+    { quote: "Went to swing night alone, terrified. Two years later I've danced at three weddings including — this June — my own.", name: "Aisha & Tom", context: "Thursday swing, the second wedding" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1519925610903-381054cc2a1c?w=1600&q=85&auto=format&fit=crop", alt: "A dancer mid-line, silhouetted." },
+    { src: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=1600&q=85&auto=format&fit=crop", alt: "Contemporary floor work." },
+    { src: "https://images.unsplash.com/photo-1547153760-18fc86324498?w=1600&q=85&auto=format&fit=crop", alt: "Mid-phrase, Saturday class." },
+    { src: "https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=1600&q=85&auto=format&fit=crop", alt: "The studio, light on the floor." },
+    { src: "https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1600&q=85&auto=format&fit=crop", alt: "Swing night in full flight." },
+    { src: "https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=1600&q=85&auto=format&fit=crop", alt: "The Saturday pianist, mid-adagio." }
+  ],
+  faq: [
+    { q: "I have genuinely never danced. Not once.", a: "Then you're our exact target audience. Ballet from zero and beginner contemporary assume nothing — not the vocabulary, not the flexibility, not the childhood lessons. Everyone in the room signed up for the same reason you did." },
+    { q: "Am I too old for this?", a: "The phrase 'at my age' is banned in the building, and we mean it. Current class range: 19 to 74. Bodies vary; the teaching adjusts. The 74-year-old has better posture than the teachers." },
+    { q: "What do I wear?", a: "Anything you can move in. Ballet: socks or bare feet to start — buy shoes at week four if you're staying, and we'll tell you which ones. Tap shoes can be borrowed from the studio rack for your first term." },
+    { q: "I'm coming back after twenty years. Which level?", a: "Book a chat, not a class — fifteen minutes with a teacher, a bit of movement, an honest recommendation. Returners almost always underestimate themselves; the body files dance away safely and hands it back faster than you'd think." },
+    { q: "Do you do performances?", a: "One optional studio sharing a year, in-house, friendly audience, no sequins unless requested. About half the studio takes part. The other half applauds with drinks. Both are correct." },
+    { q: "Is the floor really sprung?", a: "Properly sprung — basket-weave batten construction under semi-sprung panels, the same build as professional studios. Your knees, shins and future self are the beneficiaries. It's also why we ask for clean indoor shoes." }
+  ],
+  area: { places: ["Chichester", "Bognor Regis", "Arundel", "Emsworth", "Havant", "Selsey"] },
+  credentials: [
+    { label: "Teachers", detail: "Ex-professional dancers, DBS-checked, insured" },
+    { label: "The floor", detail: "Professionally sprung, semi-sprung panels" },
+    { label: "Class size", detail: "Fourteen max, most classes twelve" },
+    { label: "Live music", detail: "Pianist in the studio every Saturday" }
+  ],
+  location: { name: "The Counterpoint", addressStreet: "3 Priory Lane", addressLocality: "Chichester", addressRegion: "West Sussex", addressPostcode: "PO19 1NS", addressCountry: "United Kingdom" },
+  cta: { heading: "Five, six, seven, eight starts whenever you do.", body: "Free tasters in every beginner class. The mirrors are curtained. Nobody's watching. Come dance.", primary: { label: "Book a taster", href: "#book" }, secondary: { label: "01243 787 464", href: "tel:+441243787464" } },
+  messaging: { whatsapp: "https://wa.me/441243787464", messenger: "https://m.me/thecounterpointdance" }
+};
+</script>
+
+<style>
+  :root {
+    --chalk:#f7f4f1; --charcoal:#332f31; --blush:#c98a8e; --powder:#efe2e0;
+    --gold:#a98d5f; --mid:#8a8184; --rule:rgba(51,47,49,0.15);
+    --display:"Gilda Display",serif;
+    --sans:"Jost",system-ui,sans-serif;
+    --mono:"Xanh Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--chalk);color:var(--charcoal);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  a:hover{color:var(--blush);}
+  .wrap{width:min(1160px,92vw);margin-inline:auto;}
+  .count{font-family:var(--mono);font-size:12px;letter-spacing:0.16em;text-transform:uppercase;color:var(--blush);}
+  .h2{font-family:var(--display);font-weight:400;font-size:clamp(30px,4.2vw,54px);line-height:1.1;margin:0 0 0.5em;}
+  .h2 em{font-style:italic;}
+  .body{color:var(--mid);line-height:1.74;}
+  section{padding:clamp(72px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 32px;font-family:var(--sans);font-weight:500;font-size:14px;letter-spacing:0.06em;text-transform:uppercase;text-decoration:none;transition:0.18s;border-radius:999px;}
+  .btn-primary{background:var(--charcoal);color:var(--chalk);} .btn-primary:hover{background:var(--blush);}
+  .btn-ghost{border:1px solid var(--charcoal);} .btn-ghost:hover{background:var(--charcoal);color:var(--chalk);}
+  .count-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);border-bottom:1px solid var(--charcoal);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,58px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(247,244,241,0.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--charcoal);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--display);font-size:19px;text-decoration:none;letter-spacing:0.02em;}
+  .wm em{font-style:italic;color:var(--blush);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — tall arch portrait, counts running vertically */
+  .hero{padding:clamp(56px,7.5vw,104px) 0;position:relative;overflow:hidden;}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .hero h1{font-family:var(--display);font-weight:400;font-size:clamp(36px,4.8vw,66px);line-height:1.06;margin:20px 0 24px;}
+  .hero h1 em{font-style:italic;color:var(--blush);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.76;font-size:clamp(15px,1.4vw,17px);}
+  .hero-ctas{margin-top:34px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:300px 300px 0 0;}
+  .counts{position:absolute;top:16%;left:-44px;writing-mode:vertical-rl;font-family:var(--mono);font-size:12px;letter-spacing:0.5em;color:var(--blush);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .counts{display:none;}}
+
+  .trust{padding:0;background:var(--charcoal);color:var(--chalk);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(247,244,241,0.7);}
+
+  .about{background:var(--powder);}
+  .about-grid{display:grid;grid-template-columns:0.85fr 1.15fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18px);line-height:1.78;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:3/4;object-fit:cover;width:100%;border-radius:300px 300px 0 0;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — programme bands */
+  .svc-stack{display:grid;gap:1px;background:var(--rule);border-top:1px solid var(--charcoal);border-bottom:1px solid var(--charcoal);}
+  .svc-band{background:var(--chalk);display:grid;grid-template-columns:150px 1fr 1.4fr;gap:clamp(18px,3vw,44px);padding:26px clamp(4px,1vw,12px);align-items:baseline;transition:0.18s;}
+  .svc-band:hover{background:var(--powder);padding-left:22px;}
+  .svc-band .cnt{font-family:var(--mono);font-size:12px;letter-spacing:0.2em;color:var(--blush);text-transform:uppercase;}
+  .svc-band h3{font-family:var(--display);font-weight:400;font-size:clamp(20px,2.1vw,26px);margin:0;line-height:1.15;}
+  .svc-band p{color:var(--mid);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.svc-band{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--charcoal);color:var(--chalk);}
+  .why .h2{color:var(--chalk);}
+  .why .count-head{border-color:rgba(247,244,241,0.4);color:rgba(247,244,241,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:11px;letter-spacing:0.24em;color:var(--blush);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 10px;line-height:1.25;}
+  .why-grid p{color:rgba(247,244,241,0.78);margin:0;font-size:14.5px;line-height:1.72;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1px solid var(--charcoal);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:11px;letter-spacing:0.24em;color:var(--blush);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--display);font-weight:400;font-size:18px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--powder);}
+  .t-quote{font-family:var(--display);font-weight:400;font-size:clamp(23px,3vw,40px);line-height:1.22;max-width:30ch;margin:0 0 22px;}
+  .t-quote em{font-style:italic;color:var(--blush);}
+  .t-attr{font-family:var(--mono);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--charcoal);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.74;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — movement stills, alternating arches */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);align-items:end;}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:3/4;object-fit:cover;}
+  .g-grid figure:nth-child(odd) img{border-radius:200px 200px 0 0;}
+  .g-grid figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);margin-top:10px;text-align:center;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--charcoal);}
+  .faq-list summary{font-family:var(--display);font-weight:400;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"›";color:var(--blush);flex-shrink:0;font-size:20px;transition:0.2s;line-height:1;}
+  .faq-list details[open] summary::after{transform:rotate(90deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.74;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;padding:10px 22px;border:1px solid var(--charcoal);border-radius:999px;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1px solid var(--charcoal);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--blush);margin-bottom:8px;}
+  .creds .detail{font-family:var(--display);font-size:16px;line-height:1.45;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:1px solid var(--charcoal);padding:32px;border-radius:0 0 60px 0;}
+  .nap address{font-style:normal;font-family:var(--display);font-size:18px;line-height:1.55;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.64;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:1px solid var(--charcoal);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--blush);color:var(--charcoal);padding:clamp(84px,10vw,144px) 0;text-align:center;}
+  .cta-band .count{color:var(--charcoal);}
+  .cta-band h2{font-family:var(--display);font-weight:400;font-size:clamp(34px,4.8vw,64px);line-height:1.06;margin:16px auto 18px;max-width:18ch;}
+  .cta-band h2 em{font-style:italic;color:var(--chalk);}
+  .cta-band p{color:rgba(51,47,49,0.75);max-width:44ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-ghost{border-color:var(--charcoal);}
+
+  footer{background:var(--chalk);border-top:1px solid var(--charcoal);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--blush);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--charcoal);color:var(--chalk);padding:13px 22px;border-radius:999px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:500;letter-spacing:0.04em;box-shadow:0 8px 24px rgba(51,47,49,0.3);}
+  .msg-fab a:hover{background:var(--blush);color:var(--charcoal);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"DanceSchool","name":"The Counterpoint","description":"Dance studio for adults in Chichester — ballet, contemporary, tap and swing from absolute beginner upward. Sprung floor, no exams.","url":"https://thecounterpoint.dance/","telephone":"+441243787464","email":"floor@thecounterpoint.dance","address":{"@type":"PostalAddress","streetAddress":"3 Priory Lane","addressLocality":"Chichester","addressRegion":"West Sussex","postalCode":"PO19 1NS","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":50.8398,"longitude":-0.7792},"areaServed":["Chichester","Bognor Regis","Arundel","Emsworth"],"image":["https://images.unsplash.com/photo-1519925610903-381054cc2a1c?w=1600"],"foundingDate":"2015"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I have genuinely never danced. Not once.","acceptedAnswer":{"@type":"Answer","text":"Then you're our exact target audience. Beginner courses assume nothing, and everyone in the room signed up for the same reason."}},
+{"@type":"Question","name":"Am I too old for this?","acceptedAnswer":{"@type":"Answer","text":"Current class range: 19 to 74. Bodies vary; the teaching adjusts."}},
+{"@type":"Question","name":"What do I wear?","acceptedAnswer":{"@type":"Answer","text":"Anything you can move in. Shoes come later, and we'll tell you which ones."}},
+{"@type":"Question","name":"I'm coming back after twenty years. Which level?","acceptedAnswer":{"@type":"Answer","text":"Book a fifteen-minute chat with a teacher for an honest recommendation. Returners almost always underestimate themselves."}},
+{"@type":"Question","name":"Do you do performances?","acceptedAnswer":{"@type":"Answer","text":"One optional studio sharing a year. Half the studio takes part; the other half applauds."}},
+{"@type":"Question","name":"Is the floor really sprung?","acceptedAnswer":{"@type":"Answer","text":"Properly sprung — basket-weave battens under semi-sprung panels, professional-studio build."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">The <em>Counterpoint</em></a>
+    <nav class="nav-links">
+      <a href="#services">Classes</a><a href="#about">The studio</a><a href="#location">Find us</a><a href="#book">Taster</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v37">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="count" data-bind="hero.kicker">Dance for adults · beginner upward · Priory Lane, Chichester</div>
+      <h1 data-bind="hero.headline">You didn't miss your chance to dance. <em>It's Tuesday, 7pm.</em></h1>
+      <p class="lede" data-bind="hero.lede">The Counterpoint teaches adults who thought that door had closed: ballet from absolute zero, contemporary, tap, and a swing class of dangerous popularity. Sprung floor, small classes, live piano on Saturdays, and a firm house rule against the phrase "at my age".</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">Find your class</a>
+        <a class="btn btn-ghost" href="#book" data-bind="hero.secondaryCta.label">Book a free taster</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <div class="counts" aria-hidden="true">5 · 6 · 7 · 8</div>
+      <img src="https://images.unsplash.com/photo-1519925610903-381054cc2a1c?w=2000&q=85&auto=format&fit=crop"
+           alt="A dancer mid-line, silhouetted." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Dancing since 2015</span>
+    <span>Adults only</span>
+    <span>Sprung floor</span>
+    <span>No exams, ever</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap">
+    <div class="count-head"><span>COUNT 01 / THE STUDIO</span><span>MIRRORS CURTAINED, ON PURPOSE</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=1200&q=85&auto=format&fit=crop"
+           alt="Dancer mid-movement in the studio." />
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">A studio for the ones <em>who almost did.</em></h2>
+        <p>Everyone who walks in here has a version of the same story: danced as a kid and stopped, always wanted to and never started, or watched from the wings while life happened. Our founder — twelve years with a touring contemporary company, one retired knee — built this studio specifically for that person.</p>
+        <p>Classes are small and levelled honestly. Beginner means beginner: first positions, no assumed vocabulary, no teenager in the corner making it look effortless. Improvers move up when they're ready, which is a conversation, not an exam. There are no exams anywhere in the building.</p>
+        <p>The floor is sprung, the piano is real on Saturdays, and the mirrors have curtains — drawn for the first month of every beginners' course, on purpose. You learn to feel it before you're asked to watch it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v30">
+  <div class="wrap">
+    <div class="count-head"><span>COUNT 02 / THE TIMETABLE</span><span>SMALL CLASSES, LEVELLED HONESTLY</span></div>
+    <h2 class="h2">On the timetable.</h2>
+    <div class="svc-stack">
+      <div class="svc-band"><span class="cnt">&amp; 1</span><h3>Ballet from zero</h3><p>The flagship: a twelve-week beginners' course that assumes nothing. First position to first arabesque, with the mirrors curtained till week four.</p></div>
+      <div class="svc-band"><span class="cnt">&amp; 2</span><h3>Continuing ballet</h3><p>For graduates of zero and returners from long ago. Barre, centre, and the slow reclamation of things your body half-remembers.</p></div>
+      <div class="svc-band"><span class="cnt">&amp; 3</span><h3>Contemporary</h3><p>Floor work, release, momentum. The class where falling over is technique and socks are equipment. Beginners welcome from month one.</p></div>
+      <div class="svc-band"><span class="cnt">&amp; 4</span><h3>Tap</h3><p>Loud, precise, unreasonably joyful. The downstairs neighbours were consulted and have chosen to move.</p></div>
+      <div class="svc-band"><span class="cnt">&amp; 5</span><h3>Swing &amp; lindy social</h3><p>Thursday nights, rotating partners, zero experience needed. The class with a waiting list and, twice now, a wedding.</p></div>
+      <div class="svc-band"><span class="cnt">&amp; 6</span><h3>Private lessons &amp; choreography</h3><p>One-to-one technique, first-dance choreography for weddings, and audition prep for the brave. Your goals, our floor.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="count-head"><span>COUNT 03 / CONVICTIONS</span><span>HELD AT THE BARRE</span></div>
+    <h2 class="h2">What we hold at the barre.</h2>
+    <div class="why-grid">
+      <div><span class="no">TENET I</span><h3>Adults only, beginner honest.</h3><p>No children's syllabus rebadged, no drop-ins who trained at the Royal. When we say beginner, the whole room is one. That changes everything about how it feels.</p></div>
+      <div><span class="no">TENET II</span><h3>No exams, no gradings.</h3><p>You're not eight. Progress here is measured in what your body can do in October that it couldn't in June — and in whether you're still coming.</p></div>
+      <div><span class="no">TENET III</span><h3>The curtained mirrors.</h3><p>Beginners learn to feel movement before watching it. It's the single most-praised decision in the building. The mirrors earn their reveal at week four.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="count-head"><span>COUNT 04 / STARTING</span><span>TASTER → HABIT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">And 1</span><h3>Book a free taster</h3><p>Any beginner class, no obligation, no kit needed beyond clothes you can move in. Socks for contemporary; bare feet optional.</p></li>
+      <li><span class="step">And 2</span><h3>Start at zero</h3><p>Twelve-week courses begin every term. Everyone starts together, which is the whole point — nobody's catching up.</p></li>
+      <li><span class="step">And 3</span><h3>Find your rhythm</h3><p>One class a week is plenty. Two is a habit. Three is a personality change your friends will comment on.</p></li>
+      <li><span class="step">And 4</span><h3>Stay for the socials</h3><p>Termly studio socials, the Christmas piano night, and the swing class spilling into the pub. Dancing was always social; we keep it that way.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="count-head"><span>COUNT 05 / FROM THE FLOOR</span><span>COLLECTED AFTER CLASS</span></div>
+    <blockquote class="t-quote">“I'm 54 and did my first arabesque in October. I called my sister from the car park. <em>We both cried.</em>”</blockquote>
+    <div class="t-attr">Karen W. — ballet from zero, cohort 12</div>
+    <div class="t-sub">
+      <figure><blockquote>“The curtained mirrors sound like a gimmick until week four, when they open and you see a dancer where you expected to see yourself.”</blockquote><figcaption>Rob H. — continuing ballet</figcaption></figure>
+      <figure><blockquote>“Went to swing night alone, terrified. Two years later I've danced at three weddings including — this June — my own.”</blockquote><figcaption>Aisha &amp; Tom — Thursday swing</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v30">
+  <div class="wrap">
+    <div class="count-head"><span>COUNT 06 / STILLS</span><span>THE FLOOR, WORKING</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1519925610903-381054cc2a1c?w=1600&q=85&auto=format&fit=crop" alt="A dancer mid-line, silhouetted." /><figcaption>THE LINE, HELD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=1600&q=85&auto=format&fit=crop" alt="Contemporary floor work." /><figcaption>FLOOR WORK, THURSDAY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1547153760-18fc86324498?w=1600&q=85&auto=format&fit=crop" alt="Mid-phrase, Saturday class." /><figcaption>MID-PHRASE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1535525153412-5a42439a210d?w=1600&q=85&auto=format&fit=crop" alt="The studio, light on the floor." /><figcaption>THE ROOM, RESTING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1504609813442-a8924e83f76e?w=1600&q=85&auto=format&fit=crop" alt="Swing night in full flight." /><figcaption>SWING NIGHT, FULL FLIGHT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=1600&q=85&auto=format&fit=crop" alt="The Saturday pianist, mid-adagio." /><figcaption>THE PIANIST, MID-ADAGIO</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="count-head"><span>COUNT 07 / ASKED AT THE DOOR</span><span>USUALLY IN NEW SOCKS</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the door.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441243787464" style="color:var(--blush);">01243 787 464</a>. If the piano's playing we'll call back at the interval.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I have genuinely never danced. Not once.</summary><p>Then you're our exact target audience. Ballet from zero and beginner contemporary assume nothing — not the vocabulary, not the flexibility, not the childhood lessons. Everyone in the room signed up for the same reason you did.</p></details>
+        <details><summary>Am I too old for this?</summary><p>The phrase "at my age" is banned in the building, and we mean it. Current class range: 19 to 74. Bodies vary; the teaching adjusts. The 74-year-old has better posture than the teachers.</p></details>
+        <details><summary>What do I wear?</summary><p>Anything you can move in. Ballet: socks or bare feet to start — buy shoes at week four if you're staying, and we'll tell you which ones. Tap shoes can be borrowed from the studio rack for your first term.</p></details>
+        <details><summary>I'm coming back after twenty years. Which level?</summary><p>Book a chat, not a class — fifteen minutes with a teacher, a bit of movement, an honest recommendation. Returners almost always underestimate themselves; the body files dance away safely and hands it back faster than you'd think.</p></details>
+        <details><summary>Do you do performances?</summary><p>One optional studio sharing a year, in-house, friendly audience, no sequins unless requested. About half the studio takes part. The other half applauds with drinks. Both are correct.</p></details>
+        <details><summary>Is the floor really sprung?</summary><p>Properly sprung — basket-weave batten construction under semi-sprung panels, the same build as professional studios. Your knees, shins and future self are the beneficiaries. It's also why we ask for clean indoor shoes.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="count-head"><span>COUNT 08 / DANCERS DRIVE FROM</span><span>WEST SUSSEX &amp; THE COAST</span></div>
+    <ul class="area-list">
+      <li>Chichester</li><li>Bognor Regis</li><li>Arundel</li><li>Emsworth</li><li>Havant</li><li>Selsey</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="count-head"><span>COUNT 09 / THE PAPERWORK</span><span>CHECKED &amp; COVERED</span></div>
+    <div class="creds">
+      <div><div class="label">Teachers</div><div class="detail">Ex-professional dancers, DBS-checked, insured</div></div>
+      <div><div class="label">The floor</div><div class="detail">Professionally sprung, semi-sprung panels</div></div>
+      <div><div class="label">Class size</div><div class="detail">Fourteen max, most classes twelve</div></div>
+      <div><div class="label">Live music</div><div class="detail">Pianist in the studio every Saturday</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="count-head"><span>COUNT 10 / FIND US</span><span>3 PRIORY LANE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">The Counterpoint</strong><br />
+          3 Priory Lane<br />
+          Chichester PO19 1NS<br /><br />
+          <a href="tel:+441243787464" data-bind="business.phoneDisplay">01243 787 464</a><br />
+          <a href="mailto:floor@thecounterpoint.dance" data-bind="business.email">floor@thecounterpoint.dance</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>CLASSES</span><span>MORNINGS &amp; EVENINGS</span></div>
+          <div class="row"><span>TIMETABLE</span><span>SEE GOOGLE PROFILE</span></div>
+          <p class="gbp-note">The full timetable lives on our Google Business Profile and booking page. The green door beside the priory wall; the doorbell plays a fifth, which was not intentional but is now beloved.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of The Counterpoint, Priory Lane, Chichester" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.7890%2C50.8360%2C-0.7690%2C50.8440&layer=mapnik&marker=50.8398%2C-0.7792"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v1">
+  <div class="wrap">
+    <div class="count">COUNT 11 / BEGIN</div>
+    <h2 data-bind="cta.heading">Five, six, seven, eight starts <em>whenever you do.</em></h2>
+    <p data-bind="cta.body">Free tasters in every beginner class. The mirrors are curtained. Nobody's watching. Come dance.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a taster</a>
+      <a class="btn btn-ghost" href="tel:+441243787464" data-bind="cta.secondary.label">01243 787 464</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441243787464" data-bind="messaging.whatsapp" aria-label="Message the studio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:20px;">The <em style="color:var(--blush);">Counterpoint</em></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A dance studio for adults on Priory Lane, Chichester. Since 2015.</p>
+      </div>
+      <div>
+        <h4>The studio</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          3 Priory Lane<br />Chichester PO19 1NS<br />
+          <a href="tel:+441243787464">01243 787 464</a><br />
+          <a href="mailto:floor@thecounterpoint.dance">floor@thecounterpoint.dance</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Classes</a><a href="#about">The studio</a><a href="#location">Find us</a><a href="#book">Taster</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> THE COUNTERPOINT STUDIO LTD</span>
+      <span>"AT MY AGE" IS BANNED IN THIS BUILDING</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

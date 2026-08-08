@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panel &amp; Ink — comic shop &amp; back-issue bins in Nottingham</title>
+<meta name="description" content="Panel & Ink is an independent comic shop in Nottingham — new comics every Wednesday, a pull-list that remembers you, deep back-issue bins, graphic novels for every reader and a grading eye you can trust." />
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Panel & Ink", phone: "+44 115 924 7781", phoneDisplay: "0115 924 7781", email: "pulls@panelandink.co.uk", foundedYear: 2013 },
+  hero: {
+    kicker: "Independent comic shop · new every Wednesday · Nottingham",
+    headline: "New comics land Wednesday.",
+    lede: "A proper comic shop: single issues the day they drop, a pull-list that quietly saves your titles before they sell out, back-issue bins worth losing an afternoon in, and staff who'll match a seven-year-old and a fifty-year-old to exactly the right book. No gatekeeping. Everyone reads here.",
+    primaryCta: { label: "Start a pull-list", href: "#book" },
+    secondaryCta: { label: "What we stock", href: "#services" },
+    image: "https://images.unsplash.com/photo-1620336655052-b57986f5a26a?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A stack of comic books piled on top of each other."
+  },
+  trust: { years: "On new-comics day since 2013" },
+  about: {
+    heading: "A comic shop is a reading recommendation with a till.",
+    paragraphs: [
+      "We opened in 2013 with one belief that hasn't shifted: the job isn't selling comics, it's matching people to the one book that turns them into a reader. That's as true for the kid clutching pocket money as for the collector chasing a key first appearance. Both get the same attention and neither gets talked down to.",
+      "Wednesday is the heartbeat. New issues hit the wall the day they release, the pull-lists are bagged and waiting behind the counter, and the shop fills with people arguing happily about last week's cliffhanger. Miss a Wednesday and your titles are safe — that's the whole point of a pull-list.",
+      "Behind the new wall are the bins: decades of back issues, bagged and boarded, priced fairly and graded honestly. We'll never oversell a book's condition to make a sale — a reputation for straight grading is worth more than any single key issue."
+    ],
+    portrait: "https://images.unsplash.com/photo-1612036782617-472725567302?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A person holding an open comic book."
+  },
+  services: [
+    { name: "New comics, every Wednesday", description: "Every major and indie publisher, on the wall the day it ships. Variant covers when we can get them, and a heads-up when a series is about to get good." },
+    { name: "The pull-list", description: "Tell us your titles once; we bag them every week and hold them behind the counter. Never miss an issue, never fight for the last copy. Pause any time." },
+    { name: "Back-issue bins", description: "Decades deep, bagged, boarded and sorted. Key issues in the cabinet, reading copies in the bins, everything priced fairly and graded straight." },
+    { name: "Graphic novels & manga", description: "A whole wall of complete stories — from all-ages to literary, superhero epics to the manga shelf that never stops growing. The best place to start if issues feel daunting." },
+    { name: "Grading & valuations", description: "An honest eye on condition, an honest number on value, and pre-screening for CGC submission. We'd rather tell you it's a reading copy than fake a grade." },
+    { name: "Free Comic Book Day & events", description: "The first Saturday in May we go all out; the rest of the year it's signings, launch nights and a kids' club. A shop is a community or it's just shelves." }
+  ],
+  why: [
+    { title: "Everyone reads here.", body: "No gatekeeping, no eye-rolls, no 'you should already know that.' Whether it's your first comic or your ten-thousandth, you get a real recommendation and a fair welcome." },
+    { title: "Straight grading, always.", body: "We grade to sell you the truth, not the sale. A reputation for honest condition is the only thing a back-issue shop really has — and we guard it." },
+    { title: "Your titles, held.", body: "The pull-list means the last copy is never a problem and a missed Wednesday is never a disaster. Set it once and your reading is sorted for good." }
+  ],
+  how: [
+    { step: "01", title: "Tell us your titles", body: "Name the series you follow — or the ones you want to try. We build your pull-list and start bagging from the next ship date." },
+    { step: "02", title: "We bag them weekly", body: "Every Wednesday your books go in your folder behind the counter, safe from the last-copy scramble. New issues, held for you." },
+    { step: "03", title: "Drop in when you can", body: "Collect weekly, fortnightly, monthly — whatever suits. We'll flag anything new you might love while you're here." },
+    { step: "04", title: "Dig the bins", body: "While you're in, lose an hour in the back-issues. Ask us to hunt a specific issue; we love the chase almost more than the sale." }
+  ],
+  testimonials: [
+    { quote: "My son was a reluctant reader until the guy here spent ten minutes finding him exactly the right all-ages series. He's now on a pull-list and reads more than I do. That's not retail, that's a public service.", name: "Dan H.", context: "pull-list, whole family" },
+    { quote: "I brought in a box of my dad's old comics terrified I'd be lowballed. Instead I got an honest grade on every one, a fair offer, and a genuine 'keep this one, it matters'. I trust them completely.", name: "Priya S.", context: "back-issue valuation" },
+    { quote: "Wednesday at Panel & Ink is the best hour of my week. My folder's always waiting, someone always knows what I'll like next, and nobody's ever made me feel like a tourist. It's my shop.", name: "Marcus O.", context: "eight years, every Wednesday" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1620336655052-b57986f5a26a?w=1600&q=85&auto=format&fit=crop", alt: "A stack of comic books." },
+    { src: "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=1600&q=85&auto=format&fit=crop", alt: "A row of comics side by side." },
+    { src: "https://images.unsplash.com/photo-1612036782617-472725567302?w=1600&q=85&auto=format&fit=crop", alt: "A person holding an open comic." },
+    { src: "https://images.unsplash.com/photo-1620336655052-b57986f5a26a?w=1600&q=85&auto=format&fit=crop", alt: "Comics stacked on the counter." },
+    { src: "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=1600&q=85&auto=format&fit=crop", alt: "Back issues lined up." },
+    { src: "https://images.unsplash.com/photo-1612036782617-472725567302?w=1600&q=85&auto=format&fit=crop", alt: "Reading a comic in the shop." }
+  ],
+  faq: [
+    { q: "What actually is a pull-list?", a: "It's a standing order for your comics. You tell us which ongoing series you follow, and every Wednesday we pull those issues off the new shipment, bag and board them, and hold them in your named folder behind the counter. You collect whenever suits — weekly, monthly, whenever you're passing. It's free to set up, there's no minimum, and you can add, drop or pause titles any time. It means you never miss an issue and never lose out when a hot book sells through in an hour." },
+    { q: "I've never read comics — where do I start?", a: "With a conversation and zero judgement. Tell us what films, shows or books you love and roughly how much time you want to give it, and we'll put the right complete graphic novel or first volume in your hands. Starting with a self-contained book beats jumping into issue #347 of anything. That's the single most common visit we get, and it's our favourite." },
+    { q: "Do you buy old comics?", a: "Often, yes — bring them in and we'll go through them with you. We grade honestly in front of you, explain what drives the value (or doesn't), and make a fair offer on anything we can sell. We'll also tell you plainly when something's worth keeping rather than selling. No pressure, no lowballing; a straight deal is the only kind worth doing." },
+    { q: "How does grading work here?", a: "We grade to recognised condition standards and we call it straight — a Very Fine is a Very Fine, not a wishful Near Mint. Keys go in the cabinet with the grade on the sleeve; reading copies go in the bins, priced accordingly. If you're considering professional CGC slabbing we'll pre-screen the book and give you an honest view on whether it's worth the fee." },
+    { q: "Is the shop kid-friendly?", a: "Very. There's a dedicated all-ages section at kid height, a kids' comic club, and staff who genuinely enjoy matching young readers to the right series. Free Comic Book Day in May is built around families. Comics turned a lot of us into readers as children and we take passing that on seriously." },
+    { q: "What happens on Free Comic Book Day?", a: "The first Saturday in May, we hand out free comics, run the shop like a small festival, and usually pull in creators for signings and sketches. It's busy, it's brilliant, and it's the best day of our year. Follow us or ask in-store closer to the date for the line-up and timings." }
+  ],
+  area: { places: ["Nottingham", "West Bridgford", "Beeston", "Arnold", "Carlton", "Long Eaton"] },
+  credentials: [
+    { label: "New comics", detail: "Every major & indie publisher, Wednesdays" },
+    { label: "Grading", detail: "Honest condition; CGC pre-screening" },
+    { label: "Pull-list", detail: "Free to set up, no minimum, pause any time" },
+    { label: "Community", detail: "Free Comic Book Day, kids' club, launch nights" }
+  ],
+  location: { name: "Panel & Ink", addressStreet: "22 Heathcoat Street", addressLocality: "Nottingham", addressRegion: "Nottinghamshire", addressPostcode: "NG1 3AA", addressCountry: "United Kingdom" },
+  cta: { heading: "Your folder's waiting.", body: "Start a pull-list, dig the bins, or just tell us what you love and let us find your next favourite. Wednesday's the big one — but any day's a good day for comics.", primary: { label: "Start a pull-list", href: "#book" }, secondary: { label: "0115 924 7781", href: "tel:+441159247781" } },
+  messaging: { whatsapp: "https://wa.me/441159247781", messenger: "https://m.me/panelandink" }
+};
+</script>
+
+<style>
+  :root {
+    --news:#f4efe2; --ink:#161616; --red:#e5342a; --blue:#1f6feb; --yellow:#f6c945;
+    --mid:#5c574c; --mid-d:#b7b1a2; --rule:rgba(22,22,22,0.15); --rule-d:rgba(244,239,226,0.18);
+    --disp:"Archivo Black",sans-serif; --sans:"Barlow",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--news);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--red);}
+  .wrap{width:min(1260px,93vw);margin-inline:auto;}
+  .halftone{background-image:radial-gradient(var(--ink) 1.1px, transparent 1.2px);background-size:7px 7px;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--red);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(34px,4.8vw,68px);line-height:0.98;letter-spacing:-0.01em;margin:0 0 0.38em;}
+  .body{color:var(--mid);line-height:1.68;}
+  section{padding:clamp(72px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 28px;font-family:var(--disp);font-weight:400;font-size:15px;letter-spacing:0.01em;text-decoration:none;transition:0.14s;border:3px solid var(--ink);}
+  .btn-primary{background:var(--red);color:var(--news);box-shadow:5px 5px 0 var(--ink);} .btn-primary:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink);color:var(--news);}
+  .btn-ghost{background:var(--news);box-shadow:5px 5px 0 var(--ink);} .btn-ghost:hover{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);border-bottom:3px solid var(--ink);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);font-weight:700;}
+  .light .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(244,239,226,0.96);backdrop-filter:blur(10px);border-bottom:3px solid var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 0;}
+  .wm{font-family:var(--disp);font-size:23px;text-decoration:none;letter-spacing:-0.01em;}
+  .wm span{color:var(--red);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — comic cover: issue box, price corner, halftone burst */
+  .hero{padding:clamp(46px,6vw,86px) 0;position:relative;}
+  .hero-grid{display:grid;grid-template-columns:1.06fr 0.94fr;gap:clamp(38px,5vw,78px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:400;font-size:clamp(46px,7vw,104px);line-height:0.9;letter-spacing:-0.02em;margin:16px 0 22px;}
+  .hero h1 em{font-style:normal;color:var(--red);-webkit-text-stroke:2px var(--ink);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.66;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-cover{position:relative;border:4px solid var(--ink);background:var(--yellow);padding:10px;box-shadow:10px 10px 0 var(--ink);}
+  .hero-cover img{width:100%;aspect-ratio:4/5;object-fit:cover;border:3px solid var(--ink);filter:saturate(1.08);}
+  .issue-box{position:absolute;top:-4px;left:-4px;z-index:3;background:var(--news);border:3px solid var(--ink);border-top:0;border-left:0;padding:8px 12px;font-family:var(--disp);font-size:13px;line-height:1;}
+  .issue-box small{display:block;font-family:var(--mono);font-size:8px;letter-spacing:0.1em;font-weight:700;color:var(--red);margin-bottom:4px;}
+  .price-splash{position:absolute;bottom:-22px;right:-22px;z-index:3;width:92px;height:92px;background:var(--red);color:var(--news);border:4px solid var(--ink);border-radius:50%;display:grid;place-items:center;text-align:center;transform:rotate(-8deg);font-family:var(--disp);font-size:11px;line-height:1.1;box-shadow:4px 4px 0 var(--ink);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .hero-cover{max-width:420px;}}
+
+  .trust{padding:0;background:var(--ink);color:var(--news);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,239,226,0.85);font-weight:700;}
+
+  .about{background:var(--ink);color:var(--news);}
+  .about .h2{color:var(--news);} .about .h2 em{font-style:normal;color:var(--yellow);}
+  .about-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid .fig{position:relative;border:4px solid var(--news);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  .about-grid .fig::after{content:"CVR A";position:absolute;top:10px;right:10px;background:var(--yellow);color:var(--ink);border:2px solid var(--ink);font-family:var(--mono);font-size:9px;font-weight:700;padding:4px 8px;letter-spacing:0.1em;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.72;margin:0 0 1em;color:rgba(244,239,226,0.84);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:3px solid var(--ink);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(31,111,235,0.07);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;color:var(--blue);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(21px,2.4vw,30px);margin:0;line-height:1;letter-spacing:-0.01em;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.64;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--blue);color:var(--news);}
+  .why .sw-head{border-color:rgba(244,239,226,0.4);color:rgba(244,239,226,0.78);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,58px);}
+  .why-grid .no{display:inline-grid;place-items:center;width:44px;height:44px;border:3px solid var(--news);border-radius:50%;font-family:var(--disp);font-size:16px;margin-bottom:16px;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:24px;margin:0 0 10px;line-height:1;letter-spacing:-0.01em;}
+  .why-grid p{color:rgba(244,239,226,0.92);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--ink);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--red);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:20px;margin:8px 0 8px;letter-spacing:-0.01em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.62;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#eae3d1;}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(26px,3.5vw,46px);line-height:1.02;max-width:28ch;margin:0 0 24px;letter-spacing:-0.01em;}
+  .t-quote em{font-style:normal;color:var(--red);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:3px solid var(--ink);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border:3px solid var(--ink);}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--ink);color:var(--yellow);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:3px solid var(--ink);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;letter-spacing:-0.01em;line-height:1.2;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--red);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:60ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:3px solid var(--ink);font-weight:700;background:var(--news);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,32px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border:3px solid var(--ink);padding:20px;background:var(--news);box-shadow:5px 5px 0 var(--ink);}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--red);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:15px;line-height:1.16;letter-spacing:-0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--ink);color:var(--news);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:20px;line-height:1.24;letter-spacing:-0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(244,239,226,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(244,239,226,0.78);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(244,239,226,0.72);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border:3px solid var(--ink);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--red);color:var(--news);padding:clamp(84px,10vw,148px) 0;text-align:center;position:relative;overflow:hidden;}
+  .cta-band .kick{color:var(--yellow);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(42px,6.6vw,100px);line-height:0.92;margin:14px auto 18px;max-width:16ch;letter-spacing:-0.02em;}
+  .cta-band h2 em{font-style:normal;color:var(--yellow);}
+  .cta-band p{color:rgba(244,239,226,0.92);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--yellow);color:var(--ink);border-color:var(--ink);}
+  .cta-band .btn-ghost{background:var(--news);color:var(--ink);border-color:var(--ink);}
+
+  footer{background:var(--news);border-top:3px solid var(--ink);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--blue);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--yellow);color:var(--ink);padding:13px 19px;text-decoration:none;font-family:var(--disp);font-size:14px;border:3px solid var(--ink);box-shadow:4px 4px 0 var(--ink);}
+  .msg-fab a:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink);color:var(--ink);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Panel & Ink","description":"Independent comic shop in Nottingham — new comics every Wednesday, a pull-list service, deep back-issue bins, graphic novels and honest grading.","url":"https://panelandink.co.uk/","telephone":"+441159247781","email":"pulls@panelandink.co.uk","address":{"@type":"PostalAddress","streetAddress":"22 Heathcoat Street","addressLocality":"Nottingham","addressRegion":"Nottinghamshire","postalCode":"NG1 3AA","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":52.9548,"longitude":-1.1443},"areaServed":["Nottingham","West Bridgford","Beeston"],"image":["https://images.unsplash.com/photo-1620336655052-b57986f5a26a?w=1600"],"foundingDate":"2013"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is a pull-list?","acceptedAnswer":{"@type":"Answer","text":"A standing order for your comics: we bag your chosen ongoing titles every Wednesday and hold them in a named folder. Free, no minimum, pause any time."}},
+{"@type":"Question","name":"I've never read comics — where do I start?","acceptedAnswer":{"@type":"Answer","text":"Tell us what films, shows or books you love and we'll match you to a self-contained graphic novel or first volume. No judgement, ever."}},
+{"@type":"Question","name":"Do you buy old comics?","acceptedAnswer":{"@type":"Answer","text":"Often — bring them in, we grade honestly in front of you and make a fair offer, and tell you plainly when something's worth keeping."}},
+{"@type":"Question","name":"How does grading work?","acceptedAnswer":{"@type":"Answer","text":"We grade to recognised condition standards and call it straight, with CGC pre-screening available for books worth slabbing."}},
+{"@type":"Question","name":"Is the shop kid-friendly?","acceptedAnswer":{"@type":"Answer","text":"Very — a dedicated all-ages section, a kids' comic club, and a family-focused Free Comic Book Day each May."}},
+{"@type":"Question","name":"What happens on Free Comic Book Day?","acceptedAnswer":{"@type":"Answer","text":"The first Saturday in May we hand out free comics and run the shop like a festival, usually with creator signings."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">PANEL <span>&amp;</span> INK</a>
+    <nav class="nav-links">
+      <a href="#about">The shop</a><a href="#services">What we stock</a><a href="#location">Find us</a><a href="#book">Pull-list</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v64">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Independent comic shop · new every Wednesday · Nottingham</div>
+      <h1 data-comment-anchor="hero-headline">New comics land <em>Wednesday.</em></h1>
+      <p class="lede" data-bind="hero.lede">A proper comic shop: single issues the day they drop, a pull-list that quietly saves your titles before they sell out, back-issue bins worth losing an afternoon in, and staff who'll match a seven-year-old and a fifty-year-old to exactly the right book. No gatekeeping. Everyone reads here.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Start a pull-list</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we stock</a>
+      </div>
+    </div>
+    <div class="hero-cover">
+      <div class="issue-box"><small>NO. 001</small>EVERY WED</div>
+      <img src="https://images.unsplash.com/photo-1620336655052-b57986f5a26a?w=2000&q=85&auto=format&fit=crop"
+           alt="A stack of comic books piled on top of each other." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="price-splash">NEW<br />THIS<br />WEEK!</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">On new-comics day since 2013</span>
+    <span>Free pull-list</span>
+    <span>Honest grading</span>
+    <span>Everyone reads here</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v30">
+  <div class="wrap">
+    <div class="sw-head"><span>ISSUE 01 / THE SHOP</span><span>ORIGIN STORY</span></div>
+    <div class="about-grid">
+      <div class="fig">
+        <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+             src="https://images.unsplash.com/photo-1612036782617-472725567302?w=1200&q=85&auto=format&fit=crop"
+             alt="A person holding an open comic book." />
+      </div>
+      <div class="about-prose">
+        <h2 class="h2">A comic shop is a reading rec <em>with a till.</em></h2>
+        <p>We opened in 2013 with one belief that hasn't shifted: the job isn't selling comics, it's matching people to the one book that turns them into a reader. That's as true for the kid clutching pocket money as for the collector chasing a key first appearance. Both get the same attention and neither gets talked down to.</p>
+        <p>Wednesday is the heartbeat. New issues hit the wall the day they release, the pull-lists are bagged and waiting behind the counter, and the shop fills with people arguing happily about last week's cliffhanger. Miss a Wednesday and your titles are safe — that's the whole point of a pull-list.</p>
+        <p>Behind the new wall are the bins: decades of back issues, bagged and boarded, priced fairly and graded honestly. We'll never oversell a book's condition to make a sale — a reputation for straight grading is worth more than any single key issue.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v57">
+  <div class="wrap">
+    <div class="sw-head"><span>ISSUE 02 / WHAT WE STOCK</span><span>WALL TO BINS</span></div>
+    <h2 class="h2">What we stock.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">#01</span><h3>New comics, every Wednesday</h3><p>Every major and indie publisher, on the wall the day it ships. Variant covers when we can get them, and a heads-up when a series is about to get good.</p></div>
+      <div class="svc-row"><span class="no">#02</span><h3>The pull-list</h3><p>Tell us your titles once; we bag them every week and hold them behind the counter. Never miss an issue, never fight for the last copy. Pause any time.</p></div>
+      <div class="svc-row"><span class="no">#03</span><h3>Back-issue bins</h3><p>Decades deep, bagged, boarded and sorted. Key issues in the cabinet, reading copies in the bins, everything priced fairly and graded straight.</p></div>
+      <div class="svc-row"><span class="no">#04</span><h3>Graphic novels &amp; manga</h3><p>A whole wall of complete stories — from all-ages to literary, superhero epics to the manga shelf that never stops growing. The best place to start if issues feel daunting.</p></div>
+      <div class="svc-row"><span class="no">#05</span><h3>Grading &amp; valuations</h3><p>An honest eye on condition, an honest number on value, and pre-screening for CGC submission. We'd rather tell you it's a reading copy than fake a grade.</p></div>
+      <div class="svc-row"><span class="no">#06</span><h3>Free Comic Book Day &amp; events</h3><p>The first Saturday in May we go all out; the rest of the year it's signings, launch nights and a kids' club. A shop is a community or it's just shelves.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v29">
+  <div class="wrap">
+    <div class="sw-head"><span>ISSUE 03 / THE DIFFERENCE</span><span>WHY THIS SHOP</span></div>
+    <h2 class="h2" style="color:var(--news);">Why buy here.</h2>
+    <div class="why-grid">
+      <div><span class="no">1</span><h3>Everyone reads here.</h3><p>No gatekeeping, no eye-rolls, no "you should already know that." Whether it's your first comic or your ten-thousandth, you get a real recommendation and a fair welcome.</p></div>
+      <div><span class="no">2</span><h3>Straight grading, always.</h3><p>We grade to sell you the truth, not the sale. A reputation for honest condition is the only thing a back-issue shop really has — and we guard it.</p></div>
+      <div><span class="no">3</span><h3>Your titles, held.</h3><p>The pull-list means the last copy is never a problem and a missed Wednesday is never a disaster. Set it once and your reading is sorted for good.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>ISSUE 04 / HOW THE PULL-LIST WORKS</span><span>TITLES → BAGGED → HELD → BINS</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us your titles</h3><p>Name the series you follow — or the ones you want to try. We build your pull-list and start bagging from the next ship date.</p></li>
+      <li><span class="step">STEP 02</span><h3>We bag them weekly</h3><p>Every Wednesday your books go in your folder behind the counter, safe from the last-copy scramble. New issues, held for you.</p></li>
+      <li><span class="step">STEP 03</span><h3>Drop in when you can</h3><p>Collect weekly, fortnightly, monthly — whatever suits. We'll flag anything new you might love while you're here.</p></li>
+      <li><span class="step">STEP 04</span><h3>Dig the bins</h3><p>While you're in, lose an hour in the back-issues. Ask us to hunt a specific issue; we love the chase almost more than the sale.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v29">
+  <div class="wrap">
+    <div class="sw-head"><span>ISSUE 05 / LETTERS PAGE</span><span>FROM THE REGULARS</span></div>
+    <blockquote class="t-quote">“He's now on a pull-list and reads more than I do. That's not retail, that's a <em>public service.</em>”</blockquote>
+    <div class="t-attr">Dan H. — pull-list, whole family</div>
+    <div class="t-sub">
+      <figure><blockquote>“I brought in a box of my dad's old comics terrified I'd be lowballed. Instead I got an honest grade on every one, a fair offer, and a genuine 'keep this one, it matters'. I trust them completely.”</blockquote><figcaption>Priya S. — back-issue valuation</figcaption></figure>
+      <figure><blockquote>“Wednesday at Panel &amp; Ink is the best hour of my week. My folder's always waiting, someone always knows what I'll like next, and nobody's ever made me feel like a tourist. It's my shop.”</blockquote><figcaption>Marcus O. — eight years, every Wednesday</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v57">
+  <div class="wrap">
+    <div class="sw-head"><span>ISSUE 06 / THE SPINNER RACK</span><span>ON THE WALL</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1620336655052-b57986f5a26a?w=1600&q=85&auto=format&fit=crop" alt="A stack of comic books." /><figcaption>NEW THIS WEEK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=1600&q=85&auto=format&fit=crop" alt="A row of comics side by side." /><figcaption>THE BACK-ISSUE BINS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1612036782617-472725567302?w=1600&q=85&auto=format&fit=crop" alt="A person holding an open comic." /><figcaption>FIRST READ</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1620336655052-b57986f5a26a?w=1600&q=85&auto=format&fit=crop" alt="Comics stacked on the counter." /><figcaption>PULLS, BAGGED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=1600&q=85&auto=format&fit=crop" alt="Back issues lined up." /><figcaption>KEYS &amp; RUNS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1612036782617-472725567302?w=1600&q=85&auto=format&fit=crop" alt="Reading a comic in the shop." /><figcaption>LOST AN AFTERNOON</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>ISSUE 07 / ASKED AT THE COUNTER</span><span>NO SUCH THING AS A DUMB ONE</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441159247781" style="color:var(--red);font-weight:700;">0115 924 7781</a>. Wednesdays are hectic, so we may call you back once the rush clears.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What actually is a pull-list?</summary><p>It's a standing order for your comics. You tell us which ongoing series you follow, and every Wednesday we pull those issues off the new shipment, bag and board them, and hold them in your named folder behind the counter. You collect whenever suits — weekly, monthly, whenever you're passing. It's free to set up, there's no minimum, and you can add, drop or pause titles any time. It means you never miss an issue and never lose out when a hot book sells through in an hour.</p></details>
+        <details><summary>I've never read comics — where do I start?</summary><p>With a conversation and zero judgement. Tell us what films, shows or books you love and roughly how much time you want to give it, and we'll put the right complete graphic novel or first volume in your hands. Starting with a self-contained book beats jumping into issue #347 of anything. That's the single most common visit we get, and it's our favourite.</p></details>
+        <details><summary>Do you buy old comics?</summary><p>Often, yes — bring them in and we'll go through them with you. We grade honestly in front of you, explain what drives the value (or doesn't), and make a fair offer on anything we can sell. We'll also tell you plainly when something's worth keeping rather than selling. No pressure, no lowballing; a straight deal is the only kind worth doing.</p></details>
+        <details><summary>How does grading work here?</summary><p>We grade to recognised condition standards and we call it straight — a Very Fine is a Very Fine, not a wishful Near Mint. Keys go in the cabinet with the grade on the sleeve; reading copies go in the bins, priced accordingly. If you're considering professional CGC slabbing we'll pre-screen the book and give you an honest view on whether it's worth the fee.</p></details>
+        <details><summary>Is the shop kid-friendly?</summary><p>Very. There's a dedicated all-ages section at kid height, a kids' comic club, and staff who genuinely enjoy matching young readers to the right series. Free Comic Book Day in May is built around families. Comics turned a lot of us into readers as children and we take passing that on seriously.</p></details>
+        <details><summary>What happens on Free Comic Book Day?</summary><p>The first Saturday in May, we hand out free comics, run the shop like a small festival, and usually pull in creators for signings and sketches. It's busy, it's brilliant, and it's the best day of our year. Follow us or ask in-store closer to the date for the line-up and timings.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ISSUE 08 / READERS COME FROM</span><span>ACROSS NOTTS</span></div>
+    <ul class="area-list">
+      <li>Nottingham</li><li>West Bridgford</li><li>Beeston</li><li>Arnold</li><li>Carlton</li><li>Long Eaton</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v4" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ISSUE 09 / THE STATS BOX</span><span>HOW WE RUN</span></div>
+    <div class="creds">
+      <div><div class="label">New comics</div><div class="detail">Every major &amp; indie publisher, Wednesdays</div></div>
+      <div><div class="label">Grading</div><div class="detail">Honest condition; CGC pre-screening</div></div>
+      <div><div class="label">Pull-list</div><div class="detail">Free to set up, no minimum, pause any time</div></div>
+      <div><div class="label">Community</div><div class="detail">Free Comic Book Day, kids' club, launch nights</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ISSUE 10 / FIND US</span><span>22 HEATHCOAT STREET, NG1</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Panel &amp; Ink</strong><br />
+          22 Heathcoat Street<br />
+          Nottingham NG1 3AA<br /><br />
+          <a href="tel:+441159247781" data-bind="business.phoneDisplay">0115 924 7781</a><br />
+          <a href="mailto:pulls@panelandink.co.uk" data-bind="business.email">pulls@panelandink.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>MON – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>NEW COMICS</span><span>WEDNESDAYS</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're in Hockley, the yellow shopfront on Heathcoat Street — new-issue wall in the window, bins down the back. Wednesday is busiest and best.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Panel & Ink, Nottingham" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.1520%2C52.9510%2C-1.1360%2C52.9585&layer=mapnik&marker=52.9548%2C-1.1443"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band halftone-none" data-component="CTA-BAND" data-variant="v32">
+  <div class="wrap">
+    <div class="kick">ISSUE 11 / PULL-LIST</div>
+    <h2 data-bind="cta.heading">Your folder's <em>waiting.</em></h2>
+    <p data-bind="cta.body">Start a pull-list, dig the bins, or just tell us what you love and let us find your next favourite. Wednesday's the big one — but any day's a good day for comics.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Start a pull-list</a>
+      <a class="btn btn-ghost" href="tel:+441159247781" data-bind="cta.secondary.label">0115 924 7781</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441159247781" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:23px;">PANEL <span style="color:var(--red);">&amp;</span> INK</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">An independent comic shop in Nottingham. On new-comics day since 2013.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          22 Heathcoat Street<br />Nottingham NG1 3AA<br />
+          <a href="tel:+441159247781">0115 924 7781</a><br />
+          <a href="mailto:pulls@panelandink.co.uk">pulls@panelandink.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we stock</a><a href="#about">The shop</a><a href="#location">Find us</a><a href="#book">Pull-list</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> PANEL &amp; INK LTD</span>
+      <span>NEW COMICS EVERY WEDNESDAY</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>
