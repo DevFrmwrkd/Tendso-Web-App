@@ -5,8 +5,22 @@
  * and server components alike. Render the output with <JsonLd> (see jsonLd.tsx)
  * or a native <script type="application/ld+json">.
  *
- * CANONICAL DOMAIN: tendso.com (platform migrated 2026-06). The plan doc assumed
- * tendso.app — that's wrong; every @id/canonical here uses tendso.com.
+ * CANONICAL DOMAIN: www.tendso.com (platform migrated 2026-06; the plan doc
+ * assumed tendso.app — that's wrong).
+ *
+ * The `www` is load-bearing, not cosmetic. Vercel serves the site on
+ * www.tendso.com and 308s the bare apex to it, so www is the origin a visitor
+ * actually lands on. This fallback used to say `https://tendso.com`, which made
+ * every canonical, og:url and sitemap <loc> on the site name an address that
+ * immediately redirects somewhere else — a page served at www declaring that
+ * the real version lives at an apex that points straight back. Crawlers resolve
+ * it, but they resolve it by ignoring what we told them, and every sitemap URL
+ * costs a redirect hop to fetch.
+ *
+ * So the value here must match wherever the site is actually served. If the
+ * apex↔www decision is ever reversed in the Vercel domain settings, change this
+ * line in the same breath — nothing in the build detects the mismatch.
+ *
  * Override with NEXT_PUBLIC_SITE_URL only if it's a real https origin (the dev
  * default localhost:3000 is ignored for canonical/schema, which must be absolute
  * production URLs).
@@ -14,7 +28,7 @@
 
 const ENV_URL = process.env.NEXT_PUBLIC_SITE_URL;
 export const SITE_URL =
-    ENV_URL && ENV_URL.startsWith('https://') ? ENV_URL.replace(/\/$/, '') : 'https://tendso.com';
+    ENV_URL && ENV_URL.startsWith('https://') ? ENV_URL.replace(/\/$/, '') : 'https://www.tendso.com';
 
 export const ORG_ID = `${SITE_URL}/#organization`;
 export const WEBSITE_ID = `${SITE_URL}/#website`;

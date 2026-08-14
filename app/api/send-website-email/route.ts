@@ -5,6 +5,7 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { sendPaymentLinkEmail } from '@/lib/email/service'
 import { getPaymentConfig } from '@/lib/payment/config'
+import { SITE_URL } from '@/lib/seo'
 
 /**
  * Send payment link to business owner via email (replaces old approval email)
@@ -97,10 +98,11 @@ export async function POST(request: NextRequest) {
             const claim = await fetchMutation(api.businessOwners.issueClaimTokenForEmail, {
                 submissionId: submissionId as Id<"submissions">,
             })
-            const base = process.env.NEXT_PUBLIC_SITE_URL?.startsWith('https://')
-                ? process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
-                : 'https://tendso.com'
-            editMyWebsiteUrl = `${base}/my-business/claim?token=${claim.token}`
+            // SITE_URL, not a second hand-rolled copy of the same env read. The
+            // duplicate here had drifted to the bare apex, so a claim link mailed
+            // to a business owner spent a 308 getting to the host that would
+            // actually honour it. One definition, in lib/seo.ts, with the reason.
+            editMyWebsiteUrl = `${SITE_URL}/my-business/claim?token=${claim.token}`
         } catch (e) {
             console.error('Failed to mint owner claim token (non-fatal):', e)
         }
