@@ -307,6 +307,15 @@ export const GENERIC_CONTENT_SCHEMA: GroupSpec[] = [
                 fallbackPaths: ['about_description', 'about'],
             },
             { kind: 'text', label: 'Signature line', path: 'about.signature', placeholder: 'A short closing line' },
+            // The italic “— Name, role” line under the paragraphs. AboutF binds
+            // it and falls back to about.signature for the value, so before this
+            // field the line rendered the business name under a hook that led
+            // nowhere: editing “Signature line” changed the pull-quote instead.
+            { kind: 'text', label: 'Signature name / role', path: 'about.signatureName', fallbackPaths: ['about.signature'], placeholder: 'Ariel Bautista, master barber' },
+            // The circular EST. disc over the about photo. Both halves are
+            // optional and the disc is not drawn at all without one of them.
+            { kind: 'text', label: 'Stamp · year', path: 'about.stampYear', placeholder: '2013' },
+            { kind: 'text', label: 'Stamp · label', path: 'about.stampTag', placeholder: 'EST.' },
             // The line under the name in an owner / host identity row. ONE piece
             // of free text, never assembled from parts — "hosting since 2019" is
             // a claim only the owner may make. Optional, so a template with no
@@ -464,6 +473,14 @@ export const GENERIC_CONTENT_SCHEMA: GroupSpec[] = [
             { kind: 'image', label: 'Image', path: 'why.image' },
             { kind: 'text', label: 'Eyebrow tag', path: 'why.tag', placeholder: 'Why us' },
             { kind: 'text', label: 'Headline', path: 'why.headline' },
+                // Every barbershop sect-head is a two-column head whose right
+                // column is `{sub && …}`. The components have always read
+                // `<section>.sub`; nothing ever declared or wrote it, so the
+                // lead paragraph beside the heading could not render on any of
+                // the six barbershop templates. services.sub was the only
+                // member of the family that worked, which is likely how the
+                // pattern got copied without its field.
+            { kind: 'textarea', label: 'Sub-paragraph', path: 'why.sub', fallbackPaths: ['why.lead'] },
             { kind: 'textarea', label: 'Lead paragraph', path: 'why.lead' },
             {
                 kind: 'list',
@@ -484,6 +501,7 @@ export const GENERIC_CONTENT_SCHEMA: GroupSpec[] = [
         fields: [
             { kind: 'text', label: 'Eyebrow tag', path: 'how.tag', placeholder: 'How it works' },
             { kind: 'text', label: 'Headline', path: 'how.headline' },
+            { kind: 'textarea', label: 'Sub-paragraph', path: 'how.sub' },
             {
                 kind: 'list',
                 label: 'Steps',
@@ -503,6 +521,7 @@ export const GENERIC_CONTENT_SCHEMA: GroupSpec[] = [
         fields: [
             { kind: 'text', label: 'Eyebrow tag', path: 'testimonials.tag', placeholder: 'Reviews' },
             { kind: 'text', label: 'Headline', path: 'testimonials.headline' },
+            { kind: 'textarea', label: 'Sub-paragraph', path: 'testimonials.sub' },
             { kind: 'textarea', label: 'Big pull-quote (A/D templates)', path: 'testimonials.bigQuote' },
             { kind: 'text', label: 'Source line', path: 'testimonials.source', placeholder: '★ Reviews on Google' },
             {
@@ -548,6 +567,7 @@ export const GENERIC_CONTENT_SCHEMA: GroupSpec[] = [
                 path: 'gallery.headline',
                 fallbackPaths: ['featured_subheadline'],
             },
+            { kind: 'textarea', label: 'Sub-paragraph', path: 'gallery.sub' },
             {
                 kind: 'list',
                 label: 'Tiles',
@@ -567,6 +587,7 @@ export const GENERIC_CONTENT_SCHEMA: GroupSpec[] = [
         fields: [
             { kind: 'text', label: 'Eyebrow tag', path: 'faq.tag', placeholder: 'FAQ' },
             { kind: 'text', label: 'Headline', path: 'faq.headline' },
+            { kind: 'textarea', label: 'Sub-paragraph', path: 'faq.sub' },
             {
                 kind: 'list',
                 label: 'Items',
@@ -620,6 +641,7 @@ export const GENERIC_CONTENT_SCHEMA: GroupSpec[] = [
         fields: [
             { kind: 'text', label: 'Eyebrow tag', path: 'credentials.tag', placeholder: 'Credentials' },
             { kind: 'text', label: 'Headline', path: 'credentials.headline' },
+            { kind: 'textarea', label: 'Sub-paragraph', path: 'credentials.sub', fallbackPaths: ['credentials.body'] },
             {
                 kind: 'list',
                 label: 'Items',
@@ -706,6 +728,19 @@ export const GENERIC_CONTENT_SCHEMA: GroupSpec[] = [
                 path: 'ctaBand.cta.text',
                 hrefPath: 'ctaBand.cta.href',
                 placeholder: 'Get in touch',
+            },
+            // The band's SECOND, outlined button. CtaBandF has always bound it
+            // and always fallen back to `Call <phone>` -> tel: when the field is
+            // empty, so before this the label and target were uneditable on
+            // every barbershop template and the button vanished entirely on a
+            // site with no phone number, with no input to bring it back.
+            {
+                kind: 'link',
+                label: 'Second CTA button',
+                path: 'ctaBand.cta2.text',
+                hrefPath: 'ctaBand.cta2.href',
+                placeholder: 'Call the shop',
+                hint: 'Left blank, this falls back to your phone number as a tel: link.',
             },
         ],
     },

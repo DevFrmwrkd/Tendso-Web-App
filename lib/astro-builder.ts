@@ -901,7 +901,17 @@ async function transformToAstroData(
                 trust:        c.trust ?? d.trust,
                 testimonials: keepHead(normalizeBlock(c.testimonials ?? undefined, 'items', { name: 'who', author: 'who', context: 'role' }), (derived as any).testimonials),
                 faq:          keepHead(normalizeBlock(c.faq ?? derived.faq, 'items', { question: 'q', answer: 'a' }), derived.faq),
-                credentials:  keepHead(normalizeBlock(c.credentials ?? undefined, 'items', { description: 'desc', body: 'desc' }), (derived as any).credentials),
+                // label -> title and detail -> body are NOT new aliases: both
+                // editors already carry them (SandboxEditor.tsx:501,
+                // useEditorDraft.ts:208) and this build-time copy had drifted.
+                // groq.service.ts emits credentials rows as {label, detail};
+                // CredentialsF reads {title, body}. Without the map an
+                // AI-written credentials block passed its items.length gate and
+                // drew four icons over an empty <h3> and no <p> — and only on
+                // sites nobody had opened in the editor first, which is why it
+                // hid. normalizeBlock only ADDS alias keys, so admin-typed rows
+                // are untouched.
+                credentials:  keepHead(normalizeBlock(c.credentials ?? undefined, 'items', { description: 'desc', body: 'desc', label: 'title', detail: 'body' }), (derived as any).credentials),
                 // Carry over enhancedImages so the image picker modal can
                 // surface them from inside the iframe-rendered Astro output.
                 enhancedImages: c.enhancedImages,

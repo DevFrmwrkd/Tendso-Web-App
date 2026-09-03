@@ -10,6 +10,13 @@ const featured = items[0];
 const side = items.slice(1);
 // A star row is a rating claim, not decoration — it puts a score in a named
 // customer's mouth. Render only the score the customer actually gave.
+//
+// The row carries data-field so the path scanner sees it and the Content
+// panel's Rating input survives narrowList. Without the binding the schema
+// declared the field, the manifest omitted it, the input was filtered out, no
+// admin could type a rating, and no star was ever drawn on any of the six
+// barbershop templates. data-derived because the node renders GLYPHS, not the
+// scalar: without it a live edit would replace the row with the digit.
 const starsOf = (it: { rating?: number | string }) => {
   const n = Math.round(Number(it.rating));
   return n >= 1 && n <= 5 ? '★'.repeat(n) : '';
@@ -28,7 +35,9 @@ const starsOf = (it: { rating?: number | string }) => {
       <div class="quotes reveal">
         {featured && (
           <figure class="feat">
-            {starsOf(featured) && <div class="stars">{starsOf(featured)}</div>}
+            {starsOf(featured) && (
+              <div class="stars" data-field="testimonials.items.0.rating" data-derived aria-label={`Rated ${Math.round(Number(featured.rating))} out of 5`}>{starsOf(featured)}</div>
+            )}
             <blockquote data-field="testimonials.items.0.quote" set:html={featured.quote}></blockquote>
             <figcaption class="by"><span data-field="testimonials.items.0.who">{featured.who || ''}</span></figcaption>
           </figure>
@@ -37,7 +46,9 @@ const starsOf = (it: { rating?: number | string }) => {
           <div class="side">
             {side.map((q, i) => (
               <figure class="sq">
-                {starsOf(q) && <div class="stars">{starsOf(q)}</div>}
+                {starsOf(q) && (
+                  <div class="stars" data-field={`testimonials.items.${i + 1}.rating`} data-derived aria-label={`Rated ${Math.round(Number(q.rating))} out of 5`}>{starsOf(q)}</div>
+                )}
                 <blockquote data-field={`testimonials.items.${i + 1}.quote`} set:html={q.quote}></blockquote>
                 <figcaption class="by"><span data-field={`testimonials.items.${i + 1}.who`}>{q.who || ''}</span></figcaption>
               </figure>
