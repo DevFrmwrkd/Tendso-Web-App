@@ -7,6 +7,11 @@ const headline = services.headline || '';
 const sub = services.sub || '';
 const items = Array.isArray(services.items) ? services.items : [];
 const idx = (i: number) => String(i + 1).padStart(2, '0');
+// Two optional chips per row, price first. `price` is a schema field this
+// family drew with nothing, so a priced menu could only be published by typing
+// the amount into "Note" — and the manifest, which reads the components, then
+// hid the Price input as unused. Printed exactly as typed: never parsed,
+// converted or totalled, and never invented when the field is empty.
 ---
 {/* OVER-REMOVAL GUARD — gate the SECTION, not just the grid. The grid below was
   already `items.length > 0`, but the header above it was not, so once the
@@ -37,7 +42,12 @@ const idx = (i: number) => String(i + 1).padStart(2, '0');
             <span class="no">{idx(i)} · Service</span>
             <h3 data-field={`services.items.${i}.title`}>{it.title}</h3>
             <p data-field={`services.items.${i}.desc`}>{it.desc || it.description || ''}</p>
-            {it.note && <span class="tag" data-field={`services.items.${i}.note`}>{it.note}</span>}
+            {(it.price || it.note) && (
+              <span class="chips">
+                {it.price && <span class="tag price" data-field={`services.items.${i}.price`}>{it.price}</span>}
+                {it.note && <span class="tag" data-field={`services.items.${i}.note`}>{it.note}</span>}
+              </span>
+            )}
           </div>
         ))}
       </div>
@@ -54,6 +64,9 @@ const idx = (i: number) => String(i + 1).padStart(2, '0');
   .svc h3 { font-family: var(--cond); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; font-size: 22px; margin: 18px 0 12px; }
   .svc p { color: var(--muted); font-size: 15px; margin: 0; }
   .svc:hover p { color: var(--muted-light); }
+  /* Row of optional chips. flex rather than inline-block so a price and a
+     note sit side by side with a real gap instead of butting together. */
+  .svc .chips { display: flex; flex-wrap: wrap; gap: 8px; }
   .svc .tag { display: inline-block; margin-top: 14px; font-family: var(--cond); text-transform: uppercase; letter-spacing: .18em; font-size: 11px; color: var(--brass); border: 1px solid var(--line); padding: 6px 12px; }
   .svc:hover .tag { color: var(--brass-bright); border-color: var(--line-light); }
   @media (max-width: 900px) { .svc-grid { grid-template-columns: repeat(2, 1fr); } }
