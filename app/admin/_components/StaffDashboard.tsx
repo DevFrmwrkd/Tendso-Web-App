@@ -10,8 +10,8 @@ import {
     timeUntil,
     useCallSchedule,
     useNow,
-    type ScheduledCall,
 } from "@/hooks/useCallSchedule"
+import CallList from "./CallList"
 
 /**
  * What an internal staff account sees when they open Tendso.
@@ -133,63 +133,5 @@ function Stat({ label, value }: { label: string; value: number }) {
             <p className="text-2xl font-bold text-zinc-900">{value}</p>
             <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{label}</p>
         </div>
-    )
-}
-
-function CallList({
-    title,
-    calls,
-    empty,
-    loading,
-}: {
-    title: string
-    calls: ScheduledCall[]
-    empty: string
-    loading: boolean
-}) {
-    return (
-        <section className="rounded-xl border border-zinc-200 bg-white p-6">
-            <h2 className="font-semibold text-zinc-900">{title}</h2>
-            {loading ? (
-                <p className="pt-3 text-sm text-zinc-400">Loading…</p>
-            ) : calls.length === 0 ? (
-                <p className="pt-3 text-sm text-zinc-400">{empty}</p>
-            ) : (
-                <ul className="divide-y divide-zinc-100 pt-1">
-                    {calls.map((c) => (
-                        <li key={c.key} className="flex items-baseline justify-between gap-4 py-3">
-                            <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-zinc-900">
-                                    {c.name}
-                                    {c.source === "calendar" && (
-                                        <span className="ml-2 text-xs font-normal text-zinc-400">
-                                            from the calendar
-                                        </span>
-                                    )}
-                                </p>
-                                {c.email && (
-                                    <p className="truncate text-xs text-zinc-500">{c.email}</p>
-                                )}
-                            </div>
-                            <div className="flex items-baseline gap-3 whitespace-nowrap">
-                                {c.meetUrl && (
-                                    <a
-                                        href={c.meetUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-sm font-medium text-zinc-900 underline"
-                                    >
-                                        Join
-                                    </a>
-                                )}
-                                <span className="text-sm text-zinc-600">
-                                    {formatCallTime(c.startMs)}
-                                </span>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
-        </section>
     )
 }
