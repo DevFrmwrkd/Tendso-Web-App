@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { query, mutation, internalQuery, internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
-import { requireAuth } from './lib/auth';
+import { requireAdmin, requireAuth } from './lib/auth';
 
 // ==================== QUERIES ====================
 
@@ -299,6 +299,24 @@ export const update = mutation({
     },
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// THE FOUR BELOW ARE PUBLIC AND PRIVILEGED, SO EACH ONE CHECKS THE CALLER.
+//
+// "Public" in Convex means reachable, not authenticated: any client holding the
+// deployment URL — which ships in the browser bundle by necessity — can call a
+// `mutation` by name. These four write role, status, money and certification,
+// and until now not one of them asked who was calling. Setting your own balance,
+// or your own role to 'admin', was a function call away.
+//
+// The Discord approvals bot is unaffected by design: it has no Clerk session and
+// never had one, so it goes through `approveCreatorInternal` below, which is an
+// internalMutation and unreachable from any client with or without these guards.
+//
+// Keep every guard here at least as strict as the mobile repo's copy of this
+// file. Both repos deploy to the SAME Convex deployment and the last deploy wins
+// the function, so a weaker web copy silently replaces a stronger mobile one.
+// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * Update creator status (admin only)
  */
@@ -313,12 +331,15 @@ export const updateStatus = mutation({
         ),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         await ctx.db.patch(args.id, { status: args.status });
     },
 });
 
 /**
- * Update creator role (admin only)
+ * Update creator role (admin only).
+ *
+ * The privilege-escalation one: this is the function that grants 'admin'.
  */
 export const updateRole = mutation({
     args: {
@@ -326,12 +347,17 @@ export const updateRole = mutation({
         role: v.union(v.literal('creator'), v.literal('admin')),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         await ctx.db.patch(args.id, { role: args.role });
     },
 });
 
 /**
- * Update creator balance
+ * Update creator balance (admin only).
+ *
+ * Sets the balance outright rather than adjusting it, so it is the one function
+ * that can mint payable money. Every legitimate credit goes through the earnings
+ * ledger instead — see earnings.create and referrals.qualifyByCreator.
  */
 export const updateBalance = mutation({
     args: {
@@ -340,6 +366,7 @@ export const updateBalance = mutation({
         totalEarnings: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const updates: { balance: number; totalEarnings?: number } = {
             balance: args.balance,
         };
@@ -351,11 +378,18 @@ export const updateBalance = mutation({
 });
 
 /**
- * Certify a creator (sets certifiedAt timestamp, sends notification)
+ * Certify a creator (sets certifiedAt timestamp, sends notification).
+ *
+ * Admin only. The mobile copy of this function still permits self-certification
+ * for backwards compatibility, which is a way around the approval queue: a
+ * creator who calls it on their own id is certified without anyone reviewing
+ * them. Certification is granted here and in approveCreator, both admin-gated,
+ * and the route a creator actually takes is markQuizPassed → admin approval.
  */
 export const certify = mutation({
     args: { id: v.id('creators') },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
         const creator = await ctx.db.get(args.id);
         if (!creator) throw new Error('Creator not found');
 
