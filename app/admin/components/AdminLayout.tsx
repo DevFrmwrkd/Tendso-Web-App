@@ -91,26 +91,34 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [scrolled, setScrolled] = useState(false)
 
-    // Pending Approval badge count — reactive. Returns undefined until the
-    // admin auth check resolves on the Convex side; we render the badge only
-    // when count > 0 so non-admins and the initial loading state stay silent.
-    const pendingApprovals = useQuery(api.creators.listPendingApproval, {}) as
-        | { _id: string }[]
-        | undefined
-    const pendingCount = pendingApprovals?.length ?? 0
-
-    // The internal 'staff' role reaches exactly one page — the call bookings —
-    // so the rest of the sidebar would be a list of dead ends for them. The
-    // pages themselves are gated server-side; this is only about not offering
-    // doors that will not open.
+    // Who is looking. Needed BEFORE the badge query below, which is admin-only
+    // and throws rather than returning undefined for anyone else.
     const { user } = useUser()
     const me = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip") as
         | { role?: string }
         | null
         | undefined
+
+    // The internal 'staff' role reaches exactly two pages, so the rest of the
+    // sidebar would be a list of dead ends for them. The pages themselves are
+    // gated server-side; this is only about not offering doors that will not
+    // open.
     const STAFF_ROUTES = ["/admin", "/admin/bookings"]
     const visibleNavItems =
         me?.role === "staff" ? navItems.filter((i) => STAFF_ROUTES.includes(i.href)) : navItems
+
+    // Pending Approval badge count — reactive, and admin-only.
+    //
+    // SKIPPED for everyone else, deliberately. `listPendingApproval` THROWS
+    // "Forbidden: admin access required" for a non-admin caller; it does not
+    // return undefined. This layout used to render for admins only, so nobody
+    // ever hit that — then the staff dashboard started rendering inside it and
+    // every staff page load threw. Keep this gated on the role.
+    const pendingApprovals = useQuery(
+        api.creators.listPendingApproval,
+        me?.role === "admin" ? {} : "skip",
+    ) as { _id: string }[] | undefined
+    const pendingCount = pendingApprovals?.length ?? 0
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 10)
