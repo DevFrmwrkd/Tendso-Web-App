@@ -28,6 +28,13 @@ export default function TrainingPage() {
     }, [isLoaded, user, router])
 
     useEffect(() => {
+        // Internal staff have no training to do — send them home. Nothing routes
+        // them here any more, but typing the URL used to strand them: no
+        // certifiedAt and no admin role meant this page simply kept them.
+        if (creator?.role === 'staff') {
+            router.push("/admin")
+            return
+        }
         if (creator && (creator.certifiedAt || creator.role === 'admin')) router.push("/dashboard")
     }, [creator, router])
 
