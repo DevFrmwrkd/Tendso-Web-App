@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, internalQuery, mutation, query } from "./_generated/server";
-import { requireAdmin, requireStaff } from "./lib/auth";
+import { requireStaff } from "./lib/auth";
 import {
   isValidSlot,
   normalizeSlotConfig,
@@ -197,7 +197,11 @@ export const getSlotConfigInternal = internalQuery({
 });
 
 /**
- * Admin: replace the bookable schedule.
+ * Replace the bookable schedule. Admins and internal staff.
+ *
+ * Staff can change these because they are the ones who sit the calls — the
+ * hours are their own availability. It is the one thing the role can write;
+ * everything else it touches is read-only.
  *
  * Deliberately NOT settings.set — that mutation is public and unauthenticated,
  * so saving the booking hours through it would let anyone rewrite them.
@@ -213,7 +217,7 @@ export const saveSlotConfig = mutation({
     windows: v.array(v.array(v.number())),
   },
   handler: async (ctx, { days, windows }) => {
-    const { me } = await requireAdmin(ctx);
+    const { me } = await requireStaff(ctx);
 
     const config: SlotConfig = {
       days: [...new Set(days)].sort(),

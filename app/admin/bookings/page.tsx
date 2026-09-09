@@ -21,7 +21,9 @@ import { formatCallTime, useCallSchedule } from "@/hooks/useCallSchedule"
  *
  * 2. HOURS. The bookable schedule lives in `settings` and is read by both the
  *    grid and the server-side check in createBooking, so changing it here
- *    changes what the page offers AND what it will accept.
+ *    changes what the page offers AND what it will accept. Staff can edit these
+ *    — they sit the calls, so the hours are their own availability — while Sync
+ *    stays admin-only.
  *
  * NOT WIRED TO TIDYCAL. TidyCal is the fallback when our Google token dies and
  * it is configured in its own dashboard. Change the hours here and the two
@@ -56,7 +58,7 @@ export default function AdminBookingsPage() {
     const isStaff = creator?.role === "staff"
     const canView = isAdmin || isStaff
 
-    const savedConfig = useQuery(api.nativeBookings.getSlotConfig, isAdmin ? {} : "skip")
+    const savedConfig = useQuery(api.nativeBookings.getSlotConfig, canView ? {} : "skip")
     const syncCancelled = useAction(api.booking.syncCancelledBookings)
     const saveSlotConfig = useMutation(api.nativeBookings.saveSlotConfig)
 
@@ -125,7 +127,7 @@ export default function AdminBookingsPage() {
 
     return (
         <AdminLayout>
-            <div className="max-w-4xl space-y-8">
+            <div className="max-w-6xl space-y-8">
                 <header className="space-y-1">
                     <h1 className="text-2xl font-bold text-zinc-900">Call bookings</h1>
                     <p className="text-sm text-zinc-500">
@@ -156,8 +158,8 @@ export default function AdminBookingsPage() {
                     </div>
                 </section>}
 
-                {/* ── Hours (admin only) ─────────────────────────────────── */}
-                {isAdmin && <section className="rounded-xl border border-zinc-200 bg-white p-6 space-y-5">
+                {/* ── Hours (admin + staff) ──────────────────────────────── */}
+                <section className="rounded-xl border border-zinc-200 bg-white p-6 space-y-5">
                     <div className="space-y-1">
                         <h2 className="font-semibold text-zinc-900">Bookable hours</h2>
                         <p className="text-sm text-zinc-500">
@@ -265,7 +267,7 @@ export default function AdminBookingsPage() {
                         {saved && <span className="text-sm text-green-700">Saved.</span>}
                         {saveError && <span className="text-sm text-red-600">{saveError}</span>}
                     </div>
-                </section>}
+                </section>
 
                 {/* ── The bookings ───────────────────────────────────────── */}
                 <section className="rounded-xl border border-zinc-200 bg-white p-6 space-y-4">
