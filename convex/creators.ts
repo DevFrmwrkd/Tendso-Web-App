@@ -344,7 +344,9 @@ export const updateStatus = mutation({
 export const updateRole = mutation({
     args: {
         id: v.id('creators'),
-        role: v.union(v.literal('creator'), v.literal('admin')),
+        // 'staff' is the internal read-only role — see requireStaff in lib/auth.
+        // It is NOT an admin: every role check in the app compares to 'admin'.
+        role: v.union(v.literal('creator'), v.literal('admin'), v.literal('staff')),
     },
     handler: async (ctx, args) => {
         await requireAdmin(ctx);

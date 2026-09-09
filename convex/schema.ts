@@ -422,6 +422,38 @@ export default defineSchema({
         .index('by_status', ['status'])
         .index('by_transactionRef', ['transactionRef']), // Mobile index
 
+    // ==================== FIELD AGENT CALL BOOKINGS ====================
+    // The 10-minute call booked on /field-agent/book. Ported from
+    // vonas-hr-pipeline, which keeps the same table against the same tendso.hr
+    // Google Calendar — the calendar is the shared source of truth, this table
+    // only holds the claim that stops two people taking one slot here.
+    //
+    // The HR copy carries `leadId` and `accessToken` for its invite-link
+    // prefill. Both are dropped: the lead table they point at does not exist
+    // in this deployment.
+    native_bookings: defineTable({
+        startMs: v.number(),
+        endMs: v.number(),
+        name: v.string(),
+        email: v.string(),
+        calendarEventId: v.optional(v.string()),
+        meetUrl: v.optional(v.string()),
+        // 'held' is a short-lived claim (3 min, see nativeBookings.ts) taken
+        // BEFORE the calendar write, so a crashed attempt reopens the slot
+        // instead of burning it.
+        status: v.union(
+            v.literal('held'),
+            v.literal('confirmed'),
+            v.literal('failed'),
+            v.literal('cancelled'),
+        ),
+        createdAt: v.number(),
+        confirmedAt: v.optional(v.number()),
+    })
+        .index('by_startMs', ['startMs'])
+        .index('by_email', ['email'])
+        .index('by_status', ['status']),
+
     // ==================== PAYOUT METHODS ====================
     payoutMethods: defineTable({
         creatorId: v.id('creators'),

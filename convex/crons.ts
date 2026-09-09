@@ -44,6 +44,16 @@ crons.hourly(
     internal.outscraper.releaseStaleClaimsInternal,
 );
 
+// Hourly (offset by 50 min): release booked call slots whose calendar event was
+// cancelled or deleted. Deleting the event frees the calendar but not our own
+// confirmed row, and availability blocks on either — so without this a cancelled
+// call leaves a dead slot forever. The admin Sync button runs the same job.
+crons.hourly(
+    'release-cancelled-call-bookings',
+    { minuteUTC: 50 },
+    internal.booking.syncCancelledBookingsCron,
+);
+
 // Every 2 minutes: poll open Knowledge Hub escalation threads for a human reply,
 // turn it into a KB Q&A, and notify the asker. No-op unless KB_ESCALATION_ENABLED.
 crons.interval(

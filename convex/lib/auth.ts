@@ -1,4 +1,5 @@
 import type { ActionCtx, MutationCtx, QueryCtx } from "../_generated/server";
+import type { Doc } from "../_generated/dataModel";
 
 /**
  * Shared auth helpers used by mutations, queries, and actions.
@@ -53,4 +54,35 @@ export async function requireAdmin(ctx: AnyCtx) {
         throw new Error("Forbidden: admin access required");
     }
     return { identity, me };
+}
+
+/**
+ * Roles allowed to READ the Field Agent call bookings: admins, plus the
+ * internal 'staff' role.
+ *
+ * Staff exists so whoever runs the calls can see who is booked, when, and the
+ * Meet link, without being given the tendso.hr mailbox or the rest of /admin.
+ * It grants nothing else — every other admin check in the app compares against
+ * 'admin' exactly, so a staff account fails all of them.
+ */
+export async function requireStaff(ctx: AnyCtx) {
+    const identity = await requireAuth(ctx);
+
+    let me: Doc<"creators"> | null;
+    if (isActionCtx(ctx)) {
+        const { internal } = await import("../_generated/api");
+        me = await ctx.runQuery(internal.creators.getMeForAuthInternal, {
+            clerkId: identity.subject,
+        });
+    } else {
+        me = await (ctx as QueryCtx | MutationCtx).db
+            .query("creators")
+            .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
+            .first();
+    }
+
+    if (!me || (me.role !== "admin" && me.role !== "staff")) {
+        throw new Error("Forbidden: staff access required");
+    }
+    return { identity, me, isAdmin: me.role === "admin" };
 }
