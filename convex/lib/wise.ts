@@ -179,6 +179,20 @@ export async function getTransferStatus(transferId: string): Promise<TransferSta
 }
 
 /**
+ * Is Wise holding this transfer because WE have not paid the money in yet?
+ *
+ * Funding is a manual step in the Wise dashboard by design, so every transfer
+ * this app creates starts here. Staying here is the failure mode: nothing about
+ * the transfer changes, no webhook fires, and the creator waits indefinitely.
+ * The same two keywords describeWiseStatus reads for its "Awaiting release"
+ * branch — kept beside it so a Wise rename only has to be fixed once.
+ */
+export function isAwaitingOurFunding(detailedStatus: string): boolean {
+    const status = detailedStatus.toLowerCase()
+    return status.includes('incoming_payment_waiting') || status.includes('incoming_payment_initiated')
+}
+
+/**
  * Map a Wise detailed status to a user-friendly label + description.
  * Used when sending follow-up status emails to creators.
  */

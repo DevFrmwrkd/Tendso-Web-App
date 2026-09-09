@@ -695,6 +695,51 @@ export const getStaleProcessing = internalMutation({
     },
 })
 
+/** How long a transfer may sit waiting on our funding before an admin is told. */
+const UNFUNDED_ALERT_AFTER_MS = 24 * 60 * 60 * 1000
+
+/**
+ * Post an operational alert to Discord.
+ *
+ * Reuses the approvals bot and, by default, the approvals channel — a payout
+ * waiting on funding is the same kind of thing: an admin action nobody is
+ * currently being told about. Set DISCORD_PAYOUT_ALERTS_CHANNEL_ID to split it
+ * into its own channel. Unset bot token or channel is a logged no-op, never a
+ * thrown error: this runs inside the follow-up loop and must not stop a poll.
+ */
+async function postAdminAlert(content: string): Promise<void> {
+    const botToken = process.env.DISCORD_BOT_TOKEN
+    const channelId =
+        process.env.DISCORD_PAYOUT_ALERTS_CHANNEL_ID || process.env.DISCORD_PENDING_APPROVALS_CHANNEL_ID
+    if (!botToken || !channelId) {
+        console.warn(`[WITHDRAWAL-ALERT] No Discord channel configured — alert not delivered: ${content}`)
+        return
+    }
+    try {
+        const res = await fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+            method: 'POST',
+            headers: { Authorization: `Bot ${botToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content }),
+        })
+        if (!res.ok) {
+            console.error(`[WITHDRAWAL-ALERT] Discord post failed: ${res.status} ${await res.text()}`)
+        }
+    } catch (error) {
+        console.error('[WITHDRAWAL-ALERT] Discord post threw:', error)
+    }
+}
+
+/**
+ * Internal mutation: stamp the withdrawal as alerted, so the unfunded warning
+ * fires once per withdrawal rather than once an hour.
+ */
+export const markUnfundedAlerted = internalMutation({
+    args: { withdrawalId: v.id('withdrawals') },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.withdrawalId, { unfundedAlertAt: Date.now() })
+    },
+})
+
 /**
  * Internal mutation: record the result of a status check (used by the action below).
  */
@@ -803,15 +848,24 @@ export const checkProcessingStatusCron = internalAction({
 
         console.log(`[WITHDRAWAL-FOLLOWUP] Checking ${stale.length} stale withdrawals`)
 
-        const { getTransferStatus, describeWiseStatus } = await import('./lib/wise')
+        const { getTransferStatus, describeWiseStatus, isAwaitingOurFunding } = await import('./lib/wise')
 
         for (const w of stale) {
             try {
                 const status = await getTransferStatus(w.wiseTransferId!)
-                const stateChanged = w.wiseDetailedState !== status.detailedStatus
-                const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000
-                const noRecentEmail = !w.lastStatusEmailAt || w.lastStatusEmailAt < oneDayAgo
-                const shouldEmail = stateChanged || noRecentEmail
+
+                // A state change is the ONLY thing worth emailing a creator about.
+                //
+                // This used to also fire whenever 24 hours had passed with no
+                // mail — `stateChanged || noRecentEmail` — which turned a status
+                // notifier into a daily nag. A transfer waiting on our funding
+                // never changes state, so one creator received the same
+                // "we are sending the funds now" mail every day for fourteen
+                // days, on two overlapping withdrawals at once, and was then
+                // told the whole thing failed. Silence is the correct output
+                // for a withdrawal that has not moved; the unfunded alert below
+                // is what should wake somebody up, and it goes to an admin.
+                const shouldEmail = w.wiseDetailedState !== status.detailedStatus
 
                 await ctx.runMutation(internal.withdrawals.recordStatusCheck, {
                     withdrawalId: w._id,
@@ -819,11 +873,24 @@ export const checkProcessingStatusCron = internalAction({
                     sendEmail: shouldEmail,
                 })
 
+                // Apply the terminal transition the webhook would have applied,
+                // exactly as refreshFromWise does. Without it, a transfer Wise
+                // has already paid out stays 'processing' forever, comes back in
+                // every hourly batch, and never credits totalWithdrawn if the
+                // webhook was missed. Guarded to 'processing' for the same
+                // reason it is there: updateByWiseTransferId is not safe twice.
+                if (status.isFinal && w.status === 'processing') {
+                    await ctx.runMutation(internal.withdrawals.updateByWiseTransferId, {
+                        wiseTransferId: w.wiseTransferId!,
+                        status: status.isCompleted ? 'completed' : 'failed',
+                    })
+                }
+
+                const creator = await ctx.runQuery(internal.creators.getByIdInternal, { id: w.creatorId })
+
                 if (shouldEmail) {
                     const description = describeWiseStatus(status.detailedStatus)
 
-                    // Fetch creator email
-                    const creator = await ctx.runQuery(internal.creators.getByIdInternal, { id: w.creatorId })
                     if (!creator?.email) {
                         console.warn(`[WITHDRAWAL-FOLLOWUP] No email for creator ${w.creatorId}, skipping`)
                         continue
@@ -841,6 +908,27 @@ export const checkProcessingStatusCron = internalAction({
                         referenceCode: w.wiseTransferId,
                         submittedAt: w.createdAt,
                     })
+                }
+
+                // The condition nobody was watching: Wise has the transfer but is
+                // waiting for US to pay it in, and has been for over a day. The
+                // creator cannot do anything about it, so they are not told —
+                // an admin is, once, and then the row is stamped so this never
+                // becomes the nag it replaced.
+                if (
+                    !w.unfundedAlertAt &&
+                    isAwaitingOurFunding(status.detailedStatus) &&
+                    w.createdAt < Date.now() - UNFUNDED_ALERT_AFTER_MS
+                ) {
+                    const days = Math.floor((Date.now() - w.createdAt) / (24 * 60 * 60 * 1000))
+                    const who = creator ? `${creator.firstName ?? ''} ${creator.lastName ?? ''}`.trim() : 'a creator'
+                    await postAdminAlert(
+                        `⚠️ **Unfunded payout — ₱${w.amount} to ${who || 'a creator'}**\n` +
+                        `Requested ${days} day${days === 1 ? '' : 's'} ago. Wise is still waiting for us to pay it in ` +
+                        `(\`${status.detailedStatus}\`). Wise transfer \`${w.wiseTransferId}\`.\n` +
+                        `Fund it in the Wise dashboard, or fail the withdrawal so the balance goes back.`
+                    )
+                    await ctx.runMutation(internal.withdrawals.markUnfundedAlerted, { withdrawalId: w._id })
                 }
             } catch (error) {
                 console.error(`[WITHDRAWAL-FOLLOWUP] Error checking withdrawal ${w._id}:`, error)
