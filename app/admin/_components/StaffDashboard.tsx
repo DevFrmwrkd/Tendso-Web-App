@@ -21,8 +21,8 @@ import {
  * and what is coming. Every call carries its Join link, which is the point —
  * the whole role exists so nobody needs the tendso.hr mailbox to get on a call.
  *
- * Read-only by construction. Nothing here changes anything; the Sync button and
- * the bookable hours are admin-only and refused server-side either way.
+ * Read-only. Nothing on this page changes anything — the one thing the role can
+ * write is the bookable hours, over on /admin/bookings.
  */
 export default function StaffDashboard({ firstName }: { firstName?: string }) {
     const { upcoming, calendarError, loading } = useCallSchedule(true)
@@ -41,7 +41,7 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
     )
 
     return (
-        <div className="max-w-4xl space-y-6">
+        <div className="space-y-6">
             <header className="space-y-1">
                 <h1 className="text-2xl font-bold text-zinc-900">
                     {firstName ? `Hi ${firstName}` : "Your calls"}
@@ -94,25 +94,27 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
                 )}
             </section>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:max-w-3xl">
                 <Stat label="Today" value={today.length} />
                 <Stat label="Next 7 days" value={thisWeek} />
                 <Stat label="Booked ahead" value={upcoming.length} />
             </div>
 
-            <CallList
-                title={`Today${today.length ? ` (${today.length})` : ""}`}
-                calls={today}
-                empty="No calls left today."
-                loading={loading}
-            />
+            <div className="grid items-start gap-6 xl:grid-cols-2">
+                <CallList
+                    title={`Today${today.length ? ` (${today.length})` : ""}`}
+                    calls={today}
+                    empty="No calls left today."
+                    loading={loading}
+                />
 
-            <CallList
-                title="Coming up"
-                calls={upcoming.filter((c) => !today.includes(c))}
-                empty="Nothing further booked yet."
-                loading={loading}
-            />
+                <CallList
+                    title="Coming up"
+                    calls={upcoming.filter((c) => !today.includes(c))}
+                    empty="Nothing further booked yet."
+                    loading={loading}
+                />
+            </div>
 
             <p className="text-sm text-zinc-500">
                 Every booking, including past and cancelled ones, is on the{" "}
