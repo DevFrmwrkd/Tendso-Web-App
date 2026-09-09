@@ -412,6 +412,11 @@ export default defineSchema({
         lastStatusCheckAt: v.optional(v.number()),       // Last time we polled Wise API
         lastStatusEmailAt: v.optional(v.number()),       // Last time we sent a status email to creator
         wiseDetailedState: v.optional(v.string()),       // The latest detailed Wise state (e.g. "verifying", "outgoing_payment_sent")
+        // Set once, the first time the cron notices this transfer has been
+        // waiting on OUR funding for over a day. Its only job is to stop the
+        // alert repeating — the creator-facing nag this replaced is exactly the
+        // failure it exists to prevent.
+        unfundedAlertAt: v.optional(v.number()),
     })
         .index('by_creator', ['creatorId'])
         .index('by_status', ['status'])
