@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api"
 import { useAdminAuth } from "@/hooks/useAdmin"
 import AdminLayout from "../components/AdminLayout"
 import { formatCallTime, useCallSchedule } from "@/hooks/useCallSchedule"
+import CallList from "../_components/CallList"
 
 /**
  * Field Agent call bookings — the admin side of /field-agent/book.
@@ -270,56 +271,22 @@ export default function AdminBookingsPage() {
                 </section>
 
                 {/* ── The bookings ───────────────────────────────────────── */}
-                <section className="rounded-xl border border-zinc-200 bg-white p-6 space-y-4">
-                    <h2 className="font-semibold text-zinc-900">
-                        Upcoming{upcoming.length ? ` (${upcoming.length})` : ""}
-                    </h2>
-                    {scheduleLoading && <p className="text-sm text-zinc-400">Loading…</p>}
-                    {!scheduleLoading && upcoming.length === 0 && (
-                        <p className="text-sm text-zinc-400">No calls booked.</p>
-                    )}
-                    {calendarError && (
-                        <p className="text-sm text-amber-700">
-                            Showing bookings from this app only — {calendarError}
-                        </p>
-                    )}
-                    <ul className="divide-y divide-zinc-100">
-                        {upcoming.map((b) => (
-                            <li key={b.key} className="py-3 flex items-baseline justify-between gap-4">
-                                <div className="min-w-0">
-                                    <p className="text-sm font-semibold text-zinc-900 truncate">
-                                        {b.name}
-                                        {b.source === "calendar" && (
-                                            <span className="ml-2 text-xs font-normal text-zinc-400">
-                                                from the calendar
-                                            </span>
-                                        )}
-                                    </p>
-                                    {b.email && (
-                                        <p className="text-xs text-zinc-500 truncate">{b.email}</p>
-                                    )}
-                                </div>
-                                <div className="flex items-baseline gap-3 whitespace-nowrap">
-                                    {b.meetUrl && (
-                                        <a
-                                            href={b.meetUrl}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-sm font-medium text-zinc-900 underline"
-                                        >
-                                            Join
-                                        </a>
-                                    )}
-                                    <span className="text-sm text-zinc-600">
-                                        {formatCallTime(b.startMs)}
-                                    </span>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                {calendarError && (
+                    <p className="text-sm text-amber-700">
+                        Showing bookings from this app only — {calendarError}
+                    </p>
+                )}
 
+                <CallList
+                    title={`Upcoming${upcoming.length ? ` (${upcoming.length})` : ""}`}
+                    calls={upcoming}
+                    empty="No calls booked."
+                    loading={scheduleLoading}
+                />
+
+                <section className="rounded-xl border border-zinc-200 bg-white p-6">
                     {past.length > 0 && (
-                        <details className="pt-2">
+                        <details>
                             <summary className="cursor-pointer text-sm text-zinc-500">
                                 Past and cancelled ({past.length})
                             </summary>

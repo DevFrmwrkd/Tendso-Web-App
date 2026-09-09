@@ -153,6 +153,26 @@ export function manilaDayKey(ms: number): string {
     }).format(new Date(ms))
 }
 
+/** "Wed, Sep 9" — said once per day group, not on every row. */
+export function formatCallDate(ms: number): string {
+    return new Date(ms).toLocaleDateString("en-US", {
+        timeZone: "Asia/Manila",
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+    })
+}
+
+/** "6:45 PM" — what actually differs between one row and the next. */
+export function formatClockTime(ms: number): string {
+    return new Date(ms).toLocaleTimeString("en-US", {
+        timeZone: "Asia/Manila",
+        hour: "numeric",
+        minute: "2-digit",
+    })
+}
+
+/** Date and time together. Still used where a row stands alone. */
 export function formatCallTime(ms: number): string {
     return new Date(ms).toLocaleString("en-US", {
         timeZone: "Asia/Manila",
