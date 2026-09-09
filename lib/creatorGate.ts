@@ -3,6 +3,7 @@
  * state. Single source of truth so every gated page redirects consistently.
  *
  * State priority (mutually exclusive at any moment):
+ *   internal staff (role 'staff')                  → /admin
  *   rejected (rejectedAt)                          → /verification-rejected
  *   passed quiz, not yet approved (quizPassedAt && !certifiedAt) → /pending
  *   hasn't passed the quiz                         → /training
@@ -20,6 +21,14 @@ export interface CreatorGateInput {
 
 export function creatorRedirect(creator: CreatorGateInput | null | undefined): string | null {
     if (!creator) return null; // not loaded / no profile — caller handles separately
+
+    // Internal staff run the Field Agent calls; they are not creators and never
+    // become one. Checked FIRST and before certifiedAt, so a staff account is
+    // sent home even if someone also certified it. Without this they fall to
+    // the bottom of this function — no certifiedAt, no quizPassedAt — and get
+    // pushed into creator training, which is not their job.
+    if (creator.role === "staff") return "/admin";
+
     if (creator.role === "admin" || creator.certifiedAt) return null; // allowed
     if (creator.rejectedAt) return "/verification-rejected";
     if (creator.quizPassedAt) return "/pending";
