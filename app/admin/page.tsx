@@ -19,6 +19,7 @@ import {
 import { Line } from "react-chartjs-2"
 import { motion } from "framer-motion"
 import AdminLayout from "./components/AdminLayout"
+import StaffDashboard from "./_components/StaffDashboard"
 import {
     TrendingUp,
     AlertCircle,
@@ -40,7 +41,7 @@ Chart.register(
 )
 
 export default function AdminDashboard() {
-    const { isAdmin, loading: authLoading } = useAdminAuth()
+    const { isAdmin, loading: authLoading, creator } = useAdminAuth()
     const { submissions, loading: submissionsLoading } = useSubmissions()
     const [backfilling, setBackfilling] = useState(false)
     const [backfillResult, setBackfillResult] = useState<{ updatedSubmissions: number; updatedWebsites: number } | null>(null)
@@ -197,6 +198,18 @@ export default function AdminDashboard() {
             website_generated: { bg: "bg-teal-50", text: "text-teal-700", label: "Generated" },
         }
         return config[status] || { bg: "bg-gray-100", text: "text-gray-700", label: status }
+    }
+
+    // The internal 'staff' role lands here like everyone else, and gets the
+    // one view its job needs instead of an empty admin dashboard. Placed after
+    // every hook above so the hook order never changes between renders; those
+    // hooks fetch nothing for a non-admin, they are all gated on isAdmin.
+    if (!authLoading && creator?.role === "staff") {
+        return (
+            <AdminLayout>
+                <StaffDashboard firstName={creator.firstName ?? undefined} />
+            </AdminLayout>
+        )
     }
 
     if (authLoading || submissionsLoading) {

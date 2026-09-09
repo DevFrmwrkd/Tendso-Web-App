@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { useClerk } from "@clerk/nextjs"
+import { useClerk, useUser } from "@clerk/nextjs"
 import { motion, AnimatePresence } from "framer-motion"
 import { useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
@@ -22,7 +22,8 @@ import {
     X,
     ChevronRight,
     Megaphone,
-    Inbox
+    Inbox,
+    CalendarClock
 } from "lucide-react"
 
 const navItems = [
@@ -72,6 +73,11 @@ const navItems = [
         icon: Star,
     },
     {
+        label: "Call Bookings",
+        href: "/admin/bookings",
+        icon: CalendarClock,
+    },
+    {
         label: "Train AI",
         href: "/admin/knowledge",
         icon: Sparkles,
@@ -92,6 +98,19 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         | { _id: string }[]
         | undefined
     const pendingCount = pendingApprovals?.length ?? 0
+
+    // The internal 'staff' role reaches exactly one page — the call bookings —
+    // so the rest of the sidebar would be a list of dead ends for them. The
+    // pages themselves are gated server-side; this is only about not offering
+    // doors that will not open.
+    const { user } = useUser()
+    const me = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip") as
+        | { role?: string }
+        | null
+        | undefined
+    const STAFF_ROUTES = ["/admin", "/admin/bookings"]
+    const visibleNavItems =
+        me?.role === "staff" ? navItems.filter((i) => STAFF_ROUTES.includes(i.href)) : navItems
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 10)
@@ -170,7 +189,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 </div>
 
                 <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
-                    {navItems.map((item) => {
+                    {visibleNavItems.map((item) => {
                         // Prefix match so a section stays lit on its own detail
                         // routes (/admin/submissions/<id>, /admin/creators/<id>).
                         // "/admin" is exact-only — it prefixes every admin route,

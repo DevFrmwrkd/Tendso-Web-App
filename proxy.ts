@@ -17,6 +17,9 @@ const isPublicRoute = createRouteMatcher([
     '/about(.*)',
     // New NEO LAB landing surface — fully public, no Clerk gate.
     '/for-creators(.*)',
+    // The 10-minute call booking page. Public on purpose: the people booking
+    // it have no account yet — that call is how they get one.
+    '/field-agent(.*)',
     // /for-business has no page any more: next.config redirects it 308 → `/`.
     // next.config redirects run BEFORE the proxy, so this entry is belt and
     // braces — but if that ever stops holding, a signed-out visitor arriving

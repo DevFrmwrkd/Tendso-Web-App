@@ -45,10 +45,13 @@ export default function CreatorDetailPage() {
 
     // Mutation to update status
     const updateStatus = useMutation(api.creators.updateStatus)
+    const updateRole = useMutation(api.creators.updateRole)
 
     const loading = !isLoaded || (user && currentCreator === undefined) || (isAdmin && creator === undefined)
 
     const [updating, setUpdating] = useState(false)
+    const [savingRole, setSavingRole] = useState(false)
+    const [roleSaved, setRoleSaved] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
     // Confirmation modal
@@ -58,6 +61,29 @@ export default function CreatorDetailPage() {
     // Delete modal
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [deleting, setDeleting] = useState(false)
+
+    /**
+     * Change what this person can reach. Admin-gated on the server too — this
+     * is only the control.
+     *
+     * You cannot change your OWN role here. An admin demoting themselves would
+     * lose the page they are standing on, and with nobody else able to promote
+     * them back it is a one-way door.
+     */
+    const handleRoleChange = async (role: 'creator' | 'staff' | 'admin') => {
+        if (!creator || role === creator.role) return
+        setSavingRole(true)
+        setError(null)
+        try {
+            await updateRole({ id: creator._id, role })
+            setRoleSaved(true)
+            setTimeout(() => setRoleSaved(false), 2500)
+        } catch (err: any) {
+            setError(err.message || 'Failed to update role')
+        } finally {
+            setSavingRole(false)
+        }
+    }
 
     const handleStatusChange = async () => {
         if (!creator || !pendingAction) return
@@ -230,6 +256,65 @@ export default function CreatorDetailPage() {
                     </div>
                 )}
 
+                {/* Access level */}
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
+                    <div className="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                        <h3 className="font-semibold text-gray-900">Access</h3>
+                    </div>
+                    <div className="px-6 py-5 space-y-4">
+                        {([
+                            {
+                                value: 'creator' as const,
+                                label: 'Creator',
+                                desc: 'The default. Submits businesses and gets paid. No access to /admin.',
+                            },
+                            {
+                                value: 'staff' as const,
+                                label: 'Internal staff',
+                                desc: 'Reads the Field Agent call bookings — who is booked, when, and the Meet link — and nothing else. No mailbox access needed.',
+                            },
+                            {
+                                value: 'admin' as const,
+                                label: 'Admin',
+                                desc: 'Everything: submissions, payouts, creators, roles, and the money.',
+                            },
+                        ]).map((option) => {
+                            const active = (creator.role || 'creator') === option.value
+                            const isSelf = currentCreator?._id === creator._id
+                            return (
+                                <label
+                                    key={option.value}
+                                    className={`flex gap-3 items-start rounded-lg border p-4 ${
+                                        isSelf ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                                    } ${active ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:border-gray-400'}`}
+                                >
+                                    <input
+                                        type="radio"
+                                        name="creator-role"
+                                        className="mt-1"
+                                        checked={active}
+                                        disabled={savingRole || isSelf}
+                                        onChange={() => handleRoleChange(option.value)}
+                                    />
+                                    <span className="min-w-0">
+                                        <span className="block text-sm font-semibold text-gray-900">
+                                            {option.label}
+                                        </span>
+                                        <span className="block text-sm text-gray-500">{option.desc}</span>
+                                    </span>
+                                </label>
+                            )
+                        })}
+                        <p className="text-xs text-gray-400">
+                            {currentCreator?._id === creator._id
+                                ? 'You cannot change your own role. Ask another admin.'
+                                : 'Takes effect the next time they load a page.'}
+                            {savingRole && ' · Saving…'}
+                            {roleSaved && ' · Saved.'}
+                        </p>
+                    </div>
+                </div>
+
                 {/* Pricing this creator charges businesses */}
                 {pricingSummary && pricingSummary.rows.length > 0 && (
                     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-6">
@@ -296,6 +381,11 @@ export default function CreatorDetailPage() {
                                         {creator.role === 'admin' && (
                                             <span className="px-2 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700">
                                                 👑 Admin
+                                            </span>
+                                        )}
+                                        {creator.role === 'staff' && (
+                                            <span className="px-2 py-1 text-xs font-medium rounded-full bg-sky-100 text-sky-700">
+                                                Internal staff
                                             </span>
                                         )}
                                     </div>
