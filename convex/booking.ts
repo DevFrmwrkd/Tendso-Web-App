@@ -14,6 +14,13 @@ import {
   manilaTimeLabel,
 } from "./lib/availability";
 import { requireAdmin, requireStaff } from "./lib/auth";
+// The designed HTML bodies. sendAsTendso sends multipart, so the plain text
+// below stays the fallback for anything that will not render HTML.
+import {
+  getCallBookedEmailHtml,
+  getCallCancelledEmailHtml,
+  getCallMovedEmailHtml,
+} from "../lib/email/templates";
 
 // Annotated explicitly: the handler reaches back into `internal.*`, which is
 // typed from _generated/api.d.ts, which in turn includes this action. Without
@@ -273,7 +280,9 @@ You're booked. Your 10-minute call with Tendso is on ${when}.
 
 ${meetUrl ? `Here's your Google Meet link: ${meetUrl}` : "We'll send your Google Meet link shortly."}
 
-We'll also send you a reminder before the call. If you can no longer make it, just reply "CANCEL" to this email so we can free up the slot for someone else.
+We'll also send you a reminder before the call.
+
+${claim.manageToken ? manageFooter(claim.manageToken) : 'If you can no longer make it, just reply "CANCEL" to this email so we can free up the slot for someone else.'}
 
 Talk soon,
 Tendso HR Team`;
@@ -283,6 +292,13 @@ Tendso HR Team`;
           to: cleanEmail,
           subject: `Confirmed: your 10-minute call with Tendso, ${manilaDayLabel(startMs)}`,
           text: body,
+          html: getCallBookedEmailHtml({
+            firstName: cleanName.split(/\s+/)[0],
+            dayLabel: manilaDayLabel(startMs),
+            timeLabel: manilaTimeLabel(startMs),
+            meetUrl,
+            manageUrl: claim.manageToken ? manageUrl(claim.manageToken) : null,
+          }),
         });
       } catch (err) {
         // The booking is real even if the receipt bounces — the reminder cron
@@ -482,5 +498,190 @@ export const listCalendarCalls = action({
     }
 
     return calls;
+  },
+});
+
+// ==================== SELF-SERVE RESCHEDULE / CANCEL ====================
+//
+// Driven by the links in the confirmation email. No account, no login: the
+// bearer token names one booking and grants exactly these two verbs on it.
+
+/** Where the manage page lives, for the links we mail out. */
+function manageUrl(token: string): string {
+  const base = (process.env.SITE_URL || "https://www.tendso.com").replace(/\/$/, "");
+  return `${base}/field-agent/manage?t=${token}`;
+}
+
+/** The two lines every confirmation and reschedule email ends with. */
+function manageFooter(token: string): string {
+  return (
+    `Need a different time? Reschedule or cancel here:\n${manageUrl(token)}\n\n` +
+    `Rescheduling keeps the same Meet link.`
+  );
+}
+
+/**
+ * Move a booking to another slot, keeping the same Google Meet link.
+ *
+ * The Meet link survives because the calendar event is PATCHED, not replaced:
+ * sending only `start` and `end` leaves conferenceData untouched, so the same
+ * room stays attached and any link the person already saved keeps working.
+ * Deleting and recreating the event would mint a new one and silently break
+ * every copy of the old.
+ *
+ * Order: take the new slot in our table first, then patch Google, and put the
+ * row back if Google refuses. A row on a slot nobody holds is recoverable; a
+ * calendar event with no row behind it is not.
+ */
+export const rescheduleByToken = action({
+  args: { token: v.string(), newStartMs: v.number() },
+  handler: async (
+    ctx,
+    { token, newStartMs },
+  ): Promise<{ ok: true; when: string; meetUrl: string | null } | { ok: false; error: string }> => {
+    const booking = await ctx.runQuery(internal.nativeBookings.getByManageToken, { token });
+    if (!booking) return { ok: false as const, error: "That link is no longer valid." };
+    if (booking.status !== "confirmed") {
+      return { ok: false as const, error: "That booking is no longer active." };
+    }
+    if (newStartMs < Date.now() + MIN_LEAD_MS) {
+      return { ok: false as const, error: "That slot is too soon. Please pick a later one." };
+    }
+
+    const moved = await ctx.runMutation(internal.nativeBookings.moveBooking, {
+      id: booking._id,
+      newStartMs,
+    });
+    if (!moved.ok) {
+      return {
+        ok: false as const,
+        error:
+          moved.reason === "slot_taken"
+            ? "Someone just took that slot. Please pick another."
+            : "That time isn't available. Please pick another.",
+      };
+    }
+
+    try {
+      // The live calendar can hold something our table does not know about —
+      // a TidyCal booking, or an entry made by hand — so check before moving on
+      // top of it. Checked AFTER our own claim, same as a first booking.
+      const busy = await busyRanges(newStartMs - 60_000, slotEnd(newStartMs) + 60_000);
+      if (overlaps(newStartMs, busy)) {
+        await ctx.runMutation(internal.nativeBookings.moveBooking, {
+          id: booking._id,
+          newStartMs: moved.previousStartMs,
+        });
+        return { ok: false as const, error: "Someone just took that slot. Please pick another." };
+      }
+
+      if (booking.calendarEventId) {
+        const calendar = await createTendsoCalendarClient();
+        await calendar.events.patch({
+          calendarId: "primary",
+          eventId: booking.calendarEventId,
+          sendUpdates: "none",
+          requestBody: {
+            start: { dateTime: new Date(newStartMs).toISOString(), timeZone: "Asia/Manila" },
+            end: { dateTime: new Date(slotEnd(newStartMs)).toISOString(), timeZone: "Asia/Manila" },
+          },
+        });
+      }
+    } catch (err) {
+      await ctx.runMutation(internal.nativeBookings.moveBooking, {
+        id: booking._id,
+        newStartMs: moved.previousStartMs,
+      });
+      console.error("rescheduleByToken failed:", errMessage(err));
+      return { ok: false as const, error: "Something went wrong moving that call. Please try again." };
+    }
+
+    const when = `${manilaDayLabel(newStartMs)} at ${manilaTimeLabel(newStartMs)} (Manila time)`;
+    const meetUrl = booking.meetUrl ?? null;
+    try {
+      await sendAsTendso({
+        to: booking.email,
+        subject: `Moved: your 10-minute call with Tendso, ${manilaDayLabel(newStartMs)}`,
+        html: getCallMovedEmailHtml({
+          firstName: booking.name.split(/\s+/)[0],
+          dayLabel: manilaDayLabel(newStartMs),
+          timeLabel: manilaTimeLabel(newStartMs),
+          meetUrl,
+          manageUrl: manageUrl(token),
+        }),
+        text:
+          `Hi ${booking.name.split(/\s+/)[0]},\n\n` +
+          `Your call has been moved to ${when}.\n\n` +
+          `${meetUrl ? `Your Google Meet link is unchanged: ${meetUrl}` : "We'll send your Google Meet link shortly."}\n\n` +
+          `${manageFooter(token)}\n\n` +
+          `Talk soon,\nTendso HR Team`,
+      });
+    } catch (err) {
+      // The move is real even if the receipt bounces.
+      console.error(`Reschedule email failed for ${booking.email}:`, errMessage(err));
+    }
+
+    return { ok: true as const, when, meetUrl };
+  },
+});
+
+/**
+ * Cancel a booking: delete the calendar event, mark the row cancelled, free
+ * the slot. Both halves matter — the row is what the booking page reads, and
+ * the event is what the calendar's freebusy reports.
+ */
+export const cancelByToken = action({
+  args: { token: v.string() },
+  handler: async (ctx, { token }): Promise<{ ok: boolean; error?: string }> => {
+    const booking = await ctx.runQuery(internal.nativeBookings.getByManageToken, { token });
+    if (!booking) return { ok: false, error: "That link is no longer valid." };
+    if (booking.status === "cancelled") return { ok: true }; // already done; say so kindly
+
+    if (booking.calendarEventId) {
+      try {
+        const calendar = await createTendsoCalendarClient();
+        await calendar.events.delete({
+          calendarId: "primary",
+          eventId: booking.calendarEventId,
+          sendUpdates: "none",
+        });
+      } catch (err) {
+        // Already gone is success. Anything else means the calendar still holds
+        // the slot, so refuse rather than free it here and leave the two lying
+        // to each other.
+        const code = errStatus(err);
+        if (code !== 404 && code !== 410) {
+          console.error("cancelByToken: calendar delete failed:", errMessage(err));
+          return { ok: false, error: "We couldn't cancel that just now. Please try again." };
+        }
+      }
+    }
+
+    await ctx.runMutation(internal.nativeBookings.cancelBooking, { id: booking._id });
+
+    try {
+      await sendAsTendso({
+        to: booking.email,
+        subject: "Cancelled: your 10-minute call with Tendso",
+        html: getCallCancelledEmailHtml({
+          firstName: booking.name.split(/\s+/)[0],
+          dayLabel: manilaDayLabel(booking.startMs),
+          timeLabel: manilaTimeLabel(booking.startMs),
+          bookUrl: `${(process.env.SITE_URL || "https://www.tendso.com").replace(/\/$/, "")}/field-agent/book`,
+        }),
+        text:
+          `Hi ${booking.name.split(/\s+/)[0]},\n\n` +
+          `Your 10-minute call on ${manilaDayLabel(booking.startMs)} at ` +
+          `${manilaTimeLabel(booking.startMs)} (Manila time) has been cancelled, and that ` +
+          `time is open again.\n\n` +
+          `Changed your mind? You can book another any time:\n` +
+          `${(process.env.SITE_URL || "https://www.tendso.com").replace(/\/$/, "")}/field-agent/book\n\n` +
+          `Tendso HR Team`,
+      });
+    } catch (err) {
+      console.error(`Cancellation email failed for ${booking.email}:`, errMessage(err));
+    }
+
+    return { ok: true };
   },
 });

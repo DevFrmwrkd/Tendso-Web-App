@@ -449,10 +449,20 @@ export default defineSchema({
         ),
         createdAt: v.number(),
         confirmedAt: v.optional(v.number()),
+        // Bearer token for the Reschedule / Cancel links in the confirmation
+        // email. Whoever holds it can move or cancel THIS booking and read its
+        // details — which is the point: the person who booked has no account,
+        // and the token arrives at the address they gave us. Optional because
+        // rows created before this existed do not have one.
+        manageToken: v.optional(v.string()),
+        // Kept when a booking moves, so the history survives a reschedule.
+        rescheduledFromMs: v.optional(v.number()),
+        cancelledAt: v.optional(v.number()),
     })
         .index('by_startMs', ['startMs'])
         .index('by_email', ['email'])
-        .index('by_status', ['status']),
+        .index('by_status', ['status'])
+        .index('by_manageToken', ['manageToken']),
 
     // ==================== PAYOUT METHODS ====================
     payoutMethods: defineTable({
