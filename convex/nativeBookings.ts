@@ -253,6 +253,12 @@ export const saveSlotConfig = mutation({
 // names exactly one booking and grants exactly two verbs on it. Everything
 // below therefore looks the booking up BY TOKEN and never by id from a client.
 
+/** Internal: one booking by id, for the admin resend. */
+export const getByIdInternal = internalQuery({
+  args: { id: v.id("native_bookings") },
+  handler: async (ctx, { id }) => await ctx.db.get(id),
+});
+
 /** Internal: resolve a manage token to its booking. */
 export const getByManageToken = internalQuery({
   args: { token: v.string() },
@@ -349,5 +355,35 @@ export const cancelBooking = internalMutation({
     if (!row || row.status === "cancelled") return false;
     await ctx.db.patch(id, { status: "cancelled", cancelledAt: Date.now() });
     return true;
+  },
+});
+
+/**
+ * Mint manage tokens for confirmed future bookings that have none.
+ *
+ * Bookings made before self-serve rescheduling existed carry no token, so the
+ * links in their confirmation email are the old "reply CANCEL" wording and
+ * there is nothing for /field-agent/manage to resolve. This gives those people
+ * the same control as everyone booked since, without touching their booking.
+ *
+ * Idempotent and forward-only: an existing token is never replaced, and past
+ * bookings are skipped because there is nothing left to manage.
+ */
+export const backfillManageTokens = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const rows = await ctx.db
+      .query("native_bookings")
+      .withIndex("by_status", (q) => q.eq("status", "confirmed"))
+      .collect();
+
+    let minted = 0;
+    for (const row of rows) {
+      if (row.manageToken || row.startMs < now) continue;
+      await ctx.db.patch(row._id, { manageToken: crypto.randomUUID().replace(/-/g, "") });
+      minted++;
+    }
+    return { checked: rows.length, minted };
   },
 });
