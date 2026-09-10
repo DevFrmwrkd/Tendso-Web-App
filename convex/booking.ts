@@ -298,6 +298,7 @@ Tendso HR Team`;
             timeLabel: manilaTimeLabel(startMs),
             meetUrl,
             manageUrl: claim.manageToken ? manageUrl(claim.manageToken) : null,
+            calendarUrl: calendarTemplateUrl(startMs, meetUrl),
           }),
         });
       } catch (err) {
@@ -512,6 +513,26 @@ function manageUrl(token: string): string {
   return `${base}/field-agent/manage?t=${token}`;
 }
 
+/**
+ * Google's own add-to-calendar URL, for the button in those emails.
+ *
+ * Their calendar is not ours: booking here puts the event on tendso.hr, and
+ * moving it moves that one. Whatever copy they made in their own calendar is
+ * theirs to fix, and this is the fixing.
+ */
+function calendarTemplateUrl(startMs: number, meetUrl?: string | null): string {
+  const stamp = (ms: number) =>
+    new Date(ms).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: "10-Minute-Meeting with Tendso",
+    dates: `${stamp(startMs)}/${stamp(slotEnd(startMs))}`,
+    details: meetUrl ? `Google Meet: ${meetUrl}` : "Your Google Meet link is in your email.",
+    ctz: "Asia/Manila",
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 /** The two lines every confirmation and reschedule email ends with. */
 function manageFooter(token: string): string {
   return (
@@ -608,6 +629,7 @@ export const rescheduleByToken = action({
           timeLabel: manilaTimeLabel(newStartMs),
           meetUrl,
           manageUrl: manageUrl(token),
+          calendarUrl: calendarTemplateUrl(newStartMs, meetUrl),
         }),
         text:
           `Hi ${booking.name.split(/\s+/)[0]},\n\n` +
@@ -717,6 +739,7 @@ export const resendManageEmail = action({
         timeLabel: manilaTimeLabel(booking.startMs),
         meetUrl: booking.meetUrl ?? null,
         manageUrl: link,
+        calendarUrl: calendarTemplateUrl(booking.startMs, booking.meetUrl),
       }),
       text:
         `Hi ${booking.name.split(/\s+/)[0]},\n\n` +

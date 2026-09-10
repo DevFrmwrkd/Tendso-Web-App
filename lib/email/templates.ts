@@ -1831,6 +1831,7 @@ export function getCallBookedEmailHtml(params: {
     timeLabel: string
     meetUrl?: string | null
     manageUrl?: string | null
+    calendarUrl?: string | null
 }): string {
     const firstName = escapeHtml(params.firstName)
     const body = `
@@ -1840,10 +1841,10 @@ export function getCallBookedEmailHtml(params: {
                 ? `<p style="margin: 0 0 22px; font-size: 15px; line-height: 1.55;">Your Google Meet link:<br><a href="${params.meetUrl}" style="color: #5C3A0F; font-weight: 600;">${escapeHtml(params.meetUrl)}</a></p>`
                 : `<p style="margin: 0 0 22px; font-size: 15px; line-height: 1.55;">We'll send your Google Meet link shortly.</p>`
         }
+        ${params.calendarUrl ? callEmailButton(params.calendarUrl, 'Add to calendar', 'solid') : ''}
         ${
             params.manageUrl
-                ? `<p style="margin: 0 0 14px; font-size: 15px; font-weight: 600;">Need a different time?</p>
-                   ${callEmailButton(params.manageUrl, 'Reschedule', 'solid')}
+                ? `${callEmailButton(params.manageUrl, 'Reschedule', 'outline')}
                    ${callEmailButton(`${params.manageUrl}&action=cancel`, 'Cancel', 'outline')}
                    <p style="margin: 8px 0 0; font-size: 13px; color: #8F8B83; line-height: 1.55;">Rescheduling keeps the same Meet link, so anything you've already saved keeps working.</p>`
                 : `<p style="margin: 0; font-size: 15px;">If you can no longer make it, just reply CANCEL to this email.</p>`
@@ -1864,6 +1865,7 @@ export function getCallMovedEmailHtml(params: {
     timeLabel: string
     meetUrl?: string | null
     manageUrl?: string | null
+    calendarUrl?: string | null
 }): string {
     const firstName = escapeHtml(params.firstName)
     const body = `
@@ -1873,8 +1875,14 @@ export function getCallMovedEmailHtml(params: {
                 ? `<p style="margin: 0 0 22px; font-size: 15px; line-height: 1.55;"><strong>Your Google Meet link is unchanged</strong>, so the one you already have still works:<br><a href="${params.meetUrl}" style="color: #5C3A0F; font-weight: 600;">${escapeHtml(params.meetUrl)}</a></p>`
                 : ''
         }
-        <p style="margin: 0 0 14px; font-size: 15px; color: #8F8B83; line-height: 1.55;">If your own calendar still shows the old time, add the new one.</p>
-        ${params.manageUrl ? callEmailButton(params.manageUrl, 'Change it again', 'outline') : ''}`
+        <p style="margin: 0 0 14px; font-size: 15px; color: #8F8B83; line-height: 1.55;">If your own calendar still shows the old time, the button below replaces it.</p>
+        ${params.calendarUrl ? callEmailButton(params.calendarUrl, 'Add to calendar', 'solid') : ''}
+        ${
+            params.manageUrl
+                ? `${callEmailButton(params.manageUrl, 'Reschedule', 'outline')}
+                   ${callEmailButton(`${params.manageUrl}&action=cancel`, 'Cancel', 'outline')}`
+                : ''
+        }`
     return callEmailShell({
         title: 'Your call has moved',
         heading: `Moved to ${params.timeLabel}`,
