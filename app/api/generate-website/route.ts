@@ -5,6 +5,7 @@ import { api } from '@/convex/_generated/api'
 import { buildAstroSite } from '@/lib/astro-builder'
 import { buildRoleColorCss } from '@/lib/roleColors'
 import { asServiceArray } from '@/lib/services-shape'
+import { GROQ_TEXT_MODEL } from '@/lib/services/groqModels'
 import {
     groqService,
     delimitTranscript,
@@ -268,7 +269,7 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             try {
                 const completion = await groq.chat.completions.create({
                     messages: [{ role: "user", content: prompt }],
-                    model: "llama-3.3-70b-versatile",
+                    model: GROQ_TEXT_MODEL,
                     temperature: 0.7,
                     max_tokens: 2000,
                 })

@@ -5,6 +5,7 @@ import path from "path"
 import { chunkMediaFile, getFileExtension } from './media-chunker'
 import { INTAKE_QUESTIONS, type IntakeQuestionKey } from '../narrativeFromQa'
 import { asServiceArray, serviceLabel } from '../services-shape'
+import { GROQ_TEXT_MODEL, GROQ_TRANSCRIBE_MODEL } from './groqModels'
 
 // Lazy-load Groq client to avoid build-time errors
 let groqInstance: Groq | null = null
@@ -354,7 +355,7 @@ export const groqService = {
                     const fileData = await toFile(fs.createReadStream(tmpPath), filename)
                     const transcription = await groq.audio.transcriptions.create({
                         file: fileData,
-                        model: "whisper-large-v3",
+                        model: GROQ_TRANSCRIBE_MODEL,
                         response_format: "json",
                     })
                     return transcription.text
@@ -447,7 +448,7 @@ export const groqService = {
                             const fileData = await toFile(fs.createReadStream(tmpPaths[i]), chunkFilename)
                             const transcription = await groq.audio.transcriptions.create({
                                 file: fileData,
-                                model: "whisper-large-v3",
+                                model: GROQ_TRANSCRIBE_MODEL,
                                 response_format: "json",
                             })
                             if (transcription.text?.trim()) {
@@ -541,7 +542,7 @@ IMPORTANT:
                         content: prompt,
                     },
                 ],
-                model: "llama-3.3-70b-versatile", // Using Claude-like model via Groq
+                model: GROQ_TEXT_MODEL,
                 temperature: 0.7,
                 max_tokens: 2000,
             })
@@ -596,7 +597,7 @@ Return ONLY the complete HTML code, starting with <!DOCTYPE html>`
                         content: prompt,
                     },
                 ],
-                model: "llama-3.3-70b-versatile",
+                model: GROQ_TEXT_MODEL,
                 temperature: 0.8,
                 max_tokens: 4000,
             })
@@ -698,7 +699,7 @@ Return ONLY the JSON object, no markdown fence, no commentary.`
             const groq = getGroqClient()
             const completion = await groq.chat.completions.create({
                 messages: [{ role: 'user', content: prompt }],
-                model: 'llama-3.3-70b-versatile',
+                model: GROQ_TEXT_MODEL,
                 temperature: 0.6,
                 max_tokens: 3000,
                 response_format: { type: 'json_object' },
@@ -831,7 +832,7 @@ Return ONLY the JSON object, no markdown fence, no commentary.`
             const groq = getGroqClient()
             const completion = await groq.chat.completions.create({
                 messages: [{ role: 'user', content: prompt }],
-                model: 'llama-3.3-70b-versatile',
+                model: GROQ_TEXT_MODEL,
                 temperature: 0.55,
                 max_tokens: 3500,
                 response_format: { type: 'json_object' },
