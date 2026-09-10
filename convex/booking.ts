@@ -685,3 +685,48 @@ export const cancelByToken = action({
     return { ok: true };
   },
 });
+
+/**
+ * Re-send someone their booking email, with the Reschedule and Cancel buttons.
+ *
+ * For bookings made before self-serve existed: their original email says to
+ * reply CANCEL, and nobody reads those replies. Run backfillManageTokens first
+ * so the booking has a token to put in the links.
+ *
+ * Admin-gated because it mails a real person on demand.
+ */
+export const resendManageEmail = action({
+  args: { bookingId: v.id("native_bookings") },
+  handler: async (ctx, { bookingId }): Promise<{ ok: boolean; error?: string }> => {
+    await requireAdmin(ctx);
+
+    const booking = await ctx.runQuery(internal.nativeBookings.getByIdInternal, { id: bookingId });
+    if (!booking) return { ok: false, error: "No such booking." };
+    if (booking.status !== "confirmed") return { ok: false, error: "That booking is not active." };
+    if (!booking.manageToken) {
+      return { ok: false, error: "That booking has no manage token — run backfillManageTokens." };
+    }
+
+    const link = manageUrl(booking.manageToken);
+    await sendAsTendso({
+      to: booking.email,
+      subject: `Your 10-minute call with Tendso, ${manilaDayLabel(booking.startMs)}`,
+      html: getCallBookedEmailHtml({
+        firstName: booking.name.split(/\s+/)[0],
+        dayLabel: manilaDayLabel(booking.startMs),
+        timeLabel: manilaTimeLabel(booking.startMs),
+        meetUrl: booking.meetUrl ?? null,
+        manageUrl: link,
+      }),
+      text:
+        `Hi ${booking.name.split(/\s+/)[0]},\n\n` +
+        `Your 10-minute call with Tendso is on ${manilaDayLabel(booking.startMs)} at ` +
+        `${manilaTimeLabel(booking.startMs)} (Manila time).\n\n` +
+        `${booking.meetUrl ? `Your Google Meet link: ${booking.meetUrl}\n\n` : ""}` +
+        `${manageFooter(booking.manageToken)}\n\n` +
+        `Talk soon,\nTendso HR Team`,
+    });
+
+    return { ok: true };
+  },
+});
