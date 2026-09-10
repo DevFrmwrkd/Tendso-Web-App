@@ -84,6 +84,7 @@ export const claimSlot = internalMutation({
       return { ok: false as const, reason: "already_booked", startMs: existing.startMs };
     }
 
+    const manageToken = crypto.randomUUID().replace(/-/g, "");
     const id = await ctx.db.insert("native_bookings", {
       startMs,
       endMs: slotEnd(startMs),
@@ -91,8 +92,11 @@ export const claimSlot = internalMutation({
       email: email.trim().toLowerCase(),
       status: "held",
       createdAt: now,
+      // Minted here rather than at confirm time, so the token exists before the
+      // calendar write and a booking can never end up confirmed without one.
+      manageToken,
     });
-    return { ok: true as const, id };
+    return { ok: true as const, id, manageToken };
   },
 });
 
@@ -239,5 +243,111 @@ export const saveSlotConfig = mutation({
     if (existing) await ctx.db.patch(existing._id, patch);
     else await ctx.db.insert("settings", { key: SLOT_CONFIG_KEY, ...patch });
     return config;
+  },
+});
+
+// ==================== SELF-SERVE MANAGE (token-authenticated) ====================
+//
+// The Reschedule and Cancel links in the confirmation email. The person who
+// booked has no account, so the bearer token from their email IS the auth: it
+// names exactly one booking and grants exactly two verbs on it. Everything
+// below therefore looks the booking up BY TOKEN and never by id from a client.
+
+/** Internal: resolve a manage token to its booking. */
+export const getByManageToken = internalQuery({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    if (!token) return null;
+    return await ctx.db
+      .query("native_bookings")
+      .withIndex("by_manageToken", (q) => q.eq("manageToken", token))
+      .first();
+  },
+});
+
+/**
+ * Public: what the manage page shows. Only the fields that page needs, and
+ * only ever for the one booking the token names.
+ */
+export const getForManage = query({
+  args: { token: v.string() },
+  handler: async (ctx, { token }) => {
+    if (!token) return null;
+    const row = await ctx.db
+      .query("native_bookings")
+      .withIndex("by_manageToken", (q) => q.eq("manageToken", token))
+      .first();
+    if (!row) return null;
+    return {
+      name: row.name,
+      email: row.email,
+      startMs: row.startMs,
+      endMs: row.endMs,
+      meetUrl: row.meetUrl ?? null,
+      status: row.status,
+      // A held row is a booking mid-flight; nothing to manage yet.
+      manageable: row.status === "confirmed" && row.startMs > Date.now(),
+    };
+  },
+});
+
+/**
+ * Move a confirmed booking to a new slot, in ONE transaction.
+ *
+ * The row moving IS the release of its old time — availability reads startMs,
+ * so nothing else has to free it. Done transactionally because the check that
+ * the new slot is empty and the write that fills it must not be separable, or
+ * two people rescheduling onto the same time both win.
+ *
+ * The caller patches Google afterwards and calls this again with the old time
+ * if that fails. Deliberately not the other way round: a row parked on a slot
+ * nobody holds is recoverable, a calendar event nobody has a row for is not.
+ */
+export const moveBooking = internalMutation({
+  args: { id: v.id("native_bookings"), newStartMs: v.number() },
+  handler: async (ctx, { id, newStartMs }) => {
+    const now = Date.now();
+    const row = await ctx.db.get(id);
+    if (!row) return { ok: false as const, reason: "not_found" };
+    if (row.status !== "confirmed") return { ok: false as const, reason: "not_confirmed" };
+
+    const configRow = await ctx.db
+      .query("settings")
+      .withIndex("by_key", (q) => q.eq("key", SLOT_CONFIG_KEY))
+      .first();
+    if (!isValidSlot(newStartMs, normalizeSlotConfig(configRow?.value))) {
+      return { ok: false as const, reason: "invalid_slot" };
+    }
+    if (newStartMs < now) return { ok: false as const, reason: "in_the_past" };
+
+    // Anyone else on the target slot? This booking itself is excluded — moving
+    // to the time you already hold should be a no-op, not a clash with yourself.
+    const clashes = await ctx.db
+      .query("native_bookings")
+      .withIndex("by_startMs", (q) => q.eq("startMs", newStartMs))
+      .collect();
+    if (clashes.some((r) => r._id !== id && holdIsLive(r, now))) {
+      return { ok: false as const, reason: "slot_taken" };
+    }
+
+    await ctx.db.patch(id, {
+      startMs: newStartMs,
+      endMs: slotEnd(newStartMs),
+      // Only recorded on the first move, so it keeps pointing at the time the
+      // booking was originally made for.
+      rescheduledFromMs: row.rescheduledFromMs ?? row.startMs,
+    });
+    return { ok: true as const, previousStartMs: row.startMs };
+  },
+});
+
+/** Cancel by id, from the manage page. Same effect as the calendar sync. */
+export const cancelBooking = internalMutation({
+  args: { id: v.id("native_bookings") },
+  handler: async (ctx, { id }) => {
+    const row = await ctx.db.get(id);
+    if (!row || row.status === "cancelled") return false;
+    await ctx.db.patch(id, { status: "cancelled", cancelledAt: Date.now() });
+    return true;
   },
 });

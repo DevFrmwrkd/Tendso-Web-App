@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { useAction, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 
@@ -47,6 +47,13 @@ export type CallSchedule = {
      *  which is worth saying out loud rather than quietly showing less. */
     calendarError: string | null
     loading: boolean
+    /** Re-read the calendar. The Convex side is reactive and needs no help; the
+     *  calendar is a one-shot action, so a call booked elsewhere — TidyCal, or
+     *  by hand — only appears when something asks again. */
+    refresh: () => void
+    refreshing: boolean
+    /** When the calendar was last read, so the page can say how fresh it is. */
+    lastRefreshed: number | null
 }
 
 /**
@@ -72,21 +79,39 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
 
     const [calendarCalls, setCalendarCalls] = useState<CalendarCall[]>([])
     const [calendarError, setCalendarError] = useState<string | null>(null)
+    const [refreshing, setRefreshing] = useState(false)
+    const [lastRefreshed, setLastRefreshed] = useState<number | null>(null)
 
-    useEffect(() => {
+    // Split in two on purpose. `load` touches state only after the await, so the
+    // mount effect below does not set state synchronously — React's lint rule
+    // flags that as a cascading render, and it is right to.
+    const load = useCallback(async () => {
         if (!enabled) return
-        let cancelled = false
-        listCalendarCalls({})
-            .then((calls) => {
-                if (!cancelled) setCalendarCalls(calls)
-            })
-            .catch((err) => {
-                if (!cancelled) setCalendarError(err?.message ?? "Could not read the calendar.")
-            })
-        return () => {
-            cancelled = true
+        try {
+            const calls = await listCalendarCalls({})
+            setCalendarCalls(calls)
+            setCalendarError(null)
+            setLastRefreshed(Date.now())
+        } catch (err) {
+            setCalendarError(
+                err instanceof Error ? err.message : "Could not read the calendar.",
+            )
         }
     }, [enabled, listCalendarCalls])
+
+    /** The button's version: shows a spinner for as long as the read takes. */
+    const refresh = useCallback(() => {
+        setRefreshing(true)
+        void load().finally(() => setRefreshing(false))
+    }, [load])
+
+    useEffect(() => {
+        // The lint rule cannot see past the await inside `load`: nothing here
+        // sets state synchronously, so there is no cascading render to prevent.
+        // Inlining the fetch to satisfy it would mean two copies of it.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        void load()
+    }, [load])
 
     /**
      * Merged and keyed by calendar event id. Our row wins on what we recorded
@@ -140,7 +165,15 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
             }))
     }, [bookings, now])
 
-    return { upcoming, past, calendarError, loading: bookings === undefined }
+    return {
+        upcoming,
+        past,
+        calendarError,
+        loading: bookings === undefined,
+        refresh,
+        refreshing,
+        lastRefreshed,
+    }
 }
 
 /** Manila-time day key, so "today" means today where the calls happen. */
@@ -182,6 +215,15 @@ export function formatCallTime(ms: number): string {
         hour: "numeric",
         minute: "2-digit",
     })
+}
+
+/** "just now", "4 minutes ago" — how stale what you are looking at is. */
+export function timeSince(ms: number, now: number): string {
+    const minutes = Math.floor((now - ms) / 60000)
+    if (minutes < 1) return "just now"
+    if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`
+    const hours = Math.round(minutes / 60)
+    return `${hours} hour${hours === 1 ? "" : "s"} ago`
 }
 
 /** "in 25 minutes", "in 3 hours", "tomorrow" — how far off the next call is. */

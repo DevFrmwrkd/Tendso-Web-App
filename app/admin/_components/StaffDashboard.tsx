@@ -2,11 +2,12 @@
 
 import Link from "next/link"
 import { useMemo } from "react"
-import { CalendarClock, Video } from "lucide-react"
+import { CalendarClock, RefreshCw, Video } from "lucide-react"
 
 import {
     formatCallTime,
     manilaDayKey,
+    timeSince,
     timeUntil,
     useCallSchedule,
     useNow,
@@ -25,7 +26,8 @@ import CallList from "./CallList"
  * write is the bookable hours, over on /admin/bookings.
  */
 export default function StaffDashboard({ firstName }: { firstName?: string }) {
-    const { upcoming, calendarError, loading } = useCallSchedule(true)
+    const { upcoming, calendarError, loading, refresh, refreshing, lastRefreshed } =
+        useCallSchedule(true)
     const now = useNow()
 
     const next = upcoming[0] ?? null
@@ -42,13 +44,35 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
 
     return (
         <div className="space-y-6">
-            <header className="space-y-1">
-                <h1 className="text-2xl font-bold text-zinc-900">
-                    {firstName ? `Hi ${firstName}` : "Your calls"}
-                </h1>
-                <p className="text-sm text-zinc-500">
-                    The 10-minute Field Agent calls. Philippine time.
-                </p>
+            <header className="flex flex-wrap items-start justify-between gap-4">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-bold text-zinc-900">
+                        {firstName ? `Hi ${firstName}` : "Your calls"}
+                    </h1>
+                    <p className="text-sm text-zinc-500">
+                        The 10-minute Field Agent calls. Philippine time.
+                    </p>
+                </div>
+
+                {/* Bookings made HERE arrive on their own — that side is reactive.
+                    A call booked through TidyCal or added to the calendar by hand
+                    only shows up when the calendar is read again, which is what
+                    this does. */}
+                <div className="flex items-center gap-3">
+                    {lastRefreshed && !refreshing && (
+                        <span className="text-xs text-zinc-400">
+                            Updated {timeSince(lastRefreshed, now)}
+                        </span>
+                    )}
+                    <button
+                        onClick={refresh}
+                        disabled={refreshing}
+                        className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-400 disabled:opacity-60"
+                    >
+                        <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+                        {refreshing ? "Refreshing…" : "Refresh"}
+                    </button>
+                </div>
             </header>
 
             {calendarError && (

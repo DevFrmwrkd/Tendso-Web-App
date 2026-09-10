@@ -1751,3 +1751,155 @@ export function getAnnouncementEmailHtml(params: {
 </body>
 </html>`
 }
+
+// ==================== FIELD AGENT CALL (10-minute booking) ====================
+//
+// The three emails the /field-agent/book flow sends. Built to match the booking
+// page itself — ink header, one word in gold, paper body — so the email and the
+// page a person lands on read as the same product.
+//
+// EVERY LAYOUT DECISION HERE IS ABOUT EMAIL CLIENTS, not taste: tables rather
+// than flex, inline styles rather than classes, and buttons that are padded
+// anchors, because Outlook ignores most of what a browser would honour.
+
+/** Shared frame, so the three cannot drift apart. */
+function callEmailShell(params: {
+    title: string
+    heading: string
+    /** The word inside `heading` to paint gold. Left plain if not found. */
+    goldWord?: string
+    lede?: string
+    body: string
+}): string {
+    const heading = params.goldWord
+        ? params.heading.replace(
+              params.goldWord,
+              `<span style="color: #D4A146;">${params.goldWord}</span>`,
+          )
+        : params.heading
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(params.title)}</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: #1B1B22;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background: #1B1B22;">
+        <tr>
+            <td align="center" style="padding: 32px 16px;">
+                <table role="presentation" width="560" cellspacing="0" cellpadding="0" border="0" style="max-width: 560px; width: 100%;">
+                    <tr>
+                        <td style="padding: 24px 32px 32px;">
+                            <span style="display: inline-block; background: #D4A146; color: #1B1B22; font-size: 12px; font-weight: 700; letter-spacing: .12em; padding: 7px 14px; border-radius: 999px;">TENDSO</span>
+                            <h1 style="margin: 24px 0 0; color: #F3F0EA; font-size: 32px; line-height: 1.15; font-weight: 800; letter-spacing: -.02em;">${heading}</h1>
+                            ${params.lede ? `<p style="margin: 10px 0 0; color: #F3F0EA; font-size: 18px; font-weight: 600;">${escapeHtml(params.lede)}</p>` : ''}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="background: #F3F0EA; border-radius: 20px; padding: 28px 32px 32px; color: #1B1B22;">
+                            ${params.body}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 20px 32px 0; color: #8F8B83; font-size: 12px; line-height: 1.6;">
+                            Tendso · This call is 10 minutes, on Google Meet, Philippine time.
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`
+}
+
+/** A padded anchor, which is as close to a button as email gets. */
+function callEmailButton(href: string, label: string, variant: 'solid' | 'outline'): string {
+    const style =
+        variant === 'solid'
+            ? 'background: #1B1B22; color: #F3F0EA; border: 1px solid #1B1B22;'
+            : 'background: #FFFFFF; color: #1B1B22; border: 1px solid #D8D4CC;'
+    return `<a href="${href}" style="display: inline-block; ${style} text-decoration: none; font-size: 15px; font-weight: 700; padding: 13px 22px; border-radius: 999px; margin: 0 6px 10px 0;">${escapeHtml(label)}</a>`
+}
+
+/** Confirmation, sent the moment a call is booked. */
+export function getCallBookedEmailHtml(params: {
+    firstName: string
+    dayLabel: string
+    timeLabel: string
+    meetUrl?: string | null
+    manageUrl?: string | null
+}): string {
+    const firstName = escapeHtml(params.firstName)
+    const body = `
+        <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.55;">Hi ${firstName}, you're booked. We'll send a reminder before the call.</p>
+        ${
+            params.meetUrl
+                ? `<p style="margin: 0 0 22px; font-size: 15px; line-height: 1.55;">Your Google Meet link:<br><a href="${params.meetUrl}" style="color: #5C3A0F; font-weight: 600;">${escapeHtml(params.meetUrl)}</a></p>`
+                : `<p style="margin: 0 0 22px; font-size: 15px; line-height: 1.55;">We'll send your Google Meet link shortly.</p>`
+        }
+        ${
+            params.manageUrl
+                ? `<p style="margin: 0 0 14px; font-size: 15px; font-weight: 600;">Need a different time?</p>
+                   ${callEmailButton(params.manageUrl, 'Reschedule', 'solid')}
+                   ${callEmailButton(`${params.manageUrl}&action=cancel`, 'Cancel', 'outline')}
+                   <p style="margin: 8px 0 0; font-size: 13px; color: #8F8B83; line-height: 1.55;">Rescheduling keeps the same Meet link, so anything you've already saved keeps working.</p>`
+                : `<p style="margin: 0; font-size: 15px;">If you can no longer make it, just reply CANCEL to this email.</p>`
+        }`
+    return callEmailShell({
+        title: 'Your call is booked',
+        heading: `You're booked for ${params.timeLabel}`,
+        goldWord: params.timeLabel,
+        lede: params.dayLabel,
+        body,
+    })
+}
+
+/** Sent after a self-serve reschedule. */
+export function getCallMovedEmailHtml(params: {
+    firstName: string
+    dayLabel: string
+    timeLabel: string
+    meetUrl?: string | null
+    manageUrl?: string | null
+}): string {
+    const firstName = escapeHtml(params.firstName)
+    const body = `
+        <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.55;">Hi ${firstName}, your call has been moved.</p>
+        ${
+            params.meetUrl
+                ? `<p style="margin: 0 0 22px; font-size: 15px; line-height: 1.55;"><strong>Your Google Meet link is unchanged</strong>, so the one you already have still works:<br><a href="${params.meetUrl}" style="color: #5C3A0F; font-weight: 600;">${escapeHtml(params.meetUrl)}</a></p>`
+                : ''
+        }
+        <p style="margin: 0 0 14px; font-size: 15px; color: #8F8B83; line-height: 1.55;">If your own calendar still shows the old time, add the new one.</p>
+        ${params.manageUrl ? callEmailButton(params.manageUrl, 'Change it again', 'outline') : ''}`
+    return callEmailShell({
+        title: 'Your call has moved',
+        heading: `Moved to ${params.timeLabel}`,
+        goldWord: params.timeLabel,
+        lede: params.dayLabel,
+        body,
+    })
+}
+
+/** Sent after a self-serve cancellation. */
+export function getCallCancelledEmailHtml(params: {
+    firstName: string
+    dayLabel: string
+    timeLabel: string
+    bookUrl: string
+}): string {
+    const firstName = escapeHtml(params.firstName)
+    const body = `
+        <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.55;">Hi ${firstName}, your ${escapeHtml(params.timeLabel)} call on ${escapeHtml(params.dayLabel)} is cancelled, and that time is open again.</p>
+        <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.55;">Changed your mind? You can book another any time.</p>
+        ${callEmailButton(params.bookUrl, 'Book another time', 'solid')}`
+    return callEmailShell({
+        title: 'Your call is cancelled',
+        heading: 'Your call is cancelled',
+        goldWord: 'cancelled',
+        body,
+    })
+}
