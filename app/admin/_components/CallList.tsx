@@ -4,6 +4,7 @@ import {
     formatCallDate,
     formatClockTime,
     manilaDayKey,
+    originLabel,
     useNow,
     type ScheduledCall,
 } from "@/hooks/useCallSchedule"
@@ -90,9 +91,9 @@ export default function CallList({
                                                         Outside hours
                                                     </span>
                                                 ) : (
-                                                    call.source === "calendar" && (
+                                                    originLabel(call.origin) && (
                                                         <span className="ml-2 text-xs font-normal text-zinc-400">
-                                                            from the calendar
+                                                            {originLabel(call.origin)}
                                                         </span>
                                                     )
                                                 )}

@@ -17,6 +17,7 @@ import {
   manilaDateKey,
   manilaDayLabel,
   manilaTimeLabel,
+  type SlotConfig,
 } from "./lib/availability";
 import { requireAdmin, requireStaff } from "./lib/auth";
 // The designed HTML bodies. sendAsTendso sends multipart, so the plain text
@@ -454,6 +455,9 @@ export type CalendarCall = {
    *  Computed HERE, from the same isValidSlot the booking path uses, so a page
    *  never has to re-derive the hours and reach a different answer. */
   outsideHours: boolean;
+  /** Which system sold it. Their event titles are identical, so this comes from
+   *  the line each one signs its descriptions with. */
+  origin: "page" | "tidycal" | "hr_pipeline" | "calendar";
 };
 
 /**
@@ -470,74 +474,193 @@ export type CalendarCall = {
  * readable by every staff account, so anything unmatched is never returned —
  * not its title, not its guests, not its description.
  */
+/** How far back "recent" reaches. Shared, so the dashboard and the adopter
+ *  below cannot disagree about which calls are still current. */
+const CALENDAR_LOOKBACK_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Which system sold this call, read off the line each one signs its events with.
+ *
+ * Three of them write to the one tendso.hr calendar and the titles are
+ * identical, so the description is the only thing that tells them apart. Checked
+ * against 481 real events: every one matched exactly one of these.
+ */
+function callOrigin(description: string): "page" | "tidycal" | "hr_pipeline" | "calendar" {
+  if (description.includes("Created by TidyCal")) return "tidycal";
+  if (description.includes("tendso.com/field-agent/book")) return "page";
+  // The sibling HR pipeline, whose own page calls itself "the Tendso booking page".
+  if (description.includes("Booked on the Tendso booking page")) return "hr_pipeline";
+  // Made by hand in the mailbox, or signed in a way we have not seen before.
+  return "calendar";
+}
+
+/** One calendar event as a call, or null when it is not one of ours. */
+function extractCall(ev: RawCalendarEvent, config: SlotConfig): CalendarCall | null {
+  if (!ev.id || ev.status === "cancelled") return null;
+  const summary: string = ev.summary ?? "";
+  if (!summary.toLowerCase().includes("tendso")) return null;
+
+  // All-day entries have `date` instead of `dateTime` and are never calls.
+  const startIso = ev.start?.dateTime;
+  const endIso = ev.end?.dateTime;
+  if (!startIso || !endIso) return null;
+
+  const description: string = ev.description ?? "";
+  const nameMatch = description.match(/Candidate:\s*(.+)/);
+  const emailMatch = description.match(/Email:\s*(\S+@\S+)/);
+
+  // Everyone on the event who is not us. Google marks the calendar owner with
+  // `self`/`organizer`, and tendso.hr can also appear as a plain attendee, so
+  // all three are excluded before taking the first human left.
+  const guest = (ev.attendees ?? []).find(
+    (a) =>
+      !a?.organizer &&
+      !a?.self &&
+      !!a?.email &&
+      a.email.toLowerCase() !== TENDSO_ADDRESS.toLowerCase(),
+  );
+
+  const startMs = new Date(startIso).getTime();
+
+  return {
+    eventId: ev.id,
+    startMs,
+    endMs: new Date(endIso).getTime(),
+    summary,
+    meetUrl:
+      ev.hangoutLink ??
+      ev.conferenceData?.entryPoints?.find((p) => p.entryPointType === "video")?.uri ??
+      null,
+    name: nameMatch ? nameMatch[1].trim() : (guest?.displayName?.trim() || null),
+    email: emailMatch
+      ? emailMatch[1].trim().toLowerCase()
+      : (guest?.email?.trim().toLowerCase() || null),
+    outsideHours: !isValidSlot(startMs, config),
+    origin: callOrigin(description),
+  };
+}
+
+/** Every Tendso call the calendar holds in a window. One list request. */
+async function fetchTendsoCalls(
+  ctx: ActionCtx,
+  fromMs: number,
+  toMs: number,
+): Promise<CalendarCall[]> {
+  const calendar = await createTendsoCalendarClient();
+  const res = await calendar.events.list({
+    calendarId: "primary",
+    timeMin: new Date(fromMs).toISOString(),
+    timeMax: new Date(toMs).toISOString(),
+    singleEvents: true,
+    orderBy: "startTime",
+    maxResults: 2500,
+  });
+
+  const config = await ctx.runQuery(internal.nativeBookings.getSlotConfigInternal, {});
+  const calls: CalendarCall[] = [];
+  for (const ev of (res.data.items ?? []) as RawCalendarEvent[]) {
+    const call = extractCall(ev, config);
+    if (call) calls.push(call);
+  }
+  return calls;
+}
+
 export const listCalendarCalls = action({
   args: { daysAhead: v.optional(v.number()) },
   handler: async (ctx, { daysAhead }): Promise<CalendarCall[]> => {
     await requireStaff(ctx);
-
     const now = Date.now();
-    const fromMs = now - 24 * 60 * 60 * 1000;
-    const toMs = now + (daysAhead ?? 30) * 24 * 60 * 60 * 1000;
+    return await fetchTendsoCalls(
+      ctx,
+      now - CALENDAR_LOOKBACK_MS,
+      now + (daysAhead ?? 30) * 24 * 60 * 60 * 1000,
+    );
+  },
+});
 
-    const calendar = await createTendsoCalendarClient();
-    const res = await calendar.events.list({
-      calendarId: "primary",
-      timeMin: new Date(fromMs).toISOString(),
-      timeMax: new Date(toMs).toISOString(),
-      singleEvents: true,
-      orderBy: "startTime",
-      maxResults: 2500,
-    });
+/**
+ * Give every finished call a row, so somebody can say whether anyone turned up.
+ *
+ * THE PROBLEM IT SOLVES. Attendance is written onto a booking row, and of the
+ * calls that actually happen, almost none start with one: over thirty days the
+ * calendar held 481 finished Tendso calls and this app had booked 2 of them. The
+ * rest came from the old TidyCal link and from the sibling HR pipeline, which
+ * write to the same calendar and leave nothing in this table.
+ *
+ * FINISHED CALLS ONLY, and no history. It reaches back one day, the same day the
+ * dashboard already shows, so nothing older is dragged in. Adopting only what
+ * has ended is also what keeps this safe: a confirmed row in the FUTURE would
+ * mark its slot taken and stop that address booking again, and neither of those
+ * rules looks backwards. See adoptCalendarCall.
+ *
+ * IT NEVER TOUCHES A ROW IT DID NOT CREATE, so an outcome somebody has already
+ * tagged cannot be undone by a sync.
+ */
+async function adoptFinishedCalls(ctx: ActionCtx): Promise<{
+  adopted: number;
+  known: number;
+  anonymous: number;
+}> {
+  const now = Date.now();
+  const calls = await fetchTendsoCalls(ctx, now - CALENDAR_LOOKBACK_MS, now);
 
-    const config = await ctx.runQuery(internal.nativeBookings.getSlotConfigInternal, {});
-    const items = (res.data.items ?? []) as RawCalendarEvent[];
-    const calls: CalendarCall[] = [];
+  let adopted = 0;
+  let known = 0;
+  let anonymous = 0;
 
-    for (const ev of items) {
-      if (!ev.id || ev.status === "cancelled") continue;
-      const summary: string = ev.summary ?? "";
-      if (!summary.toLowerCase().includes("tendso")) continue;
-
-      // All-day entries have `date` instead of `dateTime` and are never calls.
-      const startIso = ev.start?.dateTime;
-      const endIso = ev.end?.dateTime;
-      if (!startIso || !endIso) continue;
-
-      const description: string = ev.description ?? "";
-      const nameMatch = description.match(/Candidate:\s*(.+)/);
-      const emailMatch = description.match(/Email:\s*(\S+@\S+)/);
-
-      // Everyone on the event who is not us. Google marks the calendar owner
-      // with `self`/`organizer`, and tendso.hr can also appear as a plain
-      // attendee, so all three are excluded before taking the first human left.
-      const guest = (ev.attendees ?? []).find(
-        (a) =>
-          !a?.organizer &&
-          !a?.self &&
-          !!a?.email &&
-          a.email.toLowerCase() !== TENDSO_ADDRESS.toLowerCase(),
-      );
-
-      const startMs = new Date(startIso).getTime();
-
-      calls.push({
-        eventId: ev.id,
-        startMs,
-        endMs: new Date(endIso).getTime(),
-        summary,
-        meetUrl:
-          ev.hangoutLink ??
-          ev.conferenceData?.entryPoints?.find((p) => p.entryPointType === "video")?.uri ??
-          null,
-        name: nameMatch ? nameMatch[1].trim() : (guest?.displayName?.trim() || null),
-        email: emailMatch
-          ? emailMatch[1].trim().toLowerCase()
-          : (guest?.email?.trim().toLowerCase() || null),
-        outsideHours: !isValidSlot(startMs, config),
-      });
+  for (const call of calls) {
+    // Still ahead of us, or happening right now. Nothing to account for yet.
+    if (call.endMs >= now) continue;
+    // Booked here, so it has had a row since before the calendar event existed.
+    if (call.origin === "page") continue;
+    // Nobody named on the event at all. A row with no person on it could never
+    // be attributed, so it is counted and left alone rather than stored.
+    if (!call.name || !call.email) {
+      anonymous++;
+      continue;
     }
 
-    return calls;
+    const result = await ctx.runMutation(internal.nativeBookings.adoptCalendarCall, {
+      calendarEventId: call.eventId,
+      startMs: call.startMs,
+      endMs: call.endMs,
+      name: call.name,
+      email: call.email,
+      meetUrl: call.meetUrl ?? undefined,
+      origin: call.origin,
+    });
+    if (result === "adopted") adopted++;
+    else known++;
+  }
+
+  return { adopted, known, anonymous };
+}
+
+/** Staff: adopt now, from the dashboard. */
+export const adoptCalendarCalls = action({
+  args: {},
+  handler: async (ctx): Promise<{ adopted: number; known: number; anonymous: number }> => {
+    await requireStaff(ctx);
+    return await adoptFinishedCalls(ctx);
+  },
+});
+
+/** The same, hourly, so a finished call is never waiting long for its row. */
+export const adoptCalendarCallsCron = internalAction({
+  args: {},
+  handler: async (ctx): Promise<void> => {
+    try {
+      const { adopted, known, anonymous } = await adoptFinishedCalls(ctx);
+      if (adopted || anonymous) {
+        console.log(
+          `[CALL-ADOPT] took on ${adopted} finished call${adopted === 1 ? "" : "s"}` +
+            ` (${known} already had a row` +
+            `${anonymous ? `, ${anonymous} had nobody on the event` : ""})`,
+        );
+      }
+    } catch (err) {
+      console.error("[CALL-ADOPT] failed:", errMessage(err));
+    }
   },
 });
 
@@ -980,14 +1103,20 @@ async function pullConferenceDurations(ctx: ActionCtx): Promise<{
     startMs: number;
     endMs: number;
     conferenceSeconds?: number;
+    conferenceCheckedAt?: number;
   }> = await ctx.runQuery(internal.nativeBookings.withMeetRoom, { fromMs, toMs: now });
 
-  // Settled means we have a number and the call is far enough behind us that
-  // nobody is going to rejoin and make it longer. Skipping those is the whole
-  // reason this stays cheap: without it every booking in the window costs two
-  // requests every hour for thirty days.
+  // Open means either nobody has asked about this room yet, or the call is
+  // recent enough that a rejoin could still make the number bigger.
+  //
+  // THE TEST IS "HAS ANYONE LOOKED", NOT "DO WE HAVE A NUMBER". Google refuses
+  // to discuss some rooms, and a refusal deliberately leaves the duration unset
+  // rather than writing a zero we never established — so keying this on the
+  // duration would put every refused room back in the queue every hour for as
+  // long as the row exists. Two requests each, forever. Keying it on the attempt
+  // lets a room settle whether or not the attempt learned anything.
   const open = bookings.filter(
-    (b) => b.conferenceSeconds === undefined || b.endMs > now - CONFERENCE_SETTLE_MS,
+    (b) => b.conferenceCheckedAt === undefined || b.endMs > now - CONFERENCE_SETTLE_MS,
   );
 
   // Newest first. If the queue is ever too long to finish, the calls somebody is
@@ -1040,6 +1169,9 @@ async function pullConferenceDurations(ctx: ActionCtx): Promise<{
 
     if (seconds === null) {
       unknown++;
+      // Stamped so the queue lets it go. Nothing is written to the duration
+      // itself: we did not find out, which is not the same as nobody coming.
+      await ctx.runMutation(internal.nativeBookings.markConferenceChecked, { id: booking._id });
       continue;
     }
 

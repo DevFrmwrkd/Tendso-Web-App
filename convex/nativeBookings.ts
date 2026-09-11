@@ -131,17 +131,34 @@ export const releaseHold = internalMutation({
  * port as a plain public query returning every booker's name and email, which
  * anyone holding the deployment URL could have read.
  */
+/** How much history the schedule screens carry when nobody says otherwise. */
+const ADMIN_HISTORY_MS = 21 * 24 * 60 * 60 * 1000;
+
+/**
+ * The bookings behind /admin/bookings and the staff dashboard.
+ *
+ * BOUNDED BY TIME, NOT BY A ROW COUNT, and that is a correctness point rather
+ * than a preference. This used to take the newest 200 rows by start time, which
+ * reads perfectly well at seven rows and fails silently at three hundred: the
+ * furthest-FUTURE bookings sort first, so the budget gets spent on calls that
+ * have not happened and the past side of every screen quietly empties. Adopting
+ * calendar calls pushes the table straight past that mark. A range scan from a
+ * cutoff returns everything on both sides of now, or nothing at all — it cannot
+ * half-answer.
+ *
+ * Holds are left out: they live three minutes and mean nothing to a human.
+ */
 export const listForAdmin = query({
-  args: { limit: v.optional(v.number()) },
-  handler: async (ctx, { limit }) => {
+  args: { sinceMs: v.optional(v.number()) },
+  handler: async (ctx, { sinceMs }) => {
     // Staff too: seeing who is booked is the whole reason that role exists.
     await requireStaff(ctx);
+    const cutoff = sinceMs ?? Date.now() - ADMIN_HISTORY_MS;
     const rows = await ctx.db
       .query("native_bookings")
-      .withIndex("by_startMs")
+      .withIndex("by_startMs", (q) => q.gte("startMs", cutoff))
       .order("desc")
-      .take(limit ?? 200);
-    // Holds are noise — they live three minutes and mean nothing to a human.
+      .collect();
     return rows.filter((r) => r.status === "confirmed" || r.status === "cancelled");
   },
 });
@@ -263,11 +280,15 @@ export const getByIdInternal = internalQuery({
 export const getByCalendarEventId = internalQuery({
   args: { eventId: v.string() },
   handler: async (ctx, { eventId }) => {
-    const rows = await ctx.db
+    // Indexed, not a scan. This read every confirmed row in the table and
+    // filtered in JavaScript, which was survivable at seven rows and is not once
+    // adoption is adding one per finished call — it would eventually hit the
+    // per-query document limit and take the out-of-hours cancel flow with it.
+    const row = await ctx.db
       .query("native_bookings")
-      .withIndex("by_status", (q) => q.eq("status", "confirmed"))
-      .collect();
-    return rows.find((r) => r.calendarEventId === eventId) ?? null;
+      .withIndex("by_calendarEventId", (q) => q.eq("calendarEventId", eventId))
+      .first();
+    return row && row.status === "confirmed" ? row : null;
   },
 });
 
@@ -401,6 +422,69 @@ export const backfillManageTokens = internalMutation({
 });
 
 /**
+ * Take ownership of a call that only ever existed on the calendar.
+ *
+ * WHY THIS EXISTS. Three systems write 10-minute Tendso calls to the one
+ * tendso.hr calendar: our own booking page, the old TidyCal link, and the
+ * sibling HR pipeline. Only ours starts life in this table, so of the calls that
+ * actually happen, ours are a small minority — and attendance is written onto a
+ * row, so without a row there is nothing to write on and nobody can say whether
+ * the person turned up.
+ *
+ * ONLY AFTER THE CALL HAS ENDED, and that is a safety property rather than a
+ * preference. A confirmed row in the future does two things: `takenSlots` treats
+ * its slot as taken, and claimSlot refuses a second booking from the same
+ * address while one is still ahead of them. Both of those look only forward, so
+ * a row for a call that is already over cannot change what the page offers or
+ * lock anybody out. Adopting future calls would touch both and is a separate
+ * decision.
+ *
+ * NO manageToken IS MINTED. That token is a bearer credential for moving or
+ * cancelling a booking, and it is only safe because it goes out in an email to
+ * the address that booked. We never emailed these people, so there is nothing to
+ * hand it to and no reason to create one.
+ *
+ * Keyed on the calendar event, never the email: a quarter of the people who book
+ * come back and book again, so an address identifies a person and not a call.
+ */
+export const adoptCalendarCall = internalMutation({
+  args: {
+    calendarEventId: v.string(),
+    startMs: v.number(),
+    endMs: v.number(),
+    name: v.string(),
+    email: v.string(),
+    meetUrl: v.optional(v.string()),
+    origin: v.union(v.literal("tidycal"), v.literal("hr_pipeline"), v.literal("calendar")),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("native_bookings")
+      .withIndex("by_calendarEventId", (q) => q.eq("calendarEventId", args.calendarEventId))
+      .first();
+    // Already ours, whether we booked it or adopted it on an earlier run. Left
+    // exactly as it is — an attendance tag somebody has already given is not
+    // something a sync gets to overwrite.
+    if (existing) return "known" as const;
+
+    await ctx.db.insert("native_bookings", {
+      startMs: args.startMs,
+      endMs: args.endMs,
+      name: args.name,
+      email: args.email.toLowerCase(),
+      status: "confirmed",
+      // When we adopted it, which is the only creation time we know. The real
+      // booking happened in another system and it did not tell us when.
+      createdAt: Date.now(),
+      calendarEventId: args.calendarEventId,
+      meetUrl: args.meetUrl,
+      origin: args.origin,
+    });
+    return "adopted" as const;
+  },
+});
+
+/**
  * Confirmed bookings that carry a Meet room, for the duration sync to ask about.
  *
  * Returns what it already knows about each room as well, because the sync costs
@@ -422,6 +506,7 @@ export const withMeetRoom = internalQuery({
         startMs: r.startMs,
         endMs: r.endMs,
         conferenceSeconds: r.conferenceSeconds,
+        conferenceCheckedAt: r.conferenceCheckedAt,
       }));
   },
 });
@@ -447,8 +532,30 @@ export const setConferenceSeconds = internalMutation({
     if (!row) return;
     // Undefined is not zero: the first look has to be able to write "we asked,
     // the room was never opened", which is a finding and not an absence.
-    if (row.conferenceSeconds !== undefined && seconds <= row.conferenceSeconds) return;
+    if (row.conferenceSeconds !== undefined && seconds <= row.conferenceSeconds) {
+      // Still record that we looked. The sync decides what to re-ask about from
+      // conferenceCheckedAt, so a row that never gets stamped is a row that gets
+      // asked about every hour for as long as it exists.
+      await ctx.db.patch(id, { conferenceCheckedAt: Date.now() });
+      return;
+    }
     await ctx.db.patch(id, { conferenceSeconds: seconds, conferenceCheckedAt: Date.now() });
+  },
+});
+
+/**
+ * Record that we asked about a room and Google would not say.
+ *
+ * WITHOUT THIS THE SYNC NEVER STOPS ASKING. A refused room leaves
+ * conferenceSeconds deliberately unset, because "we could not find out" is not
+ * "nobody came" — but the queue is built from rows that have not been looked at,
+ * so an unset row comes back every hour forever, two Google requests at a time.
+ * Stamping the attempt is what lets it settle.
+ */
+export const markConferenceChecked = internalMutation({
+  args: { id: v.id("native_bookings") },
+  handler: async (ctx, { id }) => {
+    await ctx.db.patch(id, { conferenceCheckedAt: Date.now() });
   },
 });
 

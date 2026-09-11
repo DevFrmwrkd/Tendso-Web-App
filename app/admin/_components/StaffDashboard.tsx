@@ -15,7 +15,7 @@ import {
 } from "@/hooks/useCallSchedule"
 import CallList from "./CallList"
 import FinishedCallList from "./FinishedCallList"
-import RoomCheckButton from "./RoomCheckButton"
+import RefreshFinishedCalls from "./RefreshFinishedCalls"
 
 /**
  * What an internal staff account sees when they open Tendso.
@@ -139,7 +139,7 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
                     empty="Every call is accounted for."
                     loading={false}
                     intro="These calls are over. Say what happened so the numbers mean something."
-                    action={<RoomCheckButton />}
+                    action={<RefreshFinishedCalls />}
                 />
             )}
 

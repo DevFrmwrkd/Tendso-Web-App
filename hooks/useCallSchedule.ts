@@ -18,6 +18,19 @@ import type { Id } from "@/convex/_generated/dataModel"
  * disagree about what is booked.
  */
 
+/** Which system sold a call. Their calendar events are titled identically, so
+ *  this is read off the line each one signs its descriptions with. */
+export type CallOrigin = "page" | "tidycal" | "hr_pipeline" | "calendar"
+
+/** Where a call came from, for a human. Null for our own page, which needs no
+ *  saying — it is the default and every screen here belongs to it. */
+export function originLabel(origin?: CallOrigin): string | null {
+    if (origin === "tidycal") return "from TidyCal"
+    if (origin === "hr_pipeline") return "from the HR pipeline"
+    if (origin === "calendar") return "added by hand"
+    return null
+}
+
 /** A Tendso call as the calendar has it — mirrors booking.listCalendarCalls. */
 export type CalendarCall = {
     eventId: string
@@ -28,6 +41,7 @@ export type CalendarCall = {
     name: string | null
     email: string | null
     outsideHours: boolean
+    origin: CallOrigin
 }
 
 export type ScheduledCall = {
@@ -58,6 +72,9 @@ export type ScheduledCall = {
      *  as well as on the finished list because a call can be tagged while it is
      *  still running — three minutes of an empty room is already an answer. */
     attendance?: "attended" | "no_show"
+    /** Which system sold it. Worth showing: a TidyCal booking can sit at an hour
+     *  nobody works, which is the whole reason the out-of-hours button exists. */
+    origin?: CallOrigin
 }
 
 /**
@@ -78,6 +95,7 @@ export type FinishedCall = {
      *  It proposes an answer and never gives one — see setAttendance. */
     conferenceSeconds?: number
     attendance?: "attended" | "no_show"
+    origin?: CallOrigin
 }
 
 export type CallSchedule = {
@@ -119,7 +137,10 @@ export function useNow(intervalMs = 60_000): number {
 }
 
 export function useCallSchedule(enabled: boolean): CallSchedule {
-    const bookings = useQuery(api.nativeBookings.listForAdmin, enabled ? { limit: 200 } : "skip")
+    // No row cap: listForAdmin is bounded by time on the server, because a count
+    // ordered by start time spends itself on the furthest-future bookings and
+    // empties the past side of the screen without saying so.
+    const bookings = useQuery(api.nativeBookings.listForAdmin, enabled ? {} : "skip")
     const listCalendarCalls = useAction(api.booking.listCalendarCalls)
 
     const [calendarCalls, setCalendarCalls] = useState<CalendarCall[]>([])
@@ -185,6 +206,7 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
                 eventId: b.calendarEventId ?? null,
                 bookingId: b._id,
                 attendance: b.attendance,
+                origin: b.origin,
             })
         }
         for (const c of calendarCalls) {
@@ -196,6 +218,9 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
                 // after a booking was made, its answer is the current one.
                 existing.outsideHours = c.outsideHours
                 existing.eventId = c.eventId
+                // The calendar knows which system wrote the event; our own row
+                // only knows if it was adopted from there in the first place.
+                existing.origin = c.origin
                 continue
             }
             merged.set(c.eventId, {
@@ -209,6 +234,7 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
                 outsideHours: c.outsideHours,
                 eventId: c.eventId,
                 bookingId: null,
+                origin: c.origin,
             })
         }
         return [...merged.values()].sort((a, b) => a.startMs - b.startMs)
@@ -226,6 +252,7 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
                 status: b.status,
                 conferenceSeconds: b.conferenceSeconds,
                 attendance: b.attendance,
+                origin: b.origin,
             }))
     }, [bookings, now])
 

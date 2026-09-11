@@ -490,11 +490,33 @@ export default defineSchema({
         attendance: v.optional(v.union(v.literal('attended'), v.literal('no_show'))),
         attendanceBy: v.optional(v.string()),
         attendanceAt: v.optional(v.number()),
+        // Which system sold this call. Absent on rows written before this field
+        // existed, and those are all our own page.
+        //
+        // WHY IT MATTERS. Three systems write 10-minute Tendso calls to the one
+        // tendso.hr calendar, and only 'page' ones start life in this table: the
+        // old TidyCal link and the sibling HR pipeline leave nothing behind here
+        // at all. A row for one of those is ADOPTED after the call has ended, so
+        // somebody can say whether anyone turned up — see adoptCalendarCall. The
+        // origin is kept because the three are not interchangeable: a TidyCal
+        // booking can be at an hour nobody works, and an hr_pipeline call may
+        // already be accounted for in that app.
+        origin: v.optional(
+            v.union(
+                v.literal('page'),
+                v.literal('tidycal'),
+                v.literal('hr_pipeline'),
+                v.literal('calendar'),
+            ),
+        ),
     })
         .index('by_startMs', ['startMs'])
         .index('by_email', ['email'])
         .index('by_status', ['status'])
-        .index('by_manageToken', ['manageToken']),
+        .index('by_manageToken', ['manageToken'])
+        // Adoption is keyed on the event, never the email: a quarter of the
+        // people who book come back and book again.
+        .index('by_calendarEventId', ['calendarEventId']),
 
     // ==================== PAYOUT METHODS ====================
     payoutMethods: defineTable({
