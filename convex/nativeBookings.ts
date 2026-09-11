@@ -92,6 +92,11 @@ export const claimSlot = internalMutation({
       email: email.trim().toLowerCase(),
       status: "held",
       createdAt: now,
+      // Said here rather than inferred from the absence of anything else. Until
+      // this existed the only writer of `origin` was the adopter, so a booking
+      // made on our own page was indistinguishable from one whose source we
+      // could not work out.
+      origin: "page",
       // Minted here rather than at confirm time, so the token exists before the
       // calendar write and a booking can never end up confirmed without one.
       manageToken,
@@ -134,6 +139,9 @@ export const releaseHold = internalMutation({
 /** How much history the schedule screens carry when nobody says otherwise. */
 const ADMIN_HISTORY_MS = 21 * 24 * 60 * 60 * 1000;
 
+/** The furthest back the statistics page may reach in one query. */
+const STATS_MAX_WINDOW_MS = 90 * 24 * 60 * 60 * 1000;
+
 /**
  * The bookings behind /admin/bookings and the staff dashboard.
  *
@@ -163,6 +171,53 @@ export const listForAdmin = query({
   },
 });
 
+/**
+ * The rows behind the call statistics page.
+ *
+ * A PROJECTION, NOT WHOLE DOCUMENTS, and the counting happens on the page rather
+ * than here. Every figure on that screen is a count over the same few hundred
+ * rows, and doing the arithmetic in one visible place beats a dozen server-side
+ * aggregates that each have to be changed whenever a question changes. At
+ * roughly sixteen calls a day a ninety-day window is about fifteen hundred rows,
+ * which is a small read.
+ *
+ * The window is capped rather than trusted: an unbounded range would eventually
+ * try to return the whole table in one query.
+ */
+export const statsRows = query({
+  args: { fromMs: v.number() },
+  handler: async (ctx, { fromMs }) => {
+    await requireStaff(ctx);
+    const now = Date.now();
+    const floor = now - STATS_MAX_WINDOW_MS;
+    const rows = await ctx.db
+      .query("native_bookings")
+      .withIndex("by_startMs", (q) => q.gte("startMs", Math.max(fromMs, floor)))
+      .collect();
+
+    return rows
+      // Holds and failures are abandoned attempts, not calls.
+      .filter((r) => r.status === "confirmed" || r.status === "cancelled")
+      .map((r) => ({
+        startMs: r.startMs,
+        endMs: r.endMs,
+        status: r.status,
+        origin: r.origin,
+        conferenceSeconds: r.conferenceSeconds,
+        conferenceCheckedAt: r.conferenceCheckedAt,
+        attendance: r.attendance,
+        // Only to count how many people book more than once. Staff can already
+        // read every address on the bookings page, so this exposes nothing new.
+        email: r.email,
+        rescheduledFromMs: r.rescheduledFromMs,
+        // Whether there was a room to ask Google about at all, not the link
+        // itself. A call with no room is a permanent blind spot rather than a
+        // reading we are still waiting for, and the two must not look alike.
+        hasMeetUrl: !!r.meetUrl,
+      }));
+  },
+});
+
 /** Confirmed bookings in a window, for the calendar sync to reconcile. */
 export const confirmedInWindow = internalQuery({
   args: { fromMs: v.number(), toMs: v.number() },
@@ -188,7 +243,11 @@ export const markCancelled = internalMutation({
   handler: async (ctx, { id }) => {
     const row = await ctx.db.get(id);
     if (!row || row.status === "cancelled") return false;
-    await ctx.db.patch(id, { status: "cancelled" });
+    // Stamped, as cancelBooking already does. Without it the cancellations found
+    // by the calendar sync were untimed while the ones made on the manage page
+    // were not, so no question about when people drop out could be answered
+    // across both halves of the same table.
+    await ctx.db.patch(id, { status: "cancelled", cancelledAt: Date.now() });
     return true;
   },
 });
@@ -375,6 +434,16 @@ export const moveBooking = internalMutation({
       // Only recorded on the first move, so it keeps pointing at the time the
       // booking was originally made for.
       rescheduledFromMs: row.rescheduledFromMs ?? row.startMs,
+      // EVERYTHING WE KNEW ABOUT THE OLD SLOT IS NOW WRONG. A booking can be
+      // moved after its original time has passed, and it kept whatever that slot
+      // had accumulated: a room duration measured on a call that no longer
+      // exists, and an attended / no-show answer about a meeting nobody has had
+      // yet. Cleared so the new call is asked about again from nothing.
+      conferenceSeconds: undefined,
+      conferenceCheckedAt: undefined,
+      attendance: undefined,
+      attendanceBy: undefined,
+      attendanceAt: undefined,
     });
     return { ok: true as const, previousStartMs: row.startMs };
   },
