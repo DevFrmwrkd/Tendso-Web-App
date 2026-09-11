@@ -23,7 +23,8 @@ import {
     ChevronRight,
     Megaphone,
     Inbox,
-    CalendarClock
+    CalendarClock,
+    BarChart3
 } from "lucide-react"
 
 const navItems = [
@@ -78,6 +79,11 @@ const navItems = [
         icon: CalendarClock,
     },
     {
+        label: "Call Stats",
+        href: "/admin/call-stats",
+        icon: BarChart3,
+    },
+    {
         label: "Train AI",
         href: "/admin/knowledge",
         icon: Sparkles,
@@ -103,7 +109,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     // sidebar would be a list of dead ends for them. The pages themselves are
     // gated server-side; this is only about not offering doors that will not
     // open.
-    const STAFF_ROUTES = ["/admin", "/admin/bookings"]
+    const STAFF_ROUTES = ["/admin", "/admin/bookings", "/admin/call-stats"]
     const visibleNavItems =
         me?.role === "staff" ? navItems.filter((i) => STAFF_ROUTES.includes(i.href)) : navItems
 
