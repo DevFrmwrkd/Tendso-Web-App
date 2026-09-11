@@ -259,6 +259,18 @@ export const getByIdInternal = internalQuery({
   handler: async (ctx, { id }) => await ctx.db.get(id),
 });
 
+/** Internal: our row for a calendar event, if the booking came through us. */
+export const getByCalendarEventId = internalQuery({
+  args: { eventId: v.string() },
+  handler: async (ctx, { eventId }) => {
+    const rows = await ctx.db
+      .query("native_bookings")
+      .withIndex("by_status", (q) => q.eq("status", "confirmed"))
+      .collect();
+    return rows.find((r) => r.calendarEventId === eventId) ?? null;
+  },
+});
+
 /** Internal: resolve a manage token to its booking. */
 export const getByManageToken = internalQuery({
   args: { token: v.string() },

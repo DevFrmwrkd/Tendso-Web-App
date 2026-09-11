@@ -65,7 +65,8 @@ export default function AdminBookingsPage() {
 
     // Merged with the calendar by the same hook the staff dashboard uses, so
     // the two views can never disagree about what is booked.
-    const { upcoming, past, calendarError, loading: scheduleLoading } = useCallSchedule(canView)
+    const { upcoming, past, calendarError, loading: scheduleLoading, refresh } =
+        useCallSchedule(canView)
 
     const [syncing, setSyncing] = useState(false)
     const [syncResult, setSyncResult] = useState<string | null>(null)
@@ -282,6 +283,7 @@ export default function AdminBookingsPage() {
                     calls={upcoming}
                     empty="No calls booked."
                     loading={scheduleLoading}
+                    onChanged={refresh}
                 />
 
                 <section className="rounded-xl border border-zinc-200 bg-white p-6">
