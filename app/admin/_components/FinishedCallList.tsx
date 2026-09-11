@@ -8,6 +8,7 @@ import {
     formatClockTime,
     formatRoomTime,
     manilaDayKey,
+    originLabel,
 } from "@/hooks/useCallSchedule"
 import AttendanceTag from "./AttendanceTag"
 
@@ -78,6 +79,12 @@ export default function FinishedCallList({
                                     {call.email && (
                                         <p className="truncate text-xs text-zinc-500">
                                             {call.email}
+                                            {originLabel(call.origin) && (
+                                                <span className="text-zinc-400">
+                                                    {" · "}
+                                                    {originLabel(call.origin)}
+                                                </span>
+                                            )}
                                         </p>
                                     )}
                                     <RoomTime seconds={call.conferenceSeconds} />

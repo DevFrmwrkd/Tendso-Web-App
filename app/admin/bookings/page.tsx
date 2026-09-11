@@ -8,7 +8,7 @@ import AdminLayout from "../components/AdminLayout"
 import { useCallSchedule } from "@/hooks/useCallSchedule"
 import CallList from "../_components/CallList"
 import FinishedCallList from "../_components/FinishedCallList"
-import RoomCheckButton from "../_components/RoomCheckButton"
+import RefreshFinishedCalls from "../_components/RefreshFinishedCalls"
 
 /**
  * Field Agent call bookings — the admin side of /field-agent/book.
@@ -299,7 +299,7 @@ export default function AdminBookingsPage() {
                         empty="Nothing has finished yet."
                         loading={scheduleLoading}
                         intro="Google reports how long each Meet room was open, never who was in it — the attended / no-show tag is the one that counts."
-                        action={<RoomCheckButton />}
+                        action={<RefreshFinishedCalls />}
                         collapsible
                     />
                 )}

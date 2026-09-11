@@ -54,9 +54,22 @@ crons.hourly(
     internal.booking.syncCancelledBookingsCron,
 );
 
+// Hourly (offset by 10 min): give a row to every Tendso call that finished on
+// the calendar without one. Three systems book onto the one tendso.hr calendar
+// and only ours starts with a row, so without this almost no call that actually
+// happens can be marked attended or no-show. Finished calls only — see
+// adoptCalendarCall for why a future row would be unsafe.
+crons.hourly(
+    'adopt-finished-calendar-calls',
+    { minuteUTC: 10 },
+    internal.booking.adoptCalendarCallsCron,
+);
+
 // Hourly (offset by 20 min): copy conference durations off Google onto the
 // bookings they belong to. Conference records expire after 30 days, so a call
 // nobody syncs before then leaves no trace of whether it happened at all.
+// Runs AFTER adoption on purpose, so a call adopted at :10 gets its duration in
+// the same hour rather than waiting for the next one.
 crons.hourly(
     'pull-meet-conference-durations',
     { minuteUTC: 20 },
