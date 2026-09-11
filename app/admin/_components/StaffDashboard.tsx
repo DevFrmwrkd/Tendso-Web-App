@@ -6,6 +6,7 @@ import { CalendarClock, RefreshCw, Video } from "lucide-react"
 
 import {
     formatCallTime,
+    isInProgress,
     manilaDayKey,
     timeSince,
     timeUntil,
@@ -36,6 +37,10 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
         const key = manilaDayKey(now)
         return upcoming.filter((c) => manilaDayKey(c.startMs) === key)
     }, [upcoming, now])
+
+    // Surfaced here as well as in the list: it is the one number that means
+    // somebody has to do something.
+    const outOfHours = useMemo(() => upcoming.filter((c) => c.outsideHours).length, [upcoming])
 
     const thisWeek = useMemo(
         () => upcoming.filter((c) => c.startMs < now + 7 * 24 * 60 * 60 * 1000).length,
@@ -89,7 +94,9 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
                     <div className="flex flex-wrap items-end justify-between gap-4">
                         <div className="min-w-0 space-y-1">
                             <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                                Next call · {timeUntil(next.startMs, now)}
+                                {isInProgress(next, now)
+                                    ? "Happening now"
+                                    : `Next call · ${timeUntil(next.startMs, now)}`}
                             </span>
                             <p className="text-2xl font-bold truncate">{next.name}</p>
                             <p className="text-sm text-zinc-300">{formatCallTime(next.startMs)}</p>
@@ -118,10 +125,19 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
                 )}
             </section>
 
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:max-w-3xl">
+            {/* One strip, not three floating cards. Three small boxes capped at
+                768px left the right half of a wide screen empty and read as an
+                unfinished row; divided cells fill the width and say "these
+                belong together" at the same time. */}
+            <div className="grid grid-cols-2 divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200 bg-white sm:grid-cols-4 sm:divide-x">
                 <Stat label="Today" value={today.length} />
                 <Stat label="Next 7 days" value={thisWeek} />
                 <Stat label="Booked ahead" value={upcoming.length} />
+                <Stat
+                    label="Outside hours"
+                    value={outOfHours}
+                    tone={outOfHours > 0 ? "warn" : "plain"}
+                />
             </div>
 
             <div className="grid items-start gap-6 xl:grid-cols-2">
@@ -153,11 +169,30 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
     )
 }
 
-function Stat({ label, value }: { label: string; value: number }) {
+function Stat({
+    label,
+    value,
+    tone = "plain",
+}: {
+    label: string
+    value: number
+    /** 'warn' only when the number is something to act on, so colour stays
+     *  meaningful rather than decorative. */
+    tone?: "plain" | "warn"
+}) {
+    const warn = tone === "warn"
     return (
-        <div className="rounded-xl border border-zinc-200 bg-white p-4">
-            <p className="text-2xl font-bold text-zinc-900">{value}</p>
-            <p className="text-xs font-medium uppercase tracking-wide text-zinc-500">{label}</p>
+        <div className={`p-5 ${warn ? "bg-amber-50" : ""}`}>
+            <p className={`text-3xl font-bold tabular-nums ${warn ? "text-amber-800" : "text-zinc-900"}`}>
+                {value}
+            </p>
+            <p
+                className={`text-xs font-medium uppercase tracking-wide ${
+                    warn ? "text-amber-700" : "text-zinc-500"
+                }`}
+            >
+                {label}
+            </p>
         </div>
     )
 }
