@@ -32,6 +32,10 @@ export type CalendarCall = {
 export type ScheduledCall = {
     key: string
     startMs: number
+    /** When the call is over. A call stays in `upcoming` until this passes, not
+     *  until it starts — otherwise it vanishes from the screen at the moment
+     *  someone is sitting in it, which is exactly when it is being looked at. */
+    endMs: number
     name: string
     email: string
     meetUrl: string | null
@@ -132,10 +136,11 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
         const merged = new Map<string, ScheduledCall>()
 
         for (const b of bookings ?? []) {
-            if (b.status !== "confirmed" || b.startMs < now) continue
+            if (b.status !== "confirmed" || b.endMs < now) continue
             merged.set(b.calendarEventId ?? String(b._id), {
                 key: String(b._id),
                 startMs: b.startMs,
+                endMs: b.endMs,
                 name: b.name,
                 email: b.email,
                 meetUrl: b.meetUrl ?? null,
@@ -148,7 +153,7 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
             })
         }
         for (const c of calendarCalls) {
-            if (c.startMs < now) continue
+            if (c.endMs < now) continue
             const existing = merged.get(c.eventId)
             if (existing) {
                 existing.meetUrl = c.meetUrl ?? existing.meetUrl
@@ -161,6 +166,7 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
             merged.set(c.eventId, {
                 key: c.eventId,
                 startMs: c.startMs,
+                endMs: c.endMs,
                 name: c.name ?? c.summary,
                 email: c.email ?? "",
                 meetUrl: c.meetUrl,
@@ -174,7 +180,7 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
 
     const past = useMemo(() => {
         return (bookings ?? [])
-            .filter((b) => b.startMs < now || b.status === "cancelled")
+            .filter((b) => b.endMs < now || b.status === "cancelled")
             .map((b) => ({
                 _id: String(b._id),
                 name: b.name,
@@ -243,6 +249,11 @@ export function timeSince(ms: number, now: number): string {
     if (minutes < 60) return `${minutes} minute${minutes === 1 ? "" : "s"} ago`
     const hours = Math.round(minutes / 60)
     return `${hours} hour${hours === 1 ? "" : "s"} ago`
+}
+
+/** True while the call is happening: started, not yet over. */
+export function isInProgress(call: { startMs: number; endMs: number }, now: number): boolean {
+    return now >= call.startMs && now < call.endMs
 }
 
 /** "in 25 minutes", "in 3 hours", "tomorrow" — how far off the next call is. */
