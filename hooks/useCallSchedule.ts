@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { useAction, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
+import type { Id } from "@/convex/_generated/dataModel"
 
 /**
  * The Field Agent call schedule, as one list.
@@ -49,12 +50,44 @@ export type ScheduledCall = {
     outsideHours: boolean
     /** The calendar event, which is what cancelling one of these acts on. */
     eventId: string | null
+    /** Our own booking row, when the call came through our page. Null for a
+     *  calendar-only call: there is no row of ours to write an outcome onto, so
+     *  those cannot be tagged attended or no-show. */
+    bookingId: Id<"native_bookings"> | null
+    /** What the person who sat it says happened, once they have said. Set here
+     *  as well as on the finished list because a call can be tagged while it is
+     *  still running — three minutes of an empty room is already an answer. */
+    attendance?: "attended" | "no_show"
+}
+
+/**
+ * A call that is over, where the only open question is what happened in it.
+ *
+ * Our own rows only — the calendar fetch looks forward, not back, so a call
+ * booked through the old link leaves nothing behind to tag.
+ */
+export type FinishedCall = {
+    _id: Id<"native_bookings">
+    name: string
+    email: string
+    startMs: number
+    endMs: number
+    status: string
+    /** How long a conference ran in this booking's Meet room. Undefined means
+     *  nobody has looked yet; 0 means we looked and the room was never opened.
+     *  It proposes an answer and never gives one — see setAttendance. */
+    conferenceSeconds?: number
+    attendance?: "attended" | "no_show"
 }
 
 export type CallSchedule = {
     upcoming: ScheduledCall[]
     /** Our own rows only — the calendar fetch looks forward, not back. */
-    past: Array<{ _id: string; name: string; email: string; startMs: number; status: string }>
+    past: FinishedCall[]
+    /** Finished, not cancelled, and nobody has yet said whether it happened.
+     *  An inbox rather than a report: it empties as calls get tagged, and an
+     *  empty one means every call is accounted for. */
+    needsAttendance: FinishedCall[]
     /** Set when the calendar could not be read. The list is then our rows alone,
      *  which is worth saying out loud rather than quietly showing less. */
     calendarError: string | null
@@ -150,6 +183,8 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
                 // pass below corrects this if it disagrees.
                 outsideHours: false,
                 eventId: b.calendarEventId ?? null,
+                bookingId: b._id,
+                attendance: b.attendance,
             })
         }
         for (const c of calendarCalls) {
@@ -173,6 +208,7 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
                 source: "calendar",
                 outsideHours: c.outsideHours,
                 eventId: c.eventId,
+                bookingId: null,
             })
         }
         return [...merged.values()].sort((a, b) => a.startMs - b.startMs)
@@ -182,17 +218,44 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
         return (bookings ?? [])
             .filter((b) => b.endMs < now || b.status === "cancelled")
             .map((b) => ({
-                _id: String(b._id),
+                _id: b._id,
                 name: b.name,
                 email: b.email,
                 startMs: b.startMs,
+                endMs: b.endMs,
                 status: b.status,
+                conferenceSeconds: b.conferenceSeconds,
+                attendance: b.attendance,
             }))
     }, [bookings, now])
+
+    /**
+     * The ones still waiting on a human answer.
+     *
+     * CANCELLED CALLS ARE NOT IN HERE. A call nobody was going to sit is not a
+     * no-show, and asking about it would make the list something to dismiss
+     * rather than something to empty.
+     *
+     * STOPS AT A FORTNIGHT. Past that nobody remembers who turned up, so an
+     * answer would be a guess — and a list that only ever grows gets ignored.
+     */
+    const needsAttendance = useMemo(() => {
+        const floor = now - 14 * 24 * 60 * 60 * 1000
+        return past
+            .filter(
+                (b) =>
+                    b.status === "confirmed" &&
+                    !b.attendance &&
+                    b.endMs < now &&
+                    b.startMs > floor,
+            )
+            .sort((a, b) => b.startMs - a.startMs)
+    }, [past, now])
 
     return {
         upcoming,
         past,
+        needsAttendance,
         calendarError,
         loading: bookings === undefined,
         refresh,
@@ -240,6 +303,25 @@ export function formatCallTime(ms: number): string {
         hour: "numeric",
         minute: "2-digit",
     })
+}
+
+/**
+ * How long the Meet room was open, in words.
+ *
+ * Deliberately vague about what it proves. "9s" is somebody opening the room and
+ * leaving; "12m" is a call that happened. Neither says who was in it — Google
+ * will not tell a consumer account that — so this informs the person tagging the
+ * call and never decides for them.
+ */
+export function formatRoomTime(seconds: number): string {
+    if (seconds < 60) return `${seconds}s`
+    const minutes = Math.floor(seconds / 60)
+    const rest = seconds % 60
+    // Seconds still shown below ten minutes, because on a ten-minute call the
+    // difference between a minute and two is the difference between somebody
+    // looking in and somebody starting a conversation.
+    if (minutes < 10 && rest > 0) return `${minutes}m ${rest}s`
+    return `${minutes}m`
 }
 
 /** "just now", "4 minutes ago" — how stale what you are looking at is. */

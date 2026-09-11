@@ -458,6 +458,38 @@ export default defineSchema({
         // Kept when a booking moves, so the history survives a reschedule.
         rescheduledFromMs: v.optional(v.number()),
         cancelledAt: v.optional(v.number()),
+        // How long a conference actually ran in this booking's Meet room, from
+        // the Meet REST API. Undefined means we have not looked; 0 means we
+        // looked and nobody ever opened the room.
+        //
+        // WHY SECONDS AND NOT A NAME. Google records that a conference happened
+        // but not who was in it — attendance reports are a Workspace feature and
+        // tendso.hr is a consumer account, so `participants` comes back empty
+        // even for a twelve-minute call. Duration is the whole signal we get:
+        // nine seconds is somebody opening the room and leaving, ten minutes is
+        // the call. It cannot tell a real conversation from an interviewer
+        // sitting alone, which is why the human toggle stays the authority.
+        //
+        // Conference records expire after 30 days, so this has to be copied in
+        // before then or the fact is gone.
+        //
+        // ONLY EVER GOES UP. See setConferenceSeconds: the sync re-asks about a
+        // 30-day window while Google deletes the records at 30 days, so a
+        // booking near that edge gets a truthful "no conference" for a call we
+        // already measured. Lowering the number would throw the fact away.
+        conferenceSeconds: v.optional(v.number()),
+        // When we last LEARNED something about the room, not when we last
+        // asked — a check that finds nothing new writes nothing at all, because
+        // re-stamping every row in the window every hour is churn for a field
+        // no screen reads.
+        conferenceCheckedAt: v.optional(v.number()),
+        // What the person who sat the call says happened. This is the AUTHORITY;
+        // conferenceSeconds only proposes an answer, because a long conference
+        // could be an interviewer waiting alone and a short one could be a call
+        // that moved to a phone.
+        attendance: v.optional(v.union(v.literal('attended'), v.literal('no_show'))),
+        attendanceBy: v.optional(v.string()),
+        attendanceAt: v.optional(v.number()),
     })
         .index('by_startMs', ['startMs'])
         .index('by_email', ['email'])
