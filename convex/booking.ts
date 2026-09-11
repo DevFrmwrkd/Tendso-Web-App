@@ -4,7 +4,7 @@ import { v } from "convex/values";
 import { action, internalAction, type ActionCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { api, internal } from "./_generated/api";
-import { createTendsoCalendarClient, sendAsTendso } from "./lib/tendsoGoogle";
+import { createTendsoCalendarClient, sendAsTendso, TENDSO_ADDRESS } from "./lib/tendsoGoogle";
 import {
   generateSlots,
   isValidSlot,
@@ -20,6 +20,7 @@ import {
   getCallBookedEmailHtml,
   getCallCancelledEmailHtml,
   getCallMovedEmailHtml,
+  getCallOutOfHoursEmailHtml,
 } from "../lib/email/templates";
 
 // Annotated explicitly: the handler reaches back into `internal.*`, which is
@@ -74,6 +75,16 @@ type RawCalendarEvent = {
   conferenceData?: {
     entryPoints?: Array<{ entryPointType?: string | null; uri?: string | null }> | null;
   } | null;
+  /** Where a TidyCal booking keeps the person. Our own events carry nobody —
+   *  createBooking deliberately sets no attendees so Google does not send its
+   *  own invite — so this is empty for calls made through our page and is the
+   *  ONLY identity we have for calls made through the old link. */
+  attendees?: Array<{
+    email?: string | null;
+    displayName?: string | null;
+    organizer?: boolean | null;
+    self?: boolean | null;
+  }> | null;
 };
 
 /** Booking path that does not depend on our Google OAuth, for when ours breaks. */
@@ -428,10 +439,16 @@ export type CalendarCall = {
   endMs: number;
   summary: string;
   meetUrl: string | null;
-  /** Parsed out of the description when it follows our `Candidate:/Email:`
-   *  convention. A TidyCal booking will not, so these can be null. */
+  /** From our own `Candidate:/Email:` description convention, falling back to
+   *  the event's attendees, which is where a TidyCal booking keeps them. Still
+   *  null when neither carries a person. */
   name: string | null;
   email: string | null;
+  /** The start time is not a slot we actually offer. These are the calls the
+   *  old booking link sold: nobody is working then, so nobody will be there.
+   *  Computed HERE, from the same isValidSlot the booking path uses, so a page
+   *  never has to re-derive the hours and reach a different answer. */
+  outsideHours: boolean;
 };
 
 /**
@@ -467,6 +484,7 @@ export const listCalendarCalls = action({
       maxResults: 2500,
     });
 
+    const config = await ctx.runQuery(internal.nativeBookings.getSlotConfigInternal, {});
     const items = (res.data.items ?? []) as RawCalendarEvent[];
     const calls: CalendarCall[] = [];
 
@@ -484,17 +502,33 @@ export const listCalendarCalls = action({
       const nameMatch = description.match(/Candidate:\s*(.+)/);
       const emailMatch = description.match(/Email:\s*(\S+@\S+)/);
 
+      // Everyone on the event who is not us. Google marks the calendar owner
+      // with `self`/`organizer`, and tendso.hr can also appear as a plain
+      // attendee, so all three are excluded before taking the first human left.
+      const guest = (ev.attendees ?? []).find(
+        (a) =>
+          !a?.organizer &&
+          !a?.self &&
+          !!a?.email &&
+          a.email.toLowerCase() !== TENDSO_ADDRESS.toLowerCase(),
+      );
+
+      const startMs = new Date(startIso).getTime();
+
       calls.push({
         eventId: ev.id,
-        startMs: new Date(startIso).getTime(),
+        startMs,
         endMs: new Date(endIso).getTime(),
         summary,
         meetUrl:
           ev.hangoutLink ??
           ev.conferenceData?.entryPoints?.find((p) => p.entryPointType === "video")?.uri ??
           null,
-        name: nameMatch ? nameMatch[1].trim() : null,
-        email: emailMatch ? emailMatch[1].trim().toLowerCase() : null,
+        name: nameMatch ? nameMatch[1].trim() : (guest?.displayName?.trim() || null),
+        email: emailMatch
+          ? emailMatch[1].trim().toLowerCase()
+          : (guest?.email?.trim().toLowerCase() || null),
+        outsideHours: !isValidSlot(startMs, config),
       });
     }
 
@@ -751,5 +785,139 @@ export const resendManageEmail = action({
     });
 
     return { ok: true };
+  },
+});
+
+/**
+ * Cancel a call that the old booking link sold at a time we do not work, and
+ * tell the person why.
+ *
+ * BOTH HALVES OR NEITHER. The email states the booking is already cleared, so
+ * the calendar event has to go first — if the delete fails, nothing is sent and
+ * nothing is claimed, because an apology that says "we've cancelled it" while
+ * the event still sits on their phone is worse than saying nothing.
+ *
+ * Staff-gated: the people who sit these calls are the ones who spot them. The
+ * confirmation step lives in the UI, not here — this is the irreversible half.
+ */
+export const cancelOutOfHoursCall = action({
+  args: { eventId: v.string() },
+  handler: async (
+    ctx,
+    { eventId },
+  ): Promise<{ ok: boolean; error?: string; emailed?: boolean; emailedTo?: string }> => {
+    await requireStaff(ctx);
+
+    const calendar = await createTendsoCalendarClient();
+
+    // Read it first: this is where the start time and the guest come from, and
+    // reading before deleting is what stops us cancelling the wrong event on a
+    // stale page.
+    // The name and email come from the EVENT, never from the page. The page's
+    // idea of a name is `name ?? summary`, so an event with no Candidate: line
+    // and an attendee with no display name would have arrived here as the event
+    // title — and the apology would have opened "Hi 10-Minute-Meetings".
+    let startMs: number | null = null;
+    let guestEmail: string | null = null;
+    let guestName: string | null = null;
+    try {
+      const ev = await calendar.events.get({ calendarId: "primary", eventId });
+      const data = ev.data as RawCalendarEvent;
+      if (data.status === "cancelled") {
+        return { ok: false, error: "That event is already cancelled on the calendar." };
+      }
+      const startIso = data.start?.dateTime;
+      if (startIso) startMs = new Date(startIso).getTime();
+
+      const description = data.description ?? "";
+      const nameMatch = description.match(/Candidate:\s*(.+)/);
+      const emailMatch = description.match(/Email:\s*(\S+@\S+)/);
+      const guest = (data.attendees ?? []).find(
+        (a) =>
+          !a?.organizer &&
+          !a?.self &&
+          !!a?.email &&
+          a.email.toLowerCase() !== TENDSO_ADDRESS.toLowerCase(),
+      );
+      // No name is fine — the email greets without one rather than guessing.
+      guestName = nameMatch?.[1]?.trim() || guest?.displayName?.trim() || null;
+      guestEmail =
+        emailMatch?.[1]?.trim().toLowerCase() || guest?.email?.trim().toLowerCase() || null;
+    } catch (err) {
+      const code = errStatus(err);
+      if (code === 404 || code === 410) {
+        return { ok: false, error: "That event is no longer on the calendar." };
+      }
+      console.error("cancelOutOfHoursCall: read failed:", errMessage(err));
+      return { ok: false, error: "Couldn't read that event. Please try again." };
+    }
+
+    if (startMs === null) {
+      return { ok: false, error: "That event has no start time — cancel it by hand." };
+    }
+
+    // Refuse to act on a call that IS inside our hours. The page decides which
+    // rows offer this button, and a page can be stale; this is the check that
+    // cannot be.
+    const config = await ctx.runQuery(internal.nativeBookings.getSlotConfigInternal, {});
+    if (isValidSlot(startMs, config)) {
+      return { ok: false, error: "That call is inside your bookable hours — nothing to cancel." };
+    }
+
+    try {
+      await calendar.events.delete({ calendarId: "primary", eventId, sendUpdates: "none" });
+    } catch (err) {
+      const code = errStatus(err);
+      // Already gone is fine; anything else means the calendar still holds it,
+      // so stop before promising otherwise.
+      if (code !== 404 && code !== 410) {
+        console.error("cancelOutOfHoursCall: delete failed:", errMessage(err));
+        return { ok: false, error: "Couldn't remove that from the calendar. Nothing was sent." };
+      }
+    }
+
+    // If the booking also exists in our table — it will for anything booked
+    // through our own page — release the slot too.
+    const row = await ctx.runQuery(internal.nativeBookings.getByCalendarEventId, { eventId });
+    if (row) await ctx.runMutation(internal.nativeBookings.cancelBooking, { id: row._id });
+
+    if (!guestEmail) {
+      // The event carried no person. The call is off, which is the important
+      // half, but nobody can be told — say so rather than report success.
+      return { ok: true, emailed: false, error: "Cancelled, but this event has no email address on it." };
+    }
+
+    const base = (process.env.SITE_URL || "https://www.tendso.com").replace(/\/$/, "");
+    const bookUrl = `${base}/field-agent/book`;
+    const firstName = (guestName ?? "").split(/\s+/)[0] ?? "";
+
+    try {
+      await sendAsTendso({
+        to: guestEmail,
+        subject: "Your Tendso call is cancelled — please pick a new time",
+        html: getCallOutOfHoursEmailHtml({
+          firstName,
+          dayLabel: manilaDayLabel(startMs),
+          timeLabel: manilaTimeLabel(startMs),
+          bookUrl,
+        }),
+        text:
+          `${firstName ? `Hi ${firstName} — s` : "S"}orry, this one is on us. An old booking link of ours was ` +
+          `still going around, and it offered times we don't actually work. Nobody would have been there ` +
+          `to meet you, so we've cancelled your ${manilaTimeLabel(startMs)} call on ` +
+          `${manilaDayLabel(startMs)} rather than leave you waiting in an empty call.\n\n` +
+          `We'd still like to have the call. This page only shows hours someone will really be there — ` +
+          `Monday to Friday, 10am to 2pm and 8pm to midnight, Philippine time:\n${bookUrl}\n\n` +
+          `You don't need to cancel anything, we've already cleared it. If none of those hours work ` +
+          `for you, just reply to this email.\n\nTendso HR Team`,
+      });
+    } catch (err) {
+      console.error(`Out-of-hours email failed for ${guestEmail}:`, errMessage(err));
+      return { ok: true, emailed: false, error: "Cancelled, but the email didn't send." };
+    }
+
+    // The address is returned so the row can show who it actually went to,
+    // rather than the page reporting the address it happened to be displaying.
+    return { ok: true, emailed: true, emailedTo: guestEmail };
   },
 });

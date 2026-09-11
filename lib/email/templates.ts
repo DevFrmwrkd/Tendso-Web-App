@@ -1911,3 +1911,36 @@ export function getCallCancelledEmailHtml(params: {
         body,
     })
 }
+
+/**
+ * Sent when a call was booked through the OLD link, at a time Tendso does not
+ * work. Nobody would be there, so the booking is cancelled and they are asked
+ * to pick again on the current page.
+ *
+ * THE ERROR IS OURS and the copy never forgets it: we are the subject of every
+ * sentence about the mistake, the gold word is the time rather than a negation,
+ * and the heading states what happened to the booking instead of how we feel
+ * about it. It also does not mention an application — there is no application,
+ * only a ten-minute call, and inventing a status to reassure someone about
+ * would tell them they are in a process that does not exist.
+ */
+export function getCallOutOfHoursEmailHtml(params: {
+    firstName: string
+    dayLabel: string
+    timeLabel: string
+    bookUrl: string
+}): string {
+    const firstName = escapeHtml(params.firstName)
+    const body = `
+        <p style="margin: 0 0 16px; font-size: 16px; line-height: 1.55;">${firstName ? `Hi ${firstName} &mdash; s` : 'S'}orry, this one is on us. An old booking link of ours was still going around, and it offered times we don't actually work. Nobody would have been there to meet you, so we've cancelled it rather than leave you waiting in an empty call.</p>
+        <p style="margin: 0 0 22px; font-size: 16px; line-height: 1.55;">We'd still like to have the call. The page below only shows hours someone will really be there &mdash; Monday to Friday, 10am to 2pm and 8pm to midnight, Philippine time.</p>
+        ${callEmailButton(params.bookUrl, 'Pick a new time', 'solid')}
+        <p style="margin: 8px 0 0; font-size: 13px; color: #8F8B83; line-height: 1.55;">You don't need to cancel anything, we've already cleared it. If none of those hours work for you, just reply to this email.</p>`
+    return callEmailShell({
+        title: 'Your call has been cancelled',
+        heading: `We've cancelled your ${params.timeLabel} call`,
+        goldWord: params.timeLabel,
+        lede: params.dayLabel,
+        body,
+    })
+}

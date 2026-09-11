@@ -26,6 +26,7 @@ export type CalendarCall = {
     meetUrl: string | null
     name: string | null
     email: string | null
+    outsideHours: boolean
 }
 
 export type ScheduledCall = {
@@ -37,6 +38,13 @@ export type ScheduledCall = {
     /** Booked on our page, or found only on the calendar. A calendar-only call
      *  holds no slot in our table, which is worth showing rather than hiding. */
     source: "page" | "calendar"
+    /** Booked at a time we do not work — the old link sold these. Comes from the
+     *  server, which checks it against the same schedule the booking form uses;
+     *  the page never re-derives the hours. Null when only our own row is known
+     *  and the calendar could not be read to say. */
+    outsideHours: boolean
+    /** The calendar event, which is what cancelling one of these acts on. */
+    eventId: string | null
 }
 
 export type CallSchedule = {
@@ -132,6 +140,11 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
                 email: b.email,
                 meetUrl: b.meetUrl ?? null,
                 source: "page",
+                // Anything booked through our own page passed the same check at
+                // booking time, so it is in hours by construction. The calendar
+                // pass below corrects this if it disagrees.
+                outsideHours: false,
+                eventId: b.calendarEventId ?? null,
             })
         }
         for (const c of calendarCalls) {
@@ -139,6 +152,10 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
             const existing = merged.get(c.eventId)
             if (existing) {
                 existing.meetUrl = c.meetUrl ?? existing.meetUrl
+                // The calendar is the one that was asked; if the schedule moved
+                // after a booking was made, its answer is the current one.
+                existing.outsideHours = c.outsideHours
+                existing.eventId = c.eventId
                 continue
             }
             merged.set(c.eventId, {
@@ -148,6 +165,8 @@ export function useCallSchedule(enabled: boolean): CallSchedule {
                 email: c.email ?? "",
                 meetUrl: c.meetUrl,
                 source: "calendar",
+                outsideHours: c.outsideHours,
+                eventId: c.eventId,
             })
         }
         return [...merged.values()].sort((a, b) => a.startMs - b.startMs)

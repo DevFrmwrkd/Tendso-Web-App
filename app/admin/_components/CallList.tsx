@@ -1,6 +1,7 @@
 "use client"
 
 import { formatCallDate, formatClockTime, manilaDayKey, type ScheduledCall } from "@/hooks/useCallSchedule"
+import OutOfHoursAction from "./OutOfHoursAction"
 
 /**
  * A list of Field Agent calls, grouped by day.
@@ -17,12 +18,16 @@ export default function CallList({
     calls,
     empty,
     loading,
+    onChanged,
 }: {
     title: string
     calls: ScheduledCall[]
     empty: string
     loading: boolean
+    /** Re-read the schedule after a call is cancelled from this list. */
+    onChanged?: () => void
 }) {
+    const outOfHours = calls.filter((c) => c.outsideHours)
     // Calls arrive sorted, so first-seen order is chronological.
     const groups: Array<{ key: string; label: string; calls: ScheduledCall[] }> = []
     for (const call of calls) {
@@ -35,6 +40,17 @@ export default function CallList({
     return (
         <section className="rounded-xl border border-zinc-200 bg-white p-6">
             <h2 className="font-semibold text-zinc-900">{title}</h2>
+
+            {/* Said once at the top, because one differently-coloured button
+                thirty rows down is not something anyone scrolls to find. */}
+            {outOfHours.length > 0 && (
+                <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                    {outOfHours.length === 1
+                        ? "1 call falls outside your bookable hours."
+                        : `${outOfHours.length} calls fall outside your bookable hours.`}{" "}
+                    Nobody is working then — cancel and send them the current link.
+                </p>
+            )}
 
             {loading ? (
                 <p className="pt-3 text-sm text-zinc-400">Loading…</p>
@@ -51,15 +67,21 @@ export default function CallList({
                                 {group.calls.map((call) => (
                                     <li
                                         key={call.key}
-                                        className="flex items-center justify-between gap-4 py-3"
+                                        className="flex items-start justify-between gap-4 py-3"
                                     >
                                         <div className="min-w-0">
                                             <p className="truncate text-sm font-semibold text-zinc-900">
                                                 {call.name}
-                                                {call.source === "calendar" && (
-                                                    <span className="ml-2 text-xs font-normal text-zinc-400">
-                                                        from the calendar
+                                                {call.outsideHours ? (
+                                                    <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">
+                                                        Outside hours
                                                     </span>
+                                                ) : (
+                                                    call.source === "calendar" && (
+                                                        <span className="ml-2 text-xs font-normal text-zinc-400">
+                                                            from the calendar
+                                                        </span>
+                                                    )
                                                 )}
                                             </p>
                                             {call.email && (
@@ -69,18 +91,31 @@ export default function CallList({
                                             )}
                                         </div>
                                         <div className="flex shrink-0 items-center gap-3">
-                                            <span className="text-sm font-medium tabular-nums text-zinc-600">
+                                            <span
+                                                className={`text-sm font-medium tabular-nums ${
+                                                    call.outsideHours ? "text-amber-800" : "text-zinc-600"
+                                                }`}
+                                            >
                                                 {formatClockTime(call.startMs)}
                                             </span>
-                                            {call.meetUrl && (
-                                                <a
-                                                    href={call.meetUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="rounded-lg bg-zinc-900 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-700"
-                                                >
-                                                    Join
-                                                </a>
+                                            {/* No Join on these: joining a call at a time
+                                                nobody works is not an action to offer. */}
+                                            {call.outsideHours ? (
+                                                <OutOfHoursAction
+                                                    call={call}
+                                                    onDone={() => onChanged?.()}
+                                                />
+                                            ) : (
+                                                call.meetUrl && (
+                                                    <a
+                                                        href={call.meetUrl}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="rounded-lg bg-zinc-900 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-700"
+                                                    >
+                                                        Join
+                                                    </a>
+                                                )
                                             )}
                                         </div>
                                     </li>

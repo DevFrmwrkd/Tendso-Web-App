@@ -130,6 +130,7 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
                     calls={today}
                     empty="No calls left today."
                     loading={loading}
+                    onChanged={refresh}
                 />
 
                 <CallList
@@ -137,6 +138,7 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
                     calls={upcoming.filter((c) => !today.includes(c))}
                     empty="Nothing further booked yet."
                     loading={loading}
+                    onChanged={refresh}
                 />
             </div>
 
