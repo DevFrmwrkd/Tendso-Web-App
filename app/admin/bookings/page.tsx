@@ -5,8 +5,10 @@ import { useAction, useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import { useAdminAuth } from "@/hooks/useAdmin"
 import AdminLayout from "../components/AdminLayout"
-import { formatCallTime, useCallSchedule } from "@/hooks/useCallSchedule"
+import { useCallSchedule } from "@/hooks/useCallSchedule"
 import CallList from "../_components/CallList"
+import FinishedCallList from "../_components/FinishedCallList"
+import RoomCheckButton from "../_components/RoomCheckButton"
 
 /**
  * Field Agent call bookings — the admin side of /field-agent/book.
@@ -286,40 +288,21 @@ export default function AdminBookingsPage() {
                     onChanged={refresh}
                 />
 
-                <section className="rounded-xl border border-zinc-200 bg-white p-6">
-                    {past.length > 0 && (
-                        <details>
-                            <summary className="cursor-pointer text-sm text-zinc-500">
-                                Past and cancelled ({past.length})
-                            </summary>
-                            <ul className="divide-y divide-zinc-100 pt-2">
-                                {past.map((b) => (
-                                    <li
-                                        key={b._id}
-                                        className="py-3 flex items-baseline justify-between gap-4"
-                                    >
-                                        <div className="min-w-0">
-                                            <p className="text-sm text-zinc-700 truncate">
-                                                {b.name}
-                                                {b.status === "cancelled" && (
-                                                    <span className="ml-2 text-xs text-zinc-400">
-                                                        cancelled
-                                                    </span>
-                                                )}
-                                            </p>
-                                            <p className="text-xs text-zinc-400 truncate">
-                                                {b.email}
-                                            </p>
-                                        </div>
-                                        <span className="text-sm text-zinc-400 whitespace-nowrap">
-                                            {formatCallTime(b.startMs)}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </details>
-                    )}
-                </section>
+                {/* The archive, collapsed: something to look a call up in rather
+                    than something to work through. The outcome is editable here
+                    too, because a mis-tap on the dashboard has to be fixable
+                    somewhere after the call has scrolled off it. */}
+                {past.length > 0 && (
+                    <FinishedCallList
+                        title={`Past and cancelled (${past.length})`}
+                        calls={past}
+                        empty="Nothing has finished yet."
+                        loading={scheduleLoading}
+                        intro="Google reports how long each Meet room was open, never who was in it — the attended / no-show tag is the one that counts."
+                        action={<RoomCheckButton />}
+                        collapsible
+                    />
+                )}
             </div>
         </AdminLayout>
     )

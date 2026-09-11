@@ -4,7 +4,12 @@ import { v } from "convex/values";
 import { action, internalAction, type ActionCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { api, internal } from "./_generated/api";
-import { createTendsoCalendarClient, sendAsTendso, TENDSO_ADDRESS } from "./lib/tendsoGoogle";
+import {
+  createTendsoCalendarClient,
+  createTendsoMeetClient,
+  sendAsTendso,
+  TENDSO_ADDRESS,
+} from "./lib/tendsoGoogle";
 import {
   generateSlots,
   isValidSlot,
@@ -919,5 +924,160 @@ export const cancelOutOfHoursCall = action({
     // The address is returned so the row can show who it actually went to,
     // rather than the page reporting the address it happened to be displaying.
     return { ok: true, emailed: true, emailedTo: guestEmail };
+  },
+});
+
+/**
+ * Copy conference durations from Google onto the bookings they belong to.
+ *
+ * HOW A BOOKING FINDS ITS CONFERENCE. The code at the end of a Meet URL is a
+ * space name in its own right, so `spaces/{code}` resolves straight to the room
+ * and conferenceRecords can then be filtered to that one space. Two requests per
+ * booking, both verified against live data.
+ *
+ * WHY NOT THE OTHER DIRECTION. Listing every conference record and matching
+ * backwards was the first version, and running it once settled it: tendso.hr has
+ * 29,168 of them, so that walk is 292 sequential pages plus one space lookup per
+ * distinct room — thousands of requests an hour to learn about a handful of
+ * calls.
+ *
+ * WHAT THE NUMBER MEANS, and does not. Google records that a conference ran and
+ * for how long, never who was in it: attendance reports are a Workspace feature
+ * and tendso.hr is a consumer account, so `participants` comes back empty even
+ * for a full call. Nine seconds is somebody opening the room and leaving; ten
+ * minutes is the call. It cannot tell a real conversation from an interviewer
+ * waiting alone, which is why staff tag the outcome and this only proposes one.
+ *
+ * WHY IT RUNS ON A CLOCK. Conference records expire after 30 days. Anything not
+ * copied across before then is gone for good.
+ *
+ * THE WINDOW ENDS AT NOW because it is asking what already happened. A call
+ * booked for tonight has no conference to read yet, and one that is running
+ * right now reads short — a later run picks up the full length, which is why
+ * setConferenceSeconds only ever raises the number.
+ */
+
+/** Long enough after a call that a rejoin will not extend it any further. */
+const CONFERENCE_SETTLE_MS = 3 * 60 * 60 * 1000;
+
+/** Requests are two per booking, so a backfill is spread over several runs. */
+const CONFERENCE_MAX_PER_RUN = 60;
+
+async function pullConferenceDurations(ctx: ActionCtx): Promise<{
+  checked: number;
+  matched: number;
+  unknown: number;
+  deferred: number;
+}> {
+  const now = Date.now();
+  // A conference cannot outlive its record, and records only live 30 days, so
+  // there is nothing left to learn outside that window.
+  const fromMs = now - 30 * 24 * 60 * 60 * 1000;
+
+  const bookings: Array<{
+    _id: Id<"native_bookings">;
+    meetUrl: string;
+    startMs: number;
+    endMs: number;
+    conferenceSeconds?: number;
+  }> = await ctx.runQuery(internal.nativeBookings.withMeetRoom, { fromMs, toMs: now });
+
+  // Settled means we have a number and the call is far enough behind us that
+  // nobody is going to rejoin and make it longer. Skipping those is the whole
+  // reason this stays cheap: without it every booking in the window costs two
+  // requests every hour for thirty days.
+  const open = bookings.filter(
+    (b) => b.conferenceSeconds === undefined || b.endMs > now - CONFERENCE_SETTLE_MS,
+  );
+
+  // Newest first. If the queue is ever too long to finish, the calls somebody is
+  // about to be asked about are the ones that must not be the casualty — and a
+  // room Google refuses to discuss cannot then sit at the head of the queue
+  // blocking everything behind it.
+  const queue = [...open].sort((a, b) => b.startMs - a.startMs).slice(0, CONFERENCE_MAX_PER_RUN);
+  const deferred = open.length - queue.length;
+
+  const meet = await createTendsoMeetClient();
+
+  let matched = 0;
+  let unknown = 0;
+
+  for (const booking of queue) {
+    const code = booking.meetUrl.split("/").pop()?.trim().toLowerCase();
+    if (!code) continue;
+
+    let seconds: number | null = null;
+    try {
+      const space = await meet.spaces.get({ name: `spaces/${code}` });
+      const spaceName: string | undefined = space.data.name ?? undefined;
+      if (spaceName) {
+        // A ten-minute room holds a handful of records at most — three was the
+        // busiest seen — so one page is the whole story.
+        const recs = await meet.conferenceRecords.list({
+          filter: `space.name="${spaceName}"`,
+          pageSize: 50,
+        });
+        seconds = 0;
+        for (const rec of recs.data.conferenceRecords ?? []) {
+          if (!rec.startTime) continue;
+          // An open conference has no endTime yet; measuring it to now is what
+          // makes a call that is still running readable at all.
+          const ran = Math.round(
+            (new Date(rec.endTime ?? now).getTime() - new Date(rec.startTime).getTime()) / 1000,
+          );
+          // The longest, not the sum: somebody rejoining starts a second record
+          // and the longest one is the call.
+          seconds = Math.max(seconds, ran);
+        }
+      }
+    } catch {
+      // A room Google will not discuss — a code we never really had, or a space
+      // that has since gone. NOT the same as an empty room, so nothing is
+      // written: leaving it unset keeps the booking in the queue instead of
+      // recording a zero we never established.
+      seconds = null;
+    }
+
+    if (seconds === null) {
+      unknown++;
+      continue;
+    }
+
+    await ctx.runMutation(internal.nativeBookings.setConferenceSeconds, {
+      id: booking._id,
+      seconds,
+    });
+    if (seconds > 0) matched++;
+  }
+
+  return { checked: queue.length, matched, unknown, deferred };
+}
+
+/** Staff: pull durations now, from the dashboard. */
+export const syncConferenceDurations = action({
+  args: {},
+  handler: async (
+    ctx,
+  ): Promise<{ checked: number; matched: number; unknown: number; deferred: number }> => {
+    await requireStaff(ctx);
+    return await pullConferenceDurations(ctx);
+  },
+});
+
+/** The same, hourly, so a record is never lost to the 30-day expiry. */
+export const syncConferenceDurationsCron = internalAction({
+  args: {},
+  handler: async (ctx): Promise<void> => {
+    try {
+      const { checked, matched, unknown, deferred } = await pullConferenceDurations(ctx);
+      console.log(
+        `[MEET-DURATIONS] ${matched} of ${checked} rooms were opened` +
+          `${unknown ? `, ${unknown} unreadable` : ""}` +
+          // Said out loud: a capped run looks exactly like a complete one.
+          `${deferred ? `, ${deferred} left for the next run` : ""}`,
+      );
+    } catch (err) {
+      console.error("[MEET-DURATIONS] failed:", errMessage(err));
+    }
   },
 });

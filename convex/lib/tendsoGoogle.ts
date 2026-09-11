@@ -54,6 +54,20 @@ export async function createTendsoCalendarClient() {
   return google.calendar({ version: "v3", auth });
 }
 
+/**
+ * Meet REST API, for conference durations.
+ *
+ * Read-only by scope. Note what this account can and cannot see: conference
+ * records list that a conference ran and for how long, but `participants` comes
+ * back empty, because attendance reports are a Workspace feature and this is a
+ * consumer Gmail account. Verified against live data, not assumed.
+ */
+export async function createTendsoMeetClient() {
+  const auth = await createTendsoOAuthClient();
+  const google = await loadGoogle();
+  return google.meet({ version: "v2", auth });
+}
+
 export async function createTendsoGmailClient() {
   const auth = await createTendsoOAuthClient();
   const google = await loadGoogle();

@@ -14,6 +14,8 @@ import {
     useNow,
 } from "@/hooks/useCallSchedule"
 import CallList from "./CallList"
+import FinishedCallList from "./FinishedCallList"
+import RoomCheckButton from "./RoomCheckButton"
 
 /**
  * What an internal staff account sees when they open Tendso.
@@ -23,11 +25,13 @@ import CallList from "./CallList"
  * and what is coming. Every call carries its Join link, which is the point —
  * the whole role exists so nobody needs the tendso.hr mailbox to get on a call.
  *
- * Read-only. Nothing on this page changes anything — the one thing the role can
- * write is the bookable hours, over on /admin/bookings.
+ * It also asks one question back: of the calls that have finished, which ones
+ * did anybody turn up to. Only the person who sat the call knows — Google will
+ * say how long the Meet room was open and nothing more — so that answer has to
+ * be typed by a human, and this is where the human is.
  */
 export default function StaffDashboard({ firstName }: { firstName?: string }) {
-    const { upcoming, calendarError, loading, refresh, refreshing, lastRefreshed } =
+    const { upcoming, needsAttendance, calendarError, loading, refresh, refreshing, lastRefreshed } =
         useCallSchedule(true)
     const now = useNow()
 
@@ -124,6 +128,20 @@ export default function StaffDashboard({ firstName }: { firstName?: string }) {
                     </div>
                 )}
             </section>
+
+            {/* An inbox, not a report: it is only here while there is something
+                in it, and every answer given makes it shorter. Above the counts
+                because it is the one thing on the page that is owed. */}
+            {needsAttendance.length > 0 && (
+                <FinishedCallList
+                    title={`Did they turn up? (${needsAttendance.length})`}
+                    calls={needsAttendance}
+                    empty="Every call is accounted for."
+                    loading={false}
+                    intro="These calls are over. Say what happened so the numbers mean something."
+                    action={<RoomCheckButton />}
+                />
+            )}
 
             {/* One strip, not three floating cards. Three small boxes capped at
                 768px left the right half of a wide screen empty and read as an

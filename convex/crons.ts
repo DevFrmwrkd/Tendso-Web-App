@@ -54,6 +54,15 @@ crons.hourly(
     internal.booking.syncCancelledBookingsCron,
 );
 
+// Hourly (offset by 20 min): copy conference durations off Google onto the
+// bookings they belong to. Conference records expire after 30 days, so a call
+// nobody syncs before then leaves no trace of whether it happened at all.
+crons.hourly(
+    'pull-meet-conference-durations',
+    { minuteUTC: 20 },
+    internal.booking.syncConferenceDurationsCron,
+);
+
 // Every 2 minutes: poll open Knowledge Hub escalation threads for a human reply,
 // turn it into a KB Q&A, and notify the asker. No-op unless KB_ESCALATION_ENABLED.
 crons.interval(

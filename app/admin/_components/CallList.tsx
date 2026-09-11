@@ -1,6 +1,13 @@
 "use client"
 
-import { formatCallDate, formatClockTime, manilaDayKey, type ScheduledCall } from "@/hooks/useCallSchedule"
+import {
+    formatCallDate,
+    formatClockTime,
+    manilaDayKey,
+    useNow,
+    type ScheduledCall,
+} from "@/hooks/useCallSchedule"
+import AttendanceTag from "./AttendanceTag"
 import OutOfHoursAction from "./OutOfHoursAction"
 
 /**
@@ -10,6 +17,11 @@ import OutOfHoursAction from "./OutOfHoursAction"
  * "Wed, Sep 9, 6:45 PM", which repeats the same date six times down a day's
  * worth of calls and buries the only part that differs — the time. The date is
  * said once per group; the rows keep the clock time alone.
+ *
+ * A CALL STAYS HERE FOR ITS FULL TEN MINUTES. The schedule drops a call when it
+ * ends, not when it starts, so the row is still on screen through the window
+ * where nobody has turned up — which is when somebody wants to say so. Once it
+ * has started, the row grows the attended / no-show control.
  *
  * Shared by the staff dashboard and /admin/bookings so the two cannot drift.
  */
@@ -27,6 +39,7 @@ export default function CallList({
     /** Re-read the schedule after a call is cancelled from this list. */
     onChanged?: () => void
 }) {
+    const now = useNow()
     const outOfHours = calls.filter((c) => c.outsideHours)
     // Calls arrive sorted, so first-seen order is chronological.
     const groups: Array<{ key: string; label: string; calls: ScheduledCall[] }> = []
@@ -90,32 +103,45 @@ export default function CallList({
                                                 </p>
                                             )}
                                         </div>
-                                        <div className="flex shrink-0 items-center gap-3">
-                                            <span
-                                                className={`text-sm font-medium tabular-nums ${
-                                                    call.outsideHours ? "text-amber-800" : "text-zinc-600"
-                                                }`}
-                                            >
-                                                {formatClockTime(call.startMs)}
-                                            </span>
-                                            {/* No Join on these: joining a call at a time
-                                                nobody works is not an action to offer. */}
-                                            {call.outsideHours ? (
-                                                <OutOfHoursAction
-                                                    call={call}
-                                                    onDone={() => onChanged?.()}
+                                        <div className="flex shrink-0 flex-col items-end gap-2">
+                                            <div className="flex items-center gap-3">
+                                                <span
+                                                    className={`text-sm font-medium tabular-nums ${
+                                                        call.outsideHours
+                                                            ? "text-amber-800"
+                                                            : "text-zinc-600"
+                                                    }`}
+                                                >
+                                                    {formatClockTime(call.startMs)}
+                                                </span>
+                                                {/* No Join on these: joining a call at a time
+                                                    nobody works is not an action to offer. */}
+                                                {call.outsideHours ? (
+                                                    <OutOfHoursAction
+                                                        call={call}
+                                                        onDone={() => onChanged?.()}
+                                                    />
+                                                ) : (
+                                                    call.meetUrl && (
+                                                        <a
+                                                            href={call.meetUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="rounded-lg bg-zinc-900 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-700"
+                                                        >
+                                                            Join
+                                                        </a>
+                                                    )
+                                                )}
+                                            </div>
+                                            {/* Only once it has started: there is nothing to
+                                                report about a call that has not happened, and a
+                                                calendar-only call has no row of ours to write to. */}
+                                            {now >= call.startMs && !call.outsideHours && (
+                                                <AttendanceTag
+                                                    bookingId={call.bookingId}
+                                                    attendance={call.attendance}
                                                 />
-                                            ) : (
-                                                call.meetUrl && (
-                                                    <a
-                                                        href={call.meetUrl}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="rounded-lg bg-zinc-900 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-zinc-700"
-                                                    >
-                                                        Join
-                                                    </a>
-                                                )
                                             )}
                                         </div>
                                     </li>

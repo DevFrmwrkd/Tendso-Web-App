@@ -399,3 +399,79 @@ export const backfillManageTokens = internalMutation({
     return { checked: rows.length, minted };
   },
 });
+
+/**
+ * Confirmed bookings that carry a Meet room, for the duration sync to ask about.
+ *
+ * Returns what it already knows about each room as well, because the sync costs
+ * two Google requests per booking and the point is to skip the ones that are
+ * already settled.
+ */
+export const withMeetRoom = internalQuery({
+  args: { fromMs: v.number(), toMs: v.number() },
+  handler: async (ctx, { fromMs, toMs }) => {
+    const rows = await ctx.db
+      .query("native_bookings")
+      .withIndex("by_startMs", (q) => q.gte("startMs", fromMs).lt("startMs", toMs))
+      .collect();
+    return rows
+      .filter((r) => r.status === "confirmed" && !!r.meetUrl)
+      .map((r) => ({
+        _id: r._id,
+        meetUrl: r.meetUrl!,
+        startMs: r.startMs,
+        endMs: r.endMs,
+        conferenceSeconds: r.conferenceSeconds,
+      }));
+  },
+});
+
+/**
+ * Record how long a conference ran in a booking's room — upwards only.
+ *
+ * WHY IT REFUSES TO LOWER THE NUMBER. The sync walks a 30-day window every hour
+ * and Google deletes conference records at 30 days, so a booking sitting on that
+ * edge is asked about again after its record is gone. The honest answer then is
+ * "no conference ever ran here", and writing it would erase the twelve minutes
+ * we captured yesterday. Two smaller cases point the same way: a sync that lands
+ * mid-call reads a partial duration, and a page of records that comes back short
+ * of a rejoin reads the wrong one of two.
+ *
+ * A run that learns nothing writes nothing, rather than re-stamping every row in
+ * the window once an hour forever.
+ */
+export const setConferenceSeconds = internalMutation({
+  args: { id: v.id("native_bookings"), seconds: v.number() },
+  handler: async (ctx, { id, seconds }) => {
+    const row = await ctx.db.get(id);
+    if (!row) return;
+    // Undefined is not zero: the first look has to be able to write "we asked,
+    // the room was never opened", which is a finding and not an absence.
+    if (row.conferenceSeconds !== undefined && seconds <= row.conferenceSeconds) return;
+    await ctx.db.patch(id, { conferenceSeconds: seconds, conferenceCheckedAt: Date.now() });
+  },
+});
+
+/**
+ * Tag a call attended or a no-show. Staff, because they are the ones who sat it.
+ *
+ * Overwrites freely: someone correcting a mis-tap is the common case, and there
+ * is nothing here worth protecting with a confirmation.
+ */
+export const setAttendance = mutation({
+  args: {
+    id: v.id("native_bookings"),
+    attendance: v.union(v.literal("attended"), v.literal("no_show")),
+  },
+  handler: async (ctx, { id, attendance }) => {
+    const { me } = await requireStaff(ctx);
+    const row = await ctx.db.get(id);
+    if (!row) throw new Error("No such booking");
+    await ctx.db.patch(id, {
+      attendance,
+      attendanceBy: String(me._id),
+      attendanceAt: Date.now(),
+    });
+    return attendance;
+  },
+});
