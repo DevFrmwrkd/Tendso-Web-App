@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, LayerGroup, DivIcon, Marker } from "leaflet";
 import type { Creator, LiveBusiness, Region } from "./landingData";
+import { withCartoKey } from "@/lib/carto";
 
 type Props = {
     region: Region;
@@ -75,7 +76,7 @@ export default function LiveMap({
                 scrollWheelZoom: false,
                 attributionControl: false,
             });
-            L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+            L.tileLayer(withCartoKey("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"), {
                 attribution: "",
                 subdomains: "abcd",
                 maxZoom: 19,

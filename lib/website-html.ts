@@ -8,16 +8,21 @@
  * `htmlContent` — this helper prefers that, so nothing breaks during the
  * transition; rows convert to storage on their next save. Server-side only
  * (does a fetch); Convex functions read the blob directly via ctx.storage.
+ *
+ * The returned HTML carries the current CARTO map key (lib/carto.ts), so a
+ * republish fixes a site that was built before the key existed.
  */
+import { withCartoKey } from './carto';
+
 export async function resolveWebsiteHtml(
     website: { htmlContent?: string | null; htmlUrl?: string | null } | null | undefined,
 ): Promise<string> {
     if (!website) return '';
-    if (website.htmlContent) return website.htmlContent;
+    if (website.htmlContent) return withCartoKey(website.htmlContent);
     if (website.htmlUrl) {
         try {
             const res = await fetch(website.htmlUrl);
-            return res.ok ? await res.text() : '';
+            return res.ok ? withCartoKey(await res.text()) : '';
         } catch {
             return '';
         }

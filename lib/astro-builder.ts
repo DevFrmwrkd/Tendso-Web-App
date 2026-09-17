@@ -4,6 +4,7 @@ import os from 'os'
 import { execSync } from 'child_process'
 import { defaultsFor, type WhyItem, type HowStep, type Testimonial, type FaqItem, type CredItem, type TrustData, type CtaBand } from './block-defaults'
 import { balanceInlineHtmlDeep } from './balance-inline-html'
+import { withCartoKey } from './carto'
 
 interface ExtractedContent {
     business_name: string
@@ -1051,7 +1052,7 @@ export async function buildAstroSite(
     }
 
     console.log(`[ASTRO] Build complete: ${(html.length / 1024).toFixed(0)}KB HTML`)
-    return html
+    return withCartoKey(html)
 }
 
 export { transformToAstroData, mapStyleToLetter }
