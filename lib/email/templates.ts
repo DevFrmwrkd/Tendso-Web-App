@@ -1892,6 +1892,64 @@ export function getCallMovedEmailHtml(params: {
     })
 }
 
+/**
+ * The reminder before a call. Sent twice at most: once the day before, and once
+ * on the day, a few hours out.
+ *
+ * WHY THIS LIVES HERE AND NOT IN THE HR PIPELINE. Reminders used to be sent by
+ * the sibling HR pipeline app, which reads the shared calendar and mails anyone
+ * it finds there. It could only ever offer "reply CANCEL", because the
+ * Reschedule and Cancel links need the booking's manage token and that token
+ * exists only in this app's database. A reply lands in a mailbox and frees
+ * nothing until somebody reads it; the buttons below free the slot themselves.
+ *
+ * `whenWord` is worked out by the sender in Manila time rather than assumed from
+ * which reminder this is. The "soon" reminder for a 10 AM call can go out the
+ * evening before, and a heading that said "Today" would then be wrong.
+ */
+export function getCallReminderEmailHtml(params: {
+    kind: 'early' | 'soon'
+    firstName: string
+    /** "Today", "Tomorrow", or a weekday. */
+    whenWord: string
+    dayLabel: string
+    timeLabel: string
+    meetUrl?: string | null
+    manageUrl?: string | null
+}): string {
+    const firstName = escapeHtml(params.firstName)
+    const soon = params.kind === 'soon'
+
+    const intro = soon
+        ? `Hi ${firstName}, your 10-minute call with Tendso is coming up. There's nothing to prepare &mdash; just be somewhere with a steady connection.`
+        : `Hi ${firstName}, a quick reminder about your 10-minute call with Tendso.`
+
+    const meet = params.meetUrl
+        ? soon
+            ? callEmailButton(params.meetUrl, 'Join Google Meet', 'solid')
+            : `<p style="margin: 0 0 22px; font-size: 15px; line-height: 1.55;">Your Google Meet link:<br><a href="${params.meetUrl}" style="color: #5C3A0F; font-weight: 600;">${escapeHtml(params.meetUrl)}</a></p>`
+        : ''
+
+    const manage = params.manageUrl
+        ? `${callEmailButton(params.manageUrl, 'Reschedule', 'outline')}
+           ${callEmailButton(`${params.manageUrl}&action=cancel`, 'Cancel', 'outline')}
+           <p style="margin: 8px 0 0; font-size: 13px; color: #8F8B83; line-height: 1.55;">Can't make it anymore? Cancelling frees the time for someone else, and rescheduling keeps the same Meet link.</p>`
+        : `<p style="margin: 0; font-size: 15px;">If you can no longer make it, just reply CANCEL to this email.</p>`
+
+    const body = `
+        <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.55;">${intro}</p>
+        ${meet}
+        ${manage}`
+
+    return callEmailShell({
+        title: soon ? 'Your call is coming up' : 'Your call is coming up soon',
+        heading: `${params.whenWord} at ${params.timeLabel}`,
+        goldWord: params.timeLabel,
+        lede: params.dayLabel,
+        body,
+    })
+}
+
 /** Sent after a self-serve cancellation. */
 export function getCallCancelledEmailHtml(params: {
     firstName: string

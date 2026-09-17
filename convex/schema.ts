@@ -509,6 +509,12 @@ export default defineSchema({
                 v.literal('calendar'),
             ),
         ),
+        // When each reminder went out. Written BEFORE the send as a claim, so two
+        // runs cannot both mail the same person, and cleared again if the send
+        // fails so the next run retries. Cleared on a reschedule too: a moved
+        // call is a new appointment and deserves its own reminders.
+        reminderEarlySentAt: v.optional(v.number()),
+        reminderSoonSentAt: v.optional(v.number()),
     })
         .index('by_startMs', ['startMs'])
         .index('by_email', ['email'])
