@@ -54,10 +54,10 @@ crons.hourly(
     internal.booking.syncCancelledBookingsCron,
 );
 
-// Hourly (offset by 5 min): the day-before and on-the-day reminders for calls
-// booked on our own page, with Reschedule and Cancel buttons. Sends nothing
-// until CALL_REMINDERS_FROM_MS is set; see the REMINDERS section of booking.ts
-// for how that hands over from the HR pipeline without doubling up.
+// Hourly (offset by 5 min): the day-before and on-the-day reminders for every
+// 10-minute call on the tendso.hr calendar, whichever system booked it. Sends
+// nothing until CALL_REMINDERS_FROM_MS is set; see the REMINDERS section of
+// booking.ts for how that takes over from the HR pipeline without doubling up.
 crons.hourly(
     'send-call-reminders',
     { minuteUTC: 5 },
