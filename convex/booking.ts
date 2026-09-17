@@ -17,15 +17,24 @@ import {
   manilaDateKey,
   manilaDayLabel,
   manilaTimeLabel,
-  type SlotConfig,
 } from "./lib/availability";
 import { requireAdmin, requireStaff } from "./lib/auth";
 import {
   planReminders,
   relativeDayWord,
   REMINDER_EARLY,
+  type ReminderCandidate,
   type ReminderPlan,
 } from "./lib/reminders";
+import {
+  extractCall,
+  type CalendarCall,
+  type CallOrigin,
+  type RawCalendarEvent,
+} from "./lib/calendarCalls";
+
+// Still importable from here, where the dashboard has always looked for it.
+export type { CalendarCall };
 // The designed HTML bodies. sendAsTendso sends multipart, so the plain text
 // below stays the fallback for anything that will not render HTML.
 import {
@@ -75,30 +84,6 @@ function errStatus(err: unknown): number | undefined {
   if (typeof e?.response?.status === "number") return e.response.status;
   return undefined;
 }
-
-/** Only the fields of a calendar event this file actually reads. */
-type RawCalendarEvent = {
-  id?: string | null;
-  status?: string | null;
-  summary?: string | null;
-  description?: string | null;
-  hangoutLink?: string | null;
-  start?: { dateTime?: string | null } | null;
-  end?: { dateTime?: string | null } | null;
-  conferenceData?: {
-    entryPoints?: Array<{ entryPointType?: string | null; uri?: string | null }> | null;
-  } | null;
-  /** Where a TidyCal booking keeps the person. Our own events carry nobody —
-   *  createBooking deliberately sets no attendees so Google does not send its
-   *  own invite — so this is empty for calls made through our page and is the
-   *  ONLY identity we have for calls made through the old link. */
-  attendees?: Array<{
-    email?: string | null;
-    displayName?: string | null;
-    organizer?: boolean | null;
-    self?: boolean | null;
-  }> | null;
-};
 
 /** Booking path that does not depend on our Google OAuth, for when ours breaks. */
 const DEFAULT_FALLBACK_BOOKING_URL = "https://tidycal.com/team/tendso/10-minute-meetings-tendso";
@@ -445,28 +430,6 @@ export const syncCancelledBookingsCron = internalAction({
   },
 });
 
-/** One Tendso call as it exists on the calendar. */
-export type CalendarCall = {
-  eventId: string;
-  startMs: number;
-  endMs: number;
-  summary: string;
-  meetUrl: string | null;
-  /** From our own `Candidate:/Email:` description convention, falling back to
-   *  the event's attendees, which is where a TidyCal booking keeps them. Still
-   *  null when neither carries a person. */
-  name: string | null;
-  email: string | null;
-  /** The start time is not a slot we actually offer. These are the calls the
-   *  old booking link sold: nobody is working then, so nobody will be there.
-   *  Computed HERE, from the same isValidSlot the booking path uses, so a page
-   *  never has to re-derive the hours and reach a different answer. */
-  outsideHours: boolean;
-  /** Which system sold it. Their event titles are identical, so this comes from
-   *  the line each one signs its descriptions with. */
-  origin: "page" | "tidycal" | "hr_pipeline" | "calendar";
-};
-
 /**
  * The Tendso calls on the tendso.hr calendar, for /admin/bookings.
  *
@@ -484,68 +447,6 @@ export type CalendarCall = {
 /** How far back "recent" reaches. Shared, so the dashboard and the adopter
  *  below cannot disagree about which calls are still current. */
 const CALENDAR_LOOKBACK_MS = 24 * 60 * 60 * 1000;
-
-/**
- * Which system sold this call, read off the line each one signs its events with.
- *
- * Three of them write to the one tendso.hr calendar and the titles are
- * identical, so the description is the only thing that tells them apart. Checked
- * against 481 real events: every one matched exactly one of these.
- */
-function callOrigin(description: string): "page" | "tidycal" | "hr_pipeline" | "calendar" {
-  if (description.includes("Created by TidyCal")) return "tidycal";
-  if (description.includes("tendso.com/field-agent/book")) return "page";
-  // The sibling HR pipeline, whose own page calls itself "the Tendso booking page".
-  if (description.includes("Booked on the Tendso booking page")) return "hr_pipeline";
-  // Made by hand in the mailbox, or signed in a way we have not seen before.
-  return "calendar";
-}
-
-/** One calendar event as a call, or null when it is not one of ours. */
-function extractCall(ev: RawCalendarEvent, config: SlotConfig): CalendarCall | null {
-  if (!ev.id || ev.status === "cancelled") return null;
-  const summary: string = ev.summary ?? "";
-  if (!summary.toLowerCase().includes("tendso")) return null;
-
-  // All-day entries have `date` instead of `dateTime` and are never calls.
-  const startIso = ev.start?.dateTime;
-  const endIso = ev.end?.dateTime;
-  if (!startIso || !endIso) return null;
-
-  const description: string = ev.description ?? "";
-  const nameMatch = description.match(/Candidate:\s*(.+)/);
-  const emailMatch = description.match(/Email:\s*(\S+@\S+)/);
-
-  // Everyone on the event who is not us. Google marks the calendar owner with
-  // `self`/`organizer`, and tendso.hr can also appear as a plain attendee, so
-  // all three are excluded before taking the first human left.
-  const guest = (ev.attendees ?? []).find(
-    (a) =>
-      !a?.organizer &&
-      !a?.self &&
-      !!a?.email &&
-      a.email.toLowerCase() !== TENDSO_ADDRESS.toLowerCase(),
-  );
-
-  const startMs = new Date(startIso).getTime();
-
-  return {
-    eventId: ev.id,
-    startMs,
-    endMs: new Date(endIso).getTime(),
-    summary,
-    meetUrl:
-      ev.hangoutLink ??
-      ev.conferenceData?.entryPoints?.find((p) => p.entryPointType === "video")?.uri ??
-      null,
-    name: nameMatch ? nameMatch[1].trim() : (guest?.displayName?.trim() || null),
-    email: emailMatch
-      ? emailMatch[1].trim().toLowerCase()
-      : (guest?.email?.trim().toLowerCase() || null),
-    outsideHours: !isValidSlot(startMs, config),
-    origin: callOrigin(description),
-  };
-}
 
 /** Every Tendso call the calendar holds in a window. One list request. */
 async function fetchTendsoCalls(
@@ -566,7 +467,7 @@ async function fetchTendsoCalls(
   const config = await ctx.runQuery(internal.nativeBookings.getSlotConfigInternal, {});
   const calls: CalendarCall[] = [];
   for (const ev of (res.data.items ?? []) as RawCalendarEvent[]) {
-    const call = extractCall(ev, config);
+    const call = extractCall(ev, config, TENDSO_ADDRESS);
     if (call) calls.push(call);
   }
   return calls;
@@ -673,46 +574,99 @@ export const adoptCalendarCallsCron = internalAction({
 
 // ==================== REMINDERS ====================
 //
-// Two reminders per call made on our own page, carrying the same Reschedule and
-// Cancel buttons as the confirmation.
+// Two reminders for every 10-minute call on the tendso.hr calendar, whichever
+// system booked it, in the same design as the confirmation.
 //
 // WHO SENT THESE BEFORE. The sibling HR pipeline app, whose reminder job reads
-// the shared tendso.hr calendar and mails anyone whose event description names
-// them. Our events were written in its format on purpose so that kept working
-// after the booking page moved here. It works, but it can only say "reply
-// CANCEL": the buttons need each booking's manage token, which lives only here.
+// the same calendar and mailed every one of these calls in plain text. It could
+// only ever say "reply CANCEL", because the Reschedule and Cancel links need a
+// manage token and those live here. Over thirty days it sent 537 reminders and
+// every one was for this call, so taking them over retires that job outright.
+//
+// WHAT EACH BOOKING GETS. Booked on our page: our Reschedule and Cancel buttons.
+// Booked on TidyCal: one button to TidyCal's own page, which is the only place
+// that booking can be moved. Anything else: reply CANCEL, as before.
+//
+// WHO IS NOT REMINDED. Calls at an hour nobody works, which staff cancel with an
+// apology instead; guests who declined the invite; and events with no person on
+// them.
 //
 // THE HANDOVER. Both apps read one instant, set as an environment variable on
 // each deployment: CALL_REMINDERS_FROM_MS here, TENDSO_REMINDERS_FROM_MS there.
 // Calls starting before it are the pipeline's, calls at or after it are ours.
-// That split is what makes the switch safe in either order — nobody gets two
-// reminders and nobody gets none. Until it is set here, this sends nothing.
+// Until it is set here, this sends nothing.
+
+type ReminderSend = ReminderPlan & {
+  origin: CallOrigin;
+  meetUrl: string | null;
+  manage: { kind: "tendso"; url: string } | { kind: "external"; url: string } | null;
+};
 
 async function sendReminders(
   ctx: ActionCtx,
   dryRun: boolean,
-): Promise<{ status: "disabled" | "ran"; sent: number; failed: number; planned: ReminderPlan[] }> {
+): Promise<{ status: "disabled" | "ran"; sent: number; failed: number; planned: ReminderSend[] }> {
   const takeoverMs = Number(process.env.CALL_REMINDERS_FROM_MS);
   if (!Number.isFinite(takeoverMs) || takeoverMs <= 0) {
     return { status: "disabled", sent: 0, failed: 0, planned: [] };
   }
 
   const now = Date.now();
-  const rows = await ctx.runQuery(internal.nativeBookings.dueForReminder, {
-    fromMs: now,
-    toMs: now + REMINDER_EARLY.max,
+  const calls = (await fetchTendsoCalls(ctx, now, now + REMINDER_EARLY.max)).filter(
+    (c) => c.startMs >= now && !!c.email && !!c.name && !c.declined && !c.outsideHours,
+  );
+  if (!calls.length) return { status: "ran", sent: 0, failed: 0, planned: [] };
+
+  const eventIds = calls.map((c) => c.eventId);
+  const sentRows = await ctx.runQuery(internal.callReminders.sentForEvents, { eventIds });
+
+  const candidates: ReminderCandidate[] = calls.map((c) => {
+    // Only reminders sent for this exact start time count. See callReminders.ts.
+    const mine = sentRows.filter((r) => r.calendarEventId === c.eventId && r.startMs === c.startMs);
+    return {
+      eventId: c.eventId,
+      startMs: c.startMs,
+      bookedAtMs: c.bookedAtMs,
+      name: c.name!,
+      email: c.email!,
+      earlySentAt: mine.find((r) => r.kind === "early")?.sentAt,
+      soonSentAt: mine.find((r) => r.kind === "soon")?.sentAt,
+    };
   });
-  const planned = planReminders(rows, now, takeoverMs);
+
+  const plans = planReminders(candidates, now, takeoverMs);
+  if (!plans.length) return { status: "ran", sent: 0, failed: 0, planned: [] };
+
+  const tokens = await ctx.runQuery(internal.callReminders.manageTokensForEvents, {
+    eventIds: plans.map((p) => p.eventId),
+  });
+  const byEvent = new Map(calls.map((c) => [c.eventId, c]));
+  const planned: ReminderSend[] = plans.map((plan) => {
+    const call = byEvent.get(plan.eventId)!;
+    const token = tokens.find((t) => t.calendarEventId === plan.eventId)?.manageToken;
+    return {
+      ...plan,
+      origin: call.origin,
+      meetUrl: call.meetUrl,
+      manage: token
+        ? { kind: "tendso", url: manageUrl(token) }
+        : call.externalManageUrl
+          ? { kind: "external", url: call.externalManageUrl }
+          : null,
+    };
+  });
   if (dryRun) return { status: "ran", sent: 0, failed: 0, planned };
 
   let sent = 0;
   let failed = 0;
   for (const plan of planned) {
-    const claimed = await ctx.runMutation(internal.nativeBookings.claimReminder, {
-      id: plan.id,
+    const claimId = await ctx.runMutation(internal.callReminders.claim, {
+      calendarEventId: plan.eventId,
       kind: plan.kind,
+      startMs: plan.startMs,
+      email: plan.email,
     });
-    if (!claimed) continue;
+    if (!claimId) continue;
 
     const whenWord = relativeDayWord(plan.startMs, now);
     const timeLabel = manilaTimeLabel(plan.startMs);
@@ -722,6 +676,11 @@ async function sendReminders(
       plan.kind === "soon"
         ? `Coming up: your 10-minute call with Tendso, ${lowerWhen} at ${timeLabel}`
         : `Reminder: your 10-minute call with Tendso, ${lowerWhen} at ${timeLabel}`;
+    const manageText = !plan.manage
+      ? 'If you can no longer make it, just reply "CANCEL" to this email so we can free up the slot for someone else.'
+      : plan.manage.kind === "tendso"
+        ? `Need a different time? Reschedule or cancel here:\n${plan.manage.url}\n\nRescheduling keeps the same Meet link.`
+        : `Need a different time? Reschedule or cancel here:\n${plan.manage.url}`;
 
     try {
       await sendAsTendso({
@@ -734,24 +693,21 @@ async function sendReminders(
           dayLabel,
           timeLabel,
           meetUrl: plan.meetUrl,
-          manageUrl: manageUrl(plan.manageToken),
+          manage: plan.manage,
         }),
         text:
           `Hi ${plan.firstName},\n\n` +
           `${plan.kind === "soon" ? "Your 10-minute call with Tendso is coming up" : "A quick reminder about your 10-minute call with Tendso"}: ` +
           `${lowerWhen} at ${timeLabel} (Manila time).\n\n` +
           `${plan.meetUrl ? `Google Meet: ${plan.meetUrl}\n\n` : ""}` +
-          `${manageFooter(plan.manageToken)}\n\n` +
+          `${manageText}\n\n` +
           `Talk soon,\nTendso HR Team`,
       });
       sent++;
     } catch (err) {
       failed++;
       // Give the claim back so the next hourly run tries again.
-      await ctx.runMutation(internal.nativeBookings.releaseReminder, {
-        id: plan.id,
-        kind: plan.kind,
-      });
+      await ctx.runMutation(internal.callReminders.release, { id: claimId });
       console.error(`[CALL-REMINDER] ${plan.kind} failed for ${plan.email}:`, errMessage(err));
     }
   }
@@ -776,7 +732,7 @@ export const sendCallRemindersCron = internalAction({
 /**
  * Ops: see who WOULD be reminded right now, without sending anything.
  *
- *   npx convex run booking:previewCallReminders
+ *   npx convex run --prod booking:previewCallReminders
  */
 export const previewCallReminders = internalAction({
   args: {},
@@ -787,6 +743,8 @@ export const previewCallReminders = internalAction({
       planned: planned.map((p) => ({
         kind: p.kind,
         email: p.email,
+        origin: p.origin,
+        buttons: p.manage?.kind ?? "reply CANCEL",
         startsAt: `${manilaDayLabel(p.startMs)} ${manilaTimeLabel(p.startMs)}`,
       })),
     };

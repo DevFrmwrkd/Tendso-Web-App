@@ -1,10 +1,9 @@
 /**
- * Who is owed which call reminder, and when. Pure: it takes the rows and the
+ * Who is owed which call reminder, and when. Pure: it takes the calls and the
  * time, and touches no network, database or clock of its own, so the rules can be
  * tested against scenarios instead of waited for. The sending lives in
  * convex/booking.ts.
  */
-import type { Id } from "../_generated/dataModel";
 import { manilaDateKey } from "./availability";
 
 export const HOUR_MS = 60 * 60 * 1000;
@@ -42,14 +41,26 @@ export function relativeDayWord(startMs: number, now: number): string {
   });
 }
 
+/** A call that might be owed a reminder, with what has already been sent for it. */
+export type ReminderCandidate = {
+  eventId: string;
+  startMs: number;
+  /** When it was booked. Unknown is treated as long enough ago. */
+  bookedAtMs: number | null;
+  name: string;
+  email: string;
+  /** Reminders already sent for THIS start time. One sent before a reschedule
+   *  does not count: a moved call is a new appointment. */
+  earlySentAt?: number;
+  soonSentAt?: number;
+};
+
 export type ReminderPlan = {
-  id: Id<"native_bookings">;
+  eventId: string;
   kind: "early" | "soon";
   email: string;
   firstName: string;
   startMs: number;
-  meetUrl: string | null;
-  manageToken: string;
 };
 
 /**
@@ -66,17 +77,7 @@ export type ReminderPlan = {
  * call's on-the-day reminder therefore goes out at 7 AM rather than at 2.
  */
 export function planReminders(
-  rows: Array<{
-    _id: Id<"native_bookings">;
-    startMs: number;
-    createdAt: number;
-    name: string;
-    email: string;
-    meetUrl?: string;
-    manageToken: string;
-    reminderEarlySentAt?: number;
-    reminderSoonSentAt?: number;
-  }>,
+  calls: ReminderCandidate[],
   now: number,
   takeoverMs: number,
 ): ReminderPlan[] {
@@ -84,37 +85,35 @@ export function planReminders(
   if (hour >= QUIET_FROM_HOUR || hour < QUIET_UNTIL_HOUR) return [];
 
   const plans: ReminderPlan[] = [];
-  for (const row of rows) {
+  for (const call of calls) {
     // Before the handover, the HR pipeline is still reminding this call.
-    if (row.startMs < takeoverMs) continue;
-    if (now - row.createdAt < REMINDER_MIN_AGE_MS) continue;
+    if (call.startMs < takeoverMs) continue;
+    if (call.bookedAtMs !== null && now - call.bookedAtMs < REMINDER_MIN_AGE_MS) continue;
 
-    const until = row.startMs - now;
-    const lastSent = Math.max(row.reminderEarlySentAt ?? 0, row.reminderSoonSentAt ?? 0);
+    const until = call.startMs - now;
+    const lastSent = Math.max(call.earlySentAt ?? 0, call.soonSentAt ?? 0);
     if (lastSent && now - lastSent < REMINDER_MIN_GAP_MS) continue;
 
     let kind: "early" | "soon" | null = null;
-    if (until > REMINDER_SOON.min && until <= REMINDER_SOON.max && !row.reminderSoonSentAt) {
+    if (until > REMINDER_SOON.min && until <= REMINDER_SOON.max && !call.soonSentAt) {
       kind = "soon";
     } else if (
       until > REMINDER_EARLY.min &&
       until <= REMINDER_EARLY.max &&
-      !row.reminderEarlySentAt &&
+      !call.earlySentAt &&
       // Once the on-the-day reminder has gone, a late day-before one is noise.
-      !row.reminderSoonSentAt
+      !call.soonSentAt
     ) {
       kind = "early";
     }
     if (!kind) continue;
 
     plans.push({
-      id: row._id,
+      eventId: call.eventId,
       kind,
-      email: row.email,
-      firstName: row.name.split(/\s+/)[0] || "there",
-      startMs: row.startMs,
-      meetUrl: row.meetUrl ?? null,
-      manageToken: row.manageToken,
+      email: call.email,
+      firstName: call.name.split(/\s+/)[0] || "there",
+      startMs: call.startMs,
     });
   }
   return plans;

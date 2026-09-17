@@ -218,69 +218,6 @@ export const statsRows = query({
   },
 });
 
-/**
- * Bookings that may be owed a reminder.
- *
- * ONLY ONES WITH A MANAGE TOKEN, which is the same as saying only ones made on
- * our own page. That is the point of sending reminders from here at all: the
- * email carries Reschedule and Cancel buttons, and those need the token. Calls
- * from TidyCal carry no token and stay with the HR pipeline's reminders.
- */
-export const dueForReminder = internalQuery({
-  args: { fromMs: v.number(), toMs: v.number() },
-  handler: async (ctx, { fromMs, toMs }) => {
-    const rows = await ctx.db
-      .query("native_bookings")
-      .withIndex("by_startMs", (q) => q.gte("startMs", fromMs).lt("startMs", toMs))
-      .collect();
-    return rows
-      .filter((r) => r.status === "confirmed" && !!r.manageToken)
-      .map((r) => ({
-        _id: r._id,
-        startMs: r.startMs,
-        createdAt: r.createdAt,
-        name: r.name,
-        email: r.email,
-        meetUrl: r.meetUrl,
-        manageToken: r.manageToken!,
-        reminderEarlySentAt: r.reminderEarlySentAt,
-        reminderSoonSentAt: r.reminderSoonSentAt,
-      }));
-  },
-});
-
-const reminderKind = v.union(v.literal("early"), v.literal("soon"));
-
-/**
- * Claim a reminder before sending it. Returns false if it is already claimed.
- *
- * Mutations are serializable, so this is what stops two overlapping runs from
- * both emailing the same person: the second one's transaction sees the first
- * one's stamp and backs off. The stamp is taken before the email rather than
- * after, because a crash between sending and stamping would send it again on
- * the next run, and a duplicate reminder is worse than a retried one.
- */
-export const claimReminder = internalMutation({
-  args: { id: v.id("native_bookings"), kind: reminderKind },
-  handler: async (ctx, { id, kind }) => {
-    const row = await ctx.db.get(id);
-    if (!row || row.status !== "confirmed") return false;
-    const field = kind === "early" ? "reminderEarlySentAt" : "reminderSoonSentAt";
-    if (row[field] !== undefined) return false;
-    await ctx.db.patch(id, { [field]: Date.now() });
-    return true;
-  },
-});
-
-/** Give a claim back after the send failed, so the next run tries again. */
-export const releaseReminder = internalMutation({
-  args: { id: v.id("native_bookings"), kind: reminderKind },
-  handler: async (ctx, { id, kind }) => {
-    const field = kind === "early" ? "reminderEarlySentAt" : "reminderSoonSentAt";
-    await ctx.db.patch(id, { [field]: undefined });
-  },
-});
-
 /** Confirmed bookings in a window, for the calendar sync to reconcile. */
 export const confirmedInWindow = internalQuery({
   args: { fromMs: v.number(), toMs: v.number() },
@@ -507,11 +444,6 @@ export const moveBooking = internalMutation({
       attendance: undefined,
       attendanceBy: undefined,
       attendanceAt: undefined,
-      // And its reminders. A call moved from tomorrow to next week has already
-      // had its "tomorrow" reminder, and without this it would never get one
-      // for the time it is actually happening.
-      reminderEarlySentAt: undefined,
-      reminderSoonSentAt: undefined,
     });
     return { ok: true as const, previousStartMs: row.startMs };
   },

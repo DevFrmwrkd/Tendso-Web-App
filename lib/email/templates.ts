@@ -1906,6 +1906,12 @@ export function getCallMovedEmailHtml(params: {
  * `whenWord` is worked out by the sender in Manila time rather than assumed from
  * which reminder this is. The "soon" reminder for a 10 AM call can go out the
  * evening before, and a heading that said "Today" would then be wrong.
+ *
+ * THREE KINDS OF BOOKING, THREE WAYS TO CHANGE IT. A call booked on our page gets
+ * our own Reschedule and Cancel buttons. A TidyCal booking can only be moved in
+ * TidyCal, so it gets one button to TidyCal's own page; sending it to ours would
+ * create a second booking and leave the first standing. Anything else, such as a
+ * booking from the HR pipeline's page, has no link to offer and says reply CANCEL.
  */
 export function getCallReminderEmailHtml(params: {
     kind: 'early' | 'soon'
@@ -1915,7 +1921,7 @@ export function getCallReminderEmailHtml(params: {
     dayLabel: string
     timeLabel: string
     meetUrl?: string | null
-    manageUrl?: string | null
+    manage?: { kind: 'tendso'; url: string } | { kind: 'external'; url: string } | null
 }): string {
     const firstName = escapeHtml(params.firstName)
     const soon = params.kind === 'soon'
@@ -1930,11 +1936,17 @@ export function getCallReminderEmailHtml(params: {
             : `<p style="margin: 0 0 22px; font-size: 15px; line-height: 1.55;">Your Google Meet link:<br><a href="${params.meetUrl}" style="color: #5C3A0F; font-weight: 600;">${escapeHtml(params.meetUrl)}</a></p>`
         : ''
 
-    const manage = params.manageUrl
-        ? `${callEmailButton(params.manageUrl, 'Reschedule', 'outline')}
-           ${callEmailButton(`${params.manageUrl}&action=cancel`, 'Cancel', 'outline')}
-           <p style="margin: 8px 0 0; font-size: 13px; color: #8F8B83; line-height: 1.55;">Can't make it anymore? Cancelling frees the time for someone else, and rescheduling keeps the same Meet link.</p>`
-        : `<p style="margin: 0; font-size: 15px;">If you can no longer make it, just reply CANCEL to this email.</p>`
+    const note = (text: string) =>
+        `<p style="margin: 8px 0 0; font-size: 13px; color: #8F8B83; line-height: 1.55;">${text}</p>`
+    const manage =
+        params.manage?.kind === 'tendso'
+            ? `${callEmailButton(params.manage.url, 'Reschedule', 'outline')}
+               ${callEmailButton(`${params.manage.url}&action=cancel`, 'Cancel', 'outline')}
+               ${note("Can't make it anymore? Cancelling frees the time for someone else, and rescheduling keeps the same Meet link.")}`
+            : params.manage?.kind === 'external'
+              ? `${callEmailButton(params.manage.url, 'Reschedule or cancel', 'outline')}
+                 ${note("Can't make it anymore? Cancelling frees the time for someone else.")}`
+              : `<p style="margin: 0; font-size: 15px;">If you can no longer make it, just reply CANCEL to this email.</p>`
 
     const body = `
         <p style="margin: 0 0 18px; font-size: 16px; line-height: 1.55;">${intro}</p>
