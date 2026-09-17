@@ -20,12 +20,19 @@ import {
   type SlotConfig,
 } from "./lib/availability";
 import { requireAdmin, requireStaff } from "./lib/auth";
+import {
+  planReminders,
+  relativeDayWord,
+  REMINDER_EARLY,
+  type ReminderPlan,
+} from "./lib/reminders";
 // The designed HTML bodies. sendAsTendso sends multipart, so the plain text
 // below stays the fallback for anything that will not render HTML.
 import {
   getCallBookedEmailHtml,
   getCallCancelledEmailHtml,
   getCallMovedEmailHtml,
+  getCallReminderEmailHtml,
   getCallOutOfHoursEmailHtml,
 } from "../lib/email/templates";
 
@@ -661,6 +668,128 @@ export const adoptCalendarCallsCron = internalAction({
     } catch (err) {
       console.error("[CALL-ADOPT] failed:", errMessage(err));
     }
+  },
+});
+
+// ==================== REMINDERS ====================
+//
+// Two reminders per call made on our own page, carrying the same Reschedule and
+// Cancel buttons as the confirmation.
+//
+// WHO SENT THESE BEFORE. The sibling HR pipeline app, whose reminder job reads
+// the shared tendso.hr calendar and mails anyone whose event description names
+// them. Our events were written in its format on purpose so that kept working
+// after the booking page moved here. It works, but it can only say "reply
+// CANCEL": the buttons need each booking's manage token, which lives only here.
+//
+// THE HANDOVER. Both apps read one instant, set as an environment variable on
+// each deployment: CALL_REMINDERS_FROM_MS here, TENDSO_REMINDERS_FROM_MS there.
+// Calls starting before it are the pipeline's, calls at or after it are ours.
+// That split is what makes the switch safe in either order — nobody gets two
+// reminders and nobody gets none. Until it is set here, this sends nothing.
+
+async function sendReminders(
+  ctx: ActionCtx,
+  dryRun: boolean,
+): Promise<{ status: "disabled" | "ran"; sent: number; failed: number; planned: ReminderPlan[] }> {
+  const takeoverMs = Number(process.env.CALL_REMINDERS_FROM_MS);
+  if (!Number.isFinite(takeoverMs) || takeoverMs <= 0) {
+    return { status: "disabled", sent: 0, failed: 0, planned: [] };
+  }
+
+  const now = Date.now();
+  const rows = await ctx.runQuery(internal.nativeBookings.dueForReminder, {
+    fromMs: now,
+    toMs: now + REMINDER_EARLY.max,
+  });
+  const planned = planReminders(rows, now, takeoverMs);
+  if (dryRun) return { status: "ran", sent: 0, failed: 0, planned };
+
+  let sent = 0;
+  let failed = 0;
+  for (const plan of planned) {
+    const claimed = await ctx.runMutation(internal.nativeBookings.claimReminder, {
+      id: plan.id,
+      kind: plan.kind,
+    });
+    if (!claimed) continue;
+
+    const whenWord = relativeDayWord(plan.startMs, now);
+    const timeLabel = manilaTimeLabel(plan.startMs);
+    const dayLabel = manilaDayLabel(plan.startMs);
+    const lowerWhen = whenWord === "Today" || whenWord === "Tomorrow" ? whenWord.toLowerCase() : whenWord;
+    const subject =
+      plan.kind === "soon"
+        ? `Coming up: your 10-minute call with Tendso, ${lowerWhen} at ${timeLabel}`
+        : `Reminder: your 10-minute call with Tendso, ${lowerWhen} at ${timeLabel}`;
+
+    try {
+      await sendAsTendso({
+        to: plan.email,
+        subject,
+        html: getCallReminderEmailHtml({
+          kind: plan.kind,
+          firstName: plan.firstName,
+          whenWord,
+          dayLabel,
+          timeLabel,
+          meetUrl: plan.meetUrl,
+          manageUrl: manageUrl(plan.manageToken),
+        }),
+        text:
+          `Hi ${plan.firstName},\n\n` +
+          `${plan.kind === "soon" ? "Your 10-minute call with Tendso is coming up" : "A quick reminder about your 10-minute call with Tendso"}: ` +
+          `${lowerWhen} at ${timeLabel} (Manila time).\n\n` +
+          `${plan.meetUrl ? `Google Meet: ${plan.meetUrl}\n\n` : ""}` +
+          `${manageFooter(plan.manageToken)}\n\n` +
+          `Talk soon,\nTendso HR Team`,
+      });
+      sent++;
+    } catch (err) {
+      failed++;
+      // Give the claim back so the next hourly run tries again.
+      await ctx.runMutation(internal.nativeBookings.releaseReminder, {
+        id: plan.id,
+        kind: plan.kind,
+      });
+      console.error(`[CALL-REMINDER] ${plan.kind} failed for ${plan.email}:`, errMessage(err));
+    }
+  }
+  return { status: "ran", sent, failed, planned };
+}
+
+/** Hourly. Does nothing until CALL_REMINDERS_FROM_MS is set on this deployment. */
+export const sendCallRemindersCron = internalAction({
+  args: {},
+  handler: async (ctx): Promise<void> => {
+    try {
+      const { status, sent, failed } = await sendReminders(ctx, false);
+      if (status === "ran" && (sent || failed)) {
+        console.log(`[CALL-REMINDER] sent ${sent}${failed ? `, ${failed} failed and will retry` : ""}`);
+      }
+    } catch (err) {
+      console.error("[CALL-REMINDER] failed:", errMessage(err));
+    }
+  },
+});
+
+/**
+ * Ops: see who WOULD be reminded right now, without sending anything.
+ *
+ *   npx convex run booking:previewCallReminders
+ */
+export const previewCallReminders = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    const { status, planned } = await sendReminders(ctx, true);
+    return {
+      status,
+      planned: planned.map((p) => ({
+        kind: p.kind,
+        email: p.email,
+        startsAt: `${manilaDayLabel(p.startMs)} ${manilaTimeLabel(p.startMs)}`,
+      })),
+    };
   },
 });
 
