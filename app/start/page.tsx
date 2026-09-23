@@ -1108,9 +1108,20 @@ export default function StartPage() {
                                     const value = (answers[entry.key] ?? "").trim();
                                     if (!value) return null;
                                     return (
-                                        <div key={entry.key} className="border-t border-ink/10 pt-3 first:border-t-0 first:pt-0">
+                                        <div
+                                            key={entry.key}
+                                            className="min-w-0 border-t border-ink/10 pt-3 first:border-t-0 first:pt-0"
+                                        >
                                             <p className="text-[13px] font-semibold text-ink-soft">{entry.q}</p>
-                                            <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-ink">
+                                            {/* Answers are typed by hand into a
+                                                textarea, and one long unbroken
+                                                run — a URL, a string of digits,
+                                                a run-on with no spaces — pushed
+                                                this card wider than the screen
+                                                and made the whole page scroll
+                                                sideways. `anywhere` breaks mid
+                                                run rather than only at spaces. */}
+                                            <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-ink [overflow-wrap:anywhere]">
                                                 {value}
                                             </p>
                                         </div>
