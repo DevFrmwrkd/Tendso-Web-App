@@ -173,23 +173,30 @@ export default function OtrPage() {
                         as OTR on its own, and this is the one line telling them
                         they are in the right place. The settings key stays as an
                         override, so the logo can be changed without a deploy. */}
-                    <span className="flex items-center gap-2">
+                    <span className="flex items-center gap-2" role="img" aria-label="Off The Record">
                         {logoUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={logoUrl} alt="" className="h-6 w-auto lg:h-7" />
                         ) : (
-                            <Image
-                                src="/otr-logo.jpg"
-                                alt=""
-                                width={512}
-                                height={512}
-                                priority
-                                // The official lockup is white on a solid black
-                                // square. Rounded so it reads as a badge on the
-                                // cream rather than as a photo that failed to
-                                // load, and kept square because it is square.
-                                className="h-7 w-7 rounded-md lg:h-8 lg:w-8"
-                            />
+                            // The channel's lockup, rebuilt rather than dropped
+                            // in: the avatar is white on a solid black square,
+                            // which on this cream ground reads as a sticker.
+                            // This is the same shape — the power mark as the O,
+                            // then TR — drawn in the page's own ink, so it sits
+                            // on the background instead of on top of it.
+                            <span className="flex items-center text-ink">
+                                <Image
+                                    src="/otr-mark.png"
+                                    alt=""
+                                    width={459}
+                                    height={504}
+                                    priority
+                                    className="h-[22px] w-auto lg:h-[26px]"
+                                />
+                                <span className="pl-[3px] text-[20px] font-bold leading-none tracking-[-0.01em] lg:text-[24px]">
+                                    TR
+                                </span>
+                            </span>
                         )}
                         <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
                             Off The Record
