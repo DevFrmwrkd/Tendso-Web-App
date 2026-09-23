@@ -168,14 +168,29 @@ export default function OtrPage() {
                         style={{ filter: "brightness(0)" }}
                     />
                     <span aria-hidden className="h-5 w-px bg-ink/15" />
-                    {logoUrl ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={logoUrl} alt="Off The Record" className="h-7 w-auto lg:h-8" />
-                    ) : (
+                    {/* The mark plus its name. The mark is abstract enough that
+                        somebody who has not watched the show would not read it
+                        as OTR on its own, and this is the one line telling them
+                        they are in the right place. The settings key stays as an
+                        override, so the logo can be changed without a deploy. */}
+                    <span className="flex items-center gap-2">
+                        {logoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={logoUrl} alt="" className="h-6 w-auto lg:h-7" />
+                        ) : (
+                            <Image
+                                src="/otr-logo.png"
+                                alt=""
+                                width={459}
+                                height={504}
+                                priority
+                                className="h-6 w-auto lg:h-7"
+                            />
+                        )}
                         <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
                             Off The Record
                         </span>
-                    )}
+                    </span>
                 </header>
 
                 {/* One column on a phone, two on a desk. The offer keeps the left
