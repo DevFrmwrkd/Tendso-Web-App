@@ -178,25 +178,20 @@ export default function OtrPage() {
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={logoUrl} alt="" className="h-6 w-auto lg:h-7" />
                         ) : (
-                            // The channel's lockup, rebuilt rather than dropped
-                            // in: the avatar is white on a solid black square,
-                            // which on this cream ground reads as a sticker.
-                            // This is the same shape — the power mark as the O,
-                            // then TR — drawn in the page's own ink, so it sits
-                            // on the background instead of on top of it.
-                            <span className="flex items-center text-ink">
-                                <Image
-                                    src="/otr-mark.png"
-                                    alt=""
-                                    width={459}
-                                    height={504}
-                                    priority
-                                    className="h-[22px] w-auto lg:h-[26px]"
-                                />
-                                <span className="pl-[3px] text-[20px] font-bold leading-none tracking-[-0.01em] lg:text-[24px]">
-                                    TR
-                                </span>
-                            </span>
+                            // The mark on its own, with the name spelled out
+                            // beside it. The channel's own lockup is white on a
+                            // solid black square, which on this cream ground
+                            // reads as a sticker laid over the page, and
+                            // rebuilding its "OTR" in type said less than the
+                            // words do.
+                            <Image
+                                src="/otr-mark.png"
+                                alt=""
+                                width={459}
+                                height={504}
+                                priority
+                                className="h-6 w-auto lg:h-7"
+                            />
                         )}
                         <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
                             Off The Record
