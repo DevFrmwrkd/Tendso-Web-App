@@ -33,6 +33,7 @@ import type * as followUp from "../followUp.js";
 import type * as generatedWebsites from "../generatedWebsites.js";
 import type * as http from "../http.js";
 import type * as hyperagent from "../hyperagent.js";
+import type * as intakeVoice from "../intakeVoice.js";
 import type * as kb from "../kb.js";
 import type * as knowledge from "../knowledge.js";
 import type * as knowledgeAI from "../knowledgeAI.js";
@@ -111,6 +112,7 @@ declare const fullApi: ApiFromModules<{
   generatedWebsites: typeof generatedWebsites;
   http: typeof http;
   hyperagent: typeof hyperagent;
+  intakeVoice: typeof intakeVoice;
   kb: typeof kb;
   knowledge: typeof knowledge;
   knowledgeAI: typeof knowledgeAI;
