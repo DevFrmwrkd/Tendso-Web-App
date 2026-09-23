@@ -136,6 +136,12 @@ export default defineSchema({
 
         // Payment
         amount: v.optional(v.number()),
+        // Which campaign priced this sale, and which placement sent the person.
+        // Both are stamped once at intake and never recomputed: `amount` above is
+        // already the discounted figure, and a campaign that ends must not change
+        // what somebody was quoted. See convex/ownerIntake.ts.
+        campaign: v.optional(v.string()),
+        source: v.optional(v.string()),
         paymentReference: v.optional(v.string()),
         paidAt: v.optional(v.number()), // Timestamp
         sentEmailAt: v.optional(v.number()), // Timestamp when payment email was sent to client
