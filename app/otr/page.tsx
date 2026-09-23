@@ -152,13 +152,7 @@ export default function OtrPage() {
     return (
         <main className="min-h-dvh bg-khaki text-ink">
             <div className="mx-auto w-full max-w-lg px-5 pb-16 pt-8 lg:max-w-6xl lg:px-10 lg:pb-24 lg:pt-14">
-                {/* A layered collaboration mark: one oversized x sitting
-                    BEHIND both logos, with their boxes pulled in over its tips
-                    so the three read as one lockup rather than three things in a
-                    row. Built in CSS rather than flattened into an image so it
-                    stays sharp at both sizes, recolours with the page, and can
-                    be adjusted without redrawing anything. */}
-                <header className="flex items-center">
+                <header className="flex items-center gap-3">
                     {/* The file is white lettering with alpha, drawn for the dark
                         footer. On this cream ground it renders as very nearly
                         nothing — brightness(0) keeps the lettering's shape and
@@ -170,32 +164,25 @@ export default function OtrPage() {
                         width={104}
                         height={28}
                         priority
-                        className="relative z-10 -mr-1.5 h-7 w-auto lg:-mr-2 lg:h-8"
+                        className="h-7 w-auto lg:h-8"
                         style={{ filter: "brightness(0)" }}
                     />
-                    {/* The x is what tells a viewer this offer comes from the
+                    {/* A collaboration lockup, not two logos sharing a line.
+                        The x is what tells a viewer this offer comes from the
                         show they were just watching, which is the only reason
-                        they trust the discount at all. Held at a quarter ink: it
-                        is the ground the two marks sit on, and at full strength
-                        it competes with them instead of joining them. */}
-                    <span className="relative z-0 flex w-7 items-center justify-center lg:w-9">
-                        <span
-                            aria-hidden
-                            className="absolute select-none text-[40px] font-bold leading-none text-ink/25 lg:text-[52px]"
-                        >
-                            x
-                        </span>
+                        they trust the discount at all. */}
+                    <span
+                        aria-hidden
+                        className="px-0.5 text-lg font-semibold leading-none text-ink-soft lg:text-xl"
+                    >
+                        x
                     </span>
                     {/* The mark plus its name. The mark is abstract enough that
                         somebody who has not watched the show would not read it
                         as OTR on its own, and this is the one line telling them
                         they are in the right place. The settings key stays as an
                         override, so the logo can be changed without a deploy. */}
-                    <span
-                        className="relative z-10 -ml-1.5 flex items-center gap-2 lg:-ml-2"
-                        role="img"
-                        aria-label="Off The Record"
-                    >
+                    <span className="flex items-center gap-2" role="img" aria-label="Off The Record">
                         {logoUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={logoUrl} alt="" className="h-5 w-auto lg:h-6" />
