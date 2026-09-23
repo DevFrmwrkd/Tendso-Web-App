@@ -30,12 +30,22 @@ import {
  * its own. The code is printed small for the one case that breaks: a different
  * phone, or site data cleared between watching and deciding.
  *
- * THE EARN BUTTON CARRIES NO CAMPAIGN, only its source. A field agent buys
- * nothing, so a discount cannot apply to them and a link implying one would be a
- * promise with nothing behind it. The source still rides along, because which
- * placement produces agents is worth as much as which produces sales — and if
- * they later decide they want a website too, the remembered campaign still
- * gives them the thirty percent.
+ * THE EARN BUTTON GOES TO THE APP, not to a web signup. Earning happens in the
+ * Tendso app and the web signup is being retired, so sending a viewer to a form
+ * they should not be filling in is a dead end dressed as a next step. On a phone
+ * it opens that phone's store directly; on a desktop, where neither store can be
+ * installed from, it opens the explainer page instead.
+ *
+ * IT CARRIES NO CAMPAIGN EITHER, only its source. A field agent buys nothing, so
+ * a discount cannot apply to them and a link implying one would be a promise
+ * with nothing behind it. Anyone who came for the offer and then decides they
+ * want a website too still gets the thirty percent: the campaign was remembered
+ * when they landed, not when they clicked.
+ *
+ * ATTRIBUTION STOPS AT THE STORE on iOS. Android carries the source into the
+ * install through Play's referrer, but an App Store link cannot without a
+ * configured campaign, so an iPhone signup arrives untagged unless the app reads
+ * it some other way.
  *
  * THE PRICE HERE IS A PROMISE, NOT A CALCULATION. Everything shown comes from
  * lib/pricing, and the server re-derives the real amount at submit from the
@@ -64,6 +74,36 @@ const domainPrice = websitePrice + CUSTOM_DOMAIN_ADDON;
  */
 const PROOF: Array<{ src: string; alt: string; caption: string }> = [];
 
+type Platform = "android" | "ios" | "other";
+
+/** Which store this phone can actually install from. */
+function detectPlatform(): Platform {
+    if (typeof navigator === "undefined") return "other";
+    const ua = navigator.userAgent;
+    if (/android/i.test(ua)) return "android";
+    // iPadOS reports as a Mac, which is why the touch check is here as well.
+    if (/iphone|ipad|ipod/i.test(ua)) return "ios";
+    if (/macintosh/i.test(ua) && typeof document !== "undefined" && "ontouchend" in document) return "ios";
+    return "other";
+}
+
+/**
+ * Play carries a referrer through the install, so an Android signup can be
+ * traced back to the placement that produced it. Left alone for anything else:
+ * an App Store link cannot take one without a configured campaign, and adding a
+ * parameter a store ignores only makes the link look untrustworthy.
+ */
+function withPlayReferrer(url: string, source: string): string {
+    try {
+        const parsed = new URL(url);
+        if (!parsed.hostname.endsWith("play.google.com")) return url;
+        parsed.searchParams.set("referrer", `utm_source=otr&utm_medium=${source}`);
+        return parsed.toString();
+    } catch {
+        return url;
+    }
+}
+
 const STEPS = [
     "Tell us about your shop and send a few photos. About ten minutes, on your phone.",
     "We build your website and email it to you within 48 to 72 hours.",
@@ -72,14 +112,16 @@ const STEPS = [
 
 export default function OtrPage() {
     const [source, setSource] = useState<string>(DEFAULT_SOURCE);
+    const [platform, setPlatform] = useState<Platform>("other");
     useEffect(() => {
         const found = campaignFromLocation();
         const tag = found.source ?? DEFAULT_SOURCE;
-        // The URL and localStorage do not exist while rendering, and the tag has
-        // to reach the links below, so this is a state write from an effect on
-        // purpose. It runs once and settles before anyone can tap anything.
+        // The URL, the user agent and localStorage do not exist while rendering,
+        // and all three have to reach the links below, so these are state writes
+        // from an effect on purpose. They run once, before anyone can tap.
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setSource(tag);
+        setPlatform(detectPlatform());
         rememberCampaign(CAMPAIGN, tag);
     }, []);
 
@@ -87,10 +129,23 @@ export default function OtrPage() {
     // live. Set them in the admin settings once the accounts exist.
     const chatUrl = useQuery(api.settings.get, { key: "otr_chat_url" }) as string | null | undefined;
     const logoUrl = useQuery(api.settings.get, { key: "otr_logo_url" }) as string | null | undefined;
+    const playUrl = useQuery(api.settings.get, { key: "play_store_url" }) as string | null | undefined;
+    const iosUrl = useQuery(api.settings.get, { key: "app_store_url" }) as string | null | undefined;
 
     const tag = `src=${encodeURIComponent(source)}`;
     const buyHref = `/start?campaign=${CAMPAIGN}&${tag}`;
-    const earnHref = `/for-field-agents?${tag}`;
+    // The store this phone can install from, or the explainer page when we are
+    // on a desktop or the link for this platform has not been set.
+    const storeUrl =
+        platform === "android"
+            ? playUrl
+                ? withPlayReferrer(playUrl, source)
+                : null
+            : platform === "ios"
+              ? iosUrl ?? null
+              : null;
+    const earnHref = storeUrl ?? `/for-field-agents?${tag}`;
+    const earnIsStore = storeUrl !== null;
 
     return (
         <main className="min-h-dvh bg-khaki text-ink">
@@ -150,18 +205,31 @@ export default function OtrPage() {
                             >
                                 Get my website — {formatPHP(websitePrice)}
                             </Link>
-                            <Link
-                                href={earnHref}
-                                className="rounded-xl border border-ink/15 bg-white px-5 py-4 text-center text-base font-bold text-ink transition-colors hover:border-ink/40 lg:px-7 lg:py-5 lg:text-lg"
-                            >
-                                Earn with my smartphone
-                            </Link>
+                            {/* An external store link is a plain anchor: Link is
+                                for routes inside the app, and prefetching a URL
+                                that leaves it does nothing but noise. */}
+                            {earnIsStore ? (
+                                <a
+                                    href={earnHref}
+                                    rel="noopener"
+                                    className="rounded-xl border border-ink/15 bg-white px-5 py-4 text-center text-base font-bold text-ink transition-colors hover:border-ink/40 lg:px-7 lg:py-5 lg:text-lg"
+                                >
+                                    Earn with my smartphone
+                                </a>
+                            ) : (
+                                <Link
+                                    href={earnHref}
+                                    className="rounded-xl border border-ink/15 bg-white px-5 py-4 text-center text-base font-bold text-ink transition-colors hover:border-ink/40 lg:px-7 lg:py-5 lg:text-lg"
+                                >
+                                    Earn with my smartphone
+                                </Link>
+                            )}
                         </div>
 
                         <p className="mt-3 text-xs text-ink-soft lg:mt-4 lg:text-sm">
                             Discount code {FALLBACK_CODE}, if you ever need to enter it by hand. It
-                            applies to the website, not to the Earn side — that one costs nothing to
-                            join.
+                            applies to the website. Earning is free to join and happens in the
+                            Tendso app.
                         </p>
 
                         {chatUrl && (
