@@ -107,7 +107,7 @@ function withPlayReferrer(url: string, source: string): string {
 }
 
 const STEPS = [
-    "Tell us about your shop and send a few photos. About ten minutes, on your phone.",
+    "Tell us about your shop and send a few photos. About ten minutes, on your phone or PC.",
     "We build your website and email it to you within 48 to 72 hours.",
     `You pay ${formatPHP(websitePrice)} only after you have seen it live.`,
 ];
