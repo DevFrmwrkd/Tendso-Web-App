@@ -41,6 +41,60 @@ export const CUSTOM_DOMAIN_ADDON = 500;
 /** One-time bonus when a referred creator lands their first paid submission. */
 export const REFERRAL_BONUS = 1000;
 
+/**
+ * ── CAMPAIGN DISCOUNTS ──────────────────────────────────────────────────────
+ *
+ * A campaign takes a percentage off the WEBSITE price and never off the custom
+ * domain. The domain is a registrar pass-through we buy at cost, so discounting
+ * it would mean paying part of someone's registration fee.
+ *
+ * The keys are the only values the server accepts. Anything else is no campaign
+ * at all, which is what makes it safe for the discount to arrive from a URL.
+ */
+export const CAMPAIGN_DISCOUNTS: Record<string, number> = {
+    /** Off The Record: viewers scan a QR in the episode and in stores. */
+    otr: 0.3,
+};
+
+/**
+ * Codes people can type when the automatic discount did not stick.
+ *
+ * It usually does stick, so this is a fallback rather than a coupon field:
+ * cleared site data, a different phone, or a link copied without its query.
+ */
+export const CAMPAIGN_CODES: Record<string, string> = {
+    OTR30: 'otr',
+};
+
+/** A campaign name or typed code, resolved to a campaign we actually run. */
+export function normalizeCampaign(value?: string | null): string | null {
+    if (!value) return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const lower = trimmed.toLowerCase();
+    if (lower in CAMPAIGN_DISCOUNTS) return lower;
+    const fromCode = CAMPAIGN_CODES[trimmed.toUpperCase()];
+    return fromCode ?? null;
+}
+
+/** 0 when there is no campaign, so every caller can multiply unconditionally. */
+export function campaignDiscountRate(campaign?: string | null): number {
+    const key = normalizeCampaign(campaign);
+    return key ? CAMPAIGN_DISCOUNTS[key] : 0;
+}
+
+/**
+ * The website price after a campaign, rounded to the peso.
+ *
+ * Takes the sell price rather than assuming the base, so a creator's own price
+ * would discount correctly too if a campaign is ever pointed at that funnel.
+ */
+export function campaignSellPrice(campaign?: string | null, sellPrice: number = BASE_PRICE): number {
+    const rate = campaignDiscountRate(campaign);
+    if (!rate) return sellPrice;
+    return Math.round(sellPrice * (1 - rate));
+}
+
 export type SubmissionTier = 'standard' | 'with_custom_domain';
 
 /**

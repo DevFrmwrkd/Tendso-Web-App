@@ -323,6 +323,10 @@ export default function SubmissionDetailPage() {
               status: submissionData.status,
               creator_payout: submissionData.creatorPayout,
               amount: submissionData.amount,
+              // Which campaign priced it and which placement sent them. Shown in
+              // the header so a test scan can be checked without opening Convex.
+              campaign: submissionData.campaign ?? null,
+              source: submissionData.source ?? null,
               payout_requested_at: submissionData.payoutRequestedAt,
               paid_at: submissionData.paidAt,
               created_at: (submissionData as any)._creationTime,
@@ -944,7 +948,11 @@ export default function SubmissionDetailPage() {
                         <h1 className="text-base sm:text-lg font-bold text-neutral-900 truncate">
                             {submission.business_name}
                         </h1>
-                        <p className="text-xs text-neutral-500 truncate">Submission details</p>
+                        <p className="text-xs text-neutral-500 truncate">
+                            Submission details
+                            {submission.campaign && ` · ${String(submission.campaign).toUpperCase()} campaign`}
+                            {submission.source && ` · from ${submission.source}`}
+                        </p>
                     </div>
                     {/* Editor version switch — v1 (classic) vs v2 (redesigned). */}
                     <div

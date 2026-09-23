@@ -34,7 +34,15 @@ import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
 import { BUSINESS_TYPES } from "@/lib/prospectPrefill";
 import { INTAKE_QUESTIONS, meetsAnswerMinimum } from "@/lib/narrativeFromQa";
-import { BASE_PRICE, CUSTOM_DOMAIN_ADDON, formatPHP, ownerTotal } from "@/lib/pricing";
+import {
+    BASE_PRICE,
+    CUSTOM_DOMAIN_ADDON,
+    campaignSellPrice,
+    formatPHP,
+    normalizeCampaign,
+    ownerTotal,
+} from "@/lib/pricing";
+import { campaignFromLocation, readCampaign, rememberCampaign } from "@/lib/campaign";
 
 import {
     clearDraft,
@@ -169,6 +177,37 @@ export default function StartPage() {
      *  screen on a phone and all eight at once on a desk. See useIsDesktop. */
     const isDesktop = useIsDesktop();
     const submitOwnerIntake = useMutation(api.ownerIntake.submitOwnerIntake);
+
+    /**
+     * The campaign this owner arrived under, if any.
+     *
+     * Read on mount, not during render: it touches the URL and localStorage. The
+     * URL wins over what was remembered, so a fresh scan re-stamps the placement,
+     * and a campaign that arrives in the link is remembered for anyone who leaves
+     * this eight-minute form and comes back to it later.
+     *
+     * The price below follows from this, but it does not DECIDE the price: the
+     * mutation resolves the campaign again and works the amount out itself.
+     */
+    const [campaign, setCampaign] = useState<string | null>(null);
+    const [source, setSource] = useState<string | null>(null);
+    const [codeEntry, setCodeEntry] = useState("");
+    const [codeRejected, setCodeRejected] = useState(false);
+    useEffect(() => {
+        const fromUrl = campaignFromLocation();
+        const resolved = normalizeCampaign(fromUrl.campaign);
+        if (resolved) {
+            rememberCampaign(resolved, fromUrl.source);
+            setCampaign(resolved);
+            setSource(fromUrl.source);
+            return;
+        }
+        const remembered = readCampaign();
+        if (remembered) {
+            setCampaign(remembered.campaign);
+            setSource(fromUrl.source ?? remembered.source);
+        }
+    }, []);
     // Unchanged, and called with no submissionId — the impl accepts the field
     // and ignores it (convex/r2.ts:109-142), and there is no submission yet.
     const generateUploadUrl = useAction(api.r2.generateUploadUrl);
@@ -349,6 +388,11 @@ export default function StartPage() {
                 requestedDomain: draft.wantsCustomDomain
                     ? draft.requestedDomain.trim().toLowerCase()
                     : undefined,
+                // A hint, not a price. The mutation resolves the campaign against
+                // the ones we run and bills from that; anything else is ignored
+                // and the owner pays the ordinary price.
+                campaign: campaign ?? undefined,
+                source: source ?? undefined,
             });
 
             rememberSubmittedEmail(basics.ownerEmail.trim());
@@ -364,7 +408,7 @@ export default function StartPage() {
             setSubmitting(false);
             setSubmitError(messageFor(error));
         }
-    }, [draft, router, submitOwnerIntake]);
+    }, [campaign, draft, router, source, submitOwnerIntake]);
 
     if (!draft) {
         return (
@@ -378,7 +422,10 @@ export default function StartPage() {
     const domainError = wantsCustomDomain ? validateDomain(requestedDomain) : undefined;
     /** What the payment email will ask for. Derived, never typed: lib/pricing is
      *  the same module the mutation prices the row with. */
-    const total = ownerTotal(BASE_PRICE, wantsCustomDomain ? "with_custom_domain" : "standard");
+    /** The website half, after any campaign. The domain is never discounted. */
+    const sellPrice = campaignSellPrice(campaign);
+    const discounted = sellPrice !== BASE_PRICE;
+    const total = ownerTotal(sellPrice, wantsCustomDomain ? "with_custom_domain" : "standard");
     // loadDraft already clamps questionIndex, but the value it clamps came out of
     // localStorage — belt and braces, because every read below assumes a question
     // and a miss here is a white screen the owner cannot refresh their way out of.
@@ -1097,6 +1144,68 @@ export default function StartPage() {
                                 logged-in user and there is no account here, so
                                 the name typed below is a request our team
                                 confirms during the review they already do. */}
+                            {/* The discount, and the one way back to it.
+                                Arriving from a campaign link applies it without
+                                anyone typing anything — this box exists for the
+                                case that breaks: a different phone, or site data
+                                cleared between seeing the offer and deciding. It
+                                only changes what this page SHOWS; the mutation
+                                resolves the campaign again and prices the row. */}
+                            <section className="rounded-xl border border-ink/10 bg-white p-5">
+                                {discounted ? (
+                                    <p className="text-sm font-semibold text-ink">
+                                        Your {(campaign ?? "").toUpperCase()} discount is applied —{" "}
+                                        {formatPHP(BASE_PRICE - sellPrice)} off your website.
+                                    </p>
+                                ) : (
+                                    <>
+                                        <label
+                                            htmlFor="discount-code"
+                                            className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft"
+                                        >
+                                            Have a discount code?
+                                        </label>
+                                        <div className="mt-3 flex gap-2">
+                                            <input
+                                                id="discount-code"
+                                                value={codeEntry}
+                                                onChange={(event) => {
+                                                    setCodeEntry(event.target.value);
+                                                    setCodeRejected(false);
+                                                }}
+                                                autoComplete="off"
+                                                autoCapitalize="characters"
+                                                spellCheck={false}
+                                                placeholder="Optional"
+                                                className="min-w-0 flex-1 rounded-lg border border-ink/15 px-3 py-2 text-sm uppercase"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const resolved = normalizeCampaign(codeEntry);
+                                                    if (!resolved) {
+                                                        setCodeRejected(true);
+                                                        return;
+                                                    }
+                                                    rememberCampaign(resolved, source);
+                                                    setCampaign(resolved);
+                                                    setCodeRejected(false);
+                                                }}
+                                                className="rounded-lg border border-ink/15 px-4 py-2 text-sm font-semibold text-ink hover:border-ink/40"
+                                            >
+                                                Apply
+                                            </button>
+                                        </div>
+                                        {codeRejected && (
+                                            <p className="mt-2 text-xs text-ink-soft">
+                                                That code is not one of ours. Check it and try again, or carry
+                                                on — the price below is what you pay.
+                                            </p>
+                                        )}
+                                    </>
+                                )}
+                            </section>
+
                             <section className="rounded-xl border border-ink/10 bg-white p-5">
                                 <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
                                     Your web address
@@ -1111,14 +1220,14 @@ export default function StartPage() {
                                         {
                                             value: false,
                                             title: "The address we set up",
-                                            price: BASE_PRICE,
+                                            price: sellPrice,
                                             note: "Included. Nothing else to arrange, nothing to renew.",
                                         },
                                         {
                                             value: true,
                                             title: "Your own .com",
-                                            price: BASE_PRICE + CUSTOM_DOMAIN_ADDON,
-                                            note: `${formatPHP(BASE_PRICE)} for the website + ${formatPHP(
+                                            price: sellPrice + CUSTOM_DOMAIN_ADDON,
+                                            note: `${formatPHP(sellPrice)} for the website + ${formatPHP(
                                                 CUSTOM_DOMAIN_ADDON,
                                             )} for the domain. We pay the first year; after that it's yours to renew.`,
                                         },

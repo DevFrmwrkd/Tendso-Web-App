@@ -3,7 +3,7 @@ import { internalAction, mutation } from './_generated/server';
 import type { MutationCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
-import { BASE_PRICE, ownerTotal, type SubmissionTier } from '../lib/pricing';
+import { campaignSellPrice, normalizeCampaign, ownerTotal, type SubmissionTier } from '../lib/pricing';
 import { BUSINESS_TYPES } from '../lib/prospectPrefill';
 import { BLOCKED_TLDS } from './lib/hostinger';
 import { INTAKE_QUESTIONS, buildNarrativeFromQa, meetsAnswerMinimum } from '../lib/narrativeFromQa';
@@ -486,6 +486,13 @@ export const submitOwnerIntake = mutation({
         // fail at the last tap of a ten-minute form.
         submissionType: v.optional(v.union(v.literal('standard'), v.literal('with_custom_domain'))),
         requestedDomain: v.optional(v.string()),
+        // The campaign that priced this sale, and the placement that sent them.
+        // Both arrive from the browser, so NEITHER is trusted: the campaign is
+        // resolved against the ones we actually run and the price is worked out
+        // here, and the source is only ever stored and counted. A price posted
+        // from the client would let anyone name their own.
+        campaign: v.optional(v.string()),
+        source: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         // ---- 1. Revalidate everything. The client is a stranger. ----------
@@ -534,6 +541,12 @@ export const submitOwnerIntake = mutation({
         const photos = normalizePhotos(args.photos, r2PublicUrl.replace(/\/$/, ''));
 
         const interviewQa = normalizeQa(args.qa);
+
+        // Resolved against the campaigns we run, so an invented one prices at
+        // full price rather than failing the submission. The source is a label
+        // for counting, capped and stripped of anything that is not a plain tag.
+        const campaign = normalizeCampaign(args.campaign);
+        const source = (args.source ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40) || null;
 
         // ---- 2. The house creator. Never fall back. -----------------------
         // Attribution for every owner-originated submission. Seeded once per
@@ -608,7 +621,14 @@ export const submitOwnerIntake = mutation({
             // CUSTOM_DOMAIN_ADDON, because no real registrar quote exists at
             // intake (nobody is logged in to fetch one) and the admin re-prices
             // through the existing domain flow if the real one differs.
-            amount: ownerTotal(BASE_PRICE, submissionType),
+            //
+            // A campaign takes its percentage off the WEBSITE half only, which is
+            // what `campaignSellPrice` returns; the domain stays at cost because
+            // we buy it from a registrar. With the OTR campaign that is ₱699, or
+            // ₱1,199 with a domain.
+            amount: ownerTotal(campaignSellPrice(campaign), submissionType),
+            campaign: campaign ?? undefined,
+            source: source ?? undefined,
             // EXPLICIT ₱0. There is no creator to pay: creditCreatorForPayment
             // books this straight onto the attributed creator's balance at
             // payment time, and on this path that is the house row.
