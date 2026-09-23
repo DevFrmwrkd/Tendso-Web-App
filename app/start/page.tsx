@@ -47,7 +47,7 @@ import { campaignFromLocation, readCampaign, rememberCampaign } from "@/lib/camp
 import {
     clearDraft,
     loadDraft,
-    rememberSubmittedEmail,
+    rememberSubmitted,
     saveDraft,
     TOTAL_STEPS,
     type StartBasics,
@@ -395,7 +395,16 @@ export default function StartPage() {
                 source: source ?? undefined,
             });
 
-            rememberSubmittedEmail(basics.ownerEmail.trim());
+            // Recomputed here rather than read from `total` below: a dependency
+            // on it would be evaluated during render, above its own declaration.
+            // Same inputs, same function, same number.
+            rememberSubmitted(
+                basics.ownerEmail.trim(),
+                ownerTotal(
+                    campaignSellPrice(campaign),
+                    draft.wantsCustomDomain ? "with_custom_domain" : "standard",
+                ),
+            );
             // Order matters: clear first, then leave. The draft must be gone
             // before /start/thanks can be back-navigated out of.
             clearDraft();
