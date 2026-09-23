@@ -179,12 +179,16 @@ export default function OtrPage() {
                             <img src={logoUrl} alt="" className="h-6 w-auto lg:h-7" />
                         ) : (
                             <Image
-                                src="/otr-logo.png"
+                                src="/otr-logo.jpg"
                                 alt=""
-                                width={459}
-                                height={504}
+                                width={512}
+                                height={512}
                                 priority
-                                className="h-6 w-auto lg:h-7"
+                                // The official lockup is white on a solid black
+                                // square. Rounded so it reads as a badge on the
+                                // cream rather than as a photo that failed to
+                                // load, and kept square because it is square.
+                                className="h-7 w-7 rounded-md lg:h-8 lg:w-8"
                             />
                         )}
                         <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
