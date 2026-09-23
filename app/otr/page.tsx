@@ -158,7 +158,7 @@ export default function OtrPage() {
                         width={104}
                         height={28}
                         priority
-                        className="h-7 w-auto lg:h-8"
+                        className="h-7 w-auto translate-y-[1px] lg:h-8"
                         style={{ filter: "brightness(0)" }}
                     />
                     {/* A collaboration lockup, not two logos sharing a line.
@@ -167,7 +167,7 @@ export default function OtrPage() {
                         they trust the discount at all. */}
                     <span
                         aria-hidden
-                        className="px-0.5 text-lg font-semibold leading-none text-ink-soft lg:text-xl"
+                        className="-translate-y-[0.09em] px-0.5 text-lg font-semibold leading-none text-ink-soft lg:text-xl"
                     >
                         x
                     </span>
