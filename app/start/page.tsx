@@ -61,9 +61,11 @@ import {
     ProgressHeader,
     SELECT_CLASS,
     Spinner,
+    StepRail,
     StepTitle,
     TEXTAREA_CLASS,
 } from "./ui";
+import { useIsDesktop } from "./useIsDesktop";
 
 /** The same expression convex/ownerIntake.ts re-checks against. Kept identical
  *  on purpose: an address that passes here and fails there is a dead end the
@@ -138,6 +140,9 @@ function messageFor(error: unknown): string {
 
 export default function StartPage() {
     const router = useRouter();
+    /** The one layout difference CSS cannot make: step 2 is one question per
+     *  screen on a phone and all eight at once on a desk. See useIsDesktop. */
+    const isDesktop = useIsDesktop();
     const submitOwnerIntake = useMutation(api.ownerIntake.submitOwnerIntake);
     // Unchanged, and called with no submissionId — the impl accepts the field
     // and ignores it (convex/r2.ts:109-142), and there is no submission yet.
@@ -345,6 +350,18 @@ export default function StartPage() {
     const question = INTAKE_QUESTIONS[questionIndex] ?? INTAKE_QUESTIONS[0];
     const answer = answers[question.key] ?? "";
     const answerOk = meetsAnswerMinimum(question, answer);
+    /** The desktop gate for step 2, and the box to send the owner to when it is
+     *  not clear. The same meetsAnswerMinimum the phone uses, run over all eight
+     *  questions instead of the one on screen — so the ~2-sentence floor on the
+     *  two load-bearing answers holds identically on both layouts, and neither
+     *  can let through an intake submitOwnerIntake would reject.
+     *
+     *  `undefined` means every question clears its floor. Nothing is silently
+     *  disabled on the desk layout: with eight boxes on screen the form has to
+     *  say WHICH one is holding it up, so Continue stays live and jumps there. */
+    const firstShortQuestion = INTAKE_QUESTIONS.find(
+        (entry) => !meetsAnswerMinimum(entry, answers[entry.key] ?? ""),
+    );
     const slots = visibleSlots(!!hasProducts);
     const photosOk = hasProducts !== null && requiredSlotsFilled(photos, hasProducts) && uploadingIndex === null;
 
@@ -357,7 +374,9 @@ export default function StartPage() {
             return;
         }
         if (step === 2) {
-            if (questionIndex > 0) {
+            // On the desk layout all eight questions are already on screen, so
+            // there is no previous question to step back to — only step 1.
+            if (!isDesktop && questionIndex > 0) {
                 patch((previous) => ({ ...previous, questionIndex: previous.questionIndex - 1 }));
                 return;
             }
@@ -365,6 +384,11 @@ export default function StartPage() {
             return;
         }
         if (step === 3) {
+            // Back into the interview lands on the LAST question on a phone,
+            // where that is the one the owner just left. On a desk the whole
+            // list comes back at once, so the index means nothing — but it is
+            // still reset, so a window dragged narrow mid-form reopens on the
+            // last question rather than somewhere arbitrary.
             patch((previous) => ({ ...previous, step: 2, questionIndex: INTAKE_QUESTIONS.length - 1 }));
             return;
         }
@@ -381,6 +405,20 @@ export default function StartPage() {
     };
 
     const handleAnswerContinue = () => {
+        if (isDesktop) {
+            // Not disabled, unlike the phone button. With eight boxes on screen
+            // a dead button is a puzzle; instead the press takes the owner to
+            // the box that is holding it up, which already carries its own
+            // "X of about 80 characters so far" line.
+            if (firstShortQuestion) {
+                const field = document.getElementById(`answer-${firstShortQuestion.key}`);
+                field?.scrollIntoView({ behavior: "smooth", block: "center" });
+                (field as HTMLTextAreaElement | null)?.focus({ preventScroll: true });
+                return;
+            }
+            goToStep(3);
+            return;
+        }
         if (!answerOk) return;
         if (questionIndex < INTAKE_QUESTIONS.length - 1) {
             patch((previous) => ({ ...previous, questionIndex: previous.questionIndex + 1 }));
@@ -398,7 +436,28 @@ export default function StartPage() {
                 backLabel={step === 1 ? "Back to Tendso" : "Back"}
             />
 
-            <main className="mx-auto w-full max-w-xl flex-1 px-5 pb-10 pt-8">
+            {/* Below `lg` this pair of wrappers is inert — a flex column inside a
+                flex column — and the form is exactly the phone form it was. From
+                `lg` the outer one becomes the desk row (rail + content) and the
+                inner one the content column that the now-unpinned action bar
+                sits at the bottom of. The inner column keeps `flex-1` on both,
+                so a short step still pushes the sticky phone bar to the bottom
+                of the viewport. */}
+            <div className="flex flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-6xl lg:flex-row lg:items-start lg:gap-16 lg:px-10 lg:pt-14">
+                <StepRail
+                    step={step}
+                    onBack={handleBack}
+                    backLabel={step === 1 ? "Back to Tendso" : "Back"}
+                    priceNote={
+                        <>
+                            We build the site first and email it to you. You only pay once it&apos;s live —{" "}
+                            {formatPHP(total)} {wantsCustomDomain ? "with your own .com." : "one time."}
+                        </>
+                    }
+                />
+
+                <div className="flex w-full min-w-0 flex-1 flex-col">
+                    <main className="mx-auto w-full max-w-xl flex-1 px-5 pb-10 pt-8 lg:mx-0 lg:max-w-2xl lg:px-0 lg:pb-0 lg:pt-0">
                 {/* ── Step 1 — business basics ─────────────────────────────── */}
                 {step === 1 && (
                     <>
@@ -408,14 +467,20 @@ export default function StartPage() {
                             lede="This is what goes on the page — the name, the address, and how customers reach you."
                         />
 
+                        {/* One column on a phone. On a desk, a two-column grid the
+                            short fields pair up in — a 672px column of full-width
+                            boxes for a name, a type and a postcode is a phone form
+                            stretched, not a desk form. The two fields that carry a
+                            whole line of prose keep the full width via `wide`. */}
                         <form
-                            className="flex flex-col gap-5"
+                            className="flex flex-col gap-5 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-5 lg:gap-y-6"
                             onSubmit={(event) => {
                                 event.preventDefault();
                                 handleBasicsContinue();
                             }}
                         >
                             <Field
+                                wide
                                 label="Business name"
                                 htmlFor="businessName"
                                 error={showBasicsErrors ? basicsErrors.businessName : undefined}
@@ -513,6 +578,7 @@ export default function StartPage() {
                             </Field>
 
                             <Field
+                                wide
                                 label="Street address"
                                 htmlFor="address"
                                 error={showBasicsErrors ? basicsErrors.address : undefined}
@@ -544,7 +610,11 @@ export default function StartPage() {
                                 />
                             </Field>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            {/* `lg:contents` dissolves this wrapper on a desk so
+                                Barangay and Province become cells of the form grid
+                                itself, rather than two half-width boxes squeezed
+                                inside one cell of it. */}
+                            <div className="grid grid-cols-2 gap-4 lg:contents">
                                 <Field label="Barangay" htmlFor="barangay" optional>
                                     <input
                                         id="barangay"
@@ -578,7 +648,7 @@ export default function StartPage() {
                                 />
                             </Field>
 
-                            <div className="rounded-xl border border-ink/10 bg-khaki-deep p-4">
+                            <div className="rounded-xl border border-ink/10 bg-khaki-deep p-4 lg:col-span-2 lg:mt-1">
                                 <p className="text-sm font-semibold text-ink">Pin your shop on the map</p>
                                 <p className="mt-1 text-[13px] leading-snug text-ink-soft">
                                     Optional. Tap this while you&apos;re standing at the shop and the map on your
@@ -611,8 +681,87 @@ export default function StartPage() {
                     </>
                 )}
 
-                {/* ── Step 2 — the interview, one question per screen ───────── */}
-                {step === 2 && (
+                {/* ── Step 2 — the interview ───────────────────────────────────
+                    One question per screen on a phone, all eight at once on a
+                    desk. The ONLY place the two layouts diverge structurally,
+                    and the reason useIsDesktop exists at all: eight textareas
+                    rendered twice would be eight duplicate ids bound to the
+                    same draft keys.
+
+                    Both paths write the same `answers` keys through the same
+                    `patch`, and both gate on meetsAnswerMinimum — the phone on
+                    the question in hand, the desk on all eight. Neither can let
+                    through an intake submitOwnerIntake would reject. ────────── */}
+                {step === 2 && isDesktop && (
+                    <>
+                        <StepTitle
+                            eyebrow={`${INTAKE_QUESTIONS.length} questions`}
+                            title="Now tell us about the place."
+                            lede="Answer in your own words — Taglish is fine. Nobody sees this except us; we turn your answers into the words on your site."
+                        />
+
+                        <div className="flex flex-col gap-8">
+                            {INTAKE_QUESTIONS.map((entry, index) => {
+                                const value = answers[entry.key] ?? "";
+                                const ok = meetsAnswerMinimum(entry, value);
+                                return (
+                                    <div key={entry.key} className="flex flex-col gap-2">
+                                        <label
+                                            htmlFor={`answer-${entry.key}`}
+                                            className="flex gap-3 text-base font-semibold text-ink"
+                                        >
+                                            <span
+                                                aria-hidden
+                                                className="mt-0.5 font-mono text-[11px] font-semibold text-ink-soft/60"
+                                            >
+                                                {String(index + 1).padStart(2, "0")}
+                                            </span>
+                                            <span>{entry.q}</span>
+                                        </label>
+                                        <p className="ml-[1.9rem] text-[13px] leading-snug text-ink-soft">
+                                            {entry.hint}
+                                        </p>
+                                        <div className="ml-[1.9rem]">
+                                            <textarea
+                                                id={`answer-${entry.key}`}
+                                                className={TEXTAREA_CLASS}
+                                                placeholder="Type it the way you'd say it out loud."
+                                                value={value}
+                                                onChange={(event) =>
+                                                    patch((previous) => ({
+                                                        ...previous,
+                                                        answers: {
+                                                            ...previous.answers,
+                                                            [entry.key]: event.target.value,
+                                                        },
+                                                    }))
+                                                }
+                                            />
+                                            {/* The same two sentences the phone shows,
+                                                per box — a counter has to sit beside
+                                                the field it is counting when eight of
+                                                them are on screen at once. */}
+                                            {!ok && entry.minChars ? (
+                                                <p className="mt-2 text-[13px] leading-snug text-ink-soft">
+                                                    A couple of sentences, please — {value.trim().length} of
+                                                    about {entry.minChars} characters so far.
+                                                </p>
+                                            ) : null}
+                                            {!ok && !entry.minChars ? (
+                                                <p className="mt-2 text-[13px] leading-snug text-ink-soft">
+                                                    One line is enough — we just can&apos;t leave this one
+                                                    blank.
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </>
+                )}
+
+                {step === 2 && !isDesktop && (
                     <>
                         <StepTitle
                             eyebrow={`Question ${questionIndex + 1} of ${INTAKE_QUESTIONS.length}`}
@@ -678,7 +827,7 @@ export default function StartPage() {
                             <p className="mt-1 text-[13px] leading-snug text-ink-soft">
                                 Things on a shelf — not a service like a haircut or a repair.
                             </p>
-                            <div className="mt-4 grid grid-cols-2 gap-3">
+                            <div className="mt-4 grid grid-cols-2 gap-3 lg:max-w-md">
                                 {[
                                     { value: true, label: "Yes, we sell things" },
                                     { value: false, label: "No, we do a service" },
@@ -705,8 +854,12 @@ export default function StartPage() {
                         </div>
 
                         {hasProducts !== null && (
-                            <div className="flex flex-col gap-4">
-                                {photoError ? <Notice>{photoError}</Notice> : null}
+                            <div className="flex flex-col gap-4 lg:grid lg:grid-cols-2 lg:items-start">
+                                {photoError ? (
+                                    <div className="lg:col-span-2">
+                                        <Notice>{photoError}</Notice>
+                                    </div>
+                                ) : null}
 
                                 {slots.map((slot) => {
                                     const url = photos[slot.index];
@@ -789,7 +942,7 @@ export default function StartPage() {
                                     );
                                 })}
 
-                                <p className="text-[13px] leading-relaxed text-ink-soft">
+                                <p className="text-[13px] leading-relaxed text-ink-soft lg:col-span-2">
                                     JPG or PNG, up to 10MB each. Landscape shots work best.
                                 </p>
                             </div>
@@ -857,7 +1010,7 @@ export default function StartPage() {
                                                 key={slot.role}
                                                 src={url}
                                                 alt={slot.label}
-                                                className="h-20 w-20 rounded-lg object-cover"
+                                                className="h-20 w-20 rounded-lg object-cover lg:h-24 lg:w-24"
                                             />
                                         );
                                     })}
@@ -881,7 +1034,7 @@ export default function StartPage() {
                                     your own .com, we can register one for your shop.
                                 </p>
 
-                                <div className="mt-4 flex flex-col gap-3">
+                                <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:items-start">
                                     {[
                                         {
                                             value: false,
@@ -1005,12 +1158,18 @@ export default function StartPage() {
                     </PrimaryButton>
                 )}
 
-                {step === 2 && (
-                    <PrimaryButton onClick={handleAnswerContinue} disabled={!answerOk}>
-                        {question.optional && answer.trim().length === 0 ? "Skip this one" : "Next"}{" "}
-                        <span aria-hidden>→</span>
-                    </PrimaryButton>
-                )}
+                {step === 2 &&
+                    (isDesktop ? (
+                        // Deliberately never disabled — see handleAnswerContinue.
+                        <PrimaryButton onClick={handleAnswerContinue}>
+                            Continue <span aria-hidden>→</span>
+                        </PrimaryButton>
+                    ) : (
+                        <PrimaryButton onClick={handleAnswerContinue} disabled={!answerOk}>
+                            {question.optional && answer.trim().length === 0 ? "Skip this one" : "Next"}{" "}
+                            <span aria-hidden>→</span>
+                        </PrimaryButton>
+                    ))}
 
                 {step === 3 && (
                     <PrimaryButton onClick={() => goToStep(4)} disabled={!photosOk}>
@@ -1034,9 +1193,14 @@ export default function StartPage() {
                         </PrimaryButton>
                     </>
                 )}
-            </ActionBar>
+                    </ActionBar>
+                </div>
+            </div>
 
-            <footer className="border-t border-ink/10 px-5 py-5 text-center">
+            {/* Phone only: on the desk layout the rail already carries this link,
+                and a second copy across the bottom of a 1440px page is just a
+                rule under an empty band. */}
+            <footer className="border-t border-ink/10 px-5 py-5 text-center lg:hidden">
                 <p className="text-[13px] text-ink-soft">
                     Questions first?{" "}
                     {/* Deep-links to the explanation itself rather than the top of
