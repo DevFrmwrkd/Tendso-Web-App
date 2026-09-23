@@ -34,7 +34,9 @@ import {
  * Tendso app and the web signup is being retired, so sending a viewer to a form
  * they should not be filling in is a dead end dressed as a next step. On a phone
  * it opens that phone's store directly; on a desktop, where neither store can be
- * installed from, it opens the explainer page instead.
+ * installed from, it opens /for-creators at its app section — the current pitch,
+ * which ends in the same download. Not /for-field-agents: that is the older
+ * recruitment page, and it is behind the login wall besides.
  *
  * IT CARRIES NO CAMPAIGN EITHER, only its source. A field agent buys nothing, so
  * a discount cannot apply to them and a link implying one would be a promise
@@ -144,7 +146,7 @@ export default function OtrPage() {
             : platform === "ios"
               ? iosUrl ?? null
               : null;
-    const earnHref = storeUrl ?? `/for-field-agents?${tag}`;
+    const earnHref = storeUrl ?? `/for-creators?${tag}#app`;
     const earnIsStore = storeUrl !== null;
 
     return (
