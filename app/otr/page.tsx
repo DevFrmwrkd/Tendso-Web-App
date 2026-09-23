@@ -7,12 +7,7 @@ import { useQuery } from "convex/react";
 
 import { api } from "@/convex/_generated/api";
 import { campaignFromLocation, rememberCampaign } from "@/lib/campaign";
-import {
-    BASE_PRICE,
-    CUSTOM_DOMAIN_ADDON,
-    campaignSellPrice,
-    formatPHP,
-} from "@/lib/pricing";
+import { BASE_PRICE, campaignSellPrice, formatPHP } from "@/lib/pricing";
 
 /**
  * Where an Off The Record viewer lands after scanning the QR code.
@@ -66,7 +61,6 @@ const FALLBACK_CODE = "OTR30";
 const DEFAULT_SOURCE = "qr";
 
 const websitePrice = campaignSellPrice(CAMPAIGN);
-const domainPrice = websitePrice + CUSTOM_DOMAIN_ADDON;
 
 /**
  * Photos from the shoot, added after Thursday.
@@ -127,9 +121,10 @@ export default function OtrPage() {
         rememberCampaign(CAMPAIGN, tag);
     }, []);
 
-    // Optional and hidden when unset, so it does not block the page going live.
-    // Set it in the admin settings once the account exists.
+    // Both optional and both hidden when unset, so neither blocks the page going
+    // live. Set them in the admin settings once the accounts exist.
     const chatUrl = useQuery(api.settings.get, { key: "otr_chat_url" }) as string | null | undefined;
+    const logoUrl = useQuery(api.settings.get, { key: "otr_logo_url" }) as string | null | undefined;
     const playUrl = useQuery(api.settings.get, { key: "play_store_url" }) as string | null | undefined;
     const iosUrl = useQuery(api.settings.get, { key: "app_store_url" }) as string | null | undefined;
 
@@ -151,22 +146,60 @@ export default function OtrPage() {
     return (
         <main className="min-h-dvh bg-khaki text-ink">
             <div className="mx-auto w-full max-w-lg px-5 pb-16 pt-8 lg:max-w-6xl lg:px-10 lg:pb-24 lg:pt-14">
-                {/* The collaboration lockup, as one drawn mark rather than two
-                    logos and a divider arranged to look like one. It is the
-                    masthead rather than a header strip: somebody who has just
-                    scanned a code off a television checks they are in the right
-                    place before reading anything, and this is what tells them.
-                    Sized so the lettering inside stays legible — at header
-                    height those words would be six pixels tall. */}
-                <header>
+                <header className="flex items-center gap-3">
+                    {/* The file is white lettering with alpha, drawn for the dark
+                        footer. On this cream ground it renders as very nearly
+                        nothing — brightness(0) keeps the lettering's shape and
+                        drops its colour to black, the same treatment the booking
+                        page uses. */}
                     <Image
-                        src="/tendso-x-otr.png"
-                        alt="Tendso x Off The Record"
-                        width={1599}
-                        height={587}
+                        src="/tendso-logo.png"
+                        alt="Tendso"
+                        width={104}
+                        height={28}
                         priority
-                        className="h-auto w-[230px] lg:w-[330px]"
+                        className="h-7 w-auto lg:h-8"
+                        style={{ filter: "brightness(0)" }}
                     />
+                    {/* A collaboration lockup, not two logos sharing a line.
+                        The x is what tells a viewer this offer comes from the
+                        show they were just watching, which is the only reason
+                        they trust the discount at all. */}
+                    <span
+                        aria-hidden
+                        className="px-0.5 text-lg font-semibold leading-none text-ink-soft lg:text-xl"
+                    >
+                        x
+                    </span>
+                    {/* The mark plus its name. The mark is abstract enough that
+                        somebody who has not watched the show would not read it
+                        as OTR on its own, and this is the one line telling them
+                        they are in the right place. The settings key stays as an
+                        override, so the logo can be changed without a deploy. */}
+                    <span className="flex items-center gap-2" role="img" aria-label="Off The Record">
+                        {logoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={logoUrl} alt="" className="h-5 w-auto lg:h-6" />
+                        ) : (
+                            // The mark on its own, with the name spelled out
+                            // beside it. The channel's own lockup is white on a
+                            // solid black square, which on this cream ground
+                            // reads as a sticker laid over the page, and
+                            // rebuilding its "OTR" in type said less than the
+                            // words do.
+                            <Image
+                                src="/otr-mark.png"
+                                alt=""
+                                width={459}
+                                height={504}
+                                priority
+                                className="h-5 w-auto lg:h-6"
+                            />
+                        )}
+                        <span className="font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.18em] text-ink-soft">
+                            Off The Record
+                        </span>
+                    </span>
                 </header>
 
                 {/* One column on a phone, two on a desk. The offer keeps the left
@@ -271,23 +304,17 @@ export default function OtrPage() {
                                         </span>
                                     </dd>
                                 </div>
-                                <div className="flex items-baseline justify-between gap-4">
-                                    <dt className="text-ink-soft">
-                                        With your own .com
-                                        <span className="block text-xs lg:text-sm">
-                                            The domain is bought at cost, so the discount does not
-                                            apply to it.
-                                        </span>
-                                    </dt>
-                                    <dd className="whitespace-nowrap font-semibold tabular-nums">
-                                        {formatPHP(domainPrice)}
-                                    </dd>
-                                </div>
                             </dl>
+                            {/* The custom domain is deliberately NOT sold here. It
+                                is an option with a yearly renewal behind it, and
+                                putting that on the page somebody reads five
+                                seconds after scanning a code turns one clear
+                                price into two prices and a caveat. The choice,
+                                and the renewal it carries, are on the form where
+                                it is actually made. */}
                             <p className="mt-4 text-xs leading-relaxed text-ink-soft lg:mt-5 lg:text-sm">
-                                A domain is from {formatPHP(CUSTOM_DOMAIN_ADDON)} and we pay the
-                                first year. After that it renews at around ₱1,120 a year and stays
-                                yours to renew or drop. The website itself never renews.
+                                Paid once, after your website is live. Nothing to pay today, and no
+                                monthly fees ever.
                             </p>
                         </section>
 
