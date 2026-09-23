@@ -167,7 +167,13 @@ export default function OtrPage() {
                         className="h-7 w-auto lg:h-8"
                         style={{ filter: "brightness(0)" }}
                     />
-                    <span aria-hidden className="h-5 w-px bg-ink/15" />
+                    {/* A collaboration lockup, not two logos sharing a line.
+                        The x is what tells a viewer this offer comes from the
+                        show they were just watching, which is the only reason
+                        they trust the discount at all. */}
+                    <span aria-hidden className="text-[13px] font-medium text-ink-soft">
+                        x
+                    </span>
                     {/* The mark plus its name. The mark is abstract enough that
                         somebody who has not watched the show would not read it
                         as OTR on its own, and this is the one line telling them
