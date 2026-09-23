@@ -48,6 +48,12 @@ const isPublicRoute = createRouteMatcher([
     // Without this entry the redirect below sends them to /login and the funnel
     // has no entrance at all.
     '/start(.*)',
+    // The Off The Record landing page. Public for the same reason /start is,
+    // and more urgently: its address is printed on a QR code in an episode and
+    // on posters in shops, so it can never be changed. Without this entry every
+    // scan lands on /login, which is exactly what happened the first time this
+    // page was served locally.
+    '/otr(.*)',
     // Serves the /start desktop map picker, which decides where the map opens
     // from the address the owner typed. Public for the same reason /start is:
     // there is no account, so there is no session to authenticate. The handler
