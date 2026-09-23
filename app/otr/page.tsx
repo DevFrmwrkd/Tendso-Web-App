@@ -171,7 +171,7 @@ export default function OtrPage() {
                         The x is what tells a viewer this offer comes from the
                         show they were just watching, which is the only reason
                         they trust the discount at all. */}
-                    <span aria-hidden className="text-[13px] font-medium text-ink-soft">
+                    <span aria-hidden className="px-0.5 text-lg font-semibold text-ink-soft lg:text-xl">
                         x
                     </span>
                     {/* The mark plus its name. The mark is abstract enough that
