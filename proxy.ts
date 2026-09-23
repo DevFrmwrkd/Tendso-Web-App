@@ -17,9 +17,26 @@ const isPublicRoute = createRouteMatcher([
     '/about(.*)',
     // New NEO LAB landing surface — fully public, no Clerk gate.
     '/for-creators(.*)',
+    // The field-agent recruitment page, public for the same reason: it exists to
+    // be shown to people who have no account and are deciding whether to want
+    // one. It has been redirecting to /login since it was written, so every link
+    // to it — in a video description, a Discord post, a message — has been
+    // landing on a sign-in form.
+    '/for-field-agents(.*)',
     // The 10-minute call booking page. Public on purpose: the people booking
     // it have no account yet — that call is how they get one.
     '/field-agent(.*)',
+    // The payment page a business owner opens from their payment email.
+    //
+    // THIS WAS THE WORST ONE. lib/payment/config.ts builds every payment link as
+    // SITE_URL + /pay/<token>, and the owner it is sent to has no account and
+    // never will — so the link mailed at the end of every sale was answering
+    // with a sign-in form. Verified against production before this line existed.
+    //
+    // The token in the path IS the credential, exactly as on the booking manage
+    // page: paymentTokens.getByToken takes it and nothing else. Making the route
+    // public grants no read that was not already reachable with the token.
+    '/pay/(.*)',
     // /for-business has no page any more: next.config redirects it 308 → `/`.
     // next.config redirects run BEFORE the proxy, so this entry is belt and
     // braces — but if that ever stops holding, a signed-out visitor arriving
