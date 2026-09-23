@@ -153,6 +153,11 @@ export default function OtrPage() {
         <main className="min-h-dvh bg-khaki text-ink">
             <div className="mx-auto w-full max-w-lg px-5 pb-16 pt-8 lg:max-w-6xl lg:px-10 lg:pb-24 lg:pt-14">
                 <header className="flex items-center gap-3">
+                    {/* The file is white lettering with alpha, drawn for the dark
+                        footer. On this cream ground it renders as very nearly
+                        nothing — brightness(0) keeps the lettering's shape and
+                        drops its colour to black, the same treatment the booking
+                        page uses. */}
                     <Image
                         src="/tendso-logo.png"
                         alt="Tendso"
@@ -160,6 +165,7 @@ export default function OtrPage() {
                         height={28}
                         priority
                         className="h-7 w-auto lg:h-8"
+                        style={{ filter: "brightness(0)" }}
                     />
                     <span aria-hidden className="h-5 w-px bg-ink/15" />
                     {logoUrl ? (
