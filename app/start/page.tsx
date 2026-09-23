@@ -26,6 +26,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useAction, useMutation } from "convex/react";
 import { ConvexError } from "convex/values";
@@ -138,6 +139,30 @@ function messageFor(error: unknown): string {
     return "Something went wrong on our side. Nothing you typed was lost — please try again in a moment.";
 }
 
+/**
+ * The desktop map picker, loaded the way components/landing/ShowcaseSection.tsx
+ * loads LiveMap: `ssr: false`, because Leaflet reaches for `window` the moment
+ * it is imported. The component ALSO defers `import("leaflet")` into its own
+ * effect, which is belt and braces on purpose — that is the pattern LiveMap
+ * already established, and the one thing worse than two guards here is none.
+ *
+ * It is referenced only inside `isDesktop`, so a phone never pays for the
+ * chunk: the import is what pulls it, and on a phone the import never runs.
+ */
+const MapPicker = dynamic(() => import("./MapPicker"), {
+    ssr: false,
+    // Renders in place of <MapPicker/>, which the call site has already put
+    // inside its own `mt-4` wrapper — so no margin here, or the map jumps down
+    // the moment it loads.
+    loading: () => (
+        <div className="flex h-[19rem] w-full items-center justify-center rounded-xl border border-ink/15 bg-khaki-deep">
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
+                Loading map…
+            </span>
+        </div>
+    ),
+});
+
 export default function StartPage() {
     const router = useRouter();
     /** The one layout difference CSS cannot make: step 2 is one question per
@@ -198,6 +223,16 @@ export default function StartPage() {
     );
 
     const basicsErrors = useMemo(() => (draft ? validateBasics(draft.basics) : {}), [draft]);
+
+    /** What the desktop map writes. The same field requestLocation writes, so
+     *  the two ways of answering "where is the shop" cannot diverge — and `null`
+     *  is a real answer here, because the map can take a pin back. */
+    const setCoordinates = useCallback(
+        (next: { lat: number; lng: number } | null) =>
+            patch((previous) => ({ ...previous, coordinates: next })),
+        [patch],
+    );
+
 
     const requestLocation = useCallback(() => {
         // Optional and unblocking. When it works, lib/astro-builder.ts:309 skips
@@ -363,6 +398,17 @@ export default function StartPage() {
         (entry) => !meetsAnswerMinimum(entry, answers[entry.key] ?? ""),
     );
     const slots = visibleSlots(!!hasProducts);
+    /** Only ever used to decide where the desktop map OPENS — never to place the
+     *  pin. ", Philippines" is appended because Nominatim will otherwise happily
+     *  match a Rizal St. on the other side of the world. Not memoised, and it
+     *  does not need to be: it is a string, so an unchanged address produces an
+     *  equal value and MapPicker's geocode effect does not re-run. */
+    const mapAddress = (() => {
+        const parts = [basics.address, basics.barangay, basics.city, basics.province]
+            .map((part) => part.trim())
+            .filter(Boolean);
+        return parts.length > 0 ? `${parts.join(", ")}, Philippines` : "";
+    })();
     const photosOk = hasProducts !== null && requiredSlotsFilled(photos, hasProducts) && uploadingIndex === null;
 
     const handleBack = () => {
@@ -651,31 +697,57 @@ export default function StartPage() {
                             <div className="rounded-xl border border-ink/10 bg-khaki-deep p-4 lg:col-span-2 lg:mt-1">
                                 <p className="text-sm font-semibold text-ink">Pin your shop on the map</p>
                                 <p className="mt-1 text-[13px] leading-snug text-ink-soft">
-                                    Optional. Tap this while you&apos;re standing at the shop and the map on your
-                                    site lands on the right spot.
+                                    {isDesktop
+                                        ? "Optional, and worth the ten seconds — the pin you place here is the spot the map on your finished site points at."
+                                        : "Optional. Tap this while you're standing at the shop and the map on your site lands on the right spot."}
                                 </p>
-                                {draft.coordinates ? (
-                                    <p className="mt-3 inline-flex items-center gap-2 text-[13px] font-semibold text-ink">
-                                        <span aria-hidden style={{ color: "var(--rust)" }}>
-                                            ✓
-                                        </span>
-                                        Location saved
-                                    </p>
+
+                                {/* A PHONE ASKS; A DESK POINTS. The geolocation button
+                                    below is honest on a phone — the owner is standing
+                                    in the shop and the handset has GPS. On a desk
+                                    getCurrentPosition resolves from wifi and IP, so it
+                                    would report the ISP's idea of where they are and
+                                    tick "Location saved" over it. That pin ships to the
+                                    finished site and nobody checks it again, so the
+                                    desk layout drops the button entirely and hands over
+                                    a map instead. Both write the same
+                                    draft.coordinates. */}
+                                {isDesktop ? (
+                                    <div className="mt-4">
+                                        <MapPicker
+                                            value={draft.coordinates}
+                                            onChange={setCoordinates}
+                                            address={mapAddress}
+                                        />
+                                    </div>
                                 ) : (
-                                    <button
-                                        type="button"
-                                        onClick={requestLocation}
-                                        disabled={geoStatus === "asking"}
-                                        className="mt-3 inline-flex h-11 items-center justify-center rounded-lg border border-ink/15 bg-white px-4 text-sm font-semibold text-ink transition-colors hover:border-ink/35 disabled:opacity-50"
-                                    >
-                                        {geoStatus === "asking" ? "Waiting for your phone…" : "Use my current location"}
-                                    </button>
+                                    <>
+                                        {draft.coordinates ? (
+                                            <p className="mt-3 inline-flex items-center gap-2 text-[13px] font-semibold text-ink">
+                                                <span aria-hidden style={{ color: "var(--rust)" }}>
+                                                    ✓
+                                                </span>
+                                                Location saved
+                                            </p>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={requestLocation}
+                                                disabled={geoStatus === "asking"}
+                                                className="mt-3 inline-flex h-11 items-center justify-center rounded-lg border border-ink/15 bg-white px-4 text-sm font-semibold text-ink transition-colors hover:border-ink/35 disabled:opacity-50"
+                                            >
+                                                {geoStatus === "asking"
+                                                    ? "Waiting for your phone…"
+                                                    : "Use my current location"}
+                                            </button>
+                                        )}
+                                        {geoStatus === "denied" ? (
+                                            <p className="mt-2 text-[13px] text-ink-soft">
+                                                No problem — we&apos;ll find you from the address instead.
+                                            </p>
+                                        ) : null}
+                                    </>
                                 )}
-                                {geoStatus === "denied" ? (
-                                    <p className="mt-2 text-[13px] text-ink-soft">
-                                        No problem — we&apos;ll find you from the address instead.
-                                    </p>
-                                ) : null}
                             </div>
                         </form>
                     </>
