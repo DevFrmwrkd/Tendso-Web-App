@@ -48,6 +48,12 @@ const isPublicRoute = createRouteMatcher([
     // Without this entry the redirect below sends them to /login and the funnel
     // has no entrance at all.
     '/start(.*)',
+    // Serves the /start desktop map picker, which decides where the map opens
+    // from the address the owner typed. Public for the same reason /start is:
+    // there is no account, so there is no session to authenticate. The handler
+    // rate-limits by IP instead — it is the only open route that reaches a
+    // third party (Nominatim), so the limit is its actual protection.
+    '/api/geocode',
     // Called server-to-server from Convex (internal.submissions.transcribeMedia)
     // using the X-Internal-Secret header for auth — no Clerk cookie present.
     // The route handler enforces either a valid Clerk session OR a matching
