@@ -127,10 +127,9 @@ export default function OtrPage() {
         rememberCampaign(CAMPAIGN, tag);
     }, []);
 
-    // Both optional and both hidden when unset, so neither blocks the page going
-    // live. Set them in the admin settings once the accounts exist.
+    // Optional and hidden when unset, so it does not block the page going live.
+    // Set it in the admin settings once the account exists.
     const chatUrl = useQuery(api.settings.get, { key: "otr_chat_url" }) as string | null | undefined;
-    const logoUrl = useQuery(api.settings.get, { key: "otr_logo_url" }) as string | null | undefined;
     const playUrl = useQuery(api.settings.get, { key: "play_store_url" }) as string | null | undefined;
     const iosUrl = useQuery(api.settings.get, { key: "app_store_url" }) as string | null | undefined;
 
@@ -152,60 +151,22 @@ export default function OtrPage() {
     return (
         <main className="min-h-dvh bg-khaki text-ink">
             <div className="mx-auto w-full max-w-lg px-5 pb-16 pt-8 lg:max-w-6xl lg:px-10 lg:pb-24 lg:pt-14">
-                <header className="flex items-center gap-3">
-                    {/* The file is white lettering with alpha, drawn for the dark
-                        footer. On this cream ground it renders as very nearly
-                        nothing — brightness(0) keeps the lettering's shape and
-                        drops its colour to black, the same treatment the booking
-                        page uses. */}
+                {/* The collaboration lockup, as one drawn mark rather than two
+                    logos and a divider arranged to look like one. It is the
+                    masthead rather than a header strip: somebody who has just
+                    scanned a code off a television checks they are in the right
+                    place before reading anything, and this is what tells them.
+                    Sized so the lettering inside stays legible — at header
+                    height those words would be six pixels tall. */}
+                <header>
                     <Image
-                        src="/tendso-logo.png"
-                        alt="Tendso"
-                        width={104}
-                        height={28}
+                        src="/tendso-x-otr.png"
+                        alt="Tendso x Off The Record"
+                        width={1599}
+                        height={587}
                         priority
-                        className="h-7 w-auto lg:h-8"
-                        style={{ filter: "brightness(0)" }}
+                        className="h-auto w-[230px] lg:w-[330px]"
                     />
-                    {/* A collaboration lockup, not two logos sharing a line.
-                        The x is what tells a viewer this offer comes from the
-                        show they were just watching, which is the only reason
-                        they trust the discount at all. */}
-                    <span
-                        aria-hidden
-                        className="px-0.5 text-lg font-semibold leading-none text-ink-soft lg:text-xl"
-                    >
-                        x
-                    </span>
-                    {/* The mark plus its name. The mark is abstract enough that
-                        somebody who has not watched the show would not read it
-                        as OTR on its own, and this is the one line telling them
-                        they are in the right place. The settings key stays as an
-                        override, so the logo can be changed without a deploy. */}
-                    <span className="flex items-center gap-2" role="img" aria-label="Off The Record">
-                        {logoUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={logoUrl} alt="" className="h-5 w-auto lg:h-6" />
-                        ) : (
-                            // The mark on its own, with the name spelled out
-                            // beside it. The channel's own lockup is white on a
-                            // solid black square, which on this cream ground
-                            // reads as a sticker laid over the page, and
-                            // rebuilding its "OTR" in type said less than the
-                            // words do.
-                            <Image
-                                src="/otr-mark.png"
-                                alt=""
-                                width={459}
-                                height={504}
-                                priority
-                                className="h-5 w-auto lg:h-6"
-                            />
-                        )}
-                        <span className="font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.18em] text-ink-soft">
-                            Off The Record
-                        </span>
-                    </span>
                 </header>
 
                 {/* One column on a phone, two on a desk. The offer keeps the left
