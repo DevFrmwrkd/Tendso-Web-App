@@ -43,6 +43,7 @@ import {
     ownerTotal,
 } from "@/lib/pricing";
 import { campaignFromLocation, readCampaign, rememberCampaign } from "@/lib/campaign";
+import VoiceAnswer from "./VoiceAnswer";
 
 import {
     clearDraft,
@@ -425,6 +426,23 @@ export default function StartPage() {
                 <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">Loading…</span>
             </main>
         );
+    }
+
+
+    /**
+     * Merge a spoken answer into whatever is already in the box.
+     *
+     * Appended, never substituted: a second recording extends the answer, and
+     * nothing the owner typed is thrown away by a tap they cannot undo.
+     */
+    function appendAnswer(key: (typeof INTAKE_QUESTIONS)[number]["key"], text: string) {
+        patch((previous) => {
+            const existing = (previous.answers[key] ?? "").trim();
+            return {
+                ...previous,
+                answers: { ...previous.answers, [key]: existing ? `${existing} ${text}` : text },
+            };
+        });
     }
 
     const { basics, answers, photos, hasProducts, wantsCustomDomain, requestedDomain } = draft;
@@ -865,6 +883,11 @@ export default function StartPage() {
                                                     }))
                                                 }
                                             />
+                                            <VoiceAnswer
+                                                questionKey={entry.key}
+                                                onText={(text) => appendAnswer(entry.key, text)}
+                                                disabled={submitting}
+                                            />
                                             {/* The same two sentences the phone shows,
                                                 per box — a counter has to sit beside
                                                 the field it is counting when eight of
@@ -908,6 +931,11 @@ export default function StartPage() {
                                     answers: { ...previous.answers, [question.key]: event.target.value },
                                 }))
                             }
+                        />
+                        <VoiceAnswer
+                            questionKey={question.key}
+                            onText={(text) => appendAnswer(question.key, text)}
+                            disabled={submitting}
                         />
 
                         {/* The ~2-sentence floor on the two load-bearing answers is
