@@ -17,16 +17,25 @@ import {
 /**
  * Where an Off The Record viewer lands after scanning the QR code.
  *
- * BUILT FOR ONE MOMENT: a phone, on mobile data, held up to a television, by
- * someone who has just heard about Tendso for the first time and will give it
- * about five seconds. So the offer and the two buttons are above everything
- * else, there is no hero image to wait for, and nothing here blocks the first
- * paint on a network round-trip.
+ * BUILT FOR ONE MOMENT FIRST: a phone, on mobile data, held up to a television,
+ * by someone who has just heard about Tendso and will give it about five
+ * seconds. So the offer and the two buttons come before everything else, there
+ * is no hero image to wait for, and nothing blocks the first paint on a network
+ * round-trip. The desk layout is the same page in two columns, not a different
+ * one — the offer stays on the left where reading starts, and what you pay moves
+ * up beside it instead of below the fold.
  *
  * THE DISCOUNT IS NEVER TYPED. Landing here stores the campaign for thirty days
- * and the buttons carry it in their links, so the form quotes the lower price on
+ * and the Get-my-website link carries it, so the form quotes the lower price on
  * its own. The code is printed small for the one case that breaks: a different
  * phone, or site data cleared between watching and deciding.
+ *
+ * THE EARN BUTTON CARRIES NO CAMPAIGN, only its source. A field agent buys
+ * nothing, so a discount cannot apply to them and a link implying one would be a
+ * promise with nothing behind it. The source still rides along, because which
+ * placement produces agents is worth as much as which produces sales — and if
+ * they later decide they want a website too, the remembered campaign still
+ * gives them the thirty percent.
  *
  * THE PRICE HERE IS A PROMISE, NOT A CALCULATION. Everything shown comes from
  * lib/pricing, and the server re-derives the real amount at submit from the
@@ -55,9 +64,13 @@ const domainPrice = websitePrice + CUSTOM_DOMAIN_ADDON;
  */
 const PROOF: Array<{ src: string; alt: string; caption: string }> = [];
 
+const STEPS = [
+    "Tell us about your shop and send a few photos. About ten minutes, on your phone.",
+    "We build your website and email it to you within 48 to 72 hours.",
+    `You pay ${formatPHP(websitePrice)} only after you have seen it live.`,
+];
+
 export default function OtrPage() {
-    // Stamped on mount rather than during render: it touches storage and the
-    // URL, and it must happen even for someone who never taps a button.
     const [source, setSource] = useState<string>(DEFAULT_SOURCE);
     useEffect(() => {
         const found = campaignFromLocation();
@@ -75,17 +88,26 @@ export default function OtrPage() {
     const chatUrl = useQuery(api.settings.get, { key: "otr_chat_url" }) as string | null | undefined;
     const logoUrl = useQuery(api.settings.get, { key: "otr_logo_url" }) as string | null | undefined;
 
-    const withSource = (path: string) => `${path}?campaign=${CAMPAIGN}&src=${encodeURIComponent(source)}`;
+    const tag = `src=${encodeURIComponent(source)}`;
+    const buyHref = `/start?campaign=${CAMPAIGN}&${tag}`;
+    const earnHref = `/for-field-agents?${tag}`;
 
     return (
         <main className="min-h-dvh bg-khaki text-ink">
-            <div className="mx-auto w-full max-w-lg px-5 pb-16 pt-8">
+            <div className="mx-auto w-full max-w-lg px-5 pb-16 pt-8 lg:max-w-6xl lg:px-10 lg:pb-24 lg:pt-14">
                 <header className="flex items-center gap-3">
-                    <Image src="/tendso-logo.png" alt="Tendso" width={104} height={28} priority className="h-7 w-auto" />
+                    <Image
+                        src="/tendso-logo.png"
+                        alt="Tendso"
+                        width={104}
+                        height={28}
+                        priority
+                        className="h-7 w-auto lg:h-8"
+                    />
                     <span aria-hidden className="h-5 w-px bg-ink/15" />
                     {logoUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={logoUrl} alt="Off The Record" className="h-7 w-auto" />
+                        <img src={logoUrl} alt="Off The Record" className="h-7 w-auto lg:h-8" />
                     ) : (
                         <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
                             Off The Record
@@ -93,113 +115,145 @@ export default function OtrPage() {
                     )}
                 </header>
 
-                <section className="pt-9">
-                    <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
-                        For OTR viewers
-                    </p>
-                    <h1 className="mt-3 text-[2rem] font-extrabold leading-[1.1] tracking-tight text-balance">
-                        Your business gets a real website for{" "}
-                        <span className="text-rust-soft">30% off</span>.
-                    </h1>
+                {/* One column on a phone, two on a desk. The offer keeps the left
+                    where reading starts; the money detail moves up beside it
+                    rather than sitting a scroll below. */}
+                <div className="lg:grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-start lg:gap-16 lg:pt-6">
+                    <section className="pt-9 lg:pt-0">
+                        <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-ink-soft">
+                            For OTR viewers
+                        </p>
+                        <h1 className="mt-3 text-[2rem] font-extrabold leading-[1.1] tracking-tight text-balance lg:mt-4 lg:text-[3.25rem]">
+                            Your business gets a real website for{" "}
+                            <span className="text-rust-soft">30% off</span>.
+                        </h1>
 
-                    {/* The number they came for, and the number it used to be.
-                        Said once, where the eye lands, not repeated below. */}
-                    <p className="mt-5 flex items-baseline gap-3">
-                        <span className="text-4xl font-extrabold tabular-nums">{formatPHP(websitePrice)}</span>
-                        <span className="text-lg text-ink-soft line-through tabular-nums">{formatPHP(BASE_PRICE)}</span>
-                    </p>
-                    <p className="mt-2 text-sm leading-relaxed text-ink-soft">
-                        Paid once, after your website is live. No monthly fees. Your discount is already
-                        applied — nothing to type.
-                    </p>
+                        {/* The number they came for, and the number it used to
+                            be. Said once, where the eye lands. */}
+                        <p className="mt-5 flex items-baseline gap-3 lg:mt-7">
+                            <span className="text-4xl font-extrabold tabular-nums lg:text-6xl">
+                                {formatPHP(websitePrice)}
+                            </span>
+                            <span className="text-lg text-ink-soft line-through tabular-nums lg:text-2xl">
+                                {formatPHP(BASE_PRICE)}
+                            </span>
+                        </p>
+                        <p className="mt-2 max-w-prose text-sm leading-relaxed text-ink-soft lg:mt-3 lg:text-base">
+                            Paid once, after your website is live. No monthly fees. Your discount is
+                            already applied — nothing to type.
+                        </p>
 
-                    <div className="mt-7 flex flex-col gap-3">
-                        <Link
-                            href={withSource("/start")}
-                            className="rounded-xl bg-ink px-5 py-4 text-center text-base font-bold text-khaki transition-colors hover:bg-ink-soft"
-                        >
-                            Get my website — {formatPHP(websitePrice)}
-                        </Link>
-                        <Link
-                            href={withSource("/for-field-agents")}
-                            className="rounded-xl border border-ink/15 bg-white px-5 py-4 text-center text-base font-bold text-ink transition-colors hover:border-ink/40"
-                        >
-                            Earn with my smartphone
-                        </Link>
-                    </div>
-
-                    <p className="mt-3 text-xs text-ink-soft">
-                        Discount code {FALLBACK_CODE}, if you ever need to enter it by hand.
-                    </p>
-                </section>
-
-                <section className="mt-10 rounded-2xl border border-ink/10 bg-white p-5">
-                    <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                        What you pay
-                    </h2>
-                    <dl className="mt-4 space-y-3 text-sm">
-                        <div className="flex items-baseline justify-between gap-4">
-                            <dt className="font-semibold">Your website</dt>
-                            <dd className="tabular-nums">
-                                <span className="font-bold">{formatPHP(websitePrice)}</span>{" "}
-                                <span className="text-ink-soft line-through">{formatPHP(BASE_PRICE)}</span>
-                            </dd>
+                        <div className="mt-7 flex flex-col gap-3 lg:mt-9 lg:flex-row lg:gap-4">
+                            <Link
+                                href={buyHref}
+                                className="rounded-xl bg-ink px-5 py-4 text-center text-base font-bold text-khaki transition-colors hover:bg-ink-soft lg:px-7 lg:py-5 lg:text-lg"
+                            >
+                                Get my website — {formatPHP(websitePrice)}
+                            </Link>
+                            <Link
+                                href={earnHref}
+                                className="rounded-xl border border-ink/15 bg-white px-5 py-4 text-center text-base font-bold text-ink transition-colors hover:border-ink/40 lg:px-7 lg:py-5 lg:text-lg"
+                            >
+                                Earn with my smartphone
+                            </Link>
                         </div>
-                        <div className="flex items-baseline justify-between gap-4">
-                            <dt className="text-ink-soft">
-                                With your own .com
-                                <span className="block text-xs">The domain is bought at cost, so the discount does not apply to it.</span>
-                            </dt>
-                            <dd className="whitespace-nowrap font-semibold tabular-nums">{formatPHP(domainPrice)}</dd>
-                        </div>
-                    </dl>
-                    <p className="mt-4 text-xs leading-relaxed text-ink-soft">
-                        A domain is from {formatPHP(CUSTOM_DOMAIN_ADDON)} and we pay the first year. After
-                        that it renews at around ₱1,120 a year and stays yours to renew or drop. The website
-                        itself never renews.
-                    </p>
-                </section>
 
-                {PROOF.length > 0 && (
-                    <section className="mt-10">
-                        <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                            Shops already on Tendso
-                        </h2>
-                        <div className="mt-4 grid grid-cols-2 gap-3">
-                            {PROOF.map((photo) => (
-                                <figure key={photo.src} className="overflow-hidden rounded-xl border border-ink/10 bg-white">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={photo.src} alt={photo.alt} loading="lazy" className="aspect-[4/3] w-full object-cover" />
-                                    <figcaption className="px-3 py-2 text-xs text-ink-soft">{photo.caption}</figcaption>
-                                </figure>
-                            ))}
-                        </div>
+                        <p className="mt-3 text-xs text-ink-soft lg:mt-4 lg:text-sm">
+                            Discount code {FALLBACK_CODE}, if you ever need to enter it by hand. It
+                            applies to the website, not to the Earn side — that one costs nothing to
+                            join.
+                        </p>
+
+                        {chatUrl && (
+                            <a
+                                href={chatUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-6 inline-flex rounded-xl border border-ink/15 bg-white px-5 py-3 text-sm font-semibold text-ink hover:border-ink/40"
+                            >
+                                Message us — we answer in Tagalog
+                            </a>
+                        )}
+
+                        <section className="mt-10 space-y-3 lg:mt-12">
+                            <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
+                                How it works
+                            </h2>
+                            <ol className="max-w-prose space-y-2 text-sm leading-relaxed text-ink-soft lg:text-base">
+                                {STEPS.map((step, index) => (
+                                    <li key={step}>
+                                        {index + 1}. {step}
+                                    </li>
+                                ))}
+                            </ol>
+                        </section>
                     </section>
-                )}
 
-                <section className="mt-10 space-y-3">
-                    <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                        How it works
-                    </h2>
-                    <ol className="space-y-2 text-sm leading-relaxed text-ink-soft">
-                        <li>1. Tell us about your shop and send a few photos. About ten minutes, on your phone.</li>
-                        <li>2. We build your website and email it to you within 48 to 72 hours.</li>
-                        <li>3. You pay {formatPHP(websitePrice)} only after you have seen it live.</li>
-                    </ol>
-                </section>
+                    <div className="lg:sticky lg:top-10">
+                        <section className="mt-10 rounded-2xl border border-ink/10 bg-white p-5 lg:mt-0 lg:p-7">
+                            <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
+                                What you pay
+                            </h2>
+                            <dl className="mt-4 space-y-3 text-sm lg:mt-5 lg:space-y-4 lg:text-base">
+                                <div className="flex items-baseline justify-between gap-4">
+                                    <dt className="font-semibold">Your website</dt>
+                                    <dd className="whitespace-nowrap tabular-nums">
+                                        <span className="font-bold">{formatPHP(websitePrice)}</span>{" "}
+                                        <span className="text-ink-soft line-through">
+                                            {formatPHP(BASE_PRICE)}
+                                        </span>
+                                    </dd>
+                                </div>
+                                <div className="flex items-baseline justify-between gap-4">
+                                    <dt className="text-ink-soft">
+                                        With your own .com
+                                        <span className="block text-xs lg:text-sm">
+                                            The domain is bought at cost, so the discount does not
+                                            apply to it.
+                                        </span>
+                                    </dt>
+                                    <dd className="whitespace-nowrap font-semibold tabular-nums">
+                                        {formatPHP(domainPrice)}
+                                    </dd>
+                                </div>
+                            </dl>
+                            <p className="mt-4 text-xs leading-relaxed text-ink-soft lg:mt-5 lg:text-sm">
+                                A domain is from {formatPHP(CUSTOM_DOMAIN_ADDON)} and we pay the
+                                first year. After that it renews at around ₱1,120 a year and stays
+                                yours to renew or drop. The website itself never renews.
+                            </p>
+                        </section>
 
-                {chatUrl && (
-                    <a
-                        href={chatUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="mt-10 flex items-center justify-center rounded-xl border border-ink/15 bg-white px-5 py-4 text-center text-sm font-semibold text-ink"
-                    >
-                        Message us — we answer in Tagalog
-                    </a>
-                )}
+                        {PROOF.length > 0 && (
+                            <section className="mt-10 lg:mt-8">
+                                <h2 className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
+                                    Shops already on Tendso
+                                </h2>
+                                <div className="mt-4 grid grid-cols-2 gap-3">
+                                    {PROOF.map((photo) => (
+                                        <figure
+                                            key={photo.src}
+                                            className="overflow-hidden rounded-xl border border-ink/10 bg-white"
+                                        >
+                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                            <img
+                                                src={photo.src}
+                                                alt={photo.alt}
+                                                loading="lazy"
+                                                className="aspect-[4/3] w-full object-cover"
+                                            />
+                                            <figcaption className="px-3 py-2 text-xs text-ink-soft">
+                                                {photo.caption}
+                                            </figcaption>
+                                        </figure>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+                    </div>
+                </div>
 
-                <p className="mt-10 text-xs text-ink-soft">
+                <p className="mt-10 text-xs text-ink-soft lg:mt-16 lg:text-sm">
                     Tendso builds websites for Philippine small businesses.{" "}
                     <Link href="/" className="underline">
                         See more
