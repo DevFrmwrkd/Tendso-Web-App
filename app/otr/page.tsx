@@ -171,7 +171,10 @@ export default function OtrPage() {
                         The x is what tells a viewer this offer comes from the
                         show they were just watching, which is the only reason
                         they trust the discount at all. */}
-                    <span aria-hidden className="px-0.5 text-lg font-semibold text-ink-soft lg:text-xl">
+                    <span
+                        aria-hidden
+                        className="px-0.5 text-lg font-semibold leading-none text-ink-soft lg:text-xl"
+                    >
                         x
                     </span>
                     {/* The mark plus its name. The mark is abstract enough that
@@ -182,7 +185,7 @@ export default function OtrPage() {
                     <span className="flex items-center gap-2" role="img" aria-label="Off The Record">
                         {logoUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={logoUrl} alt="" className="h-6 w-auto lg:h-7" />
+                            <img src={logoUrl} alt="" className="h-5 w-auto lg:h-6" />
                         ) : (
                             // The mark on its own, with the name spelled out
                             // beside it. The channel's own lockup is white on a
@@ -196,10 +199,10 @@ export default function OtrPage() {
                                 width={459}
                                 height={504}
                                 priority
-                                className="h-6 w-auto lg:h-7"
+                                className="h-5 w-auto lg:h-6"
                             />
                         )}
-                        <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-ink-soft">
+                        <span className="font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.18em] text-ink-soft">
                             Off The Record
                         </span>
                     </span>
