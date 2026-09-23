@@ -208,19 +208,37 @@ export function clearDraft(): void {
     }
 }
 
-export function rememberSubmittedEmail(email: string): void {
+/** What the thanks page needs to repeat back: where we will write, and what we
+ *  said it costs. The amount is the total the form quoted, discount and domain
+ *  included, rather than anything the next page re-derives. */
+export interface SubmittedReceipt {
+    email: string;
+    amount: number | null;
+}
+
+export function rememberSubmitted(email: string, amount: number): void {
     if (typeof window === "undefined") return;
     try {
-        window.sessionStorage.setItem(RECEIPT_KEY, email);
+        window.sessionStorage.setItem(RECEIPT_KEY, JSON.stringify({ email, amount }));
     } catch {
         /* the thanks page falls back to generic copy */
     }
 }
 
-export function readSubmittedEmail(): string | null {
+export function readSubmitted(): SubmittedReceipt | null {
     if (typeof window === "undefined") return null;
     try {
-        return window.sessionStorage.getItem(RECEIPT_KEY);
+        const raw = window.sessionStorage.getItem(RECEIPT_KEY);
+        if (!raw) return null;
+        // A receipt written by the previous build is a bare email string. Someone
+        // can be mid-submission across a deploy, so read that shape too.
+        if (!raw.startsWith("{")) return { email: raw, amount: null };
+        const parsed = JSON.parse(raw) as Partial<SubmittedReceipt>;
+        if (typeof parsed?.email !== "string") return null;
+        return {
+            email: parsed.email,
+            amount: typeof parsed.amount === "number" ? parsed.amount : null,
+        };
     } catch {
         return null;
     }

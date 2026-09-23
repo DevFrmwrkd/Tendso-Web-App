@@ -22,8 +22,8 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 
-import { BASE_PRICE, formatPHP } from "@/lib/pricing";
-import { readSubmittedEmail } from "../draft";
+import { formatPHP } from "@/lib/pricing";
+import { readSubmitted } from "../draft";
 
 /** sessionStorage is written once, on the page before this one, and never
  *  changes underneath us — so there is nothing to subscribe to. */
@@ -34,7 +34,13 @@ const noSubscription = () => () => {};
 const noServerValue = () => null;
 
 export default function StartThanksPage() {
-    const email = useSyncExternalStore(noSubscription, readSubmittedEmail, noServerValue);
+    const receipt = useSyncExternalStore(noSubscription, readSubmitted, noServerValue);
+    const email = receipt?.email ?? null;
+    // What the form actually quoted, campaign and domain included. Null only for
+    // a receipt written before amounts were kept — and saying the wrong number to
+    // somebody who was just promised a discount is worse than saying none, so the
+    // sentence drops the figure rather than guessing it.
+    const amount = receipt?.amount ?? null;
 
     return (
         <main className="flex min-h-screen flex-col bg-khaki text-ink">
@@ -60,7 +66,7 @@ export default function StartThanksPage() {
                 <p className="mt-5 text-[17px] leading-relaxed text-ink-soft">
                     We&apos;ll build it and email you at{" "}
                     <strong className="font-semibold text-ink">{email ?? "the address you gave us"}</strong> within
-                    48–72 hours with your site and how to pay {formatPHP(BASE_PRICE)}.
+                    48–72 hours with your site{amount === null ? " and how to pay" : ` and how to pay ${formatPHP(amount)}`}.
                 </p>
 
                 <div className="mt-8 rounded-2xl border border-ink/10 bg-khaki-deep p-5">
