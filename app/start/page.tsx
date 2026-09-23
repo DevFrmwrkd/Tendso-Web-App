@@ -884,7 +884,6 @@ export default function StartPage() {
                                                 }
                                             />
                                             <VoiceAnswer
-                                                questionKey={entry.key}
                                                 onText={(text) => appendAnswer(entry.key, text)}
                                                 disabled={submitting}
                                             />
@@ -933,7 +932,6 @@ export default function StartPage() {
                             }
                         />
                         <VoiceAnswer
-                            questionKey={question.key}
                             onText={(text) => appendAnswer(question.key, text)}
                             disabled={submitting}
                         />

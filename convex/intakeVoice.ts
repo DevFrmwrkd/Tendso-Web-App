@@ -15,38 +15,35 @@ import { action } from './_generated/server';
  * on a phone, and a typed answer from that keyboard is short in a way that has
  * nothing to do with how much they have to say. Talking gets the real answer.
  *
- * UNAUTHENTICATED AND IT COSTS MONEY, so the input is fenced rather than
- * trusted:
+ * NOTHING IS STORED. The recording is posted straight through to the
+ * transcription service and never lands in a bucket: the text is the only thing
+ * this app wants, and keeping a voice recording of a shop owner because it was
+ * convenient to upload it is not a good enough reason to keep one. It rides in
+ * the request as base64 — two minutes of speech is well under a megabyte, and
+ * the round-trip through storage bought nothing but a file to delete later.
  *
- *   - the URL must sit under our own R2 public prefix, so the audio is something
- *     that came through our signed upload and not an arbitrary address this
- *     action would happily fetch on a stranger's behalf,
- *   - it must be under the audio folder,
- *   - and the file has a hard size ceiling, which is also the only duration
- *     limit that can be enforced before paying for the transcription.
- *
- * None of that makes it free to abuse. It makes abuse cost an upload first, and
- * keeps this from being a general-purpose fetcher pointed at anything.
+ * UNAUTHENTICATED AND IT COSTS MONEY, so the one thing that can be checked
+ * before paying for a transcription is checked: the size. That is also the only
+ * duration limit enforceable up front, and the recorder stops itself at two
+ * minutes to stay inside it. Without a stored object to point at there is no
+ * ownership to verify, so this is a deliberate trade: no recordings kept, in
+ * exchange for an endpoint whose only gate is how much it will listen to.
  */
 
-/** Two minutes of speech at the bitrate a browser records, with room to spare. */
-const MAX_AUDIO_BYTES = 6 * 1024 * 1024;
+/** Roughly two and a half minutes of browser-recorded speech, base64 encoded. */
+const MAX_BASE64_CHARS = 1_400_000;
 
 const GROQ_TRANSCRIBE_MODEL = process.env.GROQ_TRANSCRIBE_MODEL || 'whisper-large-v3';
 
 export const transcribeAnswer = action({
-    args: { audioUrl: v.string() },
-    handler: async (_ctx, { audioUrl }): Promise<{ ok: boolean; text?: string; error?: string }> => {
-        const prefix = (process.env.R2_PUBLIC_URL || '').replace(/\/$/, '');
-        if (!prefix) return { ok: false, error: 'Recording is not configured.' };
-
-        // Both checks are on the URL as given, before anything is fetched.
-        if (!audioUrl.startsWith(`${prefix}/`)) {
-            return { ok: false, error: 'That recording is not one of ours.' };
-        }
-        const path = audioUrl.slice(prefix.length + 1);
-        if (!path.startsWith('audio/') || path.includes('..')) {
-            return { ok: false, error: 'That recording is not one of ours.' };
+    args: { audioBase64: v.string(), mimeType: v.optional(v.string()) },
+    handler: async (
+        _ctx,
+        { audioBase64, mimeType },
+    ): Promise<{ ok: boolean; text?: string; error?: string }> => {
+        if (!audioBase64) return { ok: false, error: 'We did not catch anything. Try again.' };
+        if (audioBase64.length > MAX_BASE64_CHARS) {
+            return { ok: false, error: 'That recording is too long. Try a shorter answer.' };
         }
 
         const apiKey = process.env.GROQ_API_KEY;
@@ -54,25 +51,26 @@ export const transcribeAnswer = action({
 
         let audio: Blob;
         try {
-            const res = await fetch(audioUrl);
-            if (!res.ok) return { ok: false, error: 'We could not read that recording.' };
-            // Length first where the CDN gives one, so an oversized file is
-            // refused before it is pulled into memory.
-            const declared = Number(res.headers.get('content-length') ?? '0');
-            if (declared > MAX_AUDIO_BYTES) {
-                return { ok: false, error: 'That recording is too long. Try a shorter answer.' };
-            }
-            audio = await res.blob();
-            if (audio.size > MAX_AUDIO_BYTES) {
-                return { ok: false, error: 'That recording is too long. Try a shorter answer.' };
-            }
+            const binary = atob(audioBase64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            audio = new Blob([bytes], { type: mimeType || 'audio/webm' });
         } catch {
             return { ok: false, error: 'We could not read that recording.' };
         }
 
         try {
             const form = new FormData();
-            form.append('file', audio, path.split('/').pop() || 'answer.webm');
+            // The extension matters to the service: it reads the container from
+            // the filename, and a mislabelled one is rejected before decoding.
+            const extension = (mimeType || '').includes('mp4')
+                ? 'mp4'
+                : (mimeType || '').includes('ogg')
+                  ? 'ogg'
+                  : (mimeType || '').includes('wav')
+                    ? 'wav'
+                    : 'webm';
+            form.append('file', audio, `answer.${extension}`);
             form.append('model', GROQ_TRANSCRIBE_MODEL);
             form.append('response_format', 'json');
             // No language is set on purpose. These answers come out as Taglish,
