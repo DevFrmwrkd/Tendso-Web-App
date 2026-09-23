@@ -18,9 +18,10 @@ import { api } from "@/convex/_generated/api";
  * in the box, so a second recording extends the answer and nothing anyone typed
  * is ever thrown away by a tap.
  *
- * THE RECORDING IS ONLY A CARRIER. It goes to R2 exactly like the photos on the
- * next step, is transcribed, and is never stored on the submission — the text is
- * what we keep.
+ * THE RECORDING IS NEVER KEPT. It goes straight to the transcription action in
+ * the request itself and is dropped the moment the words come back. Nothing is
+ * uploaded, so there is no file of somebody's voice sitting in a bucket waiting
+ * for a reason to be deleted.
  */
 
 /** Long enough for a full answer, short enough to stay inside the size ceiling
@@ -30,16 +31,13 @@ const MAX_SECONDS = 120;
 type Phase = "idle" | "recording" | "working";
 
 export default function VoiceAnswer({
-    questionKey,
     onText,
     disabled,
 }: {
-    questionKey: string;
     /** Called with the transcript. The caller decides how to merge it. */
     onText: (text: string) => void;
     disabled?: boolean;
 }) {
-    const generateUploadUrl = useAction(api.r2.generateUploadUrl);
     const transcribe = useAction(api.intakeVoice.transcribeAnswer);
 
     const [phase, setPhase] = useState<Phase>("idle");
@@ -63,22 +61,26 @@ export default function VoiceAnswer({
         };
     }, []);
 
+    /** The blob as base64, without the data: prefix the reader adds. */
+    function toBase64(blob: Blob): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error("read failed"));
+            reader.onload = () => {
+                const result = String(reader.result ?? "");
+                resolve(result.slice(result.indexOf(",") + 1));
+            };
+            reader.readAsDataURL(blob);
+        });
+    }
+
     async function handleStop(blob: Blob) {
         setPhase("working");
         try {
-            const { uploadUrl, publicUrl } = await generateUploadUrl({
-                mediaType: "audio",
-                contentType: blob.type || "audio/webm",
-                fileName: `intake-${questionKey}-${Date.now()}.webm`,
+            const result = await transcribe({
+                audioBase64: await toBase64(blob),
+                mimeType: blob.type || "audio/webm",
             });
-            const put = await fetch(uploadUrl, {
-                method: "PUT",
-                headers: { "Content-Type": blob.type || "audio/webm" },
-                body: blob,
-            });
-            if (!put.ok) throw new Error(`upload ${put.status}`);
-
-            const result = await transcribe({ audioUrl: publicUrl });
             if (!result.ok || !result.text) {
                 setError(result.error ?? "That did not work. Please try again.");
             } else {
