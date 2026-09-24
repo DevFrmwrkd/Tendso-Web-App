@@ -113,14 +113,15 @@
 
   /* header */
   header.bar{position:sticky;top:0;z-index:60;background:rgba(17,18,19,.94);backdrop-filter:blur(10px);border-bottom:2px solid var(--rust)}
-  .bar-in{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:62px}
-  .brand{display:flex;align-items:center;gap:13px;color:var(--ink)}
+  /* stretch, not center: the nav and the action are full-height columns. */
+  .bar-in{display:flex;align-items:stretch;justify-content:space-between;gap:16px;min-height:62px}
+  .brand{display:flex;align-items:center;gap:13px;padding-block:16px;color:var(--ink)}
   .mark{width:22px;height:22px;background:var(--rust);clip-path:polygon(0 0,100% 0,100% 70%,70% 100%,0 100%);flex:none}
   .bn{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
   .links{display:flex;align-items:stretch}
   .links a{display:inline-flex;align-items:center;padding:0 16px;font-family:var(--disp);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--stone)}
   .links a:hover{color:var(--rust)}
-  .links .barcta{margin-left:12px;min-height:40px;padding:10px 20px;background:var(--rust);color:var(--on-stone);border:1px solid var(--rust)}
+  .links .barcta{margin-left:12px;padding:15px 26px;background:var(--rust);color:var(--on-stone);border:1px solid var(--rust)}
   @media (max-width:860px){.links a:not(.barcta){display:none}}
 
   /* hero */
