@@ -102,6 +102,9 @@ const TEMPLATES = [
     { letter: 'as', dir: V4_SOURCE_DIR, file: 'lp-07-services.html',   label: 'Labaná Laundry & Press'    },
     { letter: 'at', dir: V4_SOURCE_DIR, file: 'lp-08-education.html',  label: 'Talíno Learning Studio'    },
     { letter: 'au', dir: V4_SOURCE_DIR, file: 'lp-09-trades.html',     label: 'Volt & Line Electrical'    },
+    // v03, continued — a second trades design for shops that MAKE metal
+    // rather than service it (the batch's lp-06 is a dispatch trade).
+    { letter: 'bq', dir: V03_SOURCE_DIR, file: 'lp-09-fabrication.html', label: 'Bakal Fabrication Works' },
 ];
 
 function sanitize(html, label) {

@@ -64,6 +64,8 @@
  *   "hospitality:BJ" → Kubo Stays · rooms in an owner-hosted house
  *   "hospitality:BK" → Villa Marindu · a whole private villa, night + brass
  *
+ *   "trades:BQ"      → Bakal Fabrication Works · steel fabrication, welding & metal shops
+ *
  * Each PageX wrapper produces the full document (its own doctype, theme,
  * fonts, leaflet boot) so they do not compose with BaseLayout.
  */
@@ -120,6 +122,7 @@ import PageAR from '../components/fitness/PageAR.astro';
 import PageAS from '../components/services/PageAS.astro';
 import PageAT from '../components/education/PageAT.astro';
 import PageAU from '../components/trades/PageAU.astro';
+import PageBQ from '../components/trades/PageBQ.astro';
 import PageAV from '../components/layouts/PageAV.astro';
 import PageAW from '../components/layouts/PageAW.astro';
 import PageAX from '../components/layouts/PageAX.astro';
@@ -178,7 +181,7 @@ const fitnessMatch = /^fitness:(AI|AR)$/.exec(heroStyle);
 const fitnessLetter = fitnessMatch ? fitnessMatch[1] : null;
 const educationMatch = /^education:(AJ|AT)$/.exec(heroStyle);
 const educationLetter = educationMatch ? educationMatch[1] : null;
-const tradesMatch = /^trades:(AK|AU)$/.exec(heroStyle);
+const tradesMatch = /^trades:(AK|AU|BQ)$/.exec(heroStyle);
 const tradesLetter = tradesMatch ? tradesMatch[1] : null;
 const foodcraftMatch = /^foodcraft:(AL|BL|BM|BN|BO)$/.exec(heroStyle);
 const foodcraftLetter = foodcraftMatch ? foodcraftMatch[1] : null;
@@ -254,6 +257,7 @@ const anyLetter = genericLetter || barbershopLetter || salonspaLetter
 {layoutsLetter === 'BA' && <PageBA siteData={data} />}
 {educationLetter === 'AT' && <PageAT siteData={data} />}
 {tradesLetter === 'AU' && <PageAU siteData={data} />}
+{tradesLetter === 'BQ' && <PageBQ siteData={data} />}
 {filipinoLetter === 'BB' && <PageBB siteData={data} />}
 {filipinoLetter === 'BC' && <PageBC siteData={data} />}
 {filipinoLetter === 'BD' && <PageBD siteData={data} />}

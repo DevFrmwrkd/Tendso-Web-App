@@ -1,0 +1,140 @@
+---
+/**
+ * trades / HeroBQ — the opening plate. An eyebrow, the giant stacked headline,
+ * a hairline, then the lede and the two actions side by side; below it the
+ * design's SHEARED PHOTO BAND — a full-bleed frame cut off-square with a
+ * clip-path polygon, carrying the locality chip in its corner.
+ *
+ * The section is class="masthead", never "hero": buildOverrideCss pins
+ * `.hero .btn-ghost{color:#FFF!important;border-color:rgba(255,255,255,.55)!important}`
+ * and `.hero .btn-primary:hover{...}`, both written for a photographic hero
+ * with a dark scrim. This hero is type on the sheet, and the pins would strand
+ * the outline button's border at 55% white over a near-black ground.
+ *
+ * EDITABLE HOOKS
+ *   hero.kicker              the eyebrow
+ *   hero.headlineLines.N     one line per row (set:html, so an owner's own
+ *                            <span class="soft"> emphasis survives)
+ *   hero.sub                 the lede
+ *   hero.cta1 / hero.cta2    text + href
+ *   hero.image               the sheared band's photo (data-image-field)
+ *   footer.locality          the corner chip
+ *
+ * NEVER FABRICATED: no headline, lede, button label or chip is invented; each
+ * is guarded from OUTSIDE its own tag so an empty value removes the element
+ * rather than leaving an empty one. THE SHEARED BAND IS OMITTED ENTIRELY when
+ * the owner supplied no photo — a designed empty frame at the top of the page
+ * is the single most expensive-looking piece of nothing a template can ship,
+ * and the fold still holds without it.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+
+// Anchor guard — see the long note in HeaderBQ. Kept identical in every sibling.
+const PAGE_ANCHORS = new Set(['main', 'shop', 'jobs', 'why', 'work', 'process', 'reviews', 'visit', 'coverage', 'faq', 'quote']);
+const ANCHOR_ALIAS: Record<string, string> = {
+  about: 'shop', services: 'jobs', gallery: 'work', how: 'process',
+  testimonials: 'reviews', location: 'visit', contact: 'visit', area: 'coverage',
+  reserve: 'quote', book: 'quote',
+};
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+
+const hero = content.hero || {};
+const kicker = hero.kicker || '';
+const headlineLines: string[] = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = onPage(hero.cta1?.href, '#visit');
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = onPage(hero.cta2?.href, '#jobs');
+const image = hero.image || '';
+const locality = (content as any).footer?.locality || '';
+const hasCopy = Boolean(kicker || headlineLines.length > 0 || sub || cta1Text || cta2Text);
+---
+{(hasCopy || image) && (
+<section class="masthead" aria-label="Introduction">
+  {hasCopy && (
+    <div class="wrap mh-copy">
+      {kicker && <span class="kick" data-field="hero.kicker">{kicker}</span>}
+      {headlineLines.length > 0 && (
+        <h1 class="giant">
+          {headlineLines.map((line: string, i: number) => (
+            <span data-field={`hero.headlineLines.${i}`} set:html={line}></span>
+          ))}
+        </h1>
+      )}
+      {(sub || cta1Text || cta2Text) && (
+        <div class="mh-foot">
+          {sub && <p class="lede" data-field="hero.sub">{sub}</p>}
+          {(cta1Text || cta2Text) && (
+            <div class="mh-actions">
+              {cta1Text && <a href={cta1Href} class="btn btn--fill" rel="noopener" data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+              {cta2Text && <a href={cta2Href} class="btn btn--line" rel="noopener" data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )}
+  {image && (
+    <div class="mh-band">
+      <div class="plate mh-plate">
+        <div class="ph" data-image-field="hero.image" style={`background-image:url('${image}');`}></div>
+        {locality && <span class="cap mh-chip" data-field="footer.locality">{locality}</span>}
+      </div>
+    </div>
+  )}
+</section>
+)}
+<style>
+  .masthead { padding-top: clamp(38px, 5.5vw, 64px); }
+  .mh-copy { display: flex; flex-direction: column; gap: clamp(18px, 2.4vw, 28px); padding-bottom: clamp(30px, 4vw, 40px); }
+  /* The giant is its own size curve, well above the shared .h2 ramp — it is the
+     one place in the template where type is the image. */
+  .giant {
+    font-family: var(--disp); font-weight: 700;
+    font-size: clamp(50px, 11.5vw, 190px); line-height: .88;
+    letter-spacing: -.015em; text-transform: uppercase; margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .giant > span { display: block; }
+  /* The design tints its last headline line. An owner writing
+     <span class="soft"> in any line gets the same treatment, which is why the
+     lines are fed with set:html. :global is required — set:html children never
+     receive Astro's scoping attribute. */
+  .giant :global(.soft) { color: var(--ink-soft); }
+  .giant :global(em) { font-style: normal; color: var(--accent); }
+  .mh-foot {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 32px; align-items: end;
+    border-top: 1px solid var(--line); padding-top: 26px;
+  }
+  .mh-foot .lede { max-width: 52ch; }
+  .mh-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
+  @media (max-width: 860px) {
+    .mh-foot { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+    .mh-actions { justify-content: flex-start; }
+  }
+
+  /* THE SHEARED BAND. The plate is cut off-square, exactly as drawn. The angle
+     is a vw unit so the cut keeps its slope at every width; it is capped on
+     small screens because at 360px a 6vw shear eats the photo. */
+  .mh-band { padding: 0; }
+  .mh-plate {
+    height: 58vh; min-height: 360px; border: 0;
+    clip-path: polygon(0 0, 100% 6vw, 100% 100%, 0 100%);
+  }
+  .mh-chip { left: auto; right: 0; }
+  @media (max-width: 760px) {
+    .mh-plate { height: 42vh; min-height: 250px; clip-path: polygon(0 0, 100% 4vw, 100% 100%, 0 100%); }
+  }
+</style>

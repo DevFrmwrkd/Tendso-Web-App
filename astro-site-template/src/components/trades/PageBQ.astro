@@ -1,0 +1,521 @@
+---
+/**
+ * trades / PageBQ — "Bakal Fabrication Works" (steel fabrication, welding,
+ * metal shops).
+ *
+ * Near-black sheet, bone-white type, one hazard orange-red and a stone band.
+ * Oswald condensed uppercase over Source Sans 3. The design's three signatures:
+ *
+ *   1. THE ANGLED CUT. The hero photo band and the closing band are sheared
+ *      with clip-path polygons — a plate cut off-square. Nothing else in the
+ *      template is angled, which is what keeps them reading as a cut.
+ *   2. THE JOB SHEET. Services are not cards; they are a ruled spec table
+ *      (Ref, Job, Material, Finish, Lead time). It is the block a fabricator
+ *      actually hands across a counter.
+ *   3. THE STONE BANDS. Two full-bleed inversions on #C9C4B8 (the proof strip
+ *      and the process band) break the dark sheet into three acts.
+ *
+ * ROLE OF THIS FILE: the wrapper emits the WHOLE document (doctype, head,
+ * tokens, fonts, Leaflet boot, skip link, scroll-reveal). It does NOT compose
+ * with BaseLayout. It is the only file in the variant that touches `siteData`;
+ * the 15 section components receive only `layout` + `content`.
+ *
+ * EDITABLE HOOKS OWNED BY THIS FILE: none. PageBQ renders no editable text of
+ * its own — it only READS layout.businessName / layout.tagline (the title),
+ * content.description, layout.favicon and layout.ogImage. Every data-field,
+ * data-image-field and data-href-field hook lives in a section component.
+ * Section visibility is the 13 camelCase `visibility.*` keys below, every one
+ * tested `!== false` (undefined means render).
+ *
+ * THE ONE HARDCODED VISIBLE STRING in the template is the skip link's
+ * "Skip to content". It is an a11y affordance, visible on focus only. Flagged
+ * here so it reads as a decision, not an oversight.
+ *
+ * PROP PLUMBING: every section is handed BOTH `content` and `layout`, even the
+ * ones whose contract lists only content.* keys. Extra props are inert in
+ * Astro, whereas a section reaching for layout.contact.phone with no `layout`
+ * prop throws at build.
+ *
+ * DESIGN ISOLATION: every selector in the global block is prefixed
+ * `html[data-page="BQ"]`, including the reset, body, img, a and ::selection, so
+ * nothing leaks into a sister wrapper built in the same run — and nothing leaks
+ * in. index.astro bundles all wrappers into ONE stylesheet; an unscoped rule
+ * here would repaint every other template in the product.
+ *
+ * THEMING: the native palette is emitted FIRST and the engine's
+ * `html:root{ ... !important}` block LAST in the head, which is the only reason
+ * an explicit admin colour pick wins the cascade. Never move it above the
+ * design's global style block or above the font link.
+ *
+ * FONT-PAIRING SENTINEL (two lines, wrapper-local): lib/astro-builder.ts
+ * defaults `layout.fontPairing` to the literal 'modern', and resolveTheme's
+ * `lockVariant` only blanks ''/'auto'/'default' — so without the sentinel
+ * buildOverrideCss force-swaps Oswald + Source Sans with !important on nearly
+ * every real site and the design never reaches a visitor. astro-builder's
+ * DEFAULT is treated as unset; a deliberate admin pick still applies.
+ *
+ * FORBIDDEN CLASS NAMES in this template (read lib/genericThemeOverrides.ts
+ * before adding a button anywhere):
+ *   .btn-primary .btn-ghost .btn-yellow .btn-light .nav-cta .nav-right
+ *   .testi .cta-band .trust, and `hero` as a class on a section element.
+ * The engine pins those with !important for grounds this design does not have.
+ * The proof strip is .proofstrip, the closing band is .closing and the opening
+ * section is .masthead precisely so those pins cannot reach them. Buttons are
+ * .btn--fill / .btn--line / .linkc (double dash), which dodge
+ * `.btn-primary{color:<on-primary>!important}` — sub-AA in 6 of 13 schemes.
+ *
+ * PALETTE — THE DESIGN IS THE SPECIFICATION. Every value below is lifted from
+ * the source design. One value is NOT the design's: the eyebrow colour on the
+ * stone bands. The design used #A82D12 there, which measures 3.96:1 on
+ * #C9C4B8 — below AA for text that small. It ships as --accent-deep #8C1F08
+ * (5.21:1). That is the single deviation and it changes no layout.
+ *
+ * THE STONE IS NOT --paper-2. --paper-2 is the panel tint the override engine
+ * remaps. #C9C4B8 is its own token, --stone, because it is a full-bleed band
+ * GROUND carrying near-black type; if the engine remapped it, an admin colour
+ * pick could turn it dark and strand every word on it. Same reasoning as
+ * PageBJ's --green. --on-stone is fixed with it, as a pair.
+ *
+ * INVERTED BANDS: a section that wants the stone ground carries BOTH its own
+ * name and `band-stone` (e.g. class="proofstrip band-stone"). That one class
+ * flips the headings, body, eyebrow, hairlines and both button treatments in
+ * this file; a section must not restate them.
+ *
+ * RENDER ORDER: Header, Hero, Trust, About, Services, Why, Gallery, How,
+ * Testimonials, Credentials, Location, Area, Faq, CtaBand, Footer. The job
+ * sheet sits high because on this vertical the question is always "can you
+ * make this, out of what, and by when".
+ *
+ * Leaflet: this wrapper defines window.__tradesBQInitMap (variant-unique) and
+ * LocationBQ calls that exact string. Keep `el.innerHTML = ''` in the boot — it
+ * is what erases the drawn fallback plate — and keep id="map" literal.
+ *
+ * lockVariant: true — only an EXPLICIT admin colour/font pick recolours; the
+ * hand-tuned palette wins by default.
+ */
+import HeaderBQ from './header/HeaderBQ.astro';
+import HeroBQ from './hero/HeroBQ.astro';
+import TrustBQ from './trust/TrustBQ.astro';
+import AboutBQ from './about/AboutBQ.astro';
+import ServicesBQ from './services/ServicesBQ.astro';
+import WhyBQ from './why/WhyBQ.astro';
+import GalleryBQ from './gallery/GalleryBQ.astro';
+import HowBQ from './how/HowBQ.astro';
+import TestimonialsBQ from './testimonials/TestimonialsBQ.astro';
+import CredentialsBQ from './credentials/CredentialsBQ.astro';
+import LocationBQ from './location/LocationBQ.astro';
+import AreaBQ from './area/AreaBQ.astro';
+import FaqBQ from './faq/FaqBQ.astro';
+import CtaBandBQ from './ctaBand/CtaBandBQ.astro';
+import FooterBQ from './footer/FooterBQ.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __resolvedPairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+// 'modern' is astro-builder's DEFAULT, not a choice. Treating it as unset keeps
+// Oswald + Source Sans 3; a deliberate admin pick still applies.
+const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="BQ">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <!-- Browser-chrome tint. A meta tag cannot read a CSS var, so this duplicates
+       the sheet ground token (--paper). -->
+  <meta name="theme-color" content="#111213" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <!-- Native fonts, taken verbatim from the design. Oswald carries every
+       heading, label and figure; Source Sans 3 carries body copy. Always loaded
+       so the variant reads as designed even when the admin never touched the
+       font dropdown. -->
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+
+  <style is:global>
+    /* ═══════════════════════════════════════════════════════════════════════
+       PageBQ · "Bakal Fabrication Works" — trades (steel fabrication, welding).
+       Tokens + shared base primitives. EVERY selector is prefixed
+       html[data-page="BQ"] so nothing leaks into a sister wrapper, or in.
+
+       FIVE LOAD-BEARING FACTS. Do not tidy any of them:
+
+       1. SPECIFICITY. Every appearance-bearing base primitive is wrapped in
+          :where() -> (0,1,1), so an Astro-scoped single-compound section rule
+          (0,2,0) wins. Removing a :where() is the documented cause of every
+          photo frame in a template collapsing to the base height. BELT AND
+          BRACES: sections also size .plate with an INLINE
+          style="aspect-ratio:X" — inline outranks every selector, so the
+          specificity argument never has to be won twice.
+
+       2. BUTTON CLASS NAMES. .btn--fill / .btn--line / .linkc, double dash, on
+          purpose. NEVER use in this template: .btn-primary .btn-ghost
+          .btn-yellow .btn-light .nav-cta .nav-right .testi .cta-band .trust,
+          or class="hero" on a section. See the FORBIDDEN list in the
+          frontmatter for what each engine pin would break here.
+
+       3. HOVER NEVER GOES TRANSPARENT AND NEVER CHANGES HUE. An inset
+          rgba(0,0,0,.18) darkens the fill and paints below the label, so a
+          label can never strand mid-transition. That is the exact trap that
+          has stranded button labels in this product before.
+
+       4. FOCUS. One DUO ring everywhere: a 3px var(--paper) outline inside a
+          6px var(--ink) halo. Built from the ink/paper pair, so it separates on
+          the sheet, on the stone band and on the orange band alike.
+
+       5. HEAD ORDER. This block must be followed by the font link and then, as
+          the LAST node in the head, a global style node fed the override CSS.
+          The engine's html:root{ ... !important} only beats these tokens
+          because it comes later in source order. (Never write a literal closing
+          style or script tag inside this block, comments included — it is a
+          raw-text element, so the parser would end the stylesheet right there.)
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    html[data-page="BQ"] {
+      /* GROUNDS. --paper is the BACKGROUND (the near-black sheet) and --ink is
+         the text on it. The design named its light value "paper"; the generic
+         alias contract this product shares needs --paper to mean the ground, so
+         the two are swapped here and every component reads var(--ink) where the
+         design read its light token. Do not re-swap them. */
+      --paper: #111213;
+      --paper-2: #1D1F22;
+      --paper-3: #0A0B0C;
+      --card: #1D1F22;
+      --ink: #ECEAE4;
+      --ink-soft: #C9C4B8;
+      --muted: #8A867C;
+      --line: #33353A;
+      /* THE HAZARD ORANGE-RED. Ink on it measures 4.91:1. */
+      --accent: #F0421F;
+      --accent-deep: #8C1F08;
+      /* THE STONE. Its own token, never --paper-2: it is a full-bleed band
+         GROUND carrying near-black type. If the engine remapped it, an admin
+         colour pick could turn it dark and strand every word on it. */
+      --stone: #C9C4B8;
+      --on-stone: #111213;
+      --on-stone-soft: #4A4A48;
+      --stone-line: rgba(17,18,19,.18);
+      /* rgb triplets for token-driven tints */
+      --paper-rgb: 17,18,19;
+      --ink-rgb: 236,234,228;
+      --accent-rgb: 240,66,31;
+      --stone-rgb: 201,196,184;
+      /* contrast aliases the override engine and inherited rules expect */
+      --on-ink: #111213;
+      --on-paper: #ECEAE4;
+      --on-accent: #111213;
+      --on-primary: #111213;
+      /* type + metrics */
+      --disp: "Oswald", "Arial Narrow", Impact, system-ui, sans-serif;
+      --display: "Oswald", "Arial Narrow", Impact, system-ui, sans-serif;
+      --cond: "Oswald", "Arial Narrow", Impact, system-ui, sans-serif;
+      --sans: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      --body: "Source Sans 3", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      /* This design has no monospace and no serif: its small tracked caps are
+         Oswald. Both tokens exist because the engine sets them and shared
+         primitives read them. */
+      --mono: "Oswald", "Arial Narrow", Impact, system-ui, sans-serif;
+      --serif: "Source Sans 3", system-ui, -apple-system, Georgia, serif;
+      --maxw: 1280px;
+      --pad: clamp(16px, 4vw, 44px);
+    }
+
+    /* VERIFIED CONTRAST (sRGB relative luminance, the design's palette):
+       ink/paper 15.6 · ink-soft/paper 10.8 · muted/paper 5.16
+       on-stone/stone 10.8 · on-stone-soft/stone 5.10 · accent-deep/stone 5.21
+       on-accent/accent 4.91
+       accent/paper 3.18 — LARGE display figures and 11-12px tracked eyebrows
+       only, never body copy. Every eyebrow in this template is followed by a
+       heading that repeats its meaning, so a dimmed eyebrow degrades rather
+       than breaks.
+       THE ONE DEVIATION from the design: its #A82D12 eyebrow on stone measured
+       3.96:1 and ships as --accent-deep #8C1F08 at 5.21:1. */
+
+    /* ── reset + document ─────────────────────────────────────────────── */
+    html[data-page="BQ"] *,
+    html[data-page="BQ"] *::before,
+    html[data-page="BQ"] *::after { box-sizing: border-box; }
+    html[data-page="BQ"] {
+      -webkit-text-size-adjust: 100%; scroll-behavior: smooth;
+      /* The header is sticky and ~62px tall; every in-page anchor landed with
+         the top of its target underneath it. scroll-padding-top on the root
+         beats per-section scroll-margin-top: one declaration, it covers nested
+         targets, and it keeps keyboard focus out from under the bar too. */
+      scroll-padding-top: 86px;
+    }
+    @media (prefers-reduced-motion: reduce) { html[data-page="BQ"] { scroll-behavior: auto; } }
+    html[data-page="BQ"] body {
+      margin: 0; padding: 0;
+      background-color: var(--paper); color: var(--ink);
+      font-family: var(--sans); font-size: 17px; line-height: 1.62;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    html[data-page="BQ"] img { max-width: 100%; display: block; }
+    html[data-page="BQ"] a { color: inherit; text-decoration: none; }
+    html[data-page="BQ"] ::selection { background: var(--accent); color: var(--on-accent); }
+    /* text-transform is DECLARED, not defaulted. Two templates once shipped an
+       unscoped h1,h2,h3,h4{text-transform:uppercase} in an is:global block and,
+       because index.astro bundles every wrapper's globals into one stylesheet,
+       it capitalised unrelated designs. Uppercase is this design's signature,
+       so it is set here — on scoped selectors only. */
+    html[data-page="BQ"] :where(h1,h2,h3,h4) {
+      margin: 0; font-family: var(--disp); font-weight: 700;
+      line-height: .95; letter-spacing: -.005em; text-transform: uppercase;
+      color: var(--ink);
+    }
+    /* This bare-element paragraph reset is (0,1,1): always qualify a section's
+       own paragraph rules with a parent class so they win. */
+    html[data-page="BQ"] :where(p) { margin: 0 0 1em; }
+
+    /* ── layout scaffolding ───────────────────────────────────────────── */
+    html[data-page="BQ"] :where(.wrap) { width: min(var(--maxw), 100%); margin-inline: auto; padding-inline: var(--pad); }
+    html[data-page="BQ"] section { position: relative; }
+    html[data-page="BQ"] :where(.sec) { padding-block: clamp(46px, 7vw, 76px); border-bottom: 1px solid var(--line); }
+
+    /* ── THE STONE BAND. One class, applied alongside a section's own name. It
+          flips headings, body, eyebrows, hairlines and BOTH button variants, so
+          no section restates any of them. */
+    html[data-page="BQ"] :where(.band-stone) { background-color: var(--stone); color: var(--on-stone); border-bottom-color: var(--stone-line); }
+    html[data-page="BQ"] :where(.band-stone) :where(h1,h2,h3,h4) { color: var(--on-stone); }
+    html[data-page="BQ"] :where(.band-stone) .kick { color: var(--accent-deep); }
+    html[data-page="BQ"] :where(.band-stone) .lede,
+    html[data-page="BQ"] :where(.band-stone) .body,
+    html[data-page="BQ"] :where(.band-stone) .label { color: var(--on-stone-soft); }
+    html[data-page="BQ"] :where(.band-stone) .rowrule { border-bottom-color: var(--stone-line); }
+
+    /* ── .kick — the eyebrow. Tracked Oswald caps in the hazard orange. */
+    html[data-page="BQ"] :where(.kick) {
+      display: inline-block;
+      font-family: var(--disp); font-weight: 500; font-size: 12px;
+      letter-spacing: .28em; text-transform: uppercase; color: var(--accent);
+    }
+    /* ── .label — the quiet tracked caps every ledger key and chip uses. */
+    html[data-page="BQ"] :where(.label) {
+      font-family: var(--disp); font-weight: 400; font-size: 11px;
+      letter-spacing: .16em; text-transform: uppercase; color: var(--muted);
+    }
+    /* ── .h2 — the section headline. Uppercase condensed, tight leading. */
+    html[data-page="BQ"] :where(.h2) {
+      font-family: var(--disp); font-weight: 600;
+      font-size: clamp(30px, 4.2vw, 56px); line-height: .98;
+      text-transform: uppercase; letter-spacing: -.005em; margin: 0;
+    }
+    html[data-page="BQ"] :where(.lede) { color: var(--ink-soft); font-size: clamp(15.5px, 1.5vw, 18px); line-height: 1.66; margin: 0; }
+    html[data-page="BQ"] :where(.body) { color: var(--ink-soft); font-size: 15.5px; line-height: 1.72; margin: 0; }
+    /* ── .fig — the oversized figure (trust cells, why numerals, step numbers). */
+    html[data-page="BQ"] :where(.fig) {
+      font-family: var(--disp); font-weight: 700; line-height: .85;
+      font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    /* ── .sec-head — eyebrow over headline, used by most sections. */
+    html[data-page="BQ"] :where(.sec-head) { display: flex; flex-direction: column; gap: 10px; margin-bottom: clamp(26px, 3.4vw, 40px); }
+
+    /* ── BUTTONS ───────────────────────────────────────────────────────
+       .btn--fill  the hazard fill, ink label (4.91:1)
+       .btn--line  hairline outline, ink-coloured label
+       On the stone band both invert, declared once here so no section is
+       tempted to restate them and drift. */
+    html[data-page="BQ"] :where(.btn) {
+      /* DECLARED, not left to chance. index.astro bundles every template's
+         is:global CSS onto every page, so an unscoped `.btn{background: ...}`
+         from another family has painted outline controls elsewhere before. */
+      background-color: transparent;
+      display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+      padding: 15px 26px; min-height: 48px;
+      border: 1px solid transparent;
+      font-family: var(--disp); font-weight: 500; font-size: 12px;
+      letter-spacing: .16em; text-transform: uppercase; text-decoration: none;
+      cursor: pointer; white-space: nowrap;
+      transition: background-color .18s ease, box-shadow .18s ease, transform .18s ease, border-color .18s ease, color .18s ease;
+    }
+    html[data-page="BQ"] :where(.btn--fill) { background-color: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+    html[data-page="BQ"] :where(.btn--fill:hover) {
+      background-color: var(--accent); color: var(--on-accent); border-color: var(--accent);
+      box-shadow: inset 0 0 0 999px rgba(0,0,0,.18); transform: translateY(-2px);
+    }
+    html[data-page="BQ"] :where(.btn--fill:active) { transform: translateY(0); }
+    html[data-page="BQ"] :where(.btn--line) { background-color: transparent; color: var(--ink); border-color: var(--ink-soft); }
+    html[data-page="BQ"] :where(.btn--line:hover) {
+      background-color: var(--ink); color: var(--on-ink); border-color: var(--ink); transform: translateY(-2px);
+    }
+    html[data-page="BQ"] :where(.btn--line:active) { transform: translateY(0); }
+    /* On the stone band both flip to near-black on stone. */
+    html[data-page="BQ"] :where(.band-stone) .btn--line { color: var(--on-stone); border-color: var(--on-stone); }
+    html[data-page="BQ"] :where(.band-stone) .btn--line:hover { background-color: var(--on-stone); color: var(--stone); border-color: var(--on-stone); }
+    html[data-page="BQ"] :where(.band-stone) .btn--fill { background-color: var(--on-stone); color: var(--stone); border-color: var(--on-stone); }
+    html[data-page="BQ"] :where(.band-stone) .btn--fill:hover { background-color: var(--on-stone); color: var(--stone); border-color: var(--on-stone); box-shadow: inset 0 0 0 999px rgba(255,255,255,.12); }
+    @media (prefers-reduced-motion: reduce) {
+      html[data-page="BQ"] .btn { transition: none; }
+      html[data-page="BQ"] .btn--fill:hover, html[data-page="BQ"] .btn--line:hover { transform: none; }
+    }
+
+    /* ── .linkc — quiet text-link action, carries no .btn class so the engine's
+          label pins cannot reach it. Its colour never changes on hover (only
+          the rule under it thickens), so it cannot fail a contrast check
+          mid-interaction. */
+    html[data-page="BQ"] :where(.linkc) {
+      display: inline-flex; align-items: center; gap: .5em; min-height: 44px;
+      font-family: var(--disp); font-weight: 500; font-size: 12px;
+      letter-spacing: .16em; text-transform: uppercase; color: var(--accent);
+      border-bottom: 2px solid var(--accent); padding-bottom: 2px;
+      transition: border-bottom-width .18s ease, transform .18s ease;
+    }
+    html[data-page="BQ"] :where(.linkc:hover) { color: var(--accent); border-bottom-width: 3px; transform: translateY(-1px); }
+    html[data-page="BQ"] :where(.band-stone) .linkc { color: var(--accent-deep); border-bottom-color: var(--accent-deep); }
+    @media (prefers-reduced-motion: reduce) { html[data-page="BQ"] .linkc { transition: none; } }
+
+    /* ── FOCUS · the DUO ring. See load-bearing fact 4. */
+    html[data-page="BQ"] :where(a,button,summary,[tabindex]):focus-visible {
+      outline: 3px solid var(--paper); outline-offset: 0; box-shadow: 0 0 0 6px var(--ink);
+    }
+
+    /* ── .plate — THE photo frame. Every image in the template is one of these.
+          Sections size it with an inline style="aspect-ratio:X". The fallback
+          face is token-built, so it recolours with the scheme — and a section
+          must OMIT the plate entirely when the owner supplied no photo rather
+          than ship a decorative empty box. */
+    html[data-page="BQ"] :where(.plate) {
+      position: relative; overflow: hidden; isolation: isolate;
+      background-color: var(--paper-2); border: 1px solid var(--line);
+    }
+    html[data-page="BQ"] :where(.plate) .ph {
+      position: absolute; inset: 0; z-index: 1;
+      background-color: var(--paper-2);
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+      background-image:
+        linear-gradient(140deg, rgba(var(--accent-rgb),.20), transparent 58%),
+        repeating-linear-gradient(0deg, rgba(var(--ink-rgb),.06) 0 1px, transparent 1px 22px),
+        repeating-linear-gradient(90deg, rgba(var(--ink-rgb),.06) 0 1px, transparent 1px 22px);
+      transition: transform .5s ease;
+    }
+    /* .cap — caption on an OPAQUE bar, never a gradient scrim: legible over ANY
+       owner photo, however dark or blown out. */
+    html[data-page="BQ"] :where(.plate) .cap {
+      position: absolute; left: 0; bottom: 0; z-index: 3; max-width: 100%;
+      background-color: var(--paper); color: var(--ink-soft);
+      font-family: var(--disp); font-weight: 400; font-size: 11px;
+      letter-spacing: .16em; text-transform: uppercase; padding: 7px 12px;
+    }
+    html[data-page="BQ"] :where(.plate) .cap.on { background-color: var(--accent); color: var(--on-accent); }
+    @media (prefers-reduced-motion: reduce) { html[data-page="BQ"] :where(.plate) .ph { transition: none; } }
+
+    /* ── .rowrule — the one hairline row separator every ledger in the template
+          uses (spec table, job sheet, hours, FAQ). Per-cell border, never a
+          gap-over-inked-container trick: that paints a visible block in the
+          EMPTY tracks of a partial last row. */
+    html[data-page="BQ"] :where(.rowrule) { border-bottom: 1px solid var(--line); }
+
+    /* ── scroll reveal (the boot at the end of the body toggles .in) ── */
+    html[data-page="BQ"] :where(.reveal) { opacity: 0; transform: translateY(18px); transition: opacity .7s ease, transform .7s ease; }
+    html[data-page="BQ"] :where(.reveal.in) { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) {
+      html[data-page="BQ"] .reveal { opacity: 1 !important; transform: none !important; transition: none !important; }
+    }
+
+    /* ── skip link ────────────────────────────────────────────────────── */
+    html[data-page="BQ"] :where(.skip) {
+      position: absolute; left: -999px; top: 0; z-index: 100;
+      background-color: var(--accent); color: var(--on-accent); padding: 12px 18px;
+      font-family: var(--disp); font-weight: 500; font-size: 12px;
+      letter-spacing: .16em; text-transform: uppercase;
+    }
+    html[data-page="BQ"] :where(.skip:focus) { left: 0; top: 0; }
+
+    /* ── SHARED MOBILE PASS · 760px ───────────────────────────────────── */
+    @media (max-width: 760px) {
+      html[data-page="BQ"] :where(.sec) { padding-block: clamp(38px, 9vw, 56px); }
+      /* The MAX is the BASE clamp's own value at 760px (31.9px), not a round
+         number. Anything higher and the headline GROWS as the viewport narrows
+         past 761 — a jump no screenshot at 1440 or 375 can show you. */
+      html[data-page="BQ"] :where(.h2) { font-size: clamp(26px, 7vw, 32px); overflow-wrap: anywhere; }
+      html[data-page="BQ"] :where(.lede) { max-width: none; }
+    }
+    /* ── SHARED MOBILE PASS · 520px (verified no horizontal overflow at 360px) ── */
+    @media (max-width: 520px) {
+      html[data-page="BQ"] body { font-size: 16px; }
+      html[data-page="BQ"] :where(.h2) { font-size: clamp(23px, 8vw, 30px); }
+      html[data-page="BQ"] :where(.kick) { font-size: 11px; letter-spacing: .2em; }
+      html[data-page="BQ"] :where(.btn) { padding: 14px 20px; white-space: normal; text-align: center; flex: 1 1 100%; }
+    }
+  </style>
+
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <HeaderBQ layout={layout} content={content} />
+  <main id="main">
+    {visibility.heroSection !== false && <HeroBQ content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustBQ content={content} layout={layout} />}
+    {visibility.aboutSection !== false && <AboutBQ content={content} layout={layout} />}
+    {visibility.servicesSection !== false && <ServicesBQ content={content} layout={layout} />}
+    {visibility.whyUsBlock !== false && <WhyBQ content={content} layout={layout} />}
+    {visibility.gallerySection !== false && <GalleryBQ content={content} layout={layout} />}
+    {visibility.howItWorksBlock !== false && <HowBQ content={content} layout={layout} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsBQ content={content} layout={layout} />}
+    {visibility.credentialsBlock !== false && <CredentialsBQ content={content} layout={layout} />}
+    {visibility.locationBlock !== false && <LocationBQ content={content} layout={layout} />}
+    {visibility.serviceAreaBlock !== false && <AreaBQ content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqBQ content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandBQ content={content} layout={layout} />}
+  <FooterBQ layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reduce && !document.hidden) {
+        var io = new IntersectionObserver(function (es) {
+          es.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -8% 0px' });
+        document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+      } else {
+        document.querySelectorAll('.reveal').forEach(function (el) { el.classList.add('in'); });
+      }
+      // Bakal / BQ Leaflet boot — accepts (lat, lng, label) from LocationBQ. The
+      // global name is variant-unique on purpose: a preview harness can render
+      // two wrappers in one document, and a shared name cross-wires the maps.
+      window.__tradesBQInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map'); if (!el) return;
+        // Erases LocationBQ's drawn fallback plate; without this the tiles stack
+        // on top of the drawn grid.
+        el.innerHTML = '';
+        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 15);
+        // LABELLED basemap: a customer driving a truck to a yard needs road and
+        // barangay names.
+        L.tileLayer('https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+        // Marker colours are READ from the live tokens rather than baked, so an
+        // explicit admin colour pick recolours the pin too.
+        var cs = window.getComputedStyle(document.documentElement);
+        var accent = (cs.getPropertyValue('--accent') || '').trim() || '#F0421F';
+        var paper = (cs.getPropertyValue('--paper') || '').trim() || '#111213';
+        var icon = L.divIcon({
+          className: '',
+          html: '<div style="width:16px;height:16px;background:' + accent + ';box-shadow:0 0 0 3px ' + paper + ';"></div>',
+          iconSize: [16, 16], iconAnchor: [8, 8],
+        });
+        L.marker([lat, lng], { icon: icon }).addTo(map).bindPopup('<b>' + label + '</b>');
+      };
+    })();
+  </script>
+</body>
+</html>

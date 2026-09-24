@@ -105,6 +105,7 @@ const EDUCATION_TEMPLATES: TemplateDef[] = [
 const TRADES_TEMPLATES: TemplateDef[] = [
     { letter: "AK", code: "trades:AK", label: "Blueprint Cyanotype",     tagline: "Cyan blueprint · aircon / electrical", preview: "/template-previews/ak.html" },
     { letter: "AU", code: "trades:AU", label: "Volt & Line Electrical",  tagline: "Live wire · electrical & trades",      preview: "/template-previews/au.html" },
+    { letter: "BQ", code: "trades:BQ", label: "Bakal Fabrication Works", tagline: "Hazard orange · steel, welding & metal shops", preview: "/template-previews/bq.html" },
 ];
 
 const FOODCRAFT_TEMPLATES: TemplateDef[] = [

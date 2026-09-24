@@ -1,0 +1,60 @@
+---
+/**
+ * trades / TrustBQ — the proof strip: the first of the design's two full-bleed
+ * STONE inversions, a ruled row of oversized Oswald figures with a tracked
+ * label under each. It is the beat that breaks the near-black sheet directly
+ * under the hero.
+ *
+ * The section is class="proofstrip band-stone", never "trust":
+ * buildOverrideCss pins `.trust, .trust .num, .trust .lbl {color:<on-ink>!important}`,
+ * which is correct only for a strip sitting on an INK fill. This one sits on
+ * stone and carries near-black type, so the pin would paint every figure the
+ * light on-ink colour and erase the whole band.
+ *
+ * `num` renders via set:html so a cell whose figure is a star string still
+ * styles correctly — that is the one volatile Google-rating slot and it has no
+ * dedicated field in the content model.
+ *
+ * EDITABLE HOOKS
+ *   trust.cells.N.num / .label
+ *
+ * NEVER FABRICATED: no cell count is padded and no figure is invented. With no
+ * cells the band stays out of the document entirely.
+ */
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+const trust = content.trust || {};
+const cells: Array<{ num?: string; label?: string }> = Array.isArray(trust.cells)
+  ? trust.cells
+  : (Array.isArray(trust) ? trust : []);
+// A cell with neither a figure nor a label is an empty ruled column, which
+// reads as a broken grid rather than as restraint.
+const shown = cells.filter((c) => c && (c.num || c.label));
+---
+{shown.length > 0 && (
+  <section class="proofstrip band-stone" aria-label="At a glance">
+    <div class="wrap ps-grid">
+      {shown.map((cell, i) => (
+        <div class="ps-cell reveal">
+          {cell.num && <div class="fig ps-num" data-field={`trust.cells.${i}.num`} set:html={cell.num}></div>}
+          {cell.label && <div class="label ps-lbl" data-field={`trust.cells.${i}.label`}>{cell.label}</div>}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+<style>
+  /* auto-fit rather than a fixed four: an owner with three facts gets three
+     full-width columns, not three columns and a hole. */
+  .ps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); padding-inline: 0; }
+  .ps-cell { padding: 30px var(--pad); border-inline-end: 1px solid var(--stone-line); }
+  .ps-cell:last-child { border-inline-end: none; }
+  .ps-num { font-size: clamp(34px, 4vw, 48px); color: var(--on-stone); }
+  .ps-lbl { margin-top: 8px; display: block; }
+  @media (max-width: 760px) {
+    .ps-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ps-cell { padding: 22px var(--pad); border-block-end: 1px solid var(--stone-line); }
+    /* With two columns the "last child" rule is not the one that ends a row. */
+    .ps-cell:nth-child(2n) { border-inline-end: none; }
+  }
+</style>

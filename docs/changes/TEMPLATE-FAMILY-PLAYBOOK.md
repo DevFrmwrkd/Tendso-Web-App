@@ -22,7 +22,7 @@ The two existing batches (Generic → `TEMPLATES-GENERIC-PLAN.md`, Barbershop) a
 Before writing code, lock these decisions:
 
 1. **A namespace** — the family name in lowercase kebab-case (`generic`, `barbershop`, `salon`, etc.). This becomes the directory name and the `heroStyle` prefix.
-2. **A letter range** — take the next N unused codes from the single global sequence. `A`–`Z`, `AA`–`AZ` and `BA`–`BP` are spoken for; the next free code is `BQ`. Confirm before claiming: `ls astro-site-template/src/components/*/Page*.astro` is the authoritative list, and `components/editor/templateCatalog.ts` is the registered subset.
+2. **A letter range** — take the next N unused codes from the single global sequence. `A`–`Z`, `AA`–`AZ` and `BA`–`BQ` are spoken for; the next free code is `BR`. Confirm before claiming: `ls astro-site-template/src/components/*/Page*.astro` is the authoritative list, and `components/editor/templateCatalog.ts` is the registered subset.
 3. **A shared section spine** — the ordered list of sections (Hero, About, Services, ...). All variants must use the same order and section IDs so click-to-edit hooks and content shape stay portable when admin swaps variants.
 4. **A palette + typography table** — for each of the 5 variants, the hand-tuned `--paper`, `--ink`, `--brass` (or family-equivalent), `--brass-bright`, display font, condensed font, body font, serif font.
 5. **A hero strategy** — one of:
