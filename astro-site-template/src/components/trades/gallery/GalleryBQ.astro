@@ -14,6 +14,10 @@
  * is skipped: a gallery of designed empty frames advertises work that was never
  * shown. Captions are optional on the tiles that do render.
  *
+ * FULL-BLEED: only the heading sits inside the gutter; the mosaic itself runs
+ * edge to edge, which is what makes the lead tile read as a plate rather than a
+ * card. The section carries neither .wrap nor .sec — see the note in AboutBQ.
+ *
  * NEVER FABRICATED: no caption is invented and no tile count is padded. The
  * section hides entirely when no row carries an image.
  */
@@ -33,38 +37,38 @@ const tiles = raw
   .filter((t) => t.image);
 ---
 {tiles.length > 0 && (
-  <section class="sec work" id="work">
-    <div class="wrap">
-      <div class="work-head">
-        {headline && <h2 class="h2" data-field="gallery.headline" set:html={headline}></h2>}
-        {tag && <span class="kick" data-field="gallery.tag">{tag}</span>}
-      </div>
-      <div class="mosaic reveal">
-        {tiles.map((tile, n) => (
-          <figure class={`plate tile ${n === 0 ? 'lead' : ''}`.trim()}>
-            <div class="ph" data-image-field={`gallery.items.${tile.i}.image`} style={`background-image:url('${tile.image}');`}></div>
-            {tile.caption && (
-              <figcaption class={`cap ${n === 0 ? 'on' : ''}`.trim()} data-field={`gallery.items.${tile.i}.caption`}>{tile.caption}</figcaption>
-            )}
-          </figure>
-        ))}
-      </div>
+  <section class="workband" id="work">
+    <div class="wrap work-head">
+      {headline && <h2 class="h2" data-field="gallery.headline" set:html={headline}></h2>}
+      {tag && <span class="kick" data-field="gallery.tag">{tag}</span>}
+    </div>
+    <div class="mosaic reveal">
+      {tiles.map((tile, n) => (
+        <figure class={`plate tile ${n === 0 ? 'lead' : ''}`.trim()}>
+          <div class="ph" data-image-field={`gallery.items.${tile.i}.image`} style={`background-image:url('${tile.image}');`}></div>
+          {tile.caption && (
+            <figcaption class={`cap ${n === 0 ? 'on' : ''}`.trim()} data-field={`gallery.items.${tile.i}.caption`}>{tile.caption}</figcaption>
+          )}
+        </figure>
+      ))}
     </div>
   </section>
 )}
 <style>
+  .workband { border-bottom: 1px solid var(--line); }
   /* Headline first, eyebrow after — the design puts the tag on the right of the
      rule, opposite the heading, rather than above it. */
-  .work-head { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: clamp(20px, 2.6vw, 28px); padding-bottom: 18px; border-bottom: 2px solid var(--line); }
+  .work-head { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; flex-wrap: wrap; padding-block: clamp(38px, 4.6vw, 52px) 26px; }
   /* The 2px gap IS the hairline: the grid's own background shows through it, so
-     there is no per-tile border to double up at the seams. */
-  .mosaic { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 240px; gap: 2px; background-color: var(--line); }
+     there is no per-tile border to double up at the seams. The 2px top border is
+     the same rule, drawn across the full bleed. */
+  .mosaic { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 260px; gap: 2px; background-color: var(--line); border-top: 2px solid var(--line); }
   .tile { margin: 0; border: 0; }
   .tile .ph { transition: transform .5s ease; }
   .tile:hover .ph { transform: scale(1.05); }
   .lead { grid-column: span 2; grid-row: span 2; }
   @media (max-width: 900px) {
-    .mosaic { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 200px; }
+    .mosaic { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 210px; }
   }
   /* One column on phones: the 2x2 lead would demand a second track the viewport
      has not got, which is a horizontal scrollbar on a 360px screen. */

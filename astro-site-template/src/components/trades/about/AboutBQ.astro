@@ -1,16 +1,24 @@
 ---
 /**
- * trades / AboutBQ — "the shop": a full-height plate on the left, the story and
- * the SPEC LEDGER on the right. The ledger is a two-column ruled table of
- * label/value pairs — floor area, crane capacity, cutting, welding — the facts
- * a buyer uses to decide whether this shop can take their job at all.
+ * trades / AboutBQ — "the shop": a FULL-BLEED 50/50 split. The photo runs to the
+ * left edge of the screen with no gutter and no frame; the story and the SPEC
+ * LEDGER sit in the right half behind the design's 64/44 padding. The ledger is
+ * a two-column ruled table of label/value pairs — floor area, crane capacity,
+ * cutting, welding — the facts a buyer uses to decide whether this shop can take
+ * their job at all.
+ *
+ * THIS SECTION DOES NOT USE .wrap AND DOES NOT CARRY .sec. Both would put a
+ * gutter and block padding around a split the design draws edge to edge; the
+ * padding lives on the copy column instead, and the border-bottom is restated
+ * here. Same for Why, Gallery, Credentials and Location. See the --maxw note in
+ * PageBQ for why this template has no column at all.
  *
  * EDITABLE HOOKS
  *   about.tag / about.headline (set:html)
  *   about.lead                 the opening paragraph, set larger
  *   about.paragraphs.N         the body paragraphs
  *   about.specs.N.label / .value   the spec ledger
- *   about.image                the plate (data-image-field)
+ *   about.image                the bleeding photo (data-image-field)
  *
  * GATE. `visibility.aboutSection` is `vis.about_section !== false` in every
  * wrapper — always true — so this section, unlike gallery or trust, has nothing
@@ -21,8 +29,9 @@
  * derive-content-defaults.ts sets it to `About <name>` for every named
  * business. The gate must require real BODY content.
  *
- * THE PLATE IS OMITTED when the owner supplied no photo. A designed empty frame
- * beside two paragraphs reads as a missing image, not as art direction.
+ * THE PHOTO HALF IS OMITTED when the owner supplied none, and the copy then
+ * takes the full width. A designed empty half-screen beside two paragraphs
+ * reads as a missing image, not as art direction.
  */
 interface Props { content: any; layout: any; }
 const { content } = Astro.props;
@@ -39,51 +48,55 @@ const image = about.image || (Array.isArray(about.images) && about.images[0]) ||
 const hasAbout = Boolean(lead || image) || paragraphs.length > 0 || shownSpecs.length > 0;
 ---
 {hasAbout && (
-<section class="sec shop" id="shop">
-  <div class="wrap shop-grid">
-    {image && (
-      <figure class="plate shop-fig reveal" style="aspect-ratio:4/5">
-        <div class="ph" data-image-field="about.image" style={`background-image:url('${image}');`}></div>
-      </figure>
+<section class:list={['shopband', !image && 'no-photo']} id="shop">
+  {image && (
+    <figure class="shop-fig plate reveal">
+      <div class="ph" data-image-field="about.image" style={`background-image:url('${image}');`}></div>
+    </figure>
+  )}
+  <div class="shop-copy reveal">
+    {(tag || headline) && (
+      <div class="sec-head">
+        {tag && <span class="kick" data-field="about.tag">{tag}</span>}
+        {headline && <h2 class="h2" data-field="about.headline" set:html={headline}></h2>}
+      </div>
     )}
-    <div class="shop-copy reveal">
-      {(tag || headline) && (
-        <div class="sec-head">
-          {tag && <span class="kick" data-field="about.tag">{tag}</span>}
-          {headline && <h2 class="h2" data-field="about.headline" set:html={headline}></h2>}
-        </div>
-      )}
-      {lead && <p class="shop-lead" data-field="about.lead" set:html={lead}></p>}
-      {paragraphs.map((p: string, i: number) => (
-        <p class="body shop-p" data-field={`about.paragraphs.${i}`} set:html={p}></p>
-      ))}
-      {shownSpecs.length > 0 && (
-        <dl class="specs">
-          {shownSpecs.map((s, i) => (
-            <div class="spec rowrule">
-              <dt class="label" data-field={`about.specs.${i}.label`}>{s.label}</dt>
-              <dd class="spec-v" data-field={`about.specs.${i}.value`}>{s.value}</dd>
-            </div>
-          ))}
-        </dl>
-      )}
-    </div>
+    {lead && <p class="shop-lead" data-field="about.lead" set:html={lead}></p>}
+    {paragraphs.map((p: string, i: number) => (
+      <p class="body shop-p" data-field={`about.paragraphs.${i}`} set:html={p}></p>
+    ))}
+    {shownSpecs.length > 0 && (
+      <dl class="specs">
+        {shownSpecs.map((s, i) => (
+          <div class="spec rowrule">
+            <dt class="label" data-field={`about.specs.${i}.label`}>{s.label}</dt>
+            <dd class="spec-v" data-field={`about.specs.${i}.value`}>{s.value}</dd>
+          </div>
+        ))}
+      </dl>
+    )}
   </div>
 </section>
 )}
 <style>
-  /* auto-flow: with no plate the copy takes the full measure instead of leaving
-     a column-shaped hole where the photo would have been. */
-  .shop-grid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: clamp(28px, 4vw, 56px); align-items: start; }
-  .shop-grid:has(> .shop-copy:only-child) { grid-template-columns: minmax(0, 1fr); }
-  @media (max-width: 900px) { .shop-grid { grid-template-columns: minmax(0, 1fr); } }
-  .shop-fig { width: 100%; }
+  /* The split IS the section. No wrap, no .sec — see the note at the top. */
+  .shopband {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    border-bottom: 1px solid var(--line);
+  }
+  .shopband.no-photo { grid-template-columns: minmax(0, 1fr); }
+  @media (max-width: 900px) { .shopband { grid-template-columns: minmax(0, 1fr); } }
+  /* Bleeds to the left edge: no radius, no outer border, only the hairline that
+     separates it from the copy half. */
+  .shop-fig { margin: 0; min-height: 520px; border: 0; border-inline-end: 1px solid var(--line); }
+  @media (max-width: 900px) { .shop-fig { min-height: 340px; border-inline-end: 0; border-block-end: 1px solid var(--line); } }
+  .shop-copy { padding: clamp(40px, 5vw, 64px) clamp(20px, 3.4vw, 44px); }
   .shop-lead { font-size: clamp(17px, 1.7vw, 20px); line-height: 1.55; color: var(--ink); margin: 0 0 .9em; }
   .shop-p { margin: 0 0 1em; }
   .shop-p:last-of-type { margin-bottom: 0; }
-  .specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 26px; margin: clamp(22px, 3vw, 32px) 0 0; border-top: 1px solid var(--line); }
+  .specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 26px; margin: clamp(22px, 3vw, 30px) 0 0; border-top: 1px solid var(--line); }
   @media (max-width: 560px) { .specs { grid-template-columns: minmax(0, 1fr); } }
-  .spec { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 0; }
+  .spec { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 13px 0; padding-inline-end: 22px; }
   .spec dt { flex: none; }
   .spec .spec-v { margin: 0; font-weight: 600; font-size: 15px; color: var(--ink); text-align: end; }
 </style>

@@ -96,13 +96,13 @@ const hasCopy = Boolean(kicker || headlineLines.length > 0 || sub || cta1Text ||
 </section>
 )}
 <style>
-  .masthead { padding-top: clamp(38px, 5.5vw, 64px); }
+  .masthead { padding-top: clamp(40px, 5vw, 64px); }
   .mh-copy { display: flex; flex-direction: column; gap: clamp(18px, 2.4vw, 28px); padding-bottom: clamp(30px, 4vw, 40px); }
   /* The giant is its own size curve, well above the shared .h2 ramp — it is the
      one place in the template where type is the image. */
   .giant {
     font-family: var(--disp); font-weight: 700;
-    font-size: clamp(50px, 11.5vw, 190px); line-height: .88;
+    font-size: clamp(56px, 12.5vw, 196px); line-height: .88;
     letter-spacing: -.015em; text-transform: uppercase; margin: 0;
     overflow-wrap: anywhere;
   }
@@ -130,11 +130,14 @@ const hasCopy = Boolean(kicker || headlineLines.length > 0 || sub || cta1Text ||
      small screens because at 360px a 6vw shear eats the photo. */
   .mh-band { padding: 0; }
   .mh-plate {
-    height: 58vh; min-height: 360px; border: 0;
+    height: 58vh; min-height: 380px; border: 0;
     clip-path: polygon(0 0, 100% 6vw, 100% 100%, 0 100%);
   }
-  .mh-chip { left: auto; right: 0; }
+  /* Inset, as drawn — the chip sits off the corner of the cut plate, not
+     welded into it. */
+  .mh-chip { left: auto; right: 28px; bottom: 22px; }
   @media (max-width: 760px) {
     .mh-plate { height: 42vh; min-height: 250px; clip-path: polygon(0 0, 100% 4vw, 100% 100%, 0 100%); }
+    .mh-chip { right: 16px; bottom: 14px; }
   }
 </style>
