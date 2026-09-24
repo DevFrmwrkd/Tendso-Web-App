@@ -114,8 +114,15 @@ const hasRight = navLinks.length > 0 || !!ctaText;
   @supports (backdrop-filter: blur(10px)) {
     header.bar { background-color: rgba(var(--paper-rgb), .94); backdrop-filter: blur(10px); }
   }
-  .bar-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 62px; }
-  .brand { display: flex; align-items: center; gap: 13px; color: var(--ink); flex: 0 1 auto; min-width: 0; }
+  /* align-items:STRETCH, not center. The design's bar is not a row of floating
+     controls: the nav links and the action are full-height columns that meet
+     both edges of the bar, which is what makes the orange action read as a
+     block cut into the corner rather than a pill parked near it. The bar's
+     height comes from the brand's own 16px padding (~62px), and every sibling
+     stretches to it. Centring here is what produced a 40px pill with air above
+     and below it. */
+  .bar-in { display: flex; align-items: stretch; justify-content: space-between; gap: 16px; min-height: 62px; }
+  .brand { display: flex; align-items: center; gap: 13px; padding-block: 16px; color: var(--ink); flex: 0 1 auto; min-width: 0; }
   /* The clipped plate: a square with one corner sheared, the same cut the hero
      band and the closing band make at full scale. */
   .brand .mark { width: 22px; height: 22px; background-color: var(--accent); clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%); flex: none; }
@@ -132,7 +139,10 @@ const hasRight = navLinks.length > 0 || !!ctaText;
     transition: color .18s ease;
   }
   .links a:hover { color: var(--accent); }
-  .links .barcta { margin-left: 12px; min-height: 40px; padding: 10px 20px; }
+  /* No min-height and no vertical centring: the action stretches to the full
+     height of the bar. Its padding is the design's 15/26, which only sets the
+     horizontal measure once the height is inherited. */
+  .links .barcta { margin-left: 12px; padding: 15px 26px; }
   .links .barcta:hover { color: var(--on-accent); }
 
   .burger { display: none; }
@@ -141,7 +151,7 @@ const hasRight = navLinks.length > 0 || !!ctaText;
     .bar-in { min-height: 58px; }
     .burger {
       display: inline-flex; flex-direction: column; justify-content: center; gap: 5px;
-      width: 46px; height: 46px; padding: 12px; margin-inline-start: auto;
+      width: 46px; height: 46px; padding: 12px; margin-inline-start: auto; align-self: center;
       background-color: transparent; border: 1px solid var(--line); cursor: pointer; flex: none;
       transition: border-color .18s ease;
     }
