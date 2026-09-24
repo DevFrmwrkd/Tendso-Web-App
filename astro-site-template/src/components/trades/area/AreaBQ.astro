@@ -1,0 +1,86 @@
+---
+/**
+ * trades / AreaBQ — "install radius": the coverage chips. Each chip is a place
+ * and, when the owner gave one, a travel time in the hazard orange beside it.
+ * That pairing is the design's idea here — a bare list of city names says where
+ * you might go, a list with times says what it costs you to get there.
+ *
+ * TWO SHAPES, ONE BLOCK. content.area.rows is the place+time list the schema
+ * owns (`area.rows.N.place` / `.time`); content.area.places is the plain string
+ * list that lib/derive-content-defaults.ts fills for every site. Rows win when
+ * present; otherwise the places render as chips with no time, which is the
+ * honest rendering of a list that never carried one.
+ *
+ * EDITABLE HOOKS
+ *   area.tag / area.headline (set:html) / area.body
+ *   area.rows.N.place / .time   OR   area.places.N
+ *
+ * NEVER FABRICATED: no place and no travel time is invented. derive-content
+ * seeds area.places with the business city alone, and that single honest chip
+ * is what this section shows rather than a designed row of neighbouring towns
+ * the owner never claimed to serve.
+ */
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+const area = content.area || {};
+const tag = area.tag || '';
+const headline = area.headline || '';
+const body = area.body || '';
+type Row = { place?: string; time?: string };
+// The lists are hoisted before they are filtered on purpose. Filtering a
+// content path in place leaves a token of the form <root>.<list>.filter in the
+// source, which is path-shaped under a known content root — and
+// scripts/gen-template-fields.mjs matches path-shaped tokens ANYWHERE in the
+// file (comments included) and fails open, so it records that as a bound field.
+// Harmless, but it is junk in a generated manifest.
+const rawRows: Row[] = Array.isArray(area.rows) ? area.rows : [];
+const rawPlaces: any[] = Array.isArray(area.places)
+  ? area.places
+  : (Array.isArray(area.items) ? area.items : []);
+const rows: Row[] = rawRows.filter((r) => r && r.place);
+const places: string[] = rawPlaces.filter((p: any) => typeof p === 'string' && p.trim());
+const useRows = rows.length > 0;
+const count = useRows ? rows.length : places.length;
+---
+{count > 0 && (
+  <section class="sec coverage" id="coverage">
+    <div class="wrap">
+      <div class="cov-head">
+        <div class="sec-head cov-title">
+          {tag && <span class="kick" data-field="area.tag">{tag}</span>}
+          {headline && <h2 class="h2 cov-h" data-field="area.headline" set:html={headline}></h2>}
+        </div>
+        {body && <p class="body cov-note" data-field="area.body">{body}</p>}
+      </div>
+      <div class="chips reveal">
+        {useRows
+          ? rows.map((r, i) => (
+              <span class="chip">
+                <span data-field={`area.rows.${i}.place`}>{r.place}</span>
+                {r.time && <span class="chip-t" data-field={`area.rows.${i}.time`}>{r.time}</span>}
+              </span>
+            ))
+          : places.map((p, i) => (
+              <span class="chip"><span data-field={`area.places.${i}`}>{p}</span></span>
+            ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .cov-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 26px; flex-wrap: wrap; margin-bottom: clamp(20px, 2.6vw, 26px); }
+  .cov-title { margin-bottom: 0; }
+  .cov-h { font-size: clamp(26px, 3.2vw, 44px); }
+  .cov-note { max-width: 40ch; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: baseline; gap: 10px;
+    font-family: var(--disp); font-weight: 400; font-size: 13px;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--ink);
+    border: 1px solid var(--line); padding: 10px 16px;
+    transition: border-color .18s ease;
+  }
+  .chip:hover { border-color: var(--ink-soft); }
+  .chip-t { color: var(--accent); font-size: 11px; }
+  @media (prefers-reduced-motion: reduce) { .chip { transition: none; } }
+</style>

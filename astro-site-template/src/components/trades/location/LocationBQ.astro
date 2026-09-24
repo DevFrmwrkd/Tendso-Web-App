@@ -1,0 +1,196 @@
+---
+/**
+ * trades / LocationBQ — "the yard": the address, phone and opening hours as a
+ * ruled ledger on the left, the live map on the right. Anchors #visit, which is
+ * where lib/derive-content-defaults.ts points hero.cta1, navCtaHref and the
+ * closing band by default — so on a first build every primary action on the
+ * page lands here without any anchor rewriting at all.
+ *
+ * MAP STRATEGY, and the reason the drawn plate is not a fallback:
+ *   1. build-time lat/lng  -> Leaflet directly, via window.__tradesBQInitMap
+ *   2. else any address    -> client-side Nominatim (OSM) lookup, then Leaflet
+ *   3. else                -> NO MAP AT ALL, and the ledger takes the full width
+ *
+ * The drawn grid inside #map is a LOADING SKIN, nothing more: the boot clears
+ * #map before it paints tiles, so it is visible only until Leaflet mounts. It
+ * is not offered as a fallback because it is a picture of a place — a ruled
+ * street grid with a junction and a pin carrying the business name — and with
+ * no coordinate and no address behind it, that picture is invented. A sibling
+ * template shipped exactly this as a permanent fallback and it drew six
+ * dispatch markers for businesses that had told it nothing.
+ *
+ * EDITABLE HOOKS
+ *   location.tag / location.headline (set:html) / location.sub
+ *   location.address    (multi-line; each line kept)
+ *   location.phone      data-field ONLY — see below
+ *   location.hours.N.day / .time
+ *   location.directions.text + data-href-field on .href
+ *
+ * THE PHONE ANCHOR CARRIES data-field ONLY, no data-href-field. Its href is
+ * derived from the field's own value, so a data-href-field there would write
+ * "tel:+63..." back into the phone field on the first inline edit. This is the
+ * template's single documented exception to "every anchor gets both".
+ *
+ * NEVER FABRICATED: no address, hour or phone is invented, and the section
+ * hides entirely when the owner supplied none of them.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const loc = content.location || {};
+const tag = loc.tag || '';
+const headline = loc.headline || '';
+const sub = loc.sub || '';
+const address = loc.address || layout.contact?.address || '';
+const addressLines: string[] = address ? String(address).split('\n').filter((l: string) => l.trim()) : [];
+const phone = loc.phone || layout.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const hours: Array<{ day?: string; time?: string }> = Array.isArray(loc.hours)
+  ? loc.hours
+  : (Array.isArray((content as any).footer?.hours) ? (content as any).footer.hours : []);
+const shownHours = hours.filter((h) => h && (h.day || h.time));
+const dirText = loc.directions?.text || '';
+const dirHref = loc.directions?.href || '';
+const lat = loc.lat != null ? Number(loc.lat) : (layout.contact?.lat != null ? Number(layout.contact.lat) : null);
+const lng = loc.lng != null ? Number(loc.lng) : (layout.contact?.lng != null ? Number(layout.contact.lng) : null);
+const label = layout.businessName || (content as any).footer?.brand || 'Our yard';
+const hasCoords = lat != null && lng != null && !isNaN(lat as number) && !isNaN(lng as number);
+const hasAddress = !!address;
+const hasMap = hasCoords || hasAddress;
+// brand is deliberately excluded from this gate: it falls back to
+// layout.businessName, which every site has, so a gate counting it would never
+// fire and the section would ship as a heading over an empty ledger.
+const hasLoc = hasMap || Boolean(phone || shownHours.length > 0);
+---
+{hasLoc && (
+<section class="sec yard" id="visit">
+  <div class="wrap">
+    {(tag || headline) && (
+      <div class="sec-head">
+        {tag && <span class="kick" data-field="location.tag">{tag}</span>}
+        {headline && <h2 class="h2" data-field="location.headline" set:html={headline}></h2>}
+      </div>
+    )}
+    <div class:list={['yard-grid', !hasMap && 'no-map']}>
+      <div class="yard-info reveal">
+        {sub && <p class="body yard-sub" data-field="location.sub">{sub}</p>}
+        <dl class="yard-rows">
+          {addressLines.length > 0 && (
+            <div class="yrow rowrule">
+              <dt class="label">Address</dt>
+              <dd class="yv" data-field="location.address">
+                {addressLines.map((line, i) => (<>{i > 0 && <br />}{line}</>))}
+              </dd>
+            </div>
+          )}
+          {phone && (
+            <div class="yrow rowrule">
+              <dt class="label">Phone</dt>
+              <dd class="yv"><a href={`tel:${phoneDigits}`} class="yphone" data-field="location.phone">{phone}</a></dd>
+            </div>
+          )}
+          {shownHours.length > 0 && (
+            <div class="yrow rowrule">
+              <dt class="label">Hours</dt>
+              <dd class="yv">
+                <div class="hours">
+                  {shownHours.map((h, i) => (
+                    <div class="hrow">
+                      <span class="label hday" data-field={`location.hours.${i}.day`}>{h.day}</span>
+                      <span class="htime" data-field={`location.hours.${i}.time`}>{h.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </dd>
+            </div>
+          )}
+        </dl>
+        {dirText && (
+          <a href={dirHref || '#visit'} class="linkc yard-dir" target={dirHref ? '_blank' : undefined} rel={dirHref ? 'noopener noreferrer' : undefined}
+             data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
+        )}
+      </div>
+      {hasMap && (
+        <div class="yard-map">
+          <div id="map" role="img" aria-label={`Map showing where ${label} is`}>
+            {/* LOADING SKIN ONLY — the Leaflet boot wipes this node. See the
+                MAP STRATEGY note at the top of this file before reusing it. */}
+            <div class="skin" aria-hidden="true">
+              <span class="skin-v"></span>
+              <span class="skin-h"></span>
+              <span class="skin-pin"></span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+)}
+{/* Render path A: build-time coords ready. */}
+{hasCoords && (
+  <script is:inline define:vars={{ lat, lng, label }}>
+    (function init() {
+      if (window.__tradesBQInitMap) window.__tradesBQInitMap(lat, lng, label);
+      else setTimeout(init, 80);
+    })();
+  </script>
+)}
+{/* Render path B: no coords but an address — client-side Nominatim, then boot. */}
+{!hasCoords && hasAddress && (
+  <script is:inline define:vars={{ address, label }}>
+    (function geocodeThenInit() {
+      var attempt = 0;
+      function tryInit(lat, lng) {
+        if (window.__tradesBQInitMap) window.__tradesBQInitMap(lat, lng, label);
+        else if (attempt++ < 25) setTimeout(function () { tryInit(lat, lng); }, 80);
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) return;
+            var la = parseFloat(results[0].lat), ln = parseFloat(results[0].lon);
+            if (isNaN(la) || isNaN(ln)) return;
+            tryInit(la, ln);
+          })
+          .catch(function () { /* the skin stays; nothing is claimed by it */ });
+      } catch (e) { /* never block render */ }
+    })();
+  </script>
+)}
+<style>
+  .yard-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border: 1px solid var(--line); }
+  /* No coords and no address: the map is not rendered, so the ledger takes the
+     full width instead of leaving a column-shaped hole. */
+  .yard-grid.no-map { grid-template-columns: minmax(0, 1fr); }
+  @media (max-width: 900px) { .yard-grid { grid-template-columns: minmax(0, 1fr); } }
+  .yard-info { padding: clamp(26px, 3.2vw, 44px) clamp(20px, 2.6vw, 36px); border-inline-end: 1px solid var(--line); }
+  .yard-grid.no-map .yard-info { border-inline-end: none; }
+  @media (max-width: 900px) { .yard-info { border-inline-end: none; border-block-end: 1px solid var(--line); } }
+  .yard-sub { max-width: 44ch; margin-bottom: 22px; }
+  .yard-rows { margin: 0; border-top: 1px solid var(--ink-soft); }
+  .yrow { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 0; }
+  .yrow dt { flex: none; }
+  .yv { margin: 0; font-weight: 600; font-size: 15.5px; color: var(--ink); text-align: end; }
+  .yphone { white-space: nowrap; }
+  .yphone:hover { color: var(--accent); }
+  .hours { display: grid; gap: 5px; min-width: 200px; }
+  .hrow { display: flex; justify-content: space-between; gap: 16px; }
+  .hday { text-align: start; }
+  .htime { font-weight: 600; }
+  .yard-dir { margin-top: 22px; }
+
+  .yard-map { position: relative; min-height: 420px; background-color: var(--paper-2); overflow: hidden; }
+  @media (max-width: 760px) { .yard-map { min-height: 300px; } }
+  #map { position: absolute; inset: 0; z-index: 0; }
+  /* The skin: a ruled sheet with one junction and a marker. Deliberately
+     abstract — it claims no street, no barangay and no name. */
+  .skin { position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(var(--ink-rgb),.10) 0 1px, transparent 1px 36px),
+      repeating-linear-gradient(90deg, rgba(var(--ink-rgb),.10) 0 1px, transparent 1px 36px); }
+  .skin-v { position: absolute; inset-block: 0; inset-inline-start: 38%; width: 6px; background-color: rgba(var(--ink-rgb),.22); transform: skewX(-14deg); }
+  .skin-h { position: absolute; inset-block-start: 54%; inset-inline: 0; height: 5px; background-color: rgba(var(--ink-rgb),.22); }
+  .skin-pin { position: absolute; inset-block-start: 54%; inset-inline-start: 38%; width: 14px; height: 14px; margin: -7px 0 0 -7px; background-color: var(--accent); }
+</style>

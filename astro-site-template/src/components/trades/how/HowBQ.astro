@@ -1,0 +1,95 @@
+---
+/**
+ * trades / HowBQ — the process band: the template's second full-bleed STONE
+ * inversion. The eyebrow, heading and the owner's action sit in a narrow left
+ * column; the steps run as a hairline-gridded block on the right, each opened
+ * by a tracked "Step N" marker.
+ *
+ * The band carries `band-stone`, which is what flips the headings, body,
+ * eyebrow, hairlines and BOTH button variants — this file restates none of
+ * them (see the INVERTED BANDS note in PageBQ).
+ *
+ * EDITABLE HOOKS
+ *   how.tag / how.headline (set:html)
+ *   how.steps.N.title
+ *   how.steps.N.body        (legacy `desc` / `description` still read)
+ *   hero.cta1.text / .href  the band's button — the SAME CTA as the hero and
+ *                           the bar, so the page never offers three differently
+ *                           worded versions of one action
+ *
+ * THE STEP MARKER IS DECORATIVE — drawn from the row index, carrying no field.
+ * Its number is spoken, unlike the ledger chrome elsewhere in the template,
+ * because in a sequence the position IS part of the meaning.
+ *
+ * NEVER FABRICATED: no step is invented and the count is never padded to four.
+ * The section hides entirely when the owner listed none.
+ */
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+
+// Anchor guard — see the long note in HeaderBQ. Kept identical in every sibling.
+const PAGE_ANCHORS = new Set(['main', 'shop', 'jobs', 'why', 'work', 'process', 'reviews', 'visit', 'coverage', 'faq', 'quote']);
+const ANCHOR_ALIAS: Record<string, string> = {
+  about: 'shop', services: 'jobs', gallery: 'work', how: 'process',
+  testimonials: 'reviews', location: 'visit', contact: 'visit', area: 'coverage',
+  reserve: 'quote', book: 'quote',
+};
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+
+const how = content.how || {};
+const tag = how.tag || '';
+const headline = how.headline || '';
+type Step = { title?: string; body?: string; desc?: string; description?: string };
+const raw: Step[] = Array.isArray(how.steps)
+  ? how.steps
+  : (Array.isArray(how.items) ? how.items : []);
+const steps = raw.filter((s) => s && (s.title || s.body || s.desc || s.description));
+const hero = (content as any).hero || {};
+const ctaText = hero.cta1?.text || '';
+const ctaHref = onPage(hero.cta1?.href, '#visit');
+---
+{steps.length > 0 && (
+  <section class="sec process band-stone" id="process">
+    <div class="wrap pr-grid">
+      <div class="pr-intro reveal">
+        {tag && <span class="kick" data-field="how.tag">{tag}</span>}
+        {headline && <h2 class="h2 pr-h" data-field="how.headline" set:html={headline}></h2>}
+        {ctaText && <a href={ctaHref} class="btn btn--fill pr-cta" rel="noopener" data-field="hero.cta1.text" data-href-field="hero.cta1.href">{ctaText}</a>}
+      </div>
+      <div class="pr-steps">
+        {steps.map((step, i) => {
+          const body = step.body ?? step.desc ?? step.description;
+          return (
+            <div class="pr-step reveal">
+              <div class="pr-n">{`Step ${String(i + 1).padStart(2, '0')}`}</div>
+              {step.title && <h3 class="pr-t" data-field={`how.steps.${i}.title`}>{step.title}</h3>}
+              {body && <p class="body" data-field={`how.steps.${i}.body`}>{body}</p>}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .pr-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 2fr); gap: clamp(28px, 4vw, 44px); align-items: start; }
+  @media (max-width: 900px) { .pr-grid { grid-template-columns: minmax(0, 1fr); } }
+  .pr-intro { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+  .pr-h { margin: 0; }
+  .pr-cta { margin-top: 6px; }
+  /* Same seam trick as the gallery: the 1px gap over the band's own hairline
+     colour IS the rule between cells, so a partial last row leaves no inked
+     block behind it. The cells repaint the stone ground over the top. */
+  .pr-steps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background-color: var(--stone-line); }
+  @media (max-width: 620px) { .pr-steps { grid-template-columns: minmax(0, 1fr); } }
+  .pr-step { background-color: var(--stone); padding: clamp(22px, 2.6vw, 30px) clamp(20px, 2.4vw, 28px); }
+  .pr-n { font-family: var(--disp); font-weight: 700; font-size: 13px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent-deep); }
+  .pr-t { font-family: var(--disp); font-weight: 500; font-size: 22px; letter-spacing: .02em; margin: 12px 0 8px; }
+</style>

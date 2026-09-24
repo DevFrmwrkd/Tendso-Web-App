@@ -1,0 +1,89 @@
+---
+/**
+ * trades / AboutBQ — "the shop": a full-height plate on the left, the story and
+ * the SPEC LEDGER on the right. The ledger is a two-column ruled table of
+ * label/value pairs — floor area, crane capacity, cutting, welding — the facts
+ * a buyer uses to decide whether this shop can take their job at all.
+ *
+ * EDITABLE HOOKS
+ *   about.tag / about.headline (set:html)
+ *   about.lead                 the opening paragraph, set larger
+ *   about.paragraphs.N         the body paragraphs
+ *   about.specs.N.label / .value   the spec ledger
+ *   about.image                the plate (data-image-field)
+ *
+ * GATE. `visibility.aboutSection` is `vis.about_section !== false` in every
+ * wrapper — always true — so this section, unlike gallery or trust, has nothing
+ * else to stop it rendering empty. about.tag is deliberately NOT part of the
+ * test: it is the derived literal 'About', set on every site by the layer
+ * above, so counting it would keep the shell on exactly the pages this gate
+ * exists to remove. about.headline is excluded for the same reason —
+ * derive-content-defaults.ts sets it to `About <name>` for every named
+ * business. The gate must require real BODY content.
+ *
+ * THE PLATE IS OMITTED when the owner supplied no photo. A designed empty frame
+ * beside two paragraphs reads as a missing image, not as art direction.
+ */
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+const about = content.about || {};
+const tag = about.tag || '';
+const headline = about.headline || '';
+const lead = about.lead || '';
+const paragraphs: string[] = Array.isArray(about.paragraphs)
+  ? about.paragraphs
+  : (about.body ? [about.body] : []);
+const specs: Array<{ label?: string; value?: string }> = Array.isArray(about.specs) ? about.specs : [];
+const shownSpecs = specs.filter((s) => s && (s.label || s.value));
+const image = about.image || (Array.isArray(about.images) && about.images[0]) || '';
+const hasAbout = Boolean(lead || image) || paragraphs.length > 0 || shownSpecs.length > 0;
+---
+{hasAbout && (
+<section class="sec shop" id="shop">
+  <div class="wrap shop-grid">
+    {image && (
+      <figure class="plate shop-fig reveal" style="aspect-ratio:4/5">
+        <div class="ph" data-image-field="about.image" style={`background-image:url('${image}');`}></div>
+      </figure>
+    )}
+    <div class="shop-copy reveal">
+      {(tag || headline) && (
+        <div class="sec-head">
+          {tag && <span class="kick" data-field="about.tag">{tag}</span>}
+          {headline && <h2 class="h2" data-field="about.headline" set:html={headline}></h2>}
+        </div>
+      )}
+      {lead && <p class="shop-lead" data-field="about.lead" set:html={lead}></p>}
+      {paragraphs.map((p: string, i: number) => (
+        <p class="body shop-p" data-field={`about.paragraphs.${i}`} set:html={p}></p>
+      ))}
+      {shownSpecs.length > 0 && (
+        <dl class="specs">
+          {shownSpecs.map((s, i) => (
+            <div class="spec rowrule">
+              <dt class="label" data-field={`about.specs.${i}.label`}>{s.label}</dt>
+              <dd class="spec-v" data-field={`about.specs.${i}.value`}>{s.value}</dd>
+            </div>
+          ))}
+        </dl>
+      )}
+    </div>
+  </div>
+</section>
+)}
+<style>
+  /* auto-flow: with no plate the copy takes the full measure instead of leaving
+     a column-shaped hole where the photo would have been. */
+  .shop-grid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: clamp(28px, 4vw, 56px); align-items: start; }
+  .shop-grid:has(> .shop-copy:only-child) { grid-template-columns: minmax(0, 1fr); }
+  @media (max-width: 900px) { .shop-grid { grid-template-columns: minmax(0, 1fr); } }
+  .shop-fig { width: 100%; }
+  .shop-lead { font-size: clamp(17px, 1.7vw, 20px); line-height: 1.55; color: var(--ink); margin: 0 0 .9em; }
+  .shop-p { margin: 0 0 1em; }
+  .shop-p:last-of-type { margin-bottom: 0; }
+  .specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 26px; margin: clamp(22px, 3vw, 32px) 0 0; border-top: 1px solid var(--line); }
+  @media (max-width: 560px) { .specs { grid-template-columns: minmax(0, 1fr); } }
+  .spec { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 0; }
+  .spec dt { flex: none; }
+  .spec .spec-v { margin: 0; font-weight: 600; font-size: 15px; color: var(--ink); text-align: end; }
+</style>

@@ -1,0 +1,76 @@
+---
+/**
+ * trades / GalleryBQ — "recent jobs": the hairline mosaic. The first tile spans
+ * 2x2 and the rest run one-up, so the grid reads as a contact sheet with a lead
+ * image rather than as a uniform tile wall. The first caption sits on the
+ * hazard fill, the rest on the sheet ground — one accent per section.
+ *
+ * EDITABLE HOOKS
+ *   gallery.tag / gallery.headline (set:html)
+ *   gallery.items.N.image    (data-image-field)
+ *   gallery.items.N.caption
+ *
+ * ONLY REAL PHOTOS GET A TILE. A row the owner created but never gave a photo
+ * is skipped: a gallery of designed empty frames advertises work that was never
+ * shown. Captions are optional on the tiles that do render.
+ *
+ * NEVER FABRICATED: no caption is invented and no tile count is padded. The
+ * section hides entirely when no row carries an image.
+ */
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+const gallery = content.gallery || {};
+const tag = gallery.tag || '';
+const headline = gallery.headline || '';
+type Tile = { image?: string; caption?: string };
+const raw: Tile[] = Array.isArray(gallery.items)
+  ? gallery.items
+  : (Array.isArray(content.gallery) ? content.gallery : []);
+// The original index is carried as .i so the editor's per-row field hooks stay
+// correct after the photo-less rows are dropped.
+const tiles = raw
+  .map((t, i) => ({ ...t, i }))
+  .filter((t) => t.image);
+---
+{tiles.length > 0 && (
+  <section class="sec work" id="work">
+    <div class="wrap">
+      <div class="work-head">
+        {headline && <h2 class="h2" data-field="gallery.headline" set:html={headline}></h2>}
+        {tag && <span class="kick" data-field="gallery.tag">{tag}</span>}
+      </div>
+      <div class="mosaic reveal">
+        {tiles.map((tile, n) => (
+          <figure class={`plate tile ${n === 0 ? 'lead' : ''}`.trim()}>
+            <div class="ph" data-image-field={`gallery.items.${tile.i}.image`} style={`background-image:url('${tile.image}');`}></div>
+            {tile.caption && (
+              <figcaption class={`cap ${n === 0 ? 'on' : ''}`.trim()} data-field={`gallery.items.${tile.i}.caption`}>{tile.caption}</figcaption>
+            )}
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  /* Headline first, eyebrow after — the design puts the tag on the right of the
+     rule, opposite the heading, rather than above it. */
+  .work-head { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: clamp(20px, 2.6vw, 28px); padding-bottom: 18px; border-bottom: 2px solid var(--line); }
+  /* The 2px gap IS the hairline: the grid's own background shows through it, so
+     there is no per-tile border to double up at the seams. */
+  .mosaic { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 240px; gap: 2px; background-color: var(--line); }
+  .tile { margin: 0; border: 0; }
+  .tile .ph { transition: transform .5s ease; }
+  .tile:hover .ph { transform: scale(1.05); }
+  .lead { grid-column: span 2; grid-row: span 2; }
+  @media (max-width: 900px) {
+    .mosaic { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 200px; }
+  }
+  /* One column on phones: the 2x2 lead would demand a second track the viewport
+     has not got, which is a horizontal scrollbar on a 360px screen. */
+  @media (max-width: 560px) {
+    .mosaic { grid-template-columns: minmax(0, 1fr); grid-auto-rows: 220px; }
+    .lead { grid-column: auto; grid-row: span 2; }
+  }
+  @media (prefers-reduced-motion: reduce) { .tile:hover .ph { transform: none; } }
+</style>

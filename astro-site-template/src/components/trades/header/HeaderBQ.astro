@@ -1,0 +1,173 @@
+---
+/**
+ * trades / HeaderBQ — the sticky shop bar: a clipped-plate mark and the
+ * wordmark left, tracked Oswald links right, and the owner's primary action as
+ * a hazard-filled button on the end. Under 760px the links collapse into a
+ * drawer behind a hamburger; the bar itself keeps the mark and the burger only.
+ *
+ * The bar's 2px hazard underline is the design's one piece of chrome here and
+ * it is what separates it from the near-black sheet when the page scrolls.
+ *
+ * EDITABLE HOOKS
+ *   footer.brand            the wordmark (falls back to layout.businessName)
+ *   navbar_links.N.label    each link, with data-href-field on .href
+ *   hero.cta1.text / .href  the bar's action — the SAME CTA as the hero, so the
+ *                           two can never drift apart
+ *
+ * NEVER FABRICATED: with no business name the mark is omitted rather than
+ * printing a placeholder wordmark; with no nav links and no CTA the whole right
+ * side (and the burger with it) stays out of the document.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+
+// Anchor guard, kept in step with every sibling copy in this variant (the
+// family has no shared import). lib/derive-content-defaults.ts hard-codes
+// '#visit' for hero.cta1 / navCtaHref / ctaBand.cta, '#services' for hero.cta2
+// and nav links to '#about' / '#services' / '#why' / '#work' / '#visit'. This
+// design renders #shop / #jobs / #why / #work / #process / #reviews / #visit /
+// #coverage / #faq / #quote, so each href is resolved against what PageBQ
+// actually mounts: keep it if the id exists, remap it when this design carries
+// the same section under another id, otherwise DROP it (a nav link that scrolls
+// nowhere is as broken as a dead button, and its label promises a section this
+// page has not got). Off-page hrefs (http, tel:, mailto:) pass through.
+const PAGE_ANCHORS = new Set(['main', 'shop', 'jobs', 'why', 'work', 'process', 'reviews', 'visit', 'coverage', 'faq', 'quote']);
+const ANCHOR_ALIAS: Record<string, string> = {
+  about: 'shop', services: 'jobs', gallery: 'work', how: 'process',
+  testimonials: 'reviews', location: 'visit', contact: 'visit', area: 'coverage',
+  reserve: 'quote', book: 'quote',
+};
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+
+const f = (content as any).footer || {};
+// A placeholder name rendering as the customer's wordmark is worse than no
+// wordmark, so with nothing supplied the mark is omitted.
+const brand = f.brand || layout.businessName || '';
+const navLinks: Array<{ href: string; label: string; i: number }> =
+  ((layout.navLinks && layout.navLinks.length) ? layout.navLinks : [])
+    .map((l: any, i: number) => ({ ...l, href: onPage(l.href, ''), i }))
+    .filter((l: any) => l.href && l.label);
+const hero = (content as any).hero || {};
+const ctaText = hero.cta1?.text || '';
+const ctaHref = onPage(hero.cta1?.href, '#visit');
+const hasRight = navLinks.length > 0 || !!ctaText;
+---
+<header class="bar">
+  <div class="bar-in wrap">
+    {brand && (
+      <a href="#main" class="brand" aria-label={`${brand} home`}>
+        <span class="mark" aria-hidden="true"></span>
+        <span class="bn" data-field="footer.brand">{brand}</span>
+      </a>
+    )}
+    {hasRight && (
+      <>
+        <nav class="links" id="bq-links" aria-label="Primary">
+          {navLinks.map((link) => (
+            <a href={link.href} data-field={`navbar_links.${link.i}.label`} data-href-field={`navbar_links.${link.i}.href`}>{link.label}</a>
+          ))}
+          {ctaText && <a href={ctaHref} class="btn btn--fill barcta" rel="noopener" data-field="hero.cta1.text" data-href-field="hero.cta1.href">{ctaText}</a>}
+        </nav>
+        <button class="burger" type="button" aria-label="Menu" aria-controls="bq-links" aria-expanded="false">
+          <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+        </button>
+      </>
+    )}
+  </div>
+</header>
+<script is:inline>
+  (function () {
+    var bar = document.querySelector('header.bar');
+    if (!bar) return;
+    var burger = bar.querySelector('.burger');
+    var links = bar.querySelector('.links');
+    if (!burger) return;
+    function setOpen(open) {
+      bar.classList.toggle('open', open);
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    burger.addEventListener('click', function () { setOpen(!bar.classList.contains('open')); });
+    if (links) {
+      links.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
+    }
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && bar.classList.contains('open')) setOpen(false);
+    });
+  })();
+</script>
+<style>
+  header.bar {
+    position: sticky; top: 0; z-index: 60;
+    background-color: var(--paper);
+    border-bottom: 2px solid var(--accent);
+  }
+  /* The translucent + blur pair is progressive: browsers without
+     backdrop-filter keep the opaque ground above, so text under the bar never
+     shows through. */
+  @supports (backdrop-filter: blur(10px)) {
+    header.bar { background-color: rgba(var(--paper-rgb), .94); backdrop-filter: blur(10px); }
+  }
+  .bar-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 62px; }
+  .brand { display: flex; align-items: center; gap: 13px; color: var(--ink); flex: 0 1 auto; min-width: 0; }
+  /* The clipped plate: a square with one corner sheared, the same cut the hero
+     band and the closing band make at full scale. */
+  .brand .mark { width: 22px; height: 22px; background-color: var(--accent); clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%); flex: none; }
+  .brand .bn {
+    font-family: var(--disp); font-weight: 700; font-size: 20px;
+    letter-spacing: .04em; text-transform: uppercase; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
+  .links { display: flex; align-items: stretch; gap: 0; }
+  .links a {
+    display: inline-flex; align-items: center; padding: 0 16px;
+    font-family: var(--disp); font-weight: 400; font-size: 12px;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--ink-soft);
+    transition: color .18s ease;
+  }
+  .links a:hover { color: var(--accent); }
+  .links .barcta { margin-left: 12px; min-height: 40px; padding: 10px 20px; }
+  .links .barcta:hover { color: var(--on-accent); }
+
+  .burger { display: none; }
+
+  @media (max-width: 760px) {
+    .bar-in { min-height: 58px; }
+    .burger {
+      display: inline-flex; flex-direction: column; justify-content: center; gap: 5px;
+      width: 46px; height: 46px; padding: 12px; margin-inline-start: auto;
+      background-color: transparent; border: 1px solid var(--line); cursor: pointer; flex: none;
+      transition: border-color .18s ease;
+    }
+    .burger span { display: block; width: 100%; height: 2px; background-color: var(--accent); transition: transform .3s ease, opacity .2s ease; }
+    header.bar.open .burger { border-color: var(--accent); }
+    header.bar.open .burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    header.bar.open .burger span:nth-child(2) { opacity: 0; }
+    header.bar.open .burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* Drawer: absolute, full bar width, below the bar. Collapsed by default. */
+    .links {
+      position: absolute; left: 0; right: 0; top: 100%;
+      flex-direction: column; align-items: stretch; gap: 0;
+      background-color: var(--paper);
+      border-bottom: 1px solid var(--line);
+      padding: 4px 0;
+      max-height: 0; overflow: hidden; opacity: 0; visibility: hidden;
+      transition: max-height .35s ease, opacity .25s ease, visibility .25s ease;
+    }
+    header.bar.open .links { max-height: 78vh; overflow-y: auto; opacity: 1; visibility: visible; }
+    .links a { min-height: 50px; padding: 12px 20px; font-size: 13px; color: var(--ink); border-bottom: 1px solid var(--line); }
+    .links a:last-child { border-bottom: none; }
+    .links .barcta { margin: 4px 20px 8px; min-height: 48px; justify-content: center; }
+    @media (prefers-reduced-motion: reduce) {
+      .links { transition: none; }
+      .burger span { transition: none; }
+    }
+  }
+</style>

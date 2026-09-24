@@ -1,0 +1,83 @@
+---
+/**
+ * trades / TestimonialsBQ — "sign-offs": quote cards on the hairline grid, each
+ * closed by a ruled attribution line where the job type is carried in the
+ * hazard orange. The quote is set large and light so the customer's words are
+ * the biggest thing in the block, not the decoration around them.
+ *
+ * The section is class="signoffs", never "testi": buildOverrideCss pins
+ * `.testi, .testi p {color:<on-ink>!important}` and `.testi .btn{...}`, written
+ * for a block on an INK fill. These cards sit on the sheet ground, which IS the
+ * ink-dark value here, so the pin would repaint every quote the on-ink colour —
+ * near-black on near-black.
+ *
+ * EDITABLE HOOKS
+ *   testimonials.tag / testimonials.headline (set:html)
+ *   testimonials.items.N.quote
+ *   testimonials.items.N.who    (legacy `author` / `name` still read)
+ *   testimonials.items.N.role   (legacy `context` still read)
+ *
+ * THE STAR ROW IS A RATING CLAIM, NOT DECORATION — it puts a score in a named
+ * customer's mouth. It is drawn ONLY from a rating that customer actually gave
+ * (items.N.rating), never from a default.
+ *
+ * NEVER FABRICATED: no quote, name or job is invented. The section hides
+ * entirely when the owner has no reviews to show.
+ */
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+const test = content.testimonials || {};
+const tag = test.tag || '';
+const headline = test.headline || '';
+type Item = {
+  quote?: string; who?: string; role?: string;
+  author?: string; name?: string; context?: string;
+  rating?: number | string;
+};
+const raw: Item[] = Array.isArray(test.items) ? test.items : (Array.isArray(test) ? test : []);
+const items = raw.filter((it) => it && it.quote);
+const starsOf = (it: Item) => {
+  const n = Math.round(Number(it.rating));
+  return n >= 1 && n <= 5 ? '★'.repeat(n) : '';
+};
+---
+{items.length > 0 && (
+  <section class="sec signoffs" id="reviews">
+    <div class="wrap">
+      <div class="sec-head">
+        {tag && <span class="kick" data-field="testimonials.tag">{tag}</span>}
+        {headline && <h2 class="h2" data-field="testimonials.headline" set:html={headline}></h2>}
+      </div>
+      <div class="so-grid">
+        {items.map((item, i) => {
+          const who = item.who ?? item.author ?? item.name;
+          const role = item.role ?? item.context;
+          const stars = starsOf(item);
+          return (
+            <figure class="so-card reveal">
+              {stars && <div class="so-stars" aria-label={`Rated ${stars.length} out of 5`}>{stars}</div>}
+              <blockquote class="so-q" data-field={`testimonials.items.${i}.quote`}>{`“${item.quote}”`}</blockquote>
+              {(who || role) && (
+                <figcaption class="so-by label">
+                  {who && <span data-field={`testimonials.items.${i}.who`}>{who}</span>}
+                  {who && role && <span aria-hidden="true"> · </span>}
+                  {role && <span class="so-job" data-field={`testimonials.items.${i}.role`}>{role}</span>}
+                </figcaption>
+              )}
+            </figure>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  /* Same seam trick as the gallery and the process band: the 1px gap over the
+     hairline colour IS the rule, and the cards repaint the sheet over it. */
+  .so-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1px; background-color: var(--line); }
+  .so-card { margin: 0; background-color: var(--paper); padding: clamp(24px, 2.6vw, 30px) clamp(20px, 2.4vw, 26px); display: flex; flex-direction: column; gap: 18px; }
+  .so-stars { color: var(--accent); font-size: 14px; letter-spacing: .12em; }
+  .so-q { margin: 0; flex: 1; font-size: clamp(16.5px, 1.6vw, 18px); line-height: 1.6; color: var(--ink); }
+  .so-by { border-top: 1px solid var(--line); padding-top: 14px; }
+  .so-job { color: var(--accent); }
+</style>

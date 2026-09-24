@@ -1,0 +1,138 @@
+---
+/**
+ * trades / ServicesBQ — THE JOB SHEET. The signature block of the template and
+ * the reason to pick it: services are not cards, they are a ruled spec table
+ * with the four columns a fabricator is actually asked about —
+ *
+ *   Ref · Job · Material · Finish · Lead time
+ *
+ * EDITABLE HOOKS
+ *   services.tag / services.headline (set:html) / services.sub
+ *   services.items.N.title     the job
+ *   services.items.N.desc      the line under it
+ *   services.items.N.tag       -> the Material column
+ *   services.items.N.note      -> the Finish column
+ *   services.items.N.duration  -> the Lead time column
+ *
+ * THE COLUMNS ARE EARNED, NOT DRAWN. Every one of Material / Finish / Lead time
+ * is present only if at least one row carries it, and the header row and the
+ * grid template are built from the same test. A shop that lists six jobs and no
+ * materials gets a two-column sheet that looks designed, not a table with three
+ * empty columns and three empty headers — which is what a fixed five-column
+ * template would have shipped for the majority of owners, who fill in a title
+ * and a description and nothing else.
+ *
+ * THE REF IS DECORATIVE. J01, J02 … are drawn from the row index, carry no
+ * field and mean nothing outside the page; they are the sheet's own numbering,
+ * the same way SVC/01 is in the sibling ServicesAU. They are aria-hidden so a
+ * screen reader hears the job, not the ledger chrome.
+ *
+ * NEVER FABRICATED: no lead time, material or finish is invented — a blank cell
+ * stays blank. The section hides entirely when the owner listed no services.
+ */
+interface Props { content: any; layout: any; }
+const { content } = Astro.props;
+const services = content.services || {};
+const tag = services.tag || '';
+const headline = services.headline || '';
+const sub = services.sub || '';
+type Item = { title?: string; desc?: string; tag?: string; note?: string; duration?: string };
+const raw: Item[] = Array.isArray(services.items)
+  ? services.items
+  : (Array.isArray(services) ? services : []);
+// A row with no title is a ref number and four blanks.
+const items = raw.filter((it) => it && it.title);
+const hasMaterial = items.some((it) => it.tag);
+const hasFinish = items.some((it) => it.note);
+const hasLead = items.some((it) => it.duration);
+// The template is assembled from the columns that earned their place: ref, job,
+// then one track per populated column. Kept in one place so the header row and
+// the body rows can never disagree about the shape.
+const cols = [
+  'minmax(0, 54px)',
+  'minmax(0, 1.5fr)',
+  hasMaterial ? 'minmax(0, 1fr)' : '',
+  hasFinish ? 'minmax(0, 1fr)' : '',
+  hasLead ? 'minmax(0, 110px)' : '',
+].filter(Boolean).join(' ');
+---
+{items.length > 0 && (
+  <section class="sec jobs" id="jobs">
+    <div class="wrap">
+      <div class="jobs-head">
+        <div class="sec-head jobs-title">
+          {tag && <span class="kick" data-field="services.tag">{tag}</span>}
+          {headline && <h2 class="h2" data-field="services.headline" set:html={headline}></h2>}
+        </div>
+        {sub && <p class="body jobs-note" data-field="services.sub">{sub}</p>}
+      </div>
+      <div class="sheet">
+        <div class="sheet-hd" style={`grid-template-columns:${cols}`} aria-hidden="true">
+          <span class="label">Ref</span>
+          <span class="label">Job</span>
+          {hasMaterial && <span class="label">Material</span>}
+          {hasFinish && <span class="label">Finish</span>}
+          {hasLead && <span class="label lead-col">Lead time</span>}
+        </div>
+        {items.map((item, i) => (
+          <article class="row rowrule reveal" style={`grid-template-columns:${cols}`}>
+            <span class="ref" aria-hidden="true">{`J${String(i + 1).padStart(2, '0')}`}</span>
+            <div class="job">
+              <h3 class="job-t" data-field={`services.items.${i}.title`}>{item.title}</h3>
+              {item.desc && <p class="job-d" data-field={`services.items.${i}.desc`}>{item.desc}</p>}
+            </div>
+            {hasMaterial && (
+              <span class="cell">
+                {item.tag && <><span class="cell-k label">Material</span><span data-field={`services.items.${i}.tag`}>{item.tag}</span></>}
+              </span>
+            )}
+            {hasFinish && (
+              <span class="cell">
+                {item.note && <><span class="cell-k label">Finish</span><span data-field={`services.items.${i}.note`}>{item.note}</span></>}
+              </span>
+            )}
+            {hasLead && (
+              <span class="cell lead-col">
+                {item.duration && <><span class="cell-k label">Lead time</span><span class="lead-v" data-field={`services.items.${i}.duration`}>{item.duration}</span></>}
+              </span>
+            )}
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .jobs-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 26px; flex-wrap: wrap; margin-bottom: clamp(24px, 3vw, 34px); }
+  .jobs-title { margin-bottom: 0; }
+  .jobs-note { max-width: 38ch; }
+  /* The 2px rule is the sheet's top edge — the one place in the template a
+     border is heavier than a hairline. */
+  .sheet { border-top: 2px solid var(--ink-soft); }
+  .sheet-hd { display: grid; gap: 20px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+  .row { display: grid; gap: 20px; padding: 20px 0; align-items: baseline; }
+  .ref { font-family: var(--disp); font-weight: 500; font-size: 13px; letter-spacing: .08em; color: var(--accent); }
+  .job-t { font-family: var(--disp); font-weight: 500; font-size: 21px; letter-spacing: .02em; line-height: 1.05; }
+  .job-d { color: var(--muted); font-size: 14.5px; line-height: 1.55; margin: 4px 0 0; }
+  .cell { color: var(--ink-soft); font-size: 15px; display: block; }
+  .lead-col { text-align: end; }
+  .lead-v { font-family: var(--disp); font-weight: 400; color: var(--ink); white-space: nowrap; }
+  /* The per-cell key is the mobile affordance: once the columns stack there is
+     no header row above them to say which is which. Hidden on desktop, where
+     the header row does that job. */
+  .cell-k { display: none; }
+
+  @media (max-width: 860px) {
+    /* The grid template is inline (it is computed from the data), so it must be
+       overridden with a declaration of at least equal specificity — hence the
+       !important here and nowhere else in this file. Without it the desktop
+       column count survives into a 360px screen and every cell clips. */
+    .sheet-hd { display: none; }
+    .row { grid-template-columns: minmax(0, 1fr) !important; gap: 8px; padding: 18px 0; }
+    .ref { display: block; }
+    .cell { display: flex; align-items: baseline; gap: 10px; }
+    .cell:empty { display: none; }
+    .cell-k { display: inline; flex: none; min-width: 86px; }
+    .lead-col { text-align: start; }
+  }
+</style>

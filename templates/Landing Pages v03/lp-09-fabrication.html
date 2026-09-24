@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<!-- DESIGN-CARD
+{
+  "id": "v3:fabrication",
+  "name": "Bakal Fabrication Works",
+  "manifesto": "A cut steel plate: near-black sheet, bone-white condensed caps, one hazard orange, and two stone bands sheared off-square where the hero and the closer meet the page.",
+  "description": "Heavy, industrial page for shops that make things out of metal. The services block is a job sheet — job, material, finish, lead time — because that is the question a fabricator is actually asked. Pick for welding shops, steel fabricators, machine shops, and any trade whose customer arrives with a drawing.",
+  "mood": ["industrial", "heavy", "precise", "no-nonsense"],
+  "bestFor": ["steel fabrication", "welding shops", "gates and railings", "machine shops", "metal works"],
+  "avoidFor": ["salons", "cafes", "childcare", "anything soft or pastel"],
+  "variationIdeas": [
+    "Galvanised: zinc grey sheet, white line-work, electric blue accent",
+    "Foundry: charcoal + molten amber, heavier rules",
+    "Marine: deep navy sheet, safety yellow accent, for boatyards and railings",
+    "Millwright: bone paper ground with black type, inverted for a lighter shop"
+  ]
+}
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steel Fabrication &amp; Welding in Dasmariñas, Cavite — Bakal Fabrication Works</title>
+<meta name="description" content="Bakal Fabrication Works is a two-bay steel fabrication and welding shop in Dasmariñas, Cavite — gates, railings, trusses, stainless counters and custom one-offs, drawn and quoted before anything is cut, installed by the crew that built it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "additionalType": "https://schema.org/HomeAndConstructionBusiness",
+  "name": "Bakal Fabrication Works",
+  "description": "Steel fabrication and welding shop in Dasmariñas, Cavite. Gates, railings, roof trusses, stainless kitchen fabrication, plasma cutting and custom metalwork.",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Km 31 Governor's Drive",
+    "addressLocality": "Dasmariñas",
+    "addressRegion": "Cavite",
+    "addressCountry": "PH"
+  },
+  "telephone": "+63 917 555 0142",
+  "areaServed": ["Dasmariñas", "Imus", "Bacoor", "General Trias", "Silang", "Tagaytay", "Las Piñas", "Muntinlupa", "Carmona"],
+  "openingHoursSpecification": [
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"], "opens": "07:00", "closes": "17:00" },
+    { "@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "07:00", "closes": "12:00" }
+  ]
+}
+</script>
+<style>
+  /* ── Bakal Fabrication Works ──────────────────────────────────────────
+     Near-black sheet, bone type, one hazard orange, two stone bands.
+     Oswald condensed uppercase over Source Sans 3.
+     Contrast: ink/sheet 15.6 · stone-text/sheet 10.8 · muted/sheet 5.16
+               on-stone/stone 10.8 · rust-deep/stone 5.21 · ink/rust 4.91  */
+  :root{
+    --sheet:#111213; --panel:#1D1F22; --deep:#0A0B0C;
+    --ink:#ECEAE4; --stone:#C9C4B8; --muted:#8A867C; --line:#33353A;
+    --rust:#F0421F; --rust-deep:#8C1F08;
+    --on-stone:#111213; --on-stone-soft:#4A4A48; --stone-line:rgba(17,18,19,.18);
+    --disp:"Oswald","Arial Narrow",Impact,system-ui,sans-serif;
+    --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif;
+    --maxw:1280px; --pad:clamp(16px,4vw,44px);
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:86px}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  body{margin:0;background:var(--sheet);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.62;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  h1,h2,h3,h4{margin:0;font-family:var(--disp);font-weight:700;line-height:.95;letter-spacing:-.005em;text-transform:uppercase}
+  p{margin:0 0 1em}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--rust);color:var(--on-stone)}
+  .wrap{width:min(var(--maxw),100%);margin-inline:auto;padding-inline:var(--pad)}
+  .sec{padding-block:clamp(46px,7vw,76px);border-bottom:1px solid var(--line)}
+  .kick{display:inline-block;font-family:var(--disp);font-weight:500;font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:var(--rust)}
+  .label{font-family:var(--disp);font-weight:400;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(30px,4.2vw,56px);line-height:.98;text-transform:uppercase;margin:0}
+  .lede{color:var(--stone);font-size:clamp(15.5px,1.5vw,18px);line-height:1.66;margin:0}
+  .body-t{color:var(--stone);font-size:15.5px;line-height:1.72;margin:0}
+  .fig{font-family:var(--disp);font-weight:700;line-height:.85;font-variant-numeric:tabular-nums}
+  .sec-head{display:flex;flex-direction:column;gap:10px;margin-bottom:clamp(26px,3.4vw,40px)}
+
+  /* THE STONE BAND — the two full-bleed inversions. */
+  .band-stone{background:var(--stone);color:var(--on-stone);border-bottom-color:var(--stone-line)}
+  .band-stone h1,.band-stone h2,.band-stone h3{color:var(--on-stone)}
+  .band-stone .kick{color:var(--rust-deep)}
+  .band-stone .lede,.band-stone .body-t,.band-stone .label{color:var(--on-stone-soft)}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;padding:15px 26px;min-height:48px;background:transparent;border:1px solid transparent;font-family:var(--disp);font-weight:500;font-size:12px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:background .18s,box-shadow .18s,transform .18s,border-color .18s,color .18s}
+  .btn--fill{background:var(--rust);color:var(--on-stone);border-color:var(--rust)}
+  .btn--fill:hover{box-shadow:inset 0 0 0 999px rgba(0,0,0,.18);transform:translateY(-2px)}
+  .btn--line{color:var(--ink);border-color:var(--stone)}
+  .btn--line:hover{background:var(--ink);color:var(--sheet);border-color:var(--ink);transform:translateY(-2px)}
+  .band-stone .btn--fill{background:var(--on-stone);color:var(--stone);border-color:var(--on-stone)}
+  .band-stone .btn--line{color:var(--on-stone);border-color:var(--on-stone)}
+  .band-stone .btn--line:hover{background:var(--on-stone);color:var(--stone)}
+  a:focus-visible,button:focus-visible{outline:3px solid var(--sheet);box-shadow:0 0 0 6px var(--ink)}
+  @media (prefers-reduced-motion:reduce){.btn{transition:none}.btn:hover{transform:none}}
+
+  /* ART-DIRECTED PLATE — a milled steel face under a faint layout grid, with a
+     hazard wash across one corner. Every photo slot in the page is one of
+     these; none is a grey box. */
+  .plate{position:relative;overflow:hidden;background:var(--panel);border:1px solid var(--line);isolation:isolate}
+  .plate::before{content:"";position:absolute;inset:0;
+    background:
+      linear-gradient(140deg,rgba(240,66,31,.20),transparent 58%),
+      repeating-linear-gradient(0deg,rgba(236,234,228,.06) 0 1px,transparent 1px 22px),
+      repeating-linear-gradient(90deg,rgba(236,234,228,.06) 0 1px,transparent 1px 22px),
+      repeating-linear-gradient(115deg,rgba(236,234,228,.035) 0 2px,transparent 2px 9px)}
+  .plate figcaption,.plate .cap{position:absolute;left:0;bottom:0;z-index:3;background:var(--sheet);color:var(--stone);font-family:var(--disp);font-size:11px;letter-spacing:.16em;text-transform:uppercase;padding:7px 12px}
+  .plate .cap.on{background:var(--rust);color:var(--on-stone)}
+
+  /* header */
+  header.bar{position:sticky;top:0;z-index:60;background:rgba(17,18,19,.94);backdrop-filter:blur(10px);border-bottom:2px solid var(--rust)}
+  .bar-in{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:62px}
+  .brand{display:flex;align-items:center;gap:13px;color:var(--ink)}
+  .mark{width:22px;height:22px;background:var(--rust);clip-path:polygon(0 0,100% 0,100% 70%,70% 100%,0 100%);flex:none}
+  .bn{font-family:var(--disp);font-weight:700;font-size:20px;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+  .links{display:flex;align-items:stretch}
+  .links a{display:inline-flex;align-items:center;padding:0 16px;font-family:var(--disp);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--stone)}
+  .links a:hover{color:var(--rust)}
+  .links .barcta{margin-left:12px;min-height:40px;padding:10px 20px;background:var(--rust);color:var(--on-stone);border:1px solid var(--rust)}
+  @media (max-width:860px){.links a:not(.barcta){display:none}}
+
+  /* hero */
+  .masthead{padding-top:clamp(38px,5.5vw,64px)}
+  .mh-copy{display:flex;flex-direction:column;gap:clamp(18px,2.4vw,28px);padding-bottom:clamp(30px,4vw,40px)}
+  .giant{font-family:var(--disp);font-weight:700;font-size:clamp(50px,11.5vw,190px);line-height:.88;letter-spacing:-.015em;text-transform:uppercase;overflow-wrap:anywhere}
+  .giant span{display:block}
+  .giant .soft{color:var(--stone)}
+  .mh-foot{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:end;border-top:1px solid var(--line);padding-top:26px}
+  .mh-foot .lede{max-width:52ch}
+  .mh-actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end}
+  @media (max-width:860px){.mh-foot{grid-template-columns:1fr}.mh-actions{justify-content:flex-start}}
+  .mh-plate{height:58vh;min-height:360px;border:0;clip-path:polygon(0 0,100% 6vw,100% 100%,0 100%)}
+  .mh-plate .cap{left:auto;right:0}
+  @media (max-width:760px){.mh-plate{height:42vh;min-height:250px;clip-path:polygon(0 0,100% 4vw,100% 100%,0 100%)}}
+
+  /* proof strip */
+  .ps-grid{display:grid;grid-template-columns:repeat(4,1fr);padding-inline:0}
+  .ps-cell{padding:30px var(--pad);border-inline-end:1px solid var(--stone-line)}
+  .ps-cell:last-child{border-inline-end:none}
+  .ps-num{font-size:clamp(34px,4vw,48px);color:var(--on-stone)}
+  .ps-lbl{margin-top:8px;display:block}
+  @media (max-width:760px){.ps-grid{grid-template-columns:repeat(2,1fr)}.ps-cell{border-block-end:1px solid var(--stone-line)}.ps-cell:nth-child(2n){border-inline-end:none}}
+
+  /* the shop */
+  .shop-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:clamp(28px,4vw,56px);align-items:start}
+  @media (max-width:900px){.shop-grid{grid-template-columns:1fr}}
+  .shop-fig{aspect-ratio:4/5;margin:0}
+  .shop-lead{font-size:clamp(17px,1.7vw,20px);line-height:1.55;color:var(--ink);margin:0 0 .9em}
+  .specs{display:grid;grid-template-columns:repeat(2,1fr);column-gap:26px;margin:clamp(22px,3vw,32px) 0 0;border-top:1px solid var(--line)}
+  @media (max-width:560px){.specs{grid-template-columns:1fr}}
+  .spec{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .spec dd{margin:0;font-weight:600;font-size:15px;color:var(--ink);text-align:end}
+
+  /* THE JOB SHEET — the signature block */
+  .jobs-head{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;flex-wrap:wrap;margin-bottom:clamp(24px,3vw,34px)}
+  .jobs-note{max-width:38ch}
+  .sheet{border-top:2px solid var(--stone)}
+  .sheet-hd,.row{display:grid;grid-template-columns:54px 1.5fr 1fr 1fr 110px;gap:20px}
+  .sheet-hd{padding:12px 0;border-bottom:1px solid var(--line)}
+  .row{padding:20px 0;align-items:baseline;border-bottom:1px solid var(--line)}
+  .ref{font-family:var(--disp);font-weight:500;font-size:13px;letter-spacing:.08em;color:var(--rust)}
+  .job-t{font-family:var(--disp);font-weight:500;font-size:21px;letter-spacing:.02em;line-height:1.05}
+  .job-d{color:var(--muted);font-size:14.5px;line-height:1.55;margin:4px 0 0}
+  .cell{color:var(--stone);font-size:15px}
+  .lead-col{text-align:end}
+  .lead-v{font-family:var(--disp);color:var(--ink);white-space:nowrap}
+  .cell-k{display:none}
+  @media (max-width:860px){
+    .sheet-hd{display:none}
+    .row{grid-template-columns:1fr;gap:8px;padding:18px 0}
+    .cell{display:flex;gap:10px}
+    .cell-k{display:inline;min-width:86px}
+    .lead-col{text-align:start}
+  }
+
+  /* why */
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr)}
+  .why-cell{padding:clamp(28px,3.4vw,44px) clamp(20px,2.4vw,32px);border-inline-end:1px solid var(--line)}
+  .why-cell:first-child{padding-inline-start:0}
+  .why-cell:last-child{border-inline-end:none;padding-inline-end:0}
+  .why-n{font-size:clamp(56px,7vw,88px);color:var(--rust);margin-bottom:20px}
+  .why-t{font-family:var(--disp);font-weight:500;font-size:23px;letter-spacing:.02em;margin-bottom:12px}
+  @media (max-width:760px){.why-grid{grid-template-columns:1fr}.why-cell{padding:26px 0;border-inline-end:none;border-block-end:1px solid var(--line)}}
+
+  /* recent jobs */
+  .work-head{display:flex;align-items:baseline;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:clamp(20px,2.6vw,28px);padding-bottom:18px;border-bottom:2px solid var(--line)}
+  .mosaic{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:240px;gap:2px;background:var(--line)}
+  .mosaic figure{margin:0;border:0}
+  .lead-tile{grid-column:span 2;grid-row:span 2}
+  @media (max-width:900px){.mosaic{grid-template-columns:repeat(2,1fr);grid-auto-rows:200px}}
+  @media (max-width:560px){.mosaic{grid-template-columns:1fr}.lead-tile{grid-column:auto}}
+
+  /* process */
+  .pr-grid{display:grid;grid-template-columns:.9fr 2fr;gap:clamp(28px,4vw,44px);align-items:start}
+  @media (max-width:900px){.pr-grid{grid-template-columns:1fr}}
+  .pr-intro{display:flex;flex-direction:column;align-items:flex-start;gap:16px}
+  .pr-steps{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--stone-line)}
+  @media (max-width:620px){.pr-steps{grid-template-columns:1fr}}
+  .pr-step{background:var(--stone);padding:clamp(22px,2.6vw,30px) clamp(20px,2.4vw,28px)}
+  .pr-n{font-family:var(--disp);font-weight:700;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--rust-deep)}
+  .pr-t{font-family:var(--disp);font-weight:500;font-size:22px;letter-spacing:.02em;margin:12px 0 8px}
+
+  /* sign-offs */
+  .so-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+  @media (max-width:860px){.so-grid{grid-template-columns:1fr}}
+  .so-card{margin:0;background:var(--sheet);padding:clamp(24px,2.6vw,30px) clamp(20px,2.4vw,26px);display:flex;flex-direction:column;gap:18px}
+  .so-stars{color:var(--rust);font-size:14px;letter-spacing:.12em}
+  .so-q{margin:0;flex:1;font-size:clamp(16.5px,1.6vw,18px);line-height:1.6;color:var(--ink)}
+  .so-by{border-top:1px solid var(--line);padding-top:14px}
+  .so-job{color:var(--rust)}
+
+  /* accountability */
+  .cr-row{display:grid;grid-template-columns:repeat(4,1fr)}
+  .cr-cell{padding:clamp(24px,2.6vw,32px) clamp(18px,2.2vw,28px);border-inline-end:1px solid var(--line)}
+  .cr-cell:first-child{padding-inline-start:0}
+  .cr-cell:last-child{border-inline-end:none;padding-inline-end:0}
+  .cr-bar{width:34px;height:4px;background:var(--rust);margin-bottom:18px}
+  .cr-t{font-family:var(--disp);font-weight:500;font-size:15px;letter-spacing:.12em;margin-bottom:8px}
+  @media (max-width:760px){.cr-row{grid-template-columns:repeat(2,1fr)}}
+
+  /* the yard */
+  .yard-grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line)}
+  @media (max-width:900px){.yard-grid{grid-template-columns:1fr}}
+  .yard-info{padding:clamp(26px,3.2vw,44px) clamp(20px,2.6vw,36px);border-inline-end:1px solid var(--line)}
+  .yard-rows{margin:0;border-top:1px solid var(--stone)}
+  .yrow{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .yrow dd{margin:0;font-weight:600;font-size:15.5px;color:var(--ink);text-align:end}
+  .hours{display:grid;gap:5px;min-width:200px}
+  .hrow{display:flex;justify-content:space-between;gap:16px}
+  .yard-map{position:relative;min-height:420px;background:var(--panel);overflow:hidden}
+  .skin{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(236,234,228,.10) 0 1px,transparent 1px 36px),repeating-linear-gradient(90deg,rgba(236,234,228,.10) 0 1px,transparent 1px 36px)}
+  .skin-v{position:absolute;inset-block:0;left:38%;width:6px;background:rgba(236,234,228,.22);transform:skewX(-14deg)}
+  .skin-h{position:absolute;top:54%;inset-inline:0;height:5px;background:rgba(236,234,228,.22)}
+  .skin-pin{position:absolute;top:54%;left:38%;width:14px;height:14px;margin:-7px 0 0 -7px;background:var(--rust)}
+
+  /* install radius */
+  .cov-head{display:flex;align-items:flex-end;justify-content:space-between;gap:26px;flex-wrap:wrap;margin-bottom:clamp(20px,2.6vw,26px)}
+  .cov-note{max-width:40ch}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{display:inline-flex;align-items:baseline;gap:10px;font-family:var(--disp);font-size:13px;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--line);padding:10px 16px}
+  .chip:hover{border-color:var(--stone)}
+  .chip-t{color:var(--rust);font-size:11px}
+
+  /* asked at the gate */
+  .qa{margin:0;border-top:1px solid var(--stone);columns:2;column-gap:48px}
+  @media (max-width:860px){.qa{columns:1}}
+  .qa-item{break-inside:avoid;padding:22px 0;border-bottom:1px solid var(--line)}
+  .qa-q{font-family:var(--disp);font-weight:500;font-size:19px;letter-spacing:.02em;text-transform:uppercase;margin:0 0 8px}
+  .qa-a{margin:0;font-size:15px;color:var(--stone)}
+
+  /* closing band */
+  .closing{background:var(--rust);color:var(--on-stone);padding-block:clamp(56px,8vw,84px) clamp(44px,6vw,70px);clip-path:polygon(0 4vw,100% 0,100% 100%,0 100%);margin-top:-1px}
+  .cl-grid{display:grid;grid-template-columns:1.3fr .9fr;gap:clamp(26px,4vw,44px);align-items:end;padding-top:4vw}
+  @media (max-width:860px){.cl-grid{grid-template-columns:1fr;align-items:start}}
+  .cl-kick{display:inline-block;font-family:var(--disp);font-weight:500;font-size:12px;letter-spacing:.28em;text-transform:uppercase;margin-bottom:12px}
+  .cl-h{font-family:var(--disp);font-weight:700;font-size:clamp(38px,7.5vw,118px);line-height:.88;letter-spacing:-.015em;text-transform:uppercase;color:var(--on-stone);margin:0;overflow-wrap:anywhere}
+  .cl-sub{font-size:clamp(15.5px,1.5vw,17px);line-height:1.62;margin:0 0 22px;opacity:.88}
+  .cl-actions{display:flex;flex-wrap:wrap;gap:10px}
+  .cl-fill{background:var(--on-stone);color:var(--stone);border-color:var(--on-stone)}
+  .cl-line{color:var(--on-stone);border-color:var(--on-stone)}
+  .cl-line:hover{background:var(--on-stone);color:var(--stone)}
+
+  /* footer */
+  footer.foot{background:var(--deep);padding-block:clamp(40px,5vw,56px) 24px}
+  .foot-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:clamp(24px,3.4vw,44px);padding-bottom:clamp(26px,3vw,36px);border-bottom:1px solid var(--line)}
+  @media (max-width:760px){.foot-grid{grid-template-columns:1fr}}
+  .fbrand{display:flex;align-items:center;gap:11px}
+  .fbn{font-family:var(--disp);font-weight:700;font-size:23px;letter-spacing:.04em;text-transform:uppercase}
+  .fblurb{margin:12px 0 16px;max-width:40ch;font-size:14.5px;color:var(--stone)}
+  .fh{display:block;margin-bottom:14px}
+  .fl{margin:0 0 9px;font-size:15px;color:var(--stone)}
+  .fl a:hover{color:var(--rust)}
+  .fsocial{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
+  .fsocial a{font-family:var(--disp);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--stone);border:1px solid var(--line);padding:7px 12px}
+  .fsocial a:hover{color:var(--rust);border-color:var(--rust)}
+  .foot-btm{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;padding-top:18px}
+  .skip{position:absolute;left:-999px;top:0;z-index:100;background:var(--rust);color:var(--on-stone);padding:12px 18px;font-family:var(--disp);font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+  .skip:focus{left:0;top:0}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="bar" data-component="HEADER">
+  <div class="bar-in wrap">
+    <a href="#main" class="brand"><span class="mark" aria-hidden="true"></span><span class="bn">Bakal Fabrication Works</span></a>
+    <nav class="links" aria-label="Primary">
+      <a href="#shop">Shop</a>
+      <a href="#jobs">Job sheet</a>
+      <a href="#work">Work</a>
+      <a href="#visit">Yard</a>
+      <a href="#faq">FAQ</a>
+      <a href="#visit" class="barcta">Request a quote</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="masthead" data-component="HERO" aria-label="Introduction">
+  <div class="wrap mh-copy">
+    <span class="kick">Steel fabrication &amp; welding · Dasmariñas, Cavite</span>
+    <h1 class="giant"><span>Steel, cut</span><span>to your</span><span class="soft">drawing.</span></h1>
+    <div class="mh-foot">
+      <p class="lede">Gates, railings, trusses and stainless work, fabricated in our two bays and installed by the same crew. Bring a drawing or a photo of a sketch; we measure, quote in writing, and cut nothing until you sign off.</p>
+      <div class="mh-actions">
+        <a href="#visit" class="btn btn--fill">Request a quote</a>
+        <a href="#jobs" class="btn btn--line">Job sheet</a>
+      </div>
+    </div>
+  </div>
+  <div>
+    <figure class="plate mh-plate">
+      <!-- IMG: hero — wide shop-floor frame, sparks off an angle grinder, plate stacked under the gantry, hazard-orange cast from one work lamp -->
+      <span role="img" aria-label="The shop floor mid-job, sparks off a grinder beside stacked steel plate" style="position:absolute;inset:0"></span>
+      <span class="cap">Bay 2 · Dasmariñas</span>
+    </figure>
+  </div>
+</section>
+
+<section class="band-stone" data-component="TRUST" aria-label="At a glance">
+  <div class="wrap ps-grid">
+    <div class="ps-cell"><div class="fig ps-num">2</div><span class="label ps-lbl">Fabrication bays</span></div>
+    <div class="ps-cell"><div class="fig ps-num">5 t</div><span class="label ps-lbl">Gantry crane</span></div>
+    <div class="ps-cell"><div class="fig ps-num">8</div><span class="label ps-lbl">Full-time fabricators</span></div>
+    <!-- data-gbp: rating + review count pulled live from Google Business Profile; never hardcode -->
+    <div class="ps-cell"><div class="fig ps-num" data-gbp="rating">4.8 ★</div><span class="label ps-lbl" data-gbp="reviewCount">Google reviews</span></div>
+  </div>
+</section>
+
+<section class="sec" id="shop" data-component="ABOUT">
+  <div class="wrap shop-grid">
+    <figure class="plate shop-fig">
+      <!-- IMG: the 5-ton gantry crane over Bay 1, a half-built gate hanging in its slings -->
+      <span role="img" aria-label="The five-tonne gantry crane lifting a half-built steel gate" style="position:absolute;inset:0"></span>
+    </figure>
+    <div>
+      <div class="sec-head">
+        <span class="kick">01 · The shop</span>
+        <h2 class="h2">Two bays, one crane,<br>no middlemen</h2>
+      </div>
+      <p class="shop-lead">Bakal Fabrication Works is a steel fabrication and welding shop on Governor's Drive in Dasmariñas. If it is made of metal and it has to fit something you already own, this is the kind of shop you bring the measurement to.</p>
+      <p class="body-t">It started as a one-bay stall repairing tricycle frames. It is now two bays under a five-tonne gantry, a CNC plasma table and eight full-time fabricators, most of whom trained here.</p>
+      <p class="body-t">We do not subcontract. The people who quote your job cut it, weld it, finish it and bolt it in. If something is off on site, the person who made it is the one standing there with a grinder.</p>
+      <dl class="specs">
+        <div class="spec"><dt class="label">Floor</dt><dd>640 sqm, 2 bays</dd></div>
+        <div class="spec"><dt class="label">Crane</dt><dd>5 t gantry</dd></div>
+        <div class="spec"><dt class="label">Cutting</dt><dd>CNC plasma, bandsaw</dd></div>
+        <div class="spec"><dt class="label">Welding</dt><dd>MIG, TIG, stick</dd></div>
+        <div class="spec"><dt class="label">Finishing</dt><dd>Powder coat partner</dd></div>
+        <div class="spec"><dt class="label">Delivery</dt><dd>6-wheeler, own</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="jobs" data-component="SERVICES">
+  <div class="wrap">
+    <div class="jobs-head">
+      <div class="sec-head" style="margin-bottom:0">
+        <span class="kick">02 · Job sheet</span>
+        <h2 class="h2">What we fabricate</h2>
+      </div>
+      <p class="body-t jobs-note">Lead times are typical from an approved drawing. Every job is quoted in writing; nothing is cut before you sign off.</p>
+    </div>
+    <div class="sheet">
+      <div class="sheet-hd" aria-hidden="true">
+        <span class="label">Ref</span><span class="label">Job</span><span class="label">Material</span><span class="label">Finish</span><span class="label lead-col">Lead time</span>
+      </div>
+      <article class="row">
+        <span class="ref" aria-hidden="true">J01</span>
+        <div><h3 class="job-t">Gates &amp; fences</h3><p class="job-d">Swing, sliding and cantilever gates; perimeter fencing to your line.</p></div>
+        <span class="cell"><span class="cell-k label">Material</span>MS tube, plate</span>
+        <span class="cell"><span class="cell-k label">Finish</span>Primed + epoxy</span>
+        <span class="cell lead-col"><span class="cell-k label">Lead time</span><span class="lead-v">2–3 wks</span></span>
+      </article>
+      <article class="row">
+        <span class="ref" aria-hidden="true">J02</span>
+        <div><h3 class="job-t">Stair &amp; balcony railings</h3><p class="job-d">Site-measured, welded in sections, fitted in a day.</p></div>
+        <span class="cell"><span class="cell-k label">Material</span>MS or stainless</span>
+        <span class="cell"><span class="cell-k label">Finish</span>Powder coat</span>
+        <span class="cell lead-col"><span class="cell-k label">Lead time</span><span class="lead-v">10 days</span></span>
+      </article>
+      <article class="row">
+        <span class="ref" aria-hidden="true">J03</span>
+        <div><h3 class="job-t">Stainless kitchen &amp; counters</h3><p class="job-d">Food-grade worktops, sinks, hoods and shelving, seams polished flat.</p></div>
+        <span class="cell"><span class="cell-k label">Material</span>304 stainless, 1.2 mm</span>
+        <span class="cell"><span class="cell-k label">Finish</span>#4 brushed</span>
+        <span class="cell lead-col"><span class="cell-k label">Lead time</span><span class="lead-v">2 wks</span></span>
+      </article>
+      <article class="row">
+        <span class="ref" aria-hidden="true">J04</span>
+        <div><h3 class="job-t">Roof trusses &amp; purlins</h3><p class="job-d">Cut and welded to the engineer's drawing, delivered tagged.</p></div>
+        <span class="cell"><span class="cell-k label">Material</span>C-purlin, angle bar</span>
+        <span class="cell"><span class="cell-k label">Finish</span>Red oxide</span>
+        <span class="cell lead-col"><span class="cell-k label">Lead time</span><span class="lead-v">1–2 wks</span></span>
+      </article>
+      <article class="row">
+        <span class="ref" aria-hidden="true">J05</span>
+        <div><h3 class="job-t">Steel stairs &amp; mezzanines</h3><p class="job-d">Checker plate or grating treads, load-rated stringers.</p></div>
+        <span class="cell"><span class="cell-k label">Material</span>I-beam, plate</span>
+        <span class="cell"><span class="cell-k label">Finish</span>Epoxy</span>
+        <span class="cell lead-col"><span class="cell-k label">Lead time</span><span class="lead-v">3–4 wks</span></span>
+      </article>
+      <article class="row">
+        <span class="ref" aria-hidden="true">J06</span>
+        <div><h3 class="job-t">Plasma cutting from your file</h3><p class="job-d">Plate up to 20 mm from your DXF. Same day for small runs.</p></div>
+        <span class="cell"><span class="cell-k label">Material</span>MS, SS, aluminium</span>
+        <span class="cell"><span class="cell-k label">Finish</span>Deburred</span>
+        <span class="cell lead-col"><span class="cell-k label">Lead time</span><span class="lead-v">1–3 days</span></span>
+      </article>
+      <article class="row">
+        <span class="ref" aria-hidden="true">J07</span>
+        <div><h3 class="job-t">Repairs &amp; reinforcement</h3><p class="job-d">Cracked gate hinges, sagging trusses, corroded posts.</p></div>
+        <span class="cell"><span class="cell-k label">Material</span>Match existing</span>
+        <span class="cell"><span class="cell-k label">Finish</span>Spot primed</span>
+        <span class="cell lead-col"><span class="cell-k label">Lead time</span><span class="lead-v">Same week</span></span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="why" data-component="WHY-US">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kick">03 · Why us</span>
+      <h2 class="h2">Three things we will not trade away</h2>
+    </div>
+    <div class="why-grid">
+      <div class="why-cell">
+        <div class="fig why-n" aria-hidden="true">01</div>
+        <h3 class="why-t">Drawn before it is cut</h3>
+        <p class="body-t">Every job gets a shop drawing you approve, with dimensions, material and finish written down. No surprises when it arrives on site.</p>
+      </div>
+      <div class="why-cell">
+        <div class="fig why-n" aria-hidden="true">02</div>
+        <h3 class="why-t">One crew, start to finish</h3>
+        <p class="body-t">The fabricators who weld your gate are the ones who hang it. Nothing is handed to an installer who has never seen it.</p>
+      </div>
+      <div class="why-cell">
+        <div class="fig why-n" aria-hidden="true">03</div>
+        <h3 class="why-t">Steel that is what we say</h3>
+        <p class="body-t">Mill certificates on request for structural work. Stainless is 304 unless you ask for 316, and we will show you the marking.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="work" data-component="GALLERY">
+  <div class="wrap">
+    <div class="work-head">
+      <h2 class="h2">Recent jobs</h2>
+      <span class="kick">04 · Off the bay floor</span>
+    </div>
+    <div class="mosaic">
+      <figure class="plate lead-tile">
+        <!-- IMG: a finished sliding gate hung on its track, shot from the driveway at dusk -->
+        <span role="img" aria-label="A finished sliding steel gate installed across a driveway" style="position:absolute;inset:0"></span>
+        <figcaption class="cap on">Sliding gate · Dasmariñas</figcaption>
+      </figure>
+      <figure class="plate">
+        <!-- IMG: stainless stair railing, raking light along the top rail -->
+        <span role="img" aria-label="A stainless steel stair railing in raking light" style="position:absolute;inset:0"></span>
+        <figcaption>Railing</figcaption>
+      </figure>
+      <figure class="plate">
+        <!-- IMG: macro of a stacked TIG bead on stainless, heat colours visible -->
+        <span role="img" aria-label="Close-up of a stacked TIG weld bead on stainless steel" style="position:absolute;inset:0"></span>
+        <figcaption>TIG</figcaption>
+      </figure>
+      <figure class="plate">
+        <!-- IMG: roof truss being craned onto a slab, two fabricators steadying it -->
+        <span role="img" aria-label="A steel roof truss being lifted into place on site" style="position:absolute;inset:0"></span>
+        <figcaption>Truss</figcaption>
+      </figure>
+      <figure class="plate">
+        <!-- IMG: CNC plasma torch cutting plate, blue arc and slag spray -->
+        <span role="img" aria-label="A CNC plasma torch cutting steel plate" style="position:absolute;inset:0"></span>
+        <figcaption>Plasma</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="sec band-stone" id="process" data-component="HOW-IT-WORKS">
+  <div class="wrap pr-grid">
+    <div class="pr-intro">
+      <span class="kick">05 · Process</span>
+      <h2 class="h2">Drawing to<br>delivery</h2>
+      <a href="#visit" class="btn btn--fill">Request a quote</a>
+    </div>
+    <div class="pr-steps">
+      <div class="pr-step"><div class="pr-n">Step 01</div><h3 class="pr-t">Send it</h3><p class="body-t">A sketch, a photo, a site measurement or a DWG file. Message or call.</p></div>
+      <div class="pr-step"><div class="pr-n">Step 02</div><h3 class="pr-t">We measure &amp; draw</h3><p class="body-t">Site visit within the week for anything installed. You get a shop drawing and a written quote.</p></div>
+      <div class="pr-step"><div class="pr-n">Step 03</div><h3 class="pr-t">Fabricate</h3><p class="body-t">Cut, welded and finished in the bay. Progress photos on request.</p></div>
+      <div class="pr-step"><div class="pr-n">Step 04</div><h3 class="pr-t">Deliver &amp; install</h3><p class="body-t">Our truck, our crew, one visit. Balance due when it is bolted in.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="reviews" data-component="TESTIMONIALS">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kick">06 · Sign-offs</span>
+      <h2 class="h2">From the people who paid for it</h2>
+    </div>
+    <!-- data-gbp: quotes and star counts pulled live from Google Business Profile reviews -->
+    <div class="so-grid" data-gbp="reviews">
+      <figure class="so-card">
+        <div class="so-stars" aria-label="Rated 5 out of 5">★★★★★</div>
+        <blockquote class="so-q">“Sliding gate for a six-metre driveway. Measured on a Tuesday, installed two weeks later, rolls with one finger.”</blockquote>
+        <figcaption class="label so-by">Engr. Bautista · <span class="so-job">Gate</span></figcaption>
+      </figure>
+      <figure class="so-card">
+        <div class="so-stars" aria-label="Rated 5 out of 5">★★★★★</div>
+        <blockquote class="so-q">“They caught a mistake in our truss drawing before cutting and called to confirm. That saved us a week.”</blockquote>
+        <figcaption class="label so-by">R. Villanueva, contractor · <span class="so-job">Trusses</span></figcaption>
+      </figure>
+      <figure class="so-card">
+        <div class="so-stars" aria-label="Rated 5 out of 5">★★★★★</div>
+        <blockquote class="so-q">“Stainless counters for our commissary. Seams you cannot find with a fingernail. The inspector had no notes.”</blockquote>
+        <figcaption class="label so-by">Maricel D. · <span class="so-job">Kitchen</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="sec" data-component="CREDENTIALS">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kick">07 · Accountability</span>
+      <h2 class="h2">Licensed, papered, insured</h2>
+    </div>
+    <div class="cr-row">
+      <div class="cr-cell"><div class="cr-bar" aria-hidden="true"></div><h3 class="cr-t">DTI registered</h3><p class="body-t">Business name registered and city permits current.</p></div>
+      <div class="cr-cell"><div class="cr-bar" aria-hidden="true"></div><h3 class="cr-t">Certified welders</h3><p class="body-t">Lead welders hold TESDA SMAW and GMAW NC II.</p></div>
+      <div class="cr-cell"><div class="cr-bar" aria-hidden="true"></div><h3 class="cr-t">Mill certs on request</h3><p class="body-t">Structural steel traceable to the mill for engineered work.</p></div>
+      <div class="cr-cell"><div class="cr-bar" aria-hidden="true"></div><h3 class="cr-t">Insured on site</h3><p class="body-t">Crew covered for installation work on your property.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="visit" data-component="LOCATION">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kick">08 · The yard</span>
+      <h2 class="h2">Km 31 Governor's Drive</h2>
+    </div>
+    <div class="yard-grid">
+      <div class="yard-info">
+        <p class="body-t" style="max-width:44ch;margin-bottom:22px">Along the Governor's Drive service road, blue roller doors. Trucks can back in to Bay 1 for pickups.</p>
+        <dl class="yard-rows">
+          <div class="yrow"><dt class="label">Address</dt><dd>Km 31 Governor's Drive<br>Dasmariñas, Cavite</dd></div>
+          <div class="yrow"><dt class="label">Phone</dt><dd><a href="tel:+639175550142">+63 917 555 0142</a></dd></div>
+          <!-- data-gbp: opening hours pulled live from Google Business Profile -->
+          <div class="yrow" data-gbp="hours"><dt class="label">Hours</dt><dd>
+            <div class="hours">
+              <div class="hrow"><span class="label">Mon — Fri</span><span>7:00am — 5:00pm</span></div>
+              <div class="hrow"><span class="label">Saturday</span><span>7:00am — 12:00nn</span></div>
+              <div class="hrow"><span class="label">Sunday</span><span>Closed</span></div>
+              <div class="hrow"><span class="label">Site visits</span><span>By schedule</span></div>
+            </div>
+          </dd></div>
+        </dl>
+      </div>
+      <div class="yard-map">
+        <!-- IMG: map placeholder — embed a live map pinned to the yard in production -->
+        <div class="skin" role="img" aria-label="Map showing where the Bakal Fabrication Works yard is">
+          <span class="skin-v"></span><span class="skin-h"></span><span class="skin-pin"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="coverage" data-component="SERVICE-AREA">
+  <div class="wrap">
+    <div class="cov-head">
+      <div class="sec-head" style="margin-bottom:0">
+        <span class="kick">09 · Install radius</span>
+        <h2 class="h2">Where we deliver and install</h2>
+      </div>
+      <p class="body-t cov-note">Delivery and installation cover most of Cavite and the southern Metro. Farther is fine, quoted with travel.</p>
+    </div>
+    <div class="chips">
+      <span class="chip">Dasmariñas <span class="chip-t">Local</span></span>
+      <span class="chip">Imus <span class="chip-t">20 min</span></span>
+      <span class="chip">Bacoor <span class="chip-t">30 min</span></span>
+      <span class="chip">General Trias <span class="chip-t">25 min</span></span>
+      <span class="chip">Silang <span class="chip-t">30 min</span></span>
+      <span class="chip">Carmona <span class="chip-t">35 min</span></span>
+      <span class="chip">Tagaytay <span class="chip-t">45 min</span></span>
+      <span class="chip">Las Piñas <span class="chip-t">45 min</span></span>
+      <span class="chip">Alabang <span class="chip-t">50 min</span></span>
+      <span class="chip">Muntinlupa <span class="chip-t">50 min</span></span>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="faq" data-component="FAQ">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="kick">10 · Before you message</span>
+      <h2 class="h2">Asked at the gate</h2>
+    </div>
+    <dl class="qa">
+      <div class="qa-item"><dt class="qa-q">Do I need a proper drawing?</dt><dd class="qa-a">No. A phone sketch with rough dimensions is enough to start. We measure on site and produce the shop drawing you approve.</dd></div>
+      <div class="qa-item"><dt class="qa-q">How do you quote?</dt><dd class="qa-a">In writing, after measuring. Material, labour, finish and installation are itemised so you can see what changes if you change the spec.</dd></div>
+      <div class="qa-item"><dt class="qa-q">Do you install, or just fabricate?</dt><dd class="qa-a">Both. Most jobs are installed by the same crew that built them. Fabricate-only is fine if you have your own installers.</dd></div>
+      <div class="qa-item"><dt class="qa-q">Can I supply my own steel?</dt><dd class="qa-a">Yes, though we will check it before cutting. We cannot guarantee the finish on material we did not source.</dd></div>
+      <div class="qa-item"><dt class="qa-q">What about rust?</dt><dd class="qa-a">Mild steel is primed and either epoxy-painted or powder coated. Anything near the coast or a kitchen, we recommend stainless and will say so.</dd></div>
+      <div class="qa-item"><dt class="qa-q">Do you do small repairs?</dt><dd class="qa-a">Yes. Bring it to the yard, or send a photo first and we will tell you if it is worth fixing.</dd></div>
+    </dl>
+  </div>
+</section>
+
+</main>
+
+<section class="closing" id="quote" data-component="CTA-BAND">
+  <div class="wrap cl-grid">
+    <div>
+      <span class="cl-kick">Ready when you are</span>
+      <h2 class="cl-h">Send the<br>drawing.</h2>
+    </div>
+    <div>
+      <p class="cl-sub">A photo of a sketch, a site measurement or a DWG file. We reply with questions, then a written quote and a lead time.</p>
+      <div class="cl-actions">
+        <a href="#visit" class="btn cl-fill">Request a quote</a>
+        <a href="tel:+639175550142" class="btn cl-line">+63 917 555 0142</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot" data-component="FOOTER">
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="fbrand"><span class="mark" aria-hidden="true"></span><span class="fbn">Bakal Fabrication Works</span></div>
+        <div class="label" style="margin-top:8px">Dasmariñas, Cavite</div>
+        <p class="fblurb">Steel fabrication and welding shop in Dasmariñas. Gates, railings, trusses, stainless and custom one-offs, made and installed by one crew.</p>
+        <div class="fsocial">
+          <a href="#">Facebook</a>
+          <a href="#">Messenger</a>
+        </div>
+      </div>
+      <div>
+        <div class="label fh">Sections</div>
+        <p class="fl"><a href="#shop">The shop</a></p>
+        <p class="fl"><a href="#jobs">Job sheet</a></p>
+        <p class="fl"><a href="#work">Recent jobs</a></p>
+        <p class="fl"><a href="#faq">Questions</a></p>
+      </div>
+      <div>
+        <div class="label fh">Contact</div>
+        <p class="fl"><a href="tel:+639175550142">+63 917 555 0142</a></p>
+        <p class="fl">Km 31 Governor's Drive</p>
+        <p class="fl">Dasmariñas, Cavite</p>
+      </div>
+    </div>
+    <div class="foot-btm">
+      <span class="label">Bakal Fabrication Works · Dasmariñas, Cavite</span>
+      <span class="label">Quotes in writing, always</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

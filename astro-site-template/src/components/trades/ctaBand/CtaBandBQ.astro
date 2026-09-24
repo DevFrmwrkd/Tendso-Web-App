@@ -1,0 +1,117 @@
+---
+/**
+ * trades / CtaBandBQ — the closing band: the full-bleed hazard fill, cut across
+ * the top with the same clip-path shear as the hero's photo band. The giant
+ * near-black headline sits left, the sentence and the two actions right.
+ *
+ * The section is class="closing", never "cta-band": buildOverrideCss pins
+ * `.cta-band .btn {color:<on-ink>!important}` for every state, which is written
+ * for a band on an INK fill. This band is an ACCENT fill whose buttons carry
+ * near-black and stone labels, so the pin would repaint both and erase one of
+ * them outright.
+ *
+ * BUTTON SAFETY. Inside the band the fill button is near-black on the orange
+ * (15.6:1 the other way round is not the measurement that matters — the label
+ * is --stone on --on-stone, 10.8:1) and the outline button is near-black on the
+ * orange ground, 4.91:1. Both are declared here rather than reusing the shared
+ * .btn--fill / .btn--line grounds, because those are built for the SHEET and
+ * would put an orange fill on an orange band.
+ *
+ * EDITABLE HOOKS
+ *   ctaBand.tag / ctaBand.headline (set:html) / ctaBand.sub
+ *   ctaBand.cta.text + data-href-field ctaBand.cta.href
+ *   location.phone — the second action, data-field ONLY (its href is derived
+ *                    from its own value; see the note in LocationBQ)
+ *
+ * THE PATH IS ctaBand.cta.text, NOT ctaBand.cta1.text. The schema owns
+ * ctaBand.cta.text / .href and derive-content-defaults.ts fills that shape;
+ * several older siblings emit cta1/cta2 hooks that no field declares, which is
+ * why their second labels are unreachable from the admin. This band binds the
+ * path the sidebar actually writes and reads the legacy cta1 for DISPLAY only,
+ * so a site edited under an older template still shows its button.
+ *
+ * NEVER FABRICATED: no headline, sentence, button label or number is invented.
+ * The band stays out of the document unless there is a headline or a real
+ * action to show.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+
+// Anchor guard — see the long note in HeaderBQ. Kept identical in every sibling.
+const PAGE_ANCHORS = new Set(['main', 'shop', 'jobs', 'why', 'work', 'process', 'reviews', 'visit', 'coverage', 'faq', 'quote']);
+const ANCHOR_ALIAS: Record<string, string> = {
+  about: 'shop', services: 'jobs', gallery: 'work', how: 'process',
+  testimonials: 'reviews', location: 'visit', contact: 'visit', area: 'coverage',
+  reserve: 'quote', book: 'quote',
+};
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+
+const cta = content.ctaBand || content.closing || {};
+const tag = cta.tag || '';
+const headline = cta.headline || '';
+const sub = cta.sub || '';
+const ctaText = cta.cta?.text || cta.cta1?.text || '';
+const ctaHref = onPage(cta.cta?.href || cta.cta1?.href, '#visit');
+const phone = (content as any).location?.phone || layout.contact?.phone || '';
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+const hasAction = Boolean(ctaText || phone);
+---
+{(headline || hasAction) && (
+<section class="closing" id="quote">
+  <div class="wrap cl-grid">
+    <div class="cl-l">
+      {tag && <span class="cl-kick" data-field="ctaBand.tag">{tag}</span>}
+      {headline && <h2 class="cl-h" data-field="ctaBand.headline" set:html={headline}></h2>}
+    </div>
+    {(sub || hasAction) && (
+      <div class="cl-r">
+        {sub && <p class="cl-sub" data-field="ctaBand.sub">{sub}</p>}
+        {hasAction && (
+          <div class="cl-actions">
+            {ctaText && <a href={ctaHref} class="btn cl-fill" rel="noopener" data-field="ctaBand.cta.text" data-href-field="ctaBand.cta.href">{ctaText}</a>}
+            {phone && <a href={`tel:${phoneDigits}`} class="btn cl-line" aria-label={`Call ${phone}`} data-field="location.phone">{phone}</a>}
+          </div>
+        )}
+      </div>
+    )}
+  </div>
+</section>
+)}
+<style>
+  .closing {
+    background-color: var(--accent); color: var(--on-accent);
+    padding-block: clamp(56px, 8vw, 84px) clamp(44px, 6vw, 70px);
+    /* The same shear as the hero band, mirrored: the band is cut INTO the sheet
+       above it rather than out of the photo below. */
+    clip-path: polygon(0 4vw, 100% 0, 100% 100%, 0 100%);
+    margin-top: -1px;
+  }
+  @media (max-width: 760px) { .closing { clip-path: polygon(0 3vw, 100% 0, 100% 100%, 0 100%); } }
+  .cl-grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .9fr); gap: clamp(26px, 4vw, 44px); align-items: end; padding-top: 4vw; }
+  @media (max-width: 860px) { .cl-grid { grid-template-columns: minmax(0, 1fr); align-items: start; } }
+  .cl-kick { display: inline-block; font-family: var(--disp); font-weight: 500; font-size: 12px; letter-spacing: .28em; text-transform: uppercase; color: var(--on-accent); margin-bottom: 12px; }
+  .cl-h {
+    font-family: var(--disp); font-weight: 700;
+    font-size: clamp(38px, 7.5vw, 118px); line-height: .88;
+    letter-spacing: -.015em; text-transform: uppercase; color: var(--on-accent);
+    margin: 0; overflow-wrap: anywhere;
+  }
+  .cl-sub { color: var(--on-accent); font-size: clamp(15.5px, 1.5vw, 17px); line-height: 1.62; margin: 0 0 22px; opacity: .88; }
+  .cl-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  /* Both grounds are declared here, not inherited: the shared .btn--fill is an
+     ORANGE fill, which on an orange band is no button at all. */
+  .cl-fill { background-color: var(--on-accent); color: var(--stone); border-color: var(--on-accent); }
+  .cl-fill:hover { background-color: var(--on-accent); color: var(--stone); border-color: var(--on-accent); box-shadow: inset 0 0 0 999px rgba(255,255,255,.12); transform: translateY(-2px); }
+  .cl-line { background-color: transparent; color: var(--on-accent); border-color: var(--on-accent); }
+  .cl-line:hover { background-color: var(--on-accent); color: var(--stone); border-color: var(--on-accent); transform: translateY(-2px); }
+  @media (prefers-reduced-motion: reduce) {
+    .cl-fill:hover, .cl-line:hover { transform: none; }
+  }
+</style>
