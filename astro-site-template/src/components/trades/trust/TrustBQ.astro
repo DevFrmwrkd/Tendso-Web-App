@@ -33,7 +33,7 @@ const shown = cells.filter((c) => c && (c.num || c.label));
 ---
 {shown.length > 0 && (
   <section class="proofstrip band-stone" aria-label="At a glance">
-    <div class="wrap ps-grid">
+    <div class="ps-grid">
       {shown.map((cell, i) => (
         <div class="ps-cell reveal">
           {cell.num && <div class="fig ps-num" data-field={`trust.cells.${i}.num`} set:html={cell.num}></div>}
@@ -45,8 +45,9 @@ const shown = cells.filter((c) => c && (c.num || c.label));
 )}
 <style>
   /* auto-fit rather than a fixed four: an owner with three facts gets three
-     full-width columns, not three columns and a hole. */
-  .ps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); padding-inline: 0; }
+     full-width columns, not three columns and a hole. Full-bleed — the cells
+     carry the gutter, so there is no .wrap here to cancel. */
+  .ps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
   .ps-cell { padding: 30px var(--pad); border-inline-end: 1px solid var(--stone-line); }
   .ps-cell:last-child { border-inline-end: none; }
   .ps-num { font-size: clamp(34px, 4vw, 48px); color: var(--on-stone); }

@@ -1,7 +1,11 @@
 ---
 /**
- * trades / LocationBQ — "the yard": the address, phone and opening hours as a
- * ruled ledger on the left, the live map on the right. Anchors #visit, which is
+ * trades / LocationBQ — "the yard": a FULL-BLEED 50/50 split. The heading,
+ * address, phone and opening hours sit in the left half behind the design's
+ * 60/44 padding; the live map fills the right half to the edge of the screen.
+ * The section carries neither .wrap nor .sec — see the note in AboutBQ.
+ *
+ * Anchors #visit, which is
  * where lib/derive-content-defaults.ts points hero.cta1, navCtaHref and the
  * closing band by default — so on a first build every primary action on the
  * page lands here without any anchor rewriting at all.
@@ -62,68 +66,64 @@ const hasMap = hasCoords || hasAddress;
 const hasLoc = hasMap || Boolean(phone || shownHours.length > 0);
 ---
 {hasLoc && (
-<section class="sec yard" id="visit">
-  <div class="wrap">
+<section class:list={['yardband', !hasMap && 'no-map']} id="visit">
+  <div class="yard-info reveal">
     {(tag || headline) && (
       <div class="sec-head">
         {tag && <span class="kick" data-field="location.tag">{tag}</span>}
         {headline && <h2 class="h2" data-field="location.headline" set:html={headline}></h2>}
       </div>
     )}
-    <div class:list={['yard-grid', !hasMap && 'no-map']}>
-      <div class="yard-info reveal">
-        {sub && <p class="body yard-sub" data-field="location.sub">{sub}</p>}
-        <dl class="yard-rows">
-          {addressLines.length > 0 && (
-            <div class="yrow rowrule">
-              <dt class="label">Address</dt>
-              <dd class="yv" data-field="location.address">
-                {addressLines.map((line, i) => (<>{i > 0 && <br />}{line}</>))}
-              </dd>
-            </div>
-          )}
-          {phone && (
-            <div class="yrow rowrule">
-              <dt class="label">Phone</dt>
-              <dd class="yv"><a href={`tel:${phoneDigits}`} class="yphone" data-field="location.phone">{phone}</a></dd>
-            </div>
-          )}
-          {shownHours.length > 0 && (
-            <div class="yrow rowrule">
-              <dt class="label">Hours</dt>
-              <dd class="yv">
-                <div class="hours">
-                  {shownHours.map((h, i) => (
-                    <div class="hrow">
-                      <span class="label hday" data-field={`location.hours.${i}.day`}>{h.day}</span>
-                      <span class="htime" data-field={`location.hours.${i}.time`}>{h.time}</span>
-                    </div>
-                  ))}
-                </div>
-              </dd>
-            </div>
-          )}
-        </dl>
-        {dirText && (
-          <a href={dirHref || '#visit'} class="linkc yard-dir" target={dirHref ? '_blank' : undefined} rel={dirHref ? 'noopener noreferrer' : undefined}
-             data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
-        )}
-      </div>
-      {hasMap && (
-        <div class="yard-map">
-          <div id="map" role="img" aria-label={`Map showing where ${label} is`}>
-            {/* LOADING SKIN ONLY — the Leaflet boot wipes this node. See the
-                MAP STRATEGY note at the top of this file before reusing it. */}
-            <div class="skin" aria-hidden="true">
-              <span class="skin-v"></span>
-              <span class="skin-h"></span>
-              <span class="skin-pin"></span>
-            </div>
-          </div>
+    {sub && <p class="body yard-sub" data-field="location.sub">{sub}</p>}
+    <dl class="yard-rows">
+      {addressLines.length > 0 && (
+        <div class="yrow rowrule">
+          <dt class="label">Address</dt>
+          <dd class="yv" data-field="location.address">
+            {addressLines.map((line, i) => (<>{i > 0 && <br />}{line}</>))}
+          </dd>
         </div>
       )}
-    </div>
+      {phone && (
+        <div class="yrow rowrule">
+          <dt class="label">Phone</dt>
+          <dd class="yv"><a href={`tel:${phoneDigits}`} class="yphone" data-field="location.phone">{phone}</a></dd>
+        </div>
+      )}
+      {shownHours.length > 0 && (
+        <div class="yrow rowrule">
+          <dt class="label">Hours</dt>
+          <dd class="yv">
+            <div class="hours">
+              {shownHours.map((h, i) => (
+                <div class="hrow">
+                  <span class="label hday" data-field={`location.hours.${i}.day`}>{h.day}</span>
+                  <span class="htime" data-field={`location.hours.${i}.time`}>{h.time}</span>
+                </div>
+              ))}
+            </div>
+          </dd>
+        </div>
+      )}
+    </dl>
+    {dirText && (
+      <a href={dirHref || '#visit'} class="linkc yard-dir" target={dirHref ? '_blank' : undefined} rel={dirHref ? 'noopener noreferrer' : undefined}
+         data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
+    )}
   </div>
+  {hasMap && (
+    <div class="yard-map reveal">
+      <div id="map" role="img" aria-label={`Map showing where ${label} is`}>
+        {/* LOADING SKIN ONLY — the Leaflet boot wipes this node. See the
+            MAP STRATEGY note at the top of this file before reusing it. */}
+        <div class="skin" aria-hidden="true">
+          <span class="skin-v"></span>
+          <span class="skin-h"></span>
+          <span class="skin-pin"></span>
+        </div>
+      </div>
+    </div>
+  )}
 </section>
 )}
 {/* Render path A: build-time coords ready. */}
@@ -160,15 +160,16 @@ const hasLoc = hasMap || Boolean(phone || shownHours.length > 0);
   </script>
 )}
 <style>
-  .yard-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border: 1px solid var(--line); }
+  /* The split IS the section: full-bleed, one hairline between the halves. */
+  .yardband { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-bottom: 1px solid var(--line); }
   /* No coords and no address: the map is not rendered, so the ledger takes the
      full width instead of leaving a column-shaped hole. */
-  .yard-grid.no-map { grid-template-columns: minmax(0, 1fr); }
-  @media (max-width: 900px) { .yard-grid { grid-template-columns: minmax(0, 1fr); } }
-  .yard-info { padding: clamp(26px, 3.2vw, 44px) clamp(20px, 2.6vw, 36px); border-inline-end: 1px solid var(--line); }
-  .yard-grid.no-map .yard-info { border-inline-end: none; }
+  .yardband.no-map { grid-template-columns: minmax(0, 1fr); }
+  @media (max-width: 900px) { .yardband { grid-template-columns: minmax(0, 1fr); } }
+  .yard-info { padding: clamp(36px, 4.4vw, 60px) clamp(20px, 3.4vw, 44px); border-inline-end: 1px solid var(--line); }
+  .yardband.no-map .yard-info { border-inline-end: none; }
   @media (max-width: 900px) { .yard-info { border-inline-end: none; border-block-end: 1px solid var(--line); } }
-  .yard-sub { max-width: 44ch; margin-bottom: 22px; }
+  .yard-sub { max-width: 42ch; margin-bottom: 22px; }
   .yard-rows { margin: 0; border-top: 1px solid var(--ink-soft); }
   .yrow { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 0; }
   .yrow dt { flex: none; }
@@ -181,7 +182,7 @@ const hasLoc = hasMap || Boolean(phone || shownHours.length > 0);
   .htime { font-weight: 600; }
   .yard-dir { margin-top: 22px; }
 
-  .yard-map { position: relative; min-height: 420px; background-color: var(--paper-2); overflow: hidden; }
+  .yard-map { position: relative; min-height: 460px; background-color: var(--paper-2); overflow: hidden; }
   @media (max-width: 760px) { .yard-map { min-height: 300px; } }
   #map { position: absolute; inset: 0; z-index: 0; }
   /* The skin: a ruled sheet with one junction and a marker. Deliberately

@@ -231,8 +231,17 @@ const __fontHref = buildFontHref(__themePairing);
          primitives read them. */
       --mono: "Oswald", "Arial Narrow", Impact, system-ui, sans-serif;
       --serif: "Source Sans 3", system-ui, -apple-system, Georgia, serif;
-      --maxw: 1280px;
-      --pad: clamp(16px, 4vw, 44px);
+      /* NO --maxw, AND THAT IS THE DESIGN. Every other wrapper in this repo
+         centres its content in a ~1280px column because the designs they were
+         ported from do. This one does not: its sections are full-bleed grids
+         with a flat 28px gutter, and the drama of the hero is that the headline
+         runs to the edge of the screen. An earlier pass boxed it into
+         `width:min(1280px,100%);margin-inline:auto` out of habit, which shrank
+         the headline, un-bled the about/location splits and stopped the proof
+         strip short of both edges. Do not reintroduce a max width here. Copy
+         measures are held by per-element `max-width: Nch`, which is where a
+         reading limit belongs. */
+      --pad: 28px;
     }
 
     /* VERIFIED CONTRAST (sRGB relative luminance, the design's palette):
@@ -283,9 +292,13 @@ const __fontHref = buildFontHref(__themePairing);
     html[data-page="BQ"] :where(p) { margin: 0 0 1em; }
 
     /* ── layout scaffolding ───────────────────────────────────────────── */
-    html[data-page="BQ"] :where(.wrap) { width: min(var(--maxw), 100%); margin-inline: auto; padding-inline: var(--pad); }
+    /* .wrap is a GUTTER, not a column: it sets the design's 28px side padding
+       and nothing else. Sections whose grid is meant to bleed (the proof strip,
+       the shop split, the reasons, the mosaic, the credentials row, the yard
+       split) do not use it at all — they put the padding on their own cells. */
+    html[data-page="BQ"] :where(.wrap) { padding-inline: var(--pad); }
     html[data-page="BQ"] section { position: relative; }
-    html[data-page="BQ"] :where(.sec) { padding-block: clamp(46px, 7vw, 76px); border-bottom: 1px solid var(--line); }
+    html[data-page="BQ"] :where(.sec) { padding-block: clamp(44px, 6vw, 64px); border-bottom: 1px solid var(--line); }
 
     /* ── THE STONE BAND. One class, applied alongside a section's own name. It
           flips headings, body, eyebrows, hairlines and BOTH button variants, so
@@ -312,7 +325,7 @@ const __fontHref = buildFontHref(__themePairing);
     /* ── .h2 — the section headline. Uppercase condensed, tight leading. */
     html[data-page="BQ"] :where(.h2) {
       font-family: var(--disp); font-weight: 600;
-      font-size: clamp(30px, 4.2vw, 56px); line-height: .98;
+      font-size: clamp(32px, 4vw, 56px); line-height: .98;
       text-transform: uppercase; letter-spacing: -.005em; margin: 0;
     }
     html[data-page="BQ"] :where(.lede) { color: var(--ink-soft); font-size: clamp(15.5px, 1.5vw, 18px); line-height: 1.66; margin: 0; }
@@ -439,6 +452,7 @@ const __fontHref = buildFontHref(__themePairing);
 
     /* ── SHARED MOBILE PASS · 760px ───────────────────────────────────── */
     @media (max-width: 760px) {
+      html[data-page="BQ"] { --pad: 20px; }
       html[data-page="BQ"] :where(.sec) { padding-block: clamp(38px, 9vw, 56px); }
       /* The MAX is the BASE clamp's own value at 760px (31.9px), not a round
          number. Anything higher and the headline GROWS as the viewport narrows
@@ -448,6 +462,7 @@ const __fontHref = buildFontHref(__themePairing);
     }
     /* ── SHARED MOBILE PASS · 520px (verified no horizontal overflow at 360px) ── */
     @media (max-width: 520px) {
+      html[data-page="BQ"] { --pad: 16px; }
       html[data-page="BQ"] body { font-size: 16px; }
       html[data-page="BQ"] :where(.h2) { font-size: clamp(23px, 8vw, 30px); }
       html[data-page="BQ"] :where(.kick) { font-size: 11px; letter-spacing: .2em; }
