@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tindahan ni Aling Rosa — sari-sari store, e-load, padala & the friendliest utang in the barangay, Quezon City</title>
+<meta name="description" content="Tindahan ni Aling Rosa is a sari-sari store in Barangay Bagong Silang, Quezon City — everything by tingi, e-load and bills payment, padala and pick-up point, cold drinks and the whole street's suki since 1998. Open early, closes late." />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Tindahan ni Aling Rosa", phone: "+63 917 555 0142", phoneDisplay: "0917 555 0142", email: "alingrosa.store@gmail.com", foundedYear: 1998 },
+  hero: {
+    kicker: "Sari-sari store · e-load · padala · Bagong Silang, Quezon City",
+    headline: "The whole street's front door. Open before you wake, closed after you sleep.",
+    lede: "The corner store that keeps a barangay running — everything sold by tingi so a five-peso coin still buys something, e-load and bills payment, padala pick-up, ice-cold softdrinks, and a utang ledger for the suki we've known for twenty-five years. If it's not on the shelf, ask; Aling Rosa probably has it out back.",
+    primaryCta: { label: "Message the store", href: "#book" },
+    secondaryCta: { label: "What we carry", href: "#services" },
+    image: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A bright shelf packed with colourful sachets and goods."
+  },
+  trust: { years: "Serving the barangay since 1998" },
+  about: {
+    heading: "A peso still buys something here. That's not nothing — that's the whole idea.",
+    paragraphs: [
+      "Tindahan ni Aling Rosa opened in 1998 as a window cut into the front of the house, and it never really closed again. It's a sari-sari store in the truest sense — sari-sari means 'variety,' and behind that little grille is shampoo in sachets, coffee in singles, one cigarette or a whole pack, a scoop of rice, a piece of pandesal, a cold Coke in a plastic bag with a straw, and a hundred small things you didn't know you needed until you're standing there.",
+      "The whole point is tingi — selling by the piece, by the sachet, by the small amount — because that's how the neighbourhood actually shops. Not everyone has a supermarket budget on a Tuesday; everyone has five or ten pesos and a need. We break the bulk so the bulk price reaches the people who need it most, and we've been doing it long enough that we know your order before you finish saying it.",
+      "Over the years the window grew a second life: e-load for every network, bills payment, padala and parcel pick-up, and the famous listahan — the utang notebook where the suki we trust run a tab till payday. Aling Rosa is still at the window most days. The store is a shop, yes, but it's also the barangay's message board, lost-and-found, and place to stand and talk while your load comes through."
+    ],
+    portrait: "https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Colourful goods and cold drinks stacked at the counter."
+  },
+  services: [
+    { name: "Everything by tingi", description: "Sold the way the barangay shops: single sachets of shampoo, coffee and seasoning, cigarettes by the stick, rice and sugar by the scoop, one egg or a dozen. We break the bulk so a small coin still buys what you need." },
+    { name: "E-load & bills payment", description: "Prepaid load for every network, promos and data, plus electric, water and other bills paid over the counter. No need to travel to the mall — the whole street tops up here." },
+    { name: "Padala & pick-up point", description: "A pick-up and drop-off point for parcels and padala, plus a hand with sending money where we can — the barangay's little logistics hub, open when the couriers aren't." },
+    { name: "Cold drinks & merienda", description: "Ice-cold softdrinks, juice and water, plus pandesal, biscuits, chichirya and quick merienda — a cold drink in a bag with a straw is practically the house special." },
+    { name: "Household & everyday", description: "Detergent, soap, candles, batteries, load cards, school supplies and the small emergencies of daily life — the things you run out of at the worst possible moment." },
+    { name: "Utang for the suki", description: "The listahan: a tab in the notebook for the regulars we've known for years, settled on payday. Built on trust, kept fair, and one of the quiet reasons the store still stands." }
+  ],
+  why: [
+    { title: "We sell it your size.", body: "Tingi is the whole philosophy — buy one sachet, one stick, one scoop, one piece. We break bulk so the everyday price reaches people who buy for today, not for the month." },
+    { title: "Open when you need it.", body: "Before the jeeps start and after the last one's gone. Sundays, holidays, the middle of a brownout — the window's open when the supermarkets are shut and you're out of load." },
+    { title: "We know your order.", body: "Twenty-five years at the same window means we know the suki, the kids' snacks, whose lola takes which coffee. It's a shop that runs on names, not numbers." }
+  ],
+  how: [
+    { step: "01", title: "Come to the window", body: "No aisles, no queues, no self-checkout — just the window and whoever's minding it. Tell us what you need, even if it's five pesos' worth. Especially if it's five pesos' worth." },
+    { step: "02", title: "Ask if you can't see it", body: "The shelf is the front page; the stockroom is the rest of the book. If it's not on display, ask — Aling Rosa probably has it, or can have it tomorrow." },
+    { step: "03", title: "Load, pay, or send", body: "Topping up, paying a bill, picking up a padala? Same window, same friendly face. Give the number, we'll sort it, and you can wait in the shade while it goes through." },
+    { step: "04", title: "Suki? Use the listahan", body: "Trusted regulars run a tab in the notebook and settle on payday. Ask about becoming suki — it's earned over time, but once you're in, you're family." }
+  ],
+  testimonials: [
+    { quote: "Aling Rosa's window has fed my family for twenty years — literally, on the days between paydays when the listahan kept us going. She's fair, she's kind, she never once made anyone feel small for buying tingi. This store is the heart of our street. Wala nang iba.", name: "Nanay Cely", context: "suki since 1999" },
+    { quote: "I forget how much I rely on this place until I travel and there's no sari-sari on the corner. Load at midnight, a cold drink after a shift, one egg when the recipe's short — it's all just there. Fast, friendly, and cheaper than you'd think.", name: "Jomar R.", context: "neighbour, two doors down" },
+    { quote: "My kids' whole childhood is this window — the yosi errands for their lolo, the chichirya after school, the ice candy in summer. Now they send me here for the same things. Some businesses just belong to a place. This is one of them.", name: "Tita Baby", context: "regular, Bagong Silang" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=1600&q=85&auto=format&fit=crop", alt: "A shelf packed with colourful sachets and goods." },
+    { src: "https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600&q=85&auto=format&fit=crop", alt: "Cold drinks and treats stacked at the counter." },
+    { src: "https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=1600&q=85&auto=format&fit=crop", alt: "Colourful packaged goods lined up." },
+    { src: "https://images.unsplash.com/photo-1526394931762-90052e97b376?w=1600&q=85&auto=format&fit=crop", alt: "Rows of stacked goods in the store." },
+    { src: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop", alt: "A cold drink on the counter." },
+    { src: "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=1600&q=85&auto=format&fit=crop", alt: "Neighbours gathered by the store window." }
+  ],
+  faq: [
+    { q: "What does 'tingi' actually mean, and why sell that way?", a: "Tingi is the Filipino practice of selling and buying in small, single quantities rather than whole packs — one sachet of shampoo instead of a bottle, a single stick of cigarette instead of a pack, a scoop of rice instead of a sack, one egg instead of a tray. It exists because it fits how a lot of the barangay genuinely lives and spends: money comes in small and often, needs are for today rather than the month, and a five- or ten-peso coin should still be able to buy something useful. Selling tingi means we buy in bulk and break it down, passing the everyday accessibility on to the customer. It's more work for us — repackaging, tracking tiny margins — but it's the entire reason a sari-sari store matters to a neighbourhood. It's how the corner store makes sure nobody has to go without the small things just because they can't buy big." },
+    { q: "Can I get e-load and pay my bills here?", a: "Yes — the window does e-load for every major network (prepaid credit, data promos, the lot), and we accept over-the-counter payment for common bills like electricity, water and select others, so you don't have to travel to a mall or payment centre for the small stuff. Just give us the number to load or the bill to pay, and we'll process it while you wait in the shade. It's one of the quiet ways the store has become the barangay's little service hub over the years: the same window that sells you a cold drink also keeps your phone connected and your bills settled. Ask us which bills and networks we currently handle, since the list changes as providers come and go, and we'll always tell you straight if something's better done elsewhere." },
+    { q: "How does the utang (listahan) work?", a: "The listahan is the utang notebook — the tab that trusted regular customers, the suki, can run and settle on payday. It's one of the oldest and most human parts of how a sari-sari store works, and it runs entirely on trust built up over time. We don't extend it to everyone straight away, and we keep it fair and modest on both sides: it's meant to bridge the gap between paydays for people we know, not to let debts pile up in a way that hurts anyone. If you've been buying here a while and want to ask about it, talk to Aling Rosa directly — it's a relationship, not a form. And if you ever can't settle on time, come and say so; a quiet word keeps the trust intact far better than avoiding the window." },
+    { q: "What are your opening hours?", a: "Early and late — genuinely. The window tends to open before the first jeeps run and stays open until well after the last one's gone home, seven days a week, because the whole value of a sari-sari store is being there when the bigger shops aren't: Sunday mornings, holidays, the middle of a brownout, that moment at night when you've run out of load or milk or matches. Exact hours flex with the day and the season, and they're kept live on our Google Business Profile, but as a rule if the street is awake, the window is open. If you're coming from further out for something specific, message us first and we'll tell you if we're open and whether we have it in." },
+    { q: "What if what I need isn't on the shelf?", a: "Ask anyway — the shelf is only the front page. A sari-sari store's display is what fits in the window, but there's usually more in the stockroom out back, and Aling Rosa has a memory like a ledger for what's where. If we genuinely don't have it, there's a good chance we can get it in with the next delivery, especially if it's something the street asks for regularly; a lot of what we stock got added exactly because a suki asked. So don't assume — a quick question at the window is the whole point of a shop run by people who know the neighbourhood, rather than a warehouse run by a barcode. Tell us what you're after and we'll tell you honestly whether we have it, can get it, or where you'd be better off going." },
+    { q: "Do you do padala and parcel pick-up?", a: "Yes — the store doubles as a drop-off and pick-up point for parcels and padala, which makes life much easier when the couriers only come during working hours and half the street is out at work then. Your delivery can be left with us and collected when you're home; senders in the neighbourhood can drop things for pick-up too. We'll also lend a hand with sending money where we're able and point you the right way when it's something we can't do ourselves. It's part of how the corner store has quietly become the barangay's logistics hub — the one place that's reliably open, reliably staffed by someone who knows everyone, and reliably willing to hold your box behind the counter until you get back. Ask us what courier and padala services we're currently working with." }
+  ],
+  area: { places: ["Bagong Silang", "Novaliches", "Fairview", "Commonwealth", "Quezon City", "Walk-up neighbourhood"] },
+  credentials: [
+    { label: "Since 1998", detail: "A window in the front of the house, never closed" },
+    { label: "Sold by tingi", detail: "Sachets, sticks, scoops — a peso still buys" },
+    { label: "Load & bills", detail: "E-load every network, bills over the counter" },
+    { label: "The listahan", detail: "Utang for the suki, kept fair, settled on payday" }
+  ],
+  location: { name: "Tindahan ni Aling Rosa", addressStreet: "24 Sampaguita St, Bagong Silang", addressLocality: "Quezon City", addressRegion: "Metro Manila", addressPostcode: "1116", addressCountry: "Philippines" },
+  cta: { heading: "The corner store that keeps the street running.", body: "Everything by tingi, e-load and bills payment, padala pick-up, cold drinks and the friendliest utang in the barangay — open before you wake and closed after you sleep. Message us or just come to the window.", primary: { label: "Message the store", href: "#book" }, secondary: { label: "0917 555 0142", href: "tel:+639175550142" } },
+  messaging: { whatsapp: "https://wa.me/639175550142", messenger: "https://m.me/alingrosastore" }
+};
+</script>
+
+<style>
+  :root {
+    --paper:#fbf4e6; --paper-2:#fffaf0; --ink:#231a24; --ink-2:#4a3d4a;
+    --vermilion:#e2482e; --turq:#1a9c8e; --marigold:#f0a821; --grape:#7a3b8f;
+    --mid:#8a7d84; --rule:rgba(35,26,36,0.14);
+    --disp:"Bricolage Grotesque",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--vermilion);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--vermilion);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:800;font-size:clamp(38px,5.4vw,78px);line-height:0.98;margin:0 0 0.3em;letter-spacing:-0.015em;}
+  .h2 em{font-style:normal;color:var(--vermilion);}
+  .body{color:var(--ink-2);line-height:1.7;}
+  section{padding:clamp(72px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:999px;}
+  .btn-primary{background:var(--vermilion);color:var(--paper-2);} .btn-primary:hover{background:var(--grape);}
+  .btn-ghost{border:2px solid var(--ink);color:var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--paper-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);border-bottom:2px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,58px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(251,244,230,0.92);backdrop-filter:blur(10px);border-bottom:2px solid var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:800;font-size:22px;text-decoration:none;letter-spacing:-0.02em;}
+  .wm span{color:var(--vermilion);}
+  .nav-links{display:flex;gap:24px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-2);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,64px) 0 clamp(56px,7vw,96px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:800;font-size:clamp(42px,7vw,100px);line-height:0.94;letter-spacing:-0.025em;margin:0 0 32px;max-width:17ch;}
+  .hero-headline .em{color:var(--vermilion);}
+  .hero-headline .em2{color:var(--turq);}
+  .hero-lower{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(30px,4vw,60px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:14px;border:3px solid var(--ink);}
+  .hero-photo::after{content:"BUKAS · OPEN · SUKI WELCOME";position:absolute;left:-10px;top:-14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.1em;background:var(--marigold);color:var(--ink);padding:8px 14px;border-radius:999px;border:2.5px solid var(--ink);transform:rotate(-3deg);}
+  .hero-right .lede{color:var(--ink-2);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--turq);color:var(--paper-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,250,240,0.92);font-weight:700;}
+
+  .about{background:var(--paper-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:14px;border:3px solid var(--ink);}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:var(--ink-2);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:2px solid var(--ink);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(240,168,33,0.16);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;color:var(--turq);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:700;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:1.0;letter-spacing:-0.015em;}
+  .svc-row p{color:var(--ink-2);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--grape);color:var(--paper-2);}
+  .why .sw-head{color:rgba(255,250,240,0.7);border-color:rgba(255,250,240,0.24);}
+  .why .h2{color:var(--paper-2);} .why .h2 em{color:var(--marigold);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--marigold);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:700;font-size:27px;margin:0 0 10px;line-height:1.02;letter-spacing:-0.015em;}
+  .why-grid p{color:rgba(255,250,240,0.86);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--vermilion);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--turq);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:700;font-size:23px;margin:8px 0 8px;line-height:1.04;letter-spacing:-0.015em;}
+  .how-grid p{color:var(--ink-2);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--ink);color:var(--paper);}
+  .t-quote{font-family:var(--disp);font-weight:700;font-size:clamp(28px,3.7vw,52px);line-height:1.06;max-width:26ch;margin:0 0 24px;letter-spacing:-0.02em;}
+  .t-quote em{font-style:normal;color:var(--marigold);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--marigold);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid rgba(251,244,230,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:rgba(251,244,230,0.82);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(251,244,230,0.6);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:12px;border:3px solid var(--ink);}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--vermilion);color:var(--paper-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--ink);}
+  .faq-list summary{font-family:var(--disp);font-weight:700;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.14;letter-spacing:-0.015em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--vermilion);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--ink-2);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--ink);border-radius:999px;font-weight:700;color:var(--ink-2);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px solid var(--turq);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--vermilion);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.14;letter-spacing:-0.015em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--marigold);color:var(--ink);padding:34px;border-radius:14px;border:3px solid var(--ink);}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:700;font-size:22px;line-height:1.26;letter-spacing:-0.015em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:600;color:var(--ink);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:2px solid rgba(35,26,36,0.24);padding-top:18px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--ink-2);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--ink-2);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:14px;border:3px solid var(--ink);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.15) contrast(1.02);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--vermilion);color:var(--paper-2);padding:clamp(80px,10vw,144px) 0;text-align:center;}
+  .cta-band .kick{color:var(--paper-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:800;font-size:clamp(42px,6.5vw,106px);line-height:0.96;margin:14px auto 18px;max-width:16ch;letter-spacing:-0.025em;}
+  .cta-band h2 em{font-style:normal;color:var(--marigold);}
+  .cta-band p{color:rgba(255,250,240,0.92);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--paper-2);color:var(--vermilion);} .cta-band .btn-primary:hover{background:var(--grape);color:var(--paper-2);}
+  .cta-band .btn-ghost{border-color:var(--paper-2);color:var(--paper-2);} .cta-band .btn-ghost:hover{background:var(--paper-2);color:var(--vermilion);}
+
+  footer{background:var(--ink);color:var(--paper);border-top:3px solid var(--vermilion);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--marigold);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:rgba(251,244,230,0.72);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(251,244,230,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(251,244,230,0.6);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--turq);color:var(--paper-2);padding:13px 20px;border-radius:999px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 8px 24px rgba(26,156,142,0.4);border:2.5px solid var(--ink);}
+  .msg-fab a:hover{background:var(--vermilion);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ConvenienceStore","name":"Tindahan ni Aling Rosa","description":"Sari-sari store in Barangay Bagong Silang, Quezon City — everything by tingi, e-load and bills payment, padala pick-up, cold drinks and the friendliest utang in the barangay since 1998.","url":"https://alingrosastore.ph/","telephone":"+639175550142","email":"alingrosa.store@gmail.com","address":{"@type":"PostalAddress","streetAddress":"24 Sampaguita St, Bagong Silang","addressLocality":"Quezon City","addressRegion":"Metro Manila","postalCode":"1116","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":14.7350,"longitude":121.0430},"areaServed":["Bagong Silang","Novaliches","Fairview","Commonwealth"],"image":["https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=1600"],"foundingDate":"1998"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What does 'tingi' mean and why sell that way?","acceptedAnswer":{"@type":"Answer","text":"Tingi is selling in small single quantities — one sachet, one stick, one scoop, one egg — rather than whole packs. It fits how much of the barangay lives: money comes in small and often, and a five- or ten-peso coin should still buy something useful. We buy in bulk and break it down so the everyday price reaches people who buy for today, not the month. It's more work for us but it's the whole reason a sari-sari store matters."}},
+{"@type":"Question","name":"Can I get e-load and pay bills here?","acceptedAnswer":{"@type":"Answer","text":"Yes — e-load for every major network plus over-the-counter payment for common bills like electricity and water, so you don't have to travel to a mall. Give us the number or bill and we'll process it while you wait. Ask which networks and bills we currently handle, as the list changes."}},
+{"@type":"Question","name":"How does the utang (listahan) work?","acceptedAnswer":{"@type":"Answer","text":"The listahan is the utang notebook — a tab trusted regulars (suki) can run and settle on payday. It runs on trust built over time, kept fair and modest, meant to bridge paydays rather than let debt pile up. Talk to Aling Rosa directly to ask about it — it's a relationship, not a form — and if you ever can't settle on time, come and say so."}},
+{"@type":"Question","name":"What are your opening hours?","acceptedAnswer":{"@type":"Answer","text":"Early and late, seven days a week — the window opens before the first jeeps run and closes after the last one's gone. The value of a sari-sari store is being open when bigger shops aren't: Sundays, holidays, brownouts, late at night. Hours flex with the day and are kept live on our Google Business Profile; if the street's awake, the window's open."}},
+{"@type":"Question","name":"What if what I need isn't on the shelf?","acceptedAnswer":{"@type":"Answer","text":"Ask anyway — the shelf is only the front page. There's usually more in the stockroom, and if we don't have it we can often get it with the next delivery, especially if the street asks for it regularly. A quick question at the window is the whole point of a shop run by people who know the neighbourhood. We'll tell you honestly whether we have it, can get it, or where you'd be better off going."}},
+{"@type":"Question","name":"Do you do padala and parcel pick-up?","acceptedAnswer":{"@type":"Answer","text":"Yes — the store doubles as a drop-off and pick-up point for parcels and padala, handy when couriers only come during working hours. Deliveries can be left with us and collected when you're home, and we'll help with sending money where we can. Ask which courier and padala services we're currently working with."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Tindahan ni <span>Aling Rosa</span></a>
+    <nav class="nav-links">
+      <a href="#about">The store</a><a href="#services">What we carry</a><a href="#location">Find us</a><a href="#book">Message</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Sari-sari store · e-load · padala · Bagong Silang, Quezon City</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      The whole street's <span class="em">front door.</span> Open before you wake, closed after you <span class="em2">sleep.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=2000&q=85&auto=format&fit=crop"
+             alt="A bright shelf packed with colourful sachets and goods." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">The corner store that keeps a barangay running — everything sold by tingi so a five-peso coin still buys something, e-load and bills payment, padala pick-up, ice-cold softdrinks, and a utang ledger for the suki we've known for twenty-five years. If it's not on the shelf, ask; Aling Rosa probably has it out back.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Message the store</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we carry</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Serving the barangay since 1998</span>
+    <span>Everything by tingi</span>
+    <span>E-load · bills · padala</span>
+    <span>Suki utang, kept fair</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>AISLE 01 / THE STORE</span><span>A WINDOW IN THE HOUSE</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">A peso still buys something here. That's not nothing — that's the whole <em>idea.</em></h2>
+        <p>Tindahan ni Aling Rosa opened in 1998 as a window cut into the front of the house, and it never really closed again. It's a sari-sari store in the truest sense — sari-sari means "variety," and behind that little grille is shampoo in sachets, coffee in singles, one cigarette or a whole pack, a scoop of rice, a piece of pandesal, a cold Coke in a plastic bag with a straw, and a hundred small things you didn't know you needed until you're standing there.</p>
+        <p>The whole point is tingi — selling by the piece, by the sachet, by the small amount — because that's how the neighbourhood actually shops. Not everyone has a supermarket budget on a Tuesday; everyone has five or ten pesos and a need. We break the bulk so the bulk price reaches the people who need it most, and we've been doing it long enough that we know your order before you finish saying it.</p>
+        <p>Over the years the window grew a second life: e-load for every network, bills payment, padala and parcel pick-up, and the famous listahan — the utang notebook where the suki we trust run a tab till payday. Aling Rosa is still at the window most days. The store is a shop, yes, but it's also the barangay's message board, lost-and-found, and place to stand and talk while your load comes through.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1200&q=85&auto=format&fit=crop"
+           alt="Colourful goods and cold drinks stacked at the counter." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>AISLE 02 / WHAT WE CARRY</span><span>TINGI · LOAD · PADALA · MERIENDA</span></div>
+    <h2 class="h2">What we carry.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Everything by tingi</h3><p>Sold the way the barangay shops: single sachets of shampoo, coffee and seasoning, cigarettes by the stick, rice and sugar by the scoop, one egg or a dozen. We break bulk so a small coin still buys what you need.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>E-load &amp; bills payment</h3><p>Prepaid load for every network, promos and data, plus electric, water and other bills paid over the counter. No need to travel to the mall — the whole street tops up here.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Padala &amp; pick-up point</h3><p>A pick-up and drop-off point for parcels and padala, plus a hand with sending money where we can — the barangay's little logistics hub, open when the couriers aren't.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Cold drinks &amp; merienda</h3><p>Ice-cold softdrinks, juice and water, plus pandesal, biscuits, chichirya and quick merienda — a cold drink in a bag with a straw is practically the house special.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Household &amp; everyday</h3><p>Detergent, soap, candles, batteries, load cards, school supplies and the small emergencies of daily life — the things you run out of at the worst possible moment.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Utang for the suki</h3><p>The listahan: a tab in the notebook for the regulars we've known for years, settled on payday. Built on trust, kept fair, and one of the quiet reasons the store still stands.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>AISLE 03 / THE DIFFERENCE</span><span>WHY THE WINDOW WORKS</span></div>
+    <h2 class="h2">Why the window works.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>We sell it your size.</h3><p>Tingi is the whole philosophy — buy one sachet, one stick, one scoop, one piece. We break bulk so the everyday price reaches people who buy for today, not for the month.</p></div>
+      <div><span class="no">02 / 03</span><h3>Open when you need it.</h3><p>Before the jeeps start and after the last one's gone. Sundays, holidays, the middle of a brownout — the window's open when the supermarkets are shut and you're out of load.</p></div>
+      <div><span class="no">03 / 03</span><h3>We know your order.</h3><p>Twenty-five years at the same window means we know the suki, the kids' snacks, whose lola takes which coffee. It's a shop that runs on names, not numbers.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>AISLE 04 / HOW IT GOES</span><span>WINDOW → ASK → LOAD → LISTAHAN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Come to the window</h3><p>No aisles, no queues, no self-checkout — just the window and whoever's minding it. Tell us what you need, even if it's five pesos' worth. Especially if it's five pesos' worth.</p></li>
+      <li><span class="step">STEP 02</span><h3>Ask if you can't see it</h3><p>The shelf is the front page; the stockroom is the rest of the book. If it's not on display, ask — Aling Rosa probably has it, or can have it tomorrow.</p></li>
+      <li><span class="step">STEP 03</span><h3>Load, pay, or send</h3><p>Topping up, paying a bill, picking up a padala? Same window, same friendly face. Give the number, we'll sort it, and wait in the shade while it goes through.</p></li>
+      <li><span class="step">STEP 04</span><h3>Suki? Use the listahan</h3><p>Trusted regulars run a tab in the notebook and settle on payday. Ask about becoming suki — it's earned over time, but once you're in, you're family.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>AISLE 05 / FROM THE STREET</span><span>WALA NANG IBA</span></div>
+    <blockquote class="t-quote">“She never once made anyone feel small for buying tingi. This store is the heart of our street. <em>Wala nang iba.</em>”</blockquote>
+    <div class="t-attr">Nanay Cely — suki since 1999</div>
+    <div class="t-sub">
+      <figure><blockquote>“I forget how much I rely on this place until I travel and there's no sari-sari on the corner. Load at midnight, a cold drink after a shift, one egg when the recipe's short — it's all just there. Fast, friendly, and cheaper than you'd think.”</blockquote><figcaption>Jomar R. — neighbour, two doors down</figcaption></figure>
+      <figure><blockquote>“My kids' whole childhood is this window — the errands for their lolo, the chichirya after school, the ice candy in summer. Now they send me here for the same things. Some businesses just belong to a place. This is one of them.”</blockquote><figcaption>Tita Baby — regular, Bagong Silang</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about">
+  <div class="wrap">
+    <div class="sw-head"><span>AISLE 06 / AT THE WINDOW</span><span>SARI-SARI, LITERALLY</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=1600&q=85&auto=format&fit=crop" alt="A shelf packed with colourful sachets and goods." /><figcaption>THE SHELF</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600&q=85&auto=format&fit=crop" alt="Cold drinks and treats stacked at the counter." /><figcaption>THE COUNTER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=1600&q=85&auto=format&fit=crop" alt="Colourful packaged goods lined up." /><figcaption>THE STOCK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1526394931762-90052e97b376?w=1600&q=85&auto=format&fit=crop" alt="Rows of stacked goods in the store." /><figcaption>THE RACKS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop" alt="A cold drink on the counter." /><figcaption>THE COLD ONE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=1600&q=85&auto=format&fit=crop" alt="Neighbours gathered by the store window." /><figcaption>THE TAMBAYAN</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>AISLE 07 / GOOD TO KNOW</span><span>TINGI, LOAD &amp; LISTAHAN</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+639175550142" style="color:var(--vermilion);font-weight:700;">0917 555 0142</a>. Or just come to the window; it's easier than typing.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What does 'tingi' actually mean, and why sell that way?</summary><p>Tingi is the Filipino practice of selling and buying in small, single quantities rather than whole packs — one sachet of shampoo instead of a bottle, a single stick instead of a pack, a scoop of rice instead of a sack, one egg instead of a tray. It exists because it fits how a lot of the barangay genuinely lives and spends: money comes in small and often, needs are for today rather than the month, and a five- or ten-peso coin should still be able to buy something useful. Selling tingi means we buy in bulk and break it down, passing the everyday accessibility on to the customer. It's more work for us — repackaging, tracking tiny margins — but it's the entire reason a sari-sari store matters to a neighbourhood.</p></details>
+        <details><summary>Can I get e-load and pay my bills here?</summary><p>Yes — the window does e-load for every major network (prepaid credit, data promos, the lot), and we accept over-the-counter payment for common bills like electricity, water and select others, so you don't have to travel to a mall or payment centre for the small stuff. Just give us the number to load or the bill to pay, and we'll process it while you wait in the shade. It's one of the quiet ways the store has become the barangay's little service hub over the years: the same window that sells you a cold drink also keeps your phone connected and your bills settled. Ask us which bills and networks we currently handle, since the list changes as providers come and go.</p></details>
+        <details><summary>How does the utang (listahan) work?</summary><p>The listahan is the utang notebook — the tab that trusted regular customers, the suki, can run and settle on payday. It's one of the oldest and most human parts of how a sari-sari store works, and it runs entirely on trust built up over time. We don't extend it to everyone straight away, and we keep it fair and modest on both sides: it's meant to bridge the gap between paydays for people we know, not to let debts pile up in a way that hurts anyone. If you've been buying here a while and want to ask about it, talk to Aling Rosa directly — it's a relationship, not a form. And if you ever can't settle on time, come and say so; a quiet word keeps the trust intact far better than avoiding the window.</p></details>
+        <details><summary>What are your opening hours?</summary><p>Early and late — genuinely. The window tends to open before the first jeeps run and stays open until well after the last one's gone home, seven days a week, because the whole value of a sari-sari store is being there when the bigger shops aren't: Sunday mornings, holidays, the middle of a brownout, that moment at night when you've run out of load or milk or matches. Exact hours flex with the day and the season, and they're kept live on our Google Business Profile, but as a rule if the street is awake, the window is open. If you're coming from further out for something specific, message us first.</p></details>
+        <details><summary>What if what I need isn't on the shelf?</summary><p>Ask anyway — the shelf is only the front page. A sari-sari store's display is what fits in the window, but there's usually more in the stockroom out back, and Aling Rosa has a memory like a ledger for what's where. If we genuinely don't have it, there's a good chance we can get it in with the next delivery, especially if it's something the street asks for regularly; a lot of what we stock got added exactly because a suki asked. So don't assume — a quick question at the window is the whole point of a shop run by people who know the neighbourhood, rather than a warehouse run by a barcode.</p></details>
+        <details><summary>Do you do padala and parcel pick-up?</summary><p>Yes — the store doubles as a drop-off and pick-up point for parcels and padala, which makes life much easier when the couriers only come during working hours and half the street is out at work then. Your delivery can be left with us and collected when you're home; senders in the neighbourhood can drop things for pick-up too. We'll also lend a hand with sending money where we're able and point you the right way when it's something we can't do ourselves. It's part of how the corner store has quietly become the barangay's logistics hub. Ask us what courier and padala services we're currently working with.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>AISLE 08 / THE NEIGHBOURHOOD</span><span>BAGONG SILANG &amp; NEARBY</span></div>
+    <ul class="area-list">
+      <li>Bagong Silang</li><li>Novaliches</li><li>Fairview</li><li>Commonwealth</li><li>Quezon City</li><li>Walk-up neighbourhood</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>AISLE 09 / THE ESSENTIALS</span><span>HOW THE WINDOW RUNS</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1998</div><div class="detail">A window in the front of the house</div></div>
+      <div><div class="label">Sold by tingi</div><div class="detail">Sachets, sticks, scoops — a peso still buys</div></div>
+      <div><div class="label">Load &amp; bills</div><div class="detail">E-load every network, bills over the counter</div></div>
+      <div><div class="label">The listahan</div><div class="detail">Utang for the suki, kept fair, paid on payday</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>AISLE 10 / THE CORNER</span><span>SAMPAGUITA ST, BAGONG SILANG</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Tindahan ni Aling Rosa</strong><br />
+          24 Sampaguita St, Bagong Silang<br />
+          Quezon City 1116<br /><br />
+          <a href="tel:+639175550142" data-bind="business.phoneDisplay">0917 555 0142</a><br />
+          <a href="mailto:alingrosa.store@gmail.com" data-bind="business.email">alingrosa.store@gmail.com</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SUN</span><span>5AM – 11PM</span></div>
+          <div class="row"><span>LOAD &amp; PADALA</span><span>ALL DAY</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. The window is on the corner of Sampaguita St — look for the marigold shutter and the cold-drinks cooler out front.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Tindahan ni Aling Rosa, Quezon City" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=121.0280%2C14.7250%2C121.0580%2C14.7450&layer=mapnik&marker=14.7350%2C121.0430"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">AISLE 11 / COME BY</div>
+    <h2 data-bind="cta.heading">The corner store that keeps the street <em>running.</em></h2>
+    <p data-bind="cta.body">Everything by tingi, e-load and bills payment, padala pick-up, cold drinks and the friendliest utang in the barangay — open before you wake and closed after you sleep. Message us or just come to the window.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Message the store</a>
+      <a class="btn btn-ghost" href="tel:+639175550142" data-bind="cta.secondary.label">0917 555 0142</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/639175550142" data-bind="messaging.whatsapp" aria-label="Message the store">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;">Tindahan ni <span style="color:var(--marigold);">Aling Rosa</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:rgba(251,244,230,0.72);">A sari-sari store in Bagong Silang, Quezon City — everything by tingi, e-load, padala and the friendliest utang in the barangay since 1998.</p>
+      </div>
+      <div>
+        <h4>The store</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:rgba(251,244,230,0.72);">
+          24 Sampaguita St, Bagong Silang<br />Quezon City 1116<br />
+          <a href="tel:+639175550142">0917 555 0142</a><br />
+          <a href="mailto:alingrosa.store@gmail.com">alingrosa.store@gmail.com</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we carry</a><a href="#about">The store</a><a href="#location">Find us</a><a href="#book">Message</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> TINDAHAN NI ALING ROSA</span>
+      <span>BUKAS · OPEN · SUKI WELCOME</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

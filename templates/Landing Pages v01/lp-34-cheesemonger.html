@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rennet &amp; Rind — cheesemonger &amp; maturing cellar in Cambridge</title>
+<meta name="description" content="Rennet &amp; Rind is an independent cheesemonger on Gwydir Street, Cambridge — farmhouse cheeses matured in our own cellar, cut to order, tasted before you buy." />
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Albert+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Courier+Prime:ital@0;1&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Rennet & Rind", phone: "+44 1223 315 993", phoneDisplay: "01223 315 993", email: "counter@rennetandrind.co.uk", foundedYear: 2014 },
+  hero: {
+    kicker: "Cheesemonger · maturing cellar · Gwydir Street, Cambridge",
+    headline: "Every cheese on this counter has been tasted this morning.",
+    lede: "Forty-odd farmhouse cheeses, most from within a hundred miles, all matured in our own cellar until they're ready — not until they're sold. You taste before you buy. That isn't a treat; it's quality control, and you're part of it.",
+    primaryCta: { label: "Visit the counter", href: "#location" },
+    secondaryCta: { label: "What's ripe this week", href: "#services" },
+    image: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Wheels of farmhouse cheese stacked on wooden cellar shelves."
+  },
+  trust: { years: "Mongering since 2014" },
+  about: {
+    heading: "A shop above, a cellar below.",
+    paragraphs: [
+      "Rennet & Rind started as a market stall with eight cheeses and a fridge that worried everyone. The shop came in 2014; the cellar — the point of the whole exercise — in 2016. It sits under the shopfloor at eleven degrees and ninety per cent humidity, and it is where cheeses arrive young and leave ready.",
+      "Maturing our own stock means we're not selling what a wholesaler decided was ready. A Lincolnshire Poacher might sit down there for four extra months. A Baron Bigod leaves the moment its centre goes glossy. The cellar decides; we just turn the wheels.",
+      "There are two of us behind the counter and neither of us will sell you a cheese we wouldn't take home. Some days that means talking you out of the famous one and into the better one."
+    ],
+    portrait: "https://images.unsplash.com/photo-1452195100486-9cc805987862?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Cheesemonger cutting a wedge from a large wheel."
+  },
+  services: [
+    { name: "The counter", description: "Cut to order from the wheel, never pre-wrapped. Taste anything — that's what the little knife is for." },
+    { name: "Cheeseboards, built", description: "Tell us the occasion, the headcount and the cowards in the group. We'll build a board with a beginning, middle and end." },
+    { name: "The cellar subscription", description: "Three cheeses a month, chosen at peak, with notes on where they came from and why now. Collection or Cambridge delivery." },
+    { name: "Wedding & event cheese", description: "Stacked wheels instead of cake, or a grazing counter with a monger attached. We deliver, set up, and cut the first wedge properly." },
+    { name: "Tastings in the cellar", description: "Six cheeses, one candle-lit cellar, no slideshow. Occasional collaborations with the wine shop over the road." },
+    { name: "Wholesale for kitchens", description: "Restaurants and colleges around Cambridge. Small list, kept small on purpose, delivered by bike trailer." }
+  ],
+  why: [
+    { title: "We mature it ourselves.", body: "The cellar under the shop holds every wheel until it's ready. What you taste is a decision, not a delivery date." },
+    { title: "Taste before you buy.", body: "Every cheese, every visit, no purchase necessary. A cheese that can't survive being tasted shouldn't be on the counter." },
+    { title: "Named farms, named makers.", body: "Every label carries the farm, the maker and the milk. If we can't tell you who made it and when, we don't stock it." }
+  ],
+  how: [
+    { step: "01", title: "Come hungry-ish", body: "The counter works best when you'll try things. Tell us what you like — or what you think you don't." },
+    { step: "02", title: "Taste the ready ones", body: "We'll cut slivers of whatever the cellar has declared ripe this week. Opinions are encouraged and recorded." },
+    { step: "03", title: "Cut to order", body: "Wedges cut from the wheel in front of you, wrapped in waxed paper that actually lets the cheese breathe." },
+    { step: "04", title: "Care instructions", body: "How to store it, when to eat it, and permission to eat it sooner than you were planning to." }
+  ],
+  testimonials: [
+    { quote: "I asked for 'something like Brie but better' and was handed a sliver of Baron Bigod with the words 'this is what Brie wants to be'. They were right.", name: "Helen W.", context: "converted, Petersfield Road" },
+    { quote: "They talked me out of £14 of Stilton and into £9 of something from a farm I'd never heard of. It was the best cheese at Christmas. That's the shop in one sentence.", name: "Tom G.", context: "Christmas board commission" },
+    { quote: "The cellar tasting was the best evening out we've had in Cambridge. Six cheeses, zero pretension, and a monger who clearly lies awake thinking about humidity.", name: "Priya & Dan", context: "cellar tasting, anniversary" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1600&q=85&auto=format&fit=crop", alt: "Wheels maturing on cellar shelves." },
+    { src: "https://images.unsplash.com/photo-1452195100486-9cc805987862?w=1600&q=85&auto=format&fit=crop", alt: "Cutting a wedge at the counter." },
+    { src: "https://images.unsplash.com/photo-1552767059-ce182ead6c1b?w=1600&q=85&auto=format&fit=crop", alt: "The counter, mid-morning." },
+    { src: "https://images.unsplash.com/photo-1631379578550-7038263db699?w=1600&q=85&auto=format&fit=crop", alt: "A board built for a birthday." },
+    { src: "https://images.unsplash.com/photo-1589881133595-a3c085cb731d?w=1600&q=85&auto=format&fit=crop", alt: "Washed rinds, turned daily." },
+    { src: "https://images.unsplash.com/photo-1626957341926-98752fc2ba90?w=1600&q=85&auto=format&fit=crop", alt: "The blue shelf, resting." }
+  ],
+  faq: [
+    { q: "Can I really taste anything?", a: "Anything on the counter, yes. Cheeses in the cellar aren't ready — that's why they're in the cellar — but ask and we'll tell you when they surface." },
+    { q: "How much cheese do I need for a board?", a: "About 80–100g per person if there's other food; 150g if the cheese is the event. Three to five cheeses beats seven — a board should be an argument, not a crowd." },
+    { q: "Do you deliver?", a: "In Cambridge, yes, by bike trailer, usually next day. Further afield we'd rather you found your good local monger — but the subscription posts nationally in insulated boxes, reluctantly." },
+    { q: "How should I store cheese at home?", a: "Waxed paper, the salad drawer, and out of the fridge an hour before eating. Cling film is how good cheese dies; we will re-wrap anything you bring back in shame, free of charge." },
+    { q: "I'm pregnant — what can I have?", a: "Plenty. Hard cheeses are fine, as are thermised and many pasteurised soft ones. Every label on our counter states the milk treatment, and we keep an up-to-date NHS-guidance list behind the counter." },
+    { q: "Do you do cheese wedding cakes?", a: "Stacked wheels, sized to your headcount, delivered and assembled. Book eight weeks ahead — the right wheels need time in the cellar, and the cellar will not be rushed." },
+    { q: "Vegetarian rennet?", a: "Lots of our list, clearly marked. Traditional rennet cheeses are marked too. Ask and we'll steer you — some of the best vegetarian-rennet cheeses in Britain are within an hour of this shop." }
+  ],
+  area: { places: ["Mill Road", "Romsey", "Petersfield", "City centre", "Cherry Hinton", "Chesterton"] },
+  credentials: [
+    { label: "Affinage", detail: "On-site maturing cellar, 11°C / 90% RH" },
+    { label: "Hygiene", detail: "Food hygiene rating 5, inspected" },
+    { label: "Guild", detail: "Academy of Cheese trained, both mongers" },
+    { label: "Provenance", detail: "Farm & maker named on every label" }
+  ],
+  location: { name: "Rennet & Rind", addressStreet: "41 Gwydir Street", addressLocality: "Cambridge", addressRegion: "Cambridgeshire", addressPostcode: "CB1 2LG", addressCountry: "United Kingdom" },
+  cta: { heading: "The cellar has opinions. Come hear them.", body: "Bring an appetite and a vague sense of occasion. Leave with a wedge you didn't plan on.", primary: { label: "Find the counter", href: "#location" }, secondary: { label: "01223 315 993", href: "tel:+441223315993" } },
+  messaging: { whatsapp: "https://wa.me/441223315993", messenger: "https://m.me/rennetandrind" }
+};
+</script>
+
+<style>
+  :root {
+    --paper:#f7f2e7; --curd:#efe5cf; --ink:#2b2318; --wax:#a4342a;
+    --gold:#b98a2f; --mid:#7a6f5c; --rule:rgba(43,35,24,0.16);
+    --display:"Young Serif",serif;
+    --sans:"Albert Sans",system-ui,sans-serif;
+    --mono:"Courier Prime",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  a:hover{color:var(--wax);}
+  .wrap{width:min(1200px,92vw);margin-inline:auto;}
+  .label{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--wax);}
+  .h2{font-family:var(--display);font-size:clamp(30px,4vw,52px);line-height:1.08;margin:0 0 0.5em;font-weight:400;}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(70px,9vw,120px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 28px;font-family:var(--sans);font-weight:600;font-size:14px;text-decoration:none;border-radius:999px;transition:0.18s;letter-spacing:0.01em;}
+  .btn-primary{background:var(--wax);color:var(--paper);} .btn-primary:hover{background:var(--ink);color:var(--paper);}
+  .btn-ghost{border:1.5px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--paper);}
+  .ledger-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--ink);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,56px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(247,242,231,0.94);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--display);font-size:19px;text-decoration:none;}
+  .wm em{color:var(--wax);font-style:normal;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — wheel composition: circular hero image like a cheese wheel + wax seal */
+  .hero{padding:clamp(52px,7vw,100px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .hero h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,4.4vw,60px);line-height:1.07;margin:20px 0 22px;letter-spacing:-0.005em;}
+  .hero .lede{color:var(--mid);max-width:50ch;line-height:1.72;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-wheel{position:relative;aspect-ratio:1/1;}
+  .hero-wheel img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:1.5px solid var(--ink);}
+  .hero-wheel .seal{position:absolute;bottom:6%;left:-4%;width:118px;height:118px;border-radius:50%;background:var(--wax);color:var(--paper);display:grid;place-items:center;text-align:center;font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;line-height:1.7;transform:rotate(-8deg);box-shadow:0 10px 26px rgba(43,35,24,0.22);padding:14px;}
+  .hero-wheel .ring{position:absolute;inset:-16px;border:1px dashed rgba(43,35,24,0.35);border-radius:50%;pointer-events:none;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .hero-wheel{max-width:420px;}}
+
+  .trust{padding:0;background:var(--ink);color:var(--curd);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(239,229,207,0.8);}
+
+  .about{background:var(--curd);}
+  .about-grid{display:grid;grid-template-columns:0.85fr 1.15fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:200px 200px 12px 12px;border:1.5px solid var(--ink);}
+  .about-prose p{font-size:clamp(16px,1.5vw,18px);line-height:1.75;margin:0 0 1em;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — cellar ledger rows */
+  .svc-rows{border-top:1.5px solid var(--ink);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.4fr;gap:clamp(18px,3vw,44px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(164,52,42,0.05);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;color:var(--wax);text-transform:uppercase;}
+  .svc-row h3{font-family:var(--display);font-weight:400;font-size:clamp(19px,2vw,24px);margin:0;line-height:1.2;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--wax);color:var(--paper);}
+  .why .h2{color:var(--paper);}
+  .why .ledger-head{border-color:rgba(247,242,231,0.5);color:rgba(247,242,231,0.7);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--gold);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 10px;line-height:1.2;}
+  .why-grid p{color:rgba(247,242,231,0.85);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--ink);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--wax);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--display);font-weight:400;font-size:18px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--curd);}
+  .t-quote{font-family:var(--display);font-weight:400;font-size:clamp(22px,2.9vw,38px);line-height:1.24;max-width:30ch;margin:0 0 22px;}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--ink);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — round-cornered cellar shots, one circular */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:14px;border:1.5px solid var(--ink);}
+  .g-grid figure:nth-child(2) img,.g-grid figure:nth-child(5) img{border-radius:50%;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);margin-top:10px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--ink);}
+  .faq-list summary{font-family:var(--display);font-weight:400;font-size:18px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"◦";color:var(--wax);font-size:20px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{content:"●";}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--ink);border-radius:999px;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--ink);padding-top:14px;}
+  .creds .clabel{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--wax);margin-bottom:8px;}
+  .creds .detail{font-family:var(--display);font-size:16px;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--curd);border:1.5px solid var(--ink);border-radius:14px;padding:32px;}
+  .nap address{font-style:normal;font-family:var(--display);font-size:18px;line-height:1.55;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{border-radius:14px;min-height:380px;overflow:hidden;border:1.5px solid var(--ink);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--ink);color:var(--paper);padding:clamp(80px,10vw,140px) 0;text-align:center;}
+  .cta-band .label{color:var(--gold);}
+  .cta-band h2{font-family:var(--display);font-weight:400;font-size:clamp(32px,4.6vw,62px);line-height:1.08;margin:16px auto 18px;max-width:20ch;}
+  .cta-band p{color:rgba(247,242,231,0.8);max-width:44ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--gold);color:var(--ink);}
+  .cta-band .btn-primary:hover{background:var(--paper);}
+  .cta-band .btn-ghost{border-color:rgba(247,242,231,0.6);color:var(--paper);}
+  .cta-band .btn-ghost:hover{background:var(--paper);color:var(--ink);}
+
+  footer{background:var(--paper);border-top:1.5px solid var(--ink);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--wax);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--paper);padding:13px 20px;border-radius:999px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(43,35,24,0.3);}
+  .msg-fab a:hover{background:var(--wax);color:var(--paper);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"GroceryStore","name":"Rennet & Rind","description":"Independent cheesemonger and maturing cellar on Gwydir Street, Cambridge. Farmhouse cheeses cut to order, tasted before you buy.","url":"https://rennetandrind.co.uk/","telephone":"+441223315993","email":"counter@rennetandrind.co.uk","address":{"@type":"PostalAddress","streetAddress":"41 Gwydir Street","addressLocality":"Cambridge","addressRegion":"Cambridgeshire","postalCode":"CB1 2LG","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":52.1993,"longitude":0.1372},"areaServed":["Cambridge","Mill Road","Romsey","Petersfield"],"image":["https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1600"],"foundingDate":"2014"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Can I really taste anything?","acceptedAnswer":{"@type":"Answer","text":"Anything on the counter, yes. Cellar cheeses aren't ready — ask and we'll tell you when they surface."}},
+{"@type":"Question","name":"How much cheese do I need for a board?","acceptedAnswer":{"@type":"Answer","text":"80–100g per person alongside other food; 150g if cheese is the event. Three to five cheeses beats seven."}},
+{"@type":"Question","name":"Do you deliver?","acceptedAnswer":{"@type":"Answer","text":"In Cambridge by bike trailer, usually next day. The subscription posts nationally in insulated boxes."}},
+{"@type":"Question","name":"How should I store cheese at home?","acceptedAnswer":{"@type":"Answer","text":"Waxed paper, the salad drawer, out of the fridge an hour before eating. Never cling film."}},
+{"@type":"Question","name":"Do you do cheese wedding cakes?","acceptedAnswer":{"@type":"Answer","text":"Stacked wheels sized to your headcount, delivered and assembled. Book eight weeks ahead."}},
+{"@type":"Question","name":"Vegetarian rennet?","acceptedAnswer":{"@type":"Answer","text":"Much of the list, clearly marked, as are traditional-rennet cheeses. Ask and we'll steer you."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Rennet <em>&amp;</em> Rind</a>
+    <nav class="nav-links">
+      <a href="#about">The cellar</a><a href="#services">The counter</a><a href="#location">Find us</a><a href="#visit">Visit</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v28">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="label" data-bind="hero.kicker">Cheesemonger · maturing cellar · Gwydir Street, Cambridge</div>
+      <h1 data-bind="hero.headline">Every cheese on this counter has been tasted this morning.</h1>
+      <p class="lede" data-bind="hero.lede">Forty-odd farmhouse cheeses, most from within a hundred miles, all matured in our own cellar until they're ready — not until they're sold. You taste before you buy. That isn't a treat; it's quality control, and you're part of it.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#location" data-bind="hero.primaryCta.label">Visit the counter</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What's ripe this week</a>
+      </div>
+    </div>
+    <div class="hero-wheel">
+      <div class="ring"></div>
+      <img src="https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=2000&q=85&auto=format&fit=crop"
+           alt="Wheels of farmhouse cheese stacked on wooden cellar shelves." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="seal">CELLAR<br />11°C · 90% RH<br />TURNED DAILY</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Mongering since 2014</span>
+    <span>Matured on site</span>
+    <span>Cut to order, never pre-wrapped</span>
+    <span>Farm named on every label</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap">
+    <div class="ledger-head"><span>WHEEL 01 / THE SHOP</span><span>A SHOP ABOVE, A CELLAR BELOW</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1452195100486-9cc805987862?w=1200&q=85&auto=format&fit=crop"
+           alt="Cheesemonger cutting a wedge from a large wheel." />
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">A shop above, a cellar below.</h2>
+        <p>Rennet &amp; Rind started as a market stall with eight cheeses and a fridge that worried everyone. The shop came in 2014; the cellar — the point of the whole exercise — in 2016. It sits under the shopfloor at eleven degrees and ninety per cent humidity, and it is where cheeses arrive young and leave ready.</p>
+        <p>Maturing our own stock means we're not selling what a wholesaler decided was ready. A Lincolnshire Poacher might sit down there for four extra months. A Baron Bigod leaves the moment its centre goes glossy. The cellar decides; we just turn the wheels.</p>
+        <p>There are two of us behind the counter and neither of us will sell you a cheese we wouldn't take home. Some days that means talking you out of the famous one and into the better one.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v21">
+  <div class="wrap">
+    <div class="ledger-head"><span>WHEEL 02 / WHAT WE DO</span><span>FROM THE CELLAR LEDGER</span></div>
+    <h2 class="h2">The ledger.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Entry 01</span><h3>The counter</h3><p>Cut to order from the wheel, never pre-wrapped. Taste anything — that's what the little knife is for.</p></div>
+      <div class="svc-row"><span class="no">Entry 02</span><h3>Cheeseboards, built</h3><p>Tell us the occasion, the headcount and the cowards in the group. We'll build a board with a beginning, middle and end.</p></div>
+      <div class="svc-row"><span class="no">Entry 03</span><h3>The cellar subscription</h3><p>Three cheeses a month, chosen at peak, with notes on where they came from and why now. Collection or Cambridge delivery.</p></div>
+      <div class="svc-row"><span class="no">Entry 04</span><h3>Wedding &amp; event cheese</h3><p>Stacked wheels instead of cake, or a grazing counter with a monger attached. We deliver, set up, and cut the first wedge properly.</p></div>
+      <div class="svc-row"><span class="no">Entry 05</span><h3>Tastings in the cellar</h3><p>Six cheeses, one candle-lit cellar, no slideshow. Occasional collaborations with the wine shop over the road.</p></div>
+      <div class="svc-row"><span class="no">Entry 06</span><h3>Wholesale for kitchens</h3><p>Restaurants and colleges around Cambridge. Small list, kept small on purpose, delivered by bike trailer.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="ledger-head"><span>WHEEL 03 / THE POINT</span><span>THREE THINGS WE'D PUT ON A PLAQUE</span></div>
+    <h2 class="h2">Why a cellar matters.</h2>
+    <div class="why-grid">
+      <div><span class="no">I of III</span><h3>We mature it ourselves.</h3><p>The cellar under the shop holds every wheel until it's ready. What you taste is a decision, not a delivery date.</p></div>
+      <div><span class="no">II of III</span><h3>Taste before you buy.</h3><p>Every cheese, every visit, no purchase necessary. A cheese that can't survive being tasted shouldn't be on the counter.</p></div>
+      <div><span class="no">III of III</span><h3>Named farms, named makers.</h3><p>Every label carries the farm, the maker and the milk. If we can't tell you who made it and when, we don't stock it.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="ledger-head"><span>WHEEL 04 / FIRST VISIT</span><span>SLIVER → WEDGE</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Come hungry-ish</h3><p>The counter works best when you'll try things. Tell us what you like — or what you think you don't.</p></li>
+      <li><span class="step">Step 02</span><h3>Taste the ready ones</h3><p>We'll cut slivers of whatever the cellar has declared ripe this week. Opinions are encouraged and recorded.</p></li>
+      <li><span class="step">Step 03</span><h3>Cut to order</h3><p>Wedges cut from the wheel in front of you, wrapped in waxed paper that actually lets the cheese breathe.</p></li>
+      <li><span class="step">Step 04</span><h3>Care instructions</h3><p>How to store it, when to eat it, and permission to eat it sooner than you were planning to.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="ledger-head"><span>WHEEL 05 / REGULARS</span><span>OVERHEARD AT THE COUNTER</span></div>
+    <blockquote class="t-quote">“I asked for ‘something like Brie but better’ and was handed a sliver of Baron Bigod with the words ‘this is what Brie wants to be’. They were right.”</blockquote>
+    <div class="t-attr">Helen W. — converted, Petersfield Road</div>
+    <div class="t-sub">
+      <figure><blockquote>“They talked me out of £14 of Stilton and into £9 of something from a farm I'd never heard of. It was the best cheese at Christmas. That's the shop in one sentence.”</blockquote><figcaption>Tom G. — Christmas board commission</figcaption></figure>
+      <figure><blockquote>“The cellar tasting was the best evening out we've had in Cambridge. Six cheeses, zero pretension, and a monger who clearly lies awake thinking about humidity.”</blockquote><figcaption>Priya &amp; Dan — cellar tasting, anniversary</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v21">
+  <div class="wrap">
+    <div class="ledger-head"><span>WHEEL 06 / THE ROOM</span><span>SHOP &amp; CELLAR</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1600&q=85&auto=format&fit=crop" alt="Wheels maturing on cellar shelves." /><figcaption>THE CELLAR · TURNED DAILY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1452195100486-9cc805987862?w=1600&q=85&auto=format&fit=crop" alt="Cutting a wedge at the counter." /><figcaption>CUT TO ORDER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1552767059-ce182ead6c1b?w=1600&q=85&auto=format&fit=crop" alt="The counter, mid-morning." /><figcaption>THE COUNTER, 10:40</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1631379578550-7038263db699?w=1600&q=85&auto=format&fit=crop" alt="A board built for a birthday." /><figcaption>A BOARD WITH AN ENDING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1589881133595-a3c085cb731d?w=1600&q=85&auto=format&fit=crop" alt="Washed rinds, turned daily." /><figcaption>THE WASHED-RIND SHELF</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1626957341926-98752fc2ba90?w=1600&q=85&auto=format&fit=crop" alt="The blue shelf, resting." /><figcaption>THE BLUE SHELF, RESTING</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="ledger-head"><span>WHEEL 07 / ASKED AT THE COUNTER</span><span>USUALLY MID-SLIVER</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441223315993">01223 315 993</a>. If we're mid-cut we'll ring back once the wedge is wrapped.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Can I really taste anything?</summary><p>Anything on the counter, yes. Cheeses in the cellar aren't ready — that's why they're in the cellar — but ask and we'll tell you when they surface.</p></details>
+        <details><summary>How much cheese do I need for a board?</summary><p>About 80–100g per person if there's other food; 150g if the cheese is the event. Three to five cheeses beats seven — a board should be an argument, not a crowd.</p></details>
+        <details><summary>Do you deliver?</summary><p>In Cambridge, yes, by bike trailer, usually next day. Further afield we'd rather you found your good local monger — but the subscription posts nationally in insulated boxes, reluctantly.</p></details>
+        <details><summary>How should I store cheese at home?</summary><p>Waxed paper, the salad drawer, and out of the fridge an hour before eating. Cling film is how good cheese dies; we will re-wrap anything you bring back in shame, free of charge.</p></details>
+        <details><summary>I'm pregnant — what can I have?</summary><p>Plenty. Hard cheeses are fine, as are thermised and many pasteurised soft ones. Every label on our counter states the milk treatment, and we keep an up-to-date NHS-guidance list behind the counter.</p></details>
+        <details><summary>Do you do cheese wedding cakes?</summary><p>Stacked wheels, sized to your headcount, delivered and assembled. Book eight weeks ahead — the right wheels need time in the cellar, and the cellar will not be rushed.</p></details>
+        <details><summary>Vegetarian rennet?</summary><p>Lots of our list, clearly marked. Traditional rennet cheeses are marked too. Ask and we'll steer you — some of the best vegetarian-rennet cheeses in Britain are within an hour of this shop.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ledger-head"><span>WHEEL 08 / OUR REGULARS COME FROM</span><span>CAMBRIDGE, MOSTLY BY BIKE</span></div>
+    <ul class="area-list">
+      <li>Mill Road</li><li>Romsey</li><li>Petersfield</li><li>City centre</li><li>Cherry Hinton</li><li>Chesterton</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ledger-head"><span>WHEEL 09 / THE PAPERWORK</span><span>HUMIDITY, VERIFIED</span></div>
+    <div class="creds">
+      <div><div class="clabel">Affinage</div><div class="detail">On-site maturing cellar, 11°C / 90% RH</div></div>
+      <div><div class="clabel">Hygiene</div><div class="detail">Food hygiene rating 5, inspected</div></div>
+      <div><div class="clabel">Guild</div><div class="detail">Academy of Cheese trained, both mongers</div></div>
+      <div><div class="clabel">Provenance</div><div class="detail">Farm &amp; maker named on every label</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ledger-head"><span>WHEEL 10 / FIND US</span><span>41 GWYDIR STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Rennet &amp; Rind</strong><br />
+          41 Gwydir Street<br />
+          Cambridge CB1 2LG<br /><br />
+          <a href="tel:+441223315993" data-bind="business.phoneDisplay">01223 315 993</a><br />
+          <a href="mailto:counter@rennetandrind.co.uk" data-bind="business.email">counter@rennetandrind.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>SUN – MON</span><span>CELLAR DAYS (CLOSED)</span></div>
+          <p class="gbp-note">Current hours live on our Google Business Profile. If the sign says "down in the cellar", ring the bell — we mean it literally.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Rennet &amp; Rind, Gwydir Street, Cambridge" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=0.1290%2C52.1960%2C0.1450%2C52.2030&layer=mapnik&marker=52.1993%2C0.1372"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="visit" class="cta-band" data-component="CTA-BAND" data-variant="v1">
+  <div class="wrap">
+    <div class="label">WHEEL 11 / VISIT</div>
+    <h2 data-bind="cta.heading">The cellar has opinions. Come hear them.</h2>
+    <p data-bind="cta.body">Bring an appetite and a vague sense of occasion. Leave with a wedge you didn't plan on.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#location" data-bind="cta.primary.label">Find the counter</a>
+      <a class="btn btn-ghost" href="tel:+441223315993" data-bind="cta.secondary.label">01223 315 993</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441223315993" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:20px;">Rennet <em style="color:var(--wax);font-style:normal;">&amp;</em> Rind</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">An independent cheesemonger and maturing cellar on Gwydir Street, Cambridge. Since 2014.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          41 Gwydir Street<br />Cambridge CB1 2LG<br />
+          <a href="tel:+441223315993">01223 315 993</a><br />
+          <a href="mailto:counter@rennetandrind.co.uk">counter@rennetandrind.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The counter</a><a href="#about">The cellar</a><a href="#location">Find us</a><a href="#visit">Visit</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> RENNET &amp; RIND LTD</span>
+      <span>TURNED DAILY · SOLD READY</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

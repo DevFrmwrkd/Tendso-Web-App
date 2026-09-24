@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Banig ni Inay — handwoven tikog sleeping mats, table runners & bags from Basey, Samar</title>
+<meta name="description" content="Banig ni Inay is a weavers' collective in Basey, Samar — banig sleeping mats, runners, placemats and bags handwoven from dyed tikog grass in traditional Waray patterns, made by women weavers and sold direct. Nationwide shipping. Weaving together since 2005." />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Banig ni Inay", phone: "+63 917 555 0261", phoneDisplay: "0917 555 0261", email: "hello@banigniinay.ph", foundedYear: 2005 },
+  hero: {
+    kicker: "Handwoven tikog banig · mats, runners & bags · Basey, Samar",
+    headline: "One mat. Three weeks. Two hands that learned this from their mother.",
+    lede: "A women's weaving collective in Basey, Samar — the town famous for banig, the Filipino handwoven mat. We harvest and dry tikog grass, dye it by hand, and weave it into sleeping mats, table runners, placemats and bags in the bold Waray patterns passed down through generations. Sold direct from the weavers, shipped nationwide, and made the only way banig can be: slowly.",
+    primaryCta: { label: "Order or commission", href: "#book" },
+    secondaryCta: { label: "What we weave", href: "#services" },
+    image: "https://images.unsplash.com/photo-1528465424850-54d22f092f9d?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Handwoven natural fibre matting with a geometric pattern."
+  },
+  trust: { years: "Weaving together since 2005" },
+  about: {
+    heading: "Before there were beds, there was the banig. It's still the coolest thing to sleep on.",
+    paragraphs: [
+      "Banig ni Inay is a weavers' collective in Basey, Samar, a town whose name is practically a synonym for banig — the handwoven Filipino mat. A banig isn't a rug; it's a sleeping mat, rolled out on the floor at night and rolled up in the morning, and for countless Filipino families it's what generations have slept on. In our climate it makes perfect sense: woven grass breathes, stays cool against the skin, and packs away to nothing.",
+      "Ours are woven from tikog, a wild sedge grass that grows in the marshes around Samar. The work starts in the water: harvesting the tikog, drying it in the sun, flattening it, dyeing the strands in strong colours, and only then weaving — over and under, strand by strand, on the floor, by hand. A full sleeping mat takes weeks. The bold geometric patterns and figures are Waray designs, learned from mothers and grandmothers, and every weaver's hand is slightly, recognisably her own.",
+      "The collective exists so the weavers keep the value of their work. We sell direct — no middlemen taking the margin from women who spent three weeks on a mat — and we ship nationwide. Beyond the classic sleeping banig we weave table runners, placemats, bags, wall pieces and made-to-order sizes for homes, designers and hotels. Buy one and you're not buying décor; you're buying weeks of a woman's skill, and helping keep a Samar craft alive."
+    ],
+    portrait: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Close-up of woven natural fibre texture."
+  },
+  services: [
+    { name: "Traditional sleeping banig", description: "The classic: a full-size handwoven tikog sleeping mat in traditional Waray patterns, cool against the skin and light enough to roll and store. Weeks of weaving in a single piece, made to last for years." },
+    { name: "Table runners & placemats", description: "The same handwoven tikog in modern table sizes — runners, placemats and coasters in natural or dyed colours. The easiest way to bring genuine Filipino craft into a dining room, and lovely as gifts." },
+    { name: "Woven bags & pouches", description: "Handwoven banig bags, totes, clutches and pouches — durable, distinctive and completely handmade. The everyday piece that carries a Samar weaver's pattern out into the world." },
+    { name: "Wall pieces & décor", description: "Banig as art: framed panels, wall hangings and decorative pieces in bold geometric patterns, for people who'd rather hang a woven Waray design than a poster. Made to your size and palette." },
+    { name: "Made-to-order & custom", description: "Custom sizes, colours and patterns for homes, interior designers, resorts and hotels — including matched sets. Tell us the dimensions and the palette; we'll tell you honestly the weaving time it needs." },
+    { name: "Direct from the weavers", description: "Sold direct from the collective and shipped nationwide, so the money goes to the women who wove it rather than to layers of middlemen. Wholesale and trade orders welcome — ask about lead times." }
+  ],
+  why: [
+    { title: "Woven strand by strand, by hand.", body: "No looms rushing it, no machine shortcut — tikog is flattened, dyed and woven over and under by hand on the floor. A sleeping mat takes weeks. That's not slow service; that's what a banig is." },
+    { title: "Tikog from our own marshes.", body: "We harvest, dry and dye the tikog grass ourselves here in Samar, so we know the fibre from the water to the weave. Good banig starts long before the pattern — with well-cut, properly dried grass." },
+    { title: "The weaver keeps the value.", body: "Selling direct means the woman who spent three weeks on your mat is paid properly for it. That's the whole point of the collective — and the reason the craft still has young hands learning it." }
+  ],
+  how: [
+    { step: "01", title: "Choose or commission", body: "Pick from what's woven and ready, or commission a size, pattern and palette of your own. Tell us the room, the table or the use, and we'll advise on dimensions and which patterns suit." },
+    { step: "02", title: "We weave it", body: "Tikog harvested, dried, dyed and woven by hand. A runner takes days, a full sleeping mat weeks — we'll give you an honest timeline up front and tell you which weaver is working on it." },
+    { step: "03", title: "Shipped to you", body: "Rolled, wrapped and shipped nationwide, or delivered locally around Samar and Leyte. Trade and wholesale orders are crated appropriately — ask us about lead times for volume." },
+    { step: "04", title: "Use it and it improves", body: "Banig softens with use and lasts for years with simple care. When it eventually wears, come back — and know that your order helped a Samar weaver teach the pattern to someone younger." }
+  ],
+  testimonials: [
+    { quote: "I bought a full banig to sleep on during the hot months and I genuinely sleep better — it's cool in a way no mattress is. But what got me was the craftsmanship: the pattern is perfect, the weave is tight, and knowing a woman in Basey spent weeks on it makes it precious. Worth every peso.", name: "Marisol T.", context: "sleeping banig" },
+    { quote: "We use their table runners and placemats across our restaurant and guests constantly ask where they're from. Beautiful, durable, unmistakably Filipino, and it feels good to source direct from the weavers. They handled a custom colour run for us perfectly. A joy to work with.", name: "Restaurant owner, Tacloban", context: "custom trade order" },
+    { quote: "My lola was from Samar and slept on a banig her whole life. Buying one from these weavers for my own home felt like keeping something alive. It arrived beautifully rolled with a note about who wove it. That detail meant everything to me. Salamat po sa inyong sining.", name: "Paolo B.", context: "gift & heritage" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1528465424850-54d22f092f9d?w=1600&q=85&auto=format&fit=crop", alt: "Handwoven natural fibre matting with a geometric pattern." },
+    { src: "https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=1600&q=85&auto=format&fit=crop", alt: "Close-up of woven natural fibre texture." },
+    { src: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=1600&q=85&auto=format&fit=crop", alt: "Detail of a hand-woven pattern." },
+    { src: "https://images.unsplash.com/photo-1604176354204-9268737828e4?w=1600&q=85&auto=format&fit=crop", alt: "Folded textiles stacked together." },
+    { src: "https://images.unsplash.com/photo-1493666438817-866a91353ca9?w=1600&q=85&auto=format&fit=crop", alt: "A styled interior with natural materials." },
+    { src: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1600&q=85&auto=format&fit=crop", alt: "Natural woven furnishings in a bright room." }
+  ],
+  faq: [
+    { q: "What exactly is a banig, and is it a rug?", a: "A banig is a traditional handwoven Filipino mat, and no, it isn't really a rug in the Western sense — its classic use is as a sleeping mat, unrolled on the floor or on a wooden bed at night and rolled up and stored away in the morning. For generations of Filipino families, especially in the provinces, the banig is simply what you sleep on, and it makes a great deal of sense in a tropical climate: woven grass breathes, stays notably cool against the skin, doesn't trap heat the way a mattress does, and takes up almost no space when rolled. Beyond sleeping, banig weaving is also used for all sorts of other pieces — table runners, placemats, bags, wall décor — which is where a lot of people first encounter it today. So you can absolutely use a banig decoratively or on a floor if you like, but if you want the authentic experience, unroll one and sleep on it on a hot night. It's cooler than you expect, and there's a reason the tradition has lasted." },
+    { q: "What is tikog, and why does the material matter?", a: "Tikog is a wild sedge grass that grows in the marshy wetlands of Samar, and it's the traditional material for the banig our region is famous for. It matters enormously, because the quality of a mat begins long before anyone starts weaving. The stalks have to be harvested at the right maturity, dried properly in the sun (under-dried tikog goes mouldy; over-dried gets brittle), flattened, and then dyed — traditionally in strong, saturated colours that hold up over the years. Only then can weaving begin. Well-prepared tikog is pliable, strong, smooth against the skin and takes dye beautifully; poorly prepared fibre gives you a mat that's rough, weak or fades quickly. We handle the whole chain ourselves here in Samar — harvest, dry, dye, weave — precisely because that control is what makes the difference between a banig that lasts for years and one that doesn't. Other regions in the Philippines use different materials such as pandan or buri, each with their own character; tikog is ours." },
+    { q: "Why does a banig cost what it does, and how long does one take?", a: "Because it's weeks of skilled human labour, not a manufactured product. A full-size sleeping banig typically takes a weaver a matter of weeks to complete, working strand by strand, over and under, by hand — and that's after the days spent harvesting, drying, flattening and dyeing the tikog. Smaller pieces like runners and placemats take days rather than weeks. Then there's the skill itself: the bold geometric patterns and figures are worked in as the weaving progresses, which demands genuine expertise learned over years, usually from a mother or grandmother. When you understand that, the price of a good banig stops looking like the price of a mat and starts looking like what it is: fair payment for a substantial piece of one woman's time and a lifetime of accumulated skill. We think that's worth paying properly for, which is exactly why we sell direct rather than letting middlemen take the margin. If you want something cheaper, machine-made imitations exist — but they aren't this." },
+    { q: "How do I care for a banig so it lasts?", a: "Banig is durable and improves with use, but it's a natural fibre so a little sense goes a long way. Keep it dry — this is the main rule, because prolonged damp or humidity is what causes mould and weakens the fibres. If it gets wet, dry it thoroughly and promptly, ideally in the air but out of harsh, prolonged direct sunlight, which fades the dyes over time. For cleaning, wipe it down with a barely damp cloth and let it dry fully; don't soak, machine-wash or scrub it hard. Store it rolled rather than sharply folded, since repeated hard creases in the same place will eventually crack the strands, and keep it somewhere ventilated rather than sealed in plastic in a humid cupboard. Shake it out occasionally. Treated this way a banig comfortably lasts years — it actually gets softer and more pleasant against the skin as it's used — and if it does eventually wear or fray at an edge, talk to us; small repairs are often possible and far better than replacing a piece someone spent weeks weaving." },
+    { q: "Can I order custom sizes, colours or patterns?", a: "Yes — made-to-order is a big part of what we do, for individuals and for interior designers, resorts and hotels. Because every piece is woven by hand from fibre we dye ourselves, we can work to your dimensions, your colour palette and either traditional Waray patterns or a design worked out with you, including matched sets for a project. The honest constraint is time: hand-weaving cannot be rushed, so a custom order — particularly a large mat or a volume order of matched pieces — needs a realistic lead time, and we'll always tell you truthfully how long it will take rather than promise something we can't deliver. We'll also advise on what works: certain patterns suit certain sizes, some colours hold better than others over years of use, and we'd rather guide you to a piece you'll love for a decade than simply take the order. Send us your dimensions, intended use and any references or palettes, and we'll come back with what's possible, a timeline and a fair price." },
+    { q: "Does buying direct really help the weavers?", a: "Yes, and it's the entire reason the collective exists. The long-standing problem in traditional craft is that the person doing the skilled, time-consuming work often captures the smallest share of the final price, with middlemen and resellers taking the margin — which is precisely how crafts die out, because younger people quite reasonably decline to spend three weeks weaving for a fraction of what the mat sells for. By organising as a collective and selling direct to customers, wholesale buyers and trade clients, we cut those layers out so that the woman who actually wove your banig is paid properly for her weeks of work. That has a real, visible effect: weavers stay in the craft, they can afford to teach it to daughters and neighbours, and the patterns and knowledge that would otherwise be lost keep being passed on. So when you buy from us, you're not making a charitable gesture — you're paying a fair price for genuine skilled work, and the fairness of that price is what keeps Basey weaving." }
+  ],
+  area: { places: ["Basey", "Tacloban", "Samar", "Leyte", "Nationwide shipping", "Trade & export"] },
+  credentials: [
+    { label: "Since 2005", detail: "A women's weaving collective in Basey" },
+    { label: "Tikog grass", detail: "Harvested, dried & dyed here in Samar" },
+    { label: "Woven by hand", detail: "Weeks per mat, in Waray patterns" },
+    { label: "Sold direct", detail: "The weaver keeps the value of her work" }
+  ],
+  location: { name: "Banig ni Inay", addressStreet: "Purok 3, Barangay Loog", addressLocality: "Basey", addressRegion: "Samar", addressPostcode: "6720", addressCountry: "Philippines" },
+  cta: { heading: "Buy the weeks, not just the mat.", body: "Handwoven tikog banig — sleeping mats, table runners, placemats, bags and custom pieces in traditional Waray patterns, made by the women of Basey and sold direct, shipped nationwide. Weaving together since 2005.", primary: { label: "Order or commission", href: "#book" }, secondary: { label: "0917 555 0261", href: "tel:+639175550261" } },
+  messaging: { whatsapp: "https://wa.me/639175550261", messenger: "https://m.me/banigniinay" }
+};
+</script>
+
+<style>
+  :root {
+    --reed:#3f4a33; --reed-2:#2d3626; --straw:#f5eddc; --straw-2:#fbf6ea; --ink:#2f3529; --ink-2:#525b48;
+    --dye-red:#c0432f; --dye-gold:#dda32c; --dye-teal:#2e8078;
+    --mid:#8b8a72; --mid-d:#c2c1a4; --rule:rgba(47,53,41,0.14); --rule-d:rgba(245,237,220,0.16);
+    --disp:"Newsreader",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--straw);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--dye-red);}
+  .wrap{width:min(1240px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--dye-red);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(38px,5.4vw,80px);line-height:1.04;margin:0 0 0.32em;letter-spacing:-0.01em;}
+  .h2 em{font-style:italic;color:var(--dye-red);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:3px;}
+  .btn-primary{background:var(--reed);color:var(--straw-2);} .btn-primary:hover{background:var(--dye-red);}
+  .btn-ghost{border:1.5px solid var(--reed);color:var(--reed);} .btn-ghost:hover{background:var(--reed);color:var(--straw-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(245,237,220,0.93);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--reed);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:400;font-size:25px;text-decoration:none;letter-spacing:-0.01em;color:var(--reed);}
+  .wm span{color:var(--dye-red);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,66px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:400;font-size:clamp(40px,6.2vw,96px);line-height:1.02;letter-spacing:-0.015em;margin:0 0 34px;max-width:18ch;color:var(--reed);}
+  .hero-headline em{font-style:italic;color:var(--dye-red);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:4px;}
+  .hero-photo::after{content:"WOVEN BY HAND · BASEY, SAMAR";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.12em;background:var(--dye-gold);color:var(--reed-2);padding:7px 12px;border-radius:3px;}
+  .hero-right .lede{color:var(--mid);font-size:clamp(15px,1.5vw,17.5px);line-height:1.74;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--reed);color:var(--straw-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(251,246,234,0.86);font-weight:700;}
+
+  .about{background:var(--straw-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:4px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.78;margin:0 0 1em;color:#4a5140;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--reed);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(192,67,47,0.09);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;color:var(--dye-teal);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(25px,2.7vw,36px);margin:0;line-height:1.04;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--reed);color:var(--straw);}
+  .why .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+  .why .h2{color:var(--straw);} .why .h2 em{color:var(--dye-gold);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--dye-gold);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:28px;margin:0 0 10px;line-height:1.1;}
+  .why-grid p{color:var(--mid-d);margin:0;font-size:14.5px;line-height:1.72;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--rule);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--dye-teal);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:24px;margin:8px 0 8px;line-height:1.1;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--reed-2);color:var(--straw);}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(28px,3.7vw,54px);line-height:1.12;max-width:26ch;margin:0 0 24px;}
+  .t-quote em{font-style:italic;color:var(--dye-gold);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dye-gold);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.74;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:4px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--dye-red);color:var(--straw-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--reed);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--dye-red);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:64ch;line-height:1.74;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--reed);border-radius:3px;font-weight:700;color:var(--mid);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dye-red);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:20px;line-height:1.18;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--reed);color:var(--straw);padding:34px;border-radius:4px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:400;font-size:23px;line-height:1.3;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:var(--mid-d);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule-d);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid-d);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid-d);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:4px;border:1.5px solid var(--reed);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.25) contrast(1.02) sepia(0.1);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--dye-red);color:var(--straw-2);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--straw-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(42px,6vw,100px);line-height:1.02;margin:14px auto 18px;max-width:16ch;}
+  .cta-band h2 em{font-style:italic;color:var(--dye-gold);}
+  .cta-band p{color:rgba(251,246,234,0.92);max-width:54ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--straw-2);color:var(--dye-red);} .cta-band .btn-primary:hover{background:var(--reed);color:var(--straw-2);}
+  .cta-band .btn-ghost{border-color:var(--straw-2);color:var(--straw-2);} .cta-band .btn-ghost:hover{background:var(--straw-2);color:var(--dye-red);}
+
+  footer{background:var(--reed-2);color:var(--straw);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dye-gold);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--reed);color:var(--straw-2);padding:13px 20px;border-radius:3px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(63,74,51,0.4);}
+  .msg-fab a:hover{background:var(--dye-red);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Banig ni Inay","description":"Women's weaving collective in Basey, Samar — handwoven tikog banig sleeping mats, table runners, placemats, bags and custom pieces in traditional Waray patterns, sold direct from the weavers with nationwide shipping. Since 2005.","url":"https://banigniinay.ph/","telephone":"+639175550261","email":"hello@banigniinay.ph","address":{"@type":"PostalAddress","streetAddress":"Purok 3, Barangay Loog","addressLocality":"Basey","addressRegion":"Samar","postalCode":"6720","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":11.2810,"longitude":125.0680},"areaServed":["Basey","Tacloban","Samar","Leyte"],"image":["https://images.unsplash.com/photo-1528465424850-54d22f092f9d?w=1600"],"foundingDate":"2005"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What exactly is a banig, and is it a rug?","acceptedAnswer":{"@type":"Answer","text":"A banig is a traditional handwoven Filipino mat, and it isn't really a rug — its classic use is as a sleeping mat, unrolled on the floor or a wooden bed at night and rolled away in the morning. It suits a tropical climate: woven grass breathes, stays cool against the skin and packs to almost nothing. Banig weaving is also used for runners, placemats, bags and wall décor, which is where many people first meet it. You can use one decoratively, but for the authentic experience, sleep on it on a hot night."}},
+{"@type":"Question","name":"What is tikog, and why does the material matter?","acceptedAnswer":{"@type":"Answer","text":"Tikog is a wild sedge grass from the marshy wetlands of Samar, the traditional material for our banig. Quality begins before weaving: stalks must be harvested at the right maturity, sun-dried properly (under-dried goes mouldy, over-dried gets brittle), flattened and dyed. Well-prepared tikog is pliable, strong, smooth and takes dye beautifully; poor fibre gives a rough, weak or fading mat. We handle harvest, drying, dyeing and weaving ourselves because that control makes the difference. Other regions use pandan or buri; tikog is ours."}},
+{"@type":"Question","name":"Why does a banig cost what it does, and how long does one take?","acceptedAnswer":{"@type":"Answer","text":"Because it's weeks of skilled human labour. A full-size sleeping banig takes a weaver weeks, strand by strand, after days spent harvesting, drying, flattening and dyeing the tikog; runners and placemats take days. The bold geometric patterns are worked in as weaving progresses, demanding expertise learned over years from a mother or grandmother. The price isn't the price of a mat — it's fair payment for a substantial piece of one woman's time and a lifetime of skill, which is why we sell direct rather than letting middlemen take the margin."}},
+{"@type":"Question","name":"How do I care for a banig so it lasts?","acceptedAnswer":{"@type":"Answer","text":"Keep it dry — prolonged damp causes mould and weakens fibres. If it gets wet, dry it promptly in air but out of harsh prolonged sunlight, which fades dyes. Clean with a barely damp cloth and let it dry fully; don't soak, machine-wash or scrub hard. Store it rolled rather than sharply folded, in a ventilated spot rather than sealed in plastic. Treated this way a banig lasts years and gets softer with use; if it frays at an edge, talk to us — small repairs are often possible."}},
+{"@type":"Question","name":"Can I order custom sizes, colours or patterns?","acceptedAnswer":{"@type":"Answer","text":"Yes — made-to-order is a big part of what we do, for individuals and for designers, resorts and hotels. Because every piece is hand-woven from fibre we dye ourselves, we work to your dimensions, palette and either traditional Waray patterns or a design worked out with you, including matched sets. The honest constraint is time: hand-weaving can't be rushed, so custom and volume orders need realistic lead times, and we'll tell you truthfully how long. Send dimensions, intended use and references and we'll come back with what's possible, a timeline and a fair price."}},
+{"@type":"Question","name":"Does buying direct really help the weavers?","acceptedAnswer":{"@type":"Answer","text":"Yes — it's why the collective exists. In traditional craft the person doing the skilled, time-consuming work often captures the smallest share of the final price, which is how crafts die out, because younger people decline to spend three weeks weaving for a fraction of the sale. Selling direct to customers, wholesale buyers and trade clients cuts those layers so the woman who wove your banig is paid properly. The effect is real: weavers stay in the craft, teach daughters and neighbours, and the patterns keep being passed on."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Banig ni <span>Inay</span></a>
+    <nav class="nav-links">
+      <a href="#about">The collective</a><a href="#services">What we weave</a><a href="#location">Find us</a><a href="#book">Order</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Handwoven tikog banig · mats, runners &amp; bags · Basey, Samar</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      One mat. Three weeks. Two hands that learned this <em>from their mother.</em>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1528465424850-54d22f092f9d?w=2000&q=85&auto=format&fit=crop"
+             alt="Handwoven natural fibre matting with a geometric pattern." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A women's weaving collective in Basey, Samar — the town famous for banig, the Filipino handwoven mat. We harvest and dry tikog grass, dye it by hand, and weave it into sleeping mats, table runners, placemats and bags in the bold Waray patterns passed down through generations. Sold direct from the weavers, shipped nationwide, and made the only way banig can be: slowly.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Order or commission</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we weave</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Weaving together since 2005</span>
+    <span>Tikog from Samar's marshes</span>
+    <span>Woven by hand, weeks per mat</span>
+    <span>Sold direct from the weavers</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>WEFT 01 / THE COLLECTIVE</span><span>BASEY, THE BANIG TOWN</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Before there were beds, there was the banig. It's still the coolest thing to <em>sleep on.</em></h2>
+        <p>Banig ni Inay is a weavers' collective in Basey, Samar, a town whose name is practically a synonym for banig — the handwoven Filipino mat. A banig isn't a rug; it's a sleeping mat, rolled out on the floor at night and rolled up in the morning, and for countless Filipino families it's what generations have slept on. In our climate it makes perfect sense: woven grass breathes, stays cool against the skin, and packs away to nothing.</p>
+        <p>Ours are woven from tikog, a wild sedge grass that grows in the marshes around Samar. The work starts in the water: harvesting the tikog, drying it in the sun, flattening it, dyeing the strands in strong colours, and only then weaving — over and under, strand by strand, on the floor, by hand. A full sleeping mat takes weeks. The bold geometric patterns and figures are Waray designs, learned from mothers and grandmothers, and every weaver's hand is slightly, recognisably her own.</p>
+        <p>The collective exists so the weavers keep the value of their work. We sell direct — no middlemen taking the margin from women who spent three weeks on a mat — and we ship nationwide. Beyond the classic sleeping banig we weave table runners, placemats, bags, wall pieces and made-to-order sizes for homes, designers and hotels. Buy one and you're not buying décor; you're buying weeks of a woman's skill, and helping keep a Samar craft alive.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=1200&q=85&auto=format&fit=crop"
+           alt="Close-up of woven natural fibre texture." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>WEFT 02 / WHAT WE WEAVE</span><span>MATS · RUNNERS · BAGS · CUSTOM</span></div>
+    <h2 class="h2">What we weave.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Traditional sleeping banig</h3><p>The classic: a full-size handwoven tikog sleeping mat in traditional Waray patterns, cool against the skin and light enough to roll and store. Weeks of weaving in a single piece, made to last for years.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Table runners &amp; placemats</h3><p>The same handwoven tikog in modern table sizes — runners, placemats and coasters in natural or dyed colours. The easiest way to bring genuine Filipino craft into a dining room, and lovely as gifts.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Woven bags &amp; pouches</h3><p>Handwoven banig bags, totes, clutches and pouches — durable, distinctive and completely handmade. The everyday piece that carries a Samar weaver's pattern out into the world.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Wall pieces &amp; décor</h3><p>Banig as art: framed panels, wall hangings and decorative pieces in bold geometric patterns, for people who'd rather hang a woven Waray design than a poster. Made to your size and palette.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Made-to-order &amp; custom</h3><p>Custom sizes, colours and patterns for homes, interior designers, resorts and hotels — including matched sets. Tell us the dimensions and palette; we'll tell you honestly the weaving time it needs.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Direct from the weavers</h3><p>Sold direct from the collective and shipped nationwide, so the money goes to the women who wove it rather than to layers of middlemen. Wholesale and trade orders welcome — ask about lead times.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>WEFT 03 / THE DIFFERENCE</span><span>WHY IT TAKES WEEKS</span></div>
+    <h2 class="h2">Why it takes <em>weeks.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Woven strand by strand.</h3><p>No looms rushing it, no machine shortcut — tikog is flattened, dyed and woven over and under by hand on the floor. A sleeping mat takes weeks. That's not slow service; that's what a banig is.</p></div>
+      <div><span class="no">02 / 03</span><h3>Tikog from our own marshes.</h3><p>We harvest, dry and dye the tikog grass ourselves here in Samar, so we know the fibre from the water to the weave. Good banig starts long before the pattern — with well-cut, properly dried grass.</p></div>
+      <div><span class="no">03 / 03</span><h3>The weaver keeps the value.</h3><p>Selling direct means the woman who spent three weeks on your mat is paid properly for it. That's the whole point of the collective — and the reason the craft still has young hands learning it.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>WEFT 04 / HOW IT GOES</span><span>CHOOSE · WEAVE · SHIP · KEEP</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Choose or commission</h3><p>Pick from what's woven and ready, or commission a size, pattern and palette of your own. Tell us the room, the table or the use, and we'll advise on dimensions and which patterns suit.</p></li>
+      <li><span class="step">STEP 02</span><h3>We weave it</h3><p>Tikog harvested, dried, dyed and woven by hand. A runner takes days, a full sleeping mat weeks — we'll give you an honest timeline up front and tell you which weaver is working on it.</p></li>
+      <li><span class="step">STEP 03</span><h3>Shipped to you</h3><p>Rolled, wrapped and shipped nationwide, or delivered locally around Samar and Leyte. Trade and wholesale orders are crated appropriately — ask us about lead times for volume.</p></li>
+      <li><span class="step">STEP 04</span><h3>Use it and it improves</h3><p>Banig softens with use and lasts for years with simple care. When it eventually wears, come back — and know that your order helped a Samar weaver teach the pattern to someone younger.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>WEFT 05 / FROM THE HOME</span><span>WORTH EVERY PESO</span></div>
+    <blockquote class="t-quote">“Knowing a woman in Basey spent weeks on it makes it precious. <em>Worth every peso.</em>”</blockquote>
+    <div class="t-attr">Marisol T. — sleeping banig</div>
+    <div class="t-sub">
+      <figure><blockquote>“We use their table runners and placemats across our restaurant and guests constantly ask where they're from. Beautiful, durable, unmistakably Filipino, and it feels good to source direct from the weavers. They handled a custom colour run for us perfectly. A joy to work with.”</blockquote><figcaption>Restaurant owner, Tacloban — custom trade order</figcaption></figure>
+      <figure><blockquote>“My lola was from Samar and slept on a banig her whole life. Buying one from these weavers for my own home felt like keeping something alive. It arrived beautifully rolled with a note about who wove it. That detail meant everything to me. Salamat po sa inyong sining.”</blockquote><figcaption>Paolo B. — gift &amp; heritage</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--straw-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>WEFT 06 / FROM THE FLOOR</span><span>GRASS, DYE &amp; PATTERN</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1528465424850-54d22f092f9d?w=1600&q=85&auto=format&fit=crop" alt="Handwoven natural fibre matting with a geometric pattern." /><figcaption>THE BANIG</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=1600&q=85&auto=format&fit=crop" alt="Close-up of woven natural fibre texture." /><figcaption>THE WEAVE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1595428774223-ef52624120d2?w=1600&q=85&auto=format&fit=crop" alt="Detail of a hand-woven pattern." /><figcaption>THE PATTERN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1604176354204-9268737828e4?w=1600&q=85&auto=format&fit=crop" alt="Folded textiles stacked together." /><figcaption>THE STACK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1493666438817-866a91353ca9?w=1600&q=85&auto=format&fit=crop" alt="A styled interior with natural materials." /><figcaption>THE ROOM</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=1600&q=85&auto=format&fit=crop" alt="Natural woven furnishings in a bright room." /><figcaption>THE HOME</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>WEFT 07 / GOOD TO KNOW</span><span>MATERIAL, CARE &amp; CUSTOM</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+639175550261" style="color:var(--dye-red);font-weight:700;">0917 555 0261</a>. Commissioning something? Send dimensions and a palette and we'll advise.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What exactly is a banig, and is it a rug?</summary><p>A banig is a traditional handwoven Filipino mat, and no, it isn't really a rug in the Western sense — its classic use is as a sleeping mat, unrolled on the floor or on a wooden bed at night and rolled up and stored away in the morning. For generations of Filipino families, especially in the provinces, the banig is simply what you sleep on, and it makes a great deal of sense in a tropical climate: woven grass breathes, stays notably cool against the skin, doesn't trap heat the way a mattress does, and takes up almost no space when rolled. Beyond sleeping, banig weaving is also used for table runners, placemats, bags and wall décor, which is where a lot of people first encounter it today. You can absolutely use a banig decoratively, but if you want the authentic experience, unroll one and sleep on it on a hot night.</p></details>
+        <details><summary>What is tikog, and why does the material matter?</summary><p>Tikog is a wild sedge grass that grows in the marshy wetlands of Samar, and it's the traditional material for the banig our region is famous for. It matters enormously, because the quality of a mat begins long before anyone starts weaving. The stalks have to be harvested at the right maturity, dried properly in the sun (under-dried tikog goes mouldy; over-dried gets brittle), flattened, and then dyed — traditionally in strong, saturated colours that hold up over the years. Only then can weaving begin. Well-prepared tikog is pliable, strong, smooth against the skin and takes dye beautifully; poorly prepared fibre gives you a mat that's rough, weak or fades quickly. We handle the whole chain ourselves here in Samar precisely because that control is what makes the difference. Other regions use pandan or buri, each with their own character; tikog is ours.</p></details>
+        <details><summary>Why does a banig cost what it does, and how long does one take?</summary><p>Because it's weeks of skilled human labour, not a manufactured product. A full-size sleeping banig typically takes a weaver a matter of weeks to complete, working strand by strand, over and under, by hand — and that's after the days spent harvesting, drying, flattening and dyeing the tikog. Smaller pieces like runners and placemats take days rather than weeks. Then there's the skill itself: the bold geometric patterns and figures are worked in as the weaving progresses, which demands genuine expertise learned over years, usually from a mother or grandmother. When you understand that, the price of a good banig stops looking like the price of a mat and starts looking like what it is: fair payment for a substantial piece of one woman's time and a lifetime of accumulated skill.</p></details>
+        <details><summary>How do I care for a banig so it lasts?</summary><p>Banig is durable and improves with use, but it's a natural fibre so a little sense goes a long way. Keep it dry — this is the main rule, because prolonged damp or humidity causes mould and weakens the fibres. If it gets wet, dry it thoroughly and promptly, ideally in the air but out of harsh, prolonged direct sunlight, which fades the dyes over time. For cleaning, wipe it down with a barely damp cloth and let it dry fully; don't soak, machine-wash or scrub it hard. Store it rolled rather than sharply folded, since repeated hard creases will eventually crack the strands, and keep it somewhere ventilated rather than sealed in plastic in a humid cupboard. Treated this way a banig comfortably lasts years and gets softer with use; if it frays at an edge, talk to us — small repairs are often possible.</p></details>
+        <details><summary>Can I order custom sizes, colours or patterns?</summary><p>Yes — made-to-order is a big part of what we do, for individuals and for interior designers, resorts and hotels. Because every piece is woven by hand from fibre we dye ourselves, we can work to your dimensions, your colour palette and either traditional Waray patterns or a design worked out with you, including matched sets for a project. The honest constraint is time: hand-weaving cannot be rushed, so a custom order — particularly a large mat or a volume order of matched pieces — needs a realistic lead time, and we'll always tell you truthfully how long it will take rather than promise something we can't deliver. We'll also advise on what works: certain patterns suit certain sizes, some colours hold better over years of use. Send us your dimensions, intended use and any references, and we'll come back with what's possible, a timeline and a fair price.</p></details>
+        <details><summary>Does buying direct really help the weavers?</summary><p>Yes, and it's the entire reason the collective exists. The long-standing problem in traditional craft is that the person doing the skilled, time-consuming work often captures the smallest share of the final price, with middlemen and resellers taking the margin — which is precisely how crafts die out, because younger people quite reasonably decline to spend three weeks weaving for a fraction of what the mat sells for. By organising as a collective and selling direct to customers, wholesale buyers and trade clients, we cut those layers out so that the woman who actually wove your banig is paid properly for her weeks of work. That has a real, visible effect: weavers stay in the craft, they can afford to teach it to daughters and neighbours, and the patterns and knowledge that would otherwise be lost keep being passed on.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>WEFT 08 / WE SHIP TO</span><span>SAMAR &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Basey</li><li>Tacloban</li><li>Samar</li><li>Leyte</li><li>Nationwide shipping</li><li>Trade &amp; export</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>WEFT 09 / THE ESSENTIALS</span><span>HOW WE WEAVE</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2005</div><div class="detail">A women's weaving collective in Basey</div></div>
+      <div><div class="label">Tikog grass</div><div class="detail">Harvested, dried &amp; dyed here in Samar</div></div>
+      <div><div class="label">Woven by hand</div><div class="detail">Weeks per mat, in Waray patterns</div></div>
+      <div><div class="label">Sold direct</div><div class="detail">The weaver keeps the value of her work</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>WEFT 10 / THE WORKSHOP</span><span>BARANGAY LOOG, BASEY</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Banig ni Inay</strong><br />
+          Purok 3, Barangay Loog<br />
+          Basey, Samar 6720<br /><br />
+          <a href="tel:+639175550261" data-bind="business.phoneDisplay">0917 555 0261</a><br />
+          <a href="mailto:hello@banigniinay.ph" data-bind="business.email">hello@banigniinay.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SAT</span><span>8AM – 5PM</span></div>
+          <div class="row"><span>VISITS</span><span>WELCOME</span></div>
+          <p class="gbp-note">Live details on our Google Business Profile. Visitors are welcome at the weaving house in Barangay Loog — come and watch a banig being made. Orders shipped nationwide.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Banig ni Inay, Basey, Samar" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=125.0530%2C11.2710%2C125.0830%2C11.2910&layer=mapnik&marker=11.2810%2C125.0680"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">WEFT 11 / ORDER</div>
+    <h2 data-bind="cta.heading">Buy the weeks, not just the <em>mat.</em></h2>
+    <p data-bind="cta.body">Handwoven tikog banig — sleeping mats, table runners, placemats, bags and custom pieces in traditional Waray patterns, made by the women of Basey and sold direct, shipped nationwide. Weaving together since 2005.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Order or commission</a>
+      <a class="btn btn-ghost" href="tel:+639175550261" data-bind="cta.secondary.label">0917 555 0261</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/639175550261" data-bind="messaging.whatsapp" aria-label="Message the collective">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;color:var(--straw);">Banig ni <span style="color:var(--dye-gold);font-style:italic;">Inay</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:var(--mid-d);">A women's weaving collective in Basey, Samar — handwoven tikog banig, sold direct from the weavers since 2005.</p>
+      </div>
+      <div>
+        <h4>The collective</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          Purok 3, Barangay Loog<br />Basey, Samar 6720<br />
+          <a href="tel:+639175550261">0917 555 0261</a><br />
+          <a href="mailto:hello@banigniinay.ph">hello@banigniinay.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we weave</a><a href="#about">The collective</a><a href="#location">Find us</a><a href="#book">Order</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> BANIG NI INAY</span>
+      <span>WOVEN BY HAND · BASEY, SAMAR</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

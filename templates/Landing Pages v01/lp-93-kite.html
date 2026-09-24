@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Windward — kite shop, kite-surf school and repairs in Hunstanton, Norfolk</title>
+<meta name="description" content="Windward is a kite shop and kite-surf school on the Norfolk coast — single-line and stunt kites, power kites and kite-surf gear, lessons for all levels, and repairs. Flying and teaching since 2011." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Windward", phone: "+44 1485 555 306", phoneDisplay: "01485 555 306", email: "fly@windwardkites.co.uk", foundedYear: 2011 },
+  hero: {
+    kicker: "Kite shop · kite-surf school · repairs · Hunstanton",
+    headline: "Everything that flies on a line, and everyone who wants to fly it.",
+    lede: "A kite shop and kite-surf school on the Norfolk coast — from a child's first single-line kite to serious stunt, power and kite-surf kit, plus lessons that take you from the beach to the water safely. We rig it, we teach it, we repair it. If it flies on a line, this is the shop, and that big Norfolk sky is the reason we're here.",
+    primaryCta: { label: "Book a lesson", href: "#book" },
+    secondaryCta: { label: "What we do", href: "#services" },
+    image: "https://images.unsplash.com/photo-1520962880247-cfaf541c8724?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A colourful kite flying against a blue sky."
+  },
+  trust: { years: "On the beach since 2011" },
+  about: {
+    heading: "The wind is free. Everything else, we can help you with.",
+    paragraphs: [
+      "Windward is a kite shop and kite-surf school on the north Norfolk coast, and we're here for a simple reason: this stretch of beach, with its huge skies, wide flat sands and steady onshore wind, is one of the best places in the country to fly anything on a line. We opened in 2011 selling kites off a rack and teaching a handful of lessons; now we're the shop the whole coast comes to, but the spirit's unchanged — get people flying and keep them safe doing it.",
+      "We stock the full spread: single-line kites for children and beginners, delta and box kites, precision dual- and quad-line stunt kites, power kites and traction kites, and full kite-surf gear — kites, bars, boards, harnesses, wetsuits. We only sell kit we'd fly ourselves, we rig it and check it before it leaves, and we'll always match the kite to the flyer and the conditions rather than sell you more kite than you can handle, which is how people get hurt or put off.",
+      "But the heart of Windward is teaching. Our kite-surf school runs BKSA-recognised lessons from complete-beginner land sessions through to independent riding on the water, taught by qualified instructors with all the safety kit and years of reading this particular beach and its wind and tides. Whether you want a fun afternoon on a power kite or a whole new sport, we'll get you there in the right order, at the right pace, without the scares. The wind's already here; let us do the rest."
+    ],
+    portrait: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A rider on the water at the coast."
+  },
+  services: [
+    { name: "Kites for everyone", description: "Single-line kites for first-timers and children, delta and box kites, and precision dual- and quad-line stunt kites for the dedicated. Rigged, checked and matched to the flyer before it leaves." },
+    { name: "Power & kite-surf gear", description: "Power kites, traction kites, and full kite-surf kit — kites, bars, boards, harnesses and wetsuits. Only kit we'd ride ourselves, sized honestly to you and your local conditions." },
+    { name: "Kite-surf lessons", description: "BKSA-recognised lessons from beginner land sessions to independent water riding, taught by qualified instructors with full safety kit and deep local knowledge of this beach's wind and tides." },
+    { name: "Power-kite taster sessions", description: "A fun, low-commitment afternoon learning to fly a power kite on the sand — the gateway drug to kite-surfing, and a brilliant blast in its own right for groups and stag/hen parties." },
+    { name: "Repairs & spares", description: "Ripped canopy, snapped spar, tangled or worn lines, a bridle that needs re-tuning — we repair kites of every kind and stock the spares to keep yours in the air for years." },
+    { name: "Gear hire & guiding", description: "Kit hire for qualified riders, and guiding for visitors who know how to ride but not where — we'll point you to the right spot for the day's wind, tide and your level." }
+  ],
+  why: [
+    { title: "We match the kite to the flyer.", body: "The fastest way to put someone off — or hurt them — is too much kite too soon. We size honestly to your experience, your strength and the day's wind, and we'll happily sell you less kite than you came in for." },
+    { title: "Teaching is the whole point.", body: "Kite-surfing done wrong is dangerous; done right, in order, it's one of the great sports. Our BKSA-recognised lessons build you up safely from the sand to the water, at your pace, with the safety kit that matters." },
+    { title: "We read this beach.", body: "Local wind, local tides, local hazards — a decade of watching this particular coast goes into every lesson and every bit of advice. Where and when to fly here is knowledge you can't buy online." }
+  ],
+  how: [
+    { step: "01", title: "Tell us the dream", body: "A kite for the kids on the beach, a stunt kite to master, a power-kite blast, or the full leap into kite-surfing? We start from what you actually want and how far you want to take it." },
+    { step: "02", title: "Right kit, right size", body: "We match the kite or gear to you and the conditions, rig it, check it, and show you how it works before you ever put a line up. No guesswork, no over-powering." },
+    { step: "03", title: "Learn it safely", body: "On the sand first — control, wind window, safety systems — then, when you're ready, onto the water with an instructor beside you. We never skip the order that keeps you safe." },
+    { step: "04", title: "Fly for years", body: "Come back for the next kite, the next lesson, gear hire, or a repair to keep your kit flying. And come back for the beach — there's always a better wind coming." }
+  ],
+  testimonials: [
+    { quote: "I'd wanted to kite-surf for years and been too scared to start. Windward built me up so patiently — days on the sand until the kite felt like part of my arm, then the water when I was genuinely ready. I'm riding independently now and I've never felt unsafe once. Life-changing, honestly.", name: "Marcus T.", context: "beginner to independent rider" },
+    { quote: "Bought my daughter her first proper stunt kite here and they spent twenty minutes on the beach teaching her to fly it rather than just taking my money. She's obsessed. That's the difference — they care whether the kite actually gets flown. Wonderful shop, wonderful people.", name: "Priya S.", context: "first stunt kite" },
+    { quote: "Ripped my kite-surf canopy on a groyne and assumed it was done for. Windward repaired it beautifully, re-tuned the bridle, checked my lines and had me back on the water in days for a fraction of a new kite. Proper craftspeople who keep your kit alive. First call every time.", name: "Jonno B.", context: "kite-surf repair" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1520962880247-cfaf541c8724?w=1600&q=85&auto=format&fit=crop", alt: "A colourful kite flying against a blue sky." },
+    { src: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&q=85&auto=format&fit=crop", alt: "A kite surfer riding across the water." },
+    { src: "https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1600&q=85&auto=format&fit=crop", alt: "Kites and open sky over a beach." },
+    { src: "https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=1600&q=85&auto=format&fit=crop", alt: "A wide beach under a big sky." },
+    { src: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=1600&q=85&auto=format&fit=crop", alt: "A kite surfer jumping over waves." },
+    { src: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&q=85&auto=format&fit=crop", alt: "Riders on the water at the coast." }
+  ],
+  faq: [
+    { q: "I've never flown a kite properly — where do I start?", a: "Wherever you are, we'll start you in the right place, and there's no such thing as too much of a beginner here. If you just want the joy of flying, a good single-line or delta kite and ten minutes of coaching on the beach will have you up and grinning; if you fancy control and tricks, a dual-line stunt kite is the next step and enormously satisfying to master. If your eye is on the power kites or kite-surfing, we always, always start on the sand — learning to control a kite in the 'wind window', understanding the safety systems, and building real feel before there's any question of being pulled along or getting on the water. The single biggest mistake people make is buying or borrowing too much kite and scaring themselves (or worse) on day one. Come and talk to us, tell us the dream, and we'll set you off on the version of it that starts safely and stays fun." },
+    { q: "Is kite-surfing dangerous, and how long does it take to learn?", a: "Kite-surfing done badly is genuinely dangerous — a powered kite is a serious piece of kit — but learned properly, in the right order, with instruction and the modern safety systems, it's a controlled and hugely rewarding sport, which is exactly why we insist on teaching it rather than just selling the gear. Our BKSA-recognised lessons progress through clear stages: kite control and safety on land, body-dragging in the water to recover your board, then water starts and your first rides. Most people need somewhere around six to twelve hours of tuition, typically over several sessions, to reach independent riding — but it varies a lot with the individual, the wind and how often you can get out. We'd rather take you at the pace that keeps you safe and confident than rush you to a certificate; the riders who last are the ones who built solid foundations. Rushing it is how people get hurt or quit." },
+    { q: "What kite should I buy for my child?", a: "For a child, the goal is instant success and zero frustration, so we steer firmly towards a good-quality single-line kite — a classic diamond, a delta, or a sled kite — that flies easily and stably in a moderate breeze, rather than anything with two lines or real pull. A well-made beginner kite that actually gets airborne first time is worth ten times a cheap toy-shop kite that nose-dives and ends the afternoon in tears; the difference in flying quality is enormous and the price difference is small. We'll match it to your child's age and size, show them (and you) how to launch and fly it on the beach before you leave, and tell you honestly what wind it needs. As they get keener, dual-line stunt kites are a brilliant next step, but there's no rush — plenty of adults are perfectly happy flying a single-liner on a summer beach forever, and quite right too." },
+    { q: "Do I need my own gear for lessons, or is it provided?", a: "Everything you need for lessons is provided and included — kites, bars, boards, harnesses, helmets, buoyancy aids and wetsuits — so you can come and learn without spending a penny on kit first, which is exactly how it should be. There's no sense buying gear before you know the sport suits you and before you understand, through learning, what kind of kit you'll actually want; we've seen too many people buy an expensive setup that turns out to be wrong for them. Just bring swimwear to go under the wetsuit, a towel, and something warm for afterwards. Once you're riding independently and know what you like, we'll help you buy your own gear, sized and chosen properly for you and this coast — and until then, you're welcome to hire from us. Learn first, buy later, ride happy." },
+    { q: "When's the best time and wind to come, and what if it's not windy?", a: "Kites need wind, and the honest truth is that some days simply don't deliver — but this coast is blessed with reliable onshore breezes, and we plan around the forecast so you're rarely disappointed. For lessons, we book you onto sessions when the wind is forecast to be in the right range (too little and nothing flies; too much and it's unsafe for learning), and if conditions don't materialise we'll reschedule you rather than send you out in the wrong wind — a lesson in no wind teaches nothing and a lesson in too much wind is dangerous. For casual kite-flying, spring through autumn on a breezy day is glorious, and we're always happy to tell you over the phone whether it's worth the trip. The beauty of the big Norfolk sky is that there's usually a good wind somewhere in the week; check with us, stay a little flexible, and we'll get you flying." },
+    { q: "Do you repair kites, and can you fix any kind?", a: "Yes — repairs are a real part of what we do, and we can mend the great majority of kites and kite-surf gear rather than see them thrown away. Ripped and torn canopies, broken or bent spars and frames, worn, snapped or tangled flying lines, bridles that need re-tuning, harness and bar wear — bring it in and we'll assess it honestly, tell you what it'll cost, and be straight if a kite is genuinely beyond economic repair (which is rare). A good kite is expensive and a well-made one is worth keeping alive for many seasons; a canopy repair or a new set of lines often costs a fraction of replacement and restores it to full performance. We stock spares for the kit we sell and can source parts for much of what we don't. Whether it's a child's beach kite or a high-end kite-surf canopy, if it can fly again, we'll do our best to get it there." }
+  ],
+  area: { places: ["Hunstanton", "Brancaster", "Wells-next-the-Sea", "King's Lynn", "North Norfolk", "The Wash"] },
+  credentials: [
+    { label: "Since 2011", detail: "A decade reading this coast's wind" },
+    { label: "BKSA-recognised", detail: "Qualified instructors, proper progression" },
+    { label: "Matched to you", detail: "Never more kite than you can safely fly" },
+    { label: "We repair", detail: "Canopies, spars, lines and bridles mended" }
+  ],
+  location: { name: "Windward", addressStreet: "3 Beach Terrace, South Promenade", addressLocality: "Hunstanton", addressRegion: "Norfolk", addressPostcode: "PE36 5BQ", addressCountry: "United Kingdom" },
+  cta: { heading: "Get on the beach. We'll get you flying.", body: "Kites for every age, power and kite-surf gear, and lessons that take you safely from the sand to the water. Come in, tell us the dream, and let the big Norfolk sky do the rest.", primary: { label: "Book a lesson", href: "#book" }, secondary: { label: "01485 555 306", href: "tel:+441485555306" } },
+  messaging: { whatsapp: "https://wa.me/441485555306", messenger: "https://m.me/windwardkites" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#0e2230; --paper:#eef4f4; --flame:#ef5d3a; --gold:#efb43c; --aqua:#2f9fb0;
+    --ink:#0e2230; --mid:#5a6b74; --mid-d:#9db4bc; --rule:rgba(14,34,48,0.16); --rule-d:rgba(238,244,244,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--paper);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--gold);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--flame);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--flame);color:var(--paper);} .btn-primary:hover{background:var(--gold);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(238,244,244,0.4);color:var(--paper);} .btn-ghost:hover{background:var(--paper);color:var(--void);border-color:var(--paper);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid rgba(238,244,244,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(14,34,48,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(238,244,244,0.16);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--flame);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7.4vw,112px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;max-width:17ch;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--aqua);color:transparent;}
+  .hero-headline .em{color:var(--flame);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--gold);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(14,34,48,0.82);font-weight:700;}
+
+  .about{background:var(--paper);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--flame);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#33454e;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(238,244,244,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(238,244,244,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(239,93,58,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--paper);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--flame);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#33454e;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(238,244,244,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--flame);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(238,244,244,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--gold);color:var(--void);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(238,244,244,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(238,244,244,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--gold);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(238,244,244,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(238,244,244,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--paper);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#33454e;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(238,244,244,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(170deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--flame);color:var(--paper);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--paper);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7vw,116px);line-height:0.9;margin:14px auto 18px;max-width:16ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--paper);color:transparent;}
+  .cta-band p{color:rgba(238,244,244,0.9);max-width:50ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--paper);color:var(--flame);} .cta-band .btn-primary:hover{background:var(--gold);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(238,244,244,0.6);color:var(--paper);} .cta-band .btn-ghost:hover{background:var(--paper);color:var(--flame);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(238,244,244,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(238,244,244,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--flame);color:var(--paper);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(239,93,58,0.4);}
+  .msg-fab a:hover{background:var(--paper);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SportsActivityLocation","name":"Windward","description":"Kite shop and kite-surf school on the Norfolk coast — single-line and stunt kites, power kites and kite-surf gear, lessons for all levels, and repairs.","url":"https://windwardkites.co.uk/","telephone":"+441485555306","email":"fly@windwardkites.co.uk","address":{"@type":"PostalAddress","streetAddress":"3 Beach Terrace, South Promenade","addressLocality":"Hunstanton","addressRegion":"Norfolk","postalCode":"PE36 5BQ","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":52.9350,"longitude":0.4900},"areaServed":["Hunstanton","Brancaster","Wells-next-the-Sea","King's Lynn"],"image":["https://images.unsplash.com/photo-1520962880247-cfaf541c8724?w=1600"],"foundingDate":"2011"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I've never flown a kite properly — where do I start?","acceptedAnswer":{"@type":"Answer","text":"Wherever you are, we start you right. For joy of flying, a single-line or delta kite and ten minutes' coaching does it; for control, a dual-line stunt kite. For power kites or kite-surfing we always start on the sand — kite control, the wind window, safety systems — before any water. The big mistake is too much kite too soon. Tell us the dream and we'll start it safely."}},
+{"@type":"Question","name":"Is kite-surfing dangerous and how long to learn?","acceptedAnswer":{"@type":"Answer","text":"Done badly it's dangerous; learned properly in stages with instruction and modern safety systems it's controlled and rewarding. Our BKSA-recognised lessons go land control, body-dragging, water starts, first rides. Most need six to twelve hours over several sessions to ride independently, but it varies. We take you at a safe pace rather than rush a certificate."}},
+{"@type":"Question","name":"What kite should I buy for my child?","acceptedAnswer":{"@type":"Answer","text":"A good-quality single-line kite — a diamond, delta or sled — that flies easily and stably, not anything with pull. A well-made beginner kite that flies first time beats a cheap toy that nose-dives. We match it to their age and size, teach them to launch and fly on the beach, and say what wind it needs. Dual-line stunt kites are a great next step later."}},
+{"@type":"Question","name":"Do I need my own gear for lessons?","acceptedAnswer":{"@type":"Answer","text":"No — kites, bars, boards, harnesses, helmets, buoyancy aids and wetsuits are all provided and included. Don't buy gear before you know the sport suits you and what kit you'll want. Bring swimwear, a towel and something warm. Once you ride independently we'll help you buy properly, and you can hire from us until then."}},
+{"@type":"Question","name":"When's the best wind to come, and what if it's not windy?","acceptedAnswer":{"@type":"Answer","text":"Kites need wind and some days don't deliver, but this coast has reliable onshore breezes and we plan around the forecast. Lessons are booked when wind is forecast in the right range; if it doesn't materialise we reschedule rather than send you out in the wrong wind. Spring–autumn on a breezy day is glorious. Call us and stay a little flexible."}},
+{"@type":"Question","name":"Do you repair kites, and any kind?","acceptedAnswer":{"@type":"Answer","text":"Yes — ripped canopies, broken spars, worn or tangled lines, bridles needing re-tuning, harness and bar wear. We assess honestly, quote, and say if a kite is beyond economic repair (rare). A canopy repair or new lines often costs a fraction of replacement. We stock spares for what we sell and source parts for much of what we don't."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Wind<span>ward</span></a>
+    <nav class="nav-links">
+      <a href="#about">The school</a><a href="#services">What we do</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v79">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Kite shop · kite-surf school · repairs · Hunstanton</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Everything that flies <span class="out">on a line,</span> and everyone who wants to <span class="em">fly it.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1520962880247-cfaf541c8724?w=2000&q=85&auto=format&fit=crop"
+             alt="A colourful kite flying against a blue sky." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A kite shop and kite-surf school on the Norfolk coast — from a child's first single-line kite to serious stunt, power and kite-surf kit, plus lessons that take you from the beach to the water safely. We rig it, we teach it, we repair it. If it flies on a line, this is the shop, and that big Norfolk sky is the reason we're here.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a lesson</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we do</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">On the beach since 2011</span>
+    <span>BKSA-recognised instruction</span>
+    <span>Kit matched to you, never over-powered</span>
+    <span>Repairs &amp; spares</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v45">
+  <div class="wrap">
+    <div class="sw-head"><span>LINE 01 / THE SCHOOL</span><span>BIG SKY, STEADY WIND</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">The wind is free. Everything else, <em>we can help you with.</em></h2>
+        <p>Windward is a kite shop and kite-surf school on the north Norfolk coast, and we're here for a simple reason: this stretch of beach, with its huge skies, wide flat sands and steady onshore wind, is one of the best places in the country to fly anything on a line. We opened in 2011 selling kites off a rack and teaching a handful of lessons; now we're the shop the whole coast comes to, but the spirit's unchanged — get people flying and keep them safe doing it.</p>
+        <p>We stock the full spread: single-line kites for children and beginners, delta and box kites, precision dual- and quad-line stunt kites, power kites and traction kites, and full kite-surf gear — kites, bars, boards, harnesses, wetsuits. We only sell kit we'd fly ourselves, we rig it and check it before it leaves, and we'll always match the kite to the flyer and the conditions rather than sell you more kite than you can handle, which is how people get hurt or put off.</p>
+        <p>But the heart of Windward is teaching. Our kite-surf school runs BKSA-recognised lessons from complete-beginner land sessions through to independent riding on the water, taught by qualified instructors with all the safety kit and years of reading this particular beach and its wind and tides. Whether you want a fun afternoon on a power kite or a whole new sport, we'll get you there in the right order, at the right pace, without the scares. The wind's already here; let us do the rest.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=85&auto=format&fit=crop"
+           alt="A rider on the water at the coast." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v72" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>LINE 02 / WHAT WE DO</span><span>SELL · TEACH · REPAIR</span></div>
+    <h2 class="h2">What we do.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Kites for everyone</h3><p>Single-line kites for first-timers and children, delta and box kites, and precision dual- and quad-line stunt kites for the dedicated. Rigged, checked and matched to the flyer before it leaves.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Power &amp; kite-surf gear</h3><p>Power kites, traction kites, and full kite-surf kit — kites, bars, boards, harnesses and wetsuits. Only kit we'd ride ourselves, sized honestly to you and your local conditions.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Kite-surf lessons</h3><p>BKSA-recognised lessons from beginner land sessions to independent water riding, taught by qualified instructors with full safety kit and deep local knowledge of this beach's wind and tides.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Power-kite taster sessions</h3><p>A fun, low-commitment afternoon learning to fly a power kite on the sand — the gateway to kite-surfing, and a brilliant blast in its own right for groups and stag/hen parties.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Repairs &amp; spares</h3><p>Ripped canopy, snapped spar, tangled or worn lines, a bridle that needs re-tuning — we repair kites of every kind and stock the spares to keep yours in the air for years.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Gear hire &amp; guiding</h3><p>Kit hire for qualified riders, and guiding for visitors who know how to ride but not where — we'll point you to the right spot for the day's wind, tide and your level.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v44">
+  <div class="wrap">
+    <div class="sw-head"><span>LINE 03 / THE DIFFERENCE</span><span>WHY WINDWARD</span></div>
+    <h2 class="h2">Why Windward.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>We match the kite to the flyer.</h3><p>The fastest way to put someone off — or hurt them — is too much kite too soon. We size honestly to your experience, your strength and the day's wind, and we'll happily sell you less kite than you came in for.</p></div>
+      <div><span class="no">02 / 03</span><h3>Teaching is the whole point.</h3><p>Kite-surfing done wrong is dangerous; done right, in order, it's one of the great sports. Our BKSA-recognised lessons build you up safely from the sand to the water, at your pace, with the safety kit that matters.</p></div>
+      <div><span class="no">03 / 03</span><h3>We read this beach.</h3><p>Local wind, local tides, local hazards — a decade of watching this particular coast goes into every lesson and every bit of advice. Where and when to fly here is knowledge you can't buy online.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>LINE 04 / HOW IT GOES</span><span>DREAM → KIT → LEARN → FLY</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us the dream</h3><p>A kite for the kids on the beach, a stunt kite to master, a power-kite blast, or the full leap into kite-surfing? We start from what you actually want and how far you want to take it.</p></li>
+      <li><span class="step">STEP 02</span><h3>Right kit, right size</h3><p>We match the kite or gear to you and the conditions, rig it, check it, and show you how it works before you ever put a line up. No guesswork, no over-powering.</p></li>
+      <li><span class="step">STEP 03</span><h3>Learn it safely</h3><p>On the sand first — control, wind window, safety systems — then, when you're ready, onto the water with an instructor beside you. We never skip the order that keeps you safe.</p></li>
+      <li><span class="step">STEP 04</span><h3>Fly for years</h3><p>Come back for the next kite, the next lesson, gear hire, or a repair to keep your kit flying. And come back for the beach — there's always a better wind coming.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v44">
+  <div class="wrap">
+    <div class="sw-head"><span>LINE 05 / FROM THE WATER</span><span>WHAT THEY FLEW</span></div>
+    <blockquote class="t-quote">“I'm riding independently now and I've <em>never felt unsafe once.</em>”</blockquote>
+    <div class="t-attr">Marcus T. — beginner to independent rider</div>
+    <div class="t-sub">
+      <figure><blockquote>“Bought my daughter her first proper stunt kite here and they spent twenty minutes on the beach teaching her to fly it rather than just taking my money. She's obsessed. That's the difference — they care whether the kite actually gets flown. Wonderful shop, wonderful people.”</blockquote><figcaption>Priya S. — first stunt kite</figcaption></figure>
+      <figure><blockquote>“Ripped my kite-surf canopy on a groyne and assumed it was done for. Windward repaired it beautifully, re-tuned the bridle, checked my lines and had me back on the water in days for a fraction of a new kite. Proper craftspeople who keep your kit alive. First call every time.”</blockquote><figcaption>Jonno B. — kite-surf repair</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v72" class="about" style="background:var(--paper);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>LINE 06 / ON THE WIND</span><span>KITES, COAST &amp; WATER</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1520962880247-cfaf541c8724?w=1600&q=85&auto=format&fit=crop" alt="A colourful kite flying against a blue sky." /><figcaption>ON THE LINE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=1600&q=85&auto=format&fit=crop" alt="A rider carving a wave." /><figcaption>ON THE WATER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=1600&q=85&auto=format&fit=crop" alt="A wide beach under a big sky." /><figcaption>BIG SKY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1471922694854-ff1b63b20054?w=1600&q=85&auto=format&fit=crop" alt="A wide beach under a big sky." /><figcaption>THE SANDS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=1600&q=85&auto=format&fit=crop" alt="A kite surfer jumping over waves." /><figcaption>THE JUMP</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1600&q=85&auto=format&fit=crop" alt="Riders on the water at the coast." /><figcaption>THE SESSION</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>LINE 07 / BEFORE YOU FLY</span><span>GETTING STARTED SAFELY</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you fly.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441485555306" style="color:var(--gold);font-weight:700;">01485 555 306</a>. We'll always give you a straight answer about the wind and your level.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I've never flown a kite properly — where do I start?</summary><p>Wherever you are, we'll start you in the right place, and there's no such thing as too much of a beginner here. If you just want the joy of flying, a good single-line or delta kite and ten minutes of coaching on the beach will have you up and grinning; if you fancy control and tricks, a dual-line stunt kite is the next step and enormously satisfying to master. If your eye is on the power kites or kite-surfing, we always, always start on the sand — learning to control a kite in the "wind window", understanding the safety systems, and building real feel before there's any question of being pulled along or getting on the water. The single biggest mistake people make is buying or borrowing too much kite and scaring themselves (or worse) on day one. Come and talk to us, tell us the dream, and we'll set you off on the version of it that starts safely and stays fun.</p></details>
+        <details><summary>Is kite-surfing dangerous, and how long does it take to learn?</summary><p>Kite-surfing done badly is genuinely dangerous — a powered kite is a serious piece of kit — but learned properly, in the right order, with instruction and the modern safety systems, it's a controlled and hugely rewarding sport, which is exactly why we insist on teaching it rather than just selling the gear. Our BKSA-recognised lessons progress through clear stages: kite control and safety on land, body-dragging in the water to recover your board, then water starts and your first rides. Most people need somewhere around six to twelve hours of tuition, typically over several sessions, to reach independent riding — but it varies a lot with the individual, the wind and how often you can get out. We'd rather take you at the pace that keeps you safe and confident than rush you to a certificate; the riders who last are the ones who built solid foundations. Rushing it is how people get hurt or quit.</p></details>
+        <details><summary>What kite should I buy for my child?</summary><p>For a child, the goal is instant success and zero frustration, so we steer firmly towards a good-quality single-line kite — a classic diamond, a delta, or a sled kite — that flies easily and stably in a moderate breeze, rather than anything with two lines or real pull. A well-made beginner kite that actually gets airborne first time is worth ten times a cheap toy-shop kite that nose-dives and ends the afternoon in tears; the difference in flying quality is enormous and the price difference is small. We'll match it to your child's age and size, show them (and you) how to launch and fly it on the beach before you leave, and tell you honestly what wind it needs. As they get keener, dual-line stunt kites are a brilliant next step, but there's no rush — plenty of adults are perfectly happy flying a single-liner on a summer beach forever, and quite right too.</p></details>
+        <details><summary>Do I need my own gear for lessons, or is it provided?</summary><p>Everything you need for lessons is provided and included — kites, bars, boards, harnesses, helmets, buoyancy aids and wetsuits — so you can come and learn without spending a penny on kit first, which is exactly how it should be. There's no sense buying gear before you know the sport suits you and before you understand, through learning, what kind of kit you'll actually want; we've seen too many people buy an expensive setup that turns out to be wrong for them. Just bring swimwear to go under the wetsuit, a towel, and something warm for afterwards. Once you're riding independently and know what you like, we'll help you buy your own gear, sized and chosen properly for you and this coast — and until then, you're welcome to hire from us. Learn first, buy later, ride happy.</p></details>
+        <details><summary>When's the best time and wind to come, and what if it's not windy?</summary><p>Kites need wind, and the honest truth is that some days simply don't deliver — but this coast is blessed with reliable onshore breezes, and we plan around the forecast so you're rarely disappointed. For lessons, we book you onto sessions when the wind is forecast to be in the right range (too little and nothing flies; too much and it's unsafe for learning), and if conditions don't materialise we'll reschedule you rather than send you out in the wrong wind — a lesson in no wind teaches nothing and a lesson in too much wind is dangerous. For casual kite-flying, spring through autumn on a breezy day is glorious, and we're always happy to tell you over the phone whether it's worth the trip. The beauty of the big Norfolk sky is that there's usually a good wind somewhere in the week; check with us, stay a little flexible, and we'll get you flying.</p></details>
+        <details><summary>Do you repair kites, and can you fix any kind?</summary><p>Yes — repairs are a real part of what we do, and we can mend the great majority of kites and kite-surf gear rather than see them thrown away. Ripped and torn canopies, broken or bent spars and frames, worn, snapped or tangled flying lines, bridles that need re-tuning, harness and bar wear — bring it in and we'll assess it honestly, tell you what it'll cost, and be straight if a kite is genuinely beyond economic repair (which is rare). A good kite is expensive and a well-made one is worth keeping alive for many seasons; a canopy repair or a new set of lines often costs a fraction of replacement and restores it to full performance. We stock spares for the kit we sell and can source parts for much of what we don't. Whether it's a child's beach kite or a high-end kite-surf canopy, if it can fly again, we'll do our best to get it there.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>LINE 08 / FLYERS FROM</span><span>THE NORFOLK COAST</span></div>
+    <ul class="area-list">
+      <li>Hunstanton</li><li>Brancaster</li><li>Wells-next-the-Sea</li><li>King's Lynn</li><li>North Norfolk</li><li>The Wash</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v19" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>LINE 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2011</div><div class="detail">A decade reading this coast's wind</div></div>
+      <div><div class="label">BKSA-recognised</div><div class="detail">Qualified instructors, proper progression</div></div>
+      <div><div class="label">Matched to you</div><div class="detail">Never more kite than you can safely fly</div></div>
+      <div><div class="label">We repair</div><div class="detail">Canopies, spars, lines and bridles mended</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>LINE 10 / FIND US</span><span>SOUTH PROMENADE, HUNSTANTON</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Windward</strong><br />
+          3 Beach Terrace, South Promenade<br />
+          Hunstanton PE36 5BQ<br /><br />
+          <a href="tel:+441485555306" data-bind="business.phoneDisplay">01485 555 306</a><br />
+          <a href="mailto:fly@windwardkites.co.uk" data-bind="business.email">fly@windwardkites.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>WED – MON</span><span>9:30 – 5:30</span></div>
+          <div class="row"><span>TUE</span><span>CLOSED</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. Shop on the South Promenade; lessons meet on the beach below. Lesson times follow the wind and tide — we'll confirm when you book.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Windward, Hunstanton" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=0.4810%2C52.9310%2C0.4990%2C52.9390&layer=mapnik&marker=52.9350%2C0.4900"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v47">
+  <div class="wrap">
+    <div class="kick">LINE 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Get on the beach. <em>We'll get you flying.</em></h2>
+    <p data-bind="cta.body">Kites for every age, power and kite-surf gear, and lessons that take you safely from the sand to the water. Come in, tell us the dream, and let the big Norfolk sky do the rest.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a lesson</a>
+      <a class="btn btn-ghost" href="tel:+441485555306" data-bind="cta.secondary.label">01485 555 306</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441485555306" data-bind="messaging.whatsapp" aria-label="Message the school">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Wind<span style="color:var(--flame);">ward</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A kite shop and kite-surf school on the Norfolk coast. Selling, teaching and repairing since 2011.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          3 Beach Terrace, South Promenade<br />Hunstanton PE36 5BQ<br />
+          <a href="tel:+441485555306">01485 555 306</a><br />
+          <a href="mailto:fly@windwardkites.co.uk">fly@windwardkites.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we do</a><a href="#about">The school</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> WINDWARD</span>
+      <span>THE WIND IS FREE · WE DO THE REST</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

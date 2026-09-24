@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bin Twelve — independent wine merchant in York, Fossgate</title>
+<meta name="description" content="Bin Twelve is an independent wine merchant on Fossgate, York. Growers' wines, honest advice at every price, Friday tastings in the cellar, cases mixed to order." />
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:ital@0;1&family=Libre+Caslon+Display&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Bin Twelve", phone: "+44 1904 655 212", phoneDisplay: "01904 655 212", email: "cellar@bintwelve.co.uk", foundedYear: 2010 },
+  hero: {
+    kicker: "Growers' wines · Friday cellar tastings · Fossgate, York",
+    headline: "Every bottle in this shop was chosen by someone who tasted it.",
+    lede: "Four hundred wines from growers we can name and mostly have met. No scores on the shelves, no gold-medal stickers — just honest notes, honest prices, and a cellar downstairs that opens every Friday.",
+    primaryCta: { label: "Friday tastings", href: "#book" },
+    secondaryCta: { label: "How the shop works", href: "#services" },
+    image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Wine bottles racked in a stone cellar."
+  },
+  trust: { years: "On Fossgate since 2010" },
+  about: {
+    heading: "A shop upstairs. A cellar below.",
+    paragraphs: [
+      "Bin Twelve sits in a medieval building on Fossgate with a barrel-vaulted cellar the previous tenants used for storage. We use it for the important things: ageing the wines that deserve it, and pouring for anyone who comes down on a Friday evening.",
+      "The list is four hundred wines, almost all from growers rather than négociants — people who farm the vines that make the bottle. We visit when we can, we taste everything before it goes on a shelf, and we drop wines the moment a vintage disappoints, whatever the margin was.",
+      "The house rule is that the £9 bottle gets the same straight answer as the £90 one. Wine has enough gatekeepers; we'd rather be the doorman who waves you through."
+    ],
+    portrait: "https://images.unsplash.com/photo-1528823872057-9c018a7a7553?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Merchant examining a bottle by the cellar's lamp."
+  },
+  services: [
+    { name: "The shelves", description: "Four hundred growers' wines, arranged by style, not by country — because 'something like that Chablis' matters more than borders." },
+    { name: "Mixed cases to order", description: "Tell us the occasion, the food, the people, the budget. A case appears. This is most of what we do and the part we're best at." },
+    { name: "Friday cellar tastings", description: "Six wines, one theme, down in the vault. Ticketed, small, and the ticket price comes off anything you buy." },
+    { name: "Cellar plans", description: "Laying down wine for birthdays, weddings, retirements. We store it properly and stop you drinking it early." },
+    { name: "Weddings & events", description: "Sale-or-return by the case, glass hire free, delivery in the vans. We'll taste you through the shortlist first." },
+    { name: "Gifting", description: "Single bottles wrapped properly, cases with handwritten notes, and a firm veto on anything we wouldn't drink ourselves." }
+  ],
+  why: [
+    { title: "Tasted before stocked.", body: "Nothing goes on a shelf on reputation alone. Every wine here has been through the tasting bench upstairs — and plenty haven't made it past." },
+    { title: "The £9 rule.", body: "The cheap-bottle question gets our full attention. Anyone can sell a great £50 Burgundy; finding the honest £9 Tuesday wine is the real job." },
+    { title: "Growers, named.", body: "The label card on every shelf says who farmed it, where, and how. If we can't tell you that, we don't stock it." }
+  ],
+  how: [
+    { step: "01", title: "Tell us the table", body: "The food, the people, the budget. In person, by phone, or by message — takes two minutes." },
+    { step: "02", title: "We pull bottles", body: "A shortlist from the shelves, explained in plain English. No tasting-note theatre." },
+    { step: "03", title: "Take them home", body: "Or we deliver — free in York on the bikes, county-wide in the van on Thursdays." },
+    { step: "04", title: "Report back", body: "The best part. What sang, what didn't. The next case gets smarter every time." }
+  ],
+  testimonials: [
+    { quote: "I said 'about eight quid, it's for a curry, my father-in-law is fussy' and the bottle they handed me ended the fussiness permanently. That's professional skill.", name: "Dan H.", context: "Tuesday-wine customer" },
+    { quote: "They did our wedding — tasted us through everything, took back what wasn't opened, and the delivery driver helped set up the glasses. Faultless.", name: "Sophie & Ben", context: "wedding, sale-or-return" },
+    { quote: "The Friday tastings ruined supermarket wine for me and I hold them entirely responsible. Six wines, a vaulted cellar, and no snobbery whatsoever.", name: "Margaret L.", context: "tasting regular" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600&q=85&auto=format&fit=crop", alt: "Bottles racked in the stone cellar." },
+    { src: "https://images.unsplash.com/photo-1528823872057-9c018a7a7553?w=1600&q=85&auto=format&fit=crop", alt: "Examining a bottle by lamplight." },
+    { src: "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=1600&q=85&auto=format&fit=crop", alt: "Glasses poured for the Friday tasting." },
+    { src: "https://images.unsplash.com/photo-1474722883778-792e7990302f?w=1600&q=85&auto=format&fit=crop", alt: "The shop shelves, arranged by style." },
+    { src: "https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=1600&q=85&auto=format&fit=crop", alt: "Corks pulled at the tasting bench." },
+    { src: "https://images.unsplash.com/photo-1566754436893-98224ee05be2?w=1600&q=85&auto=format&fit=crop", alt: "The Fossgate shopfront at dusk." }
+  ],
+  faq: [
+    { q: "I don't know anything about wine. Is that awkward?", a: "It's our favourite kind of customer. Say what you like drinking — even if the answer is 'the pink one from the supermarket' — and we'll take it from there without a single raised eyebrow." },
+    { q: "How do the Friday tastings work?", a: "Six wines, one theme, 7pm in the cellar, about twenty people. Tickets are on the website; the price comes off any purchase that evening. Themes range from 'proper Chianti' to 'wines for people who say they hate Riesling'." },
+    { q: "Do you deliver?", a: "Free in York by cargo bike, usually same day. Yorkshire-wide in the van on Thursdays. Further afield by courier, packed to survive anything short of deliberate malice." },
+    { q: "Can you find a specific bottle?", a: "Often. We have good lines to importers and growers, and a want-book behind the counter. If it's findable at a sane price we'll find it; if the price is silly, we'll say so before you commit." },
+    { q: "What if I don't like a bottle you recommended?", a: "Bring it back — even opened. If we guessed wrong about your taste, that's our error, and the replacement is on us. This costs us almost nothing per year because we listen the first time." },
+    { q: "Do you buy wine?", a: "Cellars and collections, yes — valued honestly against current market, not against hope. Anything with provenance gaps we'll decline and explain why." },
+    { q: "Sale-or-return for parties?", a: "By the unopened case, yes, with free glass hire. Order generously; you only pay for what gets drunk, and running dry at a wedding is a memory that lasts." }
+  ],
+  area: { places: ["Fossgate & city centre", "Bishopthorpe Road", "Heworth", "Clifton", "Harrogate (Thursday van)", "Yorkshire-wide delivery"] },
+  credentials: [
+    { label: "Licence", detail: "Licensed retailer, City of York" },
+    { label: "WSET", detail: "Diploma-qualified staff on the floor" },
+    { label: "IWM", detail: "Independent Wine Merchants member" },
+    { label: "Storage", detail: "Temperature-stable vaulted cellar, insured" }
+  ],
+  location: { name: "Bin Twelve", addressStreet: "23 Fossgate", addressLocality: "York", addressRegion: "North Yorkshire", addressPostcode: "YO1 9TA", addressCountry: "United Kingdom" },
+  cta: { heading: "Friday. The cellar. Six wines.", body: "Tickets go on Mondays and the vault holds twenty. The theme changes; the lack of snobbery doesn't.", primary: { label: "Book a tasting", href: "#book" }, secondary: { label: "01904 655 212", href: "tel:+441904655212" } },
+  messaging: { whatsapp: "https://wa.me/441904655212", messenger: "https://m.me/bintwelve" }
+};
+</script>
+
+<style>
+  :root {
+    --parchment:#f2ede3; --stone:#e6dfd0; --claret:#4a1420; --claret-2:#5d1a28;
+    --tannin:#7d7263; --gold:#b0883f; --rule:rgba(74,20,32,0.16);
+    --serif:"Libre Caslon Text",Georgia,serif;
+    --display:"Libre Caslon Display",Georgia,serif;
+    --mono:"DM Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--parchment);color:var(--claret);font-family:var(--serif);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1200px,92vw);margin-inline:auto;}
+  .bin{font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);}
+  .h2{font-family:var(--display);font-weight:400;font-size:clamp(34px,4.6vw,60px);line-height:1.06;letter-spacing:0;margin:0 0 0.45em;}
+  .h2 em{font-family:var(--serif);font-style:italic;}
+  .body{color:var(--tannin);line-height:1.75;}
+  section{padding:clamp(74px,9.5vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:14px 28px;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--claret);color:var(--parchment);} .btn-primary:hover{background:var(--gold);}
+  .btn-ghost{border:1px solid var(--claret);} .btn-ghost:hover{background:var(--claret);color:var(--parchment);}
+  .ledger-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--tannin);border-bottom:1px solid var(--claret);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,62px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(242,237,227,0.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--claret);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
+  .wm{font-family:var(--display);font-size:21px;text-decoration:none;letter-spacing:0.01em;}
+  .wm .no{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:0.12em;}
+  .nav-links{display:flex;gap:28px;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--tannin);}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--claret);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — cellar-ledger split */
+  .hero{padding:clamp(52px,7vw,100px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.08fr 0.92fr;gap:clamp(36px,5vw,88px);align-items:center;}
+  .hero h1{font-family:var(--display);font-weight:400;font-size:clamp(36px,4.8vw,68px);line-height:1.06;margin:20px 0 24px;}
+  .hero h1 em{font-family:var(--serif);font-style:italic;}
+  .hero .lede{color:var(--tannin);max-width:46ch;line-height:1.75;font-size:clamp(15px,1.4vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .hero-photo::after{content:"";position:absolute;inset:0;border:1px solid var(--claret);transform:translate(12px,12px);pointer-events:none;}
+  .hero-bin{position:absolute;top:16px;left:16px;background:var(--claret);color:var(--parchment);font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;padding:7px 12px;text-transform:uppercase;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;border-top:1px solid var(--claret);border-bottom:1px solid var(--claret);background:var(--stone);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--tannin);}
+
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(36px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(17px,1.6vw,20px);line-height:1.78;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — bin ledger */
+  .bins{border-top:1px solid var(--claret);margin-top:clamp(28px,4vw,48px);}
+  .bin-row{display:grid;grid-template-columns:100px 300px 1fr;gap:24px;padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;}
+  .bin-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;color:var(--gold);}
+  .bin-row .name{font-family:var(--display);font-size:26px;line-height:1.1;}
+  .bin-row .desc{color:var(--tannin);font-size:15px;max-width:54ch;line-height:1.7;}
+  @media(max-width:820px){.bin-row{grid-template-columns:88px 1fr;} .bin-row .desc{grid-column:1/-1;}}
+
+  .why{background:var(--claret);color:var(--parchment);}
+  .why .h2{color:var(--parchment);}
+  .why .ledger-head{border-color:rgba(242,237,227,0.35);color:rgba(242,237,227,0.55);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,60px);margin-top:clamp(28px,4vw,48px);}
+  .why-grid .gl{font-family:var(--display);font-size:36px;color:var(--gold);display:block;margin-bottom:14px;line-height:1;}
+  .why-grid h3{font-family:var(--display);font-weight:400;font-size:24px;margin:0 0 10px;line-height:1.15;}
+  .why-grid p{color:rgba(242,237,227,0.7);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,44px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1px solid var(--claret);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:9.5px;letter-spacing:0.2em;color:var(--gold);}
+  .how-grid h3{font-family:var(--display);font-weight:400;font-size:21px;margin:10px 0 8px;}
+  .how-grid p{color:var(--tannin);margin:0;font-size:13.5px;line-height:1.65;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--stone);}
+  .t-quote{font-family:var(--serif);font-style:italic;font-size:clamp(24px,3.4vw,44px);line-height:1.3;max-width:30ch;margin:0 0 22px;}
+  .t-attr{font-family:var(--mono);font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--tannin);margin-bottom:clamp(40px,5vw,64px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,80px);border-top:1px solid var(--claret);padding-top:36px;}
+  .t-sub blockquote{font-size:16.5px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--tannin);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — cellar plates */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,26px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--tannin);margin-top:9px;display:flex;justify-content:space-between;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,92px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--claret);}
+  .faq-list summary{font-family:var(--display);font-size:20px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"❧";color:var(--gold);font-size:16px;flex-shrink:0;}
+  .faq-list p{margin:14px 0 0;color:var(--tannin);font-size:15px;max-width:56ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:10px 18px;border:1px solid var(--claret);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1px solid var(--claret);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+  .creds .detail{font-family:var(--display);font-size:18px;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{border:1px solid var(--claret);padding:34px;background:var(--stone);}
+  .nap address{font-style:normal;font-family:var(--display);font-size:22px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--tannin);}
+  .hours .gbp-note{font-family:var(--serif);font-size:13px;color:var(--tannin);margin-top:14px;line-height:1.65;letter-spacing:0;text-transform:none;}
+  .map-frame{border:1px solid var(--claret);min-height:380px;}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--claret);color:var(--parchment);padding:clamp(84px,11vw,148px) 0;text-align:center;position:relative;}
+  .cta-band::before{content:"";position:absolute;inset:14px;border:1px solid rgba(176,136,63,0.4);pointer-events:none;}
+  .cta-band h2{font-family:var(--display);font-weight:400;font-size:clamp(38px,5.2vw,78px);line-height:1.02;margin:16px auto 18px;max-width:18ch;}
+  .cta-band h2 em{font-family:var(--serif);font-style:italic;}
+  .cta-band p{color:rgba(242,237,227,0.8);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--gold);color:var(--claret);}
+  .cta-band .btn-primary:hover{background:var(--parchment);}
+  .cta-band .btn-ghost{border-color:rgba(242,237,227,0.6);color:var(--parchment);}
+  .cta-band .btn-ghost:hover{background:var(--parchment);color:var(--claret);}
+
+  footer{background:var(--parchment);border-top:1px solid var(--claret);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--tannin);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--claret);color:var(--parchment);padding:13px 19px;text-decoration:none;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;box-shadow:0 8px 24px rgba(74,20,32,0.28);}
+  .msg-fab a:hover{background:var(--gold);color:var(--claret);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Bin Twelve","description":"Independent wine merchant on Fossgate, York. Growers' wines, Friday cellar tastings, mixed cases to order.","url":"https://bintwelve.co.uk/","telephone":"+441904655212","email":"cellar@bintwelve.co.uk","address":{"@type":"PostalAddress","streetAddress":"23 Fossgate","addressLocality":"York","addressRegion":"North Yorkshire","postalCode":"YO1 9TA","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.9576,"longitude":-1.0794},"areaServed":["York","Harrogate","Yorkshire"],"image":["https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600"],"foundingDate":"2010"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I don't know anything about wine. Is that awkward?","acceptedAnswer":{"@type":"Answer","text":"It's our favourite kind of customer. Say what you like drinking and we'll take it from there."}},
+{"@type":"Question","name":"How do the Friday tastings work?","acceptedAnswer":{"@type":"Answer","text":"Six wines, one theme, 7pm in the cellar, about twenty people. Ticket price comes off any purchase."}},
+{"@type":"Question","name":"Do you deliver?","acceptedAnswer":{"@type":"Answer","text":"Free in York by cargo bike; Yorkshire-wide Thursdays; courier beyond."}},
+{"@type":"Question","name":"What if I don't like a bottle you recommended?","acceptedAnswer":{"@type":"Answer","text":"Bring it back, even opened. If we guessed wrong, the replacement is on us."}},
+{"@type":"Question","name":"Do you buy wine?","acceptedAnswer":{"@type":"Answer","text":"Cellars and collections, valued honestly against current market."}},
+{"@type":"Question","name":"Sale-or-return for parties?","acceptedAnswer":{"@type":"Answer","text":"By the unopened case, with free glass hire."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Bin Twelve <span class="no">№ 12</span></a>
+    <nav class="nav-links">
+      <a href="#about">The cellar</a><a href="#services">The bins</a><a href="#location">Find us</a><a href="#book">Tastings</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v21">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="bin" data-bind="hero.kicker">Growers' wines · Friday cellar tastings · Fossgate, York</div>
+      <h1 data-bind="hero.headline">Every bottle in this shop was chosen by <em>someone who tasted it.</em></h1>
+      <p class="lede" data-bind="hero.lede">Four hundred wines from growers we can name and mostly have met. No scores on the shelves, no gold-medal stickers — just honest notes, honest prices, and a cellar downstairs that opens every Friday.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Friday tastings</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">How the shop works</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <span class="hero-bin">BIN 12 · THE VAULT</span>
+      <img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=2000&q=85&auto=format&fit=crop"
+           alt="Wine bottles racked in a stone cellar." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">On Fossgate since 2010</span>
+    <span>400 growers' wines</span>
+    <span>WSET diploma staff</span>
+    <span>Tasted before stocked</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap">
+    <div class="ledger-head"><span>I / THE HOUSE</span><span>MEDIEVAL UPSTAIRS, VAULTED BELOW</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">A shop upstairs. <em>A cellar below.</em></h2>
+        <p>Bin Twelve sits in a medieval building on Fossgate with a barrel-vaulted cellar the previous tenants used for storage. We use it for the important things: ageing the wines that deserve it, and pouring for anyone who comes down on a Friday evening.</p>
+        <p>The list is four hundred wines, almost all from growers rather than négociants. We taste everything before it goes on a shelf, and we drop wines the moment a vintage disappoints, whatever the margin was.</p>
+        <p>The house rule is that the £9 bottle gets the same straight answer as the £90 one. Wine has enough gatekeepers; we'd rather be the doorman who waves you through.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1528823872057-9c018a7a7553?w=1200&q=85&auto=format&fit=crop"
+           alt="Merchant examining a bottle by the cellar's lamp." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v14">
+  <div class="wrap">
+    <div class="ledger-head"><span>II / THE LEDGER</span><span>SIX BINS</span></div>
+    <h2 class="h2">The cellar <em>ledger.</em></h2>
+    <div class="bins">
+      <div class="bin-row"><span class="no">BIN 01</span><span class="name">The shelves</span><span class="desc">Four hundred growers' wines, arranged by style, not by country — because "something like that Chablis" matters more than borders.</span></div>
+      <div class="bin-row"><span class="no">BIN 02</span><span class="name">Mixed cases to order</span><span class="desc">Tell us the occasion, the food, the people, the budget. A case appears. This is most of what we do and the part we're best at.</span></div>
+      <div class="bin-row"><span class="no">BIN 03</span><span class="name">Friday cellar tastings</span><span class="desc">Six wines, one theme, down in the vault. Ticketed, small, and the ticket price comes off anything you buy.</span></div>
+      <div class="bin-row"><span class="no">BIN 04</span><span class="name">Cellar plans</span><span class="desc">Laying down wine for birthdays, weddings, retirements. We store it properly and stop you drinking it early.</span></div>
+      <div class="bin-row"><span class="no">BIN 05</span><span class="name">Weddings &amp; events</span><span class="desc">Sale-or-return by the case, glass hire free, delivery in the vans. We'll taste you through the shortlist first.</span></div>
+      <div class="bin-row"><span class="no">BIN 06</span><span class="name">Gifting</span><span class="desc">Single bottles wrapped properly, cases with handwritten notes, and a firm veto on anything we wouldn't drink ourselves.</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="ledger-head"><span>III / THE HOUSE RULES</span><span>THREE OF THEM</span></div>
+    <h2 class="h2">House <em>rules.</em></h2>
+    <div class="why-grid">
+      <div><span class="gl">I.</span><h3>Tasted before stocked.</h3><p>Nothing goes on a shelf on reputation alone. Every wine here has been through the tasting bench upstairs — and plenty haven't made it past.</p></div>
+      <div><span class="gl">II.</span><h3>The £9 rule.</h3><p>The cheap-bottle question gets our full attention. Anyone can sell a great £50 Burgundy; finding the honest £9 Tuesday wine is the real job.</p></div>
+      <div><span class="gl">III.</span><h3>Growers, named.</h3><p>The label card on every shelf says who farmed it, where, and how. If we can't tell you that, we don't stock it.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="ledger-head"><span>IV / A MIXED CASE</span><span>TABLE → CASE → TABLE</span></div>
+    <ol class="how-grid">
+      <li><span class="step">FIRST</span><h3>Tell us the table</h3><p>The food, the people, the budget. In person, by phone, or by message — takes two minutes.</p></li>
+      <li><span class="step">SECOND</span><h3>We pull bottles</h3><p>A shortlist from the shelves, explained in plain English. No tasting-note theatre.</p></li>
+      <li><span class="step">THIRD</span><h3>Take them home</h3><p>Or we deliver — free in York on the bikes, county-wide in the van on Thursdays.</p></li>
+      <li><span class="step">FOURTH</span><h3>Report back</h3><p>The best part. What sang, what didn't. The next case gets smarter every time.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="ledger-head"><span>V / THE VISITORS' BOOK</span><span>THREE ENTRIES</span></div>
+    <blockquote class="t-quote">“I said ‘about eight quid, it's for a curry, my father-in-law is fussy' and the bottle they handed me ended the fussiness permanently. That's professional skill.”</blockquote>
+    <div class="t-attr">Dan H. — Tuesday-wine customer</div>
+    <div class="t-sub">
+      <figure><blockquote>“They did our wedding — tasted us through everything, took back what wasn't opened, and the delivery driver helped set up the glasses. Faultless.”</blockquote><figcaption>Sophie &amp; Ben — wedding, sale-or-return</figcaption></figure>
+      <figure><blockquote>“The Friday tastings ruined supermarket wine for me and I hold them entirely responsible. Six wines, a vaulted cellar, and no snobbery whatsoever.”</blockquote><figcaption>Margaret L. — tasting regular</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v14">
+  <div class="wrap">
+    <div class="ledger-head"><span>VI / DOWN THE STAIRS</span><span>SIX PLATES</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600&q=85&auto=format&fit=crop" alt="Bottles racked in the stone cellar." /><figcaption><span>THE VAULT</span><span>13°C ALWAYS</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1528823872057-9c018a7a7553?w=1600&q=85&auto=format&fit=crop" alt="Examining a bottle by lamplight." /><figcaption><span>THE BENCH</span><span>TASTED FIRST</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=1600&q=85&auto=format&fit=crop" alt="Glasses poured for the Friday tasting." /><figcaption><span>FRIDAY</span><span>SIX GLASSES</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1474722883778-792e7990302f?w=1600&q=85&auto=format&fit=crop" alt="The shop shelves, arranged by style." /><figcaption><span>UPSTAIRS</span><span>BY STYLE</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=1600&q=85&auto=format&fit=crop" alt="Corks pulled at the tasting bench." /><figcaption><span>THE EVIDENCE</span><span>FRIDAY, LATER</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1566754436893-98224ee05be2?w=1600&q=85&auto=format&fit=crop" alt="The Fossgate shopfront at dusk." /><figcaption><span>FOSSGATE</span><span>№ 23</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="ledger-head"><span>VII / ASKED AT THE COUNTER</span><span>WITHOUT JUDGEMENT</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Ask us <em>anything.</em></h2>
+        <p class="body">Truly anything — ring <a href="tel:+441904655212" style="color:var(--gold);">01904 655 212</a>. "What goes with fish fingers" has been asked and answered well.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I don't know anything about wine. Is that awkward?</summary><p>It's our favourite kind of customer. Say what you like drinking — even if the answer is "the pink one from the supermarket" — and we'll take it from there without a single raised eyebrow.</p></details>
+        <details><summary>How do the Friday tastings work?</summary><p>Six wines, one theme, 7pm in the cellar, about twenty people. Tickets are on the website; the price comes off any purchase that evening. Themes range from "proper Chianti" to "wines for people who say they hate Riesling".</p></details>
+        <details><summary>Do you deliver?</summary><p>Free in York by cargo bike, usually same day. Yorkshire-wide in the van on Thursdays. Further afield by courier, packed to survive anything short of deliberate malice.</p></details>
+        <details><summary>Can you find a specific bottle?</summary><p>Often. We have good lines to importers and growers, and a want-book behind the counter. If it's findable at a sane price we'll find it; if the price is silly, we'll say so before you commit.</p></details>
+        <details><summary>What if I don't like a bottle you recommended?</summary><p>Bring it back — even opened. If we guessed wrong about your taste, that's our error, and the replacement is on us. This costs us almost nothing per year because we listen the first time.</p></details>
+        <details><summary>Do you buy wine?</summary><p>Cellars and collections, yes — valued honestly against current market, not against hope. Anything with provenance gaps we'll decline and explain why.</p></details>
+        <details><summary>Sale-or-return for parties?</summary><p>By the unopened case, yes, with free glass hire. Order generously; you only pay for what gets drunk, and running dry at a wedding is a memory that lasts.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ledger-head"><span>VIII / THE ROUNDS</span><span>BIKES + THURSDAY VAN</span></div>
+    <ul class="area-list">
+      <li>Fossgate &amp; city centre</li><li>Bishopthorpe Road</li><li>Heworth</li><li>Clifton</li><li>Harrogate · Thursday van</li><li>Yorkshire-wide delivery</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ledger-head"><span>IX / PAPERS</span><span>IN GOOD STANDING</span></div>
+    <div class="creds">
+      <div><div class="label">Licence</div><div class="detail">Licensed retailer, City of York</div></div>
+      <div><div class="label">WSET</div><div class="detail">Diploma-qualified staff on the floor</div></div>
+      <div><div class="label">IWM</div><div class="detail">Independent Wine Merchants member</div></div>
+      <div><div class="label">Storage</div><div class="detail">Temperature-stable vaulted cellar, insured</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="ledger-head"><span>X / FIND US</span><span>23 FOSSGATE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Bin Twelve</strong><br />
+          23 Fossgate<br />
+          York YO1 9TA<br /><br />
+          <a href="tel:+441904655212" data-bind="business.phoneDisplay">01904 655 212</a><br />
+          <a href="mailto:cellar@bintwelve.co.uk" data-bind="business.email">cellar@bintwelve.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>—</span></div>
+          <div class="row"><span>FRI EVE</span><span>CELLAR TASTING</span></div>
+          <p class="gbp-note">Hours current on our Google Business Profile. The cellar door is down the side passage — mind your head, everyone does once.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Bin Twelve, Fossgate, York" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.0870%2C53.9550%2C-1.0720%2C53.9605&layer=mapnik&marker=53.9576%2C-1.0794"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v5">
+  <div class="wrap">
+    <div class="bin">XI / TASTINGS</div>
+    <h2 data-bind="cta.heading">Friday. The cellar. <em>Six wines.</em></h2>
+    <p data-bind="cta.body">Tickets go on Mondays and the vault holds twenty. The theme changes; the lack of snobbery doesn't.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a tasting</a>
+      <a class="btn btn-ghost" href="tel:+441904655212" data-bind="cta.secondary.label">01904 655 212</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441904655212" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;">Bin Twelve <span class="no">№ 12</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">An independent wine merchant on Fossgate, York. Growers' wines since 2010.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;">
+          23 Fossgate<br />York YO1 9TA<br />
+          <a href="tel:+441904655212">01904 655 212</a><br />
+          <a href="mailto:cellar@bintwelve.co.uk">cellar@bintwelve.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The bins</a><a href="#book">Tastings</a><a href="#about">The cellar</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> BIN TWELVE LTD · DRINKAWARE.CO.UK</span>
+      <span>TASTED FIRST, ALWAYS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

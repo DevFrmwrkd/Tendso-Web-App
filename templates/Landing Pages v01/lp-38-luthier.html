@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fret &amp; Grain — guitar workshop &amp; luthier in Belfast</title>
+<meta name="description" content="Fret &amp; Grain is a guitar workshop in Belfast's Cathedral Quarter — setups, refrets, structural repairs and hand-built instruments, all at one bench, by appointment." />
+<link href="https://fonts.googleapis.com/css2?family=Hepta+Slab:wght@400;500;600;700&family=Mulish:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Fret & Grain", phone: "+44 28 9024 6631", phoneDisplay: "028 9024 6631", email: "bench@fretandgrain.com", foundedYear: 2012 },
+  hero: {
+    kicker: "Luthier · setups, repairs & builds · Cathedral Quarter, Belfast",
+    headline: "Your guitar knows the difference. So will you.",
+    lede: "One bench, one luthier, fourteen years of other people's beloved instruments. Setups that make cheap guitars honest and good guitars great, structural repairs done the slow correct way, and — when the waiting list allows — instruments built from planks I chose in person.",
+    primaryCta: { label: "Book the bench", href: "#book" },
+    secondaryCta: { label: "What I do", href: "#services" },
+    image: "https://images.unsplash.com/photo-1556449895-a33c9dba33dd?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Guitar on the luthier's bench, tools laid out."
+  },
+  trust: { years: "At the bench since 2012" },
+  about: {
+    heading: "A one-bench workshop, on purpose.",
+    paragraphs: [
+      "Fret & Grain is deliberately small: one luthier, one bench, one instrument apart at a time. Guitars come in with stories attached — the ferry it survived, the parent it belonged to — and you don't delegate stories to a queue of juniors.",
+      "I trained in violin repair, which sounds irrelevant until you've seen what violin people consider an acceptable glue joint. That standard came with me. Hide glue where hide glue belongs, cleats you'll never see, finish touch-ups that don't announce themselves.",
+      "The build side runs two or three instruments a year — OM and parlour bodies mostly, from timber bought in person, quarter-sawn, and stacked in the loft to think about life for a few years before it becomes anything."
+    ],
+    portrait: "https://images.unsplash.com/photo-1558098329-a11cff621064?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Luthier carving a guitar neck by hand."
+  },
+  services: [
+    { name: "The setup", description: "Action, relief, nut slots, intonation, electronics check. The single best money-per-decibel improvement a guitar can get." },
+    { name: "Refrets & fretwork", description: "Full refrets, partial refrets, level-crown-polish. Stainless if you insist, nickel if you ask my opinion." },
+    { name: "Structural repair", description: "Cracks, braces, bridges lifting, headstocks that met a doorframe. Hide glue, proper cleats, patience. Done once, done right." },
+    { name: "Acoustic & electric surgery", description: "Nut and saddle work, pickup installs, wiring rescues, hardware that finally stays in tune. Diagnosis before prescription, always." },
+    { name: "Vintage & sentimental", description: "Instruments where the wrong repair destroys the value — monetary or the other kind. Conservative work, documented, reversible where possible." },
+    { name: "Commissioned builds", description: "Two or three a year. OM and parlour patterns, your specifications argued about honestly, twelve to eighteen months. The list is the list." }
+  ],
+  why: [
+    { title: "One pair of hands.", body: "The person you talk to is the person who does the work. Every job in the book, every note about your guitar, mine." },
+    { title: "Violin-shop standards.", body: "Hide glue, invisible cleats, reversible decisions. The repair trade's corner-cutting shortcuts don't get through the door." },
+    { title: "Honest triage.", body: "If a repair costs more than the guitar deserves, I'll say so and tell you what I'd do instead. Sometimes the answer is 'play it as it is'." }
+  ],
+  how: [
+    { step: "01", title: "Bring it in", body: "By appointment — the bench is small and the kettle is slow. Bring the case, the buzz, and the honest history." },
+    { step: "02", title: "Assessment at the bench", body: "We look at it together. You get a written quote, a timeframe, and no surprises clause. Fifteen minutes, free." },
+    { step: "03", title: "The work", body: "One instrument apart at a time. Photos at each stage if it's structural — people like to see inside their guitars. " },
+    { step: "04", title: "Handover & playing test", body: "You play it in the shop before you pay. Adjustments on the spot. Setups get a free tweak within the month." }
+  ],
+  testimonials: [
+    { quote: "He refretted my dad's 1974 dreadnought — the one thing I own that matters. Got it back sounding like I remembered it sounding when I was eight. I sat in the van and had a moment.", name: "Ciarán M.", context: "refret, inherited dreadnought" },
+    { quote: "Setup on a £300 telecaster copy. It came back playing better than my mate's actual Fender. He now brings his actual Fender here.", name: "Danielle R.", context: "setup, then everything else" },
+    { quote: "Headstock snapped clean off at a festival. Two other shops said write-off. Fret & Grain rebuilt it — you cannot find the joint, and it's louder than before, which he predicted and I didn't believe.", name: "Stevie L.", context: "structural repair, gigging musician" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1556449895-a33c9dba33dd?w=1600&q=85&auto=format&fit=crop", alt: "The bench, mid-setup." },
+    { src: "https://images.unsplash.com/photo-1558098329-a11cff621064?w=1600&q=85&auto=format&fit=crop", alt: "Neck carving by hand." },
+    { src: "https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=1600&q=85&auto=format&fit=crop", alt: "Fretwork under the crowning file." },
+    { src: "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1600&q=85&auto=format&fit=crop", alt: "A commission taking shape." },
+    { src: "https://images.unsplash.com/photo-1445985543470-41fba5c3144a?w=1600&q=85&auto=format&fit=crop", alt: "Strings, up close, waiting." },
+    { src: "https://images.unsplash.com/photo-1550985616-10810253b84d?w=1600&q=85&auto=format&fit=crop", alt: "Finished and strung, ready for collection." }
+  ],
+  faq: [
+    { q: "How long is the wait?", a: "Setups usually inside two weeks. Structural work depends on what's already open on the bench — I'll give you a real date at assessment, not an optimistic one. Builds: twelve to eighteen months, and the list is honest." },
+    { q: "Is my cheap guitar worth setting up?", a: "Almost always yes. A £300 guitar with a proper setup beats a £900 guitar without one, and it isn't close. It's the repair I most enjoy — maximum transformation, minimum drama." },
+    { q: "My guitar has sentimental value and I'm nervous.", a: "That's most of my work, honestly. Conservative repairs, reversible where possible, photographed at every stage, and nothing happens to it that we haven't discussed first. It's allowed to matter." },
+    { q: "Do you work on basses, mandolins, banjos?", a: "Basses and mandolins, yes. Banjos, reluctantly but competently. Violins I'll assess and then refer to the violin shop that trained me — they're better at violins than I am, which is the point of referrals." },
+    { q: "Can you match a factory finish?", a: "For touch-ups, close enough that you'll stop being able to find it. Full refinishing I mostly advise against on anything vintage — the finish is part of the value. I'll explain the trade-offs before anything is sprayed." },
+    { q: "What does a commission cost?", a: "It depends on timber and spec, so quotes happen after a conversation, not before. What I can promise: the quote is fixed once agreed, and you'll see photos at every stage from plank to strings." }
+  ],
+  area: { places: ["Cathedral Quarter", "City centre", "Ormeau", "Stranmillis", "East Belfast", "Lisburn Road"] },
+  credentials: [
+    { label: "Training", detail: "Violin repair apprenticeship + 14 years at the bench" },
+    { label: "Methods", detail: "Hide glue, reversible repairs, documented work" },
+    { label: "Insured", detail: "Instruments covered on site, all values declared" },
+    { label: "Builds", detail: "2–3 hand-built instruments a year, waiting list" }
+  ],
+  location: { name: "Fret & Grain", addressStreet: "Unit 4, North Street Workshops", addressLocality: "Belfast", addressRegion: "County Antrim", addressPostcode: "BT1 1NB", addressCountry: "United Kingdom" },
+  cta: { heading: "Bring the buzz. Leave with the guitar you thought you'd bought.", body: "Assessments are free, opinions are included, and the kettle is slow on purpose.", primary: { label: "Book the bench", href: "#book" }, secondary: { label: "028 9024 6631", href: "tel:+442890246631" } },
+  messaging: { whatsapp: "https://wa.me/442890246631", messenger: "https://m.me/fretandgrain" }
+};
+</script>
+
+<style>
+  :root {
+    --shaving:#f3ece1; --walnut:#3a2b20; --amber:#b8722c; --spruce:#e7dcc8;
+    --mid:#84756a; --rule:rgba(58,43,32,0.16);
+    --display:"Hepta Slab",serif;
+    --sans:"Mulish",system-ui,sans-serif;
+    --mono:"Fira Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--shaving);color:var(--walnut);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  a:hover{color:var(--amber);}
+  .wrap{width:min(1180px,92vw);margin-inline:auto;}
+  .spec{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);}
+  .h2{font-family:var(--display);font-weight:600;font-size:clamp(28px,3.8vw,48px);line-height:1.12;margin:0 0 0.5em;letter-spacing:-0.01em;}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(70px,9vw,120px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 26px;font-family:var(--sans);font-weight:700;font-size:14px;text-decoration:none;transition:0.18s;border-radius:4px;}
+  .btn-primary{background:var(--walnut);color:var(--shaving);} .btn-primary:hover{background:var(--amber);}
+  .btn-ghost{border:1.5px solid var(--walnut);} .btn-ghost:hover{background:var(--walnut);color:var(--shaving);}
+  .bench-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--walnut);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,56px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(243,236,225,0.94);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--walnut);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--display);font-weight:700;font-size:18px;text-decoration:none;letter-spacing:-0.01em;}
+  .wm span{color:var(--amber);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — bench split with tonewood spec strip */
+  .hero{padding:clamp(48px,7vw,94px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1fr 0.95fr;gap:clamp(36px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,4.3vw,58px);line-height:1.1;margin:18px 0 22px;letter-spacing:-0.015em;}
+  .hero h1 em{font-style:normal;color:var(--amber);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.72;font-size:clamp(15px,1.4vw,17px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:4px;}
+  .spec-strip{margin-top:14px;display:grid;grid-template-columns:repeat(3,1fr);border:1.5px solid var(--walnut);border-radius:4px;overflow:hidden;}
+  .spec-strip div{padding:12px 14px;font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;line-height:1.8;border-right:1px solid var(--rule);}
+  .spec-strip div:last-child{border-right:0;}
+  .spec-strip b{display:block;color:var(--amber);font-weight:500;letter-spacing:0.14em;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--walnut);color:var(--spruce);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(231,220,200,0.75);}
+
+  .about{background:var(--spruce);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18px);line-height:1.76;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:4px;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — job tickets */
+  .svc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(16px,2vw,26px);}
+  .svc-card{background:#fff;border:1.5px solid var(--walnut);border-radius:4px;padding:clamp(22px,2.8vw,32px);display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start;}
+  .svc-card .tick{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;color:var(--amber);text-transform:uppercase;writing-mode:vertical-rl;transform:rotate(180deg);border-left:1px dashed var(--rule);padding-left:10px;}
+  .svc-card h3{font-family:var(--display);font-weight:600;font-size:19px;margin:0 0 8px;line-height:1.2;}
+  .svc-card p{color:var(--mid);margin:0;font-size:14px;line-height:1.66;}
+  @media(max-width:820px){.svc-grid{grid-template-columns:1fr;}}
+
+  .why{background:var(--amber);color:#fff;}
+  .why .h2{color:#fff;}
+  .why .bench-head{border-color:rgba(255,255,255,0.5);color:rgba(255,255,255,0.75);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--walnut);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:500;}
+  .why-grid h3{font-family:var(--display);font-weight:600;font-size:21px;margin:0 0 10px;line-height:1.2;}
+  .why-grid p{color:rgba(255,255,255,0.9);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--walnut);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;color:var(--amber);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--display);font-weight:600;font-size:17px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--spruce);}
+  .t-quote{font-family:var(--display);font-weight:600;font-size:clamp(21px,2.7vw,36px);line-height:1.26;max-width:32ch;margin:0 0 22px;letter-spacing:-0.01em;}
+  .t-attr{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--walnut);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — workbench duotone */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:4px;filter:sepia(0.25) saturate(0.9);transition:0.25s;}
+  .g-grid figure:hover img{filter:none;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);margin-top:10px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--walnut);}
+  .faq-list summary{font-family:var(--display);font-weight:600;font-size:17px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"♭";color:var(--amber);flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{content:"♮";}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 18px;border:1.5px solid var(--walnut);border-radius:4px;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--walnut);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;}
+  .creds .detail{font-family:var(--display);font-weight:600;font-size:15.5px;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:1.5px solid var(--walnut);border-radius:4px;padding:32px;}
+  .nap address{font-style:normal;font-family:var(--display);font-weight:600;font-size:17px;line-height:1.55;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{border-radius:4px;min-height:380px;overflow:hidden;border:1.5px solid var(--walnut);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--walnut);color:var(--shaving);padding:clamp(80px,10vw,140px) 0;}
+  .cta-band h2{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.2vw,56px);line-height:1.1;margin:14px 0 18px;max-width:22ch;letter-spacing:-0.015em;}
+  .cta-band h2 em{font-style:normal;color:var(--amber);}
+  .cta-band p{color:rgba(243,236,225,0.82);max-width:44ch;margin:0 0 32px;font-size:16.5px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--amber);color:#fff;}
+  .cta-band .btn-primary:hover{background:var(--shaving);color:var(--walnut);}
+  .cta-band .btn-ghost{border-color:rgba(243,236,225,0.6);color:var(--shaving);}
+  .cta-band .btn-ghost:hover{background:var(--shaving);color:var(--walnut);}
+
+  footer{background:var(--shaving);border-top:1.5px solid var(--walnut);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--amber);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--walnut);color:var(--shaving);padding:13px 19px;border-radius:4px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(58,43,32,0.3);}
+  .msg-fab a:hover{background:var(--amber);color:#fff;}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Fret & Grain","description":"Guitar workshop and luthier in Belfast's Cathedral Quarter — setups, refrets, structural repairs and hand-built instruments.","url":"https://fretandgrain.com/","telephone":"+442890246631","email":"bench@fretandgrain.com","address":{"@type":"PostalAddress","streetAddress":"Unit 4, North Street Workshops","addressLocality":"Belfast","addressRegion":"County Antrim","postalCode":"BT1 1NB","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":54.6031,"longitude":-5.9284},"areaServed":["Belfast","Lisburn","Bangor","Cathedral Quarter"],"image":["https://images.unsplash.com/photo-1556449895-a33c9dba33dd?w=1600"],"foundingDate":"2012"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How long is the wait?","acceptedAnswer":{"@type":"Answer","text":"Setups usually inside two weeks; structural work gets a real date at assessment. Builds run twelve to eighteen months."}},
+{"@type":"Question","name":"Is my cheap guitar worth setting up?","acceptedAnswer":{"@type":"Answer","text":"Almost always yes. A £300 guitar with a proper setup beats a £900 guitar without one."}},
+{"@type":"Question","name":"My guitar has sentimental value and I'm nervous.","acceptedAnswer":{"@type":"Answer","text":"That's most of my work. Conservative repairs, reversible where possible, photographed at every stage."}},
+{"@type":"Question","name":"Do you work on basses, mandolins, banjos?","acceptedAnswer":{"@type":"Answer","text":"Basses and mandolins yes; banjos reluctantly but competently; violins get referred to the violin shop that trained me."}},
+{"@type":"Question","name":"Can you match a factory finish?","acceptedAnswer":{"@type":"Answer","text":"Touch-ups, close enough that you'll stop finding it. Full refinishing on vintage instruments I mostly advise against."}},
+{"@type":"Question","name":"What does a commission cost?","acceptedAnswer":{"@type":"Answer","text":"Quotes follow a conversation about timber and spec. Once agreed, the quote is fixed."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Fret <span>&amp;</span> Grain</a>
+    <nav class="nav-links">
+      <a href="#about">The bench</a><a href="#services">The work</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v32">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="spec" data-bind="hero.kicker">Luthier · setups, repairs &amp; builds · Cathedral Quarter, Belfast</div>
+      <h1 data-bind="hero.headline">Your guitar knows the difference. <em>So will you.</em></h1>
+      <p class="lede" data-bind="hero.lede">One bench, one luthier, fourteen years of other people's beloved instruments. Setups that make cheap guitars honest and good guitars great, structural repairs done the slow correct way, and — when the waiting list allows — instruments built from planks I chose in person.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book the bench</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What I do</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1556449895-a33c9dba33dd?w=2000&q=85&auto=format&fit=crop"
+           alt="Guitar on the luthier's bench, tools laid out." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="spec-strip">
+        <div><b>ON THE BENCH</b>OM COMMISSION №27</div>
+        <div><b>TOP</b>SITKA, QUARTER-SAWN</div>
+        <div><b>BACK &amp; SIDES</b>WALNUT, 2019 STOCK</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the bench since 2012</span>
+    <span>One instrument apart at a time</span>
+    <span>Hide glue, reversible repairs</span>
+    <span>Play before you pay</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v3">
+  <div class="wrap">
+    <div class="bench-head"><span>BENCH 01 / THE WORKSHOP</span><span>ONE LUTHIER, ON PURPOSE</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1558098329-a11cff621064?w=1200&q=85&auto=format&fit=crop"
+           alt="Luthier carving a guitar neck by hand." />
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">A one-bench workshop, on purpose.</h2>
+        <p>Fret &amp; Grain is deliberately small: one luthier, one bench, one instrument apart at a time. Guitars come in with stories attached — the ferry it survived, the parent it belonged to — and you don't delegate stories to a queue of juniors.</p>
+        <p>I trained in violin repair, which sounds irrelevant until you've seen what violin people consider an acceptable glue joint. That standard came with me. Hide glue where hide glue belongs, cleats you'll never see, finish touch-ups that don't announce themselves.</p>
+        <p>The build side runs two or three instruments a year — OM and parlour bodies mostly, from timber bought in person, quarter-sawn, and stacked in the loft to think about life for a few years before it becomes anything.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v25">
+  <div class="wrap">
+    <div class="bench-head"><span>BENCH 02 / THE WORK</span><span>WRITTEN ON JOB TICKETS</span></div>
+    <h2 class="h2">On the job tickets.</h2>
+    <div class="svc-grid">
+      <div class="svc-card"><div><h3>The setup</h3><p>Action, relief, nut slots, intonation, electronics check. The single best money-per-decibel improvement a guitar can get.</p></div><span class="tick">JOB № 01</span></div>
+      <div class="svc-card"><div><h3>Refrets &amp; fretwork</h3><p>Full refrets, partial refrets, level-crown-polish. Stainless if you insist, nickel if you ask my opinion.</p></div><span class="tick">JOB № 02</span></div>
+      <div class="svc-card"><div><h3>Structural repair</h3><p>Cracks, braces, bridges lifting, headstocks that met a doorframe. Hide glue, proper cleats, patience. Done once, done right.</p></div><span class="tick">JOB № 03</span></div>
+      <div class="svc-card"><div><h3>Acoustic &amp; electric surgery</h3><p>Nut and saddle work, pickup installs, wiring rescues, hardware that finally stays in tune. Diagnosis before prescription, always.</p></div><span class="tick">JOB № 04</span></div>
+      <div class="svc-card"><div><h3>Vintage &amp; sentimental</h3><p>Instruments where the wrong repair destroys the value — monetary or the other kind. Conservative work, documented, reversible where possible.</p></div><span class="tick">JOB № 05</span></div>
+      <div class="svc-card"><div><h3>Commissioned builds</h3><p>Two or three a year. OM and parlour patterns, your specifications argued about honestly, twelve to eighteen months. The list is the list.</p></div><span class="tick">JOB № 06</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="bench-head"><span>BENCH 03 / STANDARDS</span><span>NON-NEGOTIABLE, ALL THREE</span></div>
+    <h2 class="h2">Why one bench beats a repair queue.</h2>
+    <div class="why-grid">
+      <div><span class="no">STD 1/3</span><h3>One pair of hands.</h3><p>The person you talk to is the person who does the work. Every job in the book, every note about your guitar, mine.</p></div>
+      <div><span class="no">STD 2/3</span><h3>Violin-shop standards.</h3><p>Hide glue, invisible cleats, reversible decisions. The repair trade's corner-cutting shortcuts don't get through the door.</p></div>
+      <div><span class="no">STD 3/3</span><h3>Honest triage.</h3><p>If a repair costs more than the guitar deserves, I'll say so and tell you what I'd do instead. Sometimes the answer is "play it as it is".</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="bench-head"><span>BENCH 04 / FIRST VISIT</span><span>CASE → COUNTER → BENCH</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Bring it in</h3><p>By appointment — the bench is small and the kettle is slow. Bring the case, the buzz, and the honest history.</p></li>
+      <li><span class="step">Step 02</span><h3>Assessment at the bench</h3><p>We look at it together. You get a written quote, a timeframe, and a no-surprises clause. Fifteen minutes, free.</p></li>
+      <li><span class="step">Step 03</span><h3>The work</h3><p>One instrument apart at a time. Photos at each stage if it's structural — people like to see inside their guitars.</p></li>
+      <li><span class="step">Step 04</span><h3>Handover &amp; playing test</h3><p>You play it in the shop before you pay. Adjustments on the spot. Setups get a free tweak within the month.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="bench-head"><span>BENCH 05 / PLAYERS</span><span>COLLECTED AT HANDOVER</span></div>
+    <blockquote class="t-quote">“Got it back sounding like I remembered it sounding when I was eight. I sat in the van and had a moment.”</blockquote>
+    <div class="t-attr">Ciarán M. — refret, inherited 1974 dreadnought</div>
+    <div class="t-sub">
+      <figure><blockquote>“Setup on a £300 telecaster copy. It came back playing better than my mate's actual Fender. He now brings his actual Fender here.”</blockquote><figcaption>Danielle R. — setup, then everything else</figcaption></figure>
+      <figure><blockquote>“Headstock snapped clean off at a festival. Two other shops said write-off. Fret &amp; Grain rebuilt it — you cannot find the joint, and it's louder than before, which he predicted and I didn't believe.”</blockquote><figcaption>Stevie L. — structural repair, gigging musician</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v25">
+  <div class="wrap">
+    <div class="bench-head"><span>BENCH 06 / SAWDUST</span><span>THE WORKSHOP, PHOTOGRAPHED</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1556449895-a33c9dba33dd?w=1600&q=85&auto=format&fit=crop" alt="The bench, mid-setup." /><figcaption>THE BENCH, TUESDAY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1558098329-a11cff621064?w=1600&q=85&auto=format&fit=crop" alt="Neck carving by hand." /><figcaption>NECK CARVE, BY HAND</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1564186763535-ebb21ef5277f?w=1600&q=85&auto=format&fit=crop" alt="Fretwork under the crowning file." /><figcaption>LEVEL · CROWN · POLISH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=1600&q=85&auto=format&fit=crop" alt="A commission taking shape." /><figcaption>№27, TAKING SHAPE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1445985543470-41fba5c3144a?w=1600&q=85&auto=format&fit=crop" alt="Strings, up close, waiting." /><figcaption>STRINGS, WAITING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1550985616-10810253b84d?w=1600&q=85&auto=format&fit=crop" alt="Finished and strung, ready for collection." /><figcaption>STRUNG, READY, RINGING</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="bench-head"><span>BENCH 07 / ASKED AT THE COUNTER</span><span>USUALLY HOLDING A CASE</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+442890246631" style="color:var(--amber);">028 9024 6631</a>. If I'm gluing, I'll ring back when the clamps are on.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How long is the wait?</summary><p>Setups usually inside two weeks. Structural work depends on what's already open on the bench — I'll give you a real date at assessment, not an optimistic one. Builds: twelve to eighteen months, and the list is honest.</p></details>
+        <details><summary>Is my cheap guitar worth setting up?</summary><p>Almost always yes. A £300 guitar with a proper setup beats a £900 guitar without one, and it isn't close. It's the repair I most enjoy — maximum transformation, minimum drama.</p></details>
+        <details><summary>My guitar has sentimental value and I'm nervous.</summary><p>That's most of my work, honestly. Conservative repairs, reversible where possible, photographed at every stage, and nothing happens to it that we haven't discussed first. It's allowed to matter.</p></details>
+        <details><summary>Do you work on basses, mandolins, banjos?</summary><p>Basses and mandolins, yes. Banjos, reluctantly but competently. Violins I'll assess and then refer to the violin shop that trained me — they're better at violins than I am, which is the point of referrals.</p></details>
+        <details><summary>Can you match a factory finish?</summary><p>For touch-ups, close enough that you'll stop being able to find it. Full refinishing I mostly advise against on anything vintage — the finish is part of the value. I'll explain the trade-offs before anything is sprayed.</p></details>
+        <details><summary>What does a commission cost?</summary><p>It depends on timber and spec, so quotes happen after a conversation, not before. What I can promise: the quote is fixed once agreed, and you'll see photos at every stage from plank to strings.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="bench-head"><span>BENCH 08 / CASES ARRIVE FROM</span><span>BELFAST &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Cathedral Quarter</li><li>City centre</li><li>Ormeau</li><li>Stranmillis</li><li>East Belfast</li><li>Lisburn Road</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="bench-head"><span>BENCH 09 / THE PAPERWORK</span><span>GLUE-STAINED BUT CURRENT</span></div>
+    <div class="creds">
+      <div><div class="label">Training</div><div class="detail">Violin repair apprenticeship + 14 years at the bench</div></div>
+      <div><div class="label">Methods</div><div class="detail">Hide glue, reversible repairs, documented work</div></div>
+      <div><div class="label">Insured</div><div class="detail">Instruments covered on site, all values declared</div></div>
+      <div><div class="label">Builds</div><div class="detail">2–3 hand-built instruments a year, waiting list</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="bench-head"><span>BENCH 10 / FIND US</span><span>NORTH STREET WORKSHOPS</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Fret &amp; Grain</strong><br />
+          Unit 4, North Street Workshops<br />
+          Belfast BT1 1NB<br /><br />
+          <a href="tel:+442890246631" data-bind="business.phoneDisplay">028 9024 6631</a><br />
+          <a href="mailto:bench@fretandgrain.com" data-bind="business.email">bench@fretandgrain.com</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>BY APPOINTMENT</span></div>
+          <div class="row"><span>SUN – MON</span><span>CLOSED (GLUE DRIES)</span></div>
+          <p class="gbp-note">Hours on the Google Business Profile. Ring the buzzer marked with the headstock; the doorbell proper has never worked and never will.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Fret &amp; Grain, North Street, Belfast" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-5.9380%2C54.5990%2C-5.9190%2C54.6070&layer=mapnik&marker=54.6031%2C-5.9284"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v1">
+  <div class="wrap">
+    <div class="spec">BENCH 11 / BOOKING</div>
+    <h2 data-bind="cta.heading">Bring the buzz. Leave with the guitar <em>you thought you'd bought.</em></h2>
+    <p data-bind="cta.body">Assessments are free, opinions are included, and the kettle is slow on purpose.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book the bench</a>
+      <a class="btn btn-ghost" href="tel:+442890246631" data-bind="cta.secondary.label">028 9024 6631</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/442890246631" data-bind="messaging.whatsapp" aria-label="Message the workshop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:19px;">Fret <span>&amp;</span> Grain</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A one-bench guitar workshop in Belfast's Cathedral Quarter. Since 2012.</p>
+      </div>
+      <div>
+        <h4>The workshop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          Unit 4, North Street Workshops<br />Belfast BT1 1NB<br />
+          <a href="tel:+442890246631">028 9024 6631</a><br />
+          <a href="mailto:bench@fretandgrain.com">bench@fretandgrain.com</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The work</a><a href="#about">The bench</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> FRET &amp; GRAIN</span>
+      <span>MEASURED TWICE · GLUED ONCE</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

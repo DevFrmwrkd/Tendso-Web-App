@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Cold Front — sauna &amp; sea-dip club in Portobello, Edinburgh</title>
+<meta name="description" content="The Cold Front is a wood-fired sauna and sea-dip club on Portobello beach, Edinburgh. 90°C on the sand, the Firth of Forth ten steps away, booked in 90-minute sessions." />
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;800;900&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "The Cold Front", phone: "+44 131 442 5518", phoneDisplay: "0131 442 5518", email: "stoke@thecoldfront.club", foundedYear: 2021 },
+  hero: {
+    kicker: "Wood-fired sauna + sea dip · Portobello beach · Edinburgh",
+    headline: "90°C. THEN THE FORTH. THEN AGAIN.",
+    lede: "A wood-fired sauna on the sand and the cold Firth of Forth ten steps beyond the door. Heat until you glow, walk into the sea until you gasp, come back to the fire and understand why people get addicted to this. Ninety minutes, all weather, all year.",
+    primaryCta: { label: "Book a session", href: "#book" },
+    secondaryCta: { label: "How it works", href: "#how" },
+    image: "https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "The glowing interior of a wood-fired sauna."
+  },
+  trust: { years: "Stoking the stove since 2021" },
+  about: {
+    heading: "Hot fire. Cold sea. Repeat.",
+    paragraphs: [
+      "The Cold Front is two wood-fired saunas on Portobello prom, a rack of towels, and the entire Firth of Forth as a plunge pool. It started as one barrel sauna and a WhatsApp group of cold-water obsessives; it's now the calmest, reddest-faced club in Edinburgh.",
+      "The method is old and simple: heat the body hard in the sauna, cool it fast in the sea, rest, repeat. The contrast is the whole point — the rush at the shoreline, the deep calm after, the slightly evangelical way everyone talks about it in the changing hut.",
+      "Sessions are guided but never bossy. First-timers get walked through it; regulars are left to their rounds. The stove is real wood, tended by an actual person, and the sea is whatever temperature the North Sea feels like being. Bracing is a feature."
+    ],
+    portrait: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Steam rising in the sauna."
+  },
+  services: [
+    { name: "Communal sessions", description: "Ninety minutes shared with up to eight, sauna rounds and sea dips at your own pace. The default, the friendliest, the one that turns strangers into a WhatsApp group." },
+    { name: "Private hire", description: "The whole sauna for your group — birthdays, teams, a hardy stag do. Bring your people, we bring the fire and the towels; the sea is complimentary." },
+    { name: "First-timer sessions", description: "Slower, fully guided, breathing and cold-exposure explained before you go anywhere near the water. The gentlest way to meet the North Sea on purpose." },
+    { name: "Sunrise & sunset slots", description: "The best-loved bookings: the stove lit for dawn over the Forth, or dusk with the lights of Fife across the water. Book these weeks ahead." },
+    { name: "Contrast & breathwork", description: "Guided hot-cold contrast rounds with a breathwork coach, monthly. The structured version of the thing you've been doing instinctively." },
+    { name: "Membership", description: "Regulars' passes for the properly hooked — priority booking, off-peak rates, and a towel that lives on your peg. The cheapest way to a colder, calmer year." }
+  ],
+  why: [
+    { title: "Real wood, real sea.", body: "A wood-fired stove tended by hand, not an electric box on a timer, and the actual Firth of Forth, not a plunge tub. The contrast is bigger, the experience is realer." },
+    { title: "Guided, never bossy.", body: "First-timers are walked through every step; regulars are left to their rounds. Nobody is made to plunge, nobody is made to chat. Your session, your pace." },
+    { title: "All weather, all year.", body: "The best sessions are the wild ones — sideways rain, four degrees, the sea grey and serious. We run through winter because winter is when this works best." }
+  ],
+  how: [
+    { step: "01", title: "Book a slot", body: "Communal or private, ninety minutes. Bring swimwear, a towel (or hire ours), and a willingness to gasp at the shoreline." },
+    { step: "02", title: "Heat up", body: "Into the sauna, 80–90°C, until you're glowing and slightly questioning your choices. Löyly on the stones when you're ready." },
+    { step: "03", title: "Hit the sea", body: "Ten steps to the water, in to whatever depth you dare, out when your body insists. The gasp is the point; the calm comes after." },
+    { step: "04", title: "Rest & repeat", body: "Wrap up on the bench, let the heat return, go again — two or three rounds is the sweet spot. Leave floaty, warm, and mildly evangelical." }
+  ],
+  testimonials: [
+    { quote: "I came once as a birthday thing, convinced I'd hate it. Fourteen months later I have a membership, a dry robe, and opinions about löyly. My family stages gentle interventions. I ignore them from the sea.", name: "Fiona M.", context: "member, fully converted" },
+    { quote: "The sunrise session over the Forth is the single best hour of my week. You go in stressed and grey and come out floaty and useless in the best way. Cheaper than therapy, colder than expected.", name: "Callum R.", context: "sunrise regular" },
+    { quote: "As a nervous first-timer they walked me through the breathing before I went near the water, never once made me feel daft, and stayed with me for the first dip. I did three rounds. I did NOT expect three rounds.", name: "Aisha K.", context: "first-timer session" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1583416750470-965b2707b355?w=1600&q=85&auto=format&fit=crop", alt: "The sauna hall, steam and soft light." },
+    { src: "https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=1600&q=85&auto=format&fit=crop", alt: "Warm towels and low light." },
+    { src: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=1600&q=85&auto=format&fit=crop", alt: "Dawn over the Firth of Forth." },
+    { src: "https://images.unsplash.com/photo-1455729552865-3658a5d39692?w=1600&q=85&auto=format&fit=crop", alt: "Cold water and grey sky." },
+    { src: "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1600&q=85&auto=format&fit=crop", alt: "The sea off Portobello." },
+    { src: "https://images.unsplash.com/photo-1525derek?w=1600&q=85&auto=format&fit=crop", alt: "Towels on the pegs after a session." }
+  ],
+  faq: [
+    { q: "Is the cold water safe?", a: "For most healthy adults, with guidance, yes — and we give it. We brief you on breathing and entry, you go at your own depth and pace, and nobody is ever pushed. If you have a heart condition, are pregnant, or have other health concerns, check with your GP first and tell us at booking." },
+    { q: "Do I have to go in the sea?", a: "No. Plenty of people come for the sauna and the calm and dip a toe at most. The contrast is where the magic is, but it's an invitation, not a requirement — cold showers on the prom are a gentler halfway house." },
+    { q: "What do I bring?", a: "Swimwear, a towel (or hire one), a water bottle, and something warm for after — a dry robe if you've got one, a big coat if you haven't. We provide the sauna, the löyly water, and somewhere dry to change. Leave the shampoo; this isn't that." },
+    { q: "How cold does it actually get?", a: "The Forth runs from about 6°C in winter to 15°C in late summer. Winter is genuinely bracing and, most regulars agree, the best of it. The sauna is 80–90°C, so the contrast is enormous whatever the season." },
+    { q: "Can beginners come?", a: "Absolutely — the first-timer sessions exist for exactly this, slower and fully guided. Most people's first dip is far shorter than their fifth, and that's completely normal. You'll know within one round whether you're hooked. You will be." },
+    { q: "What if the weather's wild?", a: "Then it's usually a better session. We run in rain, wind and cold; we only cancel for genuine safety reasons — lightning, dangerous surf — and we'll rebook or refund if we do. Dress for the walk down; the fire sorts the rest." }
+  ],
+  area: { places: ["Portobello", "Joppa", "Leith", "Musselburgh", "Edinburgh city", "Newhaven"] },
+  credentials: [
+    { label: "Trained", detail: "RLSS-trained hosts, cold-water safety certified" },
+    { label: "The stove", detail: "Wood-fired, tended by hand every session" },
+    { label: "First aid", detail: "First-aider on site, every session" },
+    { label: "Insured", detail: "Fully insured open-water & sauna operation" }
+  ],
+  location: { name: "The Cold Front", addressStreet: "The Promenade (opposite Bath Street)", addressLocality: "Portobello, Edinburgh", addressRegion: "Midlothian", addressPostcode: "EH15 1EX", addressCountry: "United Kingdom" },
+  cta: { heading: "GET COLD. GET CALM.", body: "Ninety minutes of fire and sea on Portobello beach. First-timers welcome, winter especially. Book a slot.", primary: { label: "Book a session", href: "#book" }, secondary: { label: "0131 442 5518", href: "tel:+441314425518" } },
+  messaging: { whatsapp: "https://wa.me/441314425518", messenger: "https://m.me/thecoldfront" }
+};
+</script>
+
+<style>
+  :root {
+    --deep:#0c2733; --ice:#eef4f6; --ember:#f2622e; --forth:#2f7d97; --frost:#a9d3dd;
+    --mid:#6f8790; --rule:rgba(238,244,246,0.15); --rule-l:rgba(12,39,51,0.15);
+    --disp:"Big Shoulders Display",sans-serif; --sans:"Hanken Grotesk",sans-serif; --mono:"Space Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--deep);color:var(--ice);font-family:var(--sans);font-size:17px;line-height:1.65;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--ember);}
+  .wrap{width:min(1320px,94vw);margin-inline:auto;}
+  .temp{font-family:var(--mono);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--frost);}
+  .h2{font-family:var(--disp);font-weight:800;font-size:clamp(42px,6.2vw,98px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 0.42em;}
+  .h2 .em{color:var(--ember);} .h2 .fr{color:var(--frost);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(74px,9vw,132px) 0;position:relative;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--disp);font-weight:700;font-size:16px;letter-spacing:0.05em;text-transform:uppercase;text-decoration:none;transition:0.16s;}
+  .btn-primary{background:var(--ember);color:var(--ice);} .btn-primary:hover{background:var(--ice);color:var(--deep);}
+  .btn-ghost{border:2px solid var(--frost);color:var(--ice);} .btn-ghost:hover{background:var(--frost);color:var(--deep);}
+  .dial-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(12,39,51,0.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:800;font-size:22px;text-transform:uppercase;letter-spacing:0.03em;text-decoration:none;}
+  .wm span{color:var(--ember);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — hot/cold split: ember headline over a temperature gradient, photo + gauge */
+  .hero{padding:clamp(40px,5vw,72px) 0 0;}
+  .hero .kicker-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  .hero .kicker-row b{color:var(--ember);}
+  .hero h1{font-family:var(--disp);font-weight:900;text-transform:uppercase;line-height:0.84;margin:26px 0 0;font-size:clamp(52px,10vw,168px);letter-spacing:0.005em;}
+  .hero h1 .hot{color:var(--ember);}
+  .hero h1 .cold{color:var(--frost);}
+  .hero-under{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,5vw,80px);align-items:end;margin-top:clamp(30px,4vw,52px);}
+  .hero-photo{position:relative;overflow:hidden;border:1px solid var(--rule);}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;}
+  .gauge{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;}
+  .gauge span{background:rgba(12,39,51,0.82);padding:6px 10px;text-align:right;}
+  .gauge .h{color:var(--ember);} .gauge .c{color:var(--frost);}
+  .hero-copy .lede{font-size:clamp(16px,1.5vw,19px);line-height:1.62;color:var(--ice);margin:0 0 24px;}
+  .hero-ctas{display:flex;gap:14px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-under{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--ember);color:var(--deep);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;}
+
+  /* ABOUT — forth-blue band */
+  .about{background:var(--forth);color:var(--ice);}
+  .about .dial-head{border-color:rgba(238,244,246,0.4);color:rgba(238,244,246,0.7);}
+  .about .ghost{position:absolute;top:5vw;right:-1vw;font-family:var(--disp);font-weight:900;font-size:clamp(120px,22vw,320px);line-height:0.8;color:transparent;-webkit-text-stroke:1px rgba(238,244,246,0.16);pointer-events:none;user-select:none;text-transform:uppercase;}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;position:relative;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border:1px solid rgba(238,244,246,0.3);}
+  .about-prose p{font-size:clamp(16.5px,1.6vw,19.5px);line-height:1.72;margin:0 0 1em;color:rgba(238,244,246,0.92);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — session cards with temperature tags */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .svc-card{background:rgba(238,244,246,0.04);border:1px solid var(--rule);padding:clamp(24px,3vw,36px);transition:0.18s;}
+  .svc-card:hover{background:rgba(242,98,46,0.1);border-color:var(--ember);}
+  .svc-card .tag{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--ember);text-transform:uppercase;margin-bottom:14px;font-weight:700;}
+  .svc-card h3{font-family:var(--disp);font-weight:700;font-size:23px;text-transform:uppercase;margin:0 0 8px;line-height:0.95;}
+  .svc-card p{color:var(--mid);margin:0;font-size:14px;line-height:1.62;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;}}
+
+  /* WHY — ember */
+  .why{background:var(--ember);color:var(--deep);}
+  .why .dial-head{border-color:rgba(12,39,51,0.3);color:rgba(12,39,51,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .n{font-family:var(--disp);font-weight:900;font-size:clamp(60px,7vw,104px);line-height:0.8;color:var(--ice);display:block;margin-bottom:14px;}
+  .why-grid h3{font-family:var(--disp);font-weight:700;font-size:24px;text-transform:uppercase;margin:0 0 10px;line-height:0.95;}
+  .why-grid p{color:rgba(12,39,51,0.82);margin:0;font-size:14.5px;line-height:1.66;font-weight:500;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  /* HOW — the round: hot→cold→rest steps */
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:2px solid var(--frost);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--frost);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:700;font-size:20px;text-transform:uppercase;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#0a1f28;}
+  .t-quote{font-family:var(--disp);font-weight:800;font-size:clamp(28px,4.2vw,60px);line-height:0.96;text-transform:uppercase;max-width:26ch;margin:0 0 24px;}
+  .t-quote em{font-style:normal;color:var(--ember);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--frost);margin-bottom:clamp(40px,5vw,64px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--rule);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.66;margin:0 0 12px;color:rgba(238,244,246,0.88);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(10px,1.5vw,18px);}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border:1px solid var(--rule);}
+  .g-grid img{width:100%;height:100%;object-fit:cover;transition:0.35s;}
+  .g-grid figure:hover img{transform:scale(1.05);}
+  .g-grid figure:nth-child(1){grid-column:span 3;grid-row:span 2;} .g-grid figure:nth-child(1) img{aspect-ratio:3/3.3;}
+  .g-grid figure:nth-child(2){grid-column:span 3;} .g-grid figure:nth-child(2) img{aspect-ratio:16/9;}
+  .g-grid figure:nth-child(n+3){grid-column:span 3;} .g-grid figure:nth-child(n+3) img{aspect-ratio:16/9;}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--deep);color:var(--frost);font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;padding:6px 10px;}
+  @media(max-width:760px){.g-grid figure{grid-column:span 6 !important;grid-row:auto !important;} .g-grid figure img{aspect-ratio:4/3 !important;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--rule);}
+  .faq-list summary{font-family:var(--disp);font-weight:700;font-size:20px;text-transform:uppercase;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.05;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--ember);flex-shrink:0;font-size:24px;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;padding:11px 20px;border:1px solid var(--rule);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:2px solid var(--frost);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ember);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:700;font-size:16.5px;line-height:1.2;text-transform:uppercase;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:rgba(238,244,246,0.04);border:1px solid var(--rule);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:700;font-size:20px;line-height:1.3;text-transform:uppercase;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:1px solid var(--rule);filter:grayscale(0.3) brightness(0.9);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:linear-gradient(180deg,var(--ember),var(--forth));color:var(--ice);padding:clamp(90px,11vw,160px) 0;text-align:center;}
+  .cta-band h2{font-family:var(--disp);font-weight:900;font-size:clamp(48px,9vw,148px);line-height:0.84;text-transform:uppercase;margin:16px auto 22px;max-width:14ch;}
+  .cta-band p{color:rgba(238,244,246,0.9);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--ice);color:var(--deep);}
+  .cta-band .btn-ghost{border-color:var(--ice);color:var(--ice);}
+  .cta-band .btn-ghost:hover{background:var(--ice);color:var(--deep);}
+
+  footer{background:var(--deep);border-top:1px solid var(--rule);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ember);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid);}
+  .footer-grid a:hover{color:var(--ice);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--ember);color:var(--ice);padding:14px 20px;text-decoration:none;font-family:var(--disp);font-size:15px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;box-shadow:0 8px 26px rgba(242,98,46,0.4);}
+  .msg-fab a:hover{background:var(--ice);color:var(--deep);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"HealthClub","name":"The Cold Front","description":"Wood-fired sauna and sea-dip club on Portobello beach, Edinburgh — communal and private sessions, first-timer sessions, breathwork, membership.","url":"https://thecoldfront.club/","telephone":"+441314425518","email":"stoke@thecoldfront.club","address":{"@type":"PostalAddress","streetAddress":"The Promenade (opposite Bath Street)","addressLocality":"Edinburgh","addressRegion":"Midlothian","postalCode":"EH15 1EX","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":55.9540,"longitude":-3.1130},"areaServed":["Portobello","Leith","Musselburgh","Edinburgh"],"image":["https://images.unsplash.com/photo-1583416750470-965b2707b355?w=1600"],"foundingDate":"2021"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the cold water safe?","acceptedAnswer":{"@type":"Answer","text":"For most healthy adults with guidance, yes — we brief you and you go at your own pace. Check with your GP if you have heart conditions, are pregnant, or have other concerns, and tell us at booking."}},
+{"@type":"Question","name":"Do I have to go in the sea?","acceptedAnswer":{"@type":"Answer","text":"No — plenty come for the sauna and calm. The contrast is the magic but it's an invitation, not a requirement."}},
+{"@type":"Question","name":"What do I bring?","acceptedAnswer":{"@type":"Answer","text":"Swimwear, a towel (or hire one), water, and something warm for after. We provide the sauna and löyly water."}},
+{"@type":"Question","name":"How cold does it get?","acceptedAnswer":{"@type":"Answer","text":"The Forth runs 6°C in winter to 15°C in late summer; the sauna is 80–90°C, so the contrast is enormous year-round."}},
+{"@type":"Question","name":"Can beginners come?","acceptedAnswer":{"@type":"Answer","text":"Yes — the first-timer sessions are slower and fully guided. You'll know within one round whether you're hooked."}},
+{"@type":"Question","name":"What if the weather's wild?","acceptedAnswer":{"@type":"Answer","text":"Usually a better session. We run in rain, wind and cold; we only cancel for genuine safety reasons and rebook or refund if we do."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">THE COLD <span>FRONT</span></a>
+    <nav class="nav-links">
+      <a href="#services">Sessions</a><a href="#how">How it works</a><a href="#location">The beach</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v52">
+  <div class="wrap">
+    <div class="kicker-row"><span data-bind="hero.kicker">Wood-fired sauna + sea dip · Portobello beach · Edinburgh</span><b>STOVE LIT · TIDE IN</b></div>
+    <h1 data-comment-anchor="hero-headline" aria-label="90°C. Then the Forth. Then again.">
+      <span class="hot">90°C.</span> THEN <span class="cold">THE FORTH.</span> THEN AGAIN.
+    </h1>
+    <div class="hero-under">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1507652313519-d4e9174996dd?w=2000&q=85&auto=format&fit=crop"
+             alt="The glowing interior of a wood-fired sauna." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+        <div class="gauge"><span class="h">SAUNA · 90°C</span><span class="c">FORTH · 8°C</span></div>
+      </div>
+      <div class="hero-copy">
+        <p class="lede" data-bind="hero.lede">A wood-fired sauna on the sand and the cold Firth of Forth ten steps beyond the door. Heat until you glow, walk into the sea until you gasp, come back to the fire and understand why people get addicted to this. Ninety minutes, all weather, all year.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a session</a>
+          <a class="btn btn-ghost" href="#how" data-bind="hero.secondaryCta.label">How it works</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Stoking the stove since 2021</span>
+    <span>Wood-fired, tended by hand</span>
+    <span>First-aider every session</span>
+    <span>All weather, all year</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v18">
+  <div class="ghost" aria-hidden="true">LÖYLY</div>
+  <div class="wrap">
+    <div class="dial-head"><span>ROUND 01 / THE CLUB</span><span>PORTOBELLO PROMENADE</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&q=85&auto=format&fit=crop"
+           alt="Steam rising in the sauna." />
+      <div class="about-prose">
+        <h2 class="h2">Hot fire. Cold sea. <span class="em">Repeat.</span></h2>
+        <p>The Cold Front is two wood-fired saunas on Portobello prom, a rack of towels, and the entire Firth of Forth as a plunge pool. It started as one barrel sauna and a WhatsApp group of cold-water obsessives; it's now the calmest, reddest-faced club in Edinburgh.</p>
+        <p>The method is old and simple: heat the body hard in the sauna, cool it fast in the sea, rest, repeat. The contrast is the whole point — the rush at the shoreline, the deep calm after, the slightly evangelical way everyone talks about it in the changing hut.</p>
+        <p>Sessions are guided but never bossy. First-timers get walked through it; regulars are left to their rounds. The stove is real wood, tended by an actual person, and the sea is whatever temperature the North Sea feels like being. Bracing is a feature.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v45">
+  <div class="wrap">
+    <div class="dial-head"><span>ROUND 02 / THE SESSIONS</span><span>NINETY MINUTES EACH</span></div>
+    <h2 class="h2">Book a <span class="em">round.</span></h2>
+    <div class="svc-grid">
+      <div class="svc-card"><div class="tag">90 MIN · UP TO 8</div><h3>Communal sessions</h3><p>Ninety minutes shared with up to eight, sauna rounds and sea dips at your own pace. The default, the friendliest, the one that turns strangers into a WhatsApp group.</p></div>
+      <div class="svc-card"><div class="tag">YOUR GROUP</div><h3>Private hire</h3><p>The whole sauna for your group — birthdays, teams, a hardy stag do. Bring your people, we bring the fire and the towels; the sea is complimentary.</p></div>
+      <div class="svc-card"><div class="tag">GUIDED</div><h3>First-timer sessions</h3><p>Slower, fully guided, breathing and cold-exposure explained before you go anywhere near the water. The gentlest way to meet the North Sea on purpose.</p></div>
+      <div class="svc-card"><div class="tag">DAWN / DUSK</div><h3>Sunrise &amp; sunset slots</h3><p>The best-loved bookings: the stove lit for dawn over the Forth, or dusk with the lights of Fife across the water. Book these weeks ahead.</p></div>
+      <div class="svc-card"><div class="tag">MONTHLY</div><h3>Contrast &amp; breathwork</h3><p>Guided hot-cold contrast rounds with a breathwork coach, monthly. The structured version of the thing you've been doing instinctively.</p></div>
+      <div class="svc-card"><div class="tag">REGULARS</div><h3>Membership</h3><p>Regulars' passes for the properly hooked — priority booking, off-peak rates, and a towel that lives on your peg. The cheapest way to a colder, calmer year.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v17">
+  <div class="wrap">
+    <div class="dial-head"><span>ROUND 03 / WHY THIS ONE</span><span>REAL FIRE, REAL SEA</span></div>
+    <h2 class="h2">Why the real thing.</h2>
+    <div class="why-grid">
+      <div><span class="n">1</span><h3>Real wood, real sea.</h3><p>A wood-fired stove tended by hand, not an electric box on a timer, and the actual Firth of Forth, not a plunge tub. The contrast is bigger, the experience is realer.</p></div>
+      <div><span class="n">2</span><h3>Guided, never bossy.</h3><p>First-timers are walked through every step; regulars are left to their rounds. Nobody is made to plunge, nobody is made to chat. Your session, your pace.</p></div>
+      <div><span class="n">3</span><h3>All weather, all year.</h3><p>The best sessions are the wild ones — sideways rain, four degrees, the sea grey and serious. We run through winter because winter is when this works best.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section id="how" data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="dial-head"><span>ROUND 04 / THE ROUND</span><span>HEAT → SEA → REST → AGAIN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Book a slot</h3><p>Communal or private, ninety minutes. Bring swimwear, a towel (or hire ours), and a willingness to gasp at the shoreline.</p></li>
+      <li><span class="step">STEP 02</span><h3>Heat up</h3><p>Into the sauna, 80–90°C, until you're glowing and slightly questioning your choices. Löyly on the stones when you're ready.</p></li>
+      <li><span class="step">STEP 03</span><h3>Hit the sea</h3><p>Ten steps to the water, in to whatever depth you dare, out when your body insists. The gasp is the point; the calm comes after.</p></li>
+      <li><span class="step">STEP 04</span><h3>Rest &amp; repeat</h3><p>Wrap up on the bench, let the heat return, go again — two or three rounds is the sweet spot. Leave floaty, warm, and mildly evangelical.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v17">
+  <div class="wrap">
+    <div class="dial-head"><span>ROUND 05 / THE CONVERTED</span><span>OVERHEARD IN THE CHANGING HUT</span></div>
+    <blockquote class="t-quote">“I have a membership, a dry robe, and opinions about löyly. <em>My family stages gentle interventions.</em>”</blockquote>
+    <div class="t-attr">Fiona M. — member, fully converted</div>
+    <div class="t-sub">
+      <figure><blockquote>“The sunrise session over the Forth is the single best hour of my week. You go in stressed and grey and come out floaty and useless in the best way. Cheaper than therapy, colder than expected.”</blockquote><figcaption>Callum R. — sunrise regular</figcaption></figure>
+      <figure><blockquote>“As a nervous first-timer they walked me through the breathing before I went near the water, never once made me feel daft, and stayed with me for the first dip. I did three rounds. I did NOT expect three rounds.”</blockquote><figcaption>Aisha K. — first-timer session</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v45">
+  <div class="wrap">
+    <div class="dial-head"><span>ROUND 06 / THE BEACH</span><span>FIRE, WATER, SKY</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1583416750470-965b2707b355?w=1600&q=85&auto=format&fit=crop" alt="The sauna hall, steam and soft light." /><figcaption>THE SAUNA, 90°C</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600334129128-685c5582fd35?w=1600&q=85&auto=format&fit=crop" alt="Warm towels and low light." /><figcaption>WARM DOWN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1502680390469-be75c86b636f?w=1600&q=85&auto=format&fit=crop" alt="Dawn over the Firth of Forth." /><figcaption>DAWN OVER THE FORTH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1455729552865-3658a5d39692?w=1600&q=85&auto=format&fit=crop" alt="Cold water and grey sky." /><figcaption>THE PLUNGE, GREY &amp; SERIOUS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=1600&q=85&auto=format&fit=crop" alt="The sea off Portobello." /><figcaption>THE FIRTH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519823551278-64ac92734fb1?w=1600&q=85&auto=format&fit=crop" alt="After the session, wrapped and warm." /><figcaption>AFTER, WRAPPED &amp; WARM</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="dial-head"><span>ROUND 07 / ASKED ON THE PROM</span><span>USUALLY BEFORE THE FIRST DIP</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked on <span class="em">the prom.</span></h2>
+        <p class="body">Anything else — ring <a href="tel:+441314425518" style="color:var(--frost);">0131 442 5518</a> or message us. We answer between sessions, damp-handed.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Is the cold water safe?</summary><p>For most healthy adults, with guidance, yes — and we give it. We brief you on breathing and entry, you go at your own depth and pace, and nobody is ever pushed. If you have a heart condition, are pregnant, or have other health concerns, check with your GP first and tell us at booking.</p></details>
+        <details><summary>Do I have to go in the sea?</summary><p>No. Plenty of people come for the sauna and the calm and dip a toe at most. The contrast is where the magic is, but it's an invitation, not a requirement — cold showers on the prom are a gentler halfway house.</p></details>
+        <details><summary>What do I bring?</summary><p>Swimwear, a towel (or hire one), a water bottle, and something warm for after — a dry robe if you've got one, a big coat if you haven't. We provide the sauna, the löyly water, and somewhere dry to change. Leave the shampoo; this isn't that.</p></details>
+        <details><summary>How cold does it actually get?</summary><p>The Forth runs from about 6°C in winter to 15°C in late summer. Winter is genuinely bracing and, most regulars agree, the best of it. The sauna is 80–90°C, so the contrast is enormous whatever the season.</p></details>
+        <details><summary>Can beginners come?</summary><p>Absolutely — the first-timer sessions exist for exactly this, slower and fully guided. Most people's first dip is far shorter than their fifth, and that's completely normal. You'll know within one round whether you're hooked. You will be.</p></details>
+        <details><summary>What if the weather's wild?</summary><p>Then it's usually a better session. We run in rain, wind and cold; we only cancel for genuine safety reasons — lightning, dangerous surf — and we'll rebook or refund if we do. Dress for the walk down; the fire sorts the rest.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="dial-head"><span>ROUND 08 / DIPPERS COME FROM</span><span>EDINBURGH &amp; THE COAST</span></div>
+    <ul class="area-list">
+      <li>Portobello</li><li>Joppa</li><li>Leith</li><li>Musselburgh</li><li>Edinburgh city</li><li>Newhaven</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v2" style="padding-top:0;">
+  <div class="wrap">
+    <div class="dial-head"><span>ROUND 09 / THE PAPERWORK</span><span>SALT-SPRAYED BUT CURRENT</span></div>
+    <div class="creds">
+      <div><div class="label">Trained</div><div class="detail">RLSS-trained hosts, cold-water safety certified</div></div>
+      <div><div class="label">The stove</div><div class="detail">Wood-fired, tended by hand every session</div></div>
+      <div><div class="label">First aid</div><div class="detail">First-aider on site, every session</div></div>
+      <div><div class="label">Insured</div><div class="detail">Fully insured open-water &amp; sauna operation</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="dial-head"><span>ROUND 10 / THE BEACH</span><span>PORTOBELLO PROMENADE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">The Cold Front</strong><br />
+          The Promenade (opposite Bath Street)<br />
+          Portobello, Edinburgh EH15 1EX<br /><br />
+          <a href="tel:+441314425518" data-bind="business.phoneDisplay">0131 442 5518</a><br />
+          <a href="mailto:stoke@thecoldfront.club" data-bind="business.email">stoke@thecoldfront.club</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>SESSIONS</span><span>SEE BOOKING PAGE</span></div>
+          <div class="row"><span>SUNRISE SLOTS</span><span>SEASONAL, BOOK EARLY</span></div>
+          <p class="gbp-note">Session times follow the tide and the light — the live calendar is on our booking page and Google Business Profile. On the prom opposite Bath Street; look for the chimney smoke.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of The Cold Front, Portobello Promenade, Edinburgh" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-3.1230%2C55.9500%2C-3.1030%2C55.9580&layer=mapnik&marker=55.9540%2C-3.1130"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v20">
+  <div class="wrap">
+    <div class="temp" style="color:var(--ice);">ROUND 11 / BOOK</div>
+    <h2>GET COLD. GET CALM.</h2>
+    <p data-bind="cta.body">Ninety minutes of fire and sea on Portobello beach. First-timers welcome, winter especially. Book a slot.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a session</a>
+      <a class="btn btn-ghost" href="tel:+441314425518" data-bind="cta.secondary.label">0131 442 5518</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441314425518" data-bind="messaging.whatsapp" aria-label="Message the club">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;">THE COLD <span style="color:var(--ember);">FRONT</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A wood-fired sauna and sea-dip club on Portobello beach, Edinburgh. Since 2021.</p>
+      </div>
+      <div>
+        <h4>The beach</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid);">
+          The Promenade, opp. Bath Street<br />Portobello, Edinburgh EH15 1EX<br />
+          <a href="tel:+441314425518">0131 442 5518</a><br />
+          <a href="mailto:stoke@thecoldfront.club">stoke@thecoldfront.club</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Sessions</a><a href="#how">How it works</a><a href="#location">The beach</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> THE COLD FRONT CLUB LTD</span>
+      <span>HOT · COLD · REPEAT</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

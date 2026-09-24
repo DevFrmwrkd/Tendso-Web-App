@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Twelve Hives — apiary &amp; raw honey in Monmouth</title>
+<meta name="description" content="Twelve Hives is a working apiary in the Wye Valley — raw single-apiary honey, hive experiences, swarm rescue and beekeeping courses from twelve hives outside Monmouth." />
+<link href="https://fonts.googleapis.com/css2?family=Gloock&family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fragment+Mono:ital@0;1&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Twelve Hives", phone: "+44 1600 715 224", phoneDisplay: "01600 715 224", email: "keeper@twelvehives.wales", foundedYear: 2014 },
+  hero: {
+    kicker: "Working apiary · raw honey · Wye Valley, Monmouth",
+    headline: "600,000 employees. One boss. She's the Queen.",
+    lede: "Twelve hives in an orchard above the Wye, run the slow way: no blending, no heating, no shortcuts. The honey tastes of whatever the valley flowered that month — and the label tells you which hive, which month, which weather.",
+    primaryCta: { label: "This season's jars", href: "#services" },
+    secondaryCta: { label: "Meet the hives", href: "#book" },
+    image: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Honey being lifted on a dipper, backlit and glowing."
+  },
+  trust: { years: "Keeping since 2014" },
+  about: {
+    heading: "Twelve hives, counted daily.",
+    paragraphs: [
+      "The apiary sits in a south-facing orchard above the Wye: twelve hives, each named after the storm blowing the week it was built. Aurora is gentle. Bronagh holds grudges. Callum produced forty kilos last July and has been insufferable since.",
+      "We extract cold, jar raw and never blend across hives — which means jars vary by hive, by month, by what the valley offered. April's is pale and floral off the orchard blossom; July's is dark and muscular off the bramble and lime. The label tells you everything because the label is the point.",
+      "The rest of the year is swarm rescue, courses for new keepers, and explaining to visitors that the bees are not angry, they are busy, and the difference matters."
+    ],
+    portrait: "https://images.unsplash.com/photo-1473973266408-ed4e27abdd47?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Beekeeper lifting a frame heavy with bees."
+  },
+  services: [
+    { name: "Single-hive raw honey", description: "Jarred by hive and by month, cold-extracted, never blended. The label names the hive, the fortnight and the dominant forage. No two jars argue the same." },
+    { name: "The hive experience", description: "A suit, a smoker, and an hour inside an open hive with the keeper. You will hold a frame of 3,000 bees and forget to be afraid." },
+    { name: "Beginner beekeeping course", description: "Six Saturdays across a season — theory in the barn, hands in the hives. Graduates leave ready for their first colony, and warned." },
+    { name: "Swarm rescue", description: "A swarm on your fence is lost bees, not an attack. Ring us; we collect free within fifteen miles and the swarm gets a new hive here." },
+    { name: "Candles & wax", description: "Beeswax from the cappings, filtered and poured in the barn. Candles, blocks for makers, and wraps that smell like the extraction room." },
+    { name: "Hives for orchards", description: "We place and manage hives on farms and orchards that want the pollination without the beekeeping. The trees do the paying." }
+  ],
+  why: [
+    { title: "Raw means actually raw.", body: "Cold-extracted, coarse-filtered, jarred once. Never heated, never blended, never 'produce of more than one country'. If it crystallises, that's honey behaving." },
+    { title: "Traceable to the hive.", body: "Every jar names its hive, its fortnight and its forage. When you taste the difference between Aurora's April and Callum's July, you'll stop buying anonymous honey." },
+    { title: "The bees set the pace.", body: "Some months there's no honey to sell and we say so. A sold-out shelf is the apiary working correctly — scarcity is the certificate." }
+  ],
+  how: [
+    { step: "01", title: "Suit up", body: "Everything provided, ankle to veil. The suits have survived teenagers, stag parties and one bishop." },
+    { step: "02", title: "Smoke, gently", body: "The smoker calms the hive, and learning why is half the visit. You'll work it yourself within ten minutes." },
+    { step: "03", title: "Hold a frame", body: "Three thousand bees, surprisingly calm, astonishingly heavy. The moment everyone remembers — knees optional." },
+    { step: "04", title: "Taste at the source", body: "Honey off the frame, still warm from the hive. Nothing you buy afterwards will taste the same. Sorry." }
+  ],
+  testimonials: [
+    { quote: "I held a frame of bees and cried inside the veil, quietly, at how calm it all was. The keeper pretended not to notice. Five stars for the bees and the discretion.", name: "Hannah R.", context: "hive experience, birthday gift" },
+    { quote: "Callum's July jar ruined supermarket honey for our whole household. My son now reads honey labels aloud in shops like a tiny inspector.", name: "Owen D.", context: "single-hive subscriber" },
+    { quote: "They collected a swarm off our trampoline within two hours of the call, charged nothing, and sent a photo a month later of 'our' bees in their new hive. Impossibly classy.", name: "The Pritchards", context: "swarm rescue, Osbaston" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=1600&q=85&auto=format&fit=crop", alt: "Honey on the dipper, backlit." },
+    { src: "https://images.unsplash.com/photo-1473973266408-ed4e27abdd47?w=1600&q=85&auto=format&fit=crop", alt: "Lifting a frame heavy with bees." },
+    { src: "https://images.unsplash.com/photo-1568526381923-caf3fd520382?w=1600&q=85&auto=format&fit=crop", alt: "The hives in the orchard." },
+    { src: "https://images.unsplash.com/photo-1573812461383-e5f8b759d12e?w=1600&q=85&auto=format&fit=crop", alt: "Comb, capped and ready." },
+    { src: "https://images.unsplash.com/photo-1471943311424-646960669fbc?w=1600&q=85&auto=format&fit=crop", alt: "Jars of the month, labelled by hive." },
+    { src: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=85&auto=format&fit=crop", alt: "The forage — the valley in high summer." }
+  ],
+  faq: [
+    { q: "Why does your honey crystallise?", a: "Because it's raw. Real honey sets — the speed depends on the forage. Warm the jar gently in water if you want it runny again, or eat it set on hot toast, which is frankly the superior experience." },
+    { q: "Why is each jar different?", a: "Because each hive forages differently and each fortnight flowers differently. Blending would make them identical and boring — the variation is the entire product. Read the label; taste the valley." },
+    { q: "Is the hive experience safe? I'm nervous.", a: "Full suits, gentle colonies chosen for visits, and a keeper beside you the whole time. Nervous is normal and usually gone within ten minutes — the hive's calm is contagious. Stings are rare; allergy questions asked at booking, seriously." },
+    { q: "There's a swarm in my garden — what do I do?", a: "Nothing but keep your distance and ring us. A swarm is bees between homes, gorged on honey and about as docile as they ever get. Free collection within fifteen miles, usually same day." },
+    { q: "Can I keep bees in my garden?", a: "Probably — bees need less space than people think and more attention than they hope. Do the course first; the most expensive mistake in beekeeping is enthusiasm without husbandry, and we've made it so you don't have to." },
+    { q: "When is honey available?", a: "When the bees say so — typically June to September, sold by the month until each batch is gone. The sold-out months are not a supply problem; they're how single-apiary honey works." }
+  ],
+  area: { places: ["Monmouth", "Wye Valley", "Ross-on-Wye", "Abergavenny", "Usk", "Chepstow"] },
+  credentials: [
+    { label: "Registered", detail: "BeeBase-registered apiary, inspected" },
+    { label: "Association", detail: "Welsh Beekeepers' Association members" },
+    { label: "Raw", detail: "Cold-extracted, single-hive, never blended" },
+    { label: "Insured", detail: "Public liability for visits & swarm work" }
+  ],
+  location: { name: "Twelve Hives", addressStreet: "Penylan Orchard, Rockfield Road", addressLocality: "Monmouth", addressRegion: "Monmouthshire", addressPostcode: "NP25 5QB", addressCountry: "United Kingdom" },
+  cta: { heading: "Come stand in the hum.", body: "Hive experiences April to September. Jars while the bees allow. The orchard gate is the green one.", primary: { label: "Book a hive visit", href: "#book" }, secondary: { label: "01600 715 224", href: "tel:+441600715224" } },
+  messaging: { whatsapp: "https://wa.me/441600715224", messenger: "https://m.me/twelvehives" }
+};
+</script>
+
+<style>
+  :root {
+    --hive:#211505; --wax:#f7edd5; --honey:#eda01f; --amber:#c67b10;
+    --smoke:#8a7a5c; --rule:rgba(33,21,5,0.16); --rule-d:rgba(247,237,213,0.18);
+    --serif:"Gloock",serif; --sans:"Schibsted Grotesk",sans-serif; --mono:"Fragment Mono",monospace;
+    --hex:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%);
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--wax);color:var(--hive);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--amber);}
+  .wrap{width:min(1300px,94vw);margin-inline:auto;}
+  .frame-no{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--amber);}
+  .h2{font-family:var(--serif);font-weight:400;font-size:clamp(40px,6vw,92px);line-height:0.96;letter-spacing:-0.01em;margin:0 0 0.45em;}
+  .h2 em{font-style:italic;color:var(--amber);}
+  .body{color:var(--smoke);line-height:1.7;}
+  section{padding:clamp(72px,9vw,130px) 0;position:relative;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.15s;}
+  .btn-primary{background:var(--hive);color:var(--honey);} .btn-primary:hover{background:var(--honey);color:var(--hive);}
+  .btn-ghost{border:2px solid var(--hive);} .btn-ghost:hover{background:var(--hive);color:var(--wax);}
+  .comb-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--smoke);border-bottom:2px solid var(--hive);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(247,237,213,0.95);backdrop-filter:blur(10px);border-bottom:2px solid var(--hive);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--serif);font-size:21px;text-decoration:none;}
+  .wm span{color:var(--amber);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--smoke);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — swarm poster: giant serif with hex-cut image and drifting counter */
+  .hero{padding:clamp(48px,6vw,90px) 0 clamp(48px,6vw,80px);}
+  .hero-grid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .hero h1{font-family:var(--serif);font-weight:400;font-size:clamp(46px,7.2vw,116px);line-height:0.96;letter-spacing:-0.015em;margin:24px 0 26px;}
+  .hero h1 em{font-style:italic;color:var(--amber);}
+  .hero .lede{color:var(--smoke);max-width:48ch;line-height:1.68;font-size:clamp(15.5px,1.5vw,18.5px);}
+  .hero-ctas{margin-top:32px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-hex{position:relative;filter:drop-shadow(0 24px 40px rgba(33,21,5,0.25));}
+  .hero-hex img{width:100%;aspect-ratio:0.9;object-fit:cover;clip-path:var(--hex);}
+  .hero-hex .cell{position:absolute;bottom:-6%;left:-8%;width:38%;aspect-ratio:0.9;clip-path:var(--hex);background:var(--honey);display:grid;place-items:center;text-align:center;font-family:var(--mono);font-size:clamp(8px,0.85vw,11px);letter-spacing:0.12em;text-transform:uppercase;line-height:1.9;color:var(--hive);padding:12%;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .hero-hex{max-width:440px;}}
+
+  .trust{padding:0;background:var(--hive);color:var(--wax);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(247,237,213,0.75);}
+
+  /* ABOUT — honey slab */
+  .about{background:var(--honey);}
+  .about .comb-head{border-color:var(--hive);color:rgba(33,21,5,0.6);}
+  .about-grid{display:grid;grid-template-columns:0.85fr 1.15fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;clip-path:var(--hex);}
+  .about-prose p{font-size:clamp(16.5px,1.6vw,19.5px);line-height:1.7;margin:0 0 1em;color:#3b2a0d;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — hive frames pulled from the super */
+  .frames{display:grid;gap:0;border:2px solid var(--hive);}
+  .frame{display:grid;grid-template-columns:150px 1fr 1.3fr;gap:clamp(18px,3vw,44px);padding:28px clamp(18px,2.5vw,36px);border-bottom:2px solid var(--hive);align-items:center;background:var(--wax);transition:0.15s;}
+  .frame:last-child{border-bottom:0;}
+  .frame:hover{background:#fff6df;}
+  .frame .fno{font-family:var(--serif);font-size:clamp(28px,3vw,44px);color:var(--amber);line-height:1;}
+  .frame .fno small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:0.2em;color:var(--smoke);margin-top:6px;text-transform:uppercase;}
+  .frame h3{font-family:var(--serif);font-weight:400;font-size:clamp(21px,2.2vw,28px);margin:0;line-height:1.1;}
+  .frame p{color:var(--smoke);margin:0;font-size:14.5px;line-height:1.64;}
+  @media(max-width:760px){.frame{grid-template-columns:1fr;gap:8px;}}
+
+  /* WHY — dark hive interior */
+  .why{background:var(--hive);color:var(--wax);}
+  .why .h2{color:var(--wax);}
+  .why .comb-head{border-color:rgba(247,237,213,0.4);color:rgba(247,237,213,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,64px);}
+  .why-grid .hexnum{width:64px;aspect-ratio:0.9;clip-path:var(--hex);background:var(--honey);color:var(--hive);display:grid;place-items:center;font-family:var(--serif);font-size:26px;margin-bottom:18px;}
+  .why-grid h3{font-family:var(--serif);font-weight:400;font-size:24px;margin:0 0 10px;line-height:1.1;}
+  .why-grid p{color:rgba(247,237,213,0.72);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:2px solid var(--hive);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;color:var(--amber);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--serif);font-weight:400;font-size:20px;margin:10px 0 8px;}
+  .how-grid p{color:var(--smoke);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#efe0bd;}
+  .t-quote{font-family:var(--serif);font-weight:400;font-size:clamp(28px,4vw,58px);line-height:1.06;max-width:26ch;margin:0 0 24px;}
+  .t-quote em{font-style:italic;color:var(--amber);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--smoke);margin-bottom:clamp(40px,5vw,64px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid var(--hive);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.68;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--smoke);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — comb: hex-cut cells in an offset lattice */
+  .comb{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,2vw,26px);}
+  .comb figure{margin:0;}
+  .comb img{width:100%;aspect-ratio:0.9;object-fit:cover;clip-path:var(--hex);transition:0.25s;}
+  .comb figure:hover img{transform:scale(1.03);}
+  .comb figure:nth-child(2),.comb figure:nth-child(5){transform:translateY(clamp(18px,3vw,44px));}
+  .comb figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--smoke);margin-top:10px;text-align:center;}
+  @media(max-width:760px){.comb{grid-template-columns:1fr 1fr;} .comb figure:nth-child(2),.comb figure:nth-child(5){transform:none;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--hive);}
+  .faq-list summary{font-family:var(--serif);font-weight:400;font-size:20px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.15;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"⬡";color:var(--amber);flex-shrink:0;font-size:18px;transition:0.2s;}
+  .faq-list details[open] summary::after{content:"⬢";}
+  .faq-list p{margin:14px 0 0;color:var(--smoke);font-size:14.5px;max-width:56ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:12px 22px;border:2px solid var(--hive);clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,10px 100%,0 50%);background:#fff6df;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:2px solid var(--hive);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;}
+  .creds .detail{font-family:var(--serif);font-size:17px;line-height:1.3;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff6df;border:2px solid var(--hive);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--serif);font-size:19px;line-height:1.45;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--smoke);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--smoke);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:2px solid var(--hive);filter:sepia(0.35);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  /* CTA — golden hum */
+  .cta-band{background:radial-gradient(ellipse at 50% 130%,rgba(237,160,31,0.45),transparent 62%),var(--hive);color:var(--wax);padding:clamp(90px,11vw,160px) 0;text-align:center;}
+  .cta-band h2{font-family:var(--serif);font-weight:400;font-size:clamp(48px,8.5vw,140px);line-height:0.94;margin:16px auto 22px;max-width:14ch;}
+  .cta-band h2 em{font-style:italic;color:var(--honey);}
+  .cta-band p{color:rgba(247,237,213,0.75);max-width:44ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--honey);color:var(--hive);}
+  .cta-band .btn-primary:hover{background:var(--wax);}
+  .cta-band .btn-ghost{border-color:rgba(247,237,213,0.6);color:var(--wax);}
+  .cta-band .btn-ghost:hover{background:var(--wax);color:var(--hive);}
+
+  footer{background:var(--wax);border-top:2px solid var(--hive);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--smoke);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--honey);color:var(--hive);padding:14px 20px;text-decoration:none;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;clip-path:polygon(12px 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,12px 100%,0 50%);}
+  .msg-fab a:hover{background:var(--hive);color:var(--honey);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Twelve Hives","description":"Working apiary in the Wye Valley — raw single-apiary honey, hive experiences, swarm rescue and beekeeping courses.","url":"https://twelvehives.wales/","telephone":"+441600715224","email":"keeper@twelvehives.wales","address":{"@type":"PostalAddress","streetAddress":"Penylan Orchard, Rockfield Road","addressLocality":"Monmouth","addressRegion":"Monmouthshire","postalCode":"NP25 5QB","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.8180,"longitude":-2.7300},"areaServed":["Monmouth","Wye Valley","Ross-on-Wye","Abergavenny"],"image":["https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=1600"],"foundingDate":"2014"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why does your honey crystallise?","acceptedAnswer":{"@type":"Answer","text":"Because it's raw. Real honey sets. Warm the jar gently in water, or eat it set on hot toast."}},
+{"@type":"Question","name":"Why is each jar different?","acceptedAnswer":{"@type":"Answer","text":"Each hive forages differently and each fortnight flowers differently. The variation is the product."}},
+{"@type":"Question","name":"Is the hive experience safe?","acceptedAnswer":{"@type":"Answer","text":"Full suits, gentle colonies, keeper beside you throughout. Allergy questions asked at booking."}},
+{"@type":"Question","name":"There's a swarm in my garden — what do I do?","acceptedAnswer":{"@type":"Answer","text":"Keep your distance and ring us. Free collection within fifteen miles, usually same day."}},
+{"@type":"Question","name":"Can I keep bees in my garden?","acceptedAnswer":{"@type":"Answer","text":"Probably — do the course first. The most expensive mistake in beekeeping is enthusiasm without husbandry."}},
+{"@type":"Question","name":"When is honey available?","acceptedAnswer":{"@type":"Answer","text":"Typically June to September, by the month until each batch is gone. Sold out is the apiary working correctly."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Twelve <span>Hives</span></a>
+    <nav class="nav-links">
+      <a href="#services">The frames</a><a href="#about">The orchard</a><a href="#location">Find us</a><a href="#book">Visit</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v42">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="frame-no" data-bind="hero.kicker">Working apiary · raw honey · Wye Valley, Monmouth</div>
+      <h1 data-comment-anchor="hero-headline">600,000 employees. One boss. <em>She's the Queen.</em></h1>
+      <p class="lede" data-bind="hero.lede">Twelve hives in an orchard above the Wye, run the slow way: no blending, no heating, no shortcuts. The honey tastes of whatever the valley flowered that month — and the label tells you which hive, which month, which weather.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">This season's jars</a>
+        <a class="btn btn-ghost" href="#book" data-bind="hero.secondaryCta.label">Meet the hives</a>
+      </div>
+    </div>
+    <div class="hero-hex">
+      <img src="https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=2000&q=85&auto=format&fit=crop"
+           alt="Honey being lifted on a dipper, backlit and glowing." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="cell">HIVE: CALLUM<br />JULY · BRAMBLE &amp; LIME<br />COLD-EXTRACTED</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Keeping since 2014</span>
+    <span>Twelve named hives</span>
+    <span>Raw, never blended</span>
+    <span>Free swarm rescue</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v8">
+  <div class="wrap">
+    <div class="comb-head"><span>CELL 01 / THE APIARY</span><span>PENYLAN ORCHARD, ABOVE THE WYE</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1473973266408-ed4e27abdd47?w=1200&q=85&auto=format&fit=crop"
+           alt="Beekeeper lifting a frame heavy with bees." />
+      <div class="about-prose">
+        <h2 class="h2">Twelve hives, <em>counted daily.</em></h2>
+        <p>The apiary sits in a south-facing orchard above the Wye: twelve hives, each named after the storm blowing the week it was built. Aurora is gentle. Bronagh holds grudges. Callum produced forty kilos last July and has been insufferable since.</p>
+        <p>We extract cold, jar raw and never blend across hives — which means jars vary by hive, by month, by what the valley offered. April's is pale and floral off the orchard blossom; July's is dark and muscular off the bramble and lime. The label tells you everything because the label is the point.</p>
+        <p>The rest of the year is swarm rescue, courses for new keepers, and explaining to visitors that the bees are not angry, they are busy, and the difference matters.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v35">
+  <div class="wrap">
+    <div class="comb-head"><span>CELL 02 / PULLED FROM THE SUPER</span><span>SIX FRAMES, INSPECTED</span></div>
+    <h2 class="h2">The frames.</h2>
+    <div class="frames">
+      <div class="frame"><div class="fno">F1<small>BROOD BOX</small></div><h3>Single-hive raw honey</h3><p>Jarred by hive and by month, cold-extracted, never blended. The label names the hive, the fortnight and the dominant forage. No two jars argue the same.</p></div>
+      <div class="frame"><div class="fno">F2<small>VISITS</small></div><h3>The hive experience</h3><p>A suit, a smoker, and an hour inside an open hive with the keeper. You will hold a frame of 3,000 bees and forget to be afraid.</p></div>
+      <div class="frame"><div class="fno">F3<small>SCHOOL</small></div><h3>Beginner beekeeping course</h3><p>Six Saturdays across a season — theory in the barn, hands in the hives. Graduates leave ready for their first colony, and warned.</p></div>
+      <div class="frame"><div class="fno">F4<small>RESCUE</small></div><h3>Swarm rescue</h3><p>A swarm on your fence is lost bees, not an attack. Ring us; we collect free within fifteen miles and the swarm gets a new hive here.</p></div>
+      <div class="frame"><div class="fno">F5<small>WAX</small></div><h3>Candles &amp; wax</h3><p>Beeswax from the cappings, filtered and poured in the barn. Candles, blocks for makers, and wraps that smell like the extraction room.</p></div>
+      <div class="frame"><div class="fno">F6<small>FARMS</small></div><h3>Hives for orchards</h3><p>We place and manage hives on farms and orchards that want the pollination without the beekeeping. The trees do the paying.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v7">
+  <div class="wrap">
+    <div class="comb-head"><span>CELL 03 / THE CREED</span><span>WRITTEN IN WAX</span></div>
+    <h2 class="h2">The keeper's creed.</h2>
+    <div class="why-grid">
+      <div><div class="hexnum">1</div><h3>Raw means actually raw.</h3><p>Cold-extracted, coarse-filtered, jarred once. Never heated, never blended, never "produce of more than one country". If it crystallises, that's honey behaving.</p></div>
+      <div><div class="hexnum">2</div><h3>Traceable to the hive.</h3><p>Every jar names its hive, its fortnight and its forage. When you taste the difference between Aurora's April and Callum's July, you'll stop buying anonymous honey.</p></div>
+      <div><div class="hexnum">3</div><h3>The bees set the pace.</h3><p>Some months there's no honey to sell and we say so. A sold-out shelf is the apiary working correctly — scarcity is the certificate.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="comb-head"><span>CELL 04 / A HIVE VISIT</span><span>SUIT → SMOKE → FRAME → SPOON</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Suit up</h3><p>Everything provided, ankle to veil. The suits have survived teenagers, stag parties and one bishop.</p></li>
+      <li><span class="step">STEP 02</span><h3>Smoke, gently</h3><p>The smoker calms the hive, and learning why is half the visit. You'll work it yourself within ten minutes.</p></li>
+      <li><span class="step">STEP 03</span><h3>Hold a frame</h3><p>Three thousand bees, surprisingly calm, astonishingly heavy. The moment everyone remembers — knees optional.</p></li>
+      <li><span class="step">STEP 04</span><h3>Taste at the source</h3><p>Honey off the frame, still warm from the hive. Nothing you buy afterwards will taste the same. Sorry.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v7">
+  <div class="wrap">
+    <div class="comb-head"><span>CELL 05 / FROM INSIDE THE VEIL</span><span>REPORTED, DISCREETLY</span></div>
+    <blockquote class="t-quote">“I held a frame of bees and cried inside the veil, quietly, at how calm it all was. <em>The keeper pretended not to notice.</em>”</blockquote>
+    <div class="t-attr">Hannah R. — hive experience, birthday gift</div>
+    <div class="t-sub">
+      <figure><blockquote>“Callum's July jar ruined supermarket honey for our whole household. My son now reads honey labels aloud in shops like a tiny inspector.”</blockquote><figcaption>Owen D. — single-hive subscriber</figcaption></figure>
+      <figure><blockquote>“They collected a swarm off our trampoline within two hours, charged nothing, and sent a photo a month later of ‘our’ bees in their new hive. Impossibly classy.”</blockquote><figcaption>The Pritchards — swarm rescue, Osbaston</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v35">
+  <div class="wrap">
+    <div class="comb-head"><span>CELL 06 / THE COMB</span><span>SIX CELLS, CAPPED</span></div>
+    <div class="comb">
+      <figure><img src="https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=1600&q=85&auto=format&fit=crop" alt="Honey on the dipper, backlit." /><figcaption>THE DIPPER, JULY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1473973266408-ed4e27abdd47?w=1600&q=85&auto=format&fit=crop" alt="Lifting a frame heavy with bees." /><figcaption>FRAME, 3,000 STRONG</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1568526381923-caf3fd520382?w=1600&q=85&auto=format&fit=crop" alt="The hives in the orchard." /><figcaption>THE TWELVE, AT HOME</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1573812461383-e5f8b759d12e?w=1600&q=85&auto=format&fit=crop" alt="Comb, capped and ready." /><figcaption>CAPPED &amp; READY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1471943311424-646960669fbc?w=1600&q=85&auto=format&fit=crop" alt="Jars of the month, labelled by hive." /><figcaption>THE MONTH'S JARS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=85&auto=format&fit=crop" alt="The forage in high summer." /><figcaption>THE FORAGE, JULY</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="comb-head"><span>CELL 07 / ASKED AT THE GATE</span><span>USUALLY MID-VEIL</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the gate.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441600715224" style="color:var(--amber);">01600 715 224</a>. If we're mid-inspection, the bees have the floor; we'll ring back by evening.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why does your honey crystallise?</summary><p>Because it's raw. Real honey sets — the speed depends on the forage. Warm the jar gently in water if you want it runny again, or eat it set on hot toast, which is frankly the superior experience.</p></details>
+        <details><summary>Why is each jar different?</summary><p>Because each hive forages differently and each fortnight flowers differently. Blending would make them identical and boring — the variation is the entire product. Read the label; taste the valley.</p></details>
+        <details><summary>Is the hive experience safe? I'm nervous.</summary><p>Full suits, gentle colonies chosen for visits, and a keeper beside you the whole time. Nervous is normal and usually gone within ten minutes — the hive's calm is contagious. Stings are rare; allergy questions asked at booking, seriously.</p></details>
+        <details><summary>There's a swarm in my garden — what do I do?</summary><p>Nothing but keep your distance and ring us. A swarm is bees between homes, gorged on honey and about as docile as they ever get. Free collection within fifteen miles, usually same day.</p></details>
+        <details><summary>Can I keep bees in my garden?</summary><p>Probably — bees need less space than people think and more attention than they hope. Do the course first; the most expensive mistake in beekeeping is enthusiasm without husbandry, and we've made it so you don't have to.</p></details>
+        <details><summary>When is honey available?</summary><p>When the bees say so — typically June to September, sold by the month until each batch is gone. The sold-out months are not a supply problem; they're how single-apiary honey works.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="comb-head"><span>CELL 08 / SWARMS COLLECTED FROM</span><span>FIFTEEN MILES OF VALLEY</span></div>
+    <ul class="area-list">
+      <li>Monmouth</li><li>Wye Valley</li><li>Ross-on-Wye</li><li>Abergavenny</li><li>Usk</li><li>Chepstow</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="comb-head"><span>CELL 09 / THE PAPERWORK</span><span>SLIGHTLY STICKY, FULLY CURRENT</span></div>
+    <div class="creds">
+      <div><div class="label">Registered</div><div class="detail">BeeBase-registered apiary, inspected</div></div>
+      <div><div class="label">Association</div><div class="detail">Welsh Beekeepers' Association members</div></div>
+      <div><div class="label">Raw</div><div class="detail">Cold-extracted, single-hive, never blended</div></div>
+      <div><div class="label">Insured</div><div class="detail">Public liability for visits &amp; swarm work</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="comb-head"><span>CELL 10 / THE ORCHARD</span><span>ROCKFIELD ROAD, MONMOUTH</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Twelve Hives</strong><br />
+          Penylan Orchard, Rockfield Road<br />
+          Monmouth NP25 5QB<br /><br />
+          <a href="tel:+441600715224" data-bind="business.phoneDisplay">01600 715 224</a><br />
+          <a href="mailto:keeper@twelvehives.wales" data-bind="business.email">keeper@twelvehives.wales</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>VISITS</span><span>APR – SEP, BOOKED</span></div>
+          <div class="row"><span>JAR SHED</span><span>SEE GOOGLE PROFILE</span></div>
+          <p class="gbp-note">The honesty-box jar shed hours live on our Google Business Profile. Swarm calls answered dawn to dusk in season — that one's urgent, ring twice.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Twelve Hives, Rockfield Road, Monmouth" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.7440%2C51.8130%2C-2.7160%2C51.8230&layer=mapnik&marker=51.8180%2C-2.7300"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v10">
+  <div class="wrap">
+    <div class="frame-no" style="color:var(--honey);">CELL 11 / VISIT</div>
+    <h2>Come stand <em>in the hum.</em></h2>
+    <p data-bind="cta.body">Hive experiences April to September. Jars while the bees allow. The orchard gate is the green one.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a hive visit</a>
+      <a class="btn btn-ghost" href="tel:+441600715224" data-bind="cta.secondary.label">01600 715 224</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441600715224" data-bind="messaging.whatsapp" aria-label="Message the keeper">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">Twelve <span style="color:var(--amber);">Hives</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A working apiary in an orchard above the Wye, Monmouth. Since 2014.</p>
+      </div>
+      <div>
+        <h4>The orchard</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          Penylan Orchard, Rockfield Road<br />Monmouth NP25 5QB<br />
+          <a href="tel:+441600715224">01600 715 224</a><br />
+          <a href="mailto:keeper@twelvehives.wales">keeper@twelvehives.wales</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The frames</a><a href="#about">The orchard</a><a href="#location">Find us</a><a href="#book">Visit</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> TWELVE HIVES</span>
+      <span>THE BEES ARE NOT ANGRY, THEY ARE BUSY</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

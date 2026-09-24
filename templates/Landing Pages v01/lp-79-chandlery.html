@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Wick &amp; Tallow — hand-poured candles &amp; chandlery in Bruton</title>
+<meta name="description" content="Wick & Tallow is a chandlery in Bruton, Somerset — small-batch hand-poured candles and hand-dipped tapers, clean-burning wax, scents blended by the season, refills, and candle-making workshops." />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Wick & Tallow", phone: "+44 1749 812 660", phoneDisplay: "01749 812 660", email: "pour@wickandtallow.co.uk", foundedYear: 2015 },
+  hero: {
+    kicker: "Chandlery · small-batch hand-poured · Bruton, Somerset",
+    headline: "Poured by hand. Burned by evening.",
+    lede: "A working chandlery, not a candle factory. Everything is blended, poured and hand-dipped here in small batches — clean-burning wax, honest scent loads, and cotton wicks that don't tunnel or smoke. We tell you the burn time and the wax on every label, because a candle is a thing you breathe.",
+    primaryCta: { label: "Shop the current pour", href: "#book" },
+    secondaryCta: { label: "What we make", href: "#services" },
+    image: "https://images.unsplash.com/photo-1570823635306-250abb06d4b3?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A hand holding a lit candle."
+  },
+  trust: { years: "At the pouring bench since 2015" },
+  about: {
+    heading: "A candle is the only thing you buy to watch it disappear.",
+    paragraphs: [
+      "So it had better be worth watching. We started Wick & Tallow in 2015 because most high-street candles are a mystery — vague 'fragrance', wax you can't identify, and a burn that tunnels down the middle and gutters out early. We wanted the opposite: everything named, nothing hidden, and a flame that behaves right to the base.",
+      "Every candle is poured by hand in small batches at the bench by the window. We blend our own scents by the season — bright and green in spring, resinous and warm by winter — and we cure each batch properly before it ever goes on the shelf. A rushed candle is a bad candle; the wait is the work.",
+      "We hand-dip tapers the old way too, and we take our refills seriously: bring your vessel back, we'll re-pour it for less. A candle shop that only sells you new glass every time has missed the point of a craft that's meant to last."
+    ],
+    portrait: "https://images.unsplash.com/photo-1605101600616-a8c6db5b98aa?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A pillar candle glowing on a wooden table."
+  },
+  services: [
+    { name: "Hand-poured jar candles", description: "Small-batch, single-wick and three-wick, in scents we blend and cure ourselves. Burn time and wax type on every label — no mystery 'fragrance'." },
+    { name: "Hand-dipped tapers", description: "Dipped the slow way, layer by layer, in beeswax and clean plant wax. They stand straight, burn even, and look right on any table." },
+    { name: "Seasonal scent blends", description: "Our own accords, changed with the year — green and citrus in spring, resin, smoke and spice by winter. Sample the current set at the scent bar." },
+    { name: "Refills & re-pours", description: "Bring your empty vessel back and we'll clean and re-pour it for less than new. Better for your shelf, your wallet and the bin." },
+    { name: "Workshops", description: "Two hours at the bench: blend a scent, pour your own, take it home to cure. For beginners, hen-dos, teams and anyone who likes making things." },
+    { name: "Wholesale & bespoke", description: "Candles for shops, cafés, weddings and brands — your vessel or ours, your scent brief or our house blends, poured to order in proper batches." }
+  ],
+  why: [
+    { title: "Everything named.", body: "The wax, the scent load, the burn time — all on the label. You should know what you're breathing and how long it lasts before you light it." },
+    { title: "Cured, not rushed.", body: "We rest every batch so the scent settles and the burn is clean to the base. It's slower and it's the whole difference between a good candle and a sad one." },
+    { title: "Made to be refilled.", body: "Bring the vessel back for a cheaper re-pour. A craft that dates to antiquity shouldn't end its life in the recycling after one burn." }
+  ],
+  how: [
+    { step: "01", title: "Smell first", body: "Come to the scent bar and try the current season's blends on the wrist and in the air. Scent is personal — no pressure, just sampling." },
+    { step: "02", title: "Pick your format", body: "Jar or taper, single or three-wick, our vessel or bring your own. We'll tell you the burn time so you can size it to your room." },
+    { step: "03", title: "We pour & cure", body: "Off-the-shelf today, or a fresh batch poured and cured for you. Bespoke and wholesale run on a proper lead time — we'll be straight about it." },
+    { step: "04", title: "Bring it back", body: "When it's spent, return the vessel for a discounted re-pour. Same glass, new candle, less waste. That's the loop we want you in." }
+  ],
+  testimonials: [
+    { quote: "First candle I've ever had that burned clean to the very bottom of the jar without tunnelling. Turns out that's what happens when someone actually cures the wax. I'm a convert and a refill regular.", name: "Helen C.", context: "refill regular, two years" },
+    { quote: "Did the workshop for my sister's hen-do. Six of us blended our own scents, poured our own candles, laughed a lot and went home with something we made. Best two hours of the weekend by a mile.", name: "Aoife R.", context: "workshop, party of six" },
+    { quote: "We wanted a house candle for the café that actually smelled like us. They blended it, poured it to order and it's now the thing customers ask to buy at the till. Proper partners, not a supplier.", name: "Tom B.", context: "café wholesale, Bruton" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1667619354433-d29c7abd8814?w=1600&q=85&auto=format&fit=crop", alt: "A group of lit candles." },
+    { src: "https://images.unsplash.com/photo-1599591590655-6633a3960549?w=1600&q=85&auto=format&fit=crop", alt: "A candle glowing on a dark table." },
+    { src: "https://images.unsplash.com/photo-1570823635306-250abb06d4b3?w=1600&q=85&auto=format&fit=crop", alt: "Holding a lit candle." },
+    { src: "https://images.unsplash.com/photo-1605101600616-a8c6db5b98aa?w=1600&q=85&auto=format&fit=crop", alt: "A pillar candle on wood." },
+    { src: "https://images.unsplash.com/photo-1667619354433-d29c7abd8814?w=1600&q=85&auto=format&fit=crop", alt: "Candles lit together." },
+    { src: "https://images.unsplash.com/photo-1599591590655-6633a3960549?w=1600&q=85&auto=format&fit=crop", alt: "A single candle in low light." }
+  ],
+  faq: [
+    { q: "What wax do you use, and why does it matter?", a: "We work in clean plant waxes and beeswax, never paraffin, and we say which is which on every label. Wax choice changes how a candle burns, how it throws scent and what it puts into your air — so hiding it behind the word 'fragrance' has always seemed wrong to us. Different waxes suit different jobs: beeswax for tapers and a warm natural glow, plant blends for jars and a clean cold-and-hot scent throw. Ask and we'll talk you through it happily." },
+    { q: "Why do your candles cost more than supermarket ones?", a: "Because they're poured by hand in small batches, cured for weeks before sale, scented with proper loads of quality oils, and built to burn clean to the base rather than tunnel and die early. You're also buying the refill loop — bring the vessel back and the next pour is cheaper. Per hour of clean, well-scented burn, they work out very fair; per shortcut taken, there simply aren't any." },
+    { q: "What's tunnelling and how do I avoid it?", a: "Tunnelling is when a candle burns straight down the middle leaving a ring of wasted wax up the sides. It usually comes from a poorly matched wick or a rushed pour — problems we design out. Your part is simple: on the first burn, let the melt pool reach the full edge of the vessel before you blow it out (usually an hour or two). Do that once and a well-made candle will burn evenly for its whole life." },
+    { q: "How do the refills work?", a: "Bring your empty Wick & Tallow vessel back to the shop — cleaned or not, we'll sort it — and we'll re-pour it with the scent of your choice for less than the price of a new one. It keeps good glass and ceramic out of the bin and rewards you for it. We can usually do popular scents while you browse; unusual ones or big batches we'll pour and have ready for collection." },
+    { q: "Can I book a workshop for a group?", a: "Yes — workshops are two hours at the bench where you blend a scent and pour your own candle to take home and cure. We run open sessions for individuals and pairs, and private bookings for hen-dos, birthdays and work teams. Groups get the run of the scent bar and a lot of laughing; tell us numbers and any preferences and we'll set it up. Everyone leaves with something they actually made." },
+    { q: "Do you supply shops, cafés or weddings?", a: "Gladly, and it's a real part of what we do. For trade we'll pour to order in proper batches, in your vessel or ours, using a house blend or a scent we develop to your brief. For weddings we do favours, aisle and table candles, and bespoke scents for the day. Give us a realistic lead time and we'll give you candles that smell like you meant it." }
+  ],
+  area: { places: ["Bruton", "Castle Cary", "Frome", "Wincanton", "Shepton Mallet", "Wells"] },
+  credentials: [
+    { label: "Wax", detail: "Clean plant wax & beeswax; never paraffin" },
+    { label: "Labelled", detail: "Wax, scent load & burn time on every candle" },
+    { label: "Cured", detail: "Every batch rested before it goes on sale" },
+    { label: "Refillable", detail: "Bring the vessel back for a cheaper re-pour" }
+  ],
+  location: { name: "Wick & Tallow", addressStreet: "8 High Street", addressLocality: "Bruton", addressRegion: "Somerset", addressPostcode: "BA10 0AB", addressCountry: "United Kingdom" },
+  cta: { heading: "Come and smell the season.", body: "Try the current blends at the scent bar, pick a candle sized to your room, or book a bench at a workshop. Bring an empty vessel and the next pour's cheaper.", primary: { label: "Shop the current pour", href: "#book" }, secondary: { label: "01749 812 660", href: "tel:+441749812660" } },
+  messaging: { whatsapp: "https://wa.me/441749812660", messenger: "https://m.me/wickandtallow" }
+};
+</script>
+
+<style>
+  :root {
+    --wax:#f3ead6; --tallow:#241a12; --ember:#c96f2c; --sage:#75805f;
+    --ink:#241a12; --mid:#6b5d4a; --mid-d:#c3b49c; --rule:rgba(36,26,18,0.16); --rule-d:rgba(243,234,214,0.18);
+    --disp:"DM Serif Display",Georgia,serif; --sans:"Barlow",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--wax);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--ember);}
+  .wrap{width:min(1240px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ember);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(34px,4.6vw,64px);line-height:1.02;margin:0 0 0.42em;letter-spacing:-0.005em;}
+  .h2 em{font-style:italic;color:var(--ember);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--tallow);color:var(--wax);} .btn-primary:hover{background:var(--ember);}
+  .btn-ghost{border:1.5px solid var(--tallow);} .btn-ghost:hover{background:var(--tallow);color:var(--wax);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--tallow);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);font-weight:700;}
+  .light .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(243,234,214,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--tallow);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-size:25px;text-decoration:none;letter-spacing:-0.01em;}
+  .wm span{color:var(--ember);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — burn-spec label beside a warm flame */
+  .hero{padding:clamp(48px,6.5vw,92px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:400;font-size:clamp(44px,6.4vw,92px);line-height:1;margin:18px 0 22px;letter-spacing:-0.01em;}
+  .hero h1 em{font-style:italic;color:var(--ember);}
+  .hero .lede{color:var(--mid);max-width:50ch;line-height:1.72;font-size:clamp(15.5px,1.5vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:3px;}
+  .burn-spec{position:absolute;bottom:22px;left:-16px;background:var(--wax);border:1.5px solid var(--tallow);padding:16px 20px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;line-height:2;text-transform:uppercase;font-weight:700;box-shadow:0 12px 30px rgba(36,26,18,0.2);}
+  .burn-spec b{font-family:var(--disp);font-weight:400;font-size:17px;display:block;letter-spacing:0;text-transform:none;color:var(--ember);margin-bottom:6px;}
+  .burn-spec .row{display:flex;justify-content:space-between;gap:26px;color:var(--mid);}
+  .burn-spec .row span:last-child{color:var(--tallow);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .hero-photo{max-width:420px;}}
+
+  .trust{padding:0;background:var(--tallow);color:var(--wax);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(243,234,214,0.85);font-weight:700;}
+
+  .about{background:var(--tallow);color:var(--wax);}
+  .about .h2{color:var(--wax);} .about .h2 em{color:var(--ember);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.74;margin:0 0 1em;color:rgba(243,234,214,0.84);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--tallow);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(201,111,44,0.07);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--ember);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(22px,2.4vw,31px);margin:0;line-height:1.04;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--sage);color:var(--wax);}
+  .why .sw-head{border-color:rgba(243,234,214,0.4);color:rgba(243,234,214,0.8);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--wax);opacity:0.72;display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:26px;margin:0 0 10px;line-height:1.04;}
+  .why-grid p{color:rgba(243,234,214,0.92);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--tallow);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--ember);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:22px;margin:8px 0 8px;line-height:1.06;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#ece1c8;}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(26px,3.5vw,48px);line-height:1.08;max-width:26ch;margin:0 0 24px;letter-spacing:-0.005em;}
+  .t-quote em{font-style:italic;color:var(--ember);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--tallow);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:3px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--tallow);color:var(--ember);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--tallow);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:21px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--ember);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--tallow);border-radius:2px;font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--tallow);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:18px;line-height:1.18;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--tallow);color:var(--wax);padding:34px;border-radius:3px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:21px;line-height:1.3;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(243,234,214,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(243,234,214,0.78);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(243,234,214,0.72);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:3px;border:1.5px solid var(--tallow);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:sepia(0.2);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--tallow);color:var(--wax);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--ember);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(40px,6vw,92px);line-height:1.02;margin:14px auto 18px;max-width:17ch;letter-spacing:-0.01em;}
+  .cta-band h2 em{font-style:italic;color:var(--ember);}
+  .cta-band p{color:rgba(243,234,214,0.86);max-width:48ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--ember);color:var(--tallow);}
+  .cta-band .btn-primary:hover{background:var(--wax);}
+  .cta-band .btn-ghost{border-color:rgba(243,234,214,0.6);color:var(--wax);}
+  .cta-band .btn-ghost:hover{background:var(--wax);color:var(--tallow);}
+
+  footer{background:var(--wax);border-top:1.5px solid var(--tallow);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ember);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--ember);color:var(--wax);padding:13px 20px;border-radius:2px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(201,111,44,0.4);}
+  .msg-fab a:hover{background:var(--tallow);color:var(--wax);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Wick & Tallow","description":"Chandlery in Bruton, Somerset — small-batch hand-poured candles and hand-dipped tapers, clean-burning wax, seasonal scents, refills and workshops.","url":"https://wickandtallow.co.uk/","telephone":"+441749812660","email":"pour@wickandtallow.co.uk","address":{"@type":"PostalAddress","streetAddress":"8 High Street","addressLocality":"Bruton","addressRegion":"Somerset","postalCode":"BA10 0AB","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.1130,"longitude":-2.4530},"areaServed":["Bruton","Castle Cary","Frome","Wells"],"image":["https://images.unsplash.com/photo-1570823635306-250abb06d4b3?w=1600"],"foundingDate":"2015"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What wax do you use?","acceptedAnswer":{"@type":"Answer","text":"Clean plant waxes and beeswax, never paraffin, with the wax named on every label. Beeswax for tapers, plant blends for jars."}},
+{"@type":"Question","name":"Why do they cost more than supermarket candles?","acceptedAnswer":{"@type":"Answer","text":"Hand-poured in small batches, cured for weeks, properly scented and built to burn clean to the base — plus a cheaper refill loop when you return the vessel."}},
+{"@type":"Question","name":"How do I avoid tunnelling?","acceptedAnswer":{"@type":"Answer","text":"On the first burn, let the melt pool reach the full edge of the vessel before extinguishing. A well-made candle then burns evenly for life."}},
+{"@type":"Question","name":"How do refills work?","acceptedAnswer":{"@type":"Answer","text":"Bring your empty Wick & Tallow vessel back and we re-pour it with your chosen scent for less than a new candle."}},
+{"@type":"Question","name":"Can I book a workshop for a group?","acceptedAnswer":{"@type":"Answer","text":"Yes — two hours at the bench blending and pouring your own candle. Open sessions plus private bookings for hen-dos, birthdays and teams."}},
+{"@type":"Question","name":"Do you supply shops, cafés or weddings?","acceptedAnswer":{"@type":"Answer","text":"Yes — poured to order in batches, your vessel or ours, house blends or a bespoke scent to your brief, on a realistic lead time."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Wick <span>&amp;</span> Tallow</a>
+    <nav class="nav-links">
+      <a href="#about">The chandlery</a><a href="#services">What we make</a><a href="#location">Find us</a><a href="#book">Shop</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v65">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Chandlery · small-batch hand-poured · Bruton, Somerset</div>
+      <h1 data-comment-anchor="hero-headline">Poured by hand. <em>Burned by evening.</em></h1>
+      <p class="lede" data-bind="hero.lede">A working chandlery, not a candle factory. Everything is blended, poured and hand-dipped here in small batches — clean-burning wax, honest scent loads, and cotton wicks that don't tunnel or smoke. We tell you the burn time and the wax on every label, because a candle is a thing you breathe.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Shop the current pour</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we make</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1570823635306-250abb06d4b3?w=2000&q=85&auto=format&fit=crop"
+           alt="A hand holding a lit candle." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="burn-spec">
+        <b>Fig No. 14 — Bramble &amp; Ash</b>
+        <div class="row"><span>Wax</span><span>Rapeseed &amp; coco</span></div>
+        <div class="row"><span>Burn</span><span>45 hours</span></div>
+        <div class="row"><span>Cure</span><span>14 days</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the pouring bench since 2015</span>
+    <span>Clean wax, never paraffin</span>
+    <span>Cured before sale</span>
+    <span>Refill &amp; re-pour</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v31">
+  <div class="wrap">
+    <div class="sw-head"><span>POUR 01 / THE CHANDLERY</span><span>NAMED, NOTHING HIDDEN</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1605101600616-a8c6db5b98aa?w=1200&q=85&auto=format&fit=crop"
+           alt="A pillar candle glowing on a wooden table." />
+      <div class="about-prose">
+        <h2 class="h2">A candle is the only thing you buy <em>to watch it disappear.</em></h2>
+        <p>So it had better be worth watching. We started Wick &amp; Tallow in 2015 because most high-street candles are a mystery — vague "fragrance", wax you can't identify, and a burn that tunnels down the middle and gutters out early. We wanted the opposite: everything named, nothing hidden, and a flame that behaves right to the base.</p>
+        <p>Every candle is poured by hand in small batches at the bench by the window. We blend our own scents by the season — bright and green in spring, resinous and warm by winter — and we cure each batch properly before it ever goes on the shelf. A rushed candle is a bad candle; the wait is the work.</p>
+        <p>We hand-dip tapers the old way too, and we take our refills seriously: bring your vessel back, we'll re-pour it for less. A candle shop that only sells you new glass every time has missed the point of a craft that's meant to last.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v58">
+  <div class="wrap">
+    <div class="sw-head"><span>POUR 02 / WHAT WE MAKE</span><span>BENCH TO SHELF</span></div>
+    <h2 class="h2">What we make.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Hand-poured jar candles</h3><p>Small-batch, single-wick and three-wick, in scents we blend and cure ourselves. Burn time and wax type on every label — no mystery "fragrance".</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Hand-dipped tapers</h3><p>Dipped the slow way, layer by layer, in beeswax and clean plant wax. They stand straight, burn even, and look right on any table.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Seasonal scent blends</h3><p>Our own accords, changed with the year — green and citrus in spring, resin, smoke and spice by winter. Sample the current set at the scent bar.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Refills &amp; re-pours</h3><p>Bring your empty vessel back and we'll clean and re-pour it for less than new. Better for your shelf, your wallet and the bin.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Workshops</h3><p>Two hours at the bench: blend a scent, pour your own, take it home to cure. For beginners, hen-dos, teams and anyone who likes making things.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Wholesale &amp; bespoke</h3><p>Candles for shops, cafés, weddings and brands — your vessel or ours, your scent brief or our house blends, poured to order in proper batches.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v30">
+  <div class="wrap">
+    <div class="sw-head"><span>POUR 03 / THE DIFFERENCE</span><span>WHY IT BURNS BETTER</span></div>
+    <h2 class="h2" style="color:var(--wax);">Why it burns better.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Everything named.</h3><p>The wax, the scent load, the burn time — all on the label. You should know what you're breathing and how long it lasts before you light it.</p></div>
+      <div><span class="no">02 / 03</span><h3>Cured, not rushed.</h3><p>We rest every batch so the scent settles and the burn is clean to the base. It's slower and it's the whole difference between a good candle and a sad one.</p></div>
+      <div><span class="no">03 / 03</span><h3>Made to be refilled.</h3><p>Bring the vessel back for a cheaper re-pour. A craft that dates to antiquity shouldn't end its life in the recycling after one burn.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>POUR 04 / HOW IT GOES</span><span>SMELL → PICK → POUR → RETURN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Smell first</h3><p>Come to the scent bar and try the current season's blends on the wrist and in the air. Scent is personal — no pressure, just sampling.</p></li>
+      <li><span class="step">STEP 02</span><h3>Pick your format</h3><p>Jar or taper, single or three-wick, our vessel or bring your own. We'll tell you the burn time so you can size it to your room.</p></li>
+      <li><span class="step">STEP 03</span><h3>We pour &amp; cure</h3><p>Off-the-shelf today, or a fresh batch poured and cured for you. Bespoke and wholesale run on a proper lead time — we'll be straight about it.</p></li>
+      <li><span class="step">STEP 04</span><h3>Bring it back</h3><p>When it's spent, return the vessel for a discounted re-pour. Same glass, new candle, less waste. That's the loop we want you in.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v30">
+  <div class="wrap">
+    <div class="sw-head"><span>POUR 05 / FROM THE COUNTER</span><span>SAID OVER THE SCENT BAR</span></div>
+    <blockquote class="t-quote">“First candle I've ever had that burned clean to the very bottom without <em>tunnelling.</em>”</blockquote>
+    <div class="t-attr">Helen C. — refill regular, two years</div>
+    <div class="t-sub">
+      <figure><blockquote>“Did the workshop for my sister's hen-do. Six of us blended our own scents, poured our own candles, laughed a lot and went home with something we made. Best two hours of the weekend by a mile.”</blockquote><figcaption>Aoife R. — workshop, party of six</figcaption></figure>
+      <figure><blockquote>“We wanted a house candle for the café that actually smelled like us. They blended it, poured it to order and it's now the thing customers ask to buy at the till. Proper partners, not a supplier.”</blockquote><figcaption>Tom B. — café wholesale, Bruton</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v58">
+  <div class="wrap">
+    <div class="sw-head"><span>POUR 06 / THE SHELF</span><span>CURED &amp; LIT</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1667619354433-d29c7abd8814?w=1600&q=85&auto=format&fit=crop" alt="A group of lit candles." /><figcaption>THE CURRENT POUR</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1599591590655-6633a3960549?w=1600&q=85&auto=format&fit=crop" alt="A candle glowing on a dark table." /><figcaption>SCENT No. 09</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1570823635306-250abb06d4b3?w=1600&q=85&auto=format&fit=crop" alt="Holding a lit candle." /><figcaption>LIT TO SAMPLE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1605101600616-a8c6db5b98aa?w=1600&q=85&auto=format&fit=crop" alt="A pillar candle on wood." /><figcaption>THE WINTER PILLAR</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1667619354433-d29c7abd8814?w=1600&q=85&auto=format&fit=crop" alt="Candles lit together." /><figcaption>BENCH BATCH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1599591590655-6633a3960549?w=1600&q=85&auto=format&fit=crop" alt="A single candle in low light." /><figcaption>BURNS CLEAN</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>POUR 07 / ASKED AT THE SCENT BAR</span><span>MID-SNIff</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the scent bar.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441749812660" style="color:var(--ember);font-weight:700;">01749 812 660</a>. If we're mid-pour we'll call you back once the batch is set.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What wax do you use, and why does it matter?</summary><p>We work in clean plant waxes and beeswax, never paraffin, and we say which is which on every label. Wax choice changes how a candle burns, how it throws scent and what it puts into your air — so hiding it behind the word "fragrance" has always seemed wrong to us. Different waxes suit different jobs: beeswax for tapers and a warm natural glow, plant blends for jars and a clean cold-and-hot scent throw. Ask and we'll talk you through it happily.</p></details>
+        <details><summary>Why do your candles cost more than supermarket ones?</summary><p>Because they're poured by hand in small batches, cured for weeks before sale, scented with proper loads of quality oils, and built to burn clean to the base rather than tunnel and die early. You're also buying the refill loop — bring the vessel back and the next pour is cheaper. Per hour of clean, well-scented burn, they work out very fair; per shortcut taken, there simply aren't any.</p></details>
+        <details><summary>What's tunnelling and how do I avoid it?</summary><p>Tunnelling is when a candle burns straight down the middle leaving a ring of wasted wax up the sides. It usually comes from a poorly matched wick or a rushed pour — problems we design out. Your part is simple: on the first burn, let the melt pool reach the full edge of the vessel before you blow it out (usually an hour or two). Do that once and a well-made candle will burn evenly for its whole life.</p></details>
+        <details><summary>How do the refills work?</summary><p>Bring your empty Wick &amp; Tallow vessel back to the shop — cleaned or not, we'll sort it — and we'll re-pour it with the scent of your choice for less than the price of a new one. It keeps good glass and ceramic out of the bin and rewards you for it. We can usually do popular scents while you browse; unusual ones or big batches we'll pour and have ready for collection.</p></details>
+        <details><summary>Can I book a workshop for a group?</summary><p>Yes — workshops are two hours at the bench where you blend a scent and pour your own candle to take home and cure. We run open sessions for individuals and pairs, and private bookings for hen-dos, birthdays and work teams. Groups get the run of the scent bar and a lot of laughing; tell us numbers and any preferences and we'll set it up. Everyone leaves with something they actually made.</p></details>
+        <details><summary>Do you supply shops, cafés or weddings?</summary><p>Gladly, and it's a real part of what we do. For trade we'll pour to order in proper batches, in your vessel or ours, using a house blend or a scent we develop to your brief. For weddings we do favours, aisle and table candles, and bespoke scents for the day. Give us a realistic lead time and we'll give you candles that smell like you meant it.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>POUR 08 / CUSTOMERS COME FROM</span><span>ACROSS SOMERSET</span></div>
+    <ul class="area-list">
+      <li>Bruton</li><li>Castle Cary</li><li>Frome</li><li>Wincanton</li><li>Shepton Mallet</li><li>Wells</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v5" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>POUR 09 / THE ESSENTIALS</span><span>HOW WE POUR</span></div>
+    <div class="creds">
+      <div><div class="label">Wax</div><div class="detail">Clean plant wax &amp; beeswax; never paraffin</div></div>
+      <div><div class="label">Labelled</div><div class="detail">Wax, scent load &amp; burn time on every candle</div></div>
+      <div><div class="label">Cured</div><div class="detail">Every batch rested before it goes on sale</div></div>
+      <div><div class="label">Refillable</div><div class="detail">Bring the vessel back for a cheaper re-pour</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>POUR 10 / FIND US</span><span>8 HIGH STREET, BRUTON</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Wick &amp; Tallow</strong><br />
+          8 High Street<br />
+          Bruton BA10 0AB<br /><br />
+          <a href="tel:+441749812660" data-bind="business.phoneDisplay">01749 812 660</a><br />
+          <a href="mailto:pour@wickandtallow.co.uk" data-bind="business.email">pour@wickandtallow.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>WORKSHOPS</span><span>BY BOOKING</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're the little shopfront on the High Street with the scent bar in the window — you'll smell the current pour before you reach the door.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Wick & Tallow, Bruton" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.4620%2C51.1090%2C-2.4440%2C51.1170&layer=mapnik&marker=51.1130%2C-2.4530"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v33">
+  <div class="wrap">
+    <div class="kick">POUR 11 / SHOP</div>
+    <h2 data-bind="cta.heading">Come and smell <em>the season.</em></h2>
+    <p data-bind="cta.body">Try the current blends at the scent bar, pick a candle sized to your room, or book a bench at a workshop. Bring an empty vessel and the next pour's cheaper.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Shop the current pour</a>
+      <a class="btn btn-ghost" href="tel:+441749812660" data-bind="cta.secondary.label">01749 812 660</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441749812660" data-bind="messaging.whatsapp" aria-label="Message the chandlery">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Wick <span style="color:var(--ember);font-style:italic;">&amp;</span> Tallow</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A chandlery in Bruton, Somerset. At the pouring bench since 2015.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;">
+          8 High Street<br />Bruton BA10 0AB<br />
+          <a href="tel:+441749812660">01749 812 660</a><br />
+          <a href="mailto:pour@wickandtallow.co.uk">pour@wickandtallow.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we make</a><a href="#about">The chandlery</a><a href="#location">Find us</a><a href="#book">Shop</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> WICK &amp; TALLOW LTD</span>
+      <span>POURED &amp; CURED IN SOMERSET</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

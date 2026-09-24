@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Batterhouse — fish &amp; chips on Scarborough's Foreshore</title>
+<meta name="description" content="Batterhouse is a chippy on Scarborough's Foreshore — haddock landed at the harbour, chips from named farms, beef dripping in the fryers, eaten on the sea wall as intended." />
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cutive+Mono&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Batterhouse", phone: "+44 1723 355 662", phoneDisplay: "01723 355 662", email: "fryer@batterhouse.co.uk", foundedYear: 1962 },
+  hero: {
+    kicker: "Fish & chips · beef dripping · Foreshore Road, Scarborough · est. 1962",
+    headline: "HADDOCK. CHIPS. SEA WALL. DONE.",
+    lede: "Sixty-three years of doing one meal properly: haddock off the harbour boats, chips from farms we can name, beef dripping in the fryers because flavour beat fashion and we sided with flavour. Eat it on the sea wall. Guard it from the gulls. That's the whole instruction manual.",
+    primaryCta: { label: "The fryer board", href: "#services" },
+    secondaryCta: { label: "Find the Foreshore", href: "#location" },
+    image: "https://images.unsplash.com/photo-1579208030886-b937da0925dc?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Golden battered fish and chips, wrapped and ready."
+  },
+  trust: { years: "Frying since 1962" },
+  about: {
+    heading: "Three families, one fryer, since 1962.",
+    paragraphs: [
+      "Batterhouse opened the summer of 1962 and has been run by three families since — each one trained by the last, each one refusing to change the batter. The recipe is in a safe. The safe is a biscuit tin. The biscuit tin is guarded by Doreen, who has worked the counter since 1989 and outranks everyone.",
+      "The haddock comes up the hill from the harbour market; the potatoes come down from Wolds farms we've dealt with for decades — Maris Pipers most of the year, and we'll tell you honestly when the new-crop months make the chips softer, because you'd taste it anyway.",
+      "Beef dripping is non-negotiable. It fries hotter, crisps better and tastes like the twentieth century's best decision. (There's a separate vegetable-oil fryer for the fish-free and the faithful of other persuasions — separate oil, separate tools, properly done.)"
+    ],
+    portrait: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "The fryer range at full service."
+  },
+  services: [
+    { name: "Haddock & chips", description: "The reason the queue bends round the rail. Harbour haddock, dripping-fried, batter that shatters. Regular feeds a person; large feeds a person who's been swimming." },
+    { name: "The full counter", description: "Cod for the traditionalists, scampi, fishcakes made in the back, sausages battered and not. Mushy peas in proper tubs, curry sauce with opinions." },
+    { name: "The sit-down room", description: "Forty seats, bread and butter, pots of tea, the good vinegar on every table. The window seats watch the bay; the corner seats watch Doreen." },
+    { name: "The gluten-free fry", description: "Tuesday and Thursday, dedicated pans and batter. Coeliac-safe done seriously, not as a shrug — book nothing, just come." },
+    { name: "Veggie & vegan fryer", description: "Separate oil, separate tools: battered halloumi, 'fish' of battered banana blossom that surprises people weekly, and the same chips as everyone." },
+    { name: "Crew & party orders", description: "Trawler crews, rugby teams, office Fridays, one wedding (the bride queued in the dress). Ring ahead for anything over ten and we'll stage the frying." }
+  ],
+  why: [
+    { title: "Fish that came up the hill.", body: "The harbour is four hundred metres away. Our haddock's journey is shorter than your walk from the car park — and you can taste the difference that makes." },
+    { title: "Beef dripping, held the line.", body: "Everyone else switched to oil in the nineties. We didn't, because dripping fries crisper and tastes better, and sixty-three years of queues agree." },
+    { title: "Chips from named farms.", body: "Wolds Maris Pipers, same families for decades, rumbled and cut here every morning. When the crop changes, the board says so. Honesty is house policy." }
+  ],
+  how: [
+    { step: "01", title: "Join the queue", body: "It bends round the railing in summer and moves faster than it looks. The menu board gives you time to waver. Don't. Haddock." },
+    { step: "02", title: "Order at the counter", body: "Scraps are free if you ask (ask), mushy peas are mandatory in spirit, and Doreen will remember your order next time." },
+    { step: "03", title: "Wrapped, not boxed", body: "Paper keeps the batter crisp; boxes steam it soggy. We are prepared to argue about this indefinitely." },
+    { step: "04", title: "The sea wall", body: "Thirty metres to the correct bench. Sit facing the sea, guard against gulls, and understand why this meal built this coastline." }
+  ],
+  testimonials: [
+    { quote: "I've eaten fish and chips in forty years of seaside holidays and Batterhouse is the standard I judge every other chippy against. The batter makes a noise. A NOISE.", name: "Graham T.", context: "forty summers, still queuing" },
+    { quote: "Coeliac for a decade and I'd written off proper chippy chips. Their Tuesday gluten-free fry had me standing on the sea wall genuinely emotional over a chip.", name: "Rachel M.", context: "gluten-free fry, Tuesdays" },
+    { quote: "Moved to Leeds. Drive 140 miles round trip roughly monthly. My partner thinks it's for my mum. It's mostly for my mum.", name: "Danny H.", context: "haddock large, expatriate" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1579208030886-b937da0925dc?w=1600&q=85&auto=format&fit=crop", alt: "The wrap, opened on the sea wall." },
+    { src: "https://images.unsplash.com/photo-1544025162-d76694265947?w=1600&q=85&auto=format&fit=crop", alt: "The range at full service." },
+    { src: "https://images.unsplash.com/photo-1518013431117-eb1465fa5752?w=1600&q=85&auto=format&fit=crop", alt: "Chips, rumbled and cut this morning." },
+    { src: "https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=1600&q=85&auto=format&fit=crop", alt: "The harbour, four hundred metres away." },
+    { src: "https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=1600&q=85&auto=format&fit=crop", alt: "Batter, mid-shatter." },
+    { src: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=85&auto=format&fit=crop", alt: "The bay from the correct bench." }
+  ],
+  faq: [
+    { q: "Haddock or cod?", a: "Haddock. This is Yorkshire; cod is on the menu for visitors and we fry it beautifully, but haddock is the house religion — sweeter, flakier, and what the harbour lands. Doreen will serve you cod without judgement. Visible judgement." },
+    { q: "What's in the batter?", a: "Flour, water, a raising agent and a sequence Doreen guards in the biscuit tin. No beer — beer batter is for gastropubs. The crispness comes from the dripping's heat and sixty years of not fiddling." },
+    { q: "Do you fry in beef dripping? Is there an alternative?", a: "Yes, proudly, since 1962 — it's why the batter shatters. And yes: a fully separate vegetable-oil fryer with its own tools for vegetarian, vegan and preference orders. Separate means separate here." },
+    { q: "When's the gluten-free fry?", a: "Tuesdays and Thursdays, all day — dedicated pans, dedicated batter, coeliac-safe procedures we'll happily describe in detail. No booking; the board outside confirms it's a GF day." },
+    { q: "Can I eat in?", a: "Forty seats, pots of tea, bread and butter for the chip butty of your life. Sea-view window seats go first. The room is cash-or-card, the queue outside is faster, the gulls work both." },
+    { q: "What about the gulls? Seriously.", a: "Seriously: back to the wall, food close, never hold a chip aloft in triumph. The gulls of Scarborough are professionals and they have studied you. We sell a lid for a reason." }
+  ],
+  area: { places: ["Scarborough", "Filey", "Whitby coast", "Bridlington", "Seamer", "Cayton Bay"] },
+  credentials: [
+    { label: "Est.", detail: "Same fryer, same Foreshore, since 1962" },
+    { label: "Fish", detail: "Haddock from Scarborough harbour market" },
+    { label: "Hygiene", detail: "Food hygiene rating 5, inspected" },
+    { label: "GF", detail: "Dedicated coeliac-safe fry, Tue & Thu" }
+  ],
+  location: { name: "Batterhouse", addressStreet: "24 Foreshore Road", addressLocality: "Scarborough", addressRegion: "North Yorkshire", addressPostcode: "YO11 1NX", addressCountry: "United Kingdom" },
+  cta: { heading: "THE FRYER'S HOT. THE TIDE'S IN. COME ON.", body: "Queue bends round the rail, moves fast, ends in the best meal on this coastline. Scraps are free if you ask.", primary: { label: "Find the Foreshore", href: "#location" }, secondary: { label: "01723 355 662", href: "tel:+441723355662" } },
+  messaging: { whatsapp: "https://wa.me/441723355662", messenger: "https://m.me/batterhouse1962" }
+};
+</script>
+
+<style>
+  :root {
+    --newsprint:#f4efe3; --seafront:#0e5a63; --vinegar:#173038; --mushy:#7fa348;
+    --batter:#f2b53a; --mid:#777161; --rule:rgba(23,48,56,0.16);
+    --slab:"Alfa Slab One",serif; --sans:"Public Sans",sans-serif; --mono:"Cutive Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--newsprint);color:var(--vinegar);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--seafront);}
+  .wrap{width:min(1300px,94vw);margin-inline:auto;}
+  .chalk{font-family:var(--mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:var(--seafront);}
+  .h2{font-family:var(--slab);font-weight:400;font-size:clamp(36px,5.4vw,84px);line-height:0.98;letter-spacing:0;text-transform:uppercase;margin:0 0 0.45em;}
+  .h2 .dip{color:var(--batter);text-shadow:2px 2px 0 var(--vinegar);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(72px,9vw,130px) 0;position:relative;}
+  .btn{display:inline-flex;align-items:center;padding:15px 28px;font-family:var(--slab);font-size:14px;letter-spacing:0.04em;text-transform:uppercase;text-decoration:none;transition:0.15s;border:3px solid var(--vinegar);}
+  .btn-primary{background:var(--batter);color:var(--vinegar);box-shadow:5px 5px 0 var(--vinegar);} .btn-primary:hover{box-shadow:0 0 0 var(--vinegar);transform:translate(3px,3px);color:var(--vinegar);}
+  .btn-ghost{background:transparent;} .btn-ghost:hover{background:var(--vinegar);color:var(--newsprint);}
+  .board-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);border-bottom:3px solid var(--vinegar);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(244,239,227,0.95);backdrop-filter:blur(10px);border-bottom:3px solid var(--vinegar);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:12px 0;}
+  .wm{font-family:var(--slab);font-size:20px;text-transform:uppercase;text-decoration:none;}
+  .wm span{color:var(--seafront);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — seafront menu-board monument: colossal slab type, chip-paper photo, price-tag stickers */
+  .hero{padding:clamp(44px,5.5vw,80px) 0 0;}
+  .hero .kicker-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);}
+  .hero .kicker-row b{color:var(--seafront);font-weight:400;}
+  .hero h1{font-family:var(--slab);font-weight:400;text-transform:uppercase;line-height:0.9;margin:24px 0 0;font-size:clamp(50px,9.6vw,164px);}
+  .hero h1 .w1{display:block;color:var(--seafront);}
+  .hero h1 .w2{display:block;color:var(--vinegar);}
+  .hero h1 .w3{display:block;color:var(--batter);text-shadow:3px 3px 0 var(--vinegar);}
+  .hero-under{display:grid;grid-template-columns:1fr 1fr;gap:clamp(30px,5vw,80px);align-items:end;margin-top:clamp(30px,4vw,56px);}
+  .hero-under .lede{font-size:clamp(15.5px,1.5vw,19px);line-height:1.62;color:var(--vinegar);max-width:46ch;font-weight:500;}
+  .hero-ctas{margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/11;object-fit:cover;border:3px solid var(--vinegar);}
+  .price-flash{position:absolute;top:-24px;right:-10px;width:110px;height:110px;border-radius:50%;background:var(--batter);border:3px solid var(--vinegar);display:grid;place-items:center;text-align:center;font-family:var(--slab);font-size:13px;line-height:1.15;text-transform:uppercase;transform:rotate(8deg);padding:14px;}
+  @media(max-width:820px){.hero-under{grid-template-columns:1fr;} .price-flash{right:6px;}}
+
+  /* gull-warning marquee */
+  .marquee{background:var(--vinegar);color:var(--newsprint);overflow:hidden;padding:12px 0;border-top:3px solid var(--vinegar);}
+  .marquee .track{display:flex;white-space:nowrap;font-family:var(--slab);font-size:clamp(16px,2vw,26px);text-transform:uppercase;letter-spacing:0.04em;}
+  @media(prefers-reduced-motion:no-preference){.marquee .track{animation:mq 24s linear infinite;}}
+  @keyframes mq{to{transform:translateX(-50%);}}
+  .marquee span{padding-right:2ch;}
+  .marquee em{font-style:normal;color:var(--batter);}
+
+  .trust{padding:0;background:var(--seafront);color:var(--newsprint);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(244,239,227,0.85);}
+
+  /* ABOUT — newsprint chip-paper: text set on faint column rules */
+  .about .paper-ghost{position:absolute;top:3vw;right:-1vw;font-family:var(--slab);font-size:clamp(120px,22vw,360px);line-height:0.8;color:rgba(23,48,56,0.05);pointer-events:none;user-select:none;text-transform:uppercase;}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;position:relative;}
+  .about-grid .photo{position:relative;transform:rotate(-1.2deg);border:3px solid var(--vinegar);background:#fff;padding:10px 10px 40px;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  .about-grid .photo::after{content:"THE RANGE, SATURDAY DINNERTIME";position:absolute;bottom:12px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--mid);}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.7;margin:0 0 1em;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — the fryer board: chalk menu rows with dotted price leaders */
+  .fryer-board{background:var(--vinegar);color:var(--newsprint);border:3px solid var(--vinegar);padding:clamp(28px,4vw,56px);}
+  .fb-row{display:grid;grid-template-columns:1fr 1.3fr;gap:clamp(18px,3vw,44px);padding:22px 0;border-bottom:2px dashed rgba(244,239,227,0.25);align-items:baseline;}
+  .fb-row:last-child{border-bottom:0;}
+  .fb-row h3{font-family:var(--slab);font-weight:400;font-size:clamp(20px,2.2vw,30px);margin:0;text-transform:uppercase;line-height:1.05;position:relative;}
+  .fb-row h3 .lead{color:var(--batter);}
+  .fb-row p{color:rgba(244,239,227,0.75);margin:0;font-size:14.5px;line-height:1.64;}
+  @media(max-width:760px){.fb-row{grid-template-columns:1fr;gap:8px;}}
+
+  /* WHY — mushy-pea manifesto */
+  .why{background:var(--batter);}
+  .why .board-head{border-color:var(--vinegar);color:rgba(23,48,56,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,64px);}
+  .why-grid .num{font-family:var(--slab);font-size:clamp(64px,7.5vw,112px);line-height:0.9;color:var(--newsprint);text-shadow:3px 3px 0 var(--vinegar);display:block;margin-bottom:16px;}
+  .why-grid h3{font-family:var(--slab);font-weight:400;font-size:22px;text-transform:uppercase;margin:0 0 10px;line-height:1.05;}
+  .why-grid p{color:rgba(23,48,56,0.8);margin:0;font-size:14.5px;line-height:1.68;font-weight:500;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--vinegar);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;color:var(--seafront);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--slab);font-weight:400;font-size:18px;text-transform:uppercase;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--seafront);color:var(--newsprint);}
+  .testimonials .board-head{border-color:rgba(244,239,227,0.5);color:rgba(244,239,227,0.7);}
+  .t-quote{font-family:var(--slab);font-weight:400;font-size:clamp(28px,4.4vw,64px);line-height:1;text-transform:uppercase;max-width:22ch;margin:0 0 24px;}
+  .t-quote em{font-style:normal;color:var(--batter);}
+  .t-attr{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,239,227,0.7);margin-bottom:clamp(40px,5vw,64px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:3px solid var(--newsprint);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.66;margin:0 0 12px;color:rgba(244,239,227,0.9);}
+  .t-sub figcaption{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(244,239,227,0.65);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — postcards from the Foreshore */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(18px,2.6vw,36px);}
+  .g-grid figure{margin:0;background:#fff;border:3px solid var(--vinegar);padding:8px 8px 34px;position:relative;}
+  .g-grid figure:nth-child(odd){transform:rotate(-1deg);}
+  .g-grid figure:nth-child(even){transform:rotate(1.1deg);}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;}
+  .g-grid figcaption{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;} .g-grid figure{transform:none;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:2px dashed var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:3px solid var(--vinegar);}
+  .faq-list summary{font-family:var(--slab);font-weight:400;font-size:19px;text-transform:uppercase;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.1;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"🡒";color:var(--seafront);flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(90deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;padding:11px 20px;border:3px solid var(--vinegar);background:#fff;box-shadow:4px 4px 0 var(--vinegar);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:clamp(26px,3.5vw,44px);border:3px solid var(--vinegar);background:#fff;}
+  .creds > div{padding:24px;border-right:3px solid var(--vinegar);}
+  .creds > div:last-child{border-right:0;}
+  .creds .label{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--seafront);margin-bottom:10px;}
+  .creds .detail{font-family:var(--slab);font-weight:400;font-size:15px;line-height:1.25;text-transform:uppercase;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;} .creds > div{border-bottom:3px solid var(--vinegar);} .creds > div:nth-child(2n){border-right:0;} .creds > div:nth-child(n+3){border-bottom:0;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:3px solid var(--vinegar);padding:34px;box-shadow:8px 8px 0 var(--vinegar);}
+  .nap address{font-style:normal;font-family:var(--slab);font-weight:400;font-size:18px;line-height:1.35;text-transform:uppercase;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:11px;margin-top:24px;border-top:2px dashed var(--rule);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:3px solid var(--vinegar);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  /* CTA — seafront shout */
+  .cta-band{background:var(--vinegar);color:var(--newsprint);padding:clamp(90px,11vw,160px) 0;position:relative;overflow:hidden;}
+  .cta-band::before{content:"";position:absolute;top:0;left:0;right:0;height:12px;background:repeating-linear-gradient(-45deg,var(--batter) 0 24px,var(--seafront) 24px 48px);}
+  .cta-band h2{font-family:var(--slab);font-weight:400;font-size:clamp(42px,8vw,132px);line-height:0.9;text-transform:uppercase;margin:14px 0 22px;max-width:15ch;}
+  .cta-band h2 em{font-style:normal;color:var(--batter);}
+  .cta-band p{color:rgba(244,239,227,0.8);max-width:46ch;margin:0 0 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;}
+  .cta-band .btn{border-color:var(--newsprint);}
+  .cta-band .btn-primary{border-color:var(--vinegar);box-shadow:5px 5px 0 var(--newsprint);}
+  .cta-band .btn-ghost{color:var(--newsprint);}
+  .cta-band .btn-ghost:hover{background:var(--newsprint);color:var(--vinegar);}
+
+  footer{background:var(--newsprint);border-top:3px solid var(--vinegar);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--seafront);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:2px dashed var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--batter);color:var(--vinegar);padding:13px 19px;text-decoration:none;font-family:var(--slab);font-size:13px;text-transform:uppercase;border:3px solid var(--vinegar);box-shadow:5px 5px 0 var(--vinegar);}
+  .msg-fab a:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--vinegar);color:var(--vinegar);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Batterhouse","description":"Fish and chip shop on Scarborough's Foreshore since 1962. Harbour haddock, beef-dripping fryers, dedicated gluten-free days.","url":"https://batterhouse.co.uk/","telephone":"+441723355662","email":"fryer@batterhouse.co.uk","servesCuisine":"Fish and chips","address":{"@type":"PostalAddress","streetAddress":"24 Foreshore Road","addressLocality":"Scarborough","addressRegion":"North Yorkshire","postalCode":"YO11 1NX","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":54.2790,"longitude":-0.3990},"areaServed":["Scarborough","Filey","North Yorkshire coast"],"image":["https://images.unsplash.com/photo-1579208030886-b937da0925dc?w=1600"],"foundingDate":"1962"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Haddock or cod?","acceptedAnswer":{"@type":"Answer","text":"Haddock — this is Yorkshire. Cod is on the menu and fried beautifully, but haddock is the house religion."}},
+{"@type":"Question","name":"What's in the batter?","acceptedAnswer":{"@type":"Answer","text":"Flour, water, a raising agent and a guarded sequence. No beer. The crispness comes from the dripping's heat."}},
+{"@type":"Question","name":"Do you fry in beef dripping?","acceptedAnswer":{"@type":"Answer","text":"Yes, since 1962 — plus a fully separate vegetable-oil fryer with its own tools."}},
+{"@type":"Question","name":"When's the gluten-free fry?","acceptedAnswer":{"@type":"Answer","text":"Tuesdays and Thursdays, all day — dedicated pans and batter, coeliac-safe procedures."}},
+{"@type":"Question","name":"Can I eat in?","acceptedAnswer":{"@type":"Answer","text":"Forty seats, pots of tea, bread and butter. Sea-view window seats go first."}},
+{"@type":"Question","name":"What about the gulls?","acceptedAnswer":{"@type":"Answer","text":"Back to the wall, food close, never hold a chip aloft. They are professionals."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">BATTER<span>HOUSE</span></a>
+    <nav class="nav-links">
+      <a href="#services">The board</a><a href="#about">Since 1962</a><a href="#location">Foreshore</a><a href="#visit">Come on</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v45">
+  <div class="wrap">
+    <div class="kicker-row"><span data-bind="hero.kicker">Fish &amp; chips · beef dripping · Foreshore Road, Scarborough · est. 1962</span><b>FRYING TODAY · GULLS ON PATROL</b></div>
+    <h1 data-comment-anchor="hero-headline" aria-label="Haddock. Chips. Sea wall. Done.">
+      <span class="w1">HADDOCK. CHIPS.</span>
+      <span class="w2">SEA WALL.</span>
+      <span class="w3">DONE.</span>
+    </h1>
+    <div class="hero-under">
+      <div>
+        <p class="lede" data-bind="hero.lede">Sixty-three years of doing one meal properly: haddock off the harbour boats, chips from farms we can name, beef dripping in the fryers because flavour beat fashion and we sided with flavour. Eat it on the sea wall. Guard it from the gulls. That's the whole instruction manual.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">The fryer board</a>
+          <a class="btn btn-ghost" href="#location" data-bind="hero.secondaryCta.label">Find the Foreshore</a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1579208030886-b937da0925dc?w=2000&q=85&auto=format&fit=crop"
+             alt="Golden battered fish and chips, wrapped and ready." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+        <div class="price-flash">SCRAPS FREE IF YOU ASK</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<div class="marquee" aria-hidden="true">
+  <div class="track">
+    <span>FRYING TODAY <em>★</em> HADDOCK OFF THE BOATS <em>★</em> DRIPPING SINCE '62 <em>★</em> GUARD YOUR CHIPS <em>★</em> </span>
+    <span>FRYING TODAY <em>★</em> HADDOCK OFF THE BOATS <em>★</em> DRIPPING SINCE '62 <em>★</em> GUARD YOUR CHIPS <em>★</em> </span>
+  </div>
+</div>
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Frying since 1962</span>
+    <span>Harbour haddock, daily</span>
+    <span>Beef dripping, proudly</span>
+    <span>GF fry Tue &amp; Thu</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v11">
+  <div class="paper-ghost" aria-hidden="true">1962</div>
+  <div class="wrap">
+    <div class="board-head"><span>WRAP 01 / THE SHOP</span><span>THREE FAMILIES, ONE BATTER</span></div>
+    <div class="about-grid">
+      <div class="photo">
+        <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+             src="https://images.unsplash.com/photo-1544025162-d76694265947?w=1200&q=85&auto=format&fit=crop"
+             alt="The fryer range at full service." />
+      </div>
+      <div class="about-prose">
+        <h2 class="h2">Three families, one fryer, <span class="dip">since 1962.</span></h2>
+        <p>Batterhouse opened the summer of 1962 and has been run by three families since — each one trained by the last, each one refusing to change the batter. The recipe is in a safe. The safe is a biscuit tin. The biscuit tin is guarded by Doreen, who has worked the counter since 1989 and outranks everyone.</p>
+        <p>The haddock comes up the hill from the harbour market; the potatoes come down from Wolds farms we've dealt with for decades — Maris Pipers most of the year, and we'll tell you honestly when the new-crop months make the chips softer, because you'd taste it anyway.</p>
+        <p>Beef dripping is non-negotiable. It fries hotter, crisps better and tastes like the twentieth century's best decision. (There's a separate vegetable-oil fryer for the fish-free and the faithful of other persuasions — separate oil, separate tools, properly done.)</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v38">
+  <div class="wrap">
+    <div class="board-head"><span>WRAP 02 / THE FRYER BOARD</span><span>CHALKED BY DOREEN, OBEYED BY ALL</span></div>
+    <h2 class="h2">The fryer <span class="dip">board.</span></h2>
+    <div class="fryer-board">
+      <div class="fb-row"><h3><span class="lead">01 ·</span> Haddock &amp; chips</h3><p>The reason the queue bends round the rail. Harbour haddock, dripping-fried, batter that shatters. Regular feeds a person; large feeds a person who's been swimming.</p></div>
+      <div class="fb-row"><h3><span class="lead">02 ·</span> The full counter</h3><p>Cod for the traditionalists, scampi, fishcakes made in the back, sausages battered and not. Mushy peas in proper tubs, curry sauce with opinions.</p></div>
+      <div class="fb-row"><h3><span class="lead">03 ·</span> The sit-down room</h3><p>Forty seats, bread and butter, pots of tea, the good vinegar on every table. The window seats watch the bay; the corner seats watch Doreen.</p></div>
+      <div class="fb-row"><h3><span class="lead">04 ·</span> The gluten-free fry</h3><p>Tuesday and Thursday, dedicated pans and batter. Coeliac-safe done seriously, not as a shrug — book nothing, just come.</p></div>
+      <div class="fb-row"><h3><span class="lead">05 ·</span> Veggie &amp; vegan fryer</h3><p>Separate oil, separate tools: battered halloumi, "fish" of battered banana blossom that surprises people weekly, and the same chips as everyone.</p></div>
+      <div class="fb-row"><h3><span class="lead">06 ·</span> Crew &amp; party orders</h3><p>Trawler crews, rugby teams, office Fridays, one wedding (the bride queued in the dress). Ring ahead for anything over ten and we'll stage the frying.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v10">
+  <div class="wrap">
+    <div class="board-head"><span>WRAP 03 / THE HOLY TRINITY</span><span>PAINTED ON THE SHOPFRONT</span></div>
+    <h2 class="h2">Why the queue bends.</h2>
+    <div class="why-grid">
+      <div><span class="num">1</span><h3>Fish that came up the hill.</h3><p>The harbour is four hundred metres away. Our haddock's journey is shorter than your walk from the car park — and you can taste the difference that makes.</p></div>
+      <div><span class="num">2</span><h3>Beef dripping, held the line.</h3><p>Everyone else switched to oil in the nineties. We didn't, because dripping fries crisper and tastes better, and sixty-three years of queues agree.</p></div>
+      <div><span class="num">3</span><h3>Chips from named farms.</h3><p>Wolds Maris Pipers, same families for decades, rumbled and cut here every morning. When the crop changes, the board says so. Honesty is house policy.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="board-head"><span>WRAP 04 / THE RITUAL</span><span>QUEUE → COUNTER → WALL</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Join the queue</h3><p>It bends round the railing in summer and moves faster than it looks. The menu board gives you time to waver. Don't. Haddock.</p></li>
+      <li><span class="step">STEP 02</span><h3>Order at the counter</h3><p>Scraps are free if you ask (ask), mushy peas are mandatory in spirit, and Doreen will remember your order next time.</p></li>
+      <li><span class="step">STEP 03</span><h3>Wrapped, not boxed</h3><p>Paper keeps the batter crisp; boxes steam it soggy. We are prepared to argue about this indefinitely.</p></li>
+      <li><span class="step">STEP 04</span><h3>The sea wall</h3><p>Thirty metres to the correct bench. Sit facing the sea, guard against gulls, and understand why this meal built this coastline.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v10">
+  <div class="wrap">
+    <div class="board-head"><span>WRAP 05 / HEARD ON THE WALL</span><span>BETWEEN MOUTHFULS</span></div>
+    <blockquote class="t-quote">"The batter makes a noise. <em>A NOISE.</em>"</blockquote>
+    <div class="t-attr">Graham T. — forty summers, still queuing</div>
+    <div class="t-sub">
+      <figure><blockquote>"Coeliac for a decade and I'd written off proper chippy chips. Their Tuesday gluten-free fry had me standing on the sea wall genuinely emotional over a chip."</blockquote><figcaption>Rachel M. — gluten-free fry, Tuesdays</figcaption></figure>
+      <figure><blockquote>"Moved to Leeds. Drive 140 miles round trip roughly monthly. My partner thinks it's for my mum. It's mostly for my mum."</blockquote><figcaption>Danny H. — haddock large, expatriate</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v38">
+  <div class="wrap">
+    <div class="board-head"><span>WRAP 06 / POSTCARDS</span><span>FROM THE FORESHORE</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1579208030886-b937da0925dc?w=1600&q=85&auto=format&fit=crop" alt="The wrap, opened on the sea wall." /><figcaption>THE OPENING CEREMONY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1544025162-d76694265947?w=1600&q=85&auto=format&fit=crop" alt="The range at full service." /><figcaption>THE RANGE, DINNERTIME</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1518013431117-eb1465fa5752?w=1600&q=85&auto=format&fit=crop" alt="Chips, cut this morning." /><figcaption>CUT AT 08:00</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1473116763249-2faaef81ccda?w=1600&q=85&auto=format&fit=crop" alt="The harbour, four hundred metres away." /><figcaption>THE SUPPLIER, 400M</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1630384060421-cb20d0e0649d?w=1600&q=85&auto=format&fit=crop" alt="Batter, mid-shatter." /><figcaption>THE NOISE, PICTURED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=85&auto=format&fit=crop" alt="The bay from the correct bench." /><figcaption>THE CORRECT BENCH</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="board-head"><span>WRAP 07 / ASKED IN THE QUEUE</span><span>ANSWERED OVER THE RANGE</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked in <span class="dip">the queue.</span></h2>
+        <p class="body">Anything else — ring <a href="tel:+441723355662" style="color:var(--seafront);font-weight:700;">01723 355 662</a>. Dinnertime rush, Doreen answers in under six words.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Haddock or cod?</summary><p>Haddock. This is Yorkshire; cod is on the menu for visitors and we fry it beautifully, but haddock is the house religion — sweeter, flakier, and what the harbour lands. Doreen will serve you cod without judgement. Visible judgement.</p></details>
+        <details><summary>What's in the batter?</summary><p>Flour, water, a raising agent and a sequence Doreen guards in the biscuit tin. No beer — beer batter is for gastropubs. The crispness comes from the dripping's heat and sixty years of not fiddling.</p></details>
+        <details><summary>Do you fry in beef dripping? Is there an alternative?</summary><p>Yes, proudly, since 1962 — it's why the batter shatters. And yes: a fully separate vegetable-oil fryer with its own tools for vegetarian, vegan and preference orders. Separate means separate here.</p></details>
+        <details><summary>When's the gluten-free fry?</summary><p>Tuesdays and Thursdays, all day — dedicated pans, dedicated batter, coeliac-safe procedures we'll happily describe in detail. No booking; the board outside confirms it's a GF day.</p></details>
+        <details><summary>Can I eat in?</summary><p>Forty seats, pots of tea, bread and butter for the chip butty of your life. Sea-view window seats go first. The room is cash-or-card, the queue outside is faster, the gulls work both.</p></details>
+        <details><summary>What about the gulls? Seriously.</summary><p>Seriously: back to the wall, food close, never hold a chip aloft in triumph. The gulls of Scarborough are professionals and they have studied you. We sell a lid for a reason.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="board-head"><span>WRAP 08 / THE QUEUE COMES FROM</span><span>THE WHOLE COAST, FRANKLY</span></div>
+    <ul class="area-list">
+      <li>Scarborough</li><li>Filey</li><li>Whitby coast</li><li>Bridlington</li><li>Seamer</li><li>Cayton Bay</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v2" style="padding-top:0;">
+  <div class="wrap">
+    <div class="board-head"><span>WRAP 09 / THE PAPERWORK</span><span>GREASE-PROOF, LIKE THE PAPER</span></div>
+    <div class="creds">
+      <div><div class="label">Est.</div><div class="detail">Same fryer, same Foreshore, since 1962</div></div>
+      <div><div class="label">Fish</div><div class="detail">Haddock from Scarborough harbour market</div></div>
+      <div><div class="label">Hygiene</div><div class="detail">Food hygiene rating 5, inspected</div></div>
+      <div><div class="label">GF</div><div class="detail">Dedicated coeliac-safe fry, Tue &amp; Thu</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="board-head"><span>WRAP 10 / THE FORESHORE</span><span>24 FORESHORE ROAD</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Batterhouse</strong><br />
+          24 Foreshore Road<br />
+          Scarborough YO11 1NX<br /><br />
+          <a href="tel:+441723355662" data-bind="business.phoneDisplay">01723 355 662</a><br />
+          <a href="mailto:fryer@batterhouse.co.uk" data-bind="business.email">fryer@batterhouse.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>FRYING</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>WINTER</span><span>SHORTER, WARMER, QUIETER</span></div>
+          <p class="gbp-note">Hours flex with the season — live times on our Google Business Profile. If the range is on, the smell reaches the harbour. Navigate accordingly.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Batterhouse, Foreshore Road, Scarborough" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.4090%2C54.2750%2C-0.3890%2C54.2830&layer=mapnik&marker=54.2790%2C-0.3990"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="visit" class="cta-band" data-component="CTA-BAND" data-variant="v13">
+  <div class="wrap">
+    <div class="chalk" style="color:var(--batter);">WRAP 11 / TODAY</div>
+    <h2>THE FRYER'S HOT. THE TIDE'S IN. <em>COME ON.</em></h2>
+    <p data-bind="cta.body">Queue bends round the rail, moves fast, ends in the best meal on this coastline. Scraps are free if you ask.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#location" data-bind="cta.primary.label">Find the Foreshore</a>
+      <a class="btn btn-ghost" href="tel:+441723355662" data-bind="cta.secondary.label">01723 355 662</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441723355662" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:20px;">BATTER<span style="color:var(--seafront);">HOUSE</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">Fish &amp; chips on Foreshore Road, Scarborough. Since 1962.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          24 Foreshore Road<br />Scarborough YO11 1NX<br />
+          <a href="tel:+441723355662">01723 355 662</a><br />
+          <a href="mailto:fryer@batterhouse.co.uk">fryer@batterhouse.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The fryer board</a><a href="#about">Since 1962</a><a href="#location">The Foreshore</a><a href="#visit">Come on</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> BATTERHOUSE (SCARBOROUGH) LTD</span>
+      <span>WRAPPED, NEVER BOXED · MIND THE GULLS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

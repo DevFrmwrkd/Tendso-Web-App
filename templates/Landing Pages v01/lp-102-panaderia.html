@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Panaderia de San Roque — hot pandesal from five, ensaymada & merienda breads in Malolos, Bulacan</title>
+<meta name="description" content="Panaderia de San Roque is a neighbourhood bakery in Malolos, Bulacan — hot pandesal from five in the morning, ensaymada, monay, Spanish bread and pan de coco baked all day, and wholesale to the sari-sari stores. Baking since 1975." />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Panaderia de San Roque", phone: "+63 44 555 0176", phoneDisplay: "(044) 555 0176", email: "hello@sanroquebakery.ph", foundedYear: 1975 },
+  hero: {
+    kicker: "Neighbourhood panaderia · hot pandesal from 5AM · Malolos, Bulacan",
+    headline: "The smell reaches the street before the sun does.",
+    lede: "A neighbourhood bakery in Malolos, Bulacan, baking the breads a Filipino morning is built on — hot pandesal from five, ensaymada rich with butter and cheese, monay, Spanish bread, pan de coco and the merienda loaves that never went out of style. Baked through the day, sold warm, and delivered to the sari-sari stores before the jeeps start.",
+    primaryCta: { label: "Order or enquire", href: "#book" },
+    secondaryCta: { label: "What we bake", href: "#services" },
+    image: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Fresh bread rolls cooling on wooden racks."
+  },
+  trust: { years: "Baking for Malolos since 1975" },
+  about: {
+    heading: "Three generations, one oven, and a queue that still forms at five.",
+    paragraphs: [
+      "Panaderia de San Roque has stood on the same corner since 1975, and for three generations the day has started the same way: the first batch of pandesal out of the oven before dawn, the shutter half up, and a small queue of tricycle drivers, students and titas already waiting with their bags. Pandesal is the bread of the Filipino morning — soft, faintly sweet, dusted with breadcrumb — and ours is still shaped and baked here, not delivered frozen in a truck.",
+      "Alongside the pandesal we bake the whole repertoire of the neighbourhood panaderia: ensaymada coiled and brushed with butter, sugar and cheese; monay and Spanish bread; pan de coco and pan de sal de coco; hopia and the merienda loaves that keep a household going between meals. The recipes came down from the founder to his children to theirs, adjusted for the flour and the weather but never for the worse.",
+      "We bake through the day so there's warm bread at merienda, not just at breakfast, and we supply the sari-sari stores and canteens around Malolos wholesale, our delivery boy weaving out before the streets fill. A panaderia isn't a bakery that happens to be Filipino — it's a fixture of the barangay, and after fifty years, we're proud to still be the one this corner wakes up to."
+    ],
+    portrait: "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A baker shaping dough by hand at the bench."
+  },
+  services: [
+    { name: "Hot pandesal, all day", description: "The soft, faintly sweet breadcrumb-dusted roll the Filipino morning runs on — first batch from five, then baked in waves through the day so there's a hot one at merienda too. Sold by the piece or the bag." },
+    { name: "Ensaymada & mamon", description: "Ensaymada coiled and brushed with butter, sugar and grated cheese, and light mamon sponge — the rich end of the counter, for coffee, gifts and every fiesta table. Boxed to order." },
+    { name: "Everyday breads", description: "Monay, Spanish bread rolled with sweet filling, pan de coco, pan de sal de coco and the classic merienda loaves — the honest daily bread that fills a household between meals." },
+    { name: "Wholesale to sari-sari", description: "We supply the neighbourhood stores, canteens and carinderias around Malolos wholesale, delivered fresh before the streets fill, on standing daily orders — the quiet backbone of the business." },
+    { name: "Cakes & fiesta orders", description: "Ensaymada trays, bread platters and simple celebration cakes to order for birthdays, fiestas, baptisms and pasalubong — the breads a Bulacan celebration expects, made ahead so you don't queue." },
+    { name: "Kape & merienda counter", description: "A hot cup to go with a warm pandesal at the little counter out front — the two-peso pleasure of coffee and bread standing up, the way merienda was always meant to be taken." }
+  ],
+  why: [
+    { title: "Shaped and baked here.", body: "Every pandesal is mixed, proofed and shaped in this bakery and baked in our own oven — not trucked in frozen and finished. You're tasting the same dough this corner has for fifty years." },
+    { title: "Baked in waves, all day.", body: "We don't bake once and let it sit. Fresh batches come out through the morning and again for merienda, so the bread you buy is warm, not this morning's leftover under a lamp." },
+    { title: "Recipes handed down.", body: "The founder's recipes passed to his children and theirs — tuned to the flour and the weather over the decades, but never cheapened. Three generations, one taste." }
+  ],
+  how: [
+    { step: "01", title: "Come early, or come at merienda", body: "The first pandesal is out by five; there's a warm batch again mid-afternoon. Walk in, buy by the piece or the bag — no order needed for the daily breads." },
+    { step: "02", title: "Order ahead for a crowd", body: "Ensaymada trays, bread platters, cakes and big pandesal orders for fiestas and offices — message or call a day ahead and we'll have it boxed and ready." },
+    { step: "03", title: "Set up a wholesale run", body: "Running a store or canteen? We deliver standing daily orders fresh before opening. Tell us the quantities and route and we'll build it into the morning round." },
+    { step: "04", title: "Take it warm", body: "Best eaten within the hour, warm, with coffee — that's the whole point. For later, keep it wrapped; a quick warm in the morning brings it back to life." }
+  ],
+  testimonials: [
+    { quote: "I've bought pandesal here since I was small enough to be sent on the errand myself, and now I send my own kids. The five o'clock batch is worth the early alarm — soft, warm, gone before we get home. Fifty years and it hasn't slipped once. This is Malolos in bread form.", name: "Aling Choleng", context: "customer since childhood" },
+    { quote: "Their ensaymada is the one we bring to every family gathering, no debate. Buttery, cheesy, boxed beautifully, and always ready when they say. We've tried the fancy city bakeries — nothing beats San Roque. Nothing.", name: "The Bautista family", context: "fiesta & pasalubong orders" },
+    { quote: "My store has taken their wholesale pandesal every single morning for eleven years and they have never once been late. Fresh, reliable, fairly priced — half my regulars come in for it specifically. A bakery you can build a business on.", name: "Mang Tonyo", context: "sari-sari store owner" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1600&q=85&auto=format&fit=crop", alt: "Bread rolls cooling on wooden racks." },
+    { src: "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1600&q=85&auto=format&fit=crop", alt: "Dough being shaped at the bench." },
+    { src: "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1600&q=85&auto=format&fit=crop", alt: "Bread baking in the oven." },
+    { src: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop", alt: "Freshly baked bread on a plate." },
+    { src: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop", alt: "A cup of coffee beside warm bread." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "The counter and shutter of the panaderia." }
+  ],
+  faq: [
+    { q: "What time is the first pandesal out?", a: "Around five in the morning, seven days a week — the first batch of pandesal is the whole reason a panaderia opens before the sun, and there's usually a small queue of early risers, tricycle drivers and titas waiting with their bags when the shutter goes half up. We bake pandesal in waves after that too, so there's a warm batch again around merienda time in the mid-afternoon, which is when a lot of families do their second run of the day. If you want pandesal genuinely hot from the oven, come for the five o'clock batch or ask us what time the next tray is due — we're always happy to tell you, and it's worth timing your visit. The daily breads never need an order; just walk up and buy by the piece or the bag." },
+    { q: "What's the difference between pandesal, monay and the sweet breads?", a: "Pandesal is the soft, lightly sweet, breadcrumb-dusted morning roll — the everyday staple, eaten warm, split and filled or dunked in coffee. Monay is denser and rounder, a heartier plain bread that keeps well and fills you up. Then there's the sweet and rich end of the counter: ensaymada, coiled and brushed with butter, sugar and grated cheese; mamon, a light sponge; Spanish bread, rolled around a sweet buttery filling; pan de coco, filled with sweet grated coconut; and hopia and the other merienda favourites. Roughly, pandesal and monay are your daily bread, and the rest are for merienda, coffee, gifts and celebrations. If you're not sure what to try, tell us who it's for and how you'll eat it and we'll point you to the right thing — half the joy of a panaderia is being guided by someone who bakes it." },
+    { q: "Can I order ahead for a fiesta or office?", a: "Yes, and we'd encourage it for anything beyond a bag or two, especially around fiestas, Christmas and school events when the counter is busy. We take orders for ensaymada trays, mixed bread platters, big pandesal quantities and simple celebration cakes, boxed and ready for the time you need them, so you're not queuing behind the daily crowd. A day's notice is usually plenty for breads; a little more for cakes and large trays, and as much as you can give during peak season. Message or call us with the quantities, the date and the time, and whether you'll collect or need it set aside, and we'll confirm and have it waiting. Ordering ahead also means you get it at its freshest, baked to your pick-up time rather than sitting on the shelf." },
+    { q: "Do you supply sari-sari stores and canteens wholesale?", a: "Yes — wholesale delivery to the neighbourhood stores, canteens, carinderias and offices around Malolos is a core part of what we do, and for many of them we're a standing daily order delivered fresh before they open. It's the quiet backbone of the bakery: our delivery run goes out early, before the streets fill, so the pandesal is on your shelf warm and ready for the morning rush. If you run a store or a canteen and want to take our bread, talk to us about quantities, timing and your route — we'll work out a standing order that fits your morning and a fair wholesale price, and we pride ourselves on never being late, because your customers are counting on that bread being there. Reliability is the whole product when it comes to wholesale, and after fifty years it's what we're known for." },
+    { q: "How should I keep pandesal and bread fresh?", a: "Honestly, the best answer is to eat it warm and soon — pandesal and most of our breads are at their glorious best within an hour or two of baking, which is exactly why we bake in waves through the day rather than once in the morning. For bread you're keeping until later or the next day, wrap it well to keep it soft and store it at room temperature rather than the fridge, which actually dries bread out faster. A quick warm-up in a low oven, toaster or even a hot pan brings day-old pandesal back to life beautifully, soft inside with a little crisp on the outside — many people prefer it that way, split and filled. Richer breads like ensaymada keep a little longer thanks to the butter, and freeze well if you want to keep a batch; just thaw and warm before serving. When in doubt, buy less more often — that's what the panaderia is for." },
+    { q: "Are you really still using the original recipes?", a: "Yes, in the way that matters — the recipes came down from our founder to his children and then to us, and the character of the bread is unchanged, even if the details have been quietly tuned over fifty years. Flour changes, the weather changes, the humidity in Bulacan does its own thing to a dough, and any baker worth their salt adjusts to keep the result the same rather than letting it drift; that's not changing the recipe, it's honouring it. What we've never done is cheapen it — swap in worse fat, cut the proofing time, or truck in frozen dough to finish on site — because the whole reason people have come to this corner for three generations is that the pandesal tastes like the pandesal they remember. Taste it against your childhood memory; that's the only test we care about passing." }
+  ],
+  area: { places: ["Malolos", "Guiguinto", "Plaridel", "Calumpit", "Bulacan", "Wholesale delivery"] },
+  credentials: [
+    { label: "Since 1975", detail: "Three generations on the same corner" },
+    { label: "From 5AM", detail: "Hot pandesal, then baked in waves all day" },
+    { label: "Shaped here", detail: "Mixed, proofed & baked in our own oven" },
+    { label: "Wholesale", detail: "Fresh daily to Malolos stores & canteens" }
+  ],
+  location: { name: "Panaderia de San Roque", addressStreet: "9 Paseo del Congreso", addressLocality: "Malolos", addressRegion: "Bulacan", addressPostcode: "3000", addressCountry: "Philippines" },
+  cta: { heading: "Come for the five o'clock batch.", body: "Hot pandesal from five, ensaymada and mamon, the everyday breads a Filipino morning is built on, and reliable wholesale to the neighbourhood stores — baked on the same Malolos corner since 1975. Order ahead or just follow your nose.", primary: { label: "Order or enquire", href: "#book" }, secondary: { label: "(044) 555 0176", href: "tel:+63445550176" } },
+  messaging: { whatsapp: "https://wa.me/63445550176", messenger: "https://m.me/sanroquebakery" }
+};
+</script>
+
+<style>
+  :root {
+    --crust:#2a1c12; --crust-2:#35251829; --cream:#f4e7cf; --cream-2:#fbf2df; --pandesal:#d99a4e; --brick:#b0472f; --sage:#7d8b5a;
+    --mid:#8a7355; --mid-d:#c9b48f; --rule-d:rgba(244,231,207,0.16);
+    --disp:"DM Serif Display",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--crust);color:var(--cream);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--pandesal);}
+  .wrap{width:min(1240px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--pandesal);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(40px,5.6vw,82px);line-height:1.0;margin:0 0 0.3em;letter-spacing:-0.005em;}
+  .h2 em{font-style:italic;color:var(--pandesal);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:3px;}
+  .btn-primary{background:var(--brick);color:var(--cream);} .btn-primary:hover{background:var(--pandesal);color:var(--crust);}
+  .btn-ghost{border:1.5px solid rgba(244,231,207,0.4);color:var(--cream);} .btn-ghost:hover{background:var(--cream);color:var(--crust);border-color:var(--cream);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid var(--rule-d);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(42,28,18,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--rule-d);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:400;font-size:26px;text-decoration:none;letter-spacing:0;}
+  .wm span{color:var(--pandesal);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,66px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:400;font-size:clamp(44px,7.2vw,108px);line-height:0.98;letter-spacing:-0.01em;margin:0 0 34px;max-width:17ch;}
+  .hero-headline em{font-style:italic;color:var(--pandesal);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:4px;}
+  .hero-photo::after{content:"MAINIT · FRESH FROM 5AM";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.12em;background:var(--pandesal);color:var(--crust);padding:7px 12px;border-radius:3px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--pandesal);color:var(--crust);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(42,28,18,0.82);font-weight:700;}
+
+  .about{background:var(--cream);color:var(--crust);}
+  .about .h2{color:var(--crust);} .about .h2 em{color:var(--brick);}
+  .about .sw-head{color:var(--mid);border-color:rgba(42,28,18,0.16);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:4px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.78;margin:0 0 1em;color:#4d3826;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--rule-d);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(244,231,207,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(176,71,47,0.12);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;color:var(--pandesal);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(25px,2.7vw,36px);margin:0;line-height:1.04;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--cream);color:var(--crust);}
+  .why .h2{color:var(--crust);} .why .h2 em{color:var(--brick);}
+  .why .sw-head{color:var(--mid);border-color:rgba(42,28,18,0.16);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--brick);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:29px;margin:0 0 10px;line-height:1.06;}
+  .why-grid p{color:#4d3826;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--rule-d);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--pandesal);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:25px;margin:8px 0 8px;line-height:1.08;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#241811;}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(30px,4vw,56px);line-height:1.1;max-width:26ch;margin:0 0 24px;}
+  .t-quote em{font-style:italic;color:var(--pandesal);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:4px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--brick);color:var(--cream);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule-d);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--rule-d);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:24px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.14;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--pandesal);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(244,231,207,0.3);border-radius:3px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule-d);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--pandesal);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:20px;line-height:1.16;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--cream);color:var(--crust);padding:34px;border-radius:4px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:400;font-size:24px;line-height:1.26;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:#4d3826;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(42,28,18,0.16);padding-top:18px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:4px;border:1.5px solid rgba(244,231,207,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(150deg) brightness(0.92) sepia(0.2);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--brick);color:var(--cream);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--cream);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(44px,6.5vw,110px);line-height:1.0;margin:14px auto 18px;max-width:15ch;}
+  .cta-band h2 em{font-style:italic;color:var(--pandesal);}
+  .cta-band p{color:rgba(244,231,207,0.9);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--cream);color:var(--brick);} .cta-band .btn-primary:hover{background:var(--pandesal);color:var(--crust);}
+  .cta-band .btn-ghost{border-color:rgba(244,231,207,0.6);color:var(--cream);} .cta-band .btn-ghost:hover{background:var(--cream);color:var(--brick);}
+
+  footer{background:var(--crust);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--pandesal);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--brick);color:var(--cream);padding:13px 20px;border-radius:3px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 8px 24px rgba(176,71,47,0.4);}
+  .msg-fab a:hover{background:var(--cream);color:var(--crust);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Bakery","name":"Panaderia de San Roque","description":"Neighbourhood bakery in Malolos, Bulacan — hot pandesal from 5AM, ensaymada, monay, Spanish bread and pan de coco baked all day, plus wholesale to the sari-sari stores. Baking since 1975.","url":"https://sanroquebakery.ph/","telephone":"+63445550176","email":"hello@sanroquebakery.ph","address":{"@type":"PostalAddress","streetAddress":"9 Paseo del Congreso","addressLocality":"Malolos","addressRegion":"Bulacan","postalCode":"3000","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":14.8433,"longitude":120.8114},"areaServed":["Malolos","Guiguinto","Plaridel","Calumpit"],"image":["https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1600"],"foundingDate":"1975"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What time is the first pandesal out?","acceptedAnswer":{"@type":"Answer","text":"Around five in the morning, seven days a week, with a small queue usually waiting. We bake in waves after that, so there's a warm batch again around merienda in the mid-afternoon. For pandesal genuinely hot from the oven, come for the five o'clock batch or ask what time the next tray is due. Daily breads never need an order — just buy by the piece or the bag."}},
+{"@type":"Question","name":"What's the difference between pandesal, monay and the sweet breads?","acceptedAnswer":{"@type":"Answer","text":"Pandesal is the soft, lightly sweet breadcrumb-dusted morning roll; monay is denser and heartier. The rich end is ensaymada (butter, sugar, cheese), mamon (light sponge), Spanish bread (sweet buttery filling), pan de coco (sweet coconut) and hopia. Roughly, pandesal and monay are daily bread; the rest are for merienda, coffee, gifts and celebrations. Tell us who it's for and we'll point you to the right thing."}},
+{"@type":"Question","name":"Can I order ahead for a fiesta or office?","acceptedAnswer":{"@type":"Answer","text":"Yes — we take orders for ensaymada trays, mixed bread platters, big pandesal quantities and simple celebration cakes, boxed for your pick-up time so you skip the daily queue. A day's notice is usually plenty for breads, a little more for cakes and large trays, and as much as you can give in peak season. Message or call with quantities, date and time. Ordering ahead means it's baked to your pick-up time, at its freshest."}},
+{"@type":"Question","name":"Do you supply sari-sari stores and canteens wholesale?","acceptedAnswer":{"@type":"Answer","text":"Yes — wholesale to stores, canteens, carinderias and offices around Malolos is core to what we do, often as a standing daily order delivered fresh before opening. Our run goes out early so the pandesal is on your shelf warm for the morning rush. Talk to us about quantities, timing and route and we'll build a standing order and fair price. We pride ourselves on never being late — reliability is the whole product in wholesale."}},
+{"@type":"Question","name":"How should I keep pandesal and bread fresh?","acceptedAnswer":{"@type":"Answer","text":"Best eaten warm and soon — which is why we bake in waves. For later, wrap it well and keep at room temperature, not the fridge (which dries bread out). Reheat day-old pandesal in a low oven, toaster or hot pan to bring it back, soft inside with a little crisp. Richer breads like ensaymada keep longer and freeze well; thaw and warm before serving. When in doubt, buy less more often."}},
+{"@type":"Question","name":"Are you really still using the original recipes?","acceptedAnswer":{"@type":"Answer","text":"Yes in the way that matters — the recipes came down from our founder through three generations and the character is unchanged, even if details are tuned for the flour and the Bulacan weather to keep the result the same. What we never do is cheapen it with worse fat, cut proofing, or frozen dough finished on site, because people come to this corner because the pandesal tastes like the pandesal they remember. Taste it against your childhood memory — that's the only test we care about."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Panaderia de <span>San Roque</span></a>
+    <nav class="nav-links">
+      <a href="#about">The bakery</a><a href="#services">What we bake</a><a href="#location">Find us</a><a href="#book">Order</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Neighbourhood panaderia · hot pandesal from 5AM · Malolos, Bulacan</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      The smell reaches the street <em>before the sun</em> does.
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=2000&q=85&auto=format&fit=crop"
+             alt="Fresh bread rolls cooling on wooden racks." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A neighbourhood bakery in Malolos, Bulacan, baking the breads a Filipino morning is built on — hot pandesal from five, ensaymada rich with butter and cheese, monay, Spanish bread, pan de coco and the merienda loaves that never went out of style. Baked through the day, sold warm, and delivered to the sari-sari stores before the jeeps start.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Order or enquire</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we bake</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Baking for Malolos since 1975</span>
+    <span>Hot pandesal from 5AM</span>
+    <span>Shaped &amp; baked here, all day</span>
+    <span>Wholesale to the barangay</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>BATCH 01 / THE BAKERY</span><span>THREE GENERATIONS, ONE OVEN</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Three generations, one oven, and a queue that still forms at <em>five.</em></h2>
+        <p>Panaderia de San Roque has stood on the same corner since 1975, and for three generations the day has started the same way: the first batch of pandesal out of the oven before dawn, the shutter half up, and a small queue of tricycle drivers, students and titas already waiting with their bags. Pandesal is the bread of the Filipino morning — soft, faintly sweet, dusted with breadcrumb — and ours is still shaped and baked here, not delivered frozen in a truck.</p>
+        <p>Alongside the pandesal we bake the whole repertoire of the neighbourhood panaderia: ensaymada coiled and brushed with butter, sugar and cheese; monay and Spanish bread; pan de coco and pan de sal de coco; hopia and the merienda loaves that keep a household going between meals. The recipes came down from the founder to his children to theirs, adjusted for the flour and the weather but never for the worse.</p>
+        <p>We bake through the day so there's warm bread at merienda, not just at breakfast, and we supply the sari-sari stores and canteens around Malolos wholesale, our delivery boy weaving out before the streets fill. A panaderia isn't a bakery that happens to be Filipino — it's a fixture of the barangay, and after fifty years, we're proud to still be the one this corner wakes up to.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1200&q=85&auto=format&fit=crop"
+           alt="A baker shaping dough by hand at the bench." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v78" data-screen-label="Services" style="background:var(--crust);">
+  <div class="wrap">
+    <div class="sw-head"><span>BATCH 02 / WHAT WE BAKE</span><span>PANDESAL · ENSAYMADA · MERIENDA</span></div>
+    <h2 class="h2">What we bake.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Hot pandesal, all day</h3><p>The soft, faintly sweet breadcrumb-dusted roll the Filipino morning runs on — first batch from five, then baked in waves so there's a hot one at merienda too. By the piece or the bag.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Ensaymada &amp; mamon</h3><p>Ensaymada coiled and brushed with butter, sugar and grated cheese, and light mamon sponge — the rich end of the counter, for coffee, gifts and every fiesta table. Boxed to order.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Everyday breads</h3><p>Monay, Spanish bread rolled with sweet filling, pan de coco, pan de sal de coco and the classic merienda loaves — the honest daily bread that fills a household between meals.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Wholesale to sari-sari</h3><p>We supply the neighbourhood stores, canteens and carinderias around Malolos wholesale, delivered fresh before the streets fill, on standing daily orders — the quiet backbone of the business.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Cakes &amp; fiesta orders</h3><p>Ensaymada trays, bread platters and simple celebration cakes for birthdays, fiestas, baptisms and pasalubong — the breads a Bulacan celebration expects, made ahead so you don't queue.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Kape &amp; merienda counter</h3><p>A hot cup to go with a warm pandesal at the little counter out front — the two-peso pleasure of coffee and bread standing up, the way merienda was always meant to be taken.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>BATCH 03 / THE DIFFERENCE</span><span>WHY IT STILL TASTES RIGHT</span></div>
+    <h2 class="h2">Why it still tastes <em>right.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Shaped and baked here.</h3><p>Every pandesal is mixed, proofed and shaped in this bakery and baked in our own oven — not trucked in frozen and finished. The same dough this corner has known for fifty years.</p></div>
+      <div><span class="no">02 / 03</span><h3>Baked in waves, all day.</h3><p>We don't bake once and let it sit. Fresh batches come out through the morning and again for merienda, so the bread you buy is warm, not this morning's leftover under a lamp.</p></div>
+      <div><span class="no">03 / 03</span><h3>Recipes handed down.</h3><p>The founder's recipes passed to his children and theirs — tuned to the flour and the weather over the decades, but never cheapened. Three generations, one taste.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>BATCH 04 / HOW IT GOES</span><span>WALK IN · ORDER · WHOLESALE · WARM</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Come early, or at merienda</h3><p>The first pandesal is out by five; there's a warm batch again mid-afternoon. Walk in, buy by the piece or the bag — no order needed for the daily breads.</p></li>
+      <li><span class="step">STEP 02</span><h3>Order ahead for a crowd</h3><p>Ensaymada trays, bread platters, cakes and big pandesal orders for fiestas and offices — message or call a day ahead and we'll have it boxed and ready.</p></li>
+      <li><span class="step">STEP 03</span><h3>Set up a wholesale run</h3><p>Running a store or canteen? We deliver standing daily orders fresh before opening. Tell us the quantities and route and we'll build it into the morning round.</p></li>
+      <li><span class="step">STEP 04</span><h3>Take it warm</h3><p>Best eaten within the hour, warm, with coffee — that's the whole point. For later, keep it wrapped; a quick warm in the morning brings it back to life.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>BATCH 05 / FROM THE QUEUE</span><span>MALOLOS IN BREAD FORM</span></div>
+    <blockquote class="t-quote">“The five o'clock batch is worth the early alarm. Fifty years and it hasn't slipped once. This is <em>Malolos in bread form.</em>”</blockquote>
+    <div class="t-attr">Aling Choleng — customer since childhood</div>
+    <div class="t-sub">
+      <figure><blockquote>“Their ensaymada is the one we bring to every family gathering, no debate. Buttery, cheesy, boxed beautifully, and always ready when they say. We've tried the fancy city bakeries — nothing beats San Roque. Nothing.”</blockquote><figcaption>The Bautista family — fiesta &amp; pasalubong orders</figcaption></figure>
+      <figure><blockquote>“My store has taken their wholesale pandesal every single morning for eleven years and they have never once been late. Fresh, reliable, fairly priced — half my regulars come in for it specifically. A bakery you can build a business on.”</blockquote><figcaption>Mang Tonyo — sari-sari store owner</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--cream);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:rgba(42,28,18,0.16);"><span>BATCH 06 / FROM THE OVEN</span><span>FLOUR, BUTTER &amp; HEAT</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1600&q=85&auto=format&fit=crop" alt="Bread rolls cooling on wooden racks." /><figcaption>THE PANDESAL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1600&q=85&auto=format&fit=crop" alt="Dough being shaped at the bench." /><figcaption>THE SHAPING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1600&q=85&auto=format&fit=crop" alt="Bread baking in the oven." /><figcaption>THE OVEN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop" alt="Freshly baked bread on a plate." /><figcaption>THE COUNTER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop" alt="A cup of coffee beside warm bread." /><figcaption>THE MERIENDA</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="The counter and shutter of the panaderia." /><figcaption>THE CORNER</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>BATCH 07 / GOOD TO KNOW</span><span>HOURS, ORDERS &amp; KEEPING FRESH</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63445550176" style="color:var(--pandesal);font-weight:700;">(044) 555 0176</a>. Or just follow the smell to the corner of Paseo del Congreso.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What time is the first pandesal out?</summary><p>Around five in the morning, seven days a week — the first batch of pandesal is the whole reason a panaderia opens before the sun, and there's usually a small queue of early risers, tricycle drivers and titas waiting with their bags when the shutter goes half up. We bake pandesal in waves after that too, so there's a warm batch again around merienda time in the mid-afternoon, which is when a lot of families do their second run of the day. If you want pandesal genuinely hot from the oven, come for the five o'clock batch or ask us what time the next tray is due — it's worth timing your visit. The daily breads never need an order; just walk up and buy by the piece or the bag.</p></details>
+        <details><summary>What's the difference between pandesal, monay and the sweet breads?</summary><p>Pandesal is the soft, lightly sweet, breadcrumb-dusted morning roll — the everyday staple, eaten warm, split and filled or dunked in coffee. Monay is denser and rounder, a heartier plain bread that keeps well and fills you up. Then there's the sweet and rich end of the counter: ensaymada, coiled and brushed with butter, sugar and grated cheese; mamon, a light sponge; Spanish bread, rolled around a sweet buttery filling; pan de coco, filled with sweet grated coconut; and hopia. Roughly, pandesal and monay are your daily bread, and the rest are for merienda, coffee, gifts and celebrations. Tell us who it's for and how you'll eat it and we'll point you to the right thing.</p></details>
+        <details><summary>Can I order ahead for a fiesta or office?</summary><p>Yes, and we'd encourage it for anything beyond a bag or two, especially around fiestas, Christmas and school events when the counter is busy. We take orders for ensaymada trays, mixed bread platters, big pandesal quantities and simple celebration cakes, boxed and ready for the time you need them, so you're not queuing behind the daily crowd. A day's notice is usually plenty for breads; a little more for cakes and large trays. Message or call us with the quantities, the date and the time, and whether you'll collect or need it set aside, and we'll confirm and have it waiting. Ordering ahead also means you get it at its freshest, baked to your pick-up time.</p></details>
+        <details><summary>Do you supply sari-sari stores and canteens wholesale?</summary><p>Yes — wholesale delivery to the neighbourhood stores, canteens, carinderias and offices around Malolos is a core part of what we do, and for many of them we're a standing daily order delivered fresh before they open. It's the quiet backbone of the bakery: our delivery run goes out early, before the streets fill, so the pandesal is on your shelf warm and ready for the morning rush. If you run a store or a canteen and want to take our bread, talk to us about quantities, timing and your route — we'll work out a standing order that fits your morning and a fair wholesale price, and we pride ourselves on never being late, because your customers are counting on that bread being there.</p></details>
+        <details><summary>How should I keep pandesal and bread fresh?</summary><p>Honestly, the best answer is to eat it warm and soon — pandesal and most of our breads are at their glorious best within an hour or two of baking, which is exactly why we bake in waves through the day. For bread you're keeping until later or the next day, wrap it well and store it at room temperature rather than the fridge, which actually dries bread out faster. A quick warm-up in a low oven, toaster or even a hot pan brings day-old pandesal back to life beautifully, soft inside with a little crisp — many people prefer it that way, split and filled. Richer breads like ensaymada keep a little longer thanks to the butter, and freeze well; just thaw and warm before serving.</p></details>
+        <details><summary>Are you really still using the original recipes?</summary><p>Yes, in the way that matters — the recipes came down from our founder to his children and then to us, and the character of the bread is unchanged, even if the details have been quietly tuned over fifty years. Flour changes, the weather changes, the humidity in Bulacan does its own thing to a dough, and any baker worth their salt adjusts to keep the result the same rather than letting it drift; that's not changing the recipe, it's honouring it. What we've never done is cheapen it — swap in worse fat, cut the proofing time, or truck in frozen dough — because the whole reason people have come to this corner for three generations is that the pandesal tastes like the pandesal they remember.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BATCH 08 / WE BAKE FOR</span><span>MALOLOS &amp; AROUND</span></div>
+    <ul class="area-list">
+      <li>Malolos</li><li>Guiguinto</li><li>Plaridel</li><li>Calumpit</li><li>Bulacan</li><li>Wholesale delivery</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BATCH 09 / THE ESSENTIALS</span><span>HOW WE BAKE</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1975</div><div class="detail">Three generations on the same corner</div></div>
+      <div><div class="label">From 5AM</div><div class="detail">Hot pandesal, then baked in waves all day</div></div>
+      <div><div class="label">Shaped here</div><div class="detail">Mixed, proofed &amp; baked in our own oven</div></div>
+      <div><div class="label">Wholesale</div><div class="detail">Fresh daily to Malolos stores &amp; canteens</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BATCH 10 / THE CORNER</span><span>PASEO DEL CONGRESO, MALOLOS</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Panaderia de San Roque</strong><br />
+          9 Paseo del Congreso<br />
+          Malolos, Bulacan 3000<br /><br />
+          <a href="tel:+63445550176" data-bind="business.phoneDisplay">(044) 555 0176</a><br />
+          <a href="mailto:hello@sanroquebakery.ph" data-bind="business.email">hello@sanroquebakery.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>DAILY</span><span>5AM – 8PM</span></div>
+          <div class="row"><span>HOT BATCHES</span><span>5AM &amp; 3PM</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on the corner of Paseo del Congreso near the old church — look for the queue and the open shutter.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Panaderia de San Roque, Malolos" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=120.7964%2C14.8333%2C120.8264%2C14.8533&layer=mapnik&marker=14.8433%2C120.8114"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">BATCH 11 / COME BY</div>
+    <h2 data-bind="cta.heading">Come for the five o'clock <em>batch.</em></h2>
+    <p data-bind="cta.body">Hot pandesal from five, ensaymada and mamon, the everyday breads a Filipino morning is built on, and reliable wholesale to the neighbourhood stores — baked on the same Malolos corner since 1975. Order ahead or just follow your nose.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Order or enquire</a>
+      <a class="btn btn-ghost" href="tel:+63445550176" data-bind="cta.secondary.label">(044) 555 0176</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63445550176" data-bind="messaging.whatsapp" aria-label="Message the bakery">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:26px;">Panaderia de <span style="color:var(--pandesal);font-style:italic;">San Roque</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A neighbourhood bakery in Malolos, Bulacan — hot pandesal from five and the breads a Filipino morning is built on, since 1975.</p>
+      </div>
+      <div>
+        <h4>The bakery</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          9 Paseo del Congreso<br />Malolos, Bulacan 3000<br />
+          <a href="tel:+63445550176">(044) 555 0176</a><br />
+          <a href="mailto:hello@sanroquebakery.ph">hello@sanroquebakery.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we bake</a><a href="#about">The bakery</a><a href="#location">Find us</a><a href="#book">Order</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> PANADERIA DE SAN ROQUE</span>
+      <span>HOT PANDESAL FROM FIVE · MALOLOS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

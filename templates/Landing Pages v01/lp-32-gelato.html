@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Otto e Mezzo — gelateria in Brighton, North Laine</title>
+<meta name="description" content="Otto e Mezzo is a small-batch gelateria in Brighton's North Laine. Sixteen flavours churned daily, eight classics and eight that change with the fruit." />
+<link href="https://fonts.googleapis.com/css2?family=Paytone+One&family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;1,6..12,400&family=Azeret+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Otto e Mezzo", phone: "+44 1273 691 148", phoneDisplay: "01273 691 148", email: "ciao@ottoemezzo.uk", foundedYear: 2015 },
+  hero: {
+    kicker: "Small-batch gelato · churned daily · North Laine, Brighton",
+    headline: "Sixteen flavours. Eight forever. Eight for whatever's ripe.",
+    lede: "A small gelateria run on Italian technique and Sussex fruit. Everything is churned in the back room the morning you eat it — when a tray runs out, that flavour is done until tomorrow.",
+    primaryCta: { label: "Today's sixteen", href: "#services" },
+    secondaryCta: { label: "Tubs & events", href: "#book" },
+    image: "https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Gelato counter with trays of fresh flavours."
+  },
+  trust: { years: "Churning in North Laine since 2015" },
+  about: {
+    heading: "Named after the eighth-and-a-half flavour.",
+    paragraphs: [
+      "Otto e Mezzo — eight and a half — is named for the day we planned a permanent list of eight flavours and immediately broke the rule for a tray of greengages a customer's uncle grew in Ditchling. The half slot became the whole philosophy.",
+      "The technique is Italian: low overrun, high milk quality, served at the temperature where flavour is loudest. Paolo trained in Bologna and will tell you about it at very slight provocation.",
+      "The fruit is Sussex: strawberries from Barcombe, rhubarb from a walled garden near Lewes, and whatever the half-slot brings. Milk arrives from a named herd near Firle every second morning. Nothing is churned more than a day before you eat it."
+    ],
+    portrait: "https://images.unsplash.com/photo-1557142046-c704a3adf364?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Fresh gelato being scraped into a serving tray."
+  },
+  services: [
+    { name: "The permanent eight", description: "Fior di latte, pistachio, hazelnut, chocolate, vanilla, lemon, coffee, stracciatella. Not going anywhere, ever." },
+    { name: "The seasonal eight", description: "Whatever Sussex is ripe with — strawberry in June, damson in September, blood orange when Sicily sends the good ones." },
+    { name: "The half slot", description: "One experimental tray, most days. Sometimes brilliant (brown bread), sometimes a lesson (basil, we're sorry). Always worth asking." },
+    { name: "Tubs to take home", description: "Half-litre tubs packed to order from the counter. Bring them back; the deposit is a scoop." },
+    { name: "Events & weddings", description: "The little cart, two flavours of your choosing, and a person in an apron who takes it as seriously as your caterer." },
+    { name: "Granita, summer only", description: "Coffee and lemon, made properly, i.e. you have to stir for it. Ready from July." }
+  ],
+  why: [
+    { title: "Churned this morning.", body: "Gelato peaks within a day of churning — so nothing here is older than that. Empty tray means come back tomorrow, and we mean it kindly." },
+    { title: "Low overrun, low sugar.", body: "Less air and less sugar than industrial ice cream, which is why the pistachio tastes like pistachio and not like cold sweetness." },
+    { title: "Fruit with a postcode.", body: "Barcombe strawberries, Lewes rhubarb, Ditchling greengages. The blackboard names the farm because the farm earned it." }
+  ],
+  how: [
+    { step: "01", title: "Morning churn", body: "Milk in at seven, trays filled by eleven. The day's sixteen go on the blackboard." },
+    { step: "02", title: "Taste first", body: "Any flavour, little spoon, no obligation. Choosing badly at a gelateria is a preventable tragedy." },
+    { step: "03", title: "Cup or cone", body: "Two flavours fit either. The cones are baked here on Tuesdays and it smells incredible; plan accordingly." },
+    { step: "04", title: "Sold out is sold out", body: "When a tray empties, that's tomorrow's problem. Follow the morning post for the day's list." }
+  ],
+  testimonials: [
+    { quote: "The pistachio ruined all other pistachio for me. I've tried the famous places in Rome since and came home relieved ours is better.", name: "Laura M.", context: "twice-weekly regular" },
+    { quote: "They did the gelato cart at our wedding. Three months later guests still mention the damson before they mention the ceremony.", name: "Priya & Jack", context: "wedding cart" },
+    { quote: "My daughter asks to check 'the half slot' the way other kids check a toy shop window. Brown bread flavour changed our lives; basil we don't discuss.", name: "Ffion W.", context: "half-slot loyalist" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600&q=85&auto=format&fit=crop", alt: "The counter, trays full." },
+    { src: "https://images.unsplash.com/photo-1557142046-c704a3adf364?w=1600&q=85&auto=format&fit=crop", alt: "Fresh gelato into the tray." },
+    { src: "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=1600&q=85&auto=format&fit=crop", alt: "Cones at the window." },
+    { src: "https://images.unsplash.com/photo-1488900128323-21503983a07e?w=1600&q=85&auto=format&fit=crop", alt: "Two scoops, one happy customer." },
+    { src: "https://images.unsplash.com/photo-1516559828984-fb3b99548b21?w=1600&q=85&auto=format&fit=crop", alt: "Sussex strawberries arriving." },
+    { src: "https://images.unsplash.com/photo-1560008581-09826d1de69e?w=1600&q=85&auto=format&fit=crop", alt: "The queue on a summer Saturday." }
+  ],
+  faq: [
+    { q: "What's the difference between gelato and ice cream?", a: "Less air (we churn slow), less fat (more milk than cream), and a warmer serving temperature. The result: flavour hits harder and faster. Also strong opinions, which are included free." },
+    { q: "Do you have dairy-free flavours?", a: "Always at least four — the fruit sorbets are water-based and the chocolate sorbet is dark enough to have a mood. Made in the same room as dairy, honestly labelled, allergen book on the counter." },
+    { q: "Why do you sell out?", a: "Because we churn what the morning allows and gelato is best the day it's made. Sixteen trays, once each. The alternative is serving you yesterday's — and then we'd just be an ice cream shop." },
+    { q: "Can I buy a tub to take home?", a: "Half-litre tubs packed from the counter, any flavours in the case. Take a freezer bag if you're walking far; Brighton seafront has opinions about frozen goods in July." },
+    { q: "Do you do the cart for events?", a: "Weddings, birthdays, film wraps — the cart, two flavours, cones and cups, one aproned human. Booked by the season; summer Saturdays go first." },
+    { q: "What's in the half slot today?", a: "Posted every morning with the day's sixteen. Ask at the counter for the story — there is always a story, usually involving someone's allotment." },
+    { q: "Are the cones homemade?", a: "Baked in-house every Tuesday, which is also the best-smelling day to visit. Gluten-free cones come from a dedicated bakery in Hove, sealed until you order." }
+  ],
+  area: { places: ["North Laine", "The Lanes", "Kemptown", "Hove (yes, actually)", "Seven Dials", "carts across Sussex"] },
+  credentials: [
+    { label: "Hygiene", detail: "Food-hygiene rated, certificate at the till" },
+    { label: "Training", detail: "Carpigiani Gelato University, Bologna" },
+    { label: "Milk", detail: "Single named herd, Firle — every second day" },
+    { label: "Allergens", detail: "Full allergen book, honest cross-contact labelling" }
+  ],
+  location: { name: "Otto e Mezzo", addressStreet: "31 Sydney Street", addressLocality: "North Laine, Brighton", addressRegion: "East Sussex", addressPostcode: "BN1 4EP", addressCountry: "United Kingdom" },
+  cta: { heading: "The trays fill at eleven. Set off now.", body: "Sixteen flavours, one experiment, and a little spoon with your name on it.", primary: { label: "Today's flavours", href: "#services" }, secondary: { label: "01273 691 148", href: "tel:+441273691148" } },
+  messaging: { whatsapp: "https://wa.me/441273691148", messenger: "https://m.me/ottoemezzobrighton" }
+};
+</script>
+
+<style>
+  :root {
+    --panna:#fdf8ef; --wafer:#f3e5cf; --choc:#3f2a20; --pist:#7fae7e;
+    --lampone:#e5566d; --limone:#f2c94c; --rule:rgba(63,42,32,0.16);
+    --display:"Paytone One",sans-serif;
+    --sans:"Nunito Sans",system-ui,sans-serif;
+    --mono:"Azeret Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--panna);color:var(--choc);font-family:var(--sans);font-size:16px;line-height:1.58;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1220px,93vw);margin-inline:auto;}
+  .gusto{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--lampone);font-weight:500;}
+  .h2{font-family:var(--display);font-weight:400;font-size:clamp(30px,4.2vw,54px);line-height:1.08;letter-spacing:0;margin:0 0 0.45em;}
+  .body{color:#8a7563;line-height:1.7;}
+  section{padding:clamp(70px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:14px 27px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:800;text-decoration:none;transition:0.18s;border-radius:999px;}
+  .btn-primary{background:var(--choc);color:var(--panna);} .btn-primary:hover{background:var(--lampone);}
+  .btn-ghost{border:2px solid var(--choc);} .btn-ghost:hover{background:var(--choc);color:var(--panna);}
+  .menu-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#b39a80;border-bottom:2px solid var(--choc);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,58px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(253,248,239,0.94);backdrop-filter:blur(10px);border-bottom:2px solid var(--choc);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--display);font-size:19px;text-decoration:none;line-height:1;}
+  .wm .half{color:var(--lampone);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#b39a80;font-weight:500;}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--lampone);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — scoop-arch composition */
+  .hero{padding:clamp(48px,7vw,96px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.02fr 0.98fr;gap:clamp(36px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--display);font-weight:400;font-size:clamp(34px,4.6vw,62px);line-height:1.08;margin:20px 0 24px;}
+  .hero h1 .half{color:var(--lampone);}
+  .hero .lede{color:#8a7563;max-width:44ch;line-height:1.7;font-size:clamp(15px,1.4vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:500px 500px 20px 20px;}
+  .scoop-tag{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panna);border:2px solid var(--choc);border-radius:999px;padding:10px 22px;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;white-space:nowrap;font-weight:500;}
+  .scoop-tag .dot{color:var(--lampone);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--choc);color:var(--panna);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(253,248,239,0.75);}
+
+  .about{background:var(--wafer);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,19px);line-height:1.74;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:20px;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — flavour-board list with colour dots */
+  .board{border:2px solid var(--choc);border-radius:20px;overflow:hidden;margin-top:clamp(26px,4vw,44px);background:#fff;}
+  .board .b-head{background:var(--choc);color:var(--panna);font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;padding:13px 26px;display:flex;justify-content:space-between;}
+  .b-row{display:grid;grid-template-columns:56px 280px 1fr;gap:22px;padding:22px 26px;border-top:1px dashed var(--rule);align-items:center;}
+  .b-row:first-of-type{border-top:0;}
+  .b-row .dot{width:30px;height:30px;border-radius:50%;border:2px solid var(--choc);}
+  .b-row:nth-of-type(1) .dot{background:var(--panna);} .b-row:nth-of-type(2) .dot{background:var(--lampone);}
+  .b-row:nth-of-type(3) .dot{background:var(--limone);} .b-row:nth-of-type(4) .dot{background:var(--pist);}
+  .b-row:nth-of-type(5) .dot{background:var(--wafer);} .b-row:nth-of-type(6) .dot{background:#9ec3e5;}
+  .b-row .name{font-family:var(--display);font-weight:400;font-size:21px;line-height:1.15;}
+  .b-row .desc{color:#8a7563;font-size:14.5px;max-width:54ch;line-height:1.64;}
+  @media(max-width:820px){.b-row{grid-template-columns:44px 1fr;} .b-row .desc{grid-column:1/-1;}}
+
+  .why{background:var(--pist);color:var(--choc);}
+  .why .menu-head{border-color:rgba(63,42,32,0.4);color:rgba(63,42,32,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px);margin-top:clamp(26px,4vw,44px);}
+  .why-grid .num{font-family:var(--display);font-size:34px;display:block;margin-bottom:12px;line-height:1;color:var(--panna);text-shadow:2px 2px 0 var(--choc);}
+  .why-grid h3{font-family:var(--display);font-weight:400;font-size:21px;margin:0 0 10px;line-height:1.15;}
+  .why-grid p{color:rgba(63,42,32,0.75);margin:0;font-size:14.5px;line-height:1.66;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;background:var(--wafer);border-radius:18px;padding:24px;}
+  .how-grid .step{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;color:var(--lampone);font-weight:500;text-transform:uppercase;}
+  .how-grid h3{font-family:var(--display);font-weight:400;font-size:18px;margin:10px 0 8px;}
+  .how-grid p{color:#8a7563;margin:0;font-size:13.5px;line-height:1.62;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .t-quote{font-family:var(--display);font-weight:400;font-size:clamp(22px,3vw,40px);line-height:1.22;max-width:28ch;margin:0 0 22px;}
+  .t-attr{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#b39a80;margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid var(--choc);padding-top:34px;}
+  .t-sub blockquote{font-size:16.5px;line-height:1.64;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#b39a80;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — scoop-top arches */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.8vw,24px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:200px 200px 18px 18px;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:#b39a80;margin-top:8px;text-align:center;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px dashed var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--choc);}
+  .faq-list summary{font-weight:800;font-size:17.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"●";color:var(--lampone);font-size:13px;flex-shrink:0;}
+  .faq-list details[open] summary::after{color:var(--pist);}
+  .faq-list p{margin:14px 0 0;color:#8a7563;font-size:14.5px;max-width:56ch;line-height:1.66;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:10px 18px;border:2px solid var(--choc);border-radius:999px;font-weight:500;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:2px solid var(--choc);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--lampone);margin-bottom:8px;font-weight:500;}
+  .creds .detail{font-weight:800;font-size:15.5px;line-height:1.42;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--wafer);border-radius:20px;padding:32px;}
+  .nap address{font-style:normal;font-weight:800;font-size:20px;line-height:1.5;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px dashed var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:#8a7563;}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:#8a7563;margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{border-radius:20px;min-height:380px;overflow:hidden;border:2px solid var(--choc);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--lampone);color:var(--panna);padding:clamp(80px,10vw,140px) 0;text-align:center;}
+  .cta-band h2{font-family:var(--display);font-weight:400;font-size:clamp(34px,4.8vw,68px);line-height:1.06;margin:14px auto 18px;max-width:18ch;}
+  .cta-band p{color:rgba(253,248,239,0.95);max-width:44ch;margin:0 auto 32px;font-size:17px;font-weight:600;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--choc);color:var(--panna);}
+  .cta-band .btn-primary:hover{background:var(--panna);color:var(--choc);}
+  .cta-band .btn-ghost{border-color:var(--panna);color:var(--panna);}
+  .cta-band .btn-ghost:hover{background:var(--panna);color:var(--lampone);}
+
+  footer{background:var(--choc);color:rgba(253,248,239,0.85);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--limone);margin:0 0 14px;font-weight:500;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;color:var(--panna);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(253,248,239,0.18);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(253,248,239,0.5);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--choc);color:var(--panna);padding:13px 19px;border-radius:999px;text-decoration:none;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;font-weight:800;box-shadow:0 8px 24px rgba(63,42,32,0.3);}
+  .msg-fab a:hover{background:var(--lampone);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"IceCreamShop","name":"Otto e Mezzo","description":"Small-batch gelateria in Brighton's North Laine. Sixteen flavours churned daily from Sussex fruit and named-herd milk.","url":"https://ottoemezzo.uk/","telephone":"+441273691148","email":"ciao@ottoemezzo.uk","address":{"@type":"PostalAddress","streetAddress":"31 Sydney Street","addressLocality":"Brighton","addressRegion":"East Sussex","postalCode":"BN1 4EP","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":50.8266,"longitude":-0.1385},"areaServed":["Brighton","Hove","Sussex"],"image":["https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600"],"foundingDate":"2015"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What's the difference between gelato and ice cream?","acceptedAnswer":{"@type":"Answer","text":"Less air, less fat, warmer serving temperature — flavour hits harder and faster."}},
+{"@type":"Question","name":"Do you have dairy-free flavours?","acceptedAnswer":{"@type":"Answer","text":"Always at least four water-based sorbets, honestly labelled, allergen book on the counter."}},
+{"@type":"Question","name":"Why do you sell out?","acceptedAnswer":{"@type":"Answer","text":"We churn what the morning allows; gelato is best the day it's made."}},
+{"@type":"Question","name":"Can I buy a tub to take home?","acceptedAnswer":{"@type":"Answer","text":"Half-litre tubs packed from the counter, any flavours in the case."}},
+{"@type":"Question","name":"Do you do the cart for events?","acceptedAnswer":{"@type":"Answer","text":"Weddings, birthdays, film wraps — booked by the season; summer Saturdays go first."}},
+{"@type":"Question","name":"Are the cones homemade?","acceptedAnswer":{"@type":"Answer","text":"Baked in-house every Tuesday. Gluten-free cones arrive sealed from a dedicated bakery."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Otto e Mezzo <span class="half">8½</span></a>
+    <nav class="nav-links">
+      <a href="#about">The shop</a><a href="#services">Flavours</a><a href="#location">Find us</a><a href="#book">Tubs &amp; carts</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v26">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="gusto" data-bind="hero.kicker">Small-batch gelato · churned daily · North Laine, Brighton</div>
+      <h1 data-bind="hero.headline">Sixteen flavours. Eight forever. <span class="half">Eight for whatever's ripe.</span></h1>
+      <p class="lede" data-bind="hero.lede">A small gelateria run on Italian technique and Sussex fruit. Everything is churned in the back room the morning you eat it — when a tray runs out, that flavour is done until tomorrow.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">Today's sixteen</a>
+        <a class="btn btn-ghost" href="#book" data-bind="hero.secondaryCta.label">Tubs &amp; events</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=2000&q=85&auto=format&fit=crop"
+           alt="Gelato counter with trays of fresh flavours." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="scoop-tag">CHURNED <span class="dot">●</span> THIS MORNING</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Churning in North Laine since 2015</span>
+    <span>Bologna trained</span>
+    <span>Named-herd milk</span>
+    <span>Fruit with a postcode</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap">
+    <div class="menu-head"><span>01 / LA STORIA</span><span>EIGHT AND A HALF</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">Named after the eighth-and-a-half flavour.</h2>
+        <p>Otto e Mezzo — eight and a half — is named for the day we planned a permanent list of eight flavours and immediately broke the rule for a tray of greengages a customer's uncle grew in Ditchling. The half slot became the whole philosophy.</p>
+        <p>The technique is Italian: low overrun, high milk quality, served at the temperature where flavour is loudest. Paolo trained in Bologna and will tell you about it at very slight provocation.</p>
+        <p>The fruit is Sussex: strawberries from Barcombe, rhubarb from a walled garden near Lewes. Milk arrives from a named herd near Firle every second morning.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1557142046-c704a3adf364?w=1200&q=85&auto=format&fit=crop"
+           alt="Fresh gelato being scraped into a serving tray." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v19">
+  <div class="wrap">
+    <div class="menu-head"><span>02 / THE BLACKBOARD</span><span>SIXTEEN TRAYS + THE HALF</span></div>
+    <h2 class="h2">On the blackboard.</h2>
+    <div class="board">
+      <div class="b-head"><span>OGGI · TODAY</span><span>WHEN IT'S GONE, IT'S TOMORROW'S</span></div>
+      <div class="b-row"><span class="dot"></span><span class="name">The permanent eight</span><span class="desc">Fior di latte, pistachio, hazelnut, chocolate, vanilla, lemon, coffee, stracciatella. Not going anywhere, ever.</span></div>
+      <div class="b-row"><span class="dot"></span><span class="name">The seasonal eight</span><span class="desc">Whatever Sussex is ripe with — strawberry in June, damson in September, blood orange when Sicily sends the good ones.</span></div>
+      <div class="b-row"><span class="dot"></span><span class="name">The half slot</span><span class="desc">One experimental tray, most days. Sometimes brilliant (brown bread), sometimes a lesson (basil, we're sorry). Always worth asking.</span></div>
+      <div class="b-row"><span class="dot"></span><span class="name">Tubs to take home</span><span class="desc">Half-litre tubs packed to order from the counter. Bring them back; the deposit is a scoop.</span></div>
+      <div class="b-row"><span class="dot"></span><span class="name">Events &amp; weddings</span><span class="desc">The little cart, two flavours of your choosing, and a person in an apron who takes it as seriously as your caterer.</span></div>
+      <div class="b-row"><span class="dot"></span><span class="name">Granita, summer only</span><span class="desc">Coffee and lemon, made properly, i.e. you have to stir for it. Ready from July.</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="menu-head"><span>03 / PERCHÉ QUI</span><span>THREE REASONS</span></div>
+    <h2 class="h2">Why the queue forms.</h2>
+    <div class="why-grid">
+      <div><span class="num">1.</span><h3>Churned this morning.</h3><p>Gelato peaks within a day of churning — so nothing here is older than that. Empty tray means come back tomorrow, and we mean it kindly.</p></div>
+      <div><span class="num">2.</span><h3>Low overrun, low sugar.</h3><p>Less air and less sugar than industrial ice cream, which is why the pistachio tastes like pistachio and not like cold sweetness.</p></div>
+      <div><span class="num">8½</span><h3>Fruit with a postcode.</h3><p>Barcombe strawberries, Lewes rhubarb, Ditchling greengages. The blackboard names the farm because the farm earned it.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="menu-head"><span>04 / THE DAY</span><span>07:00 → SOLD OUT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">07:00</span><h3>Morning churn</h3><p>Milk in at seven, trays filled by eleven. The day's sixteen go on the blackboard.</p></li>
+      <li><span class="step">AT THE COUNTER</span><h3>Taste first</h3><p>Any flavour, little spoon, no obligation. Choosing badly at a gelateria is a preventable tragedy.</p></li>
+      <li><span class="step">CUP / CONE</span><h3>Two flavours fit</h3><p>The cones are baked here on Tuesdays and it smells incredible; plan accordingly.</p></li>
+      <li><span class="step">LATE PM</span><h3>Sold out is sold out</h3><p>When a tray empties, that's tomorrow's problem. Follow the morning post for the day's list.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section data-component="TESTIMONIALS" data-variant="v2" style="background:var(--wafer);">
+  <div class="wrap">
+    <div class="menu-head"><span>05 / THE REGULARS</span><span>SPOON-TESTED</span></div>
+    <blockquote class="t-quote">“The pistachio ruined all other pistachio for me. I've tried the famous places in Rome since and came home relieved ours is better.”</blockquote>
+    <div class="t-attr">Laura M. — twice-weekly regular</div>
+    <div class="t-sub">
+      <figure><blockquote>“They did the gelato cart at our wedding. Three months later guests still mention the damson before they mention the ceremony.”</blockquote><figcaption>Priya &amp; Jack — wedding cart</figcaption></figure>
+      <figure><blockquote>“My daughter asks to check ‘the half slot' the way other kids check a toy shop window. Brown bread flavour changed our lives; basil we don't discuss.”</blockquote><figcaption>Ffion W. — half-slot loyalist</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v19">
+  <div class="wrap">
+    <div class="menu-head"><span>06 / DAL BANCO</span><span>FROM THE COUNTER</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600&q=85&auto=format&fit=crop" alt="The counter, trays full." /><figcaption>11:00 · trays full</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1557142046-c704a3adf364?w=1600&q=85&auto=format&fit=crop" alt="Fresh gelato into the tray." /><figcaption>the morning churn</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=1600&q=85&auto=format&fit=crop" alt="Cones at the window." /><figcaption>tuesday: cone day</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1488900128323-21503983a07e?w=1600&q=85&auto=format&fit=crop" alt="Two scoops, one happy customer." /><figcaption>two flavours, always</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1516559828984-fb3b99548b21?w=1600&q=85&auto=format&fit=crop" alt="Sussex strawberries arriving." /><figcaption>barcombe, delivered</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1560008581-09826d1de69e?w=1600&q=85&auto=format&fit=crop" alt="The queue on a summer Saturday." /><figcaption>saturday, july</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="menu-head"><span>07 / DOMANDE</span><span>ASKED OVER THE GLASS</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked over the glass.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441273691148" style="color:var(--lampone);">01273 691 148</a>. If it's sunny, expect the phone to ring a while.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What's the difference between gelato and ice cream?</summary><p>Less air (we churn slow), less fat (more milk than cream), and a warmer serving temperature. The result: flavour hits harder and faster. Also strong opinions, which are included free.</p></details>
+        <details><summary>Do you have dairy-free flavours?</summary><p>Always at least four — the fruit sorbets are water-based and the chocolate sorbet is dark enough to have a mood. Made in the same room as dairy, honestly labelled, allergen book on the counter.</p></details>
+        <details><summary>Why do you sell out?</summary><p>Because we churn what the morning allows and gelato is best the day it's made. Sixteen trays, once each. The alternative is serving you yesterday's — and then we'd just be an ice cream shop.</p></details>
+        <details><summary>Can I buy a tub to take home?</summary><p>Half-litre tubs packed from the counter, any flavours in the case. Take a freezer bag if you're walking far; Brighton seafront has opinions about frozen goods in July.</p></details>
+        <details><summary>Do you do the cart for events?</summary><p>Weddings, birthdays, film wraps — the cart, two flavours, cones and cups, one aproned human. Booked by the season; summer Saturdays go first.</p></details>
+        <details><summary>What's in the half slot today?</summary><p>Posted every morning with the day's sixteen. Ask at the counter for the story — there is always a story, usually involving someone's allotment.</p></details>
+        <details><summary>Are the cones homemade?</summary><p>Baked in-house every Tuesday, which is also the best-smelling day to visit. Gluten-free cones come from a dedicated bakery in Hove, sealed until you order.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="menu-head"><span>08 / DOVE</span><span>SHOP + CART</span></div>
+    <ul class="area-list">
+      <li>North Laine</li><li>The Lanes</li><li>Kemptown</li><li>Hove · yes, actually</li><li>Seven Dials</li><li>Carts across Sussex</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="menu-head"><span>09 / SUL SERIO</span><span>THE SERIOUS BITS</span></div>
+    <div class="creds">
+      <div><div class="label">Hygiene</div><div class="detail">Food-hygiene rated, certificate at the till</div></div>
+      <div><div class="label">Training</div><div class="detail">Carpigiani Gelato University, Bologna</div></div>
+      <div><div class="label">Milk</div><div class="detail">Single named herd, Firle — every second day</div></div>
+      <div><div class="label">Allergens</div><div class="detail">Full allergen book, honest cross-contact labelling</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="menu-head"><span>10 / FIND US</span><span>31 SYDNEY STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Otto e Mezzo</strong><br />
+          31 Sydney Street<br />
+          North Laine, Brighton BN1 4EP<br /><br />
+          <a href="tel:+441273691148" data-bind="business.phoneDisplay">01273 691 148</a><br />
+          <a href="mailto:ciao@ottoemezzo.uk" data-bind="business.email">ciao@ottoemezzo.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>SUMMER</span><span>LONG DAYS</span></div>
+          <div class="row"><span>WINTER</span><span>SHORTER, COSIER</span></div>
+          <p class="gbp-note">Hours flex with the season and live on our Google Business Profile. When the trays run out early, the door says so nicely.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Otto e Mezzo, Sydney Street, Brighton" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.1460%2C50.8240%2C-0.1310%2C50.8295&layer=mapnik&marker=50.8266%2C-0.1385"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v2">
+  <div class="wrap">
+    <div class="gusto" style="color:rgba(253,248,239,0.85);">11 / ANDIAMO</div>
+    <h2 data-bind="cta.heading">The trays fill at eleven. Set off now.</h2>
+    <p data-bind="cta.body">Sixteen flavours, one experiment, and a little spoon with your name on it.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#services" data-bind="cta.primary.label">Today's flavours</a>
+      <a class="btn btn-ghost" href="tel:+441273691148" data-bind="cta.secondary.label">01273 691 148</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441273691148" data-bind="messaging.whatsapp" aria-label="Message the gelateria">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="color:var(--panna);font-size:21px;">Otto e Mezzo <span class="half" style="color:var(--limone);">8½</span></div>
+        <p style="margin-top:12px;max-width:34ch;color:rgba(253,248,239,0.6);font-size:14px;line-height:1.7;">A small-batch gelateria in Brighton's North Laine. Churned daily since 2015.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          31 Sydney Street<br />Brighton BN1 4EP<br />
+          <a href="tel:+441273691148">01273 691 148</a><br />
+          <a href="mailto:ciao@ottoemezzo.uk">ciao@ottoemezzo.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Flavours</a><a href="#book">Tubs &amp; carts</a><a href="#about">The shop</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> OTTO E MEZZO LTD</span>
+      <span>TASTE FIRST, ALWAYS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

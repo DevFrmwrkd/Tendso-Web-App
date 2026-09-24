@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Leeboard Sailing — RYA sailing school in Salcombe, Devon</title>
+<meta name="description" content="Leeboard is an RYA training centre on the Salcombe estuary — dinghy courses from age eight to never-too-late, keelboat weekends, and a rescue boat that has seen everything." />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter+Tight:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Leeboard Sailing", phone: "+44 1548 843 771", phoneDisplay: "01548 843 771", email: "slipway@leeboard.co.uk", foundedYear: 2007 },
+  hero: {
+    kicker: "RYA training centre · dinghies & keelboats · Salcombe estuary",
+    headline: "WIND IS FREE. WE TEACH YOU TO STEAL IT.",
+    lede: "An RYA school on the best learning water in Devon: sheltered when you need mercy, lively when you've earned it. Dinghy courses from age eight to never-too-late, keelboat weekends, and instructors who'd rather be nowhere else.",
+    primaryCta: { label: "Find your course", href: "#services" },
+    secondaryCta: { label: "The slipway", href: "#location" },
+    image: "https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Dinghies heeling in a fresh breeze on blue water."
+  },
+  trust: { years: "Teaching since 2007" },
+  about: {
+    heading: "Learn where the water is kind. Mostly.",
+    paragraphs: [
+      "The Salcombe estuary is the perfect classroom: flat and forgiving inside the bar, honest and gusty at the mouth, and never more than a short reach from the slipway and the kettle. We've taught eight-year-olds, eighty-year-olds, and one memorably determined stag party.",
+      "Leeboard runs on a fleet of thirty boats — Picos and Fevas for the small and fearless, Wayfarers for families, RS Quests for courses, and two keelboats for the weekends when the estuary feels too small.",
+      "All instruction is RYA-syllabus, all instructors are qualified and first-aid current, and the rescue boat is crewed every single session by someone whose only job is watching you. Capsizing isn't failure here; it's Tuesday."
+    ],
+    portrait: "https://images.unsplash.com/photo-1504681869696-d977211a5f4c?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "The estuary from above — coves and clear water."
+  },
+  services: [
+    { name: "RYA Youth Stages 1–4", description: "Eight to sixteen, Picos and Fevas, holidays and Saturdays. From first splash to racing starts, with hot chocolate as syllabus." },
+    { name: "Adult Level 1 & 2", description: "Two days from zero to sailing a triangle unassisted. The most common review: 'why did I wait twenty years?'" },
+    { name: "Better sailing clinics", description: "Spinnakers, trapeze, racing tune-ups, heavy-weather confidence. For sailors with the basics and an appetite." },
+    { name: "Keelboat weekends", description: "Two days on our Sonatas out past the bar — tides, pilotage, and lunch on a mooring. The gateway drug to yacht ownership." },
+    { name: "Family own-boat tuition", description: "Your boat, your crew, our instructor aboard. We untangle the boat and, frequently, the family." },
+    { name: "Schools & groups", description: "Term-time programmes for local schools and youth groups, subsidised by the summer courses. The fleet earns its keep both ways." }
+  ],
+  why: [
+    { title: "Rescue cover, every session.", body: "A crewed safety boat on the water whose only job is you. Freedom to push comes from knowing someone's watching the whole race track." },
+    { title: "The estuary does the levelling.", body: "Sheltered water for day one, tide and breeze at the mouth for day twenty. One venue that grows with you — no minibus to a reservoir." },
+    { title: "Instructors who stayed.", body: "Our team came for a season and didn't leave. Same faces, year after year — they'll remember your name and your last capsize." }
+  ],
+  how: [
+    { step: "01", title: "Pick your start", body: "Youth stages, adult Level 1, or a chat at the slipway if you're not sure. Honest advice, no upselling." },
+    { step: "02", title: "Kit up", body: "Wetsuits, buoyancy aids and boats all included. Bring trainers you don't love and a towel you do." },
+    { step: "03", title: "Get wet, get better", body: "Small groups, short briefings, maximum time on the water. Capsize drill is a game, not a punishment." },
+    { step: "04", title: "Join the club end", body: "Course graduates get a season of club sailing to consolidate — boats, buoys and Wednesday-evening racing included." }
+  ],
+  testimonials: [
+    { quote: "My daughter did Stage 1 aged nine, terrified. She's fourteen now and shouts 'STARBOARD' at me in the car. Leeboard built that monster and I'm delighted.", name: "Caroline F.", context: "youth stages parent, year five" },
+    { quote: "Adult Level 2 at 51. By Sunday afternoon I was sailing a triangle alone, grinning like an idiot, twenty years of 'one day' finally cashed in.", name: "Dev P.", context: "adult Level 2 graduate" },
+    { quote: "The own-boat day saved our marriage and our Wayfarer, in that order. The instructor's first fix was moving me off the helm. Correct call.", name: "Ruth & Alan", context: "family own-boat tuition" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=1600&q=85&auto=format&fit=crop", alt: "Dinghies heeling in a fresh breeze." },
+    { src: "https://images.unsplash.com/photo-1504681869696-d977211a5f4c?w=1600&q=85&auto=format&fit=crop", alt: "The estuary from above." },
+    { src: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1600&q=85&auto=format&fit=crop", alt: "Out past the bar on a keelboat weekend." },
+    { src: "https://images.unsplash.com/photo-1468413253725-0d5181091126?w=1600&q=85&auto=format&fit=crop", alt: "The cove at low tide." },
+    { src: "https://images.unsplash.com/photo-1468581264429-2548ef9eb732?w=1600&q=85&auto=format&fit=crop", alt: "Evening racing, golden hour." },
+    { src: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=85&auto=format&fit=crop", alt: "The estuary, behaving itself." }
+  ],
+  faq: [
+    { q: "Do I need to be able to swim?", a: "Comfortable in the water in a buoyancy aid is the requirement — fifty metres is plenty. Everyone wears buoyancy at all times, ours, provided, properly fitted, no exceptions including instructors." },
+    { q: "What happens if I capsize?", a: "You get wet, you right the boat, you carry on — it's taught as a drill in week one precisely so it becomes boring. The rescue boat is beside you before you've finished being surprised." },
+    { q: "What should I bring?", a: "Old trainers, a towel, swimwear, sun cream and a water bottle. We supply wetsuits, spray tops, buoyancy aids and the boats. In April, bring enthusiasm; in August, bring more sun cream." },
+    { q: "Am I too old to learn?", a: "Our oldest Level 1 graduate was 78 and bought a Wayfarer the following spring. Sailing is tactics and feel, not strength — the boat does the work once you stop fighting it." },
+    { q: "Is it safe for kids?", a: "RYA ratios, DBS-checked instructors, crewed rescue cover, and a strict wind limit for each stage. The honest risk profile: cold, tired, hooked for life." },
+    { q: "What if there's no wind? Or too much?", a: "No wind: theory, tows, and rope work that will genuinely change your life. Too much: the decision is ours, made early, and courses extend or credit — we don't send beginners out to be brave." }
+  ],
+  area: { places: ["Salcombe", "Kingsbridge", "Dartmouth", "Totnes", "Plymouth", "South Hams"] },
+  credentials: [
+    { label: "RYA", detail: "Recognised training centre, inspected annually" },
+    { label: "Instructors", detail: "RYA-qualified, DBS-checked, first-aid current" },
+    { label: "Rescue", detail: "Crewed safety boat on the water every session" },
+    { label: "Fleet", detail: "30 boats, serviced every winter, replaced on a cycle" }
+  ],
+  location: { name: "Leeboard Sailing", addressStreet: "The Slipway, Batson Creek", addressLocality: "Salcombe", addressRegion: "Devon", addressPostcode: "TQ8 8FA", addressCountry: "United Kingdom" },
+  cta: { heading: "THE TIDE DOESN'T WAIT. NEITHER SHOULD YOU.", body: "Courses fill by spring. Find yours, or come stand on the slipway and ask questions — that's how most of us started.", primary: { label: "Find your course", href: "#services" }, secondary: { label: "01548 843 771", href: "tel:+441548843771" } },
+  messaging: { whatsapp: "https://wa.me/441548843771", messenger: "https://m.me/leeboardsailing" }
+};
+</script>
+
+<style>
+  :root {
+    --foam:#f6f7f4; --navy:#0b2545; --signal:#ffd400; --sea:#2f6690;
+    --red:#d64541; --mid:#5c6b7a; --rule:rgba(11,37,69,0.16);
+    --anton:"Anton",sans-serif; --sans:"Inter Tight",sans-serif; --mono:"DM Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--foam);color:var(--navy);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--red);}
+  .wrap{width:min(1320px,94vw);margin-inline:auto;}
+  .coord{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--sea);}
+  .h2{font-family:var(--anton);font-weight:400;font-size:clamp(44px,6.5vw,104px);line-height:0.92;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 0.4em;}
+  .h2 .ghost{color:transparent;-webkit-text-stroke:2px var(--navy);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(72px,9vw,130px) 0;position:relative;}
+  .btn{display:inline-flex;align-items:center;padding:16px 30px;font-family:var(--anton);font-size:15px;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;transition:0.15s;}
+  .btn-primary{background:var(--signal);color:var(--navy);} .btn-primary:hover{background:var(--navy);color:var(--signal);}
+  .btn-ghost{border:2.5px solid var(--navy);} .btn-ghost:hover{background:var(--navy);color:var(--foam);}
+  .chart-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);border-bottom:3px solid var(--navy);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);}
+  /* signal-flag stripe */
+  .flagband{height:14px;background:repeating-linear-gradient(-45deg,var(--signal) 0 26px,var(--navy) 26px 52px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(246,247,244,0.94);backdrop-filter:blur(10px);border-bottom:3px solid var(--navy);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 0;}
+  .wm{font-family:var(--anton);font-size:21px;text-transform:uppercase;letter-spacing:0.02em;text-decoration:none;}
+  .wm span{color:var(--red);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — regatta poster: colossal stacked type, image slab crossing under, coordinates gutter */
+  .hero{padding:clamp(44px,5.5vw,80px) 0 0;}
+  .hero .kicker-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);}
+  .hero .kicker-row b{color:var(--red);font-weight:500;}
+  .hero h1{font-family:var(--anton);font-weight:400;text-transform:uppercase;line-height:0.88;margin:26px 0 0;font-size:clamp(58px,11.5vw,196px);letter-spacing:0.005em;}
+  .hero h1 .a{display:block;}
+  .hero h1 .b{display:block;color:transparent;-webkit-text-stroke:2.5px var(--navy);}
+  .hero h1 .c{display:block;color:var(--sea);}
+  .hero-slab{margin-top:clamp(30px,4vw,56px);display:grid;grid-template-columns:1.15fr 0.85fr;gap:0;border:3px solid var(--navy);}
+  .hero-slab .photo{position:relative;border-right:3px solid var(--navy);}
+  .hero-slab img{width:100%;height:100%;object-fit:cover;min-height:340px;}
+  .hero-slab .photo .burgee{position:absolute;top:0;left:0;background:var(--signal);color:var(--navy);font-family:var(--mono);font-size:10px;letter-spacing:0.16em;padding:10px 16px;text-transform:uppercase;font-weight:500;border-right:3px solid var(--navy);border-bottom:3px solid var(--navy);}
+  .hero-slab .panel{padding:clamp(26px,3.4vw,48px);display:flex;flex-direction:column;gap:22px;background:#fff;}
+  .hero-slab .lede{font-size:clamp(15.5px,1.5vw,18.5px);line-height:1.62;color:var(--navy);margin:0;font-weight:500;}
+  .hero-ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:auto;}
+  @media(max-width:820px){.hero-slab{grid-template-columns:1fr;} .hero-slab .photo{border-right:0;border-bottom:3px solid var(--navy);}}
+
+  .trust{padding:0;background:var(--navy);color:var(--foam);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(246,247,244,0.8);}
+
+  /* ABOUT — chart panel with huge coordinates behind */
+  .about .bigcoord{position:absolute;top:2vw;right:-2vw;font-family:var(--anton);font-size:clamp(100px,17vw,280px);line-height:0.85;color:transparent;-webkit-text-stroke:1.5px rgba(11,37,69,0.1);pointer-events:none;user-select:none;}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;position:relative;}
+  .about-grid .photo{position:relative;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border:3px solid var(--navy);}
+  .about-grid .photo::before{content:"50°14'N 003°46'W";position:absolute;top:-14px;left:24px;background:var(--signal);border:3px solid var(--navy);font-family:var(--mono);font-size:10px;letter-spacing:0.14em;padding:6px 12px;z-index:2;font-weight:500;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.72;margin:0 0 1em;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — race board: numbered marks, giant outline numerals */
+  .race-rows{border-top:3px solid var(--navy);}
+  .race-row{display:grid;grid-template-columns:130px 1fr 1.3fr;gap:clamp(18px,3vw,44px);padding:28px 0;border-bottom:1.5px solid var(--rule);align-items:center;transition:0.15s;}
+  .race-row:hover{background:#fff;padding-left:14px;}
+  .race-row .mark{font-family:var(--anton);font-size:clamp(40px,4.5vw,64px);line-height:0.9;color:transparent;-webkit-text-stroke:2px var(--sea);}
+  .race-row:hover .mark{color:var(--signal);-webkit-text-stroke:2px var(--navy);}
+  .race-row h3{font-family:var(--anton);font-weight:400;font-size:clamp(21px,2.2vw,28px);margin:0;line-height:1.05;text-transform:uppercase;}
+  .race-row p{color:var(--mid);margin:0;font-size:14.5px;line-height:1.66;}
+  @media(max-width:760px){.race-row{grid-template-columns:1fr;gap:8px;}}
+
+  /* WHY — signal yellow */
+  .why{background:var(--signal);}
+  .why .chart-head{border-color:var(--navy);color:rgba(11,37,69,0.6);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,64px);}
+  .why-grid .flag{width:44px;height:30px;margin-bottom:18px;border:3px solid var(--navy);}
+  .why-grid > div:nth-child(1) .flag{background:linear-gradient(90deg,var(--navy) 50%,#fff 50%);}
+  .why-grid > div:nth-child(2) .flag{background:conic-gradient(var(--red) 0 25%,#fff 0 50%,var(--red) 0 75%,#fff 0);}
+  .why-grid > div:nth-child(3) .flag{background:repeating-linear-gradient(to bottom,var(--navy) 0 6px,#fff 6px 12px);}
+  .why-grid h3{font-family:var(--anton);font-weight:400;font-size:24px;text-transform:uppercase;margin:0 0 10px;line-height:1.02;}
+  .why-grid p{color:rgba(11,37,69,0.78);margin:0;font-size:14.5px;line-height:1.68;font-weight:500;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--navy);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.22em;color:var(--red);text-transform:uppercase;font-weight:500;}
+  .how-grid h3{font-family:var(--anton);font-weight:400;font-size:19px;text-transform:uppercase;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  /* TESTIMONIALS — navy, giant shout */
+  .testimonials{background:var(--navy);color:var(--foam);}
+  .testimonials .chart-head{border-color:rgba(246,247,244,0.5);color:rgba(246,247,244,0.6);}
+  .t-quote{font-family:var(--anton);font-weight:400;font-size:clamp(30px,4.8vw,72px);line-height:0.94;text-transform:uppercase;max-width:22ch;margin:0 0 24px;}
+  .t-quote em{font-style:normal;color:var(--signal);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(246,247,244,0.6);margin-bottom:clamp(40px,5vw,64px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(246,247,244,0.3);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:rgba(246,247,244,0.85);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(246,247,244,0.55);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — regatta strip, hard crops */
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border:3px solid var(--navy);}
+  .g-grid img{width:100%;height:100%;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figure:nth-child(1){grid-column:span 4;} .g-grid figure:nth-child(1) img{aspect-ratio:16/9;}
+  .g-grid figure:nth-child(2){grid-column:span 2;} .g-grid figure:nth-child(2) img{aspect-ratio:4/4.53;}
+  .g-grid figure:nth-child(n+3){grid-column:span 2;} .g-grid figure:nth-child(n+3) img{aspect-ratio:4/3;}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--navy);color:var(--signal);font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;padding:6px 10px;}
+  @media(max-width:760px){.g-grid figure{grid-column:span 6 !important;} .g-grid figure img{aspect-ratio:4/3 !important;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1.5px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:3px solid var(--navy);}
+  .faq-list summary{font-family:var(--anton);font-weight:400;font-size:20px;text-transform:uppercase;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.1;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"▲";color:var(--red);flex-shrink:0;font-size:12px;transition:0.2s;transform:rotate(90deg);}
+  .faq-list details[open] summary::after{transform:rotate(180deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;padding:11px 20px;border:3px solid var(--navy);background:#fff;font-weight:500;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:clamp(26px,3.5vw,44px);border:3px solid var(--navy);background:#fff;}
+  .creds > div{padding:24px;border-right:3px solid var(--navy);}
+  .creds > div:last-child{border-right:0;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--red);margin-bottom:10px;font-weight:500;}
+  .creds .detail{font-family:var(--anton);font-weight:400;font-size:17px;line-height:1.2;text-transform:uppercase;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;} .creds > div{border-bottom:3px solid var(--navy);} .creds > div:nth-child(2n){border-right:0;} .creds > div:nth-child(n+3){border-bottom:0;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:3px solid var(--navy);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--anton);font-weight:400;font-size:21px;line-height:1.3;text-transform:uppercase;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1.5px solid var(--rule);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.64;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:3px solid var(--navy);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  /* CTA — full-width shout over flag stripes */
+  .cta-band{background:var(--navy);color:var(--foam);padding:clamp(90px,11vw,160px) 0;position:relative;overflow:hidden;}
+  .cta-band::before{content:"";position:absolute;top:0;left:0;right:0;height:14px;background:repeating-linear-gradient(-45deg,var(--signal) 0 26px,var(--red) 26px 52px);}
+  .cta-band h2{font-family:var(--anton);font-weight:400;font-size:clamp(48px,9vw,150px);line-height:0.88;text-transform:uppercase;margin:14px 0 22px;max-width:14ch;}
+  .cta-band h2 em{font-style:normal;color:var(--signal);}
+  .cta-band p{color:rgba(246,247,244,0.78);max-width:46ch;margin:0 0 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;}
+  .cta-band .btn-ghost{border-color:var(--foam);color:var(--foam);}
+  .cta-band .btn-ghost:hover{background:var(--foam);color:var(--navy);}
+
+  footer{background:var(--foam);border-top:3px solid var(--navy);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--red);margin:0 0 14px;font-weight:500;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1.5px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--signal);color:var(--navy);padding:14px 20px;text-decoration:none;font-family:var(--anton);font-size:14px;letter-spacing:0.06em;text-transform:uppercase;border:3px solid var(--navy);box-shadow:5px 5px 0 var(--navy);}
+  .msg-fab a:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--navy);color:var(--navy);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SportsActivityLocation","name":"Leeboard Sailing","description":"RYA sailing school on the Salcombe estuary — youth and adult dinghy courses, keelboat weekends, own-boat tuition.","url":"https://leeboard.co.uk/","telephone":"+441548843771","email":"slipway@leeboard.co.uk","address":{"@type":"PostalAddress","streetAddress":"The Slipway, Batson Creek","addressLocality":"Salcombe","addressRegion":"Devon","postalCode":"TQ8 8FA","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":50.2400,"longitude":-3.7700},"areaServed":["Salcombe","Kingsbridge","South Hams","Devon"],"image":["https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=1600"],"foundingDate":"2007"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Do I need to be able to swim?","acceptedAnswer":{"@type":"Answer","text":"Comfortable in the water in a buoyancy aid — fifty metres is plenty. Buoyancy is worn at all times."}},
+{"@type":"Question","name":"What happens if I capsize?","acceptedAnswer":{"@type":"Answer","text":"You right the boat and carry on — it's taught as a drill so it becomes boring. Rescue is beside you fast."}},
+{"@type":"Question","name":"What should I bring?","acceptedAnswer":{"@type":"Answer","text":"Old trainers, towel, swimwear, sun cream. Wetsuits, buoyancy aids and boats are provided."}},
+{"@type":"Question","name":"Am I too old to learn?","acceptedAnswer":{"@type":"Answer","text":"Our oldest Level 1 graduate was 78. Sailing is tactics and feel, not strength."}},
+{"@type":"Question","name":"Is it safe for kids?","acceptedAnswer":{"@type":"Answer","text":"RYA ratios, DBS-checked instructors, crewed rescue cover, strict wind limits per stage."}},
+{"@type":"Question","name":"What if there's no wind? Or too much?","acceptedAnswer":{"@type":"Answer","text":"No wind: theory and rope work. Too much: our call, made early — courses extend or credit."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">LEEBOARD <span>SAILING</span></a>
+    <nav class="nav-links">
+      <a href="#services">Courses</a><a href="#about">The water</a><a href="#location">The slipway</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<div class="flagband" aria-hidden="true"></div>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v40">
+  <div class="wrap">
+    <div class="kicker-row"><span data-bind="hero.kicker">RYA training centre · dinghies &amp; keelboats · Salcombe estuary</span><b>50°14'N 003°46'W · FORCE 3, BUILDING</b></div>
+    <h1 data-comment-anchor="hero-headline" aria-label="Wind is free. We teach you to steal it.">
+      <span class="a">WIND IS FREE.</span>
+      <span class="b">WE TEACH YOU</span>
+      <span class="c">TO STEAL IT.</span>
+    </h1>
+    <div class="hero-slab">
+      <div class="photo">
+        <div class="burgee">THE FLEET, OFF BATSON CREEK</div>
+        <img src="https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=2000&q=85&auto=format&fit=crop"
+             alt="Dinghies heeling in a fresh breeze on blue water." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="panel">
+        <p class="lede" data-bind="hero.lede">An RYA school on the best learning water in Devon: sheltered when you need mercy, lively when you've earned it. Dinghy courses from age eight to never-too-late, keelboat weekends, and instructors who'd rather be nowhere else.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">Find your course</a>
+          <a class="btn btn-ghost" href="#location" data-bind="hero.secondaryCta.label">The slipway</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Teaching since 2007</span>
+    <span>RYA recognised centre</span>
+    <span>Rescue boat every session</span>
+    <span>30-boat fleet</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v6">
+  <div class="bigcoord" aria-hidden="true">50°N</div>
+  <div class="wrap">
+    <div class="chart-head"><span>MARK 01 / THE WATER</span><span>INSIDE THE BAR · OUTSIDE WHEN EARNED</span></div>
+    <div class="about-grid">
+      <div class="photo">
+        <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+             src="https://images.unsplash.com/photo-1504681869696-d977211a5f4c?w=1200&q=85&auto=format&fit=crop"
+             alt="The estuary from above — coves and clear water." />
+      </div>
+      <div class="about-prose">
+        <h2 class="h2">Learn where the water is kind. <span class="ghost">Mostly.</span></h2>
+        <p>The Salcombe estuary is the perfect classroom: flat and forgiving inside the bar, honest and gusty at the mouth, and never more than a short reach from the slipway and the kettle. We've taught eight-year-olds, eighty-year-olds, and one memorably determined stag party.</p>
+        <p>Leeboard runs on a fleet of thirty boats — Picos and Fevas for the small and fearless, Wayfarers for families, RS Quests for courses, and two keelboats for the weekends when the estuary feels too small.</p>
+        <p>All instruction is RYA-syllabus, all instructors are qualified and first-aid current, and the rescue boat is crewed every single session by someone whose only job is watching you. Capsizing isn't failure here; it's Tuesday.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v33" style="padding-top:0;">
+  <div class="wrap">
+    <div class="chart-head"><span>MARK 02 / THE COURSE CARD</span><span>ROUND THE MARKS IN ORDER</span></div>
+    <h2 class="h2">The course <span class="ghost">card.</span></h2>
+    <div class="race-rows">
+      <div class="race-row"><span class="mark">M1</span><h3>RYA Youth Stages 1–4</h3><p>Eight to sixteen, Picos and Fevas, holidays and Saturdays. From first splash to racing starts, with hot chocolate as syllabus.</p></div>
+      <div class="race-row"><span class="mark">M2</span><h3>Adult Level 1 &amp; 2</h3><p>Two days from zero to sailing a triangle unassisted. The most common review: "why did I wait twenty years?"</p></div>
+      <div class="race-row"><span class="mark">M3</span><h3>Better sailing clinics</h3><p>Spinnakers, trapeze, racing tune-ups, heavy-weather confidence. For sailors with the basics and an appetite.</p></div>
+      <div class="race-row"><span class="mark">M4</span><h3>Keelboat weekends</h3><p>Two days on our Sonatas out past the bar — tides, pilotage, and lunch on a mooring. The gateway drug to yacht ownership.</p></div>
+      <div class="race-row"><span class="mark">M5</span><h3>Family own-boat tuition</h3><p>Your boat, your crew, our instructor aboard. We untangle the boat and, frequently, the family.</p></div>
+      <div class="race-row"><span class="mark">M6</span><h3>Schools &amp; groups</h3><p>Term-time programmes for local schools and youth groups, subsidised by the summer courses. The fleet earns its keep both ways.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v5">
+  <div class="wrap">
+    <div class="chart-head"><span>MARK 03 / THE SIGNALS</span><span>THREE FLAGS WE FLY</span></div>
+    <h2 class="h2">Signals we fly.</h2>
+    <div class="why-grid">
+      <div><div class="flag" aria-hidden="true"></div><h3>Rescue cover, every session.</h3><p>A crewed safety boat on the water whose only job is you. Freedom to push comes from knowing someone's watching the whole race track.</p></div>
+      <div><div class="flag" aria-hidden="true"></div><h3>The estuary does the levelling.</h3><p>Sheltered water for day one, tide and breeze at the mouth for day twenty. One venue that grows with you — no minibus to a reservoir.</p></div>
+      <div><div class="flag" aria-hidden="true"></div><h3>Instructors who stayed.</h3><p>Our team came for a season and didn't leave. Same faces, year after year — they'll remember your name and your last capsize.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="chart-head"><span>MARK 04 / GETTING AFLOAT</span><span>SLIPWAY → SEASON</span></div>
+    <ol class="how-grid">
+      <li><span class="step">LEG 01</span><h3>Pick your start</h3><p>Youth stages, adult Level 1, or a chat at the slipway if you're not sure. Honest advice, no upselling.</p></li>
+      <li><span class="step">LEG 02</span><h3>Kit up</h3><p>Wetsuits, buoyancy aids and boats all included. Bring trainers you don't love and a towel you do.</p></li>
+      <li><span class="step">LEG 03</span><h3>Get wet, get better</h3><p>Small groups, short briefings, maximum time on the water. Capsize drill is a game, not a punishment.</p></li>
+      <li><span class="step">LEG 04</span><h3>Join the club end</h3><p>Course graduates get a season of club sailing to consolidate — boats, buoys and Wednesday-evening racing included.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v5">
+  <div class="wrap">
+    <div class="chart-head"><span>MARK 05 / HAILED FROM THE WATER</span><span>LOGGED VERBATIM</span></div>
+    <blockquote class="t-quote">“She's fourteen now and shouts <em>‘STARBOARD’</em> at me in the car.”</blockquote>
+    <div class="t-attr">Caroline F. — youth stages parent, year five</div>
+    <div class="t-sub">
+      <figure><blockquote>“Adult Level 2 at 51. By Sunday afternoon I was sailing a triangle alone, grinning like an idiot, twenty years of ‘one day’ finally cashed in.”</blockquote><figcaption>Dev P. — adult Level 2 graduate</figcaption></figure>
+      <figure><blockquote>“The own-boat day saved our marriage and our Wayfarer, in that order. The instructor's first fix was moving me off the helm. Correct call.”</blockquote><figcaption>Ruth &amp; Alan — family own-boat tuition</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v33">
+  <div class="wrap">
+    <div class="chart-head"><span>MARK 06 / THE SEASON</span><span>SHOT FROM THE RESCUE BOAT</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=1600&q=85&auto=format&fit=crop" alt="Dinghies heeling in a fresh breeze." /><figcaption>FORCE 4, EARNED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1504681869696-d977211a5f4c?w=1600&q=85&auto=format&fit=crop" alt="The estuary from above." /><figcaption>THE CLASSROOM, FROM ABOVE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1600&q=85&auto=format&fit=crop" alt="Keelboat weekend past the bar." /><figcaption>PAST THE BAR</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1468413253725-0d5181091126?w=1600&q=85&auto=format&fit=crop" alt="The fleet on the slipway." /><figcaption>THE COVE, LOW TIDE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1468581264429-2548ef9eb732?w=1600&q=85&auto=format&fit=crop" alt="Evening racing at golden hour." /><figcaption>WEDNESDAY RACING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=85&auto=format&fit=crop" alt="The estuary, calm." /><figcaption>THE CLASSROOM, RESTING</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="chart-head"><span>MARK 07 / ASKED ON THE SLIPWAY</span><span>USUALLY IN A NEW WETSUIT</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked on the <span class="ghost">slipway.</span></h2>
+        <p class="body">Anything else — ring <a href="tel:+441548843771" style="color:var(--red);font-weight:600;">01548 843 771</a>. If we're on the water, the answerphone knows the tide times.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Do I need to be able to swim?</summary><p>Comfortable in the water in a buoyancy aid is the requirement — fifty metres is plenty. Everyone wears buoyancy at all times, ours, provided, properly fitted, no exceptions including instructors.</p></details>
+        <details><summary>What happens if I capsize?</summary><p>You get wet, you right the boat, you carry on — it's taught as a drill in week one precisely so it becomes boring. The rescue boat is beside you before you've finished being surprised.</p></details>
+        <details><summary>What should I bring?</summary><p>Old trainers, a towel, swimwear, sun cream and a water bottle. We supply wetsuits, spray tops, buoyancy aids and the boats. In April, bring enthusiasm; in August, bring more sun cream.</p></details>
+        <details><summary>Am I too old to learn?</summary><p>Our oldest Level 1 graduate was 78 and bought a Wayfarer the following spring. Sailing is tactics and feel, not strength — the boat does the work once you stop fighting it.</p></details>
+        <details><summary>Is it safe for kids?</summary><p>RYA ratios, DBS-checked instructors, crewed rescue cover, and a strict wind limit for each stage. The honest risk profile: cold, tired, hooked for life.</p></details>
+        <details><summary>What if there's no wind? Or too much?</summary><p>No wind: theory, tows, and rope work that will genuinely change your life. Too much: the decision is ours, made early, and courses extend or credit — we don't send beginners out to be brave.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="chart-head"><span>MARK 08 / SAILORS ARRIVE FROM</span><span>THE SOUTH HAMS &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Salcombe</li><li>Kingsbridge</li><li>Dartmouth</li><li>Totnes</li><li>Plymouth</li><li>South Hams</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v2" style="padding-top:0;">
+  <div class="wrap">
+    <div class="chart-head"><span>MARK 09 / THE PAPERWORK</span><span>LAMINATED, OBVIOUSLY</span></div>
+    <div class="creds">
+      <div><div class="label">RYA</div><div class="detail">Recognised training centre, inspected annually</div></div>
+      <div><div class="label">Instructors</div><div class="detail">RYA-qualified, DBS-checked, first-aid current</div></div>
+      <div><div class="label">Rescue</div><div class="detail">Crewed safety boat on the water every session</div></div>
+      <div><div class="label">Fleet</div><div class="detail">30 boats, serviced every winter</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="chart-head"><span>MARK 10 / THE SLIPWAY</span><span>BATSON CREEK, SALCOMBE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Leeboard Sailing</strong><br />
+          The Slipway, Batson Creek<br />
+          Salcombe TQ8 8FA<br /><br />
+          <a href="tel:+441548843771" data-bind="business.phoneDisplay">01548 843 771</a><br />
+          <a href="mailto:slipway@leeboard.co.uk" data-bind="business.email">slipway@leeboard.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>SEASON</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>WINTER</span><span>FLEET MAINTENANCE</span></div>
+          <p class="gbp-note">Session times flex with the tide — the live calendar is on our Google Business Profile. Park at Batson car park; the walk down is the briefing.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Leeboard Sailing, Batson Creek, Salcombe" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-3.7820%2C50.2350%2C-3.7580%2C50.2450&layer=mapnik&marker=50.2400%2C-3.7700"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v8">
+  <div class="wrap">
+    <div class="coord" style="color:var(--signal);">MARK 11 / BOOK</div>
+    <h2>THE TIDE DOESN'T WAIT. <em>NEITHER SHOULD YOU.</em></h2>
+    <p data-bind="cta.body">Courses fill by spring. Find yours, or come stand on the slipway and ask questions — that's how most of us started.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#services" data-bind="cta.primary.label">Find your course</a>
+      <a class="btn btn-ghost" href="tel:+441548843771" data-bind="cta.secondary.label">01548 843 771</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441548843771" data-bind="messaging.whatsapp" aria-label="Message the school">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">LEEBOARD <span style="color:var(--red);">SAILING</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">An RYA training centre on the Salcombe estuary. Since 2007.</p>
+      </div>
+      <div>
+        <h4>The slipway</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          Batson Creek<br />Salcombe TQ8 8FA<br />
+          <a href="tel:+441548843771">01548 843 771</a><br />
+          <a href="mailto:slipway@leeboard.co.uk">slipway@leeboard.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Courses</a><a href="#about">The water</a><a href="#location">The slipway</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> LEEBOARD SAILING LTD</span>
+      <span>WIND OVER TIDE · MIND THE BAR</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

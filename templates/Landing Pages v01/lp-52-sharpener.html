@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Burr &amp; Steel — knife sharpening &amp; edge work in Exeter</title>
+<meta name="description" content="Burr &amp; Steel is a whetstone sharpening workshop in Exeter — kitchen knives, chef rounds, scissors and garden tools, sharpened by hand on Japanese waterstones. Post or drop off." />
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo+Narrow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Red+Hat+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Burr & Steel", phone: "+44 1392 424 771", phoneDisplay: "01392 424 771", email: "edge@burrandsteel.co.uk", foundedYear: 2019 },
+  hero: {
+    kicker: "Whetstone sharpening · by hand · Fore Street, Exeter",
+    headline: "YOUR KNIFE ISN'T BLUNT. IT'S NEGLECTED.",
+    lede: "Every edge here is raised by hand on Japanese waterstones — #400 to #8000, deburred, stropped, and tested on paper you can keep. Kitchen knives, chef rolls, scissors, secateurs. Drop off in the shop or post them in a tube like half of Devon does.",
+    primaryCta: { label: "The grit ladder", href: "#services" },
+    secondaryCta: { label: "Post your knives", href: "#how" },
+    image: "https://images.unsplash.com/photo-1593618998160-e34014e67546?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A chef's knife being sharpened on a waterstone."
+  },
+  trust: { years: "Raising burrs since 2019" },
+  about: {
+    heading: "One bench. Eleven stones. Zero machines.",
+    paragraphs: [
+      "Burr & Steel started as a market stall with three stones and a queue that wouldn't end. The shop on Fore Street came two years later; the philosophy hasn't moved: machines heat steel and eat blades, so everything here is done by hand, on stones, the slow correct way.",
+      "The bench runs eleven waterstones from #400 for repairs to #8000 for the edges that make chefs go quiet. Every knife is assessed first — steel, grind, damage, how you actually use it — because a Victorinox for a busy家 kitchen and a single-bevel yanagiba want completely different edges.",
+      "Half our work arrives by post now: knives rolled in cardboard, taped into tubes, once memorably inside a pool noodle. All fine. The pool noodle was, honestly, excellent."
+    ],
+    portrait: "https://images.unsplash.com/photo-1514986888952-8cd320577b68?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A sharpened blade back at work on the board."
+  },
+  services: [
+    { name: "Kitchen knives", description: "The core of the bench. Assessed, sharpened through the grits, deburred, stropped, paper-tested. Back to you sharper than the factory sent it." },
+    { name: "Chef rolls & trade", description: "Whole rolls turned around overnight for Exeter's kitchens, on a rota. Your knives, our stones, your Tuesday transformed." },
+    { name: "Repairs & regrinds", description: "Chips, broken tips, bolster bulges, decades of bad steeling. The #400 stone forgives almost everything if you give it time." },
+    { name: "Single-bevel & Japanese", description: "Yanagiba, deba, usuba — sharpened as their makers intended, uraoshi respected. The work we won't rush and won't machine." },
+    { name: "Scissors, shears & garden", description: "Fabric scissors, barber shears, secateurs, loppers. Different geometry, same standard. Your roses will notice." },
+    { name: "Sharpen by post", description: "Wrap, tube, post, and they're back within the week — sharpened, oiled, edge-guarded, with a note on what we found." }
+  ],
+  why: [
+    { title: "Stones, never wheels.", body: "Powered wheels overheat steel and ruin tempers — the metallurgical kind and eventually yours. Hand sharpening keeps the steel's hardness and your knife's lifespan intact." },
+    { title: "The edge matches the knife.", body: "A camping knife gets a tough 25°; a sushi knife gets a screaming 12°. One-angle-fits-all is how supermarkets sharpen. We're not a supermarket." },
+    { title: "Tested, then proven.", body: "Every knife leaves through a sheet of paper — sliced, not torn — and the sheet goes back in the wrap with your knife. Receipts, literally." }
+  ],
+  how: [
+    { step: "01", title: "Drop off or post", body: "Shop counter Tuesday to Saturday, or wrap and post — guide on the website, pool noodles optional but respected." },
+    { step: "02", title: "Assessment", body: "Steel, grind, damage, use. We text you if anything needs a conversation (or a regrind) before the stones start." },
+    { step: "03", title: "The grits", body: "#400 to #8000 as the knife requires, burr raised and chased, edge stropped clean. No machines, no heat, no shortcuts." },
+    { step: "04", title: "Paper test & return", body: "Sliced paper in the wrap, edge guards on, care note included. Post orders back within the week, tracked." }
+  ],
+  testimonials: [
+    { quote: "I posted four knives in a taped-up Pringles tube as a joke. They came back scary sharp with a note rating my packaging 'structurally ambitious, 7/10'. Customer for life.", name: "Beth C.", context: "sharpen by post, Totnes" },
+    { quote: "Our restaurant's roll goes in every other Monday. Tuesday prep is measurably faster — my sous chef timed it, because of course he did.", name: "Marco V.", context: "trade rota, Exeter kitchen" },
+    { quote: "They reground my grandmother's carving knife — sixty years of wrong sharpening undone in one visit. It cuts like it must have in 1965 and I got a small lecture on steeling, deserved.", name: "Alan P.", context: "repair & regrind" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1593618998160-e34014e67546?w=1600&q=85&auto=format&fit=crop", alt: "Blade on the waterstone." },
+    { src: "https://images.unsplash.com/photo-1514986888952-8cd320577b68?w=1600&q=85&auto=format&fit=crop", alt: "A sharpened edge at work." },
+    { src: "https://images.unsplash.com/photo-1556909212-d5b604d0c90d?w=1600&q=85&auto=format&fit=crop", alt: "The bench wall, racked." },
+    { src: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=1600&q=85&auto=format&fit=crop", alt: "A trade knife, back in service." },
+    { src: "https://images.unsplash.com/photo-1547592180-85f173990554?w=1600&q=85&auto=format&fit=crop", alt: "Dinner, made possible." },
+    { src: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=1600&q=85&auto=format&fit=crop", alt: "Prep with a real edge." }
+  ],
+  faq: [
+    { q: "How much does sharpening cost?", a: "Priced per blade by length and condition, posted on the wall and the website. Repairs and regrinds get quoted after assessment — we text before any stone touches steel. No surprise line items, ever." },
+    { q: "How long will you keep my knives?", a: "Drop-offs: usually forty-eight hours, same-day if you're desperate and ask nicely before ten. Post: back within the week, tracked. Trade rolls: overnight on the rota." },
+    { q: "How do I post knives safely (and legally)?", a: "Wrap each blade in cardboard, tape it closed, tube or box, tracked service, over-18 signature. Full guide on the site. UK law is fine with sharpening post — it cares about who signs, so someone over eighteen must." },
+    { q: "How often should knives be sharpened?", a: "Home kitchens: once or twice a year, with honing (steeling) in between — they're different things and we'll show you the difference free at the counter. Pro kitchens: on the rota, every few weeks." },
+    { q: "Can you sharpen serrated / ceramic / that weird one?", a: "Serrated yes, tooth by tooth. Ceramic mostly no — it wants diamond wheels we don't run, and we'll say so rather than experiment on your knife. The weird one: bring it in, the bench loves a puzzle." },
+    { q: "Will sharpening damage my expensive Japanese knife?", a: "Not here. Waterstones are exactly what those knives are designed for — it's the pull-through gadgets and powered wheels that kill them. Single-bevel work is a speciality of the bench, not an adventure." }
+  ],
+  area: { places: ["Exeter", "Topsham", "Exmouth", "Crediton", "Tiverton", "By post: everywhere"] },
+  credentials: [
+    { label: "Method", detail: "Japanese waterstones #400–#8000, by hand" },
+    { label: "Proof", detail: "Paper test returned with every knife" },
+    { label: "Trade", detail: "Overnight rota for professional kitchens" },
+    { label: "Post", detail: "Tracked, insured, edge-guarded returns" }
+  ],
+  location: { name: "Burr & Steel", addressStreet: "112 Fore Street", addressLocality: "Exeter", addressRegion: "Devon", addressPostcode: "EX4 3JQ", addressCountry: "United Kingdom" },
+  cta: { heading: "BRING THE BLUNT. LEAVE WITH RECEIPTS.", body: "Counter drop-off, trade rota, or a tube in the post. The stones are soaked and the paper is waiting.", primary: { label: "Find the bench", href: "#location" }, secondary: { label: "01392 424 771", href: "tel:+441392424771" } },
+  messaging: { whatsapp: "https://wa.me/441392424771", messenger: "https://m.me/burrandsteel" }
+};
+</script>
+
+<style>
+  :root {
+    --steel:#e8eaec; --carbon:#17191c; --safety:#ff5c1f; --slate:#3b4149;
+    --mid:#6d7580; --rule:rgba(23,25,28,0.16); --rule-d:rgba(232,234,236,0.16);
+    --black:"Archivo Black",sans-serif; --sans:"Archivo Narrow",sans-serif; --mono:"Red Hat Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--steel);color:var(--carbon);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--safety);}
+  .wrap{width:min(1320px,94vw);margin-inline:auto;}
+  .grit{font-family:var(--mono);font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--safety);font-weight:700;}
+  .h2{font-family:var(--black);font-size:clamp(40px,6vw,96px);line-height:0.88;letter-spacing:-0.02em;text-transform:uppercase;margin:0 0 0.45em;}
+  .h2 .hone{color:transparent;-webkit-text-stroke:2px var(--carbon);}
+  .body{color:var(--mid);line-height:1.68;}
+  section{padding:clamp(72px,9vw,130px) 0;position:relative;}
+  /* the DEVICE: everything angled 12° like an edge bevel */
+  .bevel{clip-path:polygon(0 0,100% 0,100% calc(100% - 2.2vw),0 100%);}
+  .btn{display:inline-flex;align-items:center;padding:15px 28px;font-family:var(--black);font-size:14px;letter-spacing:0.03em;text-transform:uppercase;text-decoration:none;transition:0.15s;}
+  .btn-primary{background:var(--safety);color:#fff;} .btn-primary:hover{background:var(--carbon);}
+  .btn-ghost{border:2.5px solid var(--carbon);} .btn-ghost:hover{background:var(--carbon);color:var(--steel);}
+  .spec-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--mid);border-bottom:2.5px solid var(--carbon);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(232,234,236,0.95);backdrop-filter:blur(10px);border-bottom:2.5px solid var(--carbon);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 0;}
+  .wm{font-family:var(--black);font-size:19px;text-transform:uppercase;letter-spacing:-0.01em;text-decoration:none;}
+  .wm span{color:var(--safety);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — edge-bevel diagonal: giant type sliced by a 12° image band */
+  .hero{padding:clamp(44px,5.5vw,80px) 0 0;}
+  .hero .kicker-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .hero .kicker-row b{color:var(--safety);}
+  .hero h1{font-family:var(--black);text-transform:uppercase;line-height:0.84;letter-spacing:-0.025em;margin:26px 0 0;font-size:clamp(52px,10vw,172px);}
+  .hero h1 .a{display:block;}
+  .hero h1 .b{display:block;color:transparent;-webkit-text-stroke:2.5px var(--carbon);}
+  .hero h1 .c{display:block;color:var(--safety);}
+  .hero-band{margin-top:clamp(32px,4vw,56px);position:relative;}
+  .hero-band img{width:100%;aspect-ratio:21/8;object-fit:cover;clip-path:polygon(0 12%,100% 0,100% 88%,0 100%);}
+  .hero-band .angle{position:absolute;right:3%;top:-14px;background:var(--carbon);color:var(--steel);font-family:var(--mono);font-size:10px;letter-spacing:0.16em;padding:10px 16px;text-transform:uppercase;font-weight:700;}
+  .hero-band .angle b{color:var(--safety);}
+  .hero-under{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(30px,5vw,80px);margin-top:clamp(26px,3.5vw,48px);align-items:start;}
+  .hero-under .lede{font-size:clamp(16px,1.6vw,20px);line-height:1.6;color:var(--carbon);max-width:50ch;margin:0;font-weight:500;}
+  .hero-ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:flex-end;align-items:start;}
+  @media(max-width:820px){.hero-under{grid-template-columns:1fr;} .hero-ctas{justify-content:flex-start;}}
+
+  .trust{padding:0;background:var(--carbon);color:var(--steel);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(232,234,236,0.75);font-weight:700;}
+
+  /* ABOUT — slate bench */
+  .about{background:var(--slate);color:var(--steel);}
+  .about .h2{color:var(--steel);}
+  .about .h2 .hone{-webkit-text-stroke:2px var(--steel);}
+  .about .spec-head{border-color:rgba(232,234,236,0.4);color:rgba(232,234,236,0.6);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-grid .photo{position:relative;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;clip-path:polygon(0 0,100% 4%,100% 100%,0 96%);}
+  .about-prose p{font-size:clamp(16.5px,1.6vw,19.5px);line-height:1.7;margin:0 0 1em;color:rgba(232,234,236,0.9);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — the grit ladder: rows keyed to grit numbers, hover hones them */
+  .grits{border-top:2.5px solid var(--carbon);}
+  .grit-row{display:grid;grid-template-columns:190px 1fr 1.3fr;gap:clamp(18px,3vw,44px);padding:26px 0;border-bottom:1.5px solid var(--rule);align-items:center;transition:0.15s;}
+  .grit-row:hover{background:#fff;padding-left:14px;}
+  .grit-row .g{font-family:var(--black);font-size:clamp(26px,3vw,42px);line-height:0.9;color:transparent;-webkit-text-stroke:1.8px var(--carbon);letter-spacing:-0.02em;}
+  .grit-row:hover .g{color:var(--safety);-webkit-text-stroke:0;}
+  .grit-row .g small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:0.2em;color:var(--mid);-webkit-text-stroke:0;margin-top:6px;font-weight:700;}
+  .grit-row h3{font-family:var(--black);font-size:clamp(19px,2vw,26px);margin:0;line-height:1;text-transform:uppercase;letter-spacing:-0.015em;}
+  .grit-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.62;}
+  @media(max-width:760px){.grit-row{grid-template-columns:1fr;gap:8px;}}
+
+  /* WHY — safety orange */
+  .why{background:var(--safety);color:#fff;}
+  .why .h2 .hone{-webkit-text-stroke:2px #fff;}
+  .why .spec-head{border-color:rgba(255,255,255,0.5);color:rgba(255,255,255,0.75);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,64px);}
+  .why-grid .deg{font-family:var(--black);font-size:clamp(64px,7.5vw,112px);line-height:0.85;color:var(--carbon);display:block;margin-bottom:16px;letter-spacing:-0.03em;}
+  .why-grid h3{font-family:var(--black);font-size:22px;text-transform:uppercase;margin:0 0 10px;line-height:1;letter-spacing:-0.015em;}
+  .why-grid p{color:rgba(255,255,255,0.92);margin:0;font-size:15px;line-height:1.66;font-weight:500;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:2.5px solid var(--carbon);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.22em;color:var(--safety);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--black);font-size:18px;text-transform:uppercase;margin:10px 0 8px;letter-spacing:-0.015em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:14px;line-height:1.62;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--carbon);color:var(--steel);}
+  .testimonials .spec-head{border-color:rgba(232,234,236,0.4);color:rgba(232,234,236,0.55);}
+  .t-quote{font-family:var(--black);font-size:clamp(28px,4.4vw,64px);line-height:0.92;text-transform:uppercase;max-width:24ch;margin:0 0 24px;letter-spacing:-0.02em;}
+  .t-quote em{font-style:normal;color:var(--safety);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(232,234,236,0.6);margin-bottom:clamp(40px,5vw,64px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.66;margin:0 0 12px;color:rgba(232,234,236,0.88);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(232,234,236,0.55);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — bench macro, hard diagonal crops */
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(10px,1.4vw,18px);}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;}
+  .g-grid img{width:100%;height:100%;object-fit:cover;filter:saturate(0.7) contrast(1.1);transition:0.3s;}
+  .g-grid figure:hover img{filter:none;}
+  .g-grid figure:nth-child(1){grid-column:span 4;} .g-grid figure:nth-child(1) img{aspect-ratio:16/9;clip-path:polygon(0 0,100% 6%,100% 100%,0 94%);}
+  .g-grid figure:nth-child(2){grid-column:span 2;} .g-grid figure:nth-child(2) img{aspect-ratio:8/9.05;}
+  .g-grid figure:nth-child(n+3){grid-column:span 2;} .g-grid figure:nth-child(n+3) img{aspect-ratio:4/3;}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--carbon);color:var(--safety);font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid figure{grid-column:span 6 !important;} .g-grid figure img{aspect-ratio:4/3 !important;clip-path:none !important;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1.5px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:2.5px solid var(--carbon);}
+  .faq-list summary{font-family:var(--black);font-size:19px;text-transform:uppercase;letter-spacing:-0.015em;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.05;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"/";color:var(--safety);flex-shrink:0;font-size:20px;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(78deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:15px;max-width:56ch;line-height:1.68;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;padding:11px 20px;border:2.5px solid var(--carbon);background:#fff;font-weight:700;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:clamp(26px,3.5vw,44px);border:2.5px solid var(--carbon);background:#fff;}
+  .creds > div{padding:24px;border-right:2.5px solid var(--carbon);}
+  .creds > div:last-child{border-right:0;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--safety);margin-bottom:10px;font-weight:700;}
+  .creds .detail{font-family:var(--black);font-size:15px;line-height:1.25;text-transform:uppercase;letter-spacing:-0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;} .creds > div{border-bottom:2.5px solid var(--carbon);} .creds > div:nth-child(2n){border-right:0;} .creds > div:nth-child(n+3){border-bottom:0;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:2.5px solid var(--carbon);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--black);font-size:18px;line-height:1.35;text-transform:uppercase;letter-spacing:-0.01em;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1.5px solid var(--rule);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:13px;color:var(--mid);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border:2.5px solid var(--carbon);filter:grayscale(1);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  /* CTA — carbon slab, edge highlight */
+  .cta-band{background:var(--carbon);color:var(--steel);padding:clamp(90px,11vw,160px) 0;position:relative;}
+  .cta-band::after{content:"";position:absolute;left:0;right:0;bottom:0;height:8px;background:linear-gradient(90deg,var(--safety),transparent 70%);}
+  .cta-band h2{font-family:var(--black);font-size:clamp(46px,8.6vw,146px);line-height:0.84;text-transform:uppercase;letter-spacing:-0.025em;margin:14px 0 22px;max-width:14ch;}
+  .cta-band h2 em{font-style:normal;color:var(--safety);}
+  .cta-band p{color:rgba(232,234,236,0.75);max-width:46ch;margin:0 0 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;}
+  .cta-band .btn-ghost{border-color:var(--steel);color:var(--steel);}
+  .cta-band .btn-ghost:hover{background:var(--steel);color:var(--carbon);}
+
+  footer{background:var(--steel);border-top:2.5px solid var(--carbon);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--safety);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:15px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1.5px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--safety);color:#fff;padding:14px 20px;text-decoration:none;font-family:var(--black);font-size:13px;letter-spacing:0.02em;text-transform:uppercase;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);}
+  .msg-fab a:hover{background:var(--carbon);color:#fff;}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Burr & Steel","description":"Whetstone knife sharpening workshop in Exeter — kitchen knives, chef rolls, scissors and garden tools, by hand on Japanese waterstones. Postal service UK-wide.","url":"https://burrandsteel.co.uk/","telephone":"+441392424771","email":"edge@burrandsteel.co.uk","address":{"@type":"PostalAddress","streetAddress":"112 Fore Street","addressLocality":"Exeter","addressRegion":"Devon","postalCode":"EX4 3JQ","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":50.7215,"longitude":-3.5350},"areaServed":["Exeter","Topsham","Exmouth","UK by post"],"image":["https://images.unsplash.com/photo-1593618998160-e34014e67546?w=1600"],"foundingDate":"2019"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How much does sharpening cost?","acceptedAnswer":{"@type":"Answer","text":"Priced per blade by length and condition, posted on the wall and website. Repairs quoted after assessment."}},
+{"@type":"Question","name":"How long will you keep my knives?","acceptedAnswer":{"@type":"Answer","text":"Drop-offs usually forty-eight hours; post back within the week, tracked; trade rolls overnight."}},
+{"@type":"Question","name":"How do I post knives safely?","acceptedAnswer":{"@type":"Answer","text":"Wrap each blade in cardboard, tube or box, tracked service, over-18 signature. Full guide on the site."}},
+{"@type":"Question","name":"How often should knives be sharpened?","acceptedAnswer":{"@type":"Answer","text":"Home kitchens once or twice a year with honing in between; pro kitchens every few weeks on the rota."}},
+{"@type":"Question","name":"Can you sharpen serrated or ceramic?","acceptedAnswer":{"@type":"Answer","text":"Serrated yes, tooth by tooth. Ceramic mostly no — and we'll say so rather than experiment."}},
+{"@type":"Question","name":"Will sharpening damage my Japanese knife?","acceptedAnswer":{"@type":"Answer","text":"Waterstones are what those knives are designed for. Single-bevel work is a speciality of the bench."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">BURR <span>&amp;</span> STEEL</a>
+    <nav class="nav-links">
+      <a href="#services">The grits</a><a href="#about">The bench</a><a href="#how">By post</a><a href="#location">Find us</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v46">
+  <div class="wrap">
+    <div class="kicker-row"><span data-bind="hero.kicker">Whetstone sharpening · by hand · Fore Street, Exeter</span><b>EDGE ANGLE 12°–25° · NO MACHINES</b></div>
+    <h1 data-comment-anchor="hero-headline" aria-label="Your knife isn't blunt. It's neglected.">
+      <span class="a">YOUR KNIFE</span>
+      <span class="b">ISN'T BLUNT.</span>
+      <span class="c">IT'S NEGLECTED.</span>
+    </h1>
+    <div class="hero-band">
+      <img src="https://images.unsplash.com/photo-1593618998160-e34014e67546?w=2000&q=85&auto=format&fit=crop"
+           alt="A chef's knife being sharpened on a waterstone." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="angle">CURRENT JOB: GYUTO 210MM · <b>#3000 → #8000</b></div>
+    </div>
+    <div class="hero-under">
+      <p class="lede" data-bind="hero.lede">Every edge here is raised by hand on Japanese waterstones — #400 to #8000, deburred, stropped, and tested on paper you can keep. Kitchen knives, chef rolls, scissors, secateurs. Drop off in the shop or post them in a tube like half of Devon does.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">The grit ladder</a>
+        <a class="btn btn-ghost" href="#how" data-bind="hero.secondaryCta.label">Post your knives</a>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Raising burrs since 2019</span>
+    <span>Eleven waterstones</span>
+    <span>Paper test with every knife</span>
+    <span>UK-wide by post</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v12">
+  <div class="wrap">
+    <div class="spec-head"><span>PASS 01 / THE BENCH</span><span>FORE STREET · STONES SOAKED DAILY</span></div>
+    <div class="about-grid">
+      <div class="photo">
+        <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+             src="https://images.unsplash.com/photo-1514986888952-8cd320577b68?w=1200&q=85&auto=format&fit=crop"
+             alt="A sharpened blade back at work on the board." />
+      </div>
+      <div class="about-prose">
+        <h2 class="h2">One bench. Eleven stones. <span class="hone">Zero machines.</span></h2>
+        <p>Burr &amp; Steel started as a market stall with three stones and a queue that wouldn't end. The shop on Fore Street came two years later; the philosophy hasn't moved: machines heat steel and eat blades, so everything here is done by hand, on stones, the slow correct way.</p>
+        <p>The bench runs eleven waterstones from #400 for repairs to #8000 for the edges that make chefs go quiet. Every knife is assessed first — steel, grind, damage, how you actually use it — because a workhorse Victorinox and a single-bevel yanagiba want completely different edges.</p>
+        <p>Half our work arrives by post now: knives rolled in cardboard, taped into tubes, once memorably inside a pool noodle. All fine. The pool noodle was, honestly, excellent.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v39">
+  <div class="wrap">
+    <div class="spec-head"><span>PASS 02 / THE GRIT LADDER</span><span>#400 → #8000, IN ORDER</span></div>
+    <h2 class="h2">The grit <span class="hone">ladder.</span></h2>
+    <div class="grits">
+      <div class="grit-row"><div class="g">#1000<small>THE CORE</small></div><h3>Kitchen knives</h3><p>The core of the bench. Assessed, sharpened through the grits, deburred, stropped, paper-tested. Back to you sharper than the factory sent it.</p></div>
+      <div class="grit-row"><div class="g">#2000<small>THE ROTA</small></div><h3>Chef rolls &amp; trade</h3><p>Whole rolls turned around overnight for Exeter's kitchens, on a rota. Your knives, our stones, your Tuesday transformed.</p></div>
+      <div class="grit-row"><div class="g">#400<small>THE FORGIVER</small></div><h3>Repairs &amp; regrinds</h3><p>Chips, broken tips, bolster bulges, decades of bad steeling. The #400 stone forgives almost everything if you give it time.</p></div>
+      <div class="grit-row"><div class="g">#8000<small>THE QUIET ONE</small></div><h3>Single-bevel &amp; Japanese</h3><p>Yanagiba, deba, usuba — sharpened as their makers intended, uraoshi respected. The work we won't rush and won't machine.</p></div>
+      <div class="grit-row"><div class="g">#3000<small>THE GARDEN</small></div><h3>Scissors, shears &amp; garden</h3><p>Fabric scissors, barber shears, secateurs, loppers. Different geometry, same standard. Your roses will notice.</p></div>
+      <div class="grit-row"><div class="g">TUBE<small>THE POSTBAG</small></div><h3>Sharpen by post</h3><p>Wrap, tube, post, and they're back within the week — sharpened, oiled, edge-guarded, with a note on what we found.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v11">
+  <div class="wrap">
+    <div class="spec-head"><span>PASS 03 / THE ANGLES</span><span>HELD, NOT GUESSED</span></div>
+    <h2 class="h2">Held angles.</h2>
+    <div class="why-grid">
+      <div><span class="deg">0°</span><h3>Stones, never wheels.</h3><p>Powered wheels overheat steel and ruin tempers — the metallurgical kind and eventually yours. Hand sharpening keeps the steel's hardness and your knife's lifespan intact.</p></div>
+      <div><span class="deg">12°</span><h3>The edge matches the knife.</h3><p>A camping knife gets a tough 25°; a sushi knife gets a screaming 12°. One-angle-fits-all is how supermarkets sharpen. We're not a supermarket.</p></div>
+      <div><span class="deg">✓</span><h3>Tested, then proven.</h3><p>Every knife leaves through a sheet of paper — sliced, not torn — and the sheet goes back in the wrap with your knife. Receipts, literally.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section id="how" data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="spec-head"><span>PASS 04 / THE PROCESS</span><span>COUNTER OR POSTBAG</span></div>
+    <ol class="how-grid">
+      <li><span class="step">PASS 01</span><h3>Drop off or post</h3><p>Shop counter Tuesday to Saturday, or wrap and post — guide on the website, pool noodles optional but respected.</p></li>
+      <li><span class="step">PASS 02</span><h3>Assessment</h3><p>Steel, grind, damage, use. We text you if anything needs a conversation (or a regrind) before the stones start.</p></li>
+      <li><span class="step">PASS 03</span><h3>The grits</h3><p>#400 to #8000 as the knife requires, burr raised and chased, edge stropped clean. No machines, no heat, no shortcuts.</p></li>
+      <li><span class="step">PASS 04</span><h3>Paper test &amp; return</h3><p>Sliced paper in the wrap, edge guards on, care note included. Post orders back within the week, tracked.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v11">
+  <div class="wrap">
+    <div class="spec-head"><span>PASS 05 / RETURNED WITH RECEIPTS</span><span>QUOTED FROM THE NOTES</span></div>
+    <blockquote class="t-quote">"They rated my packaging <em>'structurally ambitious, 7/10'.</em> Customer for life."</blockquote>
+    <div class="t-attr">Beth C. — sharpen by post (Pringles tube), Totnes</div>
+    <div class="t-sub">
+      <figure><blockquote>"Our restaurant's roll goes in every other Monday. Tuesday prep is measurably faster — my sous chef timed it, because of course he did."</blockquote><figcaption>Marco V. — trade rota, Exeter kitchen</figcaption></figure>
+      <figure><blockquote>"They reground my grandmother's carving knife — sixty years of wrong sharpening undone in one visit. It cuts like it must have in 1965."</blockquote><figcaption>Alan P. — repair &amp; regrind</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v39">
+  <div class="wrap">
+    <div class="spec-head"><span>PASS 06 / BENCH MACRO</span><span>STEEL, STONE, WATER</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1593618998160-e34014e67546?w=1600&q=85&auto=format&fit=crop" alt="Blade on the waterstone." /><figcaption>THE PASS, #1000</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1514986888952-8cd320577b68?w=1600&q=85&auto=format&fit=crop" alt="A sharpened edge at work." /><figcaption>THE EDGE, WORKING</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1556909212-d5b604d0c90d?w=1600&q=85&auto=format&fit=crop" alt="The bench wall, racked." /><figcaption>THE BENCH WALL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=1600&q=85&auto=format&fit=crop" alt="A trade knife, back in service." /><figcaption>ROLL, CHECKED IN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1547592180-85f173990554?w=1600&q=85&auto=format&fit=crop" alt="Dinner, made possible." /><figcaption>HEAT, EARNED BACK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=1600&q=85&auto=format&fit=crop" alt="Prep with a real edge." /><figcaption>BACK TO WORK</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="spec-head"><span>PASS 07 / ASKED AT THE COUNTER</span><span>KNIFE WRAPPED, HOPEFULLY</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the <span class="hone">counter.</span></h2>
+        <p class="body">Anything else — ring <a href="tel:+441392424771" style="color:var(--safety);font-weight:700;">01392 424 771</a>. Wet hands mean the machine answers first; leave a message, we're mid-pass.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How much does sharpening cost?</summary><p>Priced per blade by length and condition, posted on the wall and the website. Repairs and regrinds get quoted after assessment — we text before any stone touches steel. No surprise line items, ever.</p></details>
+        <details><summary>How long will you keep my knives?</summary><p>Drop-offs: usually forty-eight hours, same-day if you're desperate and ask nicely before ten. Post: back within the week, tracked. Trade rolls: overnight on the rota.</p></details>
+        <details><summary>How do I post knives safely (and legally)?</summary><p>Wrap each blade in cardboard, tape it closed, tube or box, tracked service, over-18 signature. Full guide on the site. UK law is fine with sharpening post — it cares about who signs, so someone over eighteen must.</p></details>
+        <details><summary>How often should knives be sharpened?</summary><p>Home kitchens: once or twice a year, with honing (steeling) in between — they're different things and we'll show you the difference free at the counter. Pro kitchens: on the rota, every few weeks.</p></details>
+        <details><summary>Can you sharpen serrated / ceramic / that weird one?</summary><p>Serrated yes, tooth by tooth. Ceramic mostly no — it wants diamond wheels we don't run, and we'll say so rather than experiment on your knife. The weird one: bring it in, the bench loves a puzzle.</p></details>
+        <details><summary>Will sharpening damage my expensive Japanese knife?</summary><p>Not here. Waterstones are exactly what those knives are designed for — it's the pull-through gadgets and powered wheels that kill them. Single-bevel work is a speciality of the bench, not an adventure.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="spec-head"><span>PASS 08 / BLADES ARRIVE FROM</span><span>DEVON &amp; THE POSTBAG</span></div>
+    <ul class="area-list">
+      <li>Exeter</li><li>Topsham</li><li>Exmouth</li><li>Crediton</li><li>Tiverton</li><li>By post: everywhere</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v2" style="padding-top:0;">
+  <div class="wrap">
+    <div class="spec-head"><span>PASS 09 / THE SPEC SHEET</span><span>WATER-SPOTTED, ACCURATE</span></div>
+    <div class="creds">
+      <div><div class="label">Method</div><div class="detail">Japanese waterstones #400–#8000, by hand</div></div>
+      <div><div class="label">Proof</div><div class="detail">Paper test returned with every knife</div></div>
+      <div><div class="label">Trade</div><div class="detail">Overnight rota for professional kitchens</div></div>
+      <div><div class="label">Post</div><div class="detail">Tracked, insured, edge-guarded returns</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="spec-head"><span>PASS 10 / FIND US</span><span>112 FORE STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Burr &amp; Steel</strong><br />
+          112 Fore Street<br />
+          Exeter EX4 3JQ<br /><br />
+          <a href="tel:+441392424771" data-bind="business.phoneDisplay">01392 424 771</a><br />
+          <a href="mailto:edge@burrandsteel.co.uk" data-bind="business.email">edge@burrandsteel.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>SUN – MON</span><span>STONES DRY OUT</span></div>
+          <p class="gbp-note">Hours live on our Google Business Profile. Halfway down Fore Street — the window with the paper-slice wall of fame.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Burr &amp; Steel, Fore Street, Exeter" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-3.5450%2C50.7180%2C-3.5250%2C50.7250&layer=mapnik&marker=50.7215%2C-3.5350"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v14">
+  <div class="wrap">
+    <div class="grit">PASS 11 / GO</div>
+    <h2>BRING THE BLUNT. <em>LEAVE WITH RECEIPTS.</em></h2>
+    <p data-bind="cta.body">Counter drop-off, trade rota, or a tube in the post. The stones are soaked and the paper is waiting.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#location" data-bind="cta.primary.label">Find the bench</a>
+      <a class="btn btn-ghost" href="tel:+441392424771" data-bind="cta.secondary.label">01392 424 771</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441392424771" data-bind="messaging.whatsapp" aria-label="Message the bench">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:19px;">BURR <span style="color:var(--safety);">&amp;</span> STEEL</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A whetstone sharpening workshop on Fore Street, Exeter. Since 2019.</p>
+      </div>
+      <div>
+        <h4>The bench</h4>
+        <address style="font-style:normal;font-size:15px;line-height:1.7;">
+          112 Fore Street<br />Exeter EX4 3JQ<br />
+          <a href="tel:+441392424771">01392 424 771</a><br />
+          <a href="mailto:edge@burrandsteel.co.uk">edge@burrandsteel.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The grit ladder</a><a href="#about">The bench</a><a href="#how">By post</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> BURR &amp; STEEL LTD</span>
+      <span>SLICED, NOT TORN</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

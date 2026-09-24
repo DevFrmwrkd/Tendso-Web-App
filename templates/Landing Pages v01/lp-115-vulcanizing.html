@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mang Kanor Vulcanizing — 24-hour tire repair, vulcanize, patch & roadside rescue, Antipolo</title>
+<meta name="description" content="Mang Kanor Vulcanizing is a 24-hour tire and vulcanizing shop in Antipolo — flat-tire repair, hot and cold vulcanizing, patch and plug, tube and tubeless, wheel balancing, plus roadside rescue when you're stuck on the highway. Keeping Antipolo rolling since 2001." />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Mang Kanor Vulcanizing", phone: "+63 917 555 0247", phoneDisplay: "0917 555 0247", email: "help@mangkanortire.ph", foundedYear: 2001 },
+  hero: {
+    kicker: "24-hour vulcanizing & tire repair · roadside rescue · Antipolo, Rizal",
+    headline: "Flat at 3AM on the Marcos Highway? We're the light that's still on.",
+    lede: "A 24-hour vulcanizing and tire shop on the Antipolo road — flats patched, plugged and vulcanized, tubes and tubeless, cars, trucks, tricycles and motors. We balance wheels, sell secondhand and new tires, and when you're stranded on the highway with a blowout, we come to you. Fast, fair, and open when everyone else is closed. The light that's always on.",
+    primaryCta: { label: "Call for rescue", href: "#book" },
+    secondaryCta: { label: "What we fix", href: "#services" },
+    image: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A tire being worked on in a repair shop."
+  },
+  trust: { years: "Keeping Antipolo rolling since 2001" },
+  about: {
+    heading: "A flat tire doesn't check the clock. Neither do we.",
+    paragraphs: [
+      "Mang Kanor Vulcanizing is a tire-repair and vulcanizing shop on the Antipolo road, and 'vulcanizing' — from the process of bonding rubber with heat — is the Filipino catch-all for tire repair: patching a puncture, plugging a hole, sealing a tube, whatever it takes to get a flat rolling again. You'll find a vulcanizing shop on nearly every provincial roadside in the country, because tires go flat everywhere, at every hour, and someone has to fix them.",
+      "We've been that someone here since 2001, and the thing that sets us apart is simple: we don't close. A flat tire doesn't wait for business hours — it happens at 3AM on the highway, on the way to the hospital, on the last trip home after a long shift. So we keep the light on around the clock, with someone always ready to patch, plug, vulcanize, change or balance a wheel, for cars, trucks, jeepneys, tricycles and motorbikes alike. Fast, honest, and priced the way roadside repair should be.",
+      "And when you can't reach us — stuck on the shoulder with a blowout and no spare — we come to you. Call, tell us where you are, and we'll roll out with the tools to get you moving or towed. We also sell good secondhand and new tires, do minor roadside mechanical fixes, and keep the tricycles and delivery riders of Antipolo on the road. It's not glamorous work. It's the work that gets everybody else home. Twenty-four hours, every day, we're here for it."
+    ],
+    portrait: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A mechanic's hands working on a wheel."
+  },
+  services: [
+    { name: "Flat repair — patch & plug", description: "Punctures found, cleaned and sealed — cold-patch, plug, or a proper vulcanized patch for a lasting fix. Tubeless and tube-type, cars to trucks. We find the leak you can't and get you rolling fast." },
+    { name: "Hot & cold vulcanizing", description: "The real thing: bonding a patch to the tire or tube with heat and pressure for a repair that holds, not a temporary plug that fails on the next long drive. The right fix for the damage, explained honestly." },
+    { name: "Tire change & wheel balancing", description: "Worn or blown tires swapped, valves replaced, and wheels balanced so your ride is smooth and your tires wear evenly. We'll tell you straight when a tire's done and when it's got life left in it." },
+    { name: "New & secondhand tires", description: "Good used tires at a fair price when the budget's tight, and new tires when you want the miles — cars, tricycles, motorbikes and light trucks. Honest advice on tread, age and what's safe to buy." },
+    { name: "24-hour roadside rescue", description: "Stranded with a flat or blowout and no spare? Call us. We roll out with tools and tires to fix you on the shoulder or get you to the shop — day, night, weekend, holiday. The number to save before you need it." },
+    { name: "Trikes, motors & fleet", description: "We keep Antipolo's tricycles, delivery riders and small fleets rolling with fast turnaround and standing arrangements — because when your wheels are your income, downtime costs money. Priority, fair rates, always open." }
+  ],
+  why: [
+    { title: "Open 24 hours. Genuinely.", body: "Not 'til late' — actually around the clock, every day of the year. A flat at 3AM is exactly when you need us most, and exactly when everyone else is shut. The light stays on. That's the whole promise." },
+    { title: "We come to you.", body: "Stranded on the highway with no spare? Call and we roll out with tools and tires. You don't have to limp a ruined tire to us or sleep in the car till morning — roadside rescue is a phone call away." },
+    { title: "Honest about the fix.", body: "We'll tell you when a patch will hold and when a tire's genuinely done — no scaring you into a new tire you don't need, no cheap plug on damage that needs vulcanizing. Fair fix, fair price, plainly explained." }
+  ],
+  how: [
+    { step: "01", title: "Roll in, or call", body: "Drive, ride or wheel in any hour — no appointment. Or if you're stranded, call and tell us where you are and what happened. We'll talk you through it and roll out if you need rescue." },
+    { step: "02", title: "We find the damage", body: "We locate the leak or assess the blowout, then tell you honestly what it needs — a plug, a patch, a proper vulcanize, or a new tire — and what it'll cost, before we touch it. No surprises." },
+    { step: "03", title: "Fixed fast", body: "Most flats are patched or plugged and balanced in minutes, not hours, because you've got somewhere to be. Vulcanized repairs take a little longer but hold far better. Either way, we don't dawdle." },
+    { step: "04", title: "Back on the road", body: "Rolling again, with a straight answer on whether the fix is permanent or a get-home measure, and when to check the tire next. Save our number — the flat you don't have yet will thank you." }
+  ],
+  testimonials: [
+    { quote: "Blew a tire on the Marcos Highway at 1AM with my kids in the car and no spare. Called Mang Kanor and he came out within the hour, fixed it on the shoulder, and charged a completely fair price. I nearly cried from relief. Saved his number in bold. A genuine lifesaver, literally.", name: "Rowena F.", context: "roadside rescue, 1AM" },
+    { quote: "I drive a tricycle and my tires are my livelihood. Mang Kanor patches me up fast, tells me straight when a tire's really done, and never overcharges. Every trike driver in our area goes to him because he's fair and he's always open. Solid, honest, reliable. Salamat, Mang Kanor.", name: "Kuya Dan", context: "tricycle driver" },
+    { quote: "Came in with a slow leak I'd been ignoring and he found a nail I'd never have spotted, vulcanized it properly instead of just plugging it, and explained exactly why. Been back three times since for the family cars. This is what a neighbourhood shop should be — skilled, honest, always there.", name: "Engr. Villamor", context: "regular customer" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=85&auto=format&fit=crop", alt: "A tire being worked on in a repair shop." },
+    { src: "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=1600&q=85&auto=format&fit=crop", alt: "A mechanic's hands working on a wheel." },
+    { src: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1600&q=85&auto=format&fit=crop", alt: "A polished wheel and tire." },
+    { src: "https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=1600&q=85&auto=format&fit=crop", alt: "Tools laid out in a workshop." },
+    { src: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=85&auto=format&fit=crop", alt: "A car headlight at night." },
+    { src: "https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1600&q=85&auto=format&fit=crop", alt: "A road at night with headlights." }
+  ],
+  faq: [
+    { q: "What does 'vulcanizing' actually mean, and how is it different from just plugging a tire?", a: "Vulcanizing, strictly speaking, is the process of treating rubber with heat (and often pressure and a curing agent) to bond it strongly — it's the same principle that makes tire rubber durable in the first place. In a Filipino roadside context, 'vulcanizing shop' has become the general term for any tire-repair shop, but the actual vulcanizing repair means bonding a rubber patch to the tire or tube with heat so it becomes, in effect, part of the tire — a strong, lasting fix. A plug, by contrast, is a quick repair where a sticky strip is pushed into the puncture from the outside; it's fast and gets you moving, and it's fine as a temporary or minor fix, but it's not as reliable long-term as a proper patch, especially for larger holes or highway speeds. A cold patch (glued from the inside) sits in between. The right choice depends on where the damage is, how big it is, and how you'll use the tire — and part of our job is telling you honestly which your tire actually needs rather than defaulting to the quickest or most expensive option." },
+    { q: "Are you really open 24 hours?", a: "Yes — genuinely around the clock, every day, including nights, weekends and holidays, and it's the single most important thing about us. Flat tires and blowouts don't keep office hours; in fact they have a cruel habit of happening at the worst possible times — late at night, on a dark stretch of highway, on the way to something urgent, when every other shop is shuttered. Being truly 24-hour means that when you're stuck at 3AM, there's a lit shop and a real person ready to help rather than a locked gate and a long, anxious wait until morning. There's always someone on hand to patch, plug, vulcanize, change or balance a tire whatever the hour. If you're ever unsure, just call the number before you set out or when you're stuck — someone will answer, and we'll tell you straight whether to come in or whether we should come to you." },
+    { q: "I'm stranded on the road with a flat and no spare — can you come to me?", a: "Yes — roadside rescue is exactly what we're here for, and it's a call away, day or night. If you're stuck on the shoulder with a flat or a blowout and either no spare, a spare that's also flat, or no way to change it safely yourself, don't panic and don't risk changing it in a dangerous spot: call us, tell us as precisely as you can where you are (landmark, kilometre marker, direction of travel) and what's happened, and we'll roll out to you with the tools and, if needed, a tire to get you moving again on the spot or get your vehicle safely to the shop. While you wait, get yourself and any passengers to a safe position away from traffic, put on your hazard lights, and set up your early-warning device if you have one. We serve the Antipolo area and the surrounding highways; if you're a bit further out, call anyway and we'll tell you honestly whether we can reach you or point you to the fastest help. Save our number now — roadside rescue is the thing you'll be endlessly glad you had before you ever need it." },
+    { q: "Do you repair tricycle, motorbike and truck tires too, not just cars?", a: "Yes — we handle the whole range of what rolls on Filipino roads: cars and vans, motorbikes and scooters, tricycles, jeepneys, and light-to-medium trucks. Tricycles and motorbikes especially are a big part of what we do, because for so many people here those two or three wheels aren't a hobby, they're a livelihood, and a flat means lost income for every hour it's off the road. So we prioritise fast turnaround for trike drivers and delivery riders, keep the right patches, tubes and tools for smaller wheels on hand, and offer fair, standing arrangements for regulars whose wheels are their work. Trucks and larger vehicles we handle too, within the limits of our equipment — and if something genuinely needs specialist heavy-truck gear we don't have, we'll tell you honestly and point you the right way rather than fumble it. Whatever you drive or ride, roll in and we'll sort it; and if you run a small fleet, talk to us about a standing arrangement." },
+    { q: "Should I buy a secondhand tire, or is that a false economy?", a: "It depends, and we'll give you the honest answer for your situation rather than just pushing the more profitable option. A good secondhand tire — sound tread depth, no sidewall damage, not too old, properly inspected — can be a genuinely sensible, safe choice when the budget is tight, and for many drivers and especially trike operators it's the practical reality; we stock decent used tires precisely because not everyone can drop the money on new rubber every time. That said, secondhand is a false economy if the tire is worn near its limit, cracked with age, or previously badly repaired, because you'll be back sooner and, more importantly, a bad tire is a safety risk at speed. New tires cost more up front but give you the full tread life and the peace of mind, which matters more the more highway driving you do. Our approach is simple: we tell you what we'd honestly buy in your position, show you the tread and condition so you can see for yourself, and never sell you a tire — new or used — that we wouldn't put on our own vehicle. Sometimes the right answer is a good used tire; sometimes it's new; we'll say which." },
+    { q: "How do I know if a repair will hold or if I need a new tire?", a: "The honest short answer is that it depends on where and how bad the damage is, and a trustworthy shop will assess it and tell you plainly — which is exactly what we do before touching your tire. As a general guide: a clean puncture in the central tread area is usually safely repairable with a proper patch or vulcanized repair and will hold for the life of the tire. Damage in the sidewall or shoulder, a very large hole or gash, a tire that's been driven flat and overheated, or one that's simply worn down to the limit or cracked with age, generally can't be safely repaired and needs replacing — patching those is a false economy and a genuine safety risk. We'll always show you the damage, explain whether it's a permanent fix or just a get-you-home measure, and give you a straight recommendation with the reasons, so the decision is yours and informed rather than pressured. We would far rather tell you honestly that a cheap patch is all you need than upsell you a tire — and equally, we won't send you back onto the highway on a repair we don't trust. Ask us anything; explaining it is part of the job." }
+  ],
+  area: { places: ["Antipolo", "Marikina", "Cainta", "Taytay", "Rizal", "Highway roadside rescue"] },
+  credentials: [
+    { label: "Since 2001", detail: "Keeping Antipolo's wheels rolling" },
+    { label: "Open 24 hours", detail: "Every night, weekend and holiday" },
+    { label: "Roadside rescue", detail: "We come to you when you're stuck" },
+    { label: "Honest fixes", detail: "The right repair, plainly explained" }
+  ],
+  location: { name: "Mang Kanor Vulcanizing", addressStreet: "Km 22 Marcos Highway, Mayamot", addressLocality: "Antipolo", addressRegion: "Rizal", addressPostcode: "1870", addressCountry: "Philippines" },
+  cta: { heading: "Save the number now. Thank yourself at 3AM.", body: "24-hour flat repair, vulcanizing, wheel balancing, tires and roadside rescue for cars, trucks, trikes and motors — fast, fair, and open when everyone else is closed. Keeping Antipolo rolling since 2001.", primary: { label: "Call for rescue", href: "#book" }, secondary: { label: "0917 555 0247", href: "tel:+639175550247" } },
+  messaging: { whatsapp: "https://wa.me/639175550247", messenger: "https://m.me/mangkanortire" }
+};
+</script>
+
+<style>
+  :root {
+    --asphalt:#191b1e; --asphalt-2:#0f1113; --steel:#eceff2; --steel-2:#f6f8fa; --ink:#1e2226; --ink-2:#454b52;
+    --hazard:#f5c518; --alert:#e23b2e; --go:#2f9e57;
+    --mid:#83898f; --mid-d:#b5bcc3; --rule-d:rgba(236,239,242,0.15);
+    --disp:"Archivo",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--asphalt);color:var(--steel);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--hazard);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;color:var(--hazard);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:900;font-size:clamp(38px,5.4vw,80px);line-height:0.98;margin:0 0 0.3em;letter-spacing:-0.02em;}
+  .h2 em{font-style:normal;color:var(--hazard);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--alert);color:var(--steel-2);} .btn-primary:hover{background:var(--hazard);color:var(--asphalt);}
+  .btn-ghost{border:1.5px solid rgba(236,239,242,0.4);color:var(--steel);} .btn-ghost:hover{background:var(--steel);color:var(--asphalt);border-color:var(--steel);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid var(--rule-d);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,58px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(25,27,30,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--rule-d);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:900;font-size:21px;text-decoration:none;letter-spacing:-0.03em;text-transform:uppercase;}
+  .wm span{color:var(--hazard);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.09em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,64px) 0 clamp(56px,7vw,96px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:900;font-size:clamp(40px,6.4vw,98px);line-height:0.92;letter-spacing:-0.03em;margin:0 0 32px;max-width:17ch;}
+  .hero-headline .em{color:var(--hazard);}
+  .hero-headline .em2{color:var(--alert);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:3px;}
+  .hero-photo::after{content:"OPEN 24 HOURS · SINCE 2001";position:absolute;left:14px;bottom:14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.12em;background:var(--hazard);color:var(--asphalt);padding:7px 12px;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--hazard);color:var(--asphalt);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(25,27,30,0.82);font-weight:700;}
+
+  .about{background:var(--steel);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--alert);}
+  .about .sw-head{color:var(--mid);border-color:rgba(30,34,38,0.16);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#3b4148;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--rule-d);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(236,239,242,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(226,59,46,0.12);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;color:var(--hazard);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:800;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:1.0;letter-spacing:-0.02em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--steel);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:rgba(30,34,38,0.16);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--alert);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:800;font-size:27px;margin:0 0 10px;line-height:1.0;letter-spacing:-0.02em;}
+  .why-grid p{color:#3b4148;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--alert);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--hazard);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:800;font-size:22px;margin:8px 0 8px;line-height:1.02;letter-spacing:-0.02em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--asphalt-2);}
+  .t-quote{font-family:var(--disp);font-weight:800;font-size:clamp(28px,3.7vw,54px);line-height:1.04;max-width:25ch;margin:0 0 24px;letter-spacing:-0.025em;}
+  .t-quote em{font-style:normal;color:var(--hazard);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--rule-d);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:3px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--alert);color:var(--steel-2);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule-d);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--rule-d);}
+  .faq-list summary{font-family:var(--disp);font-weight:800;font-size:21px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.14;letter-spacing:-0.02em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--hazard);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(236,239,242,0.3);border-radius:2px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--rule-d);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--hazard);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:800;font-size:19px;line-height:1.12;letter-spacing:-0.02em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--steel);color:var(--ink);padding:34px;border-radius:3px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:800;font-size:20px;line-height:1.26;letter-spacing:-0.02em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:500;color:#3b4148;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(30,34,38,0.16);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .row strong{color:var(--go);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:3px;border:1.5px solid rgba(236,239,242,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(180deg) brightness(0.92);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--alert);color:var(--steel-2);padding:clamp(80px,10vw,144px) 0;text-align:center;}
+  .cta-band .kick{color:var(--steel-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:900;font-size:clamp(42px,6.2vw,102px);line-height:0.94;margin:14px auto 18px;max-width:15ch;letter-spacing:-0.03em;}
+  .cta-band h2 em{font-style:normal;color:var(--hazard);}
+  .cta-band p{color:rgba(246,248,250,0.92);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--steel-2);color:var(--alert);} .cta-band .btn-primary:hover{background:var(--hazard);color:var(--asphalt);}
+  .cta-band .btn-ghost{border-color:var(--steel-2);color:var(--steel-2);} .cta-band .btn-ghost:hover{background:var(--steel-2);color:var(--alert);}
+
+  footer{background:var(--asphalt);border-top:1.5px solid var(--rule-d);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--hazard);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule-d);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--alert);color:var(--steel-2);padding:13px 20px;border-radius:2px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(226,59,46,0.4);}
+  .msg-fab a:hover{background:var(--hazard);color:var(--asphalt);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"AutoRepair","name":"Mang Kanor Vulcanizing","description":"24-hour vulcanizing and tire-repair shop in Antipolo, Rizal — flat repair, hot and cold vulcanizing, patch and plug, tube and tubeless, wheel balancing, new and used tires, plus roadside rescue. Since 2001.","url":"https://mangkanortire.ph/","telephone":"+639175550247","email":"help@mangkanortire.ph","address":{"@type":"PostalAddress","streetAddress":"Km 22 Marcos Highway, Mayamot","addressLocality":"Antipolo","addressRegion":"Rizal","postalCode":"1870","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":14.6180,"longitude":121.1500},"areaServed":["Antipolo","Marikina","Cainta","Taytay","Rizal"],"openingHours":"Mo-Su 00:00-23:59","image":["https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600"],"foundingDate":"2001"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What does 'vulcanizing' mean, and how is it different from plugging a tire?","acceptedAnswer":{"@type":"Answer","text":"Vulcanizing is treating rubber with heat and pressure to bond it strongly. In a Filipino roadside context 'vulcanizing shop' means any tire-repair shop, but the actual vulcanizing repair bonds a rubber patch to the tire or tube with heat so it becomes part of the tire — a strong, lasting fix. A plug is a quick sticky strip pushed in from outside: fast and fine as a temporary or minor fix, but less reliable long-term, especially for larger holes or highway speeds. A cold patch sits between. The right choice depends on the damage, and part of our job is telling you honestly which your tire needs."}},
+{"@type":"Question","name":"Are you really open 24 hours?","acceptedAnswer":{"@type":"Answer","text":"Yes — genuinely around the clock, every day including nights, weekends and holidays, and it's the most important thing about us. Flats and blowouts don't keep office hours; they happen late at night, on dark highways, on the way to something urgent. Being truly 24-hour means that when you're stuck at 3AM there's a lit shop and a real person ready to help, not a locked gate. There's always someone to patch, plug, vulcanize, change or balance a tire. If unsure, call the number before you set out or when stuck — someone will answer."}},
+{"@type":"Question","name":"I'm stranded with a flat and no spare — can you come to me?","acceptedAnswer":{"@type":"Answer","text":"Yes — roadside rescue is exactly what we're here for, day or night. Call, tell us as precisely as you can where you are (landmark, km marker, direction) and what happened, and we'll roll out with tools and if needed a tire to get you moving or your vehicle safely to the shop. While waiting, get to a safe spot away from traffic, hazard lights on, early-warning device out. We serve Antipolo and surrounding highways; if further out, call anyway and we'll tell you honestly if we can reach you. Save our number now."}},
+{"@type":"Question","name":"Do you repair tricycle, motorbike and truck tires too?","acceptedAnswer":{"@type":"Answer","text":"Yes — cars, vans, motorbikes, scooters, tricycles, jeepneys and light-to-medium trucks. Tricycles and motorbikes especially, because for many people those wheels are a livelihood and a flat means lost income. We prioritise fast turnaround for trike drivers and delivery riders, keep the right patches, tubes and tools on hand, and offer fair standing arrangements for regulars. Trucks we handle within our equipment; if something needs specialist heavy-truck gear we don't have, we'll say so honestly. Run a small fleet? Ask about a standing arrangement."}},
+{"@type":"Question","name":"Should I buy a secondhand tire, or is that a false economy?","acceptedAnswer":{"@type":"Answer","text":"It depends, and we give the honest answer for your situation. A good secondhand tire — sound tread, no sidewall damage, not too old, properly inspected — can be sensible and safe when budget is tight, which is why we stock decent used tires. But it's a false economy if the tire is near its limit, cracked with age, or badly repaired, because a bad tire is a safety risk at speed. New tires cost more but give full tread life and peace of mind, matering more with highway driving. We tell you what we'd honestly buy in your position and never sell a tire we wouldn't put on our own vehicle."}},
+{"@type":"Question","name":"How do I know if a repair will hold or if I need a new tire?","acceptedAnswer":{"@type":"Answer","text":"It depends on where and how bad the damage is, and we assess and tell you plainly before touching the tire. Generally: a clean puncture in the central tread is usually safely repairable with a patch or vulcanized repair and holds for the tire's life. Sidewall or shoulder damage, a very large hole, a tire driven flat and overheated, or one worn to the limit or age-cracked, generally can't be safely repaired and needs replacing. We show you the damage, explain whether it's permanent or a get-home measure, and recommend with reasons — we'd rather tell you a cheap patch is all you need than upsell, and we won't send you out on a repair we don't trust."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Mang Kanor <span>Vulcanizing</span></a>
+    <nav class="nav-links">
+      <a href="#about">The shop</a><a href="#services">What we fix</a><a href="#location">Find us</a><a href="#book">Call</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">24-hour vulcanizing & tire repair · roadside rescue · Antipolo, Rizal</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Flat at 3AM on the Marcos Highway? We're the light that's <span class="em">still on.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=2000&q=85&auto=format&fit=crop"
+             alt="A tire being worked on in a repair shop." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A 24-hour vulcanizing and tire shop on the Antipolo road — flats patched, plugged and vulcanized, tubes and tubeless, cars, trucks, tricycles and motors. We balance wheels, sell secondhand and new tires, and when you're stranded on the highway with a blowout, we come to you. Fast, fair, and open when everyone else is closed. The light that's always on.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Call for rescue</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we fix</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Keeping Antipolo rolling since 2001</span>
+    <span>Open 24 hours, genuinely</span>
+    <span>Roadside rescue</span>
+    <span>Cars · trucks · trikes · motors</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>BAY 01 / THE SHOP</span><span>KM 22, MARCOS HIGHWAY</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">A flat tire doesn't check the clock. Neither do <em>we.</em></h2>
+        <p>Mang Kanor Vulcanizing is a tire-repair and vulcanizing shop on the Antipolo road, and "vulcanizing" — from the process of bonding rubber with heat — is the Filipino catch-all for tire repair: patching a puncture, plugging a hole, sealing a tube, whatever it takes to get a flat rolling again. You'll find a vulcanizing shop on nearly every provincial roadside in the country, because tires go flat everywhere, at every hour, and someone has to fix them.</p>
+        <p>We've been that someone here since 2001, and the thing that sets us apart is simple: we don't close. A flat tire doesn't wait for business hours — it happens at 3AM on the highway, on the way to the hospital, on the last trip home after a long shift. So we keep the light on around the clock, with someone always ready to patch, plug, vulcanize, change or balance a wheel, for cars, trucks, jeepneys, tricycles and motorbikes alike. Fast, honest, and priced the way roadside repair should be.</p>
+        <p>And when you can't reach us — stuck on the shoulder with a blowout and no spare — we come to you. Call, tell us where you are, and we'll roll out with the tools to get you moving or towed. We also sell good secondhand and new tires, do minor roadside mechanical fixes, and keep the tricycles and delivery riders of Antipolo on the road. It's not glamorous work. It's the work that gets everybody else home. Twenty-four hours, every day, we're here for it.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=1200&q=85&auto=format&fit=crop"
+           alt="A mechanic's hands working on a wheel." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v78" data-screen-label="Services" style="background:var(--asphalt);">
+  <div class="wrap">
+    <div class="sw-head"><span>BAY 02 / WHAT WE FIX</span><span>PATCH · VULCANIZE · BALANCE · RESCUE</span></div>
+    <h2 class="h2">What we fix.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Flat repair — patch &amp; plug</h3><p>Punctures found, cleaned and sealed — cold-patch, plug, or a proper vulcanized patch for a lasting fix. Tubeless and tube-type, cars to trucks. We find the leak you can't and get you rolling fast.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Hot &amp; cold vulcanizing</h3><p>The real thing: bonding a patch to the tire or tube with heat and pressure for a repair that holds, not a temporary plug that fails on the next long drive. The right fix for the damage, explained honestly.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Tire change &amp; wheel balancing</h3><p>Worn or blown tires swapped, valves replaced, and wheels balanced so your ride is smooth and your tires wear evenly. We'll tell you straight when a tire's done and when it's got life left.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>New &amp; secondhand tires</h3><p>Good used tires at a fair price when the budget's tight, and new tires when you want the miles — cars, tricycles, motorbikes and light trucks. Honest advice on tread, age and what's safe to buy.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>24-hour roadside rescue</h3><p>Stranded with a flat or blowout and no spare? Call us. We roll out with tools and tires to fix you on the shoulder or get you to the shop — day, night, weekend, holiday. Save the number before you need it.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Trikes, motors &amp; fleet</h3><p>We keep Antipolo's tricycles, delivery riders and small fleets rolling with fast turnaround and standing arrangements — because when your wheels are your income, downtime costs money. Priority, fair rates, always open.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>BAY 03 / THE DIFFERENCE</span><span>WHY YOU SAVE OUR NUMBER</span></div>
+    <h2 class="h2">Why you save our <em>number.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Open 24 hours. Genuinely.</h3><p>Not 'til late' — actually around the clock, every day of the year. A flat at 3AM is exactly when you need us most, and exactly when everyone else is shut. The light stays on. That's the whole promise.</p></div>
+      <div><span class="no">02 / 03</span><h3>We come to you.</h3><p>Stranded on the highway with no spare? Call and we roll out with tools and tires. You don't have to limp a ruined tire to us or sleep in the car till morning — roadside rescue is a phone call away.</p></div>
+      <div><span class="no">03 / 03</span><h3>Honest about the fix.</h3><p>We'll tell you when a patch will hold and when a tire's genuinely done — no scaring you into a new tire you don't need, no cheap plug on damage that needs vulcanizing. Fair fix, fair price, plainly explained.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>BAY 04 / HOW IT GOES</span><span>ROLL IN · ASSESS · FIX · GO</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Roll in, or call</h3><p>Drive, ride or wheel in any hour — no appointment. Or if you're stranded, call and tell us where you are and what happened. We'll talk you through it and roll out if you need rescue.</p></li>
+      <li><span class="step">STEP 02</span><h3>We find the damage</h3><p>We locate the leak or assess the blowout, then tell you honestly what it needs — a plug, a patch, a proper vulcanize, or a new tire — and what it'll cost, before we touch it. No surprises.</p></li>
+      <li><span class="step">STEP 03</span><h3>Fixed fast</h3><p>Most flats are patched or plugged and balanced in minutes, not hours, because you've got somewhere to be. Vulcanized repairs take a little longer but hold far better. Either way, we don't dawdle.</p></li>
+      <li><span class="step">STEP 04</span><h3>Back on the road</h3><p>Rolling again, with a straight answer on whether the fix is permanent or a get-home measure, and when to check the tire next. Save our number — the flat you don't have yet will thank you.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>BAY 05 / FROM THE ROADSIDE</span><span>A GENUINE LIFESAVER</span></div>
+    <blockquote class="t-quote">“Blew a tire at 1AM with my kids and no spare. He came within the hour and charged a fair price. <em>A genuine lifesaver, literally.</em>”</blockquote>
+    <div class="t-attr">Rowena F. — roadside rescue, 1AM</div>
+    <div class="t-sub">
+      <figure><blockquote>“I drive a tricycle and my tires are my livelihood. Mang Kanor patches me up fast, tells me straight when a tire's really done, and never overcharges. Every trike driver in our area goes to him because he's fair and he's always open. Solid, honest, reliable. Salamat, Mang Kanor.”</blockquote><figcaption>Kuya Dan — tricycle driver</figcaption></figure>
+      <figure><blockquote>“Came in with a slow leak I'd been ignoring and he found a nail I'd never have spotted, vulcanized it properly instead of just plugging it, and explained exactly why. Been back three times since for the family cars. This is what a neighbourhood shop should be — skilled, honest, always there.”</blockquote><figcaption>Engr. Villamor — regular customer</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--steel);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:rgba(30,34,38,0.16);"><span>BAY 06 / IN THE BAY</span><span>RUBBER, TOOLS &amp; NIGHT SHIFT</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&q=85&auto=format&fit=crop" alt="A tire being worked on in a repair shop." /><figcaption>THE REPAIR</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=1600&q=85&auto=format&fit=crop" alt="A mechanic's hands working on a wheel." /><figcaption>THE HANDS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1600&q=85&auto=format&fit=crop" alt="A polished wheel and tire." /><figcaption>THE WHEEL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?w=1600&q=85&auto=format&fit=crop" alt="Tools laid out in a workshop." /><figcaption>THE TOOLS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=85&auto=format&fit=crop" alt="A car headlight at night." /><figcaption>THE NIGHT SHIFT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1600&q=85&auto=format&fit=crop" alt="A road at night with headlights." /><figcaption>THE HIGHWAY</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>BAY 07 / GOOD TO KNOW</span><span>VULCANIZING, RESCUE &amp; TIRES</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Stuck right now? Call <a href="tel:+639175550247" style="color:var(--hazard);font-weight:700;">0917 555 0247</a> — someone answers, any hour. Save it before you need it.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What does 'vulcanizing' actually mean, and how is it different from just plugging a tire?</summary><p>Vulcanizing, strictly speaking, is the process of treating rubber with heat (and often pressure and a curing agent) to bond it strongly — the same principle that makes tire rubber durable in the first place. In a Filipino roadside context, 'vulcanizing shop' has become the general term for any tire-repair shop, but the actual vulcanizing repair means bonding a rubber patch to the tire or tube with heat so it becomes, in effect, part of the tire — a strong, lasting fix. A plug, by contrast, is a quick repair where a sticky strip is pushed into the puncture from the outside; it's fast and gets you moving, and it's fine as a temporary or minor fix, but it's not as reliable long-term as a proper patch, especially for larger holes or highway speeds. A cold patch (glued from the inside) sits in between. The right choice depends on where the damage is, how big it is, and how you'll use the tire — and part of our job is telling you honestly which your tire actually needs.</p></details>
+        <details><summary>Are you really open 24 hours?</summary><p>Yes — genuinely around the clock, every day, including nights, weekends and holidays, and it's the single most important thing about us. Flat tires and blowouts don't keep office hours; in fact they have a cruel habit of happening at the worst possible times — late at night, on a dark stretch of highway, on the way to something urgent, when every other shop is shuttered. Being truly 24-hour means that when you're stuck at 3AM, there's a lit shop and a real person ready to help rather than a locked gate and a long, anxious wait until morning. There's always someone on hand to patch, plug, vulcanize, change or balance a tire whatever the hour. If you're ever unsure, just call the number before you set out or when you're stuck — someone will answer, and we'll tell you straight whether to come in or whether we should come to you.</p></details>
+        <details><summary>I'm stranded on the road with a flat and no spare — can you come to me?</summary><p>Yes — roadside rescue is exactly what we're here for, and it's a call away, day or night. If you're stuck on the shoulder with a flat or a blowout and either no spare, a spare that's also flat, or no way to change it safely yourself, don't panic and don't risk changing it in a dangerous spot: call us, tell us as precisely as you can where you are (landmark, kilometre marker, direction of travel) and what's happened, and we'll roll out to you with the tools and, if needed, a tire to get you moving again on the spot or get your vehicle safely to the shop. While you wait, get yourself and any passengers to a safe position away from traffic, put on your hazard lights, and set up your early-warning device if you have one. We serve the Antipolo area and the surrounding highways; if you're a bit further out, call anyway and we'll tell you honestly whether we can reach you. Save our number now.</p></details>
+        <details><summary>Do you repair tricycle, motorbike and truck tires too, not just cars?</summary><p>Yes — we handle the whole range of what rolls on Filipino roads: cars and vans, motorbikes and scooters, tricycles, jeepneys, and light-to-medium trucks. Tricycles and motorbikes especially are a big part of what we do, because for so many people here those two or three wheels aren't a hobby, they're a livelihood, and a flat means lost income for every hour it's off the road. So we prioritise fast turnaround for trike drivers and delivery riders, keep the right patches, tubes and tools for smaller wheels on hand, and offer fair, standing arrangements for regulars whose wheels are their work. Trucks and larger vehicles we handle too, within the limits of our equipment — and if something genuinely needs specialist heavy-truck gear we don't have, we'll tell you honestly and point you the right way rather than fumble it. Whatever you drive or ride, roll in and we'll sort it.</p></details>
+        <details><summary>Should I buy a secondhand tire, or is that a false economy?</summary><p>It depends, and we'll give you the honest answer for your situation rather than just pushing the more profitable option. A good secondhand tire — sound tread depth, no sidewall damage, not too old, properly inspected — can be a genuinely sensible, safe choice when the budget is tight, and for many drivers and especially trike operators it's the practical reality; we stock decent used tires precisely because not everyone can drop the money on new rubber every time. That said, secondhand is a false economy if the tire is worn near its limit, cracked with age, or previously badly repaired, because you'll be back sooner and, more importantly, a bad tire is a safety risk at speed. New tires cost more up front but give you the full tread life and the peace of mind. Our approach is simple: we tell you what we'd honestly buy in your position, show you the tread and condition, and never sell you a tire we wouldn't put on our own vehicle.</p></details>
+        <details><summary>How do I know if a repair will hold or if I need a new tire?</summary><p>The honest short answer is that it depends on where and how bad the damage is, and a trustworthy shop will assess it and tell you plainly — which is exactly what we do before touching your tire. As a general guide: a clean puncture in the central tread area is usually safely repairable with a proper patch or vulcanized repair and will hold for the life of the tire. Damage in the sidewall or shoulder, a very large hole or gash, a tire that's been driven flat and overheated, or one that's simply worn down to the limit or cracked with age, generally can't be safely repaired and needs replacing — patching those is a false economy and a genuine safety risk. We'll always show you the damage, explain whether it's a permanent fix or just a get-you-home measure, and give you a straight recommendation with the reasons. We would far rather tell you honestly that a cheap patch is all you need than upsell you a tire — and equally, we won't send you back onto the highway on a repair we don't trust.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BAY 08 / WE COVER</span><span>ANTIPOLO &amp; THE HIGHWAYS</span></div>
+    <ul class="area-list">
+      <li>Antipolo</li><li>Marikina</li><li>Cainta</li><li>Taytay</li><li>Rizal</li><li>Highway roadside rescue</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BAY 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2001</div><div class="detail">Keeping Antipolo's wheels rolling</div></div>
+      <div><div class="label">Open 24 hours</div><div class="detail">Every night, weekend and holiday</div></div>
+      <div><div class="label">Roadside rescue</div><div class="detail">We come to you when you're stuck</div></div>
+      <div><div class="label">Honest fixes</div><div class="detail">The right repair, plainly explained</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BAY 10 / THE SHOP</span><span>KM 22, MARCOS HIGHWAY</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Mang Kanor Vulcanizing</strong><br />
+          Km 22 Marcos Highway, Mayamot<br />
+          Antipolo, Rizal 1870<br /><br />
+          <a href="tel:+639175550247" data-bind="business.phoneDisplay">0917 555 0247</a><br />
+          <a href="mailto:help@mangkanortire.ph" data-bind="business.email">help@mangkanortire.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>EVERY DAY</span><strong>OPEN 24 HOURS</strong></div>
+          <div class="row"><span>ROADSIDE RESCUE</span><span>ANYTIME</span></div>
+          <p class="gbp-note">Live details on our Google Business Profile. We're right on Marcos Highway at Km 22 in Mayamot — look for the lit shop and the stack of tires. Never closed. Call before you set out if unsure.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Mang Kanor Vulcanizing, Antipolo" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=121.1350%2C14.6080%2C121.1650%2C14.6280&layer=mapnik&marker=14.6180%2C121.1500"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">BAY 11 / CALL</div>
+    <h2 data-bind="cta.heading">Save the number now. Thank yourself at <em>3AM.</em></h2>
+    <p data-bind="cta.body">24-hour flat repair, vulcanizing, wheel balancing, tires and roadside rescue for cars, trucks, trikes and motors — fast, fair, and open when everyone else is closed. Keeping Antipolo rolling since 2001.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Call for rescue</a>
+      <a class="btn btn-ghost" href="tel:+639175550247" data-bind="cta.secondary.label">0917 555 0247</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/639175550247" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">Mang Kanor <span style="color:var(--hazard);">Vulcanizing</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A 24-hour vulcanizing and tire shop on the Antipolo road — flats, tires and roadside rescue, always open, since 2001.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          Km 22 Marcos Highway, Mayamot<br />Antipolo, Rizal 1870<br />
+          <a href="tel:+639175550247">0917 555 0247</a><br />
+          <a href="mailto:help@mangkanortire.ph">help@mangkanortire.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we fix</a><a href="#about">The shop</a><a href="#location">Find us</a><a href="#book">Call</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> MANG KANOR VULCANIZING</span>
+      <span>OPEN 24 HOURS · ANTIPOLO</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

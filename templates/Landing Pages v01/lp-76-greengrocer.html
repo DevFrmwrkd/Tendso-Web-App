@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Roots &amp; Season — greengrocer &amp; farm shop in Totnes</title>
+<meta name="description" content="Roots & Season is a greengrocer and farm shop in Totnes, Devon — picked-this-week fruit and veg from named local farms, a proper box scheme, and a stall that changes with the season." />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Roots & Season", phone: "+44 1803 771 204", phoneDisplay: "01803 771 204", email: "stall@rootsandseason.co.uk", foundedYear: 2014 },
+  hero: {
+    kicker: "Greengrocer & farm shop · named local farms · Totnes, Devon",
+    headline: "Picked this week. Not last month.",
+    lede: "A greengrocer that changes with the season, not the supermarket calendar. The veg on this stall was in a Devon field days ago — from farms we can name and drive to. If it isn't in season here, it isn't on the shelf, and we'll happily tell you what to eat instead.",
+    primaryCta: { label: "Start a veg box", href: "#book" },
+    secondaryCta: { label: "What's on the stall", href: "#services" },
+    image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A greengrocer's stall piled with fresh vegetables."
+  },
+  trust: { years: "On the stall since 2014" },
+  about: {
+    heading: "The shelf is a calendar you can eat.",
+    paragraphs: [
+      "Walk in during May and it's asparagus and Jersey Royals; come back in October and it's squash, kale and the last of the tomatoes. That's not a gap in the range — that's the whole point. We buy what's ready from farms within an hour's drive, so the stall tells you the season better than any wall chart.",
+      "Everything is traceable to a name. The eggs are from a farm up the valley, the apples from an orchard we've bought from for a decade, the leaves cut the morning they arrive. When a customer asks 'where's this from', the answer is a place, a person and a postcode — never a distribution centre.",
+      "We waste almost nothing. Wonky carrots go in the box scheme, gluts become the specials board, and the very tired stuff goes to the pigs at the farm it came from. A greengrocer that throws food away has stopped paying attention."
+    ],
+    portrait: "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Fresh vegetables laid out on a table."
+  },
+  services: [
+    { name: "The daily stall", description: "Fruit, veg, leaves and herbs, restocked every morning from what's ready that week. What's abundant is cheap; what's ending is on the specials board. The stall is never the same twice." },
+    { name: "The veg box scheme", description: "A weekly box of the best of the week, sized for one to a family, collected or delivered locally. You get a say on the swaps and a note on what to do with the odd one out." },
+    { name: "Named local farms", description: "Everything traceable to a farm, an orchard or a grower we know. Ask about anything on the shelf and you'll get a place and a person, not a barcode." },
+    { name: "Larder & farm shop", description: "The dry-store bit: local flour, honey, cheese, eggs, oils and preserves from the same few miles. Everything you need to cook the veg once you've got it home." },
+    { name: "Chefs & trade", description: "Restaurants and cafés supplied with the same-day pick, a standing order and a direct line to whoever's on the stall. Gluts and specials flagged before anyone else." },
+    { name: "Seasonal advice", description: "Free and unsolicited: what's best right now, what's about to end, and what to do with the vegetable you've never cooked. The best thing on the stall is the person behind it." }
+  ],
+  why: [
+    { title: "In a field this week.", body: "We buy from farms within an hour, picked days ago — not weeks in a container. It tastes like it, and it lasts longer in your bowl because its clock started later." },
+    { title: "Named, not labelled.", body: "Every crop is traceable to a grower we know by name. 'Local' means the valley, the orchard, the farm gate — a place you could drive to, not a marketing word." },
+    { title: "Almost nothing wasted.", body: "Wonky veg to the box scheme, gluts to the specials board, the rest back to the farm's pigs. A greengrocer paying attention barely fills a bin." }
+  ],
+  how: [
+    { step: "01", title: "Come and browse", body: "See what's good this week — the stall changes constantly. Ask what's just come in and what's about to end; both are worth buying." },
+    { step: "02", title: "Or start a box", body: "Pick a size, tell us your swaps and no-gos, choose collection or local delivery. We do the choosing from the best of the week." },
+    { step: "03", title: "Ask us anything", body: "Where it's from, when it peaks, how to cook it. Advice is free and we rather enjoy giving it — bring the vegetable you're scared of." },
+    { step: "04", title: "Eat the season", body: "Cook what's ready, waste less, and let the shelf plan half your meals. Next week it'll all be different again." }
+  ],
+  testimonials: [
+    { quote: "I stopped writing shopping lists. I just turn up, see what's best, and cook that. My food's better, cheaper and I've eaten vegetables I couldn't have named a year ago. The stall does the thinking.", name: "Maya R.", context: "box scheme, three years" },
+    { quote: "I asked where the apples were from and got the orchard, the variety, the farmer's first name and a tip on which to bake. Try getting that at the big shop. I've never gone back.", name: "Colin H.", context: "Saturday regular" },
+    { quote: "As a café we live and die on the veg. Same-day pick, a real person on the phone, and they flag the gluts so I can build the specials around them. Best supplier we've ever had.", name: "Priya D.", context: "café owner, Totnes" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=85&auto=format&fit=crop", alt: "The vegetable stall." },
+    { src: "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1600&q=85&auto=format&fit=crop", alt: "Fresh vegetables on a table." },
+    { src: "https://images.unsplash.com/photo-1518843875459-f738682238a6?w=1600&q=85&auto=format&fit=crop", alt: "A box of mixed vegetables." },
+    { src: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=1600&q=85&auto=format&fit=crop", alt: "Colourful produce close up." },
+    { src: "https://images.unsplash.com/photo-1518843875459-f738682238a6?w=1600&q=85&auto=format&fit=crop", alt: "A full veg box." },
+    { src: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=1600&q=85&auto=format&fit=crop", alt: "Just-picked vegetables." }
+  ],
+  faq: [
+    { q: "What does 'in season' actually mean here?", a: "It means grown outdoors, in this country, ready to harvest now — not forced under heat or flown across the world to fake a season. It's why our range changes through the year and why the stall never looks the same in June as it does in December. If you want strawberries in January, we're the wrong shop, and we'll say so cheerfully." },
+    { q: "How does the veg box work?", a: "Choose a size, tell us what you never want and any allergies, and pick collection or local delivery. Each week we pack the best of what's ready — you can see the likely contents in advance and swap a couple of items. It's a standing order you can pause any time, not a contract." },
+    { q: "Is everything really local?", a: "The fruit and veg is overwhelmingly from farms and orchards within about an hour, and we name them on the boards. A few things — citrus, bananas, coffee — obviously can't be grown in Devon, and those we buy fairtrade and mark clearly. We'd rather be honest about the lemons than pretend." },
+    { q: "Is it more expensive than the supermarket?", a: "Some things are dearer, plenty are cheaper — especially whatever's in glut that week, which we sell for very little because we'd rather it was eaten. Buy with the season instead of against it and most people spend less, waste less and eat better. The specials board is where the bargains live." },
+    { q: "Do you deliver, and how far?", a: "We deliver boxes locally around Totnes and the surrounding villages a couple of days a week; further afield is collection from the shop. Trade orders we'll sort out directly — tell us where you are and we'll be straight about whether it works. Delivery days and the current area are on our Google profile." },
+    { q: "Can you supply my café or restaurant?", a: "Gladly — it's a good chunk of what we do. You get the same-day pick, a standing order tuned to your menu, and a direct line to whoever's on the stall so you hear about gluts and specials first. Give us a ring and we'll talk through volumes and delivery." }
+  ],
+  area: { places: ["Totnes", "Dartington", "Ashprington", "Staverton", "Harberton", "the South Hams"] },
+  credentials: [
+    { label: "Sourcing", detail: "Named farms & orchards within the hour" },
+    { label: "Season", detail: "Outdoor-grown, in-season, marked on the board" },
+    { label: "Waste", detail: "Wonky to box, glut to specials, rest to the farm" },
+    { label: "Food hygiene", detail: "Rated 5 — South Hams District Council" }
+  ],
+  location: { name: "Roots & Season", addressStreet: "14 High Street", addressLocality: "Totnes", addressRegion: "Devon", addressPostcode: "TQ9 5RY", addressCountry: "United Kingdom" },
+  cta: { heading: "Come and eat the season.", body: "Browse the stall, start a box, or ask us what's best this week — the answer's always changing and it's always worth having.", primary: { label: "Start a veg box", href: "#book" }, secondary: { label: "01803 771 204", href: "tel:+441803771204" } },
+  messaging: { whatsapp: "https://wa.me/441803771204", messenger: "https://m.me/rootsandseason" }
+};
+</script>
+
+<style>
+  :root {
+    --stall:#183a2a; --paper:#f2eede; --tomato:#d3402c; --carrot:#df8a1e; --leaf:#4f8342;
+    --ink:#183a2a; --mid:#5f7062; --mid-d:#a9b8a6; --rule:rgba(24,58,42,0.15); --rule-d:rgba(242,238,222,0.16);
+    --disp:"Anton",sans-serif; --sans:"Barlow",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--tomato);}
+  .wrap{width:min(1260px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--tomato);}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(38px,5.4vw,78px);line-height:0.94;letter-spacing:0.005em;margin:0 0 0.34em;text-transform:uppercase;}
+  .body{color:var(--mid);line-height:1.68;}
+  section{padding:clamp(72px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 30px;font-family:var(--disp);font-weight:400;font-size:18px;letter-spacing:0.03em;text-transform:uppercase;text-decoration:none;transition:0.16s;}
+  .btn-primary{background:var(--tomato);color:var(--paper);} .btn-primary:hover{background:var(--stall);}
+  .btn-ghost{border:2px solid var(--stall);} .btn-ghost:hover{background:var(--stall);color:var(--paper);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);border-bottom:3px solid var(--stall);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);}
+  .light .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(242,238,222,0.95);backdrop-filter:blur(10px);border-bottom:3px solid var(--stall);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 0;}
+  .wm{font-family:var(--disp);font-size:26px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--carrot);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — crate-label board with produce photo */
+  .hero{padding:clamp(48px,6.5vw,92px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.08fr 0.92fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:400;font-size:clamp(50px,7.6vw,116px);line-height:0.88;letter-spacing:0.005em;margin:14px 0 22px;text-transform:uppercase;}
+  .hero h1 em{font-style:normal;color:var(--carrot);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.68;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;padding:12px;background:var(--stall);}
+  .hero-photo::before{content:"";position:absolute;inset:6px;border:2px solid var(--carrot);pointer-events:none;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .crate-tag{position:absolute;bottom:24px;left:-10px;background:var(--carrot);color:var(--stall);padding:12px 16px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;line-height:1.8;font-weight:700;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--stall);color:var(--paper);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(242,238,222,0.85);}
+
+  .about{background:var(--stall);color:var(--paper);}
+  .about .h2{color:var(--paper);}
+  .about .h2 em{color:var(--carrot);}
+  .about-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.72;margin:0 0 1em;color:rgba(242,238,222,0.82);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:3px solid var(--stall);}
+  .svc-row{display:grid;grid-template-columns:104px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(211,64,44,0.06);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--tomato);text-transform:uppercase;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(23px,2.5vw,33px);margin:0;line-height:0.98;letter-spacing:0.01em;text-transform:uppercase;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.64;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--leaf);color:var(--paper);}
+  .why .sw-head{border-color:rgba(242,238,222,0.4);color:rgba(242,238,222,0.75);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--paper);opacity:0.7;display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:27px;margin:0 0 10px;line-height:0.98;letter-spacing:0.01em;text-transform:uppercase;}
+  .why-grid p{color:rgba(242,238,222,0.9);margin:0;font-size:14.5px;line-height:1.66;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--stall);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--tomato);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:23px;margin:6px 0 8px;letter-spacing:0.01em;text-transform:uppercase;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.62;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#e7e2cf;}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(28px,3.7vw,50px);line-height:0.99;max-width:28ch;margin:0 0 24px;letter-spacing:0.01em;text-transform:uppercase;}
+  .t-quote em{font-style:normal;color:var(--tomato);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:3px solid var(--stall);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--stall);color:var(--carrot);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:3px solid var(--stall);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:23px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;letter-spacing:0.01em;text-transform:uppercase;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--tomato);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--stall);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px solid var(--stall);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--tomato);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:18px;line-height:1.12;letter-spacing:0.01em;text-transform:uppercase;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--stall);color:var(--paper);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:23px;line-height:1.18;letter-spacing:0.01em;text-transform:uppercase;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(242,238,222,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(242,238,222,0.75);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(242,238,222,0.7);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:3px solid var(--stall);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--stall);color:var(--paper);padding:clamp(84px,10vw,148px) 0;text-align:center;}
+  .cta-band .kick{color:var(--carrot);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(46px,6.8vw,104px);line-height:0.9;margin:14px auto 18px;max-width:16ch;letter-spacing:0.01em;text-transform:uppercase;}
+  .cta-band h2 em{font-style:normal;color:var(--carrot);}
+  .cta-band p{color:rgba(242,238,222,0.85);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--carrot);color:var(--stall);}
+  .cta-band .btn-primary:hover{background:var(--paper);}
+  .cta-band .btn-ghost{border-color:rgba(242,238,222,0.6);color:var(--paper);}
+  .cta-band .btn-ghost:hover{background:var(--paper);color:var(--stall);}
+
+  footer{background:var(--paper);border-top:3px solid var(--stall);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--tomato);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--tomato);color:var(--paper);padding:13px 20px;text-decoration:none;font-family:var(--disp);font-size:17px;letter-spacing:0.03em;box-shadow:0 8px 24px rgba(211,64,44,0.4);}
+  .msg-fab a:hover{background:var(--stall);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"GroceryStore","name":"Roots & Season","description":"Greengrocer and farm shop in Totnes, Devon — picked-this-week fruit and veg from named local farms, a box scheme and a seasonal stall.","url":"https://rootsandseason.co.uk/","telephone":"+441803771204","email":"stall@rootsandseason.co.uk","address":{"@type":"PostalAddress","streetAddress":"14 High Street","addressLocality":"Totnes","addressRegion":"Devon","postalCode":"TQ9 5RY","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":50.4319,"longitude":-3.6847},"areaServed":["Totnes","Dartington","the South Hams"],"image":["https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600"],"foundingDate":"2014"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What does 'in season' mean here?","acceptedAnswer":{"@type":"Answer","text":"Grown outdoors, in this country, ready to harvest now — not forced or flown in. It's why the range changes through the year."}},
+{"@type":"Question","name":"How does the veg box work?","acceptedAnswer":{"@type":"Answer","text":"Choose a size, tell us your no-gos, pick collection or local delivery. We pack the best of the week; pause any time."}},
+{"@type":"Question","name":"Is everything really local?","acceptedAnswer":{"@type":"Answer","text":"The fruit and veg is overwhelmingly from farms within an hour, named on the boards. Citrus and bananas are fairtrade and marked clearly."}},
+{"@type":"Question","name":"Is it more expensive than the supermarket?","acceptedAnswer":{"@type":"Answer","text":"Some things dearer, plenty cheaper — especially the glut on the specials board. Buy with the season and most people spend less."}},
+{"@type":"Question","name":"Do you deliver?","acceptedAnswer":{"@type":"Answer","text":"Boxes locally around Totnes a couple of days a week; further afield is collection. Days and area on our Google profile."}},
+{"@type":"Question","name":"Can you supply my café?","acceptedAnswer":{"@type":"Answer","text":"Gladly — same-day pick, a standing order tuned to your menu, and a direct line for gluts and specials."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">ROOTS <span>&amp;</span> SEASON</a>
+    <nav class="nav-links">
+      <a href="#about">The stall</a><a href="#services">What we sell</a><a href="#location">Find us</a><a href="#book">Veg box</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v63">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Greengrocer &amp; farm shop · named local farms · Totnes, Devon</div>
+      <h1 data-comment-anchor="hero-headline">Picked this week. <em>Not last month.</em></h1>
+      <p class="lede" data-bind="hero.lede">A greengrocer that changes with the season, not the supermarket calendar. The veg on this stall was in a Devon field days ago — from farms we can name and drive to. If it isn't in season here, it isn't on the shelf, and we'll happily tell you what to eat instead.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Start a veg box</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What's on the stall</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=2000&q=85&auto=format&fit=crop"
+           alt="A greengrocer's stall piled with fresh vegetables." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="crate-tag">CROP · DEVON<br />PICKED · THIS WK<br />MILES · UNDER 40</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">On the stall since 2014</span>
+    <span>Named local farms</span>
+    <span>Picked days ago</span>
+    <span>Almost nothing wasted</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v29">
+  <div class="wrap">
+    <div class="sw-head"><span>CROP 01 / THE STALL</span><span>A CALENDAR YOU CAN EAT</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=85&auto=format&fit=crop"
+           alt="Fresh vegetables laid out on a table." />
+      <div class="about-prose">
+        <h2 class="h2">The shelf is a calendar <em>you can eat.</em></h2>
+        <p>Walk in during May and it's asparagus and Jersey Royals; come back in October and it's squash, kale and the last of the tomatoes. That's not a gap in the range — that's the whole point. We buy what's ready from farms within an hour's drive, so the stall tells you the season better than any wall chart.</p>
+        <p>Everything is traceable to a name. The eggs are from a farm up the valley, the apples from an orchard we've bought from for a decade, the leaves cut the morning they arrive. When a customer asks "where's this from", the answer is a place, a person and a postcode — never a distribution centre.</p>
+        <p>We waste almost nothing. Wonky carrots go in the box scheme, gluts become the specials board, and the very tired stuff goes to the pigs at the farm it came from. A greengrocer that throws food away has stopped paying attention.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v56">
+  <div class="wrap">
+    <div class="sw-head"><span>CROP 02 / WHAT WE SELL</span><span>ALL IN SEASON</span></div>
+    <h2 class="h2">What's on the stall.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Row 01</span><h3>The daily stall</h3><p>Fruit, veg, leaves and herbs, restocked every morning from what's ready that week. What's abundant is cheap; what's ending is on the specials board. The stall is never the same twice.</p></div>
+      <div class="svc-row"><span class="no">Row 02</span><h3>The veg box scheme</h3><p>A weekly box of the best of the week, sized for one to a family, collected or delivered locally. You get a say on the swaps and a note on what to do with the odd one out.</p></div>
+      <div class="svc-row"><span class="no">Row 03</span><h3>Named local farms</h3><p>Everything traceable to a farm, an orchard or a grower we know. Ask about anything on the shelf and you'll get a place and a person, not a barcode.</p></div>
+      <div class="svc-row"><span class="no">Row 04</span><h3>Larder &amp; farm shop</h3><p>The dry-store bit: local flour, honey, cheese, eggs, oils and preserves from the same few miles. Everything you need to cook the veg once you've got it home.</p></div>
+      <div class="svc-row"><span class="no">Row 05</span><h3>Chefs &amp; trade</h3><p>Restaurants and cafés supplied with the same-day pick, a standing order and a direct line to whoever's on the stall. Gluts and specials flagged before anyone else.</p></div>
+      <div class="svc-row"><span class="no">Row 06</span><h3>Seasonal advice</h3><p>Free and unsolicited: what's best right now, what's about to end, and what to do with the vegetable you've never cooked. The best thing on the stall is the person behind it.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v28">
+  <div class="wrap">
+    <div class="sw-head"><span>CROP 03 / THE DIFFERENCE</span><span>FIELD VS WAREHOUSE</span></div>
+    <h2 class="h2">Why buy here.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>In a field this week.</h3><p>We buy from farms within an hour, picked days ago — not weeks in a container. It tastes like it, and it lasts longer in your bowl because its clock started later.</p></div>
+      <div><span class="no">02 / 03</span><h3>Named, not labelled.</h3><p>Every crop is traceable to a grower we know by name. "Local" means the valley, the orchard, the farm gate — a place you could drive to, not a marketing word.</p></div>
+      <div><span class="no">03 / 03</span><h3>Almost nothing wasted.</h3><p>Wonky veg to the box scheme, gluts to the specials board, the rest back to the farm's pigs. A greengrocer paying attention barely fills a bin.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>CROP 04 / HOW IT WORKS</span><span>BROWSE → BOX → ASK → EAT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Come and browse</h3><p>See what's good this week — the stall changes constantly. Ask what's just come in and what's about to end; both are worth buying.</p></li>
+      <li><span class="step">Step 02</span><h3>Or start a box</h3><p>Pick a size, tell us your swaps and no-gos, choose collection or local delivery. We do the choosing from the best of the week.</p></li>
+      <li><span class="step">Step 03</span><h3>Ask us anything</h3><p>Where it's from, when it peaks, how to cook it. Advice is free and we rather enjoy giving it — bring the vegetable you're scared of.</p></li>
+      <li><span class="step">Step 04</span><h3>Eat the season</h3><p>Cook what's ready, waste less, and let the shelf plan half your meals. Next week it'll all be different again.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v28">
+  <div class="wrap">
+    <div class="sw-head"><span>CROP 05 / REGULARS</span><span>SAID OVER THE CRATES</span></div>
+    <blockquote class="t-quote">“I stopped writing shopping lists. I turn up, see what's best, and cook <em>that.</em>”</blockquote>
+    <div class="t-attr">Maya R. — box scheme, three years</div>
+    <div class="t-sub">
+      <figure><blockquote>“I asked where the apples were from and got the orchard, the variety, the farmer's first name and a tip on which to bake. Try getting that at the big shop. I've never gone back.”</blockquote><figcaption>Colin H. — Saturday regular</figcaption></figure>
+      <figure><blockquote>“As a café we live and die on the veg. Same-day pick, a real person on the phone, and they flag the gluts so I can build the specials around them. Best supplier we've ever had.”</blockquote><figcaption>Priya D. — café owner, Totnes</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v56">
+  <div class="wrap">
+    <div class="sw-head"><span>CROP 06 / THE STALL</span><span>THIS WEEK'S PICK</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=85&auto=format&fit=crop" alt="The vegetable stall." /><figcaption>THE STALL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1600&q=85&auto=format&fit=crop" alt="Fresh vegetables on a table." /><figcaption>THIS MORNING'S CUT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1518843875459-f738682238a6?w=1600&q=85&auto=format&fit=crop" alt="A box of mixed vegetables." /><figcaption>THE VEG BOX</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=1600&q=85&auto=format&fit=crop" alt="Colourful produce close up." /><figcaption>IN GLUT, ON SPECIAL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1518843875459-f738682238a6?w=1600&q=85&auto=format&fit=crop" alt="A full veg box." /><figcaption>BEST OF THE WEEK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=1600&q=85&auto=format&fit=crop" alt="Just-picked vegetables." /><figcaption>NAMED &amp; LOCAL</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>CROP 07 / ASKED AT THE TILL</span><span>OVER A PAPER BAG</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the till.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441803771204" style="color:var(--tomato);">01803 771 204</a>. If it's a market morning we'll call you back once the rush is through.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What does "in season" actually mean here?</summary><p>It means grown outdoors, in this country, ready to harvest now — not forced under heat or flown across the world to fake a season. It's why our range changes through the year and why the stall never looks the same in June as it does in December. If you want strawberries in January, we're the wrong shop, and we'll say so cheerfully.</p></details>
+        <details><summary>How does the veg box work?</summary><p>Choose a size, tell us what you never want and any allergies, and pick collection or local delivery. Each week we pack the best of what's ready — you can see the likely contents in advance and swap a couple of items. It's a standing order you can pause any time, not a contract.</p></details>
+        <details><summary>Is everything really local?</summary><p>The fruit and veg is overwhelmingly from farms and orchards within about an hour, and we name them on the boards. A few things — citrus, bananas, coffee — obviously can't be grown in Devon, and those we buy fairtrade and mark clearly. We'd rather be honest about the lemons than pretend.</p></details>
+        <details><summary>Is it more expensive than the supermarket?</summary><p>Some things are dearer, plenty are cheaper — especially whatever's in glut that week, which we sell for very little because we'd rather it was eaten. Buy with the season instead of against it and most people spend less, waste less and eat better. The specials board is where the bargains live.</p></details>
+        <details><summary>Do you deliver, and how far?</summary><p>We deliver boxes locally around Totnes and the surrounding villages a couple of days a week; further afield is collection from the shop. Trade orders we'll sort out directly — tell us where you are and we'll be straight about whether it works. Delivery days and the current area are on our Google profile.</p></details>
+        <details><summary>Can you supply my café or restaurant?</summary><p>Gladly — it's a good chunk of what we do. You get the same-day pick, a standing order tuned to your menu, and a direct line to whoever's on the stall so you hear about gluts and specials first. Give us a ring and we'll talk through volumes and delivery.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>CROP 08 / WE DELIVER ACROSS</span><span>THE SOUTH HAMS</span></div>
+    <ul class="area-list">
+      <li>Totnes</li><li>Dartington</li><li>Ashprington</li><li>Staverton</li><li>Harberton</li><li>The South Hams</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>CROP 09 / THE ESSENTIALS</span><span>HOW WE BUY</span></div>
+    <div class="creds">
+      <div><div class="label">Sourcing</div><div class="detail">Named farms &amp; orchards within the hour</div></div>
+      <div><div class="label">Season</div><div class="detail">Outdoor-grown, in-season, marked on the board</div></div>
+      <div><div class="label">Waste</div><div class="detail">Wonky to box, glut to specials, rest to the farm</div></div>
+      <div><div class="label">Food hygiene</div><div class="detail">Rated 5 — South Hams District Council</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>CROP 10 / FIND US</span><span>14 HIGH STREET, TOTNES</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Roots &amp; Season</strong><br />
+          14 High Street<br />
+          Totnes TQ9 5RY<br /><br />
+          <a href="tel:+441803771204" data-bind="business.phoneDisplay">01803 771 204</a><br />
+          <a href="mailto:stall@rootsandseason.co.uk" data-bind="business.email">stall@rootsandseason.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>BOX DELIVERY</span><span>WED &amp; FRI</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're the green frontage halfway up the High Street, crates out front from early. Box delivery days can shift with the harvest — check online.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Roots & Season, Totnes" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-3.6940%2C50.4280%2C-3.6760%2C50.4360&layer=mapnik&marker=50.4319%2C-3.6847"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v31">
+  <div class="wrap">
+    <div class="kick">CROP 11 / VEG BOX</div>
+    <h2 data-bind="cta.heading">Come and eat <em>the season.</em></h2>
+    <p data-bind="cta.body">Browse the stall, start a box, or ask us what's best this week — the answer's always changing and it's always worth having.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Start a veg box</a>
+      <a class="btn btn-ghost" href="tel:+441803771204" data-bind="cta.secondary.label">01803 771 204</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441803771204" data-bind="messaging.whatsapp" aria-label="Message the greengrocer">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:26px;">ROOTS <span style="color:var(--carrot);">&amp;</span> SEASON</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A greengrocer and farm shop in Totnes. On the stall since 2014.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          14 High Street<br />Totnes TQ9 5RY<br />
+          <a href="tel:+441803771204">01803 771 204</a><br />
+          <a href="mailto:stall@rootsandseason.co.uk">stall@rootsandseason.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we sell</a><a href="#about">The stall</a><a href="#location">Find us</a><a href="#book">Veg box</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> ROOTS &amp; SEASON LTD</span>
+      <span>PICKED THIS WEEK</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

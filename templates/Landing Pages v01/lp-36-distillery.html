@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ninebark Distilling Co — gin distillery &amp; tasting room in Hackney Wick</title>
+<meta name="description" content="Ninebark is a small-batch gin distillery in Hackney Wick, London. One copper still, nine botanicals, distillery tours and tastings on Fridays and Saturdays." />
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Sometype+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Ninebark Distilling Co", phone: "+44 20 8533 7741", phoneDisplay: "020 8533 7741", email: "still@ninebark.london", foundedYear: 2017 },
+  hero: {
+    kicker: "Small-batch gin · one copper still · Hackney Wick, London",
+    headline: "Nine botanicals. One still. No secrets.",
+    lede: "Ninebark makes one gin, extremely well, on a 450-litre copper still called Agnes. Every botanical is printed on the label with its origin and its job. Come round on a Friday and we'll show you exactly how it's done — the whole recipe, nothing withheld.",
+    primaryCta: { label: "Book a tour & tasting", href: "#services" },
+    secondaryCta: { label: "Find the distillery", href: "#location" },
+    image: "https://images.unsplash.com/photo-1608885898957-a559228e8749?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Copper still gleaming in a distillery."
+  },
+  trust: { years: "Distilling in the Wick since 2017" },
+  about: {
+    heading: "One gin. That's the whole portfolio.",
+    paragraphs: [
+      "Most distilleries our size launch a rhubarb edition by year two and a coffee liqueur by year three. We decided early that Ninebark would make one gin and spend every year making it slightly better. Batch 1 was good. Batch 214 is better in eleven documented ways.",
+      "The recipe is public — all nine botanicals, their origins, their weights per hundred litres. It's framed on the tasting-room wall. A recipe isn't the hard part of gin; the hard part is cuts, patience, and tasting every batch against the last one at nine in the morning.",
+      "The still is called Agnes, after the founder's grandmother, who is on record as finding the whole enterprise 'a bit much'. She came to the opening anyway. Her portrait supervises the bottling bench."
+    ],
+    portrait: "https://images.unsplash.com/photo-1571950006418-f226dc106482?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Gin being poured for tasting at the distillery bar."
+  },
+  services: [
+    { name: "The distillery tour", description: "Ninety minutes with the still, the botanicals bench, and a guided tasting of three cuts. Fridays and Saturdays, twelve people max." },
+    { name: "The tasting flight", description: "No tour, just the bar: our gin three ways — neat, over ice, and in the house martini — with the head distiller talking you through it." },
+    { name: "Bottle your own batch", description: "Fill, cork, wax and label a bottle straight from the current batch, with the batch number and your name in the ledger." },
+    { name: "The distiller's bench", description: "A half-day gin school on the two 5-litre stills. Design your own botanical bill, distil it, take home the evidence." },
+    { name: "Trade & wholesale", description: "Bars and independent shops, London-wide, delivered by the van on Tuesdays. Short list, honest margins." },
+    { name: "The tasting room, hired", description: "The room, the bar, and optionally the tour for private groups of up to thirty. Evenings only; the still works day shift." }
+  ],
+  why: [
+    { title: "The recipe is public.", body: "All nine botanicals, origins and weights, framed on the wall and printed on the label. Confidence is a better moat than secrecy." },
+    { title: "Every batch is tasted against the last.", body: "Nine a.m., same glasses, same order, notes in the batch ledger. Two hundred batches of small corrections is why batch 214 beats batch 1." },
+    { title: "One product, zero gimmicks.", body: "No pink edition, no glitter, no gin 'inspired by' a season. The absence of a flavoured range is our quality guarantee." }
+  ],
+  how: [
+    { step: "01", title: "Book a slot", body: "Tours run Fridays and Saturdays. Twelve people, ninety minutes, sensible shoes — the floor is a working distillery." },
+    { step: "02", title: "Meet Agnes", body: "The 450-litre copper still, mid-run if you time it right. You'll smell the heads-to-hearts cut happen." },
+    { step: "03", title: "Taste the cuts", body: "Heads, hearts and a finished pour, side by side. This is where gin stops being a mystery." },
+    { step: "04", title: "Take the batch home", body: "Bottles from the current batch, numbered and signed. Or bottle your own at the bench, wax and all." }
+  ],
+  testimonials: [
+    { quote: "I've done six distillery tours in three countries. This is the only one where they showed us the actual recipe and the actual ledger. The confidence is justified — the gin is superb.", name: "Anna F.", context: "tour, batch 209 weekend" },
+    { quote: "The gin school ruined supermarket gin for me, which my wallet resents and my palate applauds. My own bottle was… educational. Theirs is better. Now I know precisely why.", name: "Chris T.", context: "distiller's bench graduate" },
+    { quote: "We hired the tasting room for my dad's 70th. The head distiller ran a tasting that had my teetotal aunt asking intelligent questions about juniper. Remarkable evening.", name: "Sophie M.", context: "private hire, thirty guests" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1608885898957-a559228e8749?w=1600&q=85&auto=format&fit=crop", alt: "Agnes, the copper still." },
+    { src: "https://images.unsplash.com/photo-1571950006418-f226dc106482?w=1600&q=85&auto=format&fit=crop", alt: "Tasting pours at the bar." },
+    { src: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=1600&q=85&auto=format&fit=crop", alt: "The house martini, made properly." },
+    { src: "https://images.unsplash.com/photo-1516535794938-6063878f08cc?w=1600&q=85&auto=format&fit=crop", alt: "Botanicals bench, weighed for the next run." },
+    { src: "https://images.unsplash.com/photo-1560508180-03f285f67ded?w=1600&q=85&auto=format&fit=crop", alt: "Bottling by hand, batch numbered." },
+    { src: "https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=1600&q=85&auto=format&fit=crop", alt: "The tasting room on a Friday." }
+  ],
+  faq: [
+    { q: "Is the tour suitable for someone who doesn't drink?", a: "Yes — the process is the show, and it's genuinely interesting sober. We make a proper 0% botanical distillate for the tasting, not a sad lemonade, so non-drinkers taste along at every step." },
+    { q: "Can I really see the full recipe?", a: "It's framed on the tasting-room wall: nine botanicals, origins, weights per hundred litres. Photograph it if you like. The recipe was never the hard part — ask us what is, it's the best question on the tour." },
+    { q: "Why don't you make a flavoured gin?", a: "Because we'd rather make one thing excellently than five things adequately. Every January we taste the market's new releases, feel briefly tempted, and go back to work on the cuts." },
+    { q: "How do I visit?", a: "Book online or ring. Tours run Friday and Saturday; the tasting room opens Friday evenings without a booking. We're two minutes from Hackney Wick Overground, in the yard with the crane mural." },
+    { q: "Do you ship bottles?", a: "UK-wide, yes, from the current batch. Londoners can collect and get the batch-ledger tour thrown in. We'd always rather hand you the bottle." },
+    { q: "Can we hire the space?", a: "Evenings, up to thirty people, with or without a tasting. It's a working distillery — the room smells of juniper and the still has right of way. Most people consider both features." }
+  ],
+  area: { places: ["Hackney Wick", "Stratford", "Bow", "Victoria Park", "Homerton", "Fish Island"] },
+  credentials: [
+    { label: "Licence", detail: "HMRC distiller's licence, held since 2017" },
+    { label: "The still", detail: "450L copper pot still — 'Agnes'" },
+    { label: "Batch ledger", detail: "Every batch numbered, tasted & recorded" },
+    { label: "Awards slot", detail: "Competition results — see current bottle neck tag" }
+  ],
+  location: { name: "Ninebark Distilling Co", addressStreet: "Arch 9, Queen's Yard, White Post Lane", addressLocality: "Hackney Wick, London", addressRegion: "Greater London", addressPostcode: "E9 5EN", addressCountry: "United Kingdom" },
+  cta: { heading: "Come smell the hearts cut happen.", body: "Fridays and Saturdays, twelve people, one still. Book a slot and meet Agnes.", primary: { label: "Book a tour", href: "#services" }, secondary: { label: "020 8533 7741", href: "tel:+442085337741" } },
+  messaging: { whatsapp: "https://wa.me/442085337741", messenger: "https://m.me/ninebarklondon" }
+};
+</script>
+
+<style>
+  :root {
+    --bottle:#12291f; --chalk:#f4f1e9; --sage:#e3e5d7; --copper:#c56f3f;
+    --leaf:#3d6b52; --mid:#6d7a6c; --mid-dark:#a8b5a4; --rule:rgba(18,41,31,0.16);
+    --display:"Marcellus",serif;
+    --sans:"Figtree",system-ui,sans-serif;
+    --mono:"Sometype Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bottle);color:var(--chalk);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  a:hover{color:var(--copper);}
+  .wrap{width:min(1180px,92vw);margin-inline:auto;}
+  .bot{font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--copper);}
+  .h2{font-family:var(--display);font-size:clamp(30px,4.2vw,54px);line-height:1.1;margin:0 0 0.5em;font-weight:400;letter-spacing:0.01em;}
+  .body{color:var(--mid-dark);line-height:1.72;}
+  section{padding:clamp(72px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 30px;font-family:var(--mono);font-weight:500;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--copper);color:var(--bottle);} .btn-primary:hover{background:var(--chalk);}
+  .btn-ghost{border:1px solid rgba(244,241,233,0.5);} .btn-ghost:hover{border-color:var(--chalk);background:var(--chalk);color:var(--bottle);}
+  .index-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(244,241,233,0.5);border-bottom:1px solid rgba(244,241,233,0.25);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,58px);}
+  .light .index-head{color:var(--mid);border-color:rgba(18,41,31,0.3);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(18,41,31,0.92);backdrop-filter:blur(10px);border-bottom:1px solid rgba(244,241,233,0.2);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--display);font-size:19px;letter-spacing:0.06em;text-decoration:none;}
+  .wm span{color:var(--copper);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(244,241,233,0.6);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — botanical index margin + centred still */
+  .hero{padding:clamp(60px,8vw,110px) 0;position:relative;}
+  .hero-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .hero h1{font-family:var(--display);font-weight:400;font-size:clamp(38px,5vw,72px);line-height:1.05;margin:22px 0 24px;letter-spacing:0.01em;}
+  .hero .lede{color:var(--mid-dark);max-width:48ch;line-height:1.74;font-size:clamp(15px,1.4vw,17px);}
+  .hero-ctas{margin-top:34px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .hero-photo::after{content:"";position:absolute;inset:14px;border:1px solid rgba(244,241,233,0.5);pointer-events:none;}
+  .botanicals{position:absolute;left:-1px;bottom:-1px;background:var(--chalk);color:var(--bottle);padding:18px 20px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;line-height:2;text-transform:uppercase;}
+  .botanicals .hd{color:var(--copper);letter-spacing:0.2em;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--copper);color:var(--bottle);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;font-weight:500;}
+
+  .about{background:var(--chalk);color:var(--bottle);}
+  .about .h2{color:var(--bottle);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18px);line-height:1.76;margin:0 0 1em;color:#3c463c;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — botanical index cards */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(244,241,233,0.25);border:1px solid rgba(244,241,233,0.25);}
+  .svc-cell{background:var(--bottle);padding:clamp(24px,3vw,36px);transition:0.2s;}
+  .svc-cell:hover{background:#183527;}
+  .svc-cell .no{font-family:var(--mono);font-size:9.5px;letter-spacing:0.2em;color:var(--copper);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .svc-cell h3{font-family:var(--display);font-weight:400;font-size:21px;margin:0 0 10px;line-height:1.2;letter-spacing:0.01em;}
+  .svc-cell p{color:var(--mid-dark);margin:0;font-size:14px;line-height:1.66;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;}}
+
+  .why{background:var(--chalk);color:var(--bottle);}
+  .why .h2{color:var(--bottle);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;color:var(--copper);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 10px;line-height:1.2;}
+  .why-grid p{color:#3c463c;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1px solid rgba(244,241,233,0.4);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:9.5px;letter-spacing:0.2em;color:var(--copper);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--display);font-weight:400;font-size:19px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid-dark);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#0d1f17;}
+  .t-quote{font-family:var(--display);font-weight:400;font-size:clamp(22px,2.9vw,38px);line-height:1.28;max-width:32ch;margin:0 0 22px;}
+  .t-attr{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(244,241,233,0.5);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid rgba(244,241,233,0.25);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-dark);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(244,241,233,0.5);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — framed specimens */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;position:relative;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .g-grid figure::after{content:"";position:absolute;inset:10px;border:1px solid rgba(244,241,233,0.45);pointer-events:none;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(244,241,233,0.55);margin-top:10px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq{background:var(--chalk);color:var(--bottle);}
+  .faq .h2{color:var(--bottle);}
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--bottle);}
+  .faq-list summary{font-family:var(--display);font-weight:400;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"✕";color:var(--copper);font-size:12px;flex-shrink:0;transform:rotate(45deg);transition:0.2s;margin-top:6px;}
+  .faq-list details[open] summary::after{transform:rotate(0deg);}
+  .faq-list p{margin:14px 0 0;color:#3c463c;font-size:14.5px;max-width:56ch;line-height:1.72;}
+  .faq .body{color:#3c463c;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:10px 20px;border:1px solid rgba(244,241,233,0.4);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1px solid rgba(244,241,233,0.4);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--copper);margin-bottom:8px;}
+  .creds .detail{font-family:var(--display);font-size:16px;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:rgba(244,241,233,0.06);border:1px solid rgba(244,241,233,0.3);padding:32px;}
+  .nap address{font-style:normal;font-family:var(--display);font-size:18px;line-height:1.55;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid rgba(244,241,233,0.25);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid-dark);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid-dark);margin-top:14px;line-height:1.64;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:1px solid rgba(244,241,233,0.3);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.4);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:radial-gradient(ellipse at 50% 120%,rgba(197,111,63,0.28),transparent 65%),#0d1f17;padding:clamp(90px,11vw,150px) 0;text-align:center;}
+  .cta-band h2{font-family:var(--display);font-weight:400;font-size:clamp(34px,4.8vw,66px);line-height:1.08;margin:18px auto 18px;max-width:18ch;}
+  .cta-band p{color:var(--mid-dark);max-width:44ch;margin:0 auto 36px;font-size:16.5px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+
+  footer{background:var(--bottle);border-top:1px solid rgba(244,241,233,0.2);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--copper);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;color:var(--mid-dark);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(244,241,233,0.15);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(244,241,233,0.4);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--copper);color:var(--bottle);padding:13px 20px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+  .msg-fab a:hover{background:var(--chalk);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"LocalBusiness","name":"Ninebark Distilling Co","description":"Small-batch gin distillery and tasting room in Hackney Wick, London. One copper still, nine botanicals, tours and tastings.","url":"https://ninebark.london/","telephone":"+442085337741","email":"still@ninebark.london","address":{"@type":"PostalAddress","streetAddress":"Arch 9, Queen's Yard, White Post Lane","addressLocality":"London","addressRegion":"Greater London","postalCode":"E9 5EN","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.5432,"longitude":-0.0239},"areaServed":["Hackney Wick","Stratford","Bow","London"],"image":["https://images.unsplash.com/photo-1608885898957-a559228e8749?w=1600"],"foundingDate":"2017"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Is the tour suitable for someone who doesn't drink?","acceptedAnswer":{"@type":"Answer","text":"Yes — we make a proper 0% botanical distillate so non-drinkers taste along at every step."}},
+{"@type":"Question","name":"Can I really see the full recipe?","acceptedAnswer":{"@type":"Answer","text":"It's framed on the tasting-room wall: nine botanicals, origins, weights. Photograph it if you like."}},
+{"@type":"Question","name":"Why don't you make a flavoured gin?","acceptedAnswer":{"@type":"Answer","text":"We'd rather make one thing excellently than five things adequately."}},
+{"@type":"Question","name":"How do I visit?","acceptedAnswer":{"@type":"Answer","text":"Book online or ring. Tours run Friday and Saturday; the tasting room opens Friday evenings without a booking."}},
+{"@type":"Question","name":"Do you ship bottles?","acceptedAnswer":{"@type":"Answer","text":"UK-wide from the current batch. Londoners can collect and get the batch-ledger tour thrown in."}},
+{"@type":"Question","name":"Can we hire the space?","acceptedAnswer":{"@type":"Answer","text":"Evenings, up to thirty people, with or without a tasting. The still has right of way."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">NINEBARK<span> ·</span> DISTILLING CO</a>
+    <nav class="nav-links">
+      <a href="#about">The still</a><a href="#services">Tours</a><a href="#location">Find us</a><a href="#visit">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v30">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="bot" data-bind="hero.kicker">Small-batch gin · one copper still · Hackney Wick, London</div>
+      <h1 data-bind="hero.headline">Nine botanicals. One still. No secrets.</h1>
+      <p class="lede" data-bind="hero.lede">Ninebark makes one gin, extremely well, on a 450-litre copper still called Agnes. Every botanical is printed on the label with its origin and its job. Come round on a Friday and we'll show you exactly how it's done — the whole recipe, nothing withheld.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">Book a tour &amp; tasting</a>
+        <a class="btn btn-ghost" href="#location" data-bind="hero.secondaryCta.label">Find the distillery</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1608885898957-a559228e8749?w=2000&q=85&auto=format&fit=crop"
+           alt="Copper still gleaming in a distillery." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="botanicals">
+        <div class="hd">BOT. INDEX / BATCH 214</div>
+        <div>01 JUNIPERUS · MACEDONIA</div>
+        <div>02 CORIANDRUM · BULGARIA</div>
+        <div>03–09 ON THE LABEL</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Distilling in the Wick since 2017</span>
+    <span>One gin, no gimmicks</span>
+    <span>Recipe on the wall</span>
+    <span>Batch-numbered bottles</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v2">
+  <div class="wrap">
+    <div class="index-head"><span>BOT. 01 / THE DISTILLERY</span><span>AGNES, 450 LITRES, COPPER</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">One gin. That's the whole portfolio.</h2>
+        <p>Most distilleries our size launch a rhubarb edition by year two and a coffee liqueur by year three. We decided early that Ninebark would make one gin and spend every year making it slightly better. Batch 1 was good. Batch 214 is better in eleven documented ways.</p>
+        <p>The recipe is public — all nine botanicals, their origins, their weights per hundred litres. It's framed on the tasting-room wall. A recipe isn't the hard part of gin; the hard part is cuts, patience, and tasting every batch against the last one at nine in the morning.</p>
+        <p>The still is called Agnes, after the founder's grandmother, who is on record as finding the whole enterprise "a bit much". She came to the opening anyway. Her portrait supervises the bottling bench.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1571950006418-f226dc106482?w=1200&q=85&auto=format&fit=crop"
+           alt="Gin being poured for tasting at the distillery bar." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v23">
+  <div class="wrap">
+    <div class="index-head"><span>BOT. 02 / VISITS &amp; BOTTLES</span><span>FRI–SAT · TWELVE PEOPLE MAX</span></div>
+    <h2 class="h2">Ways in.</h2>
+    <div class="svc-grid">
+      <div class="svc-cell"><span class="no">IX.01</span><h3>The distillery tour</h3><p>Ninety minutes with the still, the botanicals bench, and a guided tasting of three cuts. Fridays and Saturdays, twelve people max.</p></div>
+      <div class="svc-cell"><span class="no">IX.02</span><h3>The tasting flight</h3><p>No tour, just the bar: our gin three ways — neat, over ice, and in the house martini — with the head distiller talking you through it.</p></div>
+      <div class="svc-cell"><span class="no">IX.03</span><h3>Bottle your own batch</h3><p>Fill, cork, wax and label a bottle straight from the current batch, with the batch number and your name in the ledger.</p></div>
+      <div class="svc-cell"><span class="no">IX.04</span><h3>The distiller's bench</h3><p>A half-day gin school on the two 5-litre stills. Design your own botanical bill, distil it, take home the evidence.</p></div>
+      <div class="svc-cell"><span class="no">IX.05</span><h3>Trade &amp; wholesale</h3><p>Bars and independent shops, London-wide, delivered by the van on Tuesdays. Short list, honest margins.</p></div>
+      <div class="svc-cell"><span class="no">IX.06</span><h3>The tasting room, hired</h3><p>The room, the bar, and optionally the tour for private groups of up to thirty. Evenings only; the still works day shift.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why light" data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="index-head"><span>BOT. 03 / CONVICTIONS</span><span>FRAMED, LIKE THE RECIPE</span></div>
+    <h2 class="h2">What we'd defend in court.</h2>
+    <div class="why-grid">
+      <div><span class="no">№ 1</span><h3>The recipe is public.</h3><p>All nine botanicals, origins and weights, framed on the wall and printed on the label. Confidence is a better moat than secrecy.</p></div>
+      <div><span class="no">№ 2</span><h3>Every batch tasted against the last.</h3><p>Nine a.m., same glasses, same order, notes in the batch ledger. Two hundred batches of small corrections is why batch 214 beats batch 1.</p></div>
+      <div><span class="no">№ 3</span><h3>One product, zero gimmicks.</h3><p>No pink edition, no glitter, no gin "inspired by" a season. The absence of a flavoured range is our quality guarantee.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="index-head"><span>BOT. 04 / A VISIT</span><span>DOOR → CUTS → BOTTLE</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Book a slot</h3><p>Tours run Fridays and Saturdays. Twelve people, ninety minutes, sensible shoes — the floor is a working distillery.</p></li>
+      <li><span class="step">Step 02</span><h3>Meet Agnes</h3><p>The 450-litre copper still, mid-run if you time it right. You'll smell the heads-to-hearts cut happen.</p></li>
+      <li><span class="step">Step 03</span><h3>Taste the cuts</h3><p>Heads, hearts and a finished pour, side by side. This is where gin stops being a mystery.</p></li>
+      <li><span class="step">Step 04</span><h3>Take the batch home</h3><p>Bottles from the current batch, numbered and signed. Or bottle your own at the bench, wax and all.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="index-head"><span>BOT. 05 / VISITORS' BOOK</span><span>UNPROMPTED, KEPT ANYWAY</span></div>
+    <blockquote class="t-quote">“This is the only distillery tour where they showed us the actual recipe and the actual ledger. The confidence is justified.”</blockquote>
+    <div class="t-attr">Anna F. — tour, batch 209 weekend</div>
+    <div class="t-sub">
+      <figure><blockquote>“The gin school ruined supermarket gin for me, which my wallet resents and my palate applauds. My own bottle was… educational. Theirs is better. Now I know precisely why.”</blockquote><figcaption>Chris T. — distiller's bench graduate</figcaption></figure>
+      <figure><blockquote>“We hired the tasting room for my dad's 70th. The head distiller ran a tasting that had my teetotal aunt asking intelligent questions about juniper.”</blockquote><figcaption>Sophie M. — private hire, thirty guests</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v23">
+  <div class="wrap">
+    <div class="index-head"><span>BOT. 06 / THE ARCH</span><span>SPECIMENS, FRAMED</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1608885898957-a559228e8749?w=1600&q=85&auto=format&fit=crop" alt="Agnes, the copper still." /><figcaption>FIG. 1 — AGNES, MID-RUN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1571950006418-f226dc106482?w=1600&q=85&auto=format&fit=crop" alt="Tasting pours at the bar." /><figcaption>FIG. 2 — THREE CUTS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=1600&q=85&auto=format&fit=crop" alt="The house martini, made properly." /><figcaption>FIG. 3 — HOUSE MARTINI</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1516535794938-6063878f08cc?w=1600&q=85&auto=format&fit=crop" alt="Botanicals bench, weighed for the next run." /><figcaption>FIG. 4 — THE BENCH, WEIGHED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1560508180-03f285f67ded?w=1600&q=85&auto=format&fit=crop" alt="Bottling by hand, batch numbered." /><figcaption>FIG. 5 — BOTTLED BY HAND</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=1600&q=85&auto=format&fit=crop" alt="The tasting room on a Friday." /><figcaption>FIG. 6 — FRIDAY, 19:00</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section class="faq light" data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="index-head"><span>BOT. 07 / ASKED AT THE BAR</span><span>USUALLY AFTER THE SECOND CUT</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the bar.</h2>
+        <p class="body">Anything else — ring <a href="tel:+442085337741" style="color:var(--copper);">020 8533 7741</a> or message us. If the still is mid-run, we answer between cuts.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Is the tour suitable for someone who doesn't drink?</summary><p>Yes — the process is the show, and it's genuinely interesting sober. We make a proper 0% botanical distillate for the tasting, not a sad lemonade, so non-drinkers taste along at every step.</p></details>
+        <details><summary>Can I really see the full recipe?</summary><p>It's framed on the tasting-room wall: nine botanicals, origins, weights per hundred litres. Photograph it if you like. The recipe was never the hard part — ask us what is, it's the best question on the tour.</p></details>
+        <details><summary>Why don't you make a flavoured gin?</summary><p>Because we'd rather make one thing excellently than five things adequately. Every January we taste the market's new releases, feel briefly tempted, and go back to work on the cuts.</p></details>
+        <details><summary>How do I visit?</summary><p>Book online or ring. Tours run Friday and Saturday; the tasting room opens Friday evenings without a booking. We're two minutes from Hackney Wick Overground, in the yard with the crane mural.</p></details>
+        <details><summary>Do you ship bottles?</summary><p>UK-wide, yes, from the current batch. Londoners can collect and get the batch-ledger tour thrown in. We'd always rather hand you the bottle.</p></details>
+        <details><summary>Can we hire the space?</summary><p>Evenings, up to thirty people, with or without a tasting. It's a working distillery — the room smells of juniper and the still has right of way. Most people consider both features.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-bottom:0;">
+  <div class="wrap">
+    <div class="index-head"><span>BOT. 08 / THE VAN GOES TO</span><span>EAST LONDON, TUESDAYS</span></div>
+    <ul class="area-list">
+      <li>Hackney Wick</li><li>Stratford</li><li>Bow</li><li>Victoria Park</li><li>Homerton</li><li>Fish Island</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1">
+  <div class="wrap">
+    <div class="index-head"><span>BOT. 09 / THE PAPERWORK</span><span>HMRC-GRADE</span></div>
+    <div class="creds">
+      <div><div class="label">Licence</div><div class="detail">HMRC distiller's licence, held since 2017</div></div>
+      <div><div class="label">The still</div><div class="detail">450L copper pot still — "Agnes"</div></div>
+      <div><div class="label">Batch ledger</div><div class="detail">Every batch numbered, tasted &amp; recorded</div></div>
+      <div><div class="label">Awards</div><div class="detail">Current results on the bottle neck tag</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="index-head"><span>BOT. 10 / THE ARCH</span><span>QUEEN'S YARD, E9</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Ninebark Distilling Co</strong><br />
+          Arch 9, Queen's Yard<br />
+          White Post Lane, London E9 5EN<br /><br />
+          <a href="tel:+442085337741" data-bind="business.phoneDisplay">020 8533 7741</a><br />
+          <a href="mailto:still@ninebark.london" data-bind="business.email">still@ninebark.london</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>FRI</span><span>TASTING ROOM, EVENING</span></div>
+          <div class="row"><span>SAT</span><span>TOURS, SEE PROFILE</span></div>
+          <div class="row"><span>SUN – THU</span><span>THE STILL WORKS</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. Two minutes from Hackney Wick Overground — look for the yard with the crane mural.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Ninebark Distilling Co, Queen's Yard, Hackney Wick" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.0330%2C51.5400%2C-0.0150%2C51.5470&layer=mapnik&marker=51.5432%2C-0.0239"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="visit" class="cta-band" data-component="CTA-BAND" data-variant="v5">
+  <div class="wrap">
+    <div class="bot">BOT. 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Come smell the hearts cut happen.</h2>
+    <p data-bind="cta.body">Fridays and Saturdays, twelve people, one still. Book a slot and meet Agnes.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#services" data-bind="cta.primary.label">Book a tour</a>
+      <a class="btn btn-ghost" href="tel:+442085337741" data-bind="cta.secondary.label">020 8533 7741</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/442085337741" data-bind="messaging.whatsapp" aria-label="Message the distillery">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:19px;">NINEBARK<span style="color:var(--copper);"> ·</span> DISTILLING CO</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">One gin, one copper still, one arch in Hackney Wick. Since 2017.</p>
+      </div>
+      <div>
+        <h4>The arch</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;color:var(--mid-dark);">
+          Arch 9, Queen's Yard<br />London E9 5EN<br />
+          <a href="tel:+442085337741">020 8533 7741</a><br />
+          <a href="mailto:still@ninebark.london">still@ninebark.london</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Tours &amp; tastings</a><a href="#about">The still</a><a href="#location">Find us</a><a href="#visit">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> NINEBARK DISTILLING CO LTD</span>
+      <span>BATCH 214 AND COUNTING · DRINK PROPERLY</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

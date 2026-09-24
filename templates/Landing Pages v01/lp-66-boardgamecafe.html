@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meeple &amp; Mug — board game café in Nottingham's Hockley</title>
+<meta name="description" content="Meeple &amp; Mug is a board game café in Hockley, Nottingham — a library of 800 games, a Games Guru to teach you any of them, proper coffee and toasties, and a table that's yours for the afternoon." />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,600;0,6..12,700;1,6..12,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Meeple & Mug", phone: "+44 115 924 6633", phoneDisplay: "0115 924 6633", email: "hello@meepleandmug.co.uk", foundedYear: 2017 },
+  hero: {
+    kicker: "Board game café · 800 games · Hockley, Nottingham",
+    headline: "Eight hundred games. One rule you'll actually learn.",
+    lede: "A wall of eight hundred board games, a five-pound table fee that keeps your seat all afternoon, and a Games Guru who'll teach you any of them in five minutes flat. Proper coffee, loaded toasties, and the excellent problem of never quite knowing what to play next.",
+    primaryCta: { label: "Book a table", href: "#book" },
+    secondaryCta: { label: "How it works", href: "#services" },
+    image: "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Friends playing a colourful board game at a café table."
+  },
+  trust: { years: "Rolling dice since 2017" },
+  about: {
+    heading: "The wall is the menu.",
+    paragraphs: [
+      "Meeple & Mug started because its founders kept hosting game nights that outgrew their flat. The idea was simple: a proper café — real coffee, real food — wrapped around a library big enough that you'd never run out, and staff who could teach any of it so nobody's stuck reading a rulebook while the tea goes cold.",
+      "The wall holds around eight hundred games, sorted by how long they take and how much brain they need, with a little card on each shelf telling you players, time and difficulty. Lost? Tell the Games Guru what your group's like and how long you've got, and you'll have the right game — taught — inside ten minutes.",
+      "It's five pounds a person for the table, all day, however many games you get through. Come for an hour, come for the afternoon, come with your nan or your work team or a first date you're testing under pressure. The kettle and the shelves don't mind either way."
+    ],
+    portrait: "https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A shelf wall stacked with board games."
+  },
+  services: [
+    { name: "The games library", description: "Around 800 games, from five-minute fillers to all-afternoon epics, shelf-carded by players, time and difficulty. Play as many as you like on one table fee." },
+    { name: "Ask the Games Guru", description: "Stuck for choice or scared of the rulebook? Tell us your group and your time and we'll pick, fetch and teach a game in about five minutes. No reading required." },
+    { name: "Café & kitchen", description: "Proper coffee, loose-leaf tea, loaded toasties and cake, all built to survive being eaten one-handed mid-turn. Crumb-resistant snacks a speciality." },
+    { name: "Learn-to-play nights", description: "Weekly beginner sessions on a featured game, taught from scratch, no experience or friends required — we'll seat you with a friendly table." },
+    { name: "Private hire & parties", description: "The whole café for birthdays, work socials and stag/hen dos that fancy something they'll remember. We plan the games to the group and run the night." },
+    { name: "Buy the game you loved", description: "Fell for something over a toastie? Most of the library is stocked to buy at the counter, so the winner comes home with you." }
+  ],
+  why: [
+    { title: "Someone teaches you.", body: "The whole barrier to board games is the rules. Our Games Guru removes it — any game on the wall, taught in minutes, so you start playing instead of arguing about setup." },
+    { title: "One fee, all afternoon.", body: "Five pounds a head keeps your table for as long as you want, through as many games as you can play. No clock-watching, no per-game charge, no rush to leave." },
+    { title: "A library, not a shelf.", body: "Eight hundred games, sorted and carded so you can actually choose. From a two-minute filler to a four-hour campaign — and staff who know every one of them." }
+  ],
+  how: [
+    { step: "01", title: "Grab a table", body: "Walk in or book ahead at busy times. Five pounds a person, and the table's yours for the afternoon. Order a coffee while you settle." },
+    { step: "02", title: "Tell us your group", body: "How many, how long, how competitive, how tired. The Games Guru turns that into the perfect pick off eight hundred options." },
+    { step: "03", title: "Get taught, start playing", body: "We fetch it, set it up, and teach it in about five minutes — then leave you to it, hovering nearby for rules emergencies." },
+    { step: "04", title: "Play until you're done", body: "One game or six, an hour or all afternoon. Loved one? Buy it at the counter and take the night home with you." }
+  ],
+  testimonials: [
+    { quote: "I hate 'fun' that comes with homework, so board games always scared me. The Guru taught us a game in four minutes and we played it three times. I've since bought two off the shelf. Consider me converted.", name: "Aisha B.", context: "reluctant, then obsessed" },
+    { quote: "We do our team socials here now instead of the pub. Nobody's shouting over music, everyone's actually talking, and the quiet accountant turned out to be terrifyingly good at strategy games. Best £5 a head we spend.", name: "Mark T.", context: "monthly team night" },
+    { quote: "Brought a first date here as a test — you learn a lot about someone across a board game. Reader, we're married now, and Meeple & Mug did the first-date table again for the proposal.", name: "Sam & Jo", context: "first date, then the proposal" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=1600&q=85&auto=format&fit=crop", alt: "Playing a board game at a table." },
+    { src: "https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=1600&q=85&auto=format&fit=crop", alt: "A wall of board games." },
+    { src: "https://images.unsplash.com/photo-1611371805429-8b5c1b2c34ba?w=1600&q=85&auto=format&fit=crop", alt: "Colourful game pieces mid-play." },
+    { src: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop", alt: "A latte on the café counter." },
+    { src: "https://images.unsplash.com/photo-1585504198199-20277593b94f?w=1600&q=85&auto=format&fit=crop", alt: "Dice and cards on the table." },
+    { src: "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=1600&q=85&auto=format&fit=crop", alt: "A group laughing over a game." }
+  ],
+  faq: [
+    { q: "I don't know any board games. Is that a problem?", a: "It's the whole reason we exist. Tell the Games Guru you're a total beginner and they'll start you on something brilliant and simple, taught from scratch in a few minutes. Nobody here expects you to know anything — most of our regulars started exactly the same way." },
+    { q: "How much does it cost to play?", a: "Five pounds per person for the table, and that's it — play as many games as you like, stay as long as you like, all afternoon if you fancy. Food and drink are on top, but there's no per-game charge and no time limit on the table." },
+    { q: "Do I need to book?", a: "Weekday afternoons you can usually just walk in. Evenings and weekends get busy, so booking a table is wise — especially for groups of four or more. Learn-to-play nights and private hires should always be booked ahead." },
+    { q: "Can you really teach us any game?", a: "Any game on the wall, yes — that's the Games Guru's actual job. Tell us your group and your time and we'll pick something that fits, fetch it, set it up and teach the rules in about five minutes, then stay close for questions. You'll never be left with just a rulebook." },
+    { q: "Is it good for kids / families / older relatives?", a: "Brilliant for all of them. The library is carded by age and complexity, so there's something for a six-year-old, a teenager, and a grandparent at the same table. Family afternoons are some of our busiest and happiest sessions." },
+    { q: "Can I buy the games?", a: "Most of the library is stocked to buy at the counter, so if a game wins your group over you can take it straight home. If we've sold out we'll order it in, and the staff are dangerously good at recommending 'just one more' for your shelf." }
+  ],
+  area: { places: ["Hockley", "City centre", "Lace Market", "West Bridgford", "Sherwood", "Beeston"] },
+  credentials: [
+    { label: "Library", detail: "~800 games, shelf-carded by time & difficulty" },
+    { label: "The Guru", detail: "Staff teach any game in the building" },
+    { label: "Hygiene", detail: "Food hygiene rating 5, inspected" },
+    { label: "Table fee", detail: "£5 per person, all afternoon, all games" }
+  ],
+  location: { name: "Meeple & Mug", addressStreet: "14 Broad Street", addressLocality: "Hockley, Nottingham", addressRegion: "Nottinghamshire", addressPostcode: "NG1 3AL", addressCountry: "United Kingdom" },
+  cta: { heading: "Pick a table. We'll pick the game.", body: "Five pounds a head, eight hundred games, and someone to teach you every one. Book a table or just walk in.", primary: { label: "Book a table", href: "#book" }, secondary: { label: "0115 924 6633", href: "tel:+441159246633" } },
+  messaging: { whatsapp: "https://wa.me/441159246633", messenger: "https://m.me/meepleandmug" }
+};
+</script>
+
+<style>
+  :root {
+    --cream:#fbf4e4; --navy:#233860; --coral:#ef6a52; --teal:#2fa894; --sun:#f4b833; --plum:#7d4b8c;
+    --ink:#20242e; --mid:#6c7180; --rule:rgba(32,36,46,0.14);
+    --disp:"Fredoka",sans-serif; --sans:"Nunito Sans",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--coral);}
+  .wrap{width:min(1260px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--coral);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:700;font-size:clamp(32px,4.6vw,60px);line-height:1;margin:0 0 0.45em;letter-spacing:-0.015em;}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(72px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 28px;font-family:var(--disp);font-weight:600;font-size:15px;text-decoration:none;transition:0.16s;border-radius:14px;}
+  .btn-primary{background:var(--coral);color:var(--cream);box-shadow:0 5px 0 #c94e39;} .btn-primary:hover{transform:translateY(3px);box-shadow:0 2px 0 #c94e39;color:var(--cream);}
+  .btn-ghost{background:var(--cream);border:2.5px solid var(--ink);box-shadow:0 5px 0 var(--ink);} .btn-ghost:hover{transform:translateY(3px);box-shadow:0 2px 0 var(--ink);}
+  .card-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);border-bottom:2.5px solid var(--ink);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);font-weight:700;}
+  .light .card-head{color:rgba(251,244,228,0.7);border-color:rgba(251,244,228,0.3);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(251,244,228,0.95);backdrop-filter:blur(10px);border-bottom:2.5px solid var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 0;}
+  .wm{font-family:var(--disp);font-weight:700;font-size:22px;text-decoration:none;letter-spacing:-0.02em;}
+  .wm span{color:var(--coral);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — shelf-card meta chips + rounded photo */
+  .hero{padding:clamp(46px,6.5vw,90px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.06fr 0.94fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:700;font-size:clamp(40px,5.6vw,82px);line-height:0.98;letter-spacing:-0.025em;margin:16px 0 20px;}
+  .hero h1 em{font-style:normal;color:var(--coral);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.68;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px;}
+  .hero-chips span{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:7px 13px;border-radius:999px;border:2px solid var(--ink);font-weight:700;}
+  .hero-chips span:nth-child(1){background:var(--sun);} .hero-chips span:nth-child(2){background:var(--teal);color:var(--cream);} .hero-chips span:nth-child(3){background:var(--plum);color:var(--cream);}
+  .hero-ctas{margin-top:26px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:20px;border:3px solid var(--ink);}
+  .shelf-card{position:absolute;bottom:-16px;left:-14px;background:var(--cream);border:3px solid var(--ink);border-radius:14px;padding:12px 16px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;line-height:1.7;box-shadow:0 8px 0 var(--ink);font-weight:700;}
+  .shelf-card b{color:var(--coral);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .shelf-card{left:8px;}}
+
+  .trust{padding:0;background:var(--navy);color:var(--cream);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.13em;text-transform:uppercase;color:rgba(251,244,228,0.85);font-weight:700;}
+
+  .about{background:var(--navy);color:var(--cream);}
+  .about .h2{color:var(--cream);}
+  .about-grid{display:grid;grid-template-columns:0.94fr 1.06fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.72;margin:0 0 1em;color:rgba(251,244,228,0.85);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:20px;border:3px solid var(--sun);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — game-box cards */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.2vw,26px);}
+  .svc-card{background:var(--cream);border:3px solid var(--ink);border-radius:16px;padding:clamp(22px,2.8vw,32px);position:relative;transition:0.16s;box-shadow:0 6px 0 var(--ink);}
+  .svc-card:hover{transform:translateY(-4px);box-shadow:0 10px 0 var(--ink);}
+  .svc-card .chip{display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;padding:5px 11px;border-radius:999px;color:var(--cream);margin-bottom:14px;font-weight:700;}
+  .svc-card:nth-child(6n+1) .chip{background:var(--coral);} .svc-card:nth-child(6n+2) .chip{background:var(--teal);}
+  .svc-card:nth-child(6n+3) .chip{background:var(--plum);} .svc-card:nth-child(6n+4) .chip{background:var(--navy);}
+  .svc-card:nth-child(6n+5) .chip{background:var(--sun);color:var(--ink);} .svc-card:nth-child(6n+6) .chip{background:var(--coral);}
+  .svc-card h3{font-family:var(--disp);font-weight:600;font-size:19px;margin:0 0 8px;line-height:1.1;letter-spacing:-0.01em;}
+  .svc-card p{color:var(--mid);margin:0;font-size:14px;line-height:1.62;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;}}
+
+  .why{background:var(--teal);color:var(--cream);}
+  .why .card-head{border-color:rgba(251,244,228,0.4);color:rgba(251,244,228,0.8);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .meeple{width:52px;height:52px;border-radius:50%;background:var(--cream);color:var(--teal);display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:22px;margin-bottom:16px;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:22px;margin:0 0 10px;line-height:1.06;letter-spacing:-0.01em;}
+  .why-grid p{color:rgba(251,244,228,0.92);margin:0;font-size:14.5px;line-height:1.66;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:2.5px solid var(--ink);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--coral);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:18px;margin:8px 0 8px;letter-spacing:-0.01em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.6;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--sun);color:var(--ink);}
+  .t-quote{font-family:var(--disp);font-weight:700;font-size:clamp(24px,3.2vw,44px);line-height:1.04;max-width:28ch;margin:0 0 24px;letter-spacing:-0.02em;}
+  .t-quote em{font-style:normal;color:var(--coral);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(32,36,46,0.7);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2.5px solid var(--ink);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(32,36,46,0.7);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — rounded tumble */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,24px);}
+  .g-grid figure{margin:0;position:relative;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:16px;border:3px solid var(--ink);}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-top:10px;text-align:center;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:2px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2.5px solid var(--ink);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:19px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;letter-spacing:-0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"▸";color:var(--coral);flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(90deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:2.5px solid var(--ink);border-radius:999px;font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(16px,2.2vw,28px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{background:var(--cream);border:3px solid var(--ink);border-radius:14px;padding:22px;box-shadow:0 5px 0 var(--ink);}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--coral);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:600;font-size:15px;line-height:1.25;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--navy);color:var(--cream);border-radius:18px;padding:34px;border:3px solid var(--ink);}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:18px;line-height:1.45;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(251,244,228,0.2);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(251,244,228,0.75);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(251,244,228,0.7);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{border-radius:18px;min-height:380px;overflow:hidden;border:3px solid var(--ink);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--coral);color:var(--cream);padding:clamp(84px,10vw,148px) 0;text-align:center;}
+  .cta-band .kick{color:var(--navy);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(38px,5.6vw,84px);line-height:0.96;margin:16px auto 18px;max-width:15ch;letter-spacing:-0.025em;}
+  .cta-band h2 em{font-style:normal;color:var(--sun);}
+  .cta-band p{color:rgba(251,244,228,0.92);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--navy);color:var(--cream);box-shadow:0 5px 0 #14203a;}
+  .cta-band .btn-primary:hover{box-shadow:0 2px 0 #14203a;}
+  .cta-band .btn-ghost{background:var(--cream);color:var(--ink);border-color:var(--ink);}
+
+  footer{background:var(--cream);border-top:2.5px solid var(--ink);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--coral);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:2px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--coral);color:var(--cream);padding:13px 20px;border-radius:999px;text-decoration:none;font-family:var(--disp);font-size:14px;font-weight:600;box-shadow:0 8px 24px rgba(239,106,82,0.4);}
+  .msg-fab a:hover{background:var(--navy);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"CafeOrCoffeeShop","name":"Meeple & Mug","description":"Board game café in Hockley, Nottingham — a library of 800 games, staff who teach any of them, proper coffee and toasties.","url":"https://meepleandmug.co.uk/","telephone":"+441159246633","email":"hello@meepleandmug.co.uk","address":{"@type":"PostalAddress","streetAddress":"14 Broad Street","addressLocality":"Nottingham","addressRegion":"Nottinghamshire","postalCode":"NG1 3AL","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":52.9548,"longitude":-1.1440},"areaServed":["Hockley","Nottingham","West Bridgford","Beeston"],"image":["https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=1600"],"foundingDate":"2017"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I don't know any board games. Is that a problem?","acceptedAnswer":{"@type":"Answer","text":"It's the whole reason we exist. The Games Guru starts beginners on something brilliant and simple, taught from scratch in minutes."}},
+{"@type":"Question","name":"How much does it cost to play?","acceptedAnswer":{"@type":"Answer","text":"Five pounds per person for the table — play as many games as you like, stay all afternoon. Food and drink on top."}},
+{"@type":"Question","name":"Do I need to book?","acceptedAnswer":{"@type":"Answer","text":"Weekday afternoons you can walk in; evenings and weekends get busy, so booking is wise, especially for groups."}},
+{"@type":"Question","name":"Can you really teach us any game?","acceptedAnswer":{"@type":"Answer","text":"Any game on the wall — the Games Guru picks, sets up and teaches in about five minutes, then stays close for questions."}},
+{"@type":"Question","name":"Is it good for kids and older relatives?","acceptedAnswer":{"@type":"Answer","text":"Brilliant for all ages — the library is carded by age and complexity, so a whole family can play at one table."}},
+{"@type":"Question","name":"Can I buy the games?","acceptedAnswer":{"@type":"Answer","text":"Most of the library is stocked to buy at the counter, so a game that wins your group over comes home with you."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Meeple <span>&amp;</span> Mug</a>
+    <nav class="nav-links">
+      <a href="#about">The café</a><a href="#services">How it works</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v55">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Board game café · 800 games · Hockley, Nottingham</div>
+      <h1 data-comment-anchor="hero-headline">Eight hundred games. <em>One rule you'll actually learn.</em></h1>
+      <p class="lede" data-bind="hero.lede">A wall of eight hundred board games, a five-pound table fee that keeps your seat all afternoon, and a Games Guru who'll teach you any of them in five minutes flat. Proper coffee, loaded toasties, and the excellent problem of never quite knowing what to play next.</p>
+      <div class="hero-chips" aria-hidden="true"><span>2–6 PLAYERS</span><span>15 MIN–4 HR</span><span>EASY → EPIC</span></div>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a table</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">How it works</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=2000&q=85&auto=format&fit=crop"
+           alt="Friends playing a colourful board game at a café table." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="shelf-card">TABLE FEE · <b>£5 / HEAD</b><br />ALL AFTERNOON<br />GAMES · UNLIMITED</div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Rolling dice since 2017</span>
+    <span>~800 games</span>
+    <span>Any game, taught</span>
+    <span>£5, all afternoon</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v21">
+  <div class="wrap">
+    <div class="card-head"><span>TURN 01 / THE CAFÉ</span><span>THE WALL IS THE MENU</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=1200&q=85&auto=format&fit=crop"
+           alt="A shelf wall stacked with board games." />
+      <div class="about-prose">
+        <h2 class="h2">The wall is the menu.</h2>
+        <p>Meeple &amp; Mug started because its founders kept hosting game nights that outgrew their flat. The idea was simple: a proper café — real coffee, real food — wrapped around a library big enough that you'd never run out, and staff who could teach any of it so nobody's stuck reading a rulebook while the tea goes cold.</p>
+        <p>The wall holds around eight hundred games, sorted by how long they take and how much brain they need, with a little card on each shelf telling you players, time and difficulty. Lost? Tell the Games Guru what your group's like and how long you've got, and you'll have the right game — taught — inside ten minutes.</p>
+        <p>It's five pounds a person for the table, all day, however many games you get through. Come for an hour, come for the afternoon, come with your nan or your work team or a first date you're testing under pressure. The kettle and the shelves don't mind either way.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v48">
+  <div class="wrap">
+    <div class="card-head"><span>TURN 02 / WHAT'S ON</span><span>PICK A BOX</span></div>
+    <h2 class="h2">On the shelves.</h2>
+    <div class="svc-grid">
+      <div class="svc-card"><span class="chip">The library</span><h3>The games library</h3><p>Around 800 games, from five-minute fillers to all-afternoon epics, shelf-carded by players, time and difficulty. Play as many as you like on one table fee.</p></div>
+      <div class="svc-card"><span class="chip">The Guru</span><h3>Ask the Games Guru</h3><p>Stuck for choice or scared of the rulebook? Tell us your group and your time and we'll pick, fetch and teach a game in about five minutes. No reading required.</p></div>
+      <div class="svc-card"><span class="chip">Kitchen</span><h3>Café &amp; kitchen</h3><p>Proper coffee, loose-leaf tea, loaded toasties and cake, all built to survive being eaten one-handed mid-turn. Crumb-resistant snacks a speciality.</p></div>
+      <div class="svc-card"><span class="chip">Beginners</span><h3>Learn-to-play nights</h3><p>Weekly beginner sessions on a featured game, taught from scratch, no experience or friends required — we'll seat you with a friendly table.</p></div>
+      <div class="svc-card"><span class="chip">Parties</span><h3>Private hire &amp; parties</h3><p>The whole café for birthdays, work socials and stag/hen dos that fancy something they'll remember. We plan the games to the group and run the night.</p></div>
+      <div class="svc-card"><span class="chip">Shop</span><h3>Buy the game you loved</h3><p>Fell for something over a toastie? Most of the library is stocked to buy at the counter, so the winner comes home with you.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v20">
+  <div class="wrap">
+    <div class="card-head"><span>TURN 03 / WHY US</span><span>THREE REASONS TO PULL UP A CHAIR</span></div>
+    <h2 class="h2" style="color:var(--cream);">Why it works.</h2>
+    <div class="why-grid">
+      <div><div class="meeple">1</div><h3>Someone teaches you.</h3><p>The whole barrier to board games is the rules. Our Games Guru removes it — any game on the wall, taught in minutes, so you start playing instead of arguing about setup.</p></div>
+      <div><div class="meeple">2</div><h3>One fee, all afternoon.</h3><p>Five pounds a head keeps your table for as long as you want, through as many games as you can play. No clock-watching, no per-game charge, no rush to leave.</p></div>
+      <div><div class="meeple">3</div><h3>A library, not a shelf.</h3><p>Eight hundred games, sorted and carded so you can actually choose. From a two-minute filler to a four-hour campaign — and staff who know every one of them.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="card-head"><span>TURN 04 / A VISIT</span><span>TABLE → PICK → TAUGHT → PLAY</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Grab a table</h3><p>Walk in or book ahead at busy times. Five pounds a person, and the table's yours for the afternoon. Order a coffee while you settle.</p></li>
+      <li><span class="step">Step 02</span><h3>Tell us your group</h3><p>How many, how long, how competitive, how tired. The Games Guru turns that into the perfect pick off eight hundred options.</p></li>
+      <li><span class="step">Step 03</span><h3>Get taught, start playing</h3><p>We fetch it, set it up, and teach it in about five minutes — then leave you to it, hovering nearby for rules emergencies.</p></li>
+      <li><span class="step">Step 04</span><h3>Play until you're done</h3><p>One game or six, an hour or all afternoon. Loved one? Buy it at the counter and take the night home with you.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v20">
+  <div class="wrap">
+    <div class="card-head"><span>TURN 05 / PLAYERS</span><span>SAID BETWEEN TURNS</span></div>
+    <blockquote class="t-quote">“The Guru taught us a game in four minutes and we played it three times. <em>Consider me converted.</em>”</blockquote>
+    <div class="t-attr">Aisha B. — reluctant, then obsessed</div>
+    <div class="t-sub">
+      <figure><blockquote>“We do our team socials here now instead of the pub. Everyone's actually talking, and the quiet accountant turned out to be terrifyingly good at strategy games. Best £5 a head we spend.”</blockquote><figcaption>Mark T. — monthly team night</figcaption></figure>
+      <figure><blockquote>“Brought a first date here as a test — you learn a lot across a board game. Reader, we're married now, and Meeple &amp; Mug did the first-date table again for the proposal.”</blockquote><figcaption>Sam &amp; Jo — first date, then the proposal</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v48">
+  <div class="wrap">
+    <div class="card-head"><span>TURN 06 / THE ROOM</span><span>GAMES, COFFEE, CHAOS</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=1600&q=85&auto=format&fit=crop" alt="Playing a board game at a table." /><figcaption>MID-GAME</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=1600&q=85&auto=format&fit=crop" alt="A wall of board games." /><figcaption>THE WALL, 800 STRONG</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1611371805429-8b5c1b2c34ba?w=1600&q=85&auto=format&fit=crop" alt="Colourful game pieces." /><figcaption>THE GOOD BITS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop" alt="A latte on the counter." /><figcaption>THE MUG HALF</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1585504198199-20277593b94f?w=1600&q=85&auto=format&fit=crop" alt="Dice and cards on the table." /><figcaption>ROLL &amp; DRAW</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=1600&q=85&auto=format&fit=crop" alt="A group laughing over a game." /><figcaption>THE MEEPLE HALF</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="card-head"><span>TURN 07 / ASKED AT THE COUNTER</span><span>USUALLY MID-SETUP</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441159246633" style="color:var(--coral);font-weight:700;">0115 924 6633</a>. If we're mid-teach, leave a message and we'll ring back between games.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I don't know any board games. Is that a problem?</summary><p>It's the whole reason we exist. Tell the Games Guru you're a total beginner and they'll start you on something brilliant and simple, taught from scratch in a few minutes. Nobody here expects you to know anything — most of our regulars started exactly the same way.</p></details>
+        <details><summary>How much does it cost to play?</summary><p>Five pounds per person for the table, and that's it — play as many games as you like, stay as long as you like, all afternoon if you fancy. Food and drink are on top, but there's no per-game charge and no time limit on the table.</p></details>
+        <details><summary>Do I need to book?</summary><p>Weekday afternoons you can usually just walk in. Evenings and weekends get busy, so booking a table is wise — especially for groups of four or more. Learn-to-play nights and private hires should always be booked ahead.</p></details>
+        <details><summary>Can you really teach us any game?</summary><p>Any game on the wall, yes — that's the Games Guru's actual job. Tell us your group and your time and we'll pick something that fits, fetch it, set it up and teach the rules in about five minutes, then stay close for questions. You'll never be left with just a rulebook.</p></details>
+        <details><summary>Is it good for kids / families / older relatives?</summary><p>Brilliant for all of them. The library is carded by age and complexity, so there's something for a six-year-old, a teenager, and a grandparent at the same table. Family afternoons are some of our busiest and happiest sessions.</p></details>
+        <details><summary>Can I buy the games?</summary><p>Most of the library is stocked to buy at the counter, so if a game wins your group over you can take it straight home. If we've sold out we'll order it in, and the staff are dangerously good at recommending "just one more" for your shelf.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="card-head"><span>TURN 08 / PLAYERS COME FROM</span><span>NOTTINGHAM &amp; AROUND</span></div>
+    <ul class="area-list">
+      <li>Hockley</li><li>City centre</li><li>Lace Market</li><li>West Bridgford</li><li>Sherwood</li><li>Beeston</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v3" style="padding-top:0;">
+  <div class="wrap">
+    <div class="card-head"><span>TURN 09 / THE ESSENTIALS</span><span>HOW IT RUNS</span></div>
+    <div class="creds">
+      <div><div class="label">Library</div><div class="detail">~800 games, shelf-carded by time &amp; difficulty</div></div>
+      <div><div class="label">The Guru</div><div class="detail">Staff teach any game in the building</div></div>
+      <div><div class="label">Hygiene</div><div class="detail">Food hygiene rating 5, inspected</div></div>
+      <div><div class="label">Table fee</div><div class="detail">£5 per person, all afternoon, all games</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="card-head"><span>TURN 10 / FIND US</span><span>14 BROAD STREET, HOCKLEY</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Meeple &amp; Mug</strong><br />
+          14 Broad Street<br />
+          Hockley, Nottingham NG1 3AL<br /><br />
+          <a href="tel:+441159246633" data-bind="business.phoneDisplay">0115 924 6633</a><br />
+          <a href="mailto:hello@meepleandmug.co.uk" data-bind="business.email">hello@meepleandmug.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>MON – SUN</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>LATE NIGHTS</span><span>FRI &amp; SAT</span></div>
+          <p class="gbp-note">Live hours and event nights on our Google Business Profile. In the heart of Hockley — the shopfront with the giant dice in the window.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Meeple &amp; Mug, Broad Street, Nottingham" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.1530%2C52.9510%2C-1.1350%2C52.9590&layer=mapnik&marker=52.9548%2C-1.1440"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v23">
+  <div class="wrap">
+    <div class="kick">TURN 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Pick a table. <em>We'll pick the game.</em></h2>
+    <p data-bind="cta.body">Five pounds a head, eight hundred games, and someone to teach you every one. Book a table or just walk in.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a table</a>
+      <a class="btn btn-ghost" href="tel:+441159246633" data-bind="cta.secondary.label">0115 924 6633</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441159246633" data-bind="messaging.whatsapp" aria-label="Message the café">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;">Meeple <span>&amp;</span> Mug</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A board game café on Broad Street, Hockley, Nottingham. Rolling dice since 2017.</p>
+      </div>
+      <div>
+        <h4>The café</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          14 Broad Street<br />Nottingham NG1 3AL<br />
+          <a href="tel:+441159246633">0115 924 6633</a><br />
+          <a href="mailto:hello@meepleandmug.co.uk">hello@meepleandmug.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">How it works</a><a href="#about">The café</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> MEEPLE &amp; MUG LTD</span>
+      <span>THE WALL IS THE MENU</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

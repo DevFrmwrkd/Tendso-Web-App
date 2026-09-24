@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Halden & Ro — architecture & interiors studio in Copenhagen</title>
+<meta name="description" content="Halden & Ro is a small architecture and interiors studio in Copenhagen's Islands Brygge — residential renovation, new-builds and interiors, from first sketch to handover." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Halden & Ro", phone: "+45 31 44 90 82", phoneDisplay: "+45 31 44 90 82", email: "studio@haldenro.dk", foundedYear: 2015 },
+  hero: {
+    kicker: "Architecture & interiors — Islands Brygge, Copenhagen",
+    headline: "Buildings that hold light the way a hand holds water.",
+    lede: "A nine-person studio for residential renovation, new-builds and interiors. We take eleven projects a year and see every one from first sketch to handover.",
+    primaryCta: { label: "Start a conversation", href: "#contact" },
+    secondaryCta: { label: "Selected work", href: "#gallery" },
+    image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Sunlight falling across a minimal concrete-and-oak living space."
+  },
+  trust: { years: "Practising since 2015" },
+  about: {
+    heading: "A small studio, deliberately.",
+    paragraphs: [
+      "Halden & Ro was founded in 2015 by two architects who met restoring a 1930s functionalist villa in Klampenborg and decided they never wanted to work at scale again. The studio has grown to nine — four architects, two constructing architects, an interior architect, a model-maker, and a project lead who used to be a carpenter.",
+      "We take eleven projects a year. That number is not a slogan; it is how many a studio of nine can carry while drawing every junction, visiting every site weekly, and answering the phone when the contractor calls at 7am.",
+      "Most of our work is residential — renovations of older Copenhagen housing stock, new single-family houses, and interiors for people who plan to stay. We also take one small public or cultural project a year, at cost, chosen by the whole studio."
+    ],
+    portrait: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85&auto=format&fit=crop",
+    portraitAlt: "The studio's long worktable with models and drawings."
+  },
+  services: [
+    { name: "Renovation & transformation", description: "Older apartments and houses — reprogramming, daylight, and material repair. Our largest body of work." },
+    { name: "New-build houses", description: "Single-family houses from brief to handover, usually 18–30 months. Site-led, never catalogue-led." },
+    { name: "Interiors", description: "Full interior architecture — joinery, lighting, surfaces — drawn to the millimetre and tendered to makers we know." },
+    { name: "Feasibility & purchase advice", description: "Before you buy: what the building can become, what it will resist, and what it will cost to find out." },
+    { name: "Planning & heritage", description: "Listed-building consent, local-plan dialogue, and municipal negotiation. We write the applications ourselves." },
+    { name: "Site supervision", description: "Weekly site presence on every project. We do not hand drawings over a wall." }
+  ],
+  why: [
+    { title: "Eleven projects a year.", body: "Capped, always. Every project gets a partner, an architect, and a weekly site visit — because there is room for it." },
+    { title: "We draw everything.", body: "Every junction, every shadow gap, every hinge. Builders like working with us because nothing is left to guess." },
+    { title: "One material palette per house.", body: "We would rather use three materials well than nine adequately. Houses age better when they argue less." }
+  ],
+  how: [
+    { step: "01", title: "Conversation", body: "An hour at the studio or on your site. No fee, no deck, no hard sell. We both decide if it fits." },
+    { step: "02", title: "Sketch phase", body: "Three to six weeks. We return with one strong proposal and the reasoning behind it — not five weak options." },
+    { step: "03", title: "Drawing & tender", body: "Full construction drawings, tendered to two or three contractors we trust with the work." },
+    { step: "04", title: "Site", body: "Weekly visits, a shared decision log, and a handover walk with a snag list we actually chase." }
+  ],
+  testimonials: [
+    { quote: "They told us what our house wanted to be, and they were right. Two years in, there is not one decision we would take back.", name: "Mette & Jonas K.", context: "villa renovation, Valby" },
+    { quote: "The drawings were so complete our contractor said it was the calmest site he had run in twenty years.", name: "Sofie A.", context: "new-build, Dragør" },
+    { quote: "We interviewed four studios. Halden & Ro were the only ones who asked how we drink our coffee in the morning and where the light is when we do.", name: "Peter L.", context: "apartment transformation, Østerbro" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=85&auto=format&fit=crop", alt: "Concrete-and-oak living space in afternoon light." },
+    { src: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=85&auto=format&fit=crop", alt: "Double-height hall with a suspended stair." },
+    { src: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=1600&q=85&auto=format&fit=crop", alt: "Kitchen in pale oak with a long stone worktop." },
+    { src: "https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1600&q=85&auto=format&fit=crop", alt: "Reading corner with full-height glazing to a garden." },
+    { src: "https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=1600&q=85&auto=format&fit=crop", alt: "Bathroom in tadelakt and brushed steel." },
+    { src: "https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=1600&q=85&auto=format&fit=crop", alt: "Exterior of a brick house at dusk, windows warm." }
+  ],
+  faq: [
+    { q: "What budgets do you work with?", a: "Renovations typically start around 2.5m DKK of construction cost; new-builds higher. If your budget is below that we will say so in the first hour and point you to smaller practices we rate." },
+    { q: "How long does a project take?", a: "A full apartment renovation runs 12–18 months from first sketch to handover; a new-build 18–30. Roughly half of that is drawing and permissions, half is site." },
+    { q: "Do you work outside Copenhagen?", a: "Within about ninety minutes of the studio — North Zealand, Møn, and occasionally further for the right site. Weekly site presence is non-negotiable, so distance has a real limit." },
+    { q: "Can we hire you for just a sketch phase?", a: "Yes. About a third of clients start with a sketch phase alone and decide afterwards. The sketch fee is fixed and quoted upfront." },
+    { q: "How are your fees structured?", a: "Fixed fee per phase, quoted before the phase begins. No percentages, no hourly surprises. Changes of scope are re-quoted, in writing, before we draw a line." },
+    { q: "Do you do interiors without building work?", a: "Yes — full interior architecture is a standalone service, from joinery drawings to maker tendering." },
+    { q: "Will you work with our contractor?", a: "If they are good, gladly. We will meet them before committing — the project is only as calm as its site." }
+  ],
+  area: { places: ["Islands Brygge", "Østerbro", "Frederiksberg", "Valby", "Hellerup", "Klampenborg", "Dragør", "North Zealand", "Møn"] },
+  credentials: [
+    { label: "Danish Architects' Assn.", detail: "MAA — all architects registered" },
+    { label: "Konstruktørforeningen", detail: "Both constructing architects, members" },
+    { label: "Professional indemnity", detail: "Fully insured, certificate on request" },
+    { label: "Realdania", detail: "Grant-project collaborator, twice" }
+  ],
+  location: { name: "Halden & Ro", addressStreet: "Njalsgade 21, Building 15", addressLocality: "Islands Brygge, Copenhagen", addressRegion: "Hovedstaden", addressPostcode: "2300", addressCountry: "Denmark" },
+  cta: { heading: "Eleven projects a year. One could be yours.", body: "We book sketch phases two to four months ahead. The first conversation costs nothing.", primary: { label: "Start a conversation", href: "#contact" }, secondary: { label: "+45 31 44 90 82", href: "tel:+4531449082" } },
+  messaging: { whatsapp: "https://wa.me/4531449082", messenger: "https://m.me/haldenro" }
+};
+</script>
+
+<style>
+  :root {
+    --paper: #f7f6f2;
+    --paper-2: #eeece5;
+    --ink: #101010;
+    --ink-soft: #6b6b66;
+    --line: #101010;
+    --rule: rgba(16,16,16,0.14);
+    --sans: "Instrument Sans", system-ui, sans-serif;
+    --serif: "Instrument Serif", Georgia, serif;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  img { max-width: 100%; display: block; }
+  a { color: inherit; }
+  .wrap { width: min(1400px, 94vw); margin-inline: auto; }
+  .kicker { font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); }
+  .h2 { font-family: var(--sans); font-weight: 500; font-size: clamp(32px, 4vw, 60px); line-height: 1.02; letter-spacing: -0.03em; margin: 0 0 0.4em; }
+  .h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; }
+  .body { font-size: 16px; line-height: 1.65; color: var(--ink-soft); }
+  section { padding: clamp(80px, 10vw, 150px) 0; }
+  .index-line { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px solid var(--line); padding-top: 14px; margin-bottom: clamp(36px, 5vw, 72px); }
+  .index-line .no { font-family: var(--mono); font-size: 10px; letter-spacing: 0.22em; color: var(--ink-soft); }
+  .btn { display: inline-flex; align-items: center; gap: 10px; padding: 15px 26px; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; text-decoration: none; font-weight: 500; border-radius: 999px; transition: 0.2s; }
+  .btn-primary { background: var(--ink); color: var(--paper); }
+  .btn-primary:hover { opacity: 0.82; }
+  .btn-ghost { border: 1px solid var(--ink); }
+  .btn-ghost:hover { background: var(--ink); color: var(--paper); }
+
+  /* NAV */
+  .nav { position: sticky; top: 0; z-index: 50; background: color-mix(in oklab, var(--paper) 88%, transparent); backdrop-filter: blur(12px); border-bottom: 1px solid var(--rule); }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; }
+  .wm { font-family: var(--sans); font-weight: 600; font-size: 16px; letter-spacing: -0.02em; text-decoration: none; }
+  .wm span { font-family: var(--serif); font-style: italic; font-weight: 400; }
+  .nav-links { display: flex; gap: 32px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); }
+  .nav-links a { text-decoration: none; }
+  .nav-links a:hover { color: var(--ink); }
+  @media (max-width: 760px) { .nav-links { display: none; } }
+
+  /* HERO — museum plate */
+  .hero { padding: clamp(56px, 8vw, 120px) 0 0; }
+  .hero h1 { font-family: var(--sans); font-weight: 500; font-size: clamp(44px, 7.4vw, 128px); line-height: 0.96; letter-spacing: -0.045em; margin: 20px 0 0; max-width: 14ch; }
+  .hero h1 em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: -0.015em; }
+  .hero-lower { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 96px); align-items: end; margin-top: clamp(40px, 5vw, 72px); }
+  .hero-lower .lede { font-size: clamp(17px, 1.5vw, 20px); line-height: 1.5; color: var(--ink-soft); max-width: 40ch; }
+  .hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+  .hero-figure { margin: clamp(48px, 6vw, 88px) 0 0; position: relative; }
+  .hero-figure img { width: 100%; aspect-ratio: 21/9; object-fit: cover; }
+  .hero-figure figcaption { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); padding-top: 12px; }
+  @media (max-width: 820px) { .hero-lower { grid-template-columns: 1fr; } .hero-ctas { justify-content: flex-start; } .hero-figure img { aspect-ratio: 4/3; } }
+
+  /* TRUST */
+  .trust { padding: 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .trust .row { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; padding: 20px 0; font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); }
+
+  /* ABOUT */
+  .about-grid { display: grid; grid-template-columns: 5fr 4fr; gap: clamp(40px, 6vw, 110px); align-items: start; }
+  .about-prose p { font-size: clamp(18px, 1.7vw, 23px); line-height: 1.5; margin: 0 0 1em; letter-spacing: -0.01em; }
+  .about-grid img { aspect-ratio: 4/5; object-fit: cover; width: 100%; }
+  @media (max-width: 820px) { .about-grid { grid-template-columns: 1fr; } }
+
+  /* SERVICES — index table */
+  .svc-table { border-top: 1px solid var(--line); }
+  .svc-row { display: grid; grid-template-columns: 90px 340px 1fr; gap: 28px; padding: 30px 0; border-bottom: 1px solid var(--rule); align-items: baseline; transition: 0.2s; }
+  .svc-row:hover { padding-left: 10px; }
+  .svc-row .num { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--ink-soft); }
+  .svc-row .name { font-family: var(--sans); font-weight: 500; font-size: clamp(22px, 2vw, 30px); letter-spacing: -0.025em; line-height: 1.05; }
+  .svc-row .desc { color: var(--ink-soft); font-size: 15px; max-width: 52ch; }
+  @media (max-width: 820px) { .svc-row { grid-template-columns: 70px 1fr; } .svc-row .desc { grid-column: 1 / -1; padding-left: 98px; } }
+
+  /* WHY — dark plate */
+  .why { background: var(--ink); color: var(--paper); }
+  .why .index-line { border-top-color: rgba(247,246,242,0.4); }
+  .why .index-line .no { color: rgba(247,246,242,0.5); }
+  .why .h2 { color: var(--paper); }
+  .why-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(28px, 4vw, 64px); }
+  .why-grid .num { font-family: var(--serif); font-style: italic; font-size: 40px; line-height: 1; display: block; margin-bottom: 20px; color: rgba(247,246,242,0.55); }
+  .why-grid h3 { font-family: var(--sans); font-weight: 500; font-size: 24px; letter-spacing: -0.02em; margin: 0 0 12px; line-height: 1.15; }
+  .why-grid p { color: rgba(247,246,242,0.62); margin: 0; font-size: 15px; }
+  @media (max-width: 760px) { .why-grid { grid-template-columns: 1fr; } }
+
+  /* HOW */
+  .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(24px, 3vw, 44px); }
+  .how-grid > li { list-style: none; border-top: 1px solid var(--line); padding-top: 18px; }
+  .how-grid .step { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; color: var(--ink-soft); }
+  .how-grid h3 { font-family: var(--sans); font-weight: 500; font-size: 22px; letter-spacing: -0.02em; margin: 12px 0 10px; }
+  .how-grid p { color: var(--ink-soft); margin: 0; font-size: 14px; }
+  @media (max-width: 760px) { .how-grid { grid-template-columns: 1fr 1fr; } }
+
+  /* TESTIMONIALS — single rotating plate feel, stacked */
+  .testimonials { background: var(--paper-2); }
+  .t-quote { font-family: var(--serif); font-style: italic; font-size: clamp(26px, 3.4vw, 52px); line-height: 1.15; letter-spacing: -0.01em; margin: 0 0 22px; max-width: 26ch; }
+  .t-attr { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: clamp(40px, 5vw, 72px); }
+  .t-sub { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 5vw, 80px); border-top: 1px solid var(--rule); padding-top: 36px; }
+  .t-sub blockquote { font-size: 18px; line-height: 1.5; margin: 0 0 14px; letter-spacing: -0.005em; }
+  .t-sub figcaption { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); }
+  @media (max-width: 760px) { .t-sub { grid-template-columns: 1fr; } }
+
+  /* GALLERY — editorial offset grid */
+  .g-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: clamp(12px, 1.6vw, 24px); }
+  .g-grid figure { margin: 0; }
+  .g-grid img { width: 100%; height: 100%; object-fit: cover; }
+  .g-grid figcaption { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); padding-top: 10px; display: flex; justify-content: space-between; }
+  .g-grid figure:nth-child(1) { grid-column: 1 / span 7; } .g-grid figure:nth-child(1) img { aspect-ratio: 4/3; }
+  .g-grid figure:nth-child(2) { grid-column: 9 / span 4; margin-top: clamp(40px, 6vw, 110px); } .g-grid figure:nth-child(2) img { aspect-ratio: 3/4; }
+  .g-grid figure:nth-child(3) { grid-column: 2 / span 4; } .g-grid figure:nth-child(3) img { aspect-ratio: 3/4; }
+  .g-grid figure:nth-child(4) { grid-column: 7 / span 6; margin-top: clamp(30px, 4vw, 80px); } .g-grid figure:nth-child(4) img { aspect-ratio: 4/3; }
+  .g-grid figure:nth-child(5) { grid-column: 1 / span 5; } .g-grid figure:nth-child(5) img { aspect-ratio: 1/1; }
+  .g-grid figure:nth-child(6) { grid-column: 7 / span 5; margin-top: clamp(24px, 3vw, 60px); } .g-grid figure:nth-child(6) img { aspect-ratio: 4/3; }
+  @media (max-width: 760px) { .g-grid figure { grid-column: 1 / -1 !important; margin-top: 0 !important; } }
+
+  /* FAQ */
+  .faq-grid { display: grid; grid-template-columns: 2fr 3fr; gap: clamp(40px, 6vw, 110px); }
+  .faq-list details { border-top: 1px solid var(--rule); padding: 24px 0; }
+  .faq-list details:last-child { border-bottom: 1px solid var(--rule); }
+  .faq-list summary { font-family: var(--sans); font-weight: 500; font-size: 20px; letter-spacing: -0.015em; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 20px; }
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after { content: "↓"; font-family: var(--mono); font-size: 13px; color: var(--ink-soft); transition: transform 0.2s; }
+  .faq-list details[open] summary::after { transform: rotate(180deg); }
+  .faq-list p { margin: 14px 0 0; max-width: 58ch; color: var(--ink-soft); font-size: 15px; }
+  @media (max-width: 760px) { .faq-grid { grid-template-columns: 1fr; } }
+
+  /* AREA */
+  .area-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; padding: 0; }
+  .area-list li { list-style: none; font-size: 14px; letter-spacing: 0.02em; padding: 10px 18px; border: 1px solid var(--rule); border-radius: 999px; color: var(--ink-soft); }
+
+  /* CREDENTIALS */
+  .creds { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(20px, 3vw, 44px); }
+  .creds > div { border-top: 1px solid var(--line); padding-top: 16px; }
+  .creds .label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 10px; }
+  .creds .detail { font-family: var(--sans); font-weight: 500; font-size: 17px; letter-spacing: -0.015em; line-height: 1.3; }
+  @media (max-width: 760px) { .creds { grid-template-columns: 1fr 1fr; } }
+
+  /* LOCATION */
+  .loc-grid { display: grid; grid-template-columns: 2fr 3fr; gap: clamp(32px, 5vw, 80px); }
+  .nap address { font-style: normal; font-family: var(--sans); font-weight: 500; font-size: clamp(20px, 2vw, 28px); letter-spacing: -0.02em; line-height: 1.35; }
+  .nap a { text-decoration: none; }
+  .hours { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; margin-top: 28px; border-top: 1px solid var(--rule); padding-top: 20px; }
+  .hours .row { display: flex; justify-content: space-between; padding: 4px 0; color: var(--ink-soft); }
+  .hours .gbp-note { font-family: var(--sans); font-size: 12px; color: var(--ink-soft); margin-top: 16px; line-height: 1.5; letter-spacing: 0; }
+  .map-frame { min-height: 420px; filter: grayscale(1) contrast(1.04); border: 1px solid var(--rule); }
+  .map-frame iframe { width: 100%; height: 100%; border: 0; min-height: 420px; }
+  @media (max-width: 820px) { .loc-grid { grid-template-columns: 1fr; } }
+
+  /* CTA — huge type on ink */
+  .cta-band { background: var(--ink); color: var(--paper); padding: clamp(90px, 12vw, 180px) 0; }
+  .cta-band h2 { font-family: var(--sans); font-weight: 500; font-size: clamp(38px, 6vw, 104px); line-height: 0.98; letter-spacing: -0.045em; margin: 0 0 22px; max-width: 16ch; }
+  .cta-band h2 em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: -0.015em; }
+  .cta-band p { color: rgba(247,246,242,0.65); max-width: 46ch; margin: 0 0 36px; font-size: 17px; }
+  .cta-band .ctas { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cta-band .btn-primary { background: var(--paper); color: var(--ink); }
+  .cta-band .btn-ghost { border-color: rgba(247,246,242,0.5); color: var(--paper); }
+  .cta-band .btn-ghost:hover { background: var(--paper); color: var(--ink); }
+
+  /* FOOTER */
+  footer { padding: 64px 0 32px; border-top: 1px solid var(--rule); }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
+  .footer-grid h4 { font-family: var(--mono); font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft); margin: 0 0 14px; font-weight: 500; }
+  .footer-grid a { text-decoration: none; display: block; padding: 3px 0; font-size: 14px; }
+  .footer-grid a:hover { color: var(--ink-soft); }
+  .colophon { margin-top: 64px; padding-top: 20px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-soft); }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr; } }
+
+  /* MSG FAB */
+  .msg-fab { position: fixed; right: 20px; bottom: 20px; z-index: 100; }
+  .msg-fab a { display: inline-flex; align-items: center; gap: 8px; background: var(--ink); color: var(--paper); padding: 13px 20px; text-decoration: none; font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; border-radius: 999px; box-shadow: 0 10px 30px rgba(16,16,16,0.22); }
+  .msg-fab a:hover { opacity: 0.85; }
+  .msg-fab svg { width: 13px; height: 13px; }
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ProfessionalService","name":"Halden & Ro","description":"Architecture and interiors studio in Copenhagen — residential renovation, new-builds and interiors.","url":"https://haldenro.dk/","telephone":"+4531449082","email":"studio@haldenro.dk","address":{"@type":"PostalAddress","streetAddress":"Njalsgade 21, Building 15","addressLocality":"Copenhagen","addressRegion":"Hovedstaden","postalCode":"2300","addressCountry":"DK"},"geo":{"@type":"GeoCoordinates","latitude":55.6633,"longitude":12.5904},"areaServed":["Copenhagen","Frederiksberg","North Zealand","Møn"],"image":["https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600"],"foundingDate":"2015"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What budgets do you work with?","acceptedAnswer":{"@type":"Answer","text":"Renovations typically start around 2.5m DKK of construction cost; new-builds higher."}},
+{"@type":"Question","name":"How long does a project take?","acceptedAnswer":{"@type":"Answer","text":"A full renovation runs 12–18 months from first sketch to handover; a new-build 18–30."}},
+{"@type":"Question","name":"Do you work outside Copenhagen?","acceptedAnswer":{"@type":"Answer","text":"Within about ninety minutes of the studio — weekly site presence is non-negotiable."}},
+{"@type":"Question","name":"Can we hire you for just a sketch phase?","acceptedAnswer":{"@type":"Answer","text":"Yes — about a third of clients start with a fixed-fee sketch phase alone."}},
+{"@type":"Question","name":"How are your fees structured?","acceptedAnswer":{"@type":"Answer","text":"Fixed fee per phase, quoted before the phase begins. No percentages."}},
+{"@type":"Question","name":"Do you do interiors without building work?","acceptedAnswer":{"@type":"Answer","text":"Yes — full interior architecture is a standalone service."}},
+{"@type":"Question","name":"Will you work with our contractor?","acceptedAnswer":{"@type":"Answer","text":"If they are good, gladly. We will meet them before committing."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Halden <span>&amp;</span> Ro</a>
+    <nav class="nav-links">
+      <a href="#about">Studio</a>
+      <a href="#services">Services</a>
+      <a href="#gallery">Work</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v7">
+  <div class="wrap">
+    <div class="kicker" data-bind="hero.kicker">Architecture &amp; interiors — Islands Brygge, Copenhagen</div>
+    <h1 data-bind="hero.headline">Buildings that hold light the way <em>a hand holds water.</em></h1>
+    <div class="hero-lower">
+      <p class="lede" data-bind="hero.lede">A nine-person studio for residential renovation, new-builds and interiors. We take eleven projects a year and see every one from first sketch to handover.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#contact" data-bind="hero.primaryCta.label">Start a conversation</a>
+        <a class="btn btn-ghost" href="#gallery" data-bind="hero.secondaryCta.label">Selected work</a>
+      </div>
+    </div>
+    <figure class="hero-figure">
+      <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=2000&q=85&auto=format&fit=crop"
+           alt="Sunlight falling across a minimal concrete-and-oak living space."
+           data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <figcaption><span>Villa V — Valby, transformation</span><span>Fig. 01</span></figcaption>
+    </figure>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Practising since 2015</span>
+    <span>MAA-registered architects</span>
+    <span>Eleven projects a year, capped</span>
+    <span>Realdania grant collaborator</span>
+    <!-- GBP-bound rating slot — source from Google Business Profile, never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap">
+    <div class="index-line"><span class="no">01 / STUDIO</span><span class="no">HALDEN &amp; RO</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">A small studio, <em>deliberately.</em></h2>
+        <p>Halden &amp; Ro was founded in 2015 by two architects who met restoring a 1930s functionalist villa in Klampenborg and decided they never wanted to work at scale again. The studio has grown to nine — four architects, two constructing architects, an interior architect, a model-maker, and a project lead who used to be a carpenter.</p>
+        <p>We take eleven projects a year. That number is not a slogan; it is how many a studio of nine can carry while drawing every junction, visiting every site weekly, and answering the phone when the contractor calls at 7am.</p>
+        <p>Most of our work is residential. We also take one small public or cultural project a year, at cost, chosen by the whole studio.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=1400&q=85&auto=format&fit=crop"
+           alt="The studio's long worktable with models and drawings." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v5">
+  <div class="wrap">
+    <div class="index-line"><span class="no">02 / SERVICES</span><span class="no">SIX WAYS WE WORK</span></div>
+    <h2 class="h2">What the studio <em>does.</em></h2>
+    <div class="svc-table" style="margin-top: clamp(32px,4vw,56px);">
+      <div class="svc-row"><span class="num">S.01</span><span class="name">Renovation &amp; transformation</span><span class="desc">Older apartments and houses — reprogramming, daylight, and material repair. Our largest body of work.</span></div>
+      <div class="svc-row"><span class="num">S.02</span><span class="name">New-build houses</span><span class="desc">Single-family houses from brief to handover, usually 18–30 months. Site-led, never catalogue-led.</span></div>
+      <div class="svc-row"><span class="num">S.03</span><span class="name">Interiors</span><span class="desc">Full interior architecture — joinery, lighting, surfaces — drawn to the millimetre and tendered to makers we know.</span></div>
+      <div class="svc-row"><span class="num">S.04</span><span class="name">Feasibility &amp; purchase advice</span><span class="desc">Before you buy: what the building can become, what it will resist, and what it will cost to find out.</span></div>
+      <div class="svc-row"><span class="num">S.05</span><span class="name">Planning &amp; heritage</span><span class="desc">Listed-building consent, local-plan dialogue, and municipal negotiation. We write the applications ourselves.</span></div>
+      <div class="svc-row"><span class="num">S.06</span><span class="name">Site supervision</span><span class="desc">Weekly site presence on every project. We do not hand drawings over a wall.</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="index-line"><span class="no">03 / PRINCIPLES</span><span class="no">THREE, ONLY</span></div>
+    <h2 class="h2">Why clients <em>choose us.</em></h2>
+    <div class="why-grid" style="margin-top: clamp(32px,4vw,56px);">
+      <div><span class="num">i</span><h3>Eleven projects a year.</h3><p>Capped, always. Every project gets a partner, an architect, and a weekly site visit — because there is room for it.</p></div>
+      <div><span class="num">ii</span><h3>We draw everything.</h3><p>Every junction, every shadow gap, every hinge. Builders like working with us because nothing is left to guess.</p></div>
+      <div><span class="num">iii</span><h3>One material palette per house.</h3><p>We would rather use three materials well than nine adequately. Houses age better when they argue less.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="index-line"><span class="no">04 / PROCESS</span><span class="no">SKETCH → SITE</span></div>
+    <h2 class="h2">How a project <em>unfolds.</em></h2>
+    <ol class="how-grid" style="margin-top: clamp(32px,4vw,56px); padding: 0;">
+      <li><span class="step">PHASE 01</span><h3>Conversation</h3><p>An hour at the studio or on your site. No fee, no deck, no hard sell. We both decide if it fits.</p></li>
+      <li><span class="step">PHASE 02</span><h3>Sketch phase</h3><p>Three to six weeks. One strong proposal and the reasoning behind it — not five weak options.</p></li>
+      <li><span class="step">PHASE 03</span><h3>Drawing &amp; tender</h3><p>Full construction drawings, tendered to two or three contractors we trust with the work.</p></li>
+      <li><span class="step">PHASE 04</span><h3>Site</h3><p>Weekly visits, a shared decision log, and a handover walk with a snag list we actually chase.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="index-line"><span class="no">05 / CLIENTS</span><span class="no">IN THEIR WORDS</span></div>
+    <blockquote class="t-quote">“They told us what our house wanted to be, and they were right. Two years in, there is not one decision we would take back.”</blockquote>
+    <div class="t-attr">Mette &amp; Jonas K. — villa renovation, Valby</div>
+    <div class="t-sub">
+      <figure><blockquote>“The drawings were so complete our contractor said it was the calmest site he had run in twenty years.”</blockquote><figcaption>Sofie A. — new-build, Dragør</figcaption></figure>
+      <figure><blockquote>“They were the only studio who asked how we drink our coffee in the morning and where the light is when we do.”</blockquote><figcaption>Peter L. — apartment transformation, Østerbro</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section id="gallery" data-component="GALLERY" data-variant="v5">
+  <div class="wrap">
+    <div class="index-line"><span class="no">06 / SELECTED WORK</span><span class="no">2016 — PRESENT</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1600&q=85&auto=format&fit=crop" alt="Concrete-and-oak living space in afternoon light." /><figcaption><span>Villa V, Valby</span><span>Pl. 01</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=1600&q=85&auto=format&fit=crop" alt="Double-height hall with a suspended stair." /><figcaption><span>House D, Dragør</span><span>Pl. 02</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?w=1600&q=85&auto=format&fit=crop" alt="Kitchen in pale oak with a long stone worktop." /><figcaption><span>Apartment Ø, Østerbro</span><span>Pl. 03</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?w=1600&q=85&auto=format&fit=crop" alt="Reading corner with full-height glazing to a garden." /><figcaption><span>Garden room, Hellerup</span><span>Pl. 04</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600566752355-35792bedcfea?w=1600&q=85&auto=format&fit=crop" alt="Bathroom in tadelakt and brushed steel." /><figcaption><span>Bath, Frederiksberg</span><span>Pl. 05</span></figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1600585152220-90363fe7e115?w=1600&q=85&auto=format&fit=crop" alt="Exterior of a brick house at dusk, windows warm." /><figcaption><span>House K, Klampenborg</span><span>Pl. 06</span></figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="index-line"><span class="no">07 / QUESTIONS</span><span class="no">ASKED OFTEN</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you <em>write to us.</em></h2>
+        <p class="body">If yours isn't answered here, it belongs in the first conversation — <a href="mailto:studio@haldenro.dk">studio@haldenro.dk</a>.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What budgets do you work with?</summary><p>Renovations typically start around 2.5m DKK of construction cost; new-builds higher. If your budget is below that we will say so in the first hour and point you to smaller practices we rate.</p></details>
+        <details><summary>How long does a project take?</summary><p>A full apartment renovation runs 12–18 months from first sketch to handover; a new-build 18–30. Roughly half of that is drawing and permissions, half is site.</p></details>
+        <details><summary>Do you work outside Copenhagen?</summary><p>Within about ninety minutes of the studio — North Zealand, Møn, and occasionally further for the right site. Weekly site presence is non-negotiable, so distance has a real limit.</p></details>
+        <details><summary>Can we hire you for just a sketch phase?</summary><p>Yes. About a third of clients start with a sketch phase alone and decide afterwards. The sketch fee is fixed and quoted upfront.</p></details>
+        <details><summary>How are your fees structured?</summary><p>Fixed fee per phase, quoted before the phase begins. No percentages, no hourly surprises. Changes of scope are re-quoted, in writing, before we draw a line.</p></details>
+        <details><summary>Do you do interiors without building work?</summary><p>Yes — full interior architecture is a standalone service, from joinery drawings to maker tendering.</p></details>
+        <details><summary>Will you work with our contractor?</summary><p>If they are good, gladly. We will meet them before committing — the project is only as calm as its site.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top: 0;">
+  <div class="wrap">
+    <div class="index-line"><span class="no">08 / WHERE WE BUILD</span><span class="no">≤ 90 MIN FROM THE STUDIO</span></div>
+    <ul class="area-list">
+      <li>Islands Brygge</li><li>Østerbro</li><li>Frederiksberg</li><li>Valby</li><li>Hellerup</li>
+      <li>Klampenborg</li><li>Dragør</li><li>North Zealand</li><li>Møn</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top: 0;">
+  <div class="wrap">
+    <div class="index-line"><span class="no">09 / CREDENTIALS</span><span class="no">FOR THE RECORD</span></div>
+    <div class="creds">
+      <div><div class="label">Danish Architects' Assn.</div><div class="detail">MAA — all architects registered</div></div>
+      <div><div class="label">Konstruktørforeningen</div><div class="detail">Both constructing architects, members</div></div>
+      <div><div class="label">Professional indemnity</div><div class="detail">Fully insured, certificate on request</div></div>
+      <div><div class="label">Realdania</div><div class="detail">Grant-project collaborator, twice</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top: 0;">
+  <div class="wrap">
+    <div class="index-line"><span class="no">10 / THE STUDIO</span><span class="no">NJALSGADE 21</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Halden &amp; Ro</strong><br />
+          Njalsgade 21, Building 15<br />
+          Islands Brygge<br />
+          2300 Copenhagen S<br /><br />
+          <a href="tel:+4531449082" data-bind="business.phoneDisplay">+45 31 44 90 82</a><br />
+          <a href="mailto:studio@haldenro.dk" data-bind="business.email">studio@haldenro.dk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>MON – FRI</span><span>—</span></div>
+          <div class="row"><span>SAT – SUN</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Hours kept current on our Google Business Profile. Visits by appointment — the model table takes up most of the reception.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Halden & Ro, Njalsgade, Copenhagen" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=12.5820%2C55.6600%2C12.5990%2C55.6670&layer=mapnik&marker=55.6633%2C12.5904"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="contact" class="cta-band" data-component="CTA-BAND" data-variant="v4">
+  <div class="wrap">
+    <div class="kicker" style="color: rgba(247,246,242,0.5);">11 / CONTACT</div>
+    <h2 data-bind="cta.heading">Eleven projects a year. <em>One could be yours.</em></h2>
+    <p data-bind="cta.body">We book sketch phases two to four months ahead. The first conversation costs nothing.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="mailto:studio@haldenro.dk" data-bind="cta.primary.label">Start a conversation</a>
+      <a class="btn btn-ghost" href="tel:+4531449082" data-bind="cta.secondary.label">+45 31 44 90 82</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/4531449082" data-bind="messaging.whatsapp" aria-label="Message the studio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Write to us
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <a class="wm" href="#" style="font-size: 22px;">Halden <span>&amp;</span> Ro</a>
+        <p class="body" style="margin-top: 14px; max-width: 34ch;">An architecture and interiors studio on Islands Brygge, Copenhagen. Since 2015.</p>
+      </div>
+      <div>
+        <h4>Studio</h4>
+        <address style="font-style: normal; font-size: 14px; line-height: 1.6;">
+          Njalsgade 21, Building 15<br />
+          2300 Copenhagen S<br />
+          <a href="tel:+4531449082">+45 31 44 90 82</a><br />
+          <a href="mailto:studio@haldenro.dk">studio@haldenro.dk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#about">Studio</a>
+        <a href="#services">Services</a>
+        <a href="#gallery">Work</a>
+        <a href="#contact">Contact</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> HALDEN &amp; RO APS · CVR 36912844</span>
+      <span>MAA · COPENHAGEN</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

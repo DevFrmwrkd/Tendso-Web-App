@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ube & Yelo — halo-halo, mais con yelo & kakanin, made the Pampanga way in Angeles City</title>
+<meta name="description" content="Ube & Yelo is a halo-halo haus in Angeles City, Pampanga — tall halo-halo layered with sweet beans, nata, sago, leche flan and hand-grated ube, topped with our own ube ice cream, plus mais con yelo and kakanin. Mixed to order, the Kapampangan way. Since 2016." />
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Ube & Yelo", phone: "+63 917 555 0355", phoneDisplay: "0917 555 0355", email: "hello@ubeandyelo.ph", foundedYear: 2016 },
+  hero: {
+    kicker: "Halo-halo haus · mais con yelo · kakanin · Angeles City, Pampanga",
+    headline: "Halo means mix. So mix it — all the way to the bottom.",
+    lede: "A halo-halo haus in Angeles City, layering the tall glass the Kapampangan way: sweet beans, kaong, nata de coco, sago and macapuno under finely shaved ice, crowned with a slab of our own leche flan and a scoop of hand-grated ube ice cream. Poured with evaporated milk, made to order, and meant to be stirred into glorious purple chaos before the ice melts.",
+    primaryCta: { label: "Order or visit", href: "#book" },
+    secondaryCta: { label: "What's in the glass", href: "#services" },
+    image: "https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A colourful frozen dessert counter."
+  },
+  trust: { years: "Chilling glasses since 2016" },
+  about: {
+    heading: "The whole joy is the stir. Don't sip it neat — halo, halo, mix it.",
+    paragraphs: [
+      "Ube & Yelo is a halo-halo haus, and halo-halo — literally 'mix-mix' — is the Philippines' great summer dessert: a tall glass built in layers of sweet preserved fruits and beans, jellies and ice, milk and something rich on top, that you're meant to stir together into one cold, sweet, purple rush. Pampanga takes its halo-halo seriously — this is the province famous for it — and we build ours the way it should be built: proper ingredients, generous hands, and shaved ice fine as snow.",
+      "We opened in 2016 because too much halo-halo had become a scoop of gritty ice with a token spoonful of beans. Ours goes the other way: sweetened kidney and garbanzo beans, kaong, nata de coco, sago, macapuno and sweet plantain cooked and prepared by us, layered under finely shaved ice, then topped with a real slab of home-made leche flan and a scoop of ube ice cream we churn from hand-grated purple yam. Evaporated milk poured over at the counter, in front of you.",
+      "Beyond the flagship glass we make mais con yelo, saba con yelo, our own ube and cheese ice creams, and a rotating counter of kakanin — sapin-sapin, biko, kutsinta and puto — the Filipino rice-cake sweets that belong beside a cold dessert. It's a small, bright, friendly place built for merienda, for beating the Pampanga heat, and for the simple pleasure of stirring a glass to the bottom."
+    ],
+    portrait: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A sweet layered dessert served in a glass."
+  },
+  services: [
+    { name: "The halo-halo", description: "The tall glass, built in layers: sweet beans, kaong, nata de coco, sago, macapuno and sweet plantain under snow-fine shaved ice, topped with home-made leche flan and a scoop of our ube ice cream, milk poured over. Special or overload — you choose the crown." },
+    { name: "Mais & saba con yelo", description: "The simpler cousins done properly — sweet corn or caramelised saba banana with shaved ice and milk, cold and comforting. The everyday merienda for when a full halo-halo is more than you need." },
+    { name: "House-churned ice cream", description: "Ube from hand-grated purple yam, sweet cheese (queso), and mango in season — dense, real Filipino ice cream by the scoop, in a cup, or crowning your glass. No powders, no shortcuts." },
+    { name: "Kakanin counter", description: "A rotating counter of rice-cake sweets — sapin-sapin, biko, kutsinta, puto and suman — steamed fresh, the traditional merienda that belongs beside a cold dessert or wrapped up to take home." },
+    { name: "Take-home & bilao", description: "Halo-halo kits and tubs of ice cream to take home, plus bilao of kakanin for fiestas, birthdays and pasalubong — the whole cold-and-sweet spread, boxed for the road. Order a day ahead." },
+    { name: "Merienda combos", description: "A cold glass and a warm rice cake, or ice cream and a hot cup — the little merienda pairings that make an afternoon, at a price that keeps students and families coming back all summer." }
+  ],
+  why: [
+    { title: "Ingredients we make ourselves.", body: "The beans, the leche flan, the ube ice cream, the kakanin — cooked and prepared by us, not scooped from a supplier's bucket. That's the difference between a real halo-halo and a sad one." },
+    { title: "Ice shaved fine as snow.", body: "Coarse, crunchy ice ruins a halo-halo. Ours is shaved fine so it melts into the milk and beans instead of sitting on top like gravel — soft, cold and mixable to the last spoon." },
+    { title: "Built generous, the Pampanga way.", body: "Pampanga is halo-halo country and we hold the line: layers all the way down, real leche flan, a proper scoop of ube. Stir to the bottom and there's still something good waiting." }
+  ],
+  how: [
+    { step: "01", title: "Pick your glass", body: "Classic halo-halo, or the overload with extra flan and a double scoop of ube. Or go simpler with mais con yelo or a cup of house ice cream. Tell us how sweet a tooth you've got." },
+    { step: "02", title: "We build it to order", body: "Layered fresh at the counter — beans and jellies first, snow-fine ice next, leche flan and ube ice cream on top, evaporated milk poured over in front of you. Nothing pre-made and melting in a fridge." },
+    { step: "03", title: "Mix it, all the way down", body: "This is the important part: stir it. Halo-halo means mix-mix — fold the flan and ube through the ice and beans until it's one cold purple swirl, and eat it before the ice gives up." },
+    { step: "04", title: "Take some home", body: "Loved it? Take home an ice cream tub, a halo-halo kit, or a bilao of kakanin for the family. Message us a day ahead for fiesta and party orders and we'll have it boxed." }
+  ],
+  testimonials: [
+    { quote: "I've had halo-halo all over the country and this is the one I drive back to Angeles for. The ube ice cream is unreal, the flan is real flan, and the ice actually melts like it should. Every spoon to the bottom has something in it. This is how it's supposed to be.", name: "Patricia G.", context: "regular, drives from Manila" },
+    { quote: "My kids call it 'the purple place.' We come every hot afternoon of summer and the mais con yelo has become their whole personality. Friendly, generous, spotlessly clean, and priced so a family can actually afford to make it a habit. We love it here.", name: "The Sison family", context: "summer regulars" },
+    { quote: "Ordered bilao of kakanin and tubs of ube ice cream for my mom's birthday and everyone lost their minds. The sapin-sapin was the best I've had since my lola's. Delivered on time, beautifully packed. Ube & Yelo, you made the party. Salamat!", name: "Jules M.", context: "birthday order" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600&q=85&auto=format&fit=crop", alt: "A colourful frozen dessert counter." },
+    { src: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1600&q=85&auto=format&fit=crop", alt: "A layered dessert served in a glass." },
+    { src: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop", alt: "A cold sweet drink on the counter." },
+    { src: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop", alt: "Sweet rice cakes plated." },
+    { src: "https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1600&q=85&auto=format&fit=crop", alt: "A dessert being prepared by hand." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "The bright dessert haus interior." }
+  ],
+  faq: [
+    { q: "What exactly goes into your halo-halo?", a: "Layers, and a lot of them — that's the whole point of halo-halo, which literally means 'mix-mix.' A classic glass of ours is built from the bottom up with sweetened kidney and garbanzo beans, kaong (sugar palm fruit), nata de coco, sago pearls, macapuno (sweet coconut strings) and sweet plantain, all cooked and sweetened by us; then a generous mound of snow-fine shaved ice; then evaporated milk poured over; and crowning it, a real slab of home-made leche flan and a scoop of our hand-grated ube ice cream. The 'overload' adds extra flan and a double scoop. Every component is made or prepared in-house rather than tipped out of a supplier's bucket, which is exactly why it tastes the way halo-halo is supposed to — rich, varied and interesting all the way to the bottom of the glass rather than mostly ice. If you have a preference — more beans, hold the sago, extra ube — just tell us; we build each one to order." },
+    { q: "Why does the way the ice is shaved matter so much?", a: "Because the ice is most of the dessert by volume, and coarse, crunchy, gravelly ice is the single quickest way to ruin a halo-halo. We shave ours fine — snow-fine — so that when you stir the glass, the ice folds into the evaporated milk, the leche flan and the beans to make a soft, cold, almost creamy mixture rather than sitting on top like crushed gravel that you have to crunch through. Fine ice also melts at the right rate: fast enough to blend into everything as you eat, slow enough that the glass doesn't turn to soup before you reach the bottom. It sounds like a small technical detail, but ask anyone serious about halo-halo and they'll tell you the texture of the ice is the difference between a great one and a forgettable one. It's one of the quiet things we're fussiest about." },
+    { q: "What's the difference between halo-halo, mais con yelo and saba con yelo?", a: "They're a family of shaved-ice desserts that share the same cold, milky base but differ in what's in them. Halo-halo is the maximalist one — many layers of beans, jellies, fruits, flan and ice cream — the full production, meant to be mixed. Mais con yelo is the pared-back cousin: sweet corn kernels with shaved ice and milk, simple and comforting, and a lot of people's everyday favourite when a whole halo-halo feels like too much. Saba con yelo is the same idea with caramelised saba banana instead of corn. All three are wonderful and all three are properly Filipino; halo-halo is the special-occasion, beat-the-heat centrepiece, while the con yelos are the easy, cheaper, no-fuss merienda. If you're new to it, we often suggest starting with mais con yelo and working up to the full halo-halo overload once you're hooked." },
+    { q: "Is your ube ice cream really made from real ube?", a: "Yes — our ube ice cream is churned from real purple yam that we cook and grate by hand, not flavoured and coloured with ube extract or powder, and the difference is immediately obvious in both taste and colour. Real ube has a gentle, nutty, almost vanilla-like sweetness and a natural deep-violet colour that's softer and more muted than the electric purple of the artificial stuff; it tastes like a vegetable-root dessert should, rich and rounded rather than one-note sweet. Making it this way is more work and more expensive — real ube isn't cheap and preparing it is laborious — but it's central to who we are, right there in our name. We churn our cheese (queso) and seasonal mango ice creams with the same no-shortcuts approach. You can have any of them by the scoop, in a cup, in a cone, as a take-home tub, or crowning your halo-halo. Once you've tasted real ube, the fake kind is hard to go back to." },
+    { q: "Can I order for a party, fiesta or as pasalubong?", a: "Yes, and it's popular — a cold, colourful spread is a joy at any Filipino celebration, and half our weekend orders are for birthdays, fiestas and family gatherings. We do take-home halo-halo kits (components packed separately so you assemble and pour at home for maximum freshness), tubs of our house-churned ice cream, and bilao of freshly steamed kakanin — sapin-sapin, biko, kutsinta, puto and suman — which make gorgeous, generous pasalubong and party platters. We ask for at least a day's notice, and more during summer weekends and fiesta season, so we can prepare everything fresh rather than rushing it, and we can arrange delivery around Angeles or have it ready for pick-up. Tell us the headcount, the date and what you'd like — or let us put together a spread — and we'll sort quantities and a fair price. It's the easiest way to be the one who brought the dessert everyone remembers." },
+    { q: "Do you have a quiet, family-friendly place to sit?", a: "Yes — we're a small, bright, friendly haus built exactly for merienda: somewhere to duck out of the Pampanga heat, sit down with a cold glass, and let the kids demolish a mais con yelo. It's spotlessly kept — with cold desserts and ice cream, cleanliness isn't optional and we take it seriously — and it's designed to be an easy, unpretentious spot for families, students, barkadas and anyone in need of something cold and sweet in the afternoon. There's seating for dining in, it's air-conditioned against the summer, and we've deliberately kept prices where a family can make a visit a regular habit rather than a rare treat, because that's what a neighbourhood dessert haus should be. Come in, take a booth, order a glass each, and stir. And if you'd rather take it away, everything travels too."  }
+  ],
+  area: { places: ["Angeles City", "Mabalacat", "San Fernando", "Clark", "Pampanga", "Delivery & pick-up"] },
+  credentials: [
+    { label: "Since 2016", detail: "A halo-halo haus in Angeles City" },
+    { label: "Made in-house", detail: "Beans, leche flan, ube ice cream & kakanin" },
+    { label: "Snow-fine ice", detail: "Shaved fine so it mixes, not crunches" },
+    { label: "Take-home", detail: "Kits, tubs & bilao for parties & pasalubong" }
+  ],
+  location: { name: "Ube & Yelo", addressStreet: "56 Sto. Rosario St", addressLocality: "Angeles City", addressRegion: "Pampanga", addressPostcode: "2009", addressCountry: "Philippines" },
+  cta: { heading: "Beat the heat. Stir it to the bottom.", body: "Tall halo-halo built the Pampanga way, mais con yelo, house-churned ube and cheese ice cream, and a counter of fresh kakanin — made to order in Angeles City since 2016. Visit the haus or order a spread for the party.", primary: { label: "Order or visit", href: "#book" }, secondary: { label: "0917 555 0355", href: "tel:+639175550355" } },
+  messaging: { whatsapp: "https://wa.me/639175550355", messenger: "https://m.me/ubeandyelo" }
+};
+</script>
+
+<style>
+  :root {
+    --milk:#fbf1f5; --milk-2:#fff8fb; --ube:#5b2a86; --ube-2:#43206a; --ink:#2c1c33; --ink-2:#584663;
+    --leche:#e8b23e; --mango:#f28b3c; --rosa:#e5568f;
+    --mid:#96849c; --rule:rgba(44,28,51,0.12);
+    --disp:"Unbounded",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--milk);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--rosa);}
+  .wrap{width:min(1240px,92vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--rosa);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:800;font-size:clamp(34px,4.8vw,68px);line-height:1.04;margin:0 0 0.34em;letter-spacing:-0.02em;}
+  .h2 em{font-style:normal;color:var(--rosa);}
+  .body{color:var(--ink-2);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:999px;}
+  .btn-primary{background:var(--ube);color:var(--milk-2);} .btn-primary:hover{background:var(--rosa);}
+  .btn-ghost{border:2px solid var(--ube);color:var(--ube);} .btn-ghost:hover{background:var(--ube);color:var(--milk-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);border-bottom:2px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,58px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(251,241,245,0.93);backdrop-filter:blur(10px);border-bottom:2px solid var(--ube);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:800;font-size:20px;text-decoration:none;letter-spacing:-0.03em;color:var(--ube);}
+  .wm span{color:var(--rosa);}
+  .nav-links{display:flex;gap:24px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-2);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,64px) 0 clamp(56px,7vw,96px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:800;font-size:clamp(34px,5.4vw,80px);line-height:1.0;letter-spacing:-0.03em;margin:0 0 32px;max-width:17ch;color:var(--ube);}
+  .hero-headline .em{color:var(--rosa);}
+  .hero-headline .em2{color:var(--mango);}
+  .hero-lower{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(30px,4vw,60px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:18px;border:3px solid var(--ube);}
+  .hero-photo::after{content:"HALO, HALO · MIX IT · SINCE 2016";position:absolute;left:-8px;top:-14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.08em;background:var(--leche);color:var(--ink);padding:8px 14px;border-radius:999px;border:2.5px solid var(--ube);transform:rotate(-3deg);}
+  .hero-right .lede{color:var(--ink-2);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--ube);color:var(--milk-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,248,251,0.9);font-weight:700;}
+
+  .about{background:var(--milk-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:18px;border:3px solid var(--ube);}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:var(--ink-2);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:2px solid var(--ube);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(229,86,143,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;color:var(--mango);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:700;font-size:clamp(21px,2.3vw,30px);margin:0;line-height:1.06;letter-spacing:-0.02em;color:var(--ube);}
+  .svc-row p{color:var(--ink-2);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--ube);color:var(--milk-2);}
+  .why .sw-head{color:rgba(255,248,251,0.7);border-color:rgba(255,248,251,0.24);}
+  .why .h2{color:var(--milk-2);} .why .h2 em{color:var(--leche);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--leche);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:700;font-size:23px;margin:0 0 10px;line-height:1.08;letter-spacing:-0.02em;}
+  .why-grid p{color:rgba(255,248,251,0.86);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--rosa);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--mango);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:700;font-size:20px;margin:8px 0 8px;line-height:1.08;letter-spacing:-0.02em;color:var(--ube);}
+  .how-grid p{color:var(--ink-2);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--ube-2);color:var(--milk);}
+  .t-quote{font-family:var(--disp);font-weight:700;font-size:clamp(24px,3.2vw,44px);line-height:1.14;max-width:26ch;margin:0 0 24px;letter-spacing:-0.025em;}
+  .t-quote em{font-style:normal;color:var(--leche);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--leche);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid rgba(251,241,245,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:rgba(251,241,245,0.82);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(251,241,245,0.6);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:14px;border:3px solid var(--ube);}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--rosa);color:var(--milk-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--ube);}
+  .faq-list summary{font-family:var(--disp);font-weight:700;font-size:18px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.2;letter-spacing:-0.02em;color:var(--ube);}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--rosa);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--ink-2);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--ube);border-radius:999px;font-weight:700;color:var(--ink-2);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px solid var(--mango);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--rosa);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:700;font-size:17px;line-height:1.18;letter-spacing:-0.02em;color:var(--ube);}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--leche);color:var(--ink);padding:34px;border-radius:18px;border:3px solid var(--ube);}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.3;letter-spacing:-0.02em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:600;color:var(--ube-2);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:2px solid rgba(44,28,51,0.24);padding-top:18px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--ube-2);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--ube-2);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:18px;border:3px solid var(--ube);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.1) contrast(1.02);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--rosa);color:var(--milk-2);padding:clamp(80px,10vw,144px) 0;text-align:center;}
+  .cta-band .kick{color:var(--milk-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:800;font-size:clamp(36px,5.6vw,92px);line-height:1.0;margin:14px auto 18px;max-width:15ch;letter-spacing:-0.03em;}
+  .cta-band h2 em{font-style:normal;color:var(--leche);}
+  .cta-band p{color:rgba(255,248,251,0.94);max-width:52ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--milk-2);color:var(--rosa);} .cta-band .btn-primary:hover{background:var(--ube);color:var(--milk-2);}
+  .cta-band .btn-ghost{border-color:var(--milk-2);color:var(--milk-2);} .cta-band .btn-ghost:hover{background:var(--milk-2);color:var(--rosa);}
+
+  footer{background:var(--ube-2);color:var(--milk);border-top:3px solid var(--leche);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--leche);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:rgba(251,241,245,0.72);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(251,241,245,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(251,241,245,0.6);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--ube);color:var(--milk-2);padding:13px 20px;border-radius:999px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 8px 24px rgba(91,42,134,0.4);border:2.5px solid var(--leche);}
+  .msg-fab a:hover{background:var(--rosa);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Ube & Yelo","description":"Halo-halo haus in Angeles City, Pampanga — tall halo-halo layered the Kapampangan way with sweet beans, nata, sago, leche flan and hand-grated ube ice cream, plus mais con yelo and kakanin. Made to order since 2016.","servesCuisine":"Filipino desserts","url":"https://ubeandyelo.ph/","telephone":"+639175550355","email":"hello@ubeandyelo.ph","address":{"@type":"PostalAddress","streetAddress":"56 Sto. Rosario St","addressLocality":"Angeles City","addressRegion":"Pampanga","postalCode":"2009","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":15.1450,"longitude":120.5850},"areaServed":["Angeles City","Mabalacat","San Fernando","Clark"],"image":["https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600"],"foundingDate":"2016"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What exactly goes into your halo-halo?","acceptedAnswer":{"@type":"Answer","text":"A classic glass is built from the bottom up with sweetened kidney and garbanzo beans, kaong, nata de coco, sago, macapuno and sweet plantain, all sweetened by us; then snow-fine shaved ice; then evaporated milk; and crowning it, a real slab of home-made leche flan and a scoop of hand-grated ube ice cream. The overload adds extra flan and a double scoop. Every component is made in-house, and we build each glass to order — more beans, hold the sago, extra ube, just ask."}},
+{"@type":"Question","name":"Why does the way the ice is shaved matter?","acceptedAnswer":{"@type":"Answer","text":"Because the ice is most of the dessert by volume, and coarse, gravelly ice ruins a halo-halo. We shave ours snow-fine so it folds into the milk, flan and beans into a soft, almost creamy mixture rather than sitting on top like crushed gravel. Fine ice also melts at the right rate — fast enough to blend as you eat, slow enough that it doesn't turn to soup. The texture of the ice is the difference between a great halo-halo and a forgettable one."}},
+{"@type":"Question","name":"What's the difference between halo-halo, mais con yelo and saba con yelo?","acceptedAnswer":{"@type":"Answer","text":"They share a cold, milky shaved-ice base but differ in what's in them. Halo-halo is the maximalist one — many layers of beans, jellies, fruits, flan and ice cream, meant to be mixed. Mais con yelo is pared-back: sweet corn with shaved ice and milk. Saba con yelo swaps in caramelised saba banana. Halo-halo is the special-occasion centrepiece; the con yelos are the easy, cheaper everyday merienda. New to it? Start with mais con yelo and work up to the halo-halo overload."}},
+{"@type":"Question","name":"Is your ube ice cream really made from real ube?","acceptedAnswer":{"@type":"Answer","text":"Yes — churned from real purple yam we cook and grate by hand, not ube extract or powder. Real ube has a gentle, nutty, vanilla-like sweetness and a natural deep-violet colour, softer than the electric purple of artificial versions. It's more work and more expensive but it's central to who we are. We churn our cheese and seasonal mango ice creams the same way. Have any by the scoop, in a cup or cone, as a take-home tub, or crowning your halo-halo."}},
+{"@type":"Question","name":"Can I order for a party, fiesta or as pasalubong?","acceptedAnswer":{"@type":"Answer","text":"Yes — we do take-home halo-halo kits (components packed separately to assemble at home), tubs of house-churned ice cream, and bilao of freshly steamed kakanin like sapin-sapin, biko, kutsinta, puto and suman. We ask for at least a day's notice, more on summer weekends and fiesta season, and can deliver around Angeles or set it for pick-up. Tell us the headcount, date and what you'd like, or let us put together a spread, and we'll sort quantities and a fair price."}},
+{"@type":"Question","name":"Do you have a quiet, family-friendly place to sit?","acceptedAnswer":{"@type":"Answer","text":"Yes — a small, bright, air-conditioned haus built for merienda, spotlessly kept because with cold desserts cleanliness isn't optional. It's an easy, unpretentious spot for families, students and barkadas, with dine-in seating and prices kept where a family can make it a regular habit. Take a booth, order a glass each, and stir — and everything travels if you'd rather take it away."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Ube <span>&amp;</span> Yelo</a>
+    <nav class="nav-links">
+      <a href="#about">The haus</a><a href="#services">The glass</a><a href="#location">Find us</a><a href="#book">Order</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Halo-halo haus · mais con yelo · kakanin · Angeles City, Pampanga</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      Halo means mix. So <span class="em">mix it</span> — all the way to the <span class="em2">bottom.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=2000&q=85&auto=format&fit=crop"
+             alt="A colourful frozen dessert counter." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A halo-halo haus in Angeles City, layering the tall glass the Kapampangan way: sweet beans, kaong, nata de coco, sago and macapuno under finely shaved ice, crowned with a slab of our own leche flan and a scoop of hand-grated ube ice cream. Poured with evaporated milk, made to order, and meant to be stirred into glorious purple chaos before the ice melts.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Order or visit</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What's in the glass</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Chilling glasses since 2016</span>
+    <span>Everything made in-house</span>
+    <span>Ice shaved fine as snow</span>
+    <span>Real ube, real leche flan</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>LAYER 01 / THE HAUS</span><span>PAMPANGA IS HALO-HALO COUNTRY</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">The whole joy is the stir. Don't sip it neat — halo, halo, <em>mix it.</em></h2>
+        <p>Ube &amp; Yelo is a halo-halo haus, and halo-halo — literally "mix-mix" — is the Philippines' great summer dessert: a tall glass built in layers of sweet preserved fruits and beans, jellies and ice, milk and something rich on top, that you're meant to stir together into one cold, sweet, purple rush. Pampanga takes its halo-halo seriously — this is the province famous for it — and we build ours the way it should be built: proper ingredients, generous hands, and shaved ice fine as snow.</p>
+        <p>We opened in 2016 because too much halo-halo had become a scoop of gritty ice with a token spoonful of beans. Ours goes the other way: sweetened kidney and garbanzo beans, kaong, nata de coco, sago, macapuno and sweet plantain cooked and prepared by us, layered under finely shaved ice, then topped with a real slab of home-made leche flan and a scoop of ube ice cream we churn from hand-grated purple yam. Evaporated milk poured over at the counter, in front of you.</p>
+        <p>Beyond the flagship glass we make mais con yelo, saba con yelo, our own ube and cheese ice creams, and a rotating counter of kakanin — sapin-sapin, biko, kutsinta and puto — the Filipino rice-cake sweets that belong beside a cold dessert. It's a small, bright, friendly place built for merienda, for beating the Pampanga heat, and for the simple pleasure of stirring a glass to the bottom.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1200&q=85&auto=format&fit=crop"
+           alt="A sweet layered dessert served in a glass." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>LAYER 02 / THE GLASS</span><span>HALO-HALO · CON YELO · ICE CREAM · KAKANIN</span></div>
+    <h2 class="h2">What's in the glass.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>The halo-halo</h3><p>The tall glass, built in layers: sweet beans, kaong, nata de coco, sago, macapuno and sweet plantain under snow-fine shaved ice, topped with home-made leche flan and a scoop of ube ice cream, milk poured over.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Mais &amp; saba con yelo</h3><p>The simpler cousins done properly — sweet corn or caramelised saba banana with shaved ice and milk, cold and comforting. The everyday merienda for when a full halo-halo is more than you need.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>House-churned ice cream</h3><p>Ube from hand-grated purple yam, sweet cheese (queso), and mango in season — dense, real Filipino ice cream by the scoop, in a cup, or crowning your glass. No powders, no shortcuts.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Kakanin counter</h3><p>A rotating counter of rice-cake sweets — sapin-sapin, biko, kutsinta, puto and suman — steamed fresh, the traditional merienda that belongs beside a cold dessert or wrapped up to take home.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Take-home &amp; bilao</h3><p>Halo-halo kits and tubs of ice cream to take home, plus bilao of kakanin for fiestas, birthdays and pasalubong — the whole cold-and-sweet spread, boxed for the road. Order a day ahead.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Merienda combos</h3><p>A cold glass and a warm rice cake, or ice cream and a hot cup — the little merienda pairings that make an afternoon, at a price that keeps students and families coming back all summer.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>LAYER 03 / THE DIFFERENCE</span><span>WHY OURS IS DIFFERENT</span></div>
+    <h2 class="h2">Why ours is <em>different.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Ingredients we make ourselves.</h3><p>The beans, the leche flan, the ube ice cream, the kakanin — cooked and prepared by us, not scooped from a supplier's bucket. That's the difference between a real halo-halo and a sad one.</p></div>
+      <div><span class="no">02 / 03</span><h3>Ice shaved fine as snow.</h3><p>Coarse, crunchy ice ruins a halo-halo. Ours is shaved fine so it melts into the milk and beans instead of sitting on top like gravel — soft, cold and mixable to the last spoon.</p></div>
+      <div><span class="no">03 / 03</span><h3>Built generous, the Pampanga way.</h3><p>Pampanga is halo-halo country and we hold the line: layers all the way down, real leche flan, a proper scoop of ube. Stir to the bottom and there's still something good waiting.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>LAYER 04 / HOW IT GOES</span><span>PICK · BUILD · MIX · TAKE HOME</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Pick your glass</h3><p>Classic halo-halo, or the overload with extra flan and a double scoop of ube. Or go simpler with mais con yelo or a cup of house ice cream. Tell us how sweet a tooth you've got.</p></li>
+      <li><span class="step">STEP 02</span><h3>We build it to order</h3><p>Layered fresh at the counter — beans and jellies first, snow-fine ice next, leche flan and ube on top, evaporated milk poured over in front of you. Nothing pre-made and melting in a fridge.</p></li>
+      <li><span class="step">STEP 03</span><h3>Mix it, all the way down</h3><p>The important part: stir it. Halo-halo means mix-mix — fold the flan and ube through the ice and beans until it's one cold purple swirl, and eat it before the ice gives up.</p></li>
+      <li><span class="step">STEP 04</span><h3>Take some home</h3><p>Loved it? Take home an ice cream tub, a halo-halo kit, or a bilao of kakanin for the family. Message us a day ahead for fiesta and party orders and we'll have it boxed.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>LAYER 05 / FROM THE SPOON</span><span>EVERY SPOON HAS SOMETHING IN IT</span></div>
+    <blockquote class="t-quote">“The ube is unreal, the flan is real flan, and the ice melts like it should. This is how it's <em>supposed to be.</em>”</blockquote>
+    <div class="t-attr">Patricia G. — regular, drives from Manila</div>
+    <div class="t-sub">
+      <figure><blockquote>“My kids call it 'the purple place.' We come every hot afternoon of summer and the mais con yelo has become their whole personality. Friendly, generous, spotlessly clean, and priced so a family can actually afford to make it a habit. We love it here.”</blockquote><figcaption>The Sison family — summer regulars</figcaption></figure>
+      <figure><blockquote>“Ordered bilao of kakanin and tubs of ube ice cream for my mom's birthday and everyone lost their minds. The sapin-sapin was the best I've had since my lola's. Delivered on time, beautifully packed. Ube &amp; Yelo, you made the party. Salamat!”</blockquote><figcaption>Jules M. — birthday order</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--milk-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>LAYER 06 / AT THE COUNTER</span><span>COLD, SWEET &amp; PURPLE</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1567206563064-6f60f40a2b57?w=1600&q=85&auto=format&fit=crop" alt="A colourful frozen dessert counter." /><figcaption>THE COUNTER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=1600&q=85&auto=format&fit=crop" alt="A layered dessert served in a glass." /><figcaption>THE GLASS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=85&auto=format&fit=crop" alt="A cold sweet drink on the counter." /><figcaption>THE CON YELO</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=85&auto=format&fit=crop" alt="Sweet rice cakes plated." /><figcaption>THE KAKANIN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1559925393-8be0ec4767c8?w=1600&q=85&auto=format&fit=crop" alt="A dessert being prepared by hand." /><figcaption>THE BUILD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="The bright dessert haus interior." /><figcaption>THE HAUS</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>LAYER 07 / GOOD TO KNOW</span><span>THE GLASS, THE ICE &amp; THE UBE</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+639175550355" style="color:var(--rosa);font-weight:700;">0917 555 0355</a>. Or just come in, take a booth, and stir.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What exactly goes into your halo-halo?</summary><p>Layers, and a lot of them — that's the whole point of halo-halo, which literally means "mix-mix." A classic glass of ours is built from the bottom up with sweetened kidney and garbanzo beans, kaong (sugar palm fruit), nata de coco, sago pearls, macapuno (sweet coconut strings) and sweet plantain, all cooked and sweetened by us; then a generous mound of snow-fine shaved ice; then evaporated milk poured over; and crowning it, a real slab of home-made leche flan and a scoop of our hand-grated ube ice cream. The 'overload' adds extra flan and a double scoop. Every component is made or prepared in-house, which is why it tastes rich, varied and interesting all the way to the bottom rather than mostly ice. If you have a preference — more beans, hold the sago, extra ube — just tell us; we build each one to order.</p></details>
+        <details><summary>Why does the way the ice is shaved matter so much?</summary><p>Because the ice is most of the dessert by volume, and coarse, crunchy, gravelly ice is the single quickest way to ruin a halo-halo. We shave ours fine — snow-fine — so that when you stir the glass, the ice folds into the evaporated milk, the leche flan and the beans to make a soft, cold, almost creamy mixture rather than sitting on top like crushed gravel that you have to crunch through. Fine ice also melts at the right rate: fast enough to blend into everything as you eat, slow enough that the glass doesn't turn to soup before you reach the bottom. It sounds like a small technical detail, but ask anyone serious about halo-halo and they'll tell you the texture of the ice is the difference between a great one and a forgettable one.</p></details>
+        <details><summary>What's the difference between halo-halo, mais con yelo and saba con yelo?</summary><p>They're a family of shaved-ice desserts that share the same cold, milky base but differ in what's in them. Halo-halo is the maximalist one — many layers of beans, jellies, fruits, flan and ice cream — the full production, meant to be mixed. Mais con yelo is the pared-back cousin: sweet corn kernels with shaved ice and milk, simple and comforting, and a lot of people's everyday favourite when a whole halo-halo feels like too much. Saba con yelo is the same idea with caramelised saba banana. Halo-halo is the special-occasion, beat-the-heat centrepiece, while the con yelos are the easy, cheaper, no-fuss merienda. New to it? Start with mais con yelo and work up to the full halo-halo overload once you're hooked.</p></details>
+        <details><summary>Is your ube ice cream really made from real ube?</summary><p>Yes — our ube ice cream is churned from real purple yam that we cook and grate by hand, not flavoured and coloured with ube extract or powder, and the difference is immediately obvious in both taste and colour. Real ube has a gentle, nutty, almost vanilla-like sweetness and a natural deep-violet colour that's softer and more muted than the electric purple of the artificial stuff; it tastes rich and rounded rather than one-note sweet. Making it this way is more work and more expensive, but it's central to who we are, right there in our name. We churn our cheese (queso) and seasonal mango ice creams with the same no-shortcuts approach. Have any of them by the scoop, in a cup, in a cone, as a take-home tub, or crowning your halo-halo.</p></details>
+        <details><summary>Can I order for a party, fiesta or as pasalubong?</summary><p>Yes, and it's popular — half our weekend orders are for birthdays, fiestas and family gatherings. We do take-home halo-halo kits (components packed separately so you assemble and pour at home for maximum freshness), tubs of our house-churned ice cream, and bilao of freshly steamed kakanin — sapin-sapin, biko, kutsinta, puto and suman — which make gorgeous, generous pasalubong and party platters. We ask for at least a day's notice, and more during summer weekends and fiesta season, so we can prepare everything fresh, and we can arrange delivery around Angeles or have it ready for pick-up. Tell us the headcount, the date and what you'd like — or let us put together a spread — and we'll sort quantities and a fair price.</p></details>
+        <details><summary>Do you have a quiet, family-friendly place to sit?</summary><p>Yes — we're a small, bright, friendly haus built exactly for merienda: somewhere to duck out of the Pampanga heat, sit down with a cold glass, and let the kids demolish a mais con yelo. It's spotlessly kept — with cold desserts and ice cream, cleanliness isn't optional and we take it seriously — and it's designed to be an easy, unpretentious spot for families, students and barkadas. There's seating for dining in, it's air-conditioned against the summer, and we've deliberately kept prices where a family can make a visit a regular habit rather than a rare treat. Come in, take a booth, order a glass each, and stir — and if you'd rather take it away, everything travels too.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>LAYER 08 / WE'RE SWEET ON</span><span>PAMPANGA</span></div>
+    <ul class="area-list">
+      <li>Angeles City</li><li>Mabalacat</li><li>San Fernando</li><li>Clark</li><li>Pampanga</li><li>Delivery &amp; pick-up</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>LAYER 09 / THE ESSENTIALS</span><span>HOW WE BUILD IT</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2016</div><div class="detail">A halo-halo haus in Angeles City</div></div>
+      <div><div class="label">Made in-house</div><div class="detail">Beans, leche flan, ube ice cream &amp; kakanin</div></div>
+      <div><div class="label">Snow-fine ice</div><div class="detail">Shaved fine so it mixes, not crunches</div></div>
+      <div><div class="label">Take-home</div><div class="detail">Kits, tubs &amp; bilao for parties &amp; pasalubong</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>LAYER 10 / THE HAUS</span><span>STO. ROSARIO ST, ANGELES</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Ube &amp; Yelo</strong><br />
+          56 Sto. Rosario St<br />
+          Angeles City, Pampanga 2009<br /><br />
+          <a href="tel:+639175550355" data-bind="business.phoneDisplay">0917 555 0355</a><br />
+          <a href="mailto:hello@ubeandyelo.ph" data-bind="business.email">hello@ubeandyelo.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>DAILY</span><span>10AM – 9PM</span></div>
+          <div class="row"><span>SUMMER</span><span>OPEN LATE</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're on Sto. Rosario near the heritage district — look for the purple shopfront and the queue on a hot afternoon.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Ube & Yelo, Angeles City" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=120.5700%2C15.1350%2C120.6000%2C15.1550&layer=mapnik&marker=15.1450%2C120.5850"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">LAYER 11 / COME IN</div>
+    <h2 data-bind="cta.heading">Beat the heat. Stir it to the <em>bottom.</em></h2>
+    <p data-bind="cta.body">Tall halo-halo built the Pampanga way, mais con yelo, house-churned ube and cheese ice cream, and a counter of fresh kakanin — made to order in Angeles City since 2016. Visit the haus or order a spread for the party.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Order or visit</a>
+      <a class="btn btn-ghost" href="tel:+639175550355" data-bind="cta.secondary.label">0917 555 0355</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/639175550355" data-bind="messaging.whatsapp" aria-label="Message the haus">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;color:var(--milk);">Ube <span style="color:var(--leche);">&amp;</span> Yelo</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:rgba(251,241,245,0.72);">A halo-halo haus in Angeles City, Pampanga — halo-halo, con yelo, house-churned ube ice cream and kakanin, made to order since 2016.</p>
+      </div>
+      <div>
+        <h4>The haus</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:rgba(251,241,245,0.72);">
+          56 Sto. Rosario St<br />Angeles City, Pampanga 2009<br />
+          <a href="tel:+639175550355">0917 555 0355</a><br />
+          <a href="mailto:hello@ubeandyelo.ph">hello@ubeandyelo.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The glass</a><a href="#about">The haus</a><a href="#location">Find us</a><a href="#book">Order</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> UBE &amp; YELO</span>
+      <span>HALO, HALO · MIX IT · PAMPANGA</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

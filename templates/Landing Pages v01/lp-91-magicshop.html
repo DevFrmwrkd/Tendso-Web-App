@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smoke & Mirrors — magic shop, lessons and hired illusions in Brighton</title>
+<meta name="description" content="Smoke & Mirrors is a magic shop in Brighton — quality close-up and stage magic, honest advice for beginners and pros, one-to-one lessons, and magicians and illusions for hire at events, since 1994." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Smoke & Mirrors", phone: "+44 1273 555 480", phoneDisplay: "01273 555 480", email: "shop@smokeandmirrors.co.uk", foundedYear: 1994 },
+  hero: {
+    kicker: "Magic shop · lessons · illusions for hire · Brighton",
+    headline: "The secret is never the trick. It's the ten thousand hours behind it.",
+    lete: "",
+    lede: "A proper magic shop in Brighton — the kind with a demonstration counter, a curtain to the back room, and someone behind the till who'll show you the effect before you buy it. Close-up and stage magic for beginners and professionals, honest advice, one-to-one lessons, and magicians for hire. We sell wonder; the practice is on you.",
+    primaryCta: { label: "Come to the counter", href: "#book" },
+    secondaryCta: { label: "What we do", href: "#services" },
+    image: "https://images.unsplash.com/photo-1632718427831-5cbfeb7b5657?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A playing card on a dark table."
+  },
+  trust: { years: "Fooling Brighton since 1994" },
+  about: {
+    heading: "Anyone can sell you a gimmick. We sell you the effect — and how to actually do it.",
+    paragraphs: [
+      "Smoke &amp; Mirrors is a magic shop in the Brighton Lanes, run by working magicians who've spent their lives at the craft. We opened in 1994 as the antidote to the sad little joke-shop magic set: a real shop with a demonstration counter, where you see the effect performed properly before you part with a penny, and where the person serving you can actually do the trick.",
+      "We stock close-up magic — cards, coins, everyday-object miracles — and stage and parlour material, from a first self-working card trick for a nervous beginner to serious professional apparatus. We carry the good stuff: well-made props, the classic books that teach technique properly, and the effects that reward practice rather than promising miracles with none. And we'll steer you away from the overpriced gadget that does the work for you and dies in a drawer.",
+      "But the honest truth of this shop, and we tell everyone who comes in, is that the prop is the easy part. The secret to every piece of magic worth watching is the hours of practice, the misdirection, the patter and the nerve behind it. So we teach — one-to-one lessons for all levels — we recommend the books that matter, and we'll always be straight about what a trick can and can't do. Buy the effect here; earn the wonder at home."
+    ],
+    portrait: "https://images.unsplash.com/photo-1689330691805-6e87670e6cc0?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A deck of playing cards on a table."
+  },
+  services: [
+    { name: "Close-up magic", description: "Cards, coins and everyday-object miracles — from a self-working first trick to sleight-of-hand for the dedicated. Demonstrated at the counter so you see exactly what you're buying." },
+    { name: "Stage & parlour magic", description: "Larger effects for performing to a room — from parlour classics to professional apparatus. We'll match the material to your act, your budget and, honestly, your skill." },
+    { name: "One-to-one lessons", description: "The most important thing we sell. Learn technique, misdirection, patter and performance from working magicians, at your level, whether it's your first flourish or your paid act." },
+    { name: "Books & the classics", description: "The literature that actually teaches magic — the foundational texts and modern classics — because the effect you own is worth nothing without the technique the books give you." },
+    { name: "Magicians for hire", description: "Book a professional close-up or stage magician for weddings, parties and corporate events — vetted, insured performers we'd put our name to. We'll match one to your occasion." },
+    { name: "Beginner starter sets", description: "Honestly-chosen kits for children and adults starting out — real effects that build real skills, with a lesson to get going, not a box of plastic rubbish that kills the interest." }
+  ],
+  why: [
+    { title: "We show you before you buy.", body: "Every effect is demonstrated properly at the counter. You see exactly what it looks like performed, and we tell you honestly how much practice it needs, before any money changes hands." },
+    { title: "The book matters more than the prop.", body: "We'll happily sell you a five-pound book that will make you a better magician than a fifty-pound gimmick. Technique is the trick; we point you to where it's really taught." },
+    { title: "Working magicians, straight answers.", body: "Everyone here performs. Ask us what's worth buying, what's overhyped, and what a trick can really do in front of real people, and you'll get the truth, not the sales pitch." }
+  ],
+  how: [
+    { step: "01", title: "Tell us your level", body: "Never held a deck, or turning professional? Buying for a child, a hobby or a paid act? We start there — there's no point selling a beginner a knuckle-buster or a pro a puzzle." },
+    { step: "02", title: "See it performed", body: "We demonstrate the effect at the counter, properly, so you know what it looks like in skilled hands — and we tell you straight how much practice stands between you and that." },
+    { step: "03", title: "Learn the craft", body: "Take the effect home with the book that teaches it, or book a lesson and learn it from a working magician. The prop is the start; the practice is the magic." },
+    { step: "04", title: "Come back for more", body: "Magicians never stop learning. Return for the next effect, the next lesson, or just to talk shop across the counter. The best sessions here don't ring the till at all." }
+  ],
+  testimonials: [
+    { quote: "I came in wanting to buy the flashiest trick in the shop. They talked me out of it, sold me a classic book and a simple deck, and gave me a lesson on one sleight. Six months of practice later I can genuinely fool people — and I understand why. That's worth more than any gadget.", name: "Ravi S.", context: "beginner, close-up" },
+    { quote: "My daughter's obsessed with magic and every shop had sold her plastic tat that broke in a day. Smoke & Mirrors picked real beginner effects, showed her how they worked, and treated her like a proper apprentice. She practises for hours now. Wonderful, honest people.", name: "Hannah L.", context: "starter set & lesson" },
+    { quote: "Hired one of their close-up magicians for our wedding drinks reception and he was extraordinary — moving between tables, fooling everyone, exactly the right tone. Booked through the shop, vetted and insured, no fuss. Guests still talk about it. Faultless.", name: "Tom & Priya", context: "magician for hire" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1632718427831-5cbfeb7b5657?w=1600&q=85&auto=format&fit=crop", alt: "A deck of playing cards fanned." },
+    { src: "https://images.unsplash.com/photo-1689330691805-6e87670e6cc0?w=1600&q=85&auto=format&fit=crop", alt: "A magician holding a card." },
+    { src: "https://images.unsplash.com/photo-1541278107931-e006523892df?w=1600&q=85&auto=format&fit=crop", alt: "Playing cards spread on a table." },
+    { src: "https://images.unsplash.com/photo-1541278107931-e006523892df?w=1600&q=85&auto=format&fit=crop", alt: "A hand performing a card flourish." },
+    { src: "https://images.unsplash.com/photo-1632718427831-5cbfeb7b5657?w=1600&q=85&auto=format&fit=crop", alt: "A fan of cards held up." },
+    { src: "https://images.unsplash.com/photo-1689330691805-6e87670e6cc0?w=1600&q=85&auto=format&fit=crop", alt: "Cards and close-up magic props." }
+  ],
+  faq: [
+    { q: "I've never done magic — where should I start?", a: "At the counter, telling us honestly that you're a complete beginner — it's our favourite place to start, and there's no judgement whatsoever. The worst thing a new magician can do is buy a difficult sleight-of-hand effect, fail at it, and conclude they 'can't do magic'; the skill was just years away. We'll steer you instead to well-made self-working effects (which are astonishing and need no finger-flinging) and one or two simple techniques, paired with a good beginner's book and, ideally, a lesson to get you going. You'll be genuinely fooling friends within days, building real skills as you go, and enjoying it — which is the whole point. From there the craft opens up as far as you want to take it. Start easy, succeed early, and let the wonder pull you deeper." },
+    { q: "Isn't it pointless buying a trick if you'll just look up the secret online?", a: "You can find almost any secret online, and it's the biggest misunderstanding about magic there is — because knowing the secret is not the same as being able to do the trick, not remotely. The secret to most great effects is disappointingly simple; the magic is entirely in the execution: the hours of practice, the misdirection, the timing, the patter, the nerve to perform it under real eyes. Watching a tutorial teaches you the method in five minutes and leaves you utterly unable to fool anyone for months. What you're really buying from us is well-made props that work reliably, the proper teaching that turns a method into a performance, and honest guidance on what's worth your practice time. The knowledge is free; the skill is everything, and that's what we help you build." },
+    { q: "Do you actually teach magic, and who are the lessons for?", a: "Yes — one-to-one lessons are, we'd argue, the most valuable thing in the shop, and they're for everyone from nervous first-timers to working pros polishing an act. A lesson with a magician who performs for a living short-cuts months of frustrated solo practice: we'll correct the tiny things that give the game away, teach you misdirection and patter that no tutorial conveys, build a small set of effects you can actually perform with confidence, and be honest about where your practice will pay off. We tailor entirely to you — a child learning their first three tricks, an adult wanting a party piece, a keen hobbyist levelling up, or a semi-pro sharpening their close-up set. Book a single lesson to try it or a series to really progress; either way you'll leave able to do something you couldn't before." },
+    { q: "Can you help me choose a gift for someone into magic?", a: "Gladly, and we'll make sure it's something they'll actually treasure rather than a duplicate or a disappointment. Tell us as much as you know — their age, roughly how experienced they are, whether they like cards, coins or bigger effects, and anything they already own — and we'll suggest options across your budget, from a beautifully-made deck or a classic book to a proper effect or a course of lessons. If you're unsure of their level (easy to misjudge), a gift voucher lets them choose with our guidance, which experienced magicians often prefer. For children, we're careful to pick real, sturdy effects that build genuine skill and delight rather than plastic novelties that break and bore. And we gift-wrap. A well-chosen bit of magic is a gift people remember for years." },
+    { q: "How do I hire a magician for my wedding or event?", a: "Just tell us about your occasion and we'll match you to the right performer from magicians we know, have vetted, and would happily put our own name to — all insured and experienced. Close-up (or 'walk-around') magic is wonderful for drinks receptions and between-course lulls, with a performer moving among your guests doing miracles inches from their eyes; stage or cabaret magic suits a seated audience and a set-piece moment. We'll talk through your numbers, timings, venue and the feel you want, then recommend the right style and performer and handle the booking. Because we're magicians ourselves, we know who's genuinely good with a real audience rather than just polished online, and we won't send you anyone we wouldn't want at our own party. Get in touch well ahead for popular dates." },
+    { q: "Do you buy or take in old magic props, books and collections?", a: "Often, yes — we're always interested in quality magic, particularly good books, well-made apparatus and vintage or collectable effects, whether a single item or an entire collection from a magician downsizing or an estate. We'll give you an honest assessment of what things are and what we can offer, outright or on commission through the shop, and we'll tell you frankly if something is better suited to a specialist magic auction. Magic books in particular can be surprisingly valuable and are easy to undervalue if you don't know the field. If you've inherited a magician's effects and have no idea what they are, bring them in or send photographs; we'll happily tell you what you've got, which is sometimes a lovely surprise and always, at least, an interesting afternoon." }
+  ],
+  area: { places: ["Brighton", "Hove", "Lewes", "Worthing", "Eastbourne", "Sussex-wide"] },
+  credentials: [
+    { label: "Since 1994", detail: "A real demonstration counter, not a joke box" },
+    { label: "Shown before sold", detail: "Every effect demonstrated properly first" },
+    { label: "Working magicians", detail: "Everyone behind the counter performs" },
+    { label: "Lessons & hire", detail: "We teach the craft and supply the pros" }
+  ],
+  location: { name: "Smoke & Mirrors", addressStreet: "9 Meeting House Lane", addressLocality: "Brighton", addressRegion: "East Sussex", addressPostcode: "BN1 1HB", addressCountry: "United Kingdom" },
+  cta: { heading: "Come to the counter. We'll show you the trick.", body: "See the effect performed, get a straight answer about the practice behind it, and leave with something that rewards the hours. Beginners, pros, gift-givers and anyone booking a magician — the curtain's open.", primary: { label: "Come to the counter", href: "#book" }, secondary: { label: "01273 555 480", href: "tel:+441273555480" } },
+  messaging: { whatsapp: "https://wa.me/441273555480", messenger: "https://m.me/smokeandmirrors" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#0d0a14; --ivory:#efe9dd; --gold:#cf9f45; --crimson:#a52639; --violet:#7a5cc4;
+    --ink:#0d0a14; --mid:#6f6880; --mid-d:#a49cb6; --rule:rgba(13,10,20,0.16); --rule-d:rgba(239,233,221,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--ivory);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--gold);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--gold);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--gold);color:var(--void);} .btn-primary:hover{background:var(--ivory);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(239,233,221,0.4);color:var(--ivory);} .btn-ghost:hover{background:var(--ivory);color:var(--void);border-color:var(--ivory);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid rgba(239,233,221,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(13,10,20,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(239,233,221,0.16);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--gold);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7.4vw,112px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;max-width:17ch;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--violet);color:transparent;}
+  .hero-headline .em{color:var(--gold);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--gold);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(13,10,20,0.82);font-weight:700;}
+
+  .about{background:var(--ivory);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--crimson);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#413a4e;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(239,233,221,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(239,233,221,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(207,159,69,0.08);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--ivory);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--crimson);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#413a4e;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(239,233,221,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--gold);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(239,233,221,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--gold);color:var(--void);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(239,233,221,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(239,233,221,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--gold);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(239,233,221,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(239,233,221,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--ivory);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#413a4e;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(239,233,221,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.4) invert(0.9) hue-rotate(200deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--crimson);color:var(--ivory);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--ivory);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7vw,116px);line-height:0.9;margin:14px auto 18px;max-width:16ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--ivory);color:transparent;}
+  .cta-band p{color:rgba(239,233,221,0.86);max-width:50ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--ivory);color:var(--crimson);} .cta-band .btn-primary:hover{background:var(--gold);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(239,233,221,0.6);color:var(--ivory);} .cta-band .btn-ghost:hover{background:var(--ivory);color:var(--crimson);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(239,233,221,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(239,233,221,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--crimson);color:var(--ivory);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(165,38,57,0.4);}
+  .msg-fab a:hover{background:var(--ivory);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Smoke & Mirrors","description":"Magic shop in Brighton — quality close-up and stage magic, honest advice for beginners and pros, one-to-one lessons, and magicians and illusions for hire at events.","url":"https://smokeandmirrors.co.uk/","telephone":"+441273555480","email":"shop@smokeandmirrors.co.uk","address":{"@type":"PostalAddress","streetAddress":"9 Meeting House Lane","addressLocality":"Brighton","addressRegion":"East Sussex","postalCode":"BN1 1HB","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":50.8220,"longitude":-0.1420},"areaServed":["Brighton","Hove","Lewes","Worthing"],"image":["https://images.unsplash.com/photo-1632718427831-5cbfeb7b5657?w=1600"],"foundingDate":"1994"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I've never done magic — where should I start?","acceptedAnswer":{"@type":"Answer","text":"Tell us you're a complete beginner — it's our favourite place to start. We steer new magicians to well-made self-working effects and one or two simple techniques with a good book and ideally a lesson, so you're genuinely fooling friends within days and building real skills. Start easy, succeed early, and let the wonder pull you deeper."}},
+{"@type":"Question","name":"Isn't it pointless buying a trick if the secret is online?","acceptedAnswer":{"@type":"Answer","text":"Knowing the secret isn't being able to do the trick. Most methods are simple; the magic is in execution — practice, misdirection, timing, patter, nerve. A tutorial teaches the method in minutes and leaves you unable to fool anyone for months. You're buying reliable props, proper teaching and honest guidance on what's worth your practice."}},
+{"@type":"Question","name":"Do you teach magic, and who are lessons for?","acceptedAnswer":{"@type":"Answer","text":"Yes — one-to-one lessons for everyone from first-timers to working pros. A lesson with a performing magician short-cuts months of solo practice: we fix the tells, teach misdirection and patter, and build a small set you can perform with confidence. Book a single lesson or a series."}},
+{"@type":"Question","name":"Can you help me choose a gift for someone into magic?","acceptedAnswer":{"@type":"Answer","text":"Gladly. Tell us their age, experience and what they like, and we'll suggest options across your budget — a fine deck, a classic book, a proper effect or lessons. Unsure of their level? A voucher lets them choose with our guidance. For children we pick real, sturdy effects, not plastic novelties. We gift-wrap too."}},
+{"@type":"Question","name":"How do I hire a magician for my wedding or event?","acceptedAnswer":{"@type":"Answer","text":"Tell us about your occasion and we'll match you to a vetted, insured performer we'd put our name to. Close-up suits drinks receptions; stage magic suits a seated audience. We handle the booking, and being magicians ourselves we know who's genuinely good with a real crowd. Get in touch early for popular dates."}},
+{"@type":"Question","name":"Do you buy old magic props, books and collections?","acceptedAnswer":{"@type":"Answer","text":"Often — quality books, well-made apparatus and vintage effects, single items or whole collections. We assess honestly, offer outright or on commission, and say if a specialist auction suits better. Magic books can be surprisingly valuable. Bring items in or send photos and we'll tell you what you've got."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Smoke <span>&amp;</span> Mirrors</a>
+    <nav class="nav-links">
+      <a href="#about">The shop</a><a href="#services">What we do</a><a href="#location">Find us</a><a href="#book">The counter</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v77">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Magic shop · lessons · illusions for hire · Brighton</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      The secret is never <span class="out">the trick.</span> It's the ten thousand hours <span class="em">behind it.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1632718427831-5cbfeb7b5657?w=2000&q=85&auto=format&fit=crop"
+             alt="A playing card on a dark table." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A proper magic shop in Brighton — the kind with a demonstration counter, a curtain to the back room, and someone behind the till who'll show you the effect before you buy it. Close-up and stage magic for beginners and professionals, honest advice, one-to-one lessons, and magicians for hire. We sell wonder; the practice is on you.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Come to the counter</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we do</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Fooling Brighton since 1994</span>
+    <span>Every effect shown before it's sold</span>
+    <span>Working magicians behind the counter</span>
+    <span>Lessons &amp; magicians for hire</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v43">
+  <div class="wrap">
+    <div class="sw-head"><span>ACT 01 / THE SHOP</span><span>THE DEMONSTRATION COUNTER</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Anyone can sell you a gimmick. We sell you the effect — and how to <em>actually do it.</em></h2>
+        <p>Smoke &amp; Mirrors is a magic shop in the Brighton Lanes, run by working magicians who've spent their lives at the craft. We opened in 1994 as the antidote to the sad little joke-shop magic set: a real shop with a demonstration counter, where you see the effect performed properly before you part with a penny, and where the person serving you can actually do the trick.</p>
+        <p>We stock close-up magic — cards, coins, everyday-object miracles — and stage and parlour material, from a first self-working card trick for a nervous beginner to serious professional apparatus. We carry the good stuff: well-made props, the classic books that teach technique properly, and the effects that reward practice rather than promising miracles with none. And we'll steer you away from the overpriced gadget that does the work for you and dies in a drawer.</p>
+        <p>But the honest truth of this shop, and we tell everyone who comes in, is that the prop is the easy part. The secret to every piece of magic worth watching is the hours of practice, the misdirection, the patter and the nerve behind it. So we teach — one-to-one lessons for all levels — we recommend the books that matter, and we'll always be straight about what a trick can and can't do. Buy the effect here; earn the wonder at home.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1689330691805-6e87670e6cc0?w=1200&q=85&auto=format&fit=crop"
+           alt="A deck of playing cards on a table." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v70" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>ACT 02 / WHAT WE DO</span><span>EFFECTS, LESSONS & HIRE</span></div>
+    <h2 class="h2">What we do.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Close-up magic</h3><p>Cards, coins and everyday-object miracles — from a self-working first trick to sleight-of-hand for the dedicated. Demonstrated at the counter so you see exactly what you're buying.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Stage &amp; parlour magic</h3><p>Larger effects for performing to a room — from parlour classics to professional apparatus. We'll match the material to your act, your budget and, honestly, your skill.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>One-to-one lessons</h3><p>The most important thing we sell. Learn technique, misdirection, patter and performance from working magicians, at your level, whether it's your first flourish or your paid act.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Books &amp; the classics</h3><p>The literature that actually teaches magic — the foundational texts and modern classics — because the effect you own is worth nothing without the technique the books give you.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Magicians for hire</h3><p>Book a professional close-up or stage magician for weddings, parties and corporate events — vetted, insured performers we'd put our name to. We'll match one to your occasion.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Beginner starter sets</h3><p>Honestly-chosen kits for children and adults starting out — real effects that build real skills, with a lesson to get going, not a box of plastic rubbish that kills the interest.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v42">
+  <div class="wrap">
+    <div class="sw-head"><span>ACT 03 / THE DIFFERENCE</span><span>WHY THIS COUNTER</span></div>
+    <h2 class="h2">Why this counter.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>We show you before you buy.</h3><p>Every effect is demonstrated properly at the counter. You see exactly what it looks like performed, and we tell you honestly how much practice it needs, before any money changes hands.</p></div>
+      <div><span class="no">02 / 03</span><h3>The book matters more than the prop.</h3><p>We'll happily sell you a five-pound book that will make you a better magician than a fifty-pound gimmick. Technique is the trick; we point you to where it's really taught.</p></div>
+      <div><span class="no">03 / 03</span><h3>Working magicians, straight answers.</h3><p>Everyone here performs. Ask us what's worth buying, what's overhyped, and what a trick can really do in front of real people, and you'll get the truth, not the sales pitch.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>ACT 04 / HOW IT GOES</span><span>LEVEL → SEE IT → LEARN → RETURN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Tell us your level</h3><p>Never held a deck, or turning professional? Buying for a child, a hobby or a paid act? We start there — there's no point selling a beginner a knuckle-buster or a pro a puzzle.</p></li>
+      <li><span class="step">STEP 02</span><h3>See it performed</h3><p>We demonstrate the effect at the counter, properly, so you know what it looks like in skilled hands — and we tell you straight how much practice stands between you and that.</p></li>
+      <li><span class="step">STEP 03</span><h3>Learn the craft</h3><p>Take the effect home with the book that teaches it, or book a lesson and learn it from a working magician. The prop is the start; the practice is the magic.</p></li>
+      <li><span class="step">STEP 04</span><h3>Come back for more</h3><p>Magicians never stop learning. Return for the next effect, the next lesson, or just to talk shop across the counter. The best sessions here don't ring the till at all.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v42">
+  <div class="wrap">
+    <div class="sw-head"><span>ACT 05 / FROM THE AUDIENCE</span><span>WHAT THEY LEARNED</span></div>
+    <blockquote class="t-quote">“Six months of practice later I can genuinely fool people — and I <em>understand why.</em>”</blockquote>
+    <div class="t-attr">Ravi S. — beginner, close-up</div>
+    <div class="t-sub">
+      <figure><blockquote>“My daughter's obsessed with magic and every shop had sold her plastic tat that broke in a day. Smoke &amp; Mirrors picked real beginner effects, showed her how they worked, and treated her like a proper apprentice. She practises for hours now. Wonderful, honest people.”</blockquote><figcaption>Hannah L. — starter set &amp; lesson</figcaption></figure>
+      <figure><blockquote>“Hired one of their close-up magicians for our wedding drinks reception and he was extraordinary — moving between tables, fooling everyone, exactly the right tone. Booked through the shop, vetted and insured, no fuss. Guests still talk about it. Faultless.”</blockquote><figcaption>Tom &amp; Priya — magician for hire</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v70" class="about" style="background:var(--ivory);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>ACT 06 / AT THE COUNTER</span><span>CARDS, COINS &amp; CRAFT</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1632718427831-5cbfeb7b5657?w=1600&q=85&auto=format&fit=crop" alt="A deck of playing cards fanned." /><figcaption>THE FAN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1689330691805-6e87670e6cc0?w=1600&q=85&auto=format&fit=crop" alt="A magician holding a card." /><figcaption>THE FORCE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1541278107931-e006523892df?w=1600&q=85&auto=format&fit=crop" alt="Playing cards spread on a table." /><figcaption>THE SPREAD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1541278107931-e006523892df?w=1600&q=85&auto=format&fit=crop" alt="A hand performing a card flourish." /><figcaption>THE FLOURISH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1632718427831-5cbfeb7b5657?w=1600&q=85&auto=format&fit=crop" alt="A fan of cards held up." /><figcaption>THE REVEAL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1689330691805-6e87670e6cc0?w=1600&q=85&auto=format&fit=crop" alt="Cards and close-up magic props." /><figcaption>THE KIT</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>ACT 07 / ASKED AT THE COUNTER</span><span>NO SECRETS GIVEN AWAY</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441273555480" style="color:var(--gold);font-weight:700;">01273 555 480</a>, or come in. We won't reveal a secret over the phone, but we'll happily talk craft.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I've never done magic — where should I start?</summary><p>At the counter, telling us honestly that you're a complete beginner — it's our favourite place to start, and there's no judgement whatsoever. The worst thing a new magician can do is buy a difficult sleight-of-hand effect, fail at it, and conclude they "can't do magic"; the skill was just years away. We'll steer you instead to well-made self-working effects (which are astonishing and need no finger-flinging) and one or two simple techniques, paired with a good beginner's book and, ideally, a lesson to get you going. You'll be genuinely fooling friends within days, building real skills as you go, and enjoying it — which is the whole point. From there the craft opens up as far as you want to take it. Start easy, succeed early, and let the wonder pull you deeper.</p></details>
+        <details><summary>Isn't it pointless buying a trick if you'll just look up the secret online?</summary><p>You can find almost any secret online, and it's the biggest misunderstanding about magic there is — because knowing the secret is not the same as being able to do the trick, not remotely. The secret to most great effects is disappointingly simple; the magic is entirely in the execution: the hours of practice, the misdirection, the timing, the patter, the nerve to perform it under real eyes. Watching a tutorial teaches you the method in five minutes and leaves you utterly unable to fool anyone for months. What you're really buying from us is well-made props that work reliably, the proper teaching that turns a method into a performance, and honest guidance on what's worth your practice time. The knowledge is free; the skill is everything, and that's what we help you build.</p></details>
+        <details><summary>Do you actually teach magic, and who are the lessons for?</summary><p>Yes — one-to-one lessons are, we'd argue, the most valuable thing in the shop, and they're for everyone from nervous first-timers to working pros polishing an act. A lesson with a magician who performs for a living short-cuts months of frustrated solo practice: we'll correct the tiny things that give the game away, teach you misdirection and patter that no tutorial conveys, build a small set of effects you can actually perform with confidence, and be honest about where your practice will pay off. We tailor entirely to you — a child learning their first three tricks, an adult wanting a party piece, a keen hobbyist levelling up, or a semi-pro sharpening their close-up set. Book a single lesson to try it or a series to really progress; either way you'll leave able to do something you couldn't before.</p></details>
+        <details><summary>Can you help me choose a gift for someone into magic?</summary><p>Gladly, and we'll make sure it's something they'll actually treasure rather than a duplicate or a disappointment. Tell us as much as you know — their age, roughly how experienced they are, whether they like cards, coins or bigger effects, and anything they already own — and we'll suggest options across your budget, from a beautifully-made deck or a classic book to a proper effect or a course of lessons. If you're unsure of their level (easy to misjudge), a gift voucher lets them choose with our guidance, which experienced magicians often prefer. For children, we're careful to pick real, sturdy effects that build genuine skill and delight rather than plastic novelties that break and bore. And we gift-wrap. A well-chosen bit of magic is a gift people remember for years.</p></details>
+        <details><summary>How do I hire a magician for my wedding or event?</summary><p>Just tell us about your occasion and we'll match you to the right performer from magicians we know, have vetted, and would happily put our own name to — all insured and experienced. Close-up (or "walk-around") magic is wonderful for drinks receptions and between-course lulls, with a performer moving among your guests doing miracles inches from their eyes; stage or cabaret magic suits a seated audience and a set-piece moment. We'll talk through your numbers, timings, venue and the feel you want, then recommend the right style and performer and handle the booking. Because we're magicians ourselves, we know who's genuinely good with a real audience rather than just polished online, and we won't send you anyone we wouldn't want at our own party. Get in touch well ahead for popular dates.</p></details>
+        <details><summary>Do you buy or take in old magic props, books and collections?</summary><p>Often, yes — we're always interested in quality magic, particularly good books, well-made apparatus and vintage or collectable effects, whether a single item or an entire collection from a magician downsizing or an estate. We'll give you an honest assessment of what things are and what we can offer, outright or on commission through the shop, and we'll tell you frankly if something is better suited to a specialist magic auction. Magic books in particular can be surprisingly valuable and are easy to undervalue if you don't know the field. If you've inherited a magician's effects and have no idea what they are, bring them in or send photographs; we'll happily tell you what you've got, which is sometimes a lovely surprise and always, at least, an interesting afternoon.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ACT 08 / MAGICIANS FROM</span><span>BRIGHTON & ALL SUSSEX</span></div>
+    <ul class="area-list">
+      <li>Brighton</li><li>Hove</li><li>Lewes</li><li>Worthing</li><li>Eastbourne</li><li>Sussex-wide</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v17" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ACT 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Since 1994</div><div class="detail">A real demonstration counter, not a joke box</div></div>
+      <div><div class="label">Shown before sold</div><div class="detail">Every effect demonstrated properly first</div></div>
+      <div><div class="label">Working magicians</div><div class="detail">Everyone behind the counter performs</div></div>
+      <div><div class="label">Lessons &amp; hire</div><div class="detail">We teach the craft and supply the pros</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ACT 10 / FIND THE SHOP</span><span>MEETING HOUSE LANE, THE LANES</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Smoke &amp; Mirrors</strong><br />
+          9 Meeting House Lane<br />
+          Brighton BN1 1HB<br /><br />
+          <a href="tel:+441273555480" data-bind="business.phoneDisplay">01273 555 480</a><br />
+          <a href="mailto:shop@smokeandmirrors.co.uk" data-bind="business.email">shop@smokeandmirrors.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SAT</span><span>10 – 6</span></div>
+          <div class="row"><span>SUN</span><span>11 – 4</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're tucked down Meeting House Lane in the Brighton Lanes — look for the curtain in the window. Lessons and hire by appointment.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Smoke & Mirrors, Brighton" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.1510%2C50.8180%2C-0.1330%2C50.8260&layer=mapnik&marker=50.8220%2C-0.1420"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v45">
+  <div class="wrap">
+    <div class="kick">ACT 11 / THE COUNTER</div>
+    <h2 data-bind="cta.heading">Come to the counter. We'll <em>show you the trick.</em></h2>
+    <p data-bind="cta.body">See the effect performed, get a straight answer about the practice behind it, and leave with something that rewards the hours. Beginners, pros, gift-givers and anyone booking a magician — the curtain's open.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Come to the counter</a>
+      <a class="btn btn-ghost" href="tel:+441273555480" data-bind="cta.secondary.label">01273 555 480</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441273555480" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Smoke <span style="color:var(--gold);">&amp;</span> Mirrors</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A proper magic shop in the Brighton Lanes — run by working magicians, fooling the city since 1994.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          9 Meeting House Lane<br />Brighton BN1 1HB<br />
+          <a href="tel:+441273555480">01273 555 480</a><br />
+          <a href="mailto:shop@smokeandmirrors.co.uk">shop@smokeandmirrors.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we do</a><a href="#about">The shop</a><a href="#location">Find us</a><a href="#book">The counter</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> SMOKE &amp; MIRRORS</span>
+      <span>WE SELL WONDER · THE PRACTICE IS ON YOU</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

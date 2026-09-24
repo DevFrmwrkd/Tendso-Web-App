@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sessanta — wood-fired Neapolitan pizzeria in Leeds</title>
+<meta name="description" content="Sessanta is a Neapolitan pizzeria in Leeds — a 485°C wood oven, 48-hour dough, San Marzano tomatoes, and a pizza that bakes in sixty seconds. No pineapple, no apologies." />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,900;1,9..144,500&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Sessanta", phone: "+44 113 466 2280", phoneDisplay: "0113 466 2280", email: "forno@sessanta.pizza", foundedYear: 2019 },
+  hero: {
+    kicker: "Wood-fired Neapolitan · 485°C · Meanwood Road, Leeds",
+    headline: "SIXTY SECONDS. THAT'S THE WHOLE SECRET.",
+    lede: "Dough proved 48 hours, San Marzano tomatoes crushed by hand, fior di latte torn not sliced, and an oven so hot the pizza bakes in sixty seconds flat. That char, that pillow crust, that leopard-spotted underside — it can't be rushed and it can't be faked. Named after the count that matters.",
+    primaryCta: { label: "Book a table", href: "#book" },
+    secondaryCta: { label: "The dough rules", href: "#services" },
+    image: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A leopard-spotted Neapolitan pizza fresh from the wood oven."
+  },
+  trust: { years: "Firing the oven since 2019" },
+  about: {
+    heading: "One oven. One count. Sessanta.",
+    paragraphs: [
+      "The oven came from Naples in a crate, was assembled brick by brick by a man who spoke only Italian and mild despair, and reaches 485°C at the dome. At that heat a pizza is done in sixty seconds — hence the name — and everything about the kitchen is arranged around that one number.",
+      "The dough is the argument we've had a thousand times and finally won: type-00 flour, a long cold ferment of forty-eight hours, salt, water, a whisper of yeast, nothing else. It's why the crust puffs into that blistered cornicione instead of sitting there like a cracker.",
+      "The menu is short because a Neapolitan menu should be. Marinara, margherita, a handful of specials the pizzaiolo will defend at length, and a nightly special that exists until the mozzarella runs out. No pineapple. We've made peace with losing that customer."
+    ],
+    portrait: "https://images.unsplash.com/photo-1571066811602-716837d681de?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "The pizzaiolo sliding a pizza into the wood-fired oven."
+  },
+  services: [
+    { name: "The oven", description: "485°C at the dome, oak and beech, tended all service. The pizza goes in raw and comes out in sixty seconds, leopard-spotted and singing." },
+    { name: "The dough", description: "Type-00, 48-hour cold ferment, hand-stretched to order — never rolled, never docked. The crust is the whole point of coming." },
+    { name: "The short menu", description: "Marinara, margherita, and a tight list of classics done properly. Plus one nightly special that lasts until the mozzarella's gone." },
+    { name: "Cichetti & the bar", description: "Small Italian plates while you wait, a natural wine list that's actually short, negronis stirred not shaken, and Leeds-brewed beer on tap." },
+    { name: "Takeaway (baked, not steamed)", description: "Boxed with a vent so it doesn't sweat into sadness on the walk home. Collection only — a delivered Neapolitan is a tragedy we won't cause." },
+    { name: "Private & the chef's counter", description: "Six stools at the oven mouth for the people who want the show. Whole-room hire for parties who understand there is no pineapple." }
+  ],
+  why: [
+    { title: "The heat is non-negotiable.", body: "485°C is what makes Neapolitan Neapolitan — the fast bake that puffs the crust and keeps the middle soft. A cooler oven makes a nice pizza. It doesn't make this one." },
+    { title: "48 hours before you order.", body: "The dough you eat tonight was mixed the day before yesterday. That slow cold ferment is why it's digestible, blistered, and worth the wait. Speed lives in the oven, not the fridge." },
+    { title: "Short menu, defended.", body: "Every pizza on the board has earned its place and can be argued for by name. We'd rather do eight things perfectly than forty things adequately, and the pineapple thing is final." }
+  ],
+  how: [
+    { step: "01", title: "Get a table", body: "Book ahead for weekends; walk-ins welcome midweek and at the bar. The chef's counter is first-come and worth the elbows." },
+    { step: "02", title: "Order the classic", body: "First visit? Margherita. Trust us and the oven. Marinara if you want to understand what tomato and oregano can actually do." },
+    { step: "03", title: "Watch it fly", body: "Stretched, dressed, peeled in, turned once, out in sixty seconds. From the counter you can watch the whole thing catch." },
+    { step: "04", title: "Eat it now", body: "Neapolitan is a soft, foldable, eat-it-immediately pizza — knife-and-fork the middle, fold the slice, don't wait for a photo. It waits for no one." }
+  ],
+  testimonials: [
+    { quote: "I lived in Naples for three years and cried a little into the margherita. That's the crust. That's the actual crust. I have driven from Sheffield twice since purely for it.", name: "Chiara V.", context: "margherita, homesick, converted" },
+    { quote: "Asked for pineapple as a joke on a first date. The pizzaiolo's face ended the joke and, arguably, improved the date. We're married now. No pineapple at the wedding.", name: "Tom & Jess", context: "the pineapple incident, 2021" },
+    { quote: "The chef's counter is the best seat in Leeds. You watch sixty seconds of fire do what an hour of a normal oven can't, and you understand the whole menu instantly.", name: "Raj P.", context: "chef's counter regular" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1600&q=85&auto=format&fit=crop", alt: "Leopard-spotted margherita." },
+    { src: "https://images.unsplash.com/photo-1571066811602-716837d681de?w=1600&q=85&auto=format&fit=crop", alt: "Peeling a pizza into the oven." },
+    { src: "https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=1600&q=85&auto=format&fit=crop", alt: "A margherita, just baked." },
+    { src: "https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=1600&q=85&auto=format&fit=crop", alt: "A pizza fresh from the oven." },
+    { src: "https://images.unsplash.com/photo-1601924582970-9238bcb495d9?w=1600&q=85&auto=format&fit=crop", alt: "A slice, lifted." },
+    { src: "https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?w=1600&q=85&auto=format&fit=crop", alt: "Mozzarella stretching from a slice." }
+  ],
+  faq: [
+    { q: "Why is the middle of the pizza wet / floppy?", a: "Because it's Neapolitan, and that's correct. The soft, slightly wet centre is the style — you knife-and-fork the middle and fold the crust. A crisp-all-over base is a different, Roman thing, and a lovely one, but it isn't what this oven makes." },
+    { q: "Do you take bookings?", a: "Yes for tables, recommended at weekends. The bar and the six-seat chef's counter are walk-in only — arrive early or accept a lovely negroni's wait. Big groups: ring us, don't just turn up ten-strong on a Saturday." },
+    { q: "Can you do gluten-free?", a: "We do a proper gluten-free base, made to order — not brilliant like the real dough (we won't pretend), but genuinely good and taken seriously, with separate prep. Coeliacs, flag it when you book so we brief the kitchen." },
+    { q: "Vegan and vegetarian options?", a: "Loads vegetarian, and several genuinely good vegan pizzas with a house-made plant mozzarella that surprises people. The marinara is vegan by birth and arguably the purest thing on the menu." },
+    { q: "Do you deliver?", a: "No, and we mean it kindly. A Neapolitan pizza steams itself soggy inside fifteen minutes in a box on a moped. Collection is boxed with a vent and a stern look; eating in is always better. That's not gatekeeping, it's physics." },
+    { q: "Is there really no pineapple?", a: "There is really no pineapple. There is no secret pineapple. Asking increases the odds of a good-natured lecture on the Associazione Verace Pizza Napoletana. Everything else, we'll happily tweak." }
+  ],
+  area: { places: ["Meanwood", "Chapel Allerton", "Headingley", "Roundhay", "city centre", "Kirkstall"] },
+  credentials: [
+    { label: "The oven", detail: "Naples-built wood oven, 485°C at the dome" },
+    { label: "The dough", detail: "Type-00, 48-hour cold ferment, hand-stretched" },
+    { label: "Hygiene", detail: "Food hygiene rating 5, inspected" },
+    { label: "The rules", detail: "Verace-style method, defended nightly" }
+  ],
+  location: { name: "Sessanta", addressStreet: "88 Meanwood Road", addressLocality: "Leeds", addressRegion: "West Yorkshire", addressPostcode: "LS7 2JD", addressCountry: "United Kingdom" },
+  cta: { heading: "SIXTY SECONDS FROM FIRE TO YOU.", body: "Book a table, grab a stool at the oven, or collect a boxed one — just eat it now, while it's singing.", primary: { label: "Book a table", href: "#book" }, secondary: { label: "0113 466 2280", href: "tel:+441134662280" } },
+  messaging: { whatsapp: "https://wa.me/441134662280", messenger: "https://m.me/sessantapizza" }
+};
+</script>
+
+<style>
+  :root {
+    --char:#171210; --cream:#f6ecd8; --sanmarzano:#c62828; --basil:#3c6e3f; --crust:#e6b657;
+    --mid:#8a7d6a; --rule:rgba(23,18,16,0.16); --rule-d:rgba(246,236,216,0.16);
+    --serif:"Fraunces",serif; --grot:"Bricolage Grotesque",sans-serif; --mono:"Space Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--char);font-family:var(--grot);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--sanmarzano);}
+  .wrap{width:min(1300px,94vw);margin-inline:auto;}
+  .stamp{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--sanmarzano);font-weight:700;}
+  .h2{font-family:var(--serif);font-weight:900;font-size:clamp(40px,6vw,92px);line-height:0.94;letter-spacing:-0.015em;margin:0 0 0.45em;}
+  .h2 em{font-style:italic;font-weight:500;color:var(--sanmarzano);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(74px,9vw,132px) 0;position:relative;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--grot);font-weight:700;font-size:14px;letter-spacing:0.03em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:999px;}
+  .btn-primary{background:var(--sanmarzano);color:var(--cream);} .btn-primary:hover{background:var(--char);}
+  .btn-ghost{border:2px solid var(--char);} .btn-ghost:hover{background:var(--char);color:var(--cream);}
+  .tkt-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);border-bottom:2px solid var(--char);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(246,236,216,0.95);backdrop-filter:blur(10px);border-bottom:2px solid var(--char);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 0;}
+  .wm{font-family:var(--serif);font-weight:900;font-size:22px;text-decoration:none;letter-spacing:-0.01em;}
+  .wm span{color:var(--sanmarzano);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — the 60-count: giant number-in-headline, photo as a fired disc */
+  .hero{padding:clamp(44px,5.5vw,80px) 0 0;}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:clamp(36px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--serif);font-weight:900;line-height:0.9;letter-spacing:-0.02em;margin:22px 0 22px;font-size:clamp(42px,6.4vw,104px);}
+  .hero h1 em{font-style:italic;font-weight:500;color:var(--sanmarzano);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.7;font-size:clamp(15.5px,1.5vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-disc{position:relative;aspect-ratio:1/1;}
+  .hero-disc img{width:100%;height:100%;object-fit:cover;border-radius:50%;border:3px solid var(--char);}
+  .hero-disc .count{position:absolute;top:-4%;right:-4%;width:34%;aspect-ratio:1/1;border-radius:50%;background:var(--char);color:var(--crust);display:grid;place-items:center;text-align:center;font-family:var(--serif);font-weight:900;line-height:0.85;}
+  .hero-disc .count b{display:block;font-size:clamp(28px,5vw,64px);}
+  .hero-disc .count span{font-family:var(--mono);font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--cream);margin-top:4px;}
+  .hero-disc .ring{position:absolute;inset:-16px;border:1px dashed rgba(23,18,16,0.35);border-radius:50%;pointer-events:none;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .hero-disc{max-width:420px;}}
+
+  .trust{padding:0;background:var(--char);color:var(--cream);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:rgba(246,236,216,0.8);font-weight:700;}
+
+  /* ABOUT — char slab */
+  .about{background:var(--char);color:var(--cream);}
+  .about .h2{color:var(--cream);}
+  .about .h2 em{color:var(--crust);}
+  .about .tkt-head{border-color:rgba(246,236,216,0.4);color:rgba(246,236,216,0.6);}
+  .about .num{position:absolute;top:3vw;right:-1vw;font-family:var(--serif);font-weight:900;font-size:clamp(140px,26vw,420px);line-height:0.8;color:transparent;-webkit-text-stroke:1px rgba(230,182,87,0.18);pointer-events:none;user-select:none;}
+  .about-grid{display:grid;grid-template-columns:0.95fr 1.05fr;gap:clamp(36px,5vw,84px);align-items:center;position:relative;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border:3px solid var(--crust);}
+  .about-prose p{font-size:clamp(16.5px,1.6vw,19.5px);line-height:1.72;margin:0 0 1em;color:rgba(246,236,216,0.9);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — the ticket rail */
+  .svc{border-top:2px solid var(--char);}
+  .svc-row{display:grid;grid-template-columns:130px 1fr 1.3fr;gap:clamp(18px,3vw,44px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(198,40,40,0.05);padding-left:14px;}
+  .svc-row .no{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;color:var(--sanmarzano);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--serif);font-weight:900;font-size:clamp(21px,2.2vw,30px);margin:0;line-height:1;letter-spacing:-0.01em;}
+  .svc-row p{color:var(--mid);margin:0;font-size:14.5px;line-height:1.64;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  /* WHY — san marzano red */
+  .why{background:var(--sanmarzano);color:var(--cream);}
+  .why .tkt-head{border-color:rgba(246,236,216,0.5);color:rgba(246,236,216,0.75);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .n{font-family:var(--serif);font-weight:900;font-size:clamp(60px,7vw,104px);line-height:0.82;color:var(--crust);display:block;margin-bottom:14px;letter-spacing:-0.03em;}
+  .why-grid h3{font-family:var(--serif);font-weight:900;font-size:23px;margin:0 0 10px;line-height:1;letter-spacing:-0.01em;}
+  .why-grid p{color:rgba(246,236,216,0.9);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:2px solid var(--char);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--sanmarzano);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--serif);font-weight:900;font-size:19px;margin:10px 0 8px;letter-spacing:-0.01em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#efe2c6;}
+  .t-quote{font-family:var(--serif);font-weight:900;font-size:clamp(26px,3.8vw,54px);line-height:1.02;max-width:26ch;margin:0 0 24px;letter-spacing:-0.015em;}
+  .t-quote em{font-style:italic;font-weight:500;color:var(--sanmarzano);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(40px,5vw,64px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid var(--char);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.66;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — the pass */
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(10px,1.5vw,18px);}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border:2px solid var(--char);}
+  .g-grid img{width:100%;height:100%;object-fit:cover;transition:0.35s;}
+  .g-grid figure:hover img{transform:scale(1.05);}
+  .g-grid figure:nth-child(1){grid-column:span 3;grid-row:span 2;} .g-grid figure:nth-child(1) img{aspect-ratio:3/3.3;}
+  .g-grid figure:nth-child(2){grid-column:span 3;} .g-grid figure:nth-child(2) img{aspect-ratio:16/9;}
+  .g-grid figure:nth-child(n+3){grid-column:span 3;} .g-grid figure:nth-child(n+3) img{aspect-ratio:16/9;}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--char);color:var(--crust);font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;padding:6px 10px;}
+  @media(max-width:760px){.g-grid figure{grid-column:span 6 !important;grid-row:auto !important;} .g-grid figure img{aspect-ratio:4/3 !important;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--char);}
+  .faq-list summary{font-family:var(--serif);font-weight:900;font-size:20px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.1;letter-spacing:-0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--sanmarzano);flex-shrink:0;font-size:24px;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;padding:11px 20px;border:2px solid var(--char);border-radius:999px;font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:2px solid var(--char);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--sanmarzano);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--serif);font-weight:900;font-size:16.5px;line-height:1.25;letter-spacing:-0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--char);color:var(--cream);border:2px solid var(--char);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--serif);font-weight:900;font-size:19px;line-height:1.4;letter-spacing:-0.01em;}
+  .nap a{text-decoration:none;} .nap a:hover{color:var(--crust);}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule-d);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(246,236,216,0.6);}
+  .hours .gbp-note{font-family:var(--grot);font-size:12.5px;color:rgba(246,236,216,0.6);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:2px solid var(--char);filter:sepia(0.25);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  /* CTA — fired-oven glow */
+  .cta-band{background:radial-gradient(ellipse at 50% 130%,rgba(230,182,87,0.4),transparent 60%),var(--char);color:var(--cream);padding:clamp(90px,11vw,160px) 0;text-align:center;}
+  .cta-band h2{font-family:var(--serif);font-weight:900;font-size:clamp(44px,8vw,132px);line-height:0.9;margin:16px auto 22px;max-width:15ch;letter-spacing:-0.02em;}
+  .cta-band h2 em{font-style:italic;font-weight:500;color:var(--crust);}
+  .cta-band p{color:rgba(246,236,216,0.82);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--crust);color:var(--char);}
+  .cta-band .btn-primary:hover{background:var(--cream);}
+  .cta-band .btn-ghost{border-color:rgba(246,236,216,0.6);color:var(--cream);}
+  .cta-band .btn-ghost:hover{background:var(--cream);color:var(--char);}
+
+  footer{background:var(--cream);border-top:2px solid var(--char);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--sanmarzano);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--sanmarzano);color:var(--cream);padding:14px 20px;border-radius:999px;text-decoration:none;font-family:var(--grot);font-size:13px;font-weight:700;letter-spacing:0.03em;text-transform:uppercase;box-shadow:0 8px 26px rgba(198,40,40,0.35);}
+  .msg-fab a:hover{background:var(--char);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Restaurant","name":"Sessanta","description":"Wood-fired Neapolitan pizzeria in Leeds — 485°C oven, 48-hour dough, San Marzano tomatoes, sixty-second bake.","url":"https://sessanta.pizza/","telephone":"+441134662280","email":"forno@sessanta.pizza","servesCuisine":"Neapolitan pizza","address":{"@type":"PostalAddress","streetAddress":"88 Meanwood Road","addressLocality":"Leeds","addressRegion":"West Yorkshire","postalCode":"LS7 2JD","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.8180,"longitude":-1.5410},"areaServed":["Meanwood","Chapel Allerton","Headingley","Leeds"],"image":["https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1600"],"foundingDate":"2019"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why is the middle of the pizza wet / floppy?","acceptedAnswer":{"@type":"Answer","text":"Because it's Neapolitan and that's correct — knife-and-fork the soft centre, fold the crust. A crisp-all-over base is a different, Roman style."}},
+{"@type":"Question","name":"Do you take bookings?","acceptedAnswer":{"@type":"Answer","text":"Yes for tables, recommended at weekends. The bar and chef's counter are walk-in only."}},
+{"@type":"Question","name":"Can you do gluten-free?","acceptedAnswer":{"@type":"Answer","text":"A proper gluten-free base made to order with separate prep. Flag it when you book."}},
+{"@type":"Question","name":"Vegan and vegetarian options?","acceptedAnswer":{"@type":"Answer","text":"Loads vegetarian and several vegan pizzas with house-made plant mozzarella. The marinara is vegan by birth."}},
+{"@type":"Question","name":"Do you deliver?","acceptedAnswer":{"@type":"Answer","text":"No — a Neapolitan steams itself soggy in a box. Collection is boxed with a vent; eating in is best."}},
+{"@type":"Question","name":"Is there really no pineapple?","acceptedAnswer":{"@type":"Answer","text":"There is really no pineapple. Everything else, we'll happily tweak."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Sessanta<span>.</span></a>
+    <nav class="nav-links">
+      <a href="#services">The rules</a><a href="#about">The oven</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v49">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="stamp" data-bind="hero.kicker">Wood-fired Neapolitan · 485°C · Meanwood Road, Leeds</div>
+      <h1 data-comment-anchor="hero-headline">SIXTY SECONDS. <em>That's the whole secret.</em></h1>
+      <p class="lede" data-bind="hero.lede">Dough proved 48 hours, San Marzano tomatoes crushed by hand, fior di latte torn not sliced, and an oven so hot the pizza bakes in sixty seconds flat. That char, that pillow crust, that leopard-spotted underside — it can't be rushed and it can't be faked. Named after the count that matters.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a table</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">The dough rules</a>
+      </div>
+    </div>
+    <div class="hero-disc">
+      <div class="ring"></div>
+      <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=2000&q=85&auto=format&fit=crop"
+           alt="A leopard-spotted Neapolitan pizza fresh from the wood oven." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="count"><b>60</b><span>seconds</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Firing the oven since 2019</span>
+    <span>485°C at the dome</span>
+    <span>48-hour dough</span>
+    <span>No pineapple, no apologies</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v15">
+  <div class="num" aria-hidden="true">60</div>
+  <div class="wrap">
+    <div class="tkt-head"><span>DOCKET 01 / THE KITCHEN</span><span>ONE OVEN, ONE COUNT</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1571066811602-716837d681de?w=1200&q=85&auto=format&fit=crop"
+           alt="The pizzaiolo sliding a pizza into the wood-fired oven." />
+      <div class="about-prose">
+        <h2 class="h2">One oven. One count. <em>Sessanta.</em></h2>
+        <p>The oven came from Naples in a crate, was assembled brick by brick by a man who spoke only Italian and mild despair, and reaches 485°C at the dome. At that heat a pizza is done in sixty seconds — hence the name — and everything about the kitchen is arranged around that one number.</p>
+        <p>The dough is the argument we've had a thousand times and finally won: type-00 flour, a long cold ferment of forty-eight hours, salt, water, a whisper of yeast, nothing else. It's why the crust puffs into that blistered cornicione instead of sitting there like a cracker.</p>
+        <p>The menu is short because a Neapolitan menu should be. Marinara, margherita, a handful of specials the pizzaiolo will defend at length, and a nightly special that exists until the mozzarella runs out. No pineapple. We've made peace with losing that customer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v42">
+  <div class="wrap">
+    <div class="tkt-head"><span>DOCKET 02 / THE DOUGH RULES</span><span>ARRANGED AROUND ONE NUMBER</span></div>
+    <h2 class="h2">The dough <em>rules.</em></h2>
+    <div class="svc">
+      <div class="svc-row"><span class="no">485°C</span><h3>The oven</h3><p>485°C at the dome, oak and beech, tended all service. The pizza goes in raw and comes out in sixty seconds, leopard-spotted and singing.</p></div>
+      <div class="svc-row"><span class="no">48 HRS</span><h3>The dough</h3><p>Type-00, 48-hour cold ferment, hand-stretched to order — never rolled, never docked. The crust is the whole point of coming.</p></div>
+      <div class="svc-row"><span class="no">8 PIES</span><h3>The short menu</h3><p>Marinara, margherita, and a tight list of classics done properly. Plus one nightly special that lasts until the mozzarella's gone.</p></div>
+      <div class="svc-row"><span class="no">THE BAR</span><h3>Cichetti &amp; the bar</h3><p>Small Italian plates while you wait, a natural wine list that's actually short, negronis stirred not shaken, and Leeds-brewed beer on tap.</p></div>
+      <div class="svc-row"><span class="no">TO GO</span><h3>Takeaway (baked, not steamed)</h3><p>Boxed with a vent so it doesn't sweat into sadness on the walk home. Collection only — a delivered Neapolitan is a tragedy we won't cause.</p></div>
+      <div class="svc-row"><span class="no">6 STOOLS</span><h3>Private &amp; the chef's counter</h3><p>Six stools at the oven mouth for the people who want the show. Whole-room hire for parties who understand there is no pineapple.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v14">
+  <div class="wrap">
+    <div class="tkt-head"><span>DOCKET 03 / NON-NEGOTIABLES</span><span>ALL THREE, FOR GOOD REASON</span></div>
+    <h2 class="h2">The non-negotiables.</h2>
+    <div class="why-grid">
+      <div><span class="n">1</span><h3>The heat is non-negotiable.</h3><p>485°C is what makes Neapolitan Neapolitan — the fast bake that puffs the crust and keeps the middle soft. A cooler oven makes a nice pizza. It doesn't make this one.</p></div>
+      <div><span class="n">2</span><h3>48 hours before you order.</h3><p>The dough you eat tonight was mixed the day before yesterday. That slow cold ferment is why it's digestible, blistered, and worth the wait. Speed lives in the oven, not the fridge.</p></div>
+      <div><span class="n">3</span><h3>Short menu, defended.</h3><p>Every pizza on the board has earned its place and can be argued for by name. We'd rather do eight things perfectly than forty things adequately, and the pineapple thing is final.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="tkt-head"><span>DOCKET 04 / A FIRST VISIT</span><span>TABLE → FIRE → FOLD</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Get a table</h3><p>Book ahead for weekends; walk-ins welcome midweek and at the bar. The chef's counter is first-come and worth the elbows.</p></li>
+      <li><span class="step">STEP 02</span><h3>Order the classic</h3><p>First visit? Margherita. Trust us and the oven. Marinara if you want to understand what tomato and oregano can actually do.</p></li>
+      <li><span class="step">STEP 03</span><h3>Watch it fly</h3><p>Stretched, dressed, peeled in, turned once, out in sixty seconds. From the counter you can watch the whole thing catch.</p></li>
+      <li><span class="step">STEP 04</span><h3>Eat it now</h3><p>Neapolitan is a soft, foldable, eat-it-immediately pizza — knife-and-fork the middle, fold the slice, don't wait for a photo. It waits for no one.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v14">
+  <div class="wrap">
+    <div class="tkt-head"><span>DOCKET 05 / FROM THE TABLES</span><span>OVERHEARD MID-FOLD</span></div>
+    <blockquote class="t-quote">"That's the crust. <em>That's the actual crust.</em> I have driven from Sheffield twice since purely for it."</blockquote>
+    <div class="t-attr">Chiara V. — margherita, homesick, converted</div>
+    <div class="t-sub">
+      <figure><blockquote>"Asked for pineapple as a joke on a first date. The pizzaiolo's face ended the joke and, arguably, improved the date. We're married now. No pineapple at the wedding."</blockquote><figcaption>Tom &amp; Jess — the pineapple incident, 2021</figcaption></figure>
+      <figure><blockquote>"The chef's counter is the best seat in Leeds. You watch sixty seconds of fire do what an hour of a normal oven can't, and you understand the whole menu instantly."</blockquote><figcaption>Raj P. — chef's counter regular</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v42">
+  <div class="wrap">
+    <div class="tkt-head"><span>DOCKET 06 / THE PASS</span><span>SHOT BETWEEN TICKETS</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=1600&q=85&auto=format&fit=crop" alt="Leopard-spotted margherita." /><figcaption>MARGHERITA, 60S</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1571066811602-716837d681de?w=1600&q=85&auto=format&fit=crop" alt="Peeling a pizza into the oven." /><figcaption>INTO THE FIRE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=1600&q=85&auto=format&fit=crop" alt="A margherita, just baked." /><figcaption>JUST BAKED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1590947132387-155cc02f3212?w=1600&q=85&auto=format&fit=crop" alt="A pizza fresh from the oven." /><figcaption>ANOTHER FROM THE FIRE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601924582970-9238bcb495d9?w=1600&q=85&auto=format&fit=crop" alt="A slice, lifted." /><figcaption>A SLICE, LIFTED</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1541745537411-b8046dc6d66c?w=1600&q=85&auto=format&fit=crop" alt="Mozzarella stretching from a slice." /><figcaption>THE CHEESE PULL</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="tkt-head"><span>DOCKET 07 / ASKED AT THE PASS</span><span>USUALLY ABOUT THE FLOP</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the pass.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441134662280" style="color:var(--sanmarzano);font-weight:700;">0113 466 2280</a>. Service is loud; leave a message and we'll ring back between bakes.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why is the middle of the pizza wet / floppy?</summary><p>Because it's Neapolitan, and that's correct. The soft, slightly wet centre is the style — you knife-and-fork the middle and fold the crust. A crisp-all-over base is a different, Roman thing, and a lovely one, but it isn't what this oven makes.</p></details>
+        <details><summary>Do you take bookings?</summary><p>Yes for tables, recommended at weekends. The bar and the six-seat chef's counter are walk-in only — arrive early or accept a lovely negroni's wait. Big groups: ring us, don't just turn up ten-strong on a Saturday.</p></details>
+        <details><summary>Can you do gluten-free?</summary><p>We do a proper gluten-free base, made to order — not brilliant like the real dough (we won't pretend), but genuinely good and taken seriously, with separate prep. Coeliacs, flag it when you book so we brief the kitchen.</p></details>
+        <details><summary>Vegan and vegetarian options?</summary><p>Loads vegetarian, and several genuinely good vegan pizzas with a house-made plant mozzarella that surprises people. The marinara is vegan by birth and arguably the purest thing on the menu.</p></details>
+        <details><summary>Do you deliver?</summary><p>No, and we mean it kindly. A Neapolitan pizza steams itself soggy inside fifteen minutes in a box on a moped. Collection is boxed with a vent and a stern look; eating in is always better. That's not gatekeeping, it's physics.</p></details>
+        <details><summary>Is there really no pineapple?</summary><p>There is really no pineapple. There is no secret pineapple. Asking increases the odds of a good-natured lecture on the Associazione Verace Pizza Napoletana. Everything else, we'll happily tweak.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="tkt-head"><span>DOCKET 08 / DINERS COME FROM</span><span>LEEDS, HUNGRY</span></div>
+    <ul class="area-list">
+      <li>Meanwood</li><li>Chapel Allerton</li><li>Headingley</li><li>Roundhay</li><li>city centre</li><li>Kirkstall</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="tkt-head"><span>DOCKET 09 / THE PAPERWORK</span><span>FLOUR-DUSTED BUT CURRENT</span></div>
+    <div class="creds">
+      <div><div class="label">The oven</div><div class="detail">Naples-built wood oven, 485°C at the dome</div></div>
+      <div><div class="label">The dough</div><div class="detail">Type-00, 48-hour cold ferment, hand-stretched</div></div>
+      <div><div class="label">Hygiene</div><div class="detail">Food hygiene rating 5, inspected</div></div>
+      <div><div class="label">The rules</div><div class="detail">Verace-style method, defended nightly</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="tkt-head"><span>DOCKET 10 / FIND US</span><span>88 MEANWOOD ROAD</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Sessanta</strong><br />
+          88 Meanwood Road<br />
+          Leeds LS7 2JD<br /><br />
+          <a href="tel:+441134662280" data-bind="business.phoneDisplay">0113 466 2280</a><br />
+          <a href="mailto:forno@sessanta.pizza" data-bind="business.email">forno@sessanta.pizza</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>WED – SUN</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>MON – TUE</span><span>OVEN RESTS</span></div>
+          <p class="gbp-note">Hours live on our Google Business Profile. The oven takes three hours to reach temperature, so we don't open early for anyone — physics again.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Sessanta, Meanwood Road, Leeds" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.5510%2C53.8140%2C-1.5310%2C53.8220&layer=mapnik&marker=53.8180%2C-1.5410"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v17">
+  <div class="wrap">
+    <div class="stamp" style="color:var(--crust);">DOCKET 11 / BOOK</div>
+    <h2>SIXTY SECONDS FROM FIRE <em>TO YOU.</em></h2>
+    <p data-bind="cta.body">Book a table, grab a stool at the oven, or collect a boxed one — just eat it now, while it's singing.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a table</a>
+      <a class="btn btn-ghost" href="tel:+441134662280" data-bind="cta.secondary.label">0113 466 2280</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441134662280" data-bind="messaging.whatsapp" aria-label="Message the pizzeria">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;">Sessanta<span style="color:var(--sanmarzano);">.</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A wood-fired Neapolitan pizzeria on Meanwood Road, Leeds. Since 2019.</p>
+      </div>
+      <div>
+        <h4>The pizzeria</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;">
+          88 Meanwood Road<br />Leeds LS7 2JD<br />
+          <a href="tel:+441134662280">0113 466 2280</a><br />
+          <a href="mailto:forno@sessanta.pizza">forno@sessanta.pizza</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The dough rules</a><a href="#about">The oven</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> SESSANTA LEEDS LTD</span>
+      <span>60 SECONDS · 485°C · NO PINEAPPLE</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

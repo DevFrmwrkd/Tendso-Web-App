@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Whin &amp; Willow — hardy plant nursery in Hexham, Northumberland</title>
+<meta name="description" content="Whin &amp; Willow is a hardy plant nursery outside Hexham — perennials, shrubs and trees grown on site at 200 metres, so if it thrives here it will thrive in your garden." />
+<link href="https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cabin:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Cousine:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Whin & Willow", phone: "+44 1434 601 552", phoneDisplay: "01434 601 552", email: "beds@whinandwillow.co.uk", foundedYear: 2003 },
+  hero: {
+    kicker: "Hardy plant nursery · grown on site at 200m · Hexham, Northumberland",
+    headline: "Everything here survived a Northumberland winter. Outside. Twice.",
+    lede: "We grow our stock in open beds at two hundred metres, where the wind files its complaints in person. No polytunnel-pampered plants that collapse in your first frost — if it's on our benches, it has already proven it wants to live here.",
+    primaryCta: { label: "What's in the beds", href: "#services" },
+    secondaryCta: { label: "Find the nursery", href: "#location" },
+    image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Nursery beds full of hardy perennials."
+  },
+  trust: { years: "Growing since 2003" },
+  about: {
+    heading: "Grown here means grown HERE.",
+    paragraphs: [
+      "Most 'local' nurseries buy in Dutch trolleys of forced stock and sell them within the month. Ours is the old kind of nursery: we propagate, pot on, and grow our plants in the beds you walk past on your way in. The stock list is shorter. The plants are harder. That's the trade and we made it deliberately.",
+      "Twenty-two years at this altitude has produced an honest catalogue: what you see thriving in our display garden — through frost pocket, clay, and the wind off the moor — is what we propagate. Plants that sulked here got discontinued, however fashionable.",
+      "There are two of us plus a dog with strong opinions about hostas. Ask us anything; refusing to sell you the wrong plant is the most useful service we offer."
+    ],
+    portrait: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Hands potting on young plants at the nursery bench."
+  },
+  services: [
+    { name: "Hardy perennials", description: "The backbone benches — geraniums, astrantias, salvias that actually come back. Propagated here, grown outdoors, labelled with honest heights." },
+    { name: "Shrubs & small trees", description: "Field-grown and containerised, chosen for northern gardens. Rowans, amelanchiers, viburnums, and roses that don't need a courtyard in Provence." },
+    { name: "The display garden", description: "An acre of proof. Every plant we sell is out here somewhere, doing its thing in real conditions. Walk it before you buy; that's what it's for." },
+    { name: "Garden advice & planting plans", description: "Bring photos, measurements and your soil (genuinely — a jam jar of it). We'll build a plant list that fits the site, not the fashion." },
+    { name: "Grown-to-order", description: "Need forty of one thing for a hedge or a scheme? We'll propagate it for next season at grower's prices. Patience required, money saved." },
+    { name: "Winter bare-root season", description: "November to March: hedging, fruit and roses, bare-root and half the price of potted. The best-value planting of the year, weather permitting." }
+  ],
+  why: [
+    { title: "Hardiness is pre-tested.", body: "Two winters outdoors at 200m before anything earns a bench. Your garden is almost certainly kinder than our field. That's the guarantee." },
+    { title: "We propagate our stock.", body: "Cuttings, division and seed from our own plants. We know each variety's habits personally — because we've argued with them for years." },
+    { title: "Advice with no agenda.", body: "We'd rather lose a sale than sell you a plant that will die in your soil. Regulars trust the 'no' as much as the 'yes'. So do we." }
+  ],
+  how: [
+    { step: "01", title: "Walk the display garden", body: "See the actual plants at actual size in actual weather. Photograph labels; that's what they're for." },
+    { step: "02", title: "Talk to a grower", body: "Soil, aspect, wind, what died last year. The more honest the briefing, the better the plant list." },
+    { step: "03", title: "Take plants home", body: "With a planting note per variety — spacing, feeding, and the one mistake everyone makes with it." },
+    { step: "04", title: "Report back", body: "Regulars bring photos of their borders like grandparents. We keep a corkboard. It's the best marketing we've ever had." }
+  ],
+  testimonials: [
+    { quote: "I'd killed three ceanothus from the garden centre before they told me, kindly, to stop buying ceanothus. The alternative they suggested has been magnificent for five years. That 'no' saved me a fortune.", name: "Margaret H.", context: "windy garden, Allendale" },
+    { quote: "Forty hornbeam whips, grown to order, half what the wholesale catalogue wanted. The hedge is now taller than my regrets.", name: "David & Sue P.", context: "grown-to-order hedging" },
+    { quote: "Their display garden in February convinced me. Anyone can look good in June — this place earns its opinions in winter.", name: "Cath L.", context: "planting plan customer, Corbridge" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=1600&q=85&auto=format&fit=crop", alt: "The perennial benches in high summer." },
+    { src: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=85&auto=format&fit=crop", alt: "Potting on at the bench." },
+    { src: "https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=1600&q=85&auto=format&fit=crop", alt: "The display garden, June." },
+    { src: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1600&q=85&auto=format&fit=crop", alt: "Young stock in the growing beds." },
+    { src: "https://images.unsplash.com/photo-1444392061186-9fc38f84f726?w=1600&q=85&auto=format&fit=crop", alt: "The nursery from the lane." },
+    { src: "https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?w=1600&q=85&auto=format&fit=crop", alt: "Bare-root season, bundled and labelled." }
+  ],
+  faq: [
+    { q: "Why is your range smaller than a garden centre's?", a: "Because we only sell what we grow, and we only grow what survives here. A garden centre's range is a wholesaler's range. Ours is a survivors' list — shorter, but everything on it means it." },
+    { q: "Will your plants survive my garden?", a: "If your garden is in the North East, very probably — our field is colder, windier and wetter than almost anywhere you'd plant. Tell us your specifics and we'll flag the exceptions honestly." },
+    { q: "When should I plant?", a: "Perennials: spring or autumn, autumn quietly better. Bare-root anything: November to March. Container stock: whenever you can get a spade in. The honest answer is 'sooner than you think and deeper than you did'." },
+    { q: "Do you deliver?", a: "Within about twenty miles, yes — Tynedale, Corbridge, along the wall. Trees and bulk orders we'll always deliver and usually help unload. Bring a wheelbarrow to the van, we'll do the rest." },
+    { q: "Can you help me plan a border?", a: "Yes — bring photos, rough measurements and the jam jar of soil. Planting plans are priced by the job and credited back against the plants. We plan with our list, which is the point of asking us." },
+    { q: "What's your guarantee?", a: "Hardy stock that fails in its first year comes back for replacement, no theatre — bring the corpse and the label. What we can't guarantee: drainage you haven't fixed and rabbits you haven't met yet." }
+  ],
+  area: { places: ["Hexham", "Corbridge", "Allendale", "Haydon Bridge", "Prudhoe", "Haltwhistle"] },
+  credentials: [
+    { label: "Grown on site", detail: "Propagated & raised in our own beds at 200m" },
+    { label: "Plant passport", detail: "UK plant passport registered grower" },
+    { label: "Peat-free", detail: "All potting peat-free since 2021" },
+    { label: "Guarantee", detail: "First-year replacement on hardy stock" }
+  ],
+  location: { name: "Whin & Willow", addressStreet: "Dukesfield Lane", addressLocality: "Hexham", addressRegion: "Northumberland", addressPostcode: "NE46 1SS", addressCountry: "United Kingdom" },
+  cta: { heading: "Come walk the beds. Bring the jam jar.", body: "An acre of proof, two growers, one opinionated dog. The kettle's usually on.", primary: { label: "Find the nursery", href: "#location" }, secondary: { label: "01434 601 552", href: "tel:+441434601552" } },
+  messaging: { whatsapp: "https://wa.me/441434601552", messenger: "https://m.me/whinandwillow" }
+};
+</script>
+
+<style>
+  :root {
+    --linen:#f5f3ea; --moss:#42603c; --terracotta:#b65e3c; --fern:#e4e8d5;
+    --ink:#2d3626; --mid:#75806b; --rule:rgba(45,54,38,0.16);
+    --display:"Bitter",serif;
+    --sans:"Cabin",system-ui,sans-serif;
+    --mono:"Cousine",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--linen);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  a:hover{color:var(--terracotta);}
+  .wrap{width:min(1200px,92vw);margin-inline:auto;}
+  .hort{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--moss);font-weight:700;}
+  .h2{font-family:var(--display);font-weight:600;font-size:clamp(29px,4vw,50px);line-height:1.12;margin:0 0 0.5em;letter-spacing:-0.01em;}
+  .h2 em{font-style:italic;font-weight:500;}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(70px,9vw,120px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 26px;font-family:var(--sans);font-weight:700;font-size:14px;text-decoration:none;transition:0.18s;border-radius:3px;}
+  .btn-primary{background:var(--moss);color:var(--linen);} .btn-primary:hover{background:var(--ink);}
+  .btn-ghost{border:1.5px solid var(--moss);color:var(--moss);} .btn-ghost:hover{background:var(--moss);color:var(--linen);}
+  .tag-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--moss);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,56px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(245,243,234,0.94);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--moss);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--display);font-weight:700;font-size:19px;text-decoration:none;}
+  .wm em{color:var(--moss);font-style:italic;font-weight:500;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — plant-tag composition */
+  .hero{padding:clamp(48px,7vw,94px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1fr 0.95fr;gap:clamp(36px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,4.2vw,56px);line-height:1.1;margin:18px 0 22px;letter-spacing:-0.015em;}
+  .hero h1 em{font-style:italic;color:var(--moss);font-weight:600;}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.72;font-size:clamp(15px,1.4vw,17px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:3px;}
+  .plant-tag{position:absolute;bottom:24px;left:-14px;background:var(--linen);border:1.5px solid var(--moss);padding:14px 18px 14px 26px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;line-height:1.9;text-transform:uppercase;font-weight:700;clip-path:polygon(14px 0,100% 0,100% 100%,14px 100%,0 50%);}
+  .plant-tag .lat{font-style:italic;font-family:var(--display);text-transform:none;letter-spacing:0;font-size:13px;font-weight:500;}
+  .plant-tag .hd{color:var(--terracotta);letter-spacing:0.14em;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .plant-tag{left:10px;}}
+
+  .trust{padding:0;background:var(--moss);color:var(--linen);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(245,243,234,0.8);font-weight:700;}
+
+  .about{background:var(--fern);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18px);line-height:1.76;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — bed labels */
+  .svc-rows{border-top:1.5px solid var(--moss);}
+  .svc-row{display:grid;grid-template-columns:120px 1fr 1.4fr;gap:clamp(18px,3vw,44px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(66,96,60,0.06);}
+  .svc-row .no{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--terracotta);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--display);font-weight:600;font-size:clamp(19px,2vw,23px);margin:0;line-height:1.2;}
+  .svc-row p{color:var(--mid);margin:0;font-size:14.5px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--terracotta);color:var(--linen);}
+  .why .h2{color:var(--linen);}
+  .why .tag-head{border-color:rgba(245,243,234,0.5);color:rgba(245,243,234,0.75);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,56px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:#f2d0a7;display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--display);font-weight:600;font-size:21px;margin:0 0 10px;line-height:1.2;}
+  .why-grid p{color:rgba(245,243,234,0.9);margin:0;font-size:14.5px;line-height:1.68;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--moss);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;color:var(--terracotta);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--display);font-weight:600;font-size:17px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--fern);}
+  .t-quote{font-family:var(--display);font-weight:600;font-size:clamp(21px,2.7vw,34px);line-height:1.3;max-width:34ch;margin:0 0 22px;letter-spacing:-0.01em;}
+  .t-attr{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--moss);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — seed-packet cards */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;background:#fff;border:1.5px solid var(--moss);border-radius:3px;padding:8px 8px 12px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:2px;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--mid);margin-top:10px;text-align:center;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--moss);}
+  .faq-list summary{font-family:var(--display);font-weight:600;font-size:17.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"❧";color:var(--terracotta);flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(90deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 18px;border:1.5px solid var(--moss);border-radius:3px;font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--moss);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--terracotta);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--display);font-weight:600;font-size:15.5px;line-height:1.4;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:1.5px solid var(--moss);border-radius:3px;padding:32px;}
+  .nap address{font-style:normal;font-family:var(--display);font-weight:600;font-size:17.5px;line-height:1.55;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{border-radius:3px;min-height:380px;overflow:hidden;border:1.5px solid var(--moss);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--moss);color:var(--linen);padding:clamp(80px,10vw,140px) 0;}
+  .cta-band .hort{color:#c9d6a3;}
+  .cta-band h2{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.2vw,56px);line-height:1.1;margin:14px 0 18px;max-width:20ch;letter-spacing:-0.015em;}
+  .cta-band h2 em{font-style:italic;color:#c9d6a3;font-weight:600;}
+  .cta-band p{color:rgba(245,243,234,0.85);max-width:44ch;margin:0 0 32px;font-size:16.5px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--linen);color:var(--moss);}
+  .cta-band .btn-primary:hover{background:var(--terracotta);color:var(--linen);}
+  .cta-band .btn-ghost{border-color:rgba(245,243,234,0.6);color:var(--linen);}
+  .cta-band .btn-ghost:hover{background:var(--linen);color:var(--moss);}
+
+  footer{background:var(--linen);border-top:1.5px solid var(--moss);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--moss);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--moss);color:var(--linen);padding:13px 19px;border-radius:3px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(66,96,60,0.3);}
+  .msg-fab a:hover{background:var(--terracotta);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"GardenStore","name":"Whin & Willow","description":"Hardy plant nursery outside Hexham, Northumberland. Perennials, shrubs and trees grown on site at 200 metres.","url":"https://whinandwillow.co.uk/","telephone":"+441434601552","email":"beds@whinandwillow.co.uk","address":{"@type":"PostalAddress","streetAddress":"Dukesfield Lane","addressLocality":"Hexham","addressRegion":"Northumberland","postalCode":"NE46 1SS","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":54.9500,"longitude":-2.1000},"areaServed":["Hexham","Corbridge","Allendale","Tynedale"],"image":["https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=1600"],"foundingDate":"2003"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why is your range smaller than a garden centre's?","acceptedAnswer":{"@type":"Answer","text":"We only sell what we grow, and we only grow what survives here. A survivors' list — shorter, but everything on it means it."}},
+{"@type":"Question","name":"Will your plants survive my garden?","acceptedAnswer":{"@type":"Answer","text":"If your garden is in the North East, very probably — our field is colder and windier than almost anywhere you'd plant."}},
+{"@type":"Question","name":"When should I plant?","acceptedAnswer":{"@type":"Answer","text":"Perennials spring or autumn; bare-root November to March; container stock whenever you can get a spade in."}},
+{"@type":"Question","name":"Do you deliver?","acceptedAnswer":{"@type":"Answer","text":"Within about twenty miles. Trees and bulk orders we deliver and usually help unload."}},
+{"@type":"Question","name":"Can you help me plan a border?","acceptedAnswer":{"@type":"Answer","text":"Yes — bring photos, measurements and a jam jar of soil. Plans are credited back against the plants."}},
+{"@type":"Question","name":"What's your guarantee?","acceptedAnswer":{"@type":"Answer","text":"Hardy stock that fails in its first year is replaced — bring the corpse and the label."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Whin <em>&amp;</em> Willow</a>
+    <nav class="nav-links">
+      <a href="#about">The nursery</a><a href="#services">The beds</a><a href="#location">Find us</a><a href="#visit">Visit</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v34">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="hort" data-bind="hero.kicker">Hardy plant nursery · grown on site at 200m · Hexham, Northumberland</div>
+      <h1 data-bind="hero.headline">Everything here survived a Northumberland winter. <em>Outside. Twice.</em></h1>
+      <p class="lede" data-bind="hero.lede">We grow our stock in open beds at two hundred metres, where the wind files its complaints in person. No polytunnel-pampered plants that collapse in your first frost — if it's on our benches, it has already proven it wants to live here.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">What's in the beds</a>
+        <a class="btn btn-ghost" href="#location" data-bind="hero.secondaryCta.label">Find the nursery</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=2000&q=85&auto=format&fit=crop"
+           alt="Nursery beds full of hardy perennials." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="plant-tag">
+        <div class="hd">BED 12 · FULL SUN</div>
+        <div class="lat">Salvia nemorosa 'Caradonna'</div>
+        <div>WINTERS SURVIVED: 2 · VERDICT: STAYS</div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Growing since 2003</span>
+    <span>Propagated on site</span>
+    <span>Peat-free since 2021</span>
+    <span>First-year replacement guarantee</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v3">
+  <div class="wrap">
+    <div class="tag-head"><span>HORT. 01 / THE NURSERY</span><span>TWO GROWERS, ONE OPINIONATED DOG</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&q=85&auto=format&fit=crop"
+           alt="Hands potting on young plants at the nursery bench." />
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">Grown here means grown <em>HERE.</em></h2>
+        <p>Most "local" nurseries buy in Dutch trolleys of forced stock and sell them within the month. Ours is the old kind of nursery: we propagate, pot on, and grow our plants in the beds you walk past on your way in. The stock list is shorter. The plants are harder. That's the trade and we made it deliberately.</p>
+        <p>Twenty-two years at this altitude has produced an honest catalogue: what you see thriving in our display garden — through frost pocket, clay, and the wind off the moor — is what we propagate. Plants that sulked here got discontinued, however fashionable.</p>
+        <p>There are two of us plus a dog with strong opinions about hostas. Ask us anything; refusing to sell you the wrong plant is the most useful service we offer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v27">
+  <div class="wrap">
+    <div class="tag-head"><span>HORT. 02 / THE BEDS</span><span>READ THE LABELS</span></div>
+    <h2 class="h2">Bed by bed.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Bed 01</span><h3>Hardy perennials</h3><p>The backbone benches — geraniums, astrantias, salvias that actually come back. Propagated here, grown outdoors, labelled with honest heights.</p></div>
+      <div class="svc-row"><span class="no">Bed 02</span><h3>Shrubs &amp; small trees</h3><p>Field-grown and containerised, chosen for northern gardens. Rowans, amelanchiers, viburnums, and roses that don't need a courtyard in Provence.</p></div>
+      <div class="svc-row"><span class="no">Bed 03</span><h3>The display garden</h3><p>An acre of proof. Every plant we sell is out here somewhere, doing its thing in real conditions. Walk it before you buy; that's what it's for.</p></div>
+      <div class="svc-row"><span class="no">Bed 04</span><h3>Garden advice &amp; planting plans</h3><p>Bring photos, measurements and your soil (genuinely — a jam jar of it). We'll build a plant list that fits the site, not the fashion.</p></div>
+      <div class="svc-row"><span class="no">Bed 05</span><h3>Grown-to-order</h3><p>Need forty of one thing for a hedge or a scheme? We'll propagate it for next season at grower's prices. Patience required, money saved.</p></div>
+      <div class="svc-row"><span class="no">Bed 06</span><h3>Winter bare-root season</h3><p>November to March: hedging, fruit and roses, bare-root and half the price of potted. The best-value planting of the year, weather permitting.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v2">
+  <div class="wrap">
+    <div class="tag-head"><span>HORT. 03 / THE METHOD</span><span>TESTED BY WEATHER</span></div>
+    <h2 class="h2">Why buy from a field on a hill.</h2>
+    <div class="why-grid">
+      <div><span class="no">PROOF 1/3</span><h3>Hardiness is pre-tested.</h3><p>Two winters outdoors at 200m before anything earns a bench. Your garden is almost certainly kinder than our field. That's the guarantee.</p></div>
+      <div><span class="no">PROOF 2/3</span><h3>We propagate our stock.</h3><p>Cuttings, division and seed from our own plants. We know each variety's habits personally — because we've argued with them for years.</p></div>
+      <div><span class="no">PROOF 3/3</span><h3>Advice with no agenda.</h3><p>We'd rather lose a sale than sell you a plant that will die in your soil. Regulars trust the "no" as much as the "yes". So do we.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="tag-head"><span>HORT. 04 / A VISIT</span><span>WALK → TALK → PLANT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Walk the display garden</h3><p>See the actual plants at actual size in actual weather. Photograph labels; that's what they're for.</p></li>
+      <li><span class="step">Step 02</span><h3>Talk to a grower</h3><p>Soil, aspect, wind, what died last year. The more honest the briefing, the better the plant list.</p></li>
+      <li><span class="step">Step 03</span><h3>Take plants home</h3><p>With a planting note per variety — spacing, feeding, and the one mistake everyone makes with it.</p></li>
+      <li><span class="step">Step 04</span><h3>Report back</h3><p>Regulars bring photos of their borders like grandparents. We keep a corkboard. It's the best marketing we've ever had.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="tag-head"><span>HORT. 05 / THE CORKBOARD</span><span>BORDERS, REPORTED BACK</span></div>
+    <blockquote class="t-quote">“They told me, kindly, to stop buying ceanothus. The alternative has been magnificent for five years. That ‘no’ saved me a fortune.”</blockquote>
+    <div class="t-attr">Margaret H. — windy garden, Allendale</div>
+    <div class="t-sub">
+      <figure><blockquote>“Forty hornbeam whips, grown to order, half what the wholesale catalogue wanted. The hedge is now taller than my regrets.”</blockquote><figcaption>David &amp; Sue P. — grown-to-order hedging</figcaption></figure>
+      <figure><blockquote>“Their display garden in February convinced me. Anyone can look good in June — this place earns its opinions in winter.”</blockquote><figcaption>Cath L. — planting plan, Corbridge</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v27">
+  <div class="wrap">
+    <div class="tag-head"><span>HORT. 06 / THE FIELD</span><span>FOUR SEASONS, HONESTLY</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=1600&q=85&auto=format&fit=crop" alt="The perennial benches in high summer." /><figcaption>THE BENCHES, JULY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=85&auto=format&fit=crop" alt="Potting on at the bench." /><figcaption>POTTING ON, APRIL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=1600&q=85&auto=format&fit=crop" alt="The display garden, June." /><figcaption>THE ACRE OF PROOF</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1600&q=85&auto=format&fit=crop" alt="Young stock in the growing beds." /><figcaption>YOUNG STOCK, EARNING IT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1444392061186-9fc38f84f726?w=1600&q=85&auto=format&fit=crop" alt="The nursery from the lane." /><figcaption>FROM THE LANE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?w=1600&q=85&auto=format&fit=crop" alt="Bare-root season, bundled and labelled." /><figcaption>BARE-ROOT, BUNDLED</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="tag-head"><span>HORT. 07 / ASKED AT THE BENCHES</span><span>TROWEL IN HAND</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the benches.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441434601552" style="color:var(--terracotta);">01434 601 552</a>. If we're at the far end of the field, leave a message with the dog. Or the machine.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why is your range smaller than a garden centre's?</summary><p>Because we only sell what we grow, and we only grow what survives here. A garden centre's range is a wholesaler's range. Ours is a survivors' list — shorter, but everything on it means it.</p></details>
+        <details><summary>Will your plants survive my garden?</summary><p>If your garden is in the North East, very probably — our field is colder, windier and wetter than almost anywhere you'd plant. Tell us your specifics and we'll flag the exceptions honestly.</p></details>
+        <details><summary>When should I plant?</summary><p>Perennials: spring or autumn, autumn quietly better. Bare-root anything: November to March. Container stock: whenever you can get a spade in. The honest answer is "sooner than you think and deeper than you did".</p></details>
+        <details><summary>Do you deliver?</summary><p>Within about twenty miles, yes — Tynedale, Corbridge, along the wall. Trees and bulk orders we'll always deliver and usually help unload. Bring a wheelbarrow to the van, we'll do the rest.</p></details>
+        <details><summary>Can you help me plan a border?</summary><p>Yes — bring photos, rough measurements and the jam jar of soil. Planting plans are priced by the job and credited back against the plants. We plan with our list, which is the point of asking us.</p></details>
+        <details><summary>What's your guarantee?</summary><p>Hardy stock that fails in its first year comes back for replacement, no theatre — bring the corpse and the label. What we can't guarantee: drainage you haven't fixed and rabbits you haven't met yet.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v2" style="padding-top:0;">
+  <div class="wrap">
+    <div class="tag-head"><span>HORT. 08 / THE VAN DELIVERS TO</span><span>TWENTY MILES OF TYNEDALE</span></div>
+    <ul class="area-list">
+      <li>Hexham</li><li>Corbridge</li><li>Allendale</li><li>Haydon Bridge</li><li>Prudhoe</li><li>Haltwhistle</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="tag-head"><span>HORT. 09 / THE PAPERWORK</span><span>MUDDY BUT CURRENT</span></div>
+    <div class="creds">
+      <div><div class="label">Grown on site</div><div class="detail">Propagated &amp; raised in our own beds at 200m</div></div>
+      <div><div class="label">Plant passport</div><div class="detail">UK plant passport registered grower</div></div>
+      <div><div class="label">Peat-free</div><div class="detail">All potting peat-free since 2021</div></div>
+      <div><div class="label">Guarantee</div><div class="detail">First-year replacement on hardy stock</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="tag-head"><span>HORT. 10 / FIND US</span><span>DUKESFIELD LANE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Whin &amp; Willow</strong><br />
+          Dukesfield Lane<br />
+          Hexham NE46 1SS<br /><br />
+          <a href="tel:+441434601552" data-bind="business.phoneDisplay">01434 601 552</a><br />
+          <a href="mailto:beds@whinandwillow.co.uk" data-bind="business.email">beds@whinandwillow.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>WED – SUN</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>MON – TUE</span><span>GROWING DAYS</span></div>
+          <p class="gbp-note">Hours live on our Google Business Profile — they shift with the season and the weather. Wellies advisable October to April, poetic the rest of the year.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Whin &amp; Willow nursery, near Hexham" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.1200%2C54.9420%2C-2.0800%2C54.9580&layer=mapnik&marker=54.9500%2C-2.1000"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="visit" class="cta-band" data-component="CTA-BAND" data-variant="v1">
+  <div class="wrap">
+    <div class="hort">HORT. 11 / VISIT</div>
+    <h2 data-bind="cta.heading">Come walk the beds. <em>Bring the jam jar.</em></h2>
+    <p data-bind="cta.body">An acre of proof, two growers, one opinionated dog. The kettle's usually on.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#location" data-bind="cta.primary.label">Find the nursery</a>
+      <a class="btn btn-ghost" href="tel:+441434601552" data-bind="cta.secondary.label">01434 601 552</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441434601552" data-bind="messaging.whatsapp" aria-label="Message the nursery">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:20px;">Whin <em>&amp;</em> Willow</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A hardy plant nursery on Dukesfield Lane, outside Hexham. Since 2003.</p>
+      </div>
+      <div>
+        <h4>The nursery</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          Dukesfield Lane<br />Hexham NE46 1SS<br />
+          <a href="tel:+441434601552">01434 601 552</a><br />
+          <a href="mailto:beds@whinandwillow.co.uk">beds@whinandwillow.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The beds</a><a href="#about">The nursery</a><a href="#location">Find us</a><a href="#visit">Visit</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> WHIN &amp; WILLOW NURSERIES</span>
+      <span>RIGHT PLANT · RIGHT PLACE · NO EXCEPTIONS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

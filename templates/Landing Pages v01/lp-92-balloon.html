@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Level & Drift — hot air balloon flights over the Somerset Levels</title>
+<meta name="description" content="Level & Drift fly hot air balloons over the Somerset Levels at sunrise and sunset — shared basket flights, private charters, proposals and celebrations, with a Champagne toast on landing. CAA-licensed pilots, flying since 2003." />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Level & Drift", phone: "+44 1458 555 210", phoneDisplay: "01458 555 210", email: "fly@levelanddrift.co.uk", foundedYear: 2003 },
+  hero: {
+    kicker: "Hot air balloon flights · sunrise & sunset · Somerset Levels",
+    headline: "One hour above the Levels, with the whole county holding its breath.",
+    lede: "Hot air balloon flights over the Somerset Levels — lifting off at first light or golden evening, drifting silent over the moors, the Tor and the mist, and landing to a Champagne toast in a field. Shared-basket flights, private charters, proposals and big-birthday surprises, flown by CAA-licensed pilots who've read this sky for twenty years.",
+    primaryCta: { label: "Book a flight", href: "#book" },
+    secondaryCta: { label: "How flying works", href: "#services" },
+    image: "https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A hot air balloon rising at sunrise."
+  },
+  trust: { years: "Flying the Levels since 2003" },
+  about: {
+    heading: "Ballooning is the oldest way to fly, and still the only one that feels like magic.",
+    paragraphs: [
+      "Level & Drift fly hot air balloons over the Somerset Levels, and we've been doing it since 2003 because there is genuinely nothing else like it. You lift off with a roar of the burner and then — silence. No engine, no wings, just the wind carrying you and the whole flat sweep of the moors, the rh7nes and droves, Glastonbury Tor rising out of the morning mist, unrolling beneath your feet. People come down changed by it.",
+      "Every flight is commanded by a CAA-licensed commercial balloon pilot with thousands of hours over this particular sky, because ballooning is entirely about reading weather and wind, and local knowledge is everything. We fly at the two times the air is calm and the light is glorious — just after sunrise and in the last hours before sunset — and we only fly when conditions are genuinely right, which is the single most important thing we do. A cancelled flight is a disappointment; a rushed one is a risk, and we don't take it.",
+      "We fly shared-basket flights where you'll share the sky with a handful of others, private charters for just your group, and the big occasions — proposals (we've never had a no), landmark birthdays, anniversaries, ashes-scattering flights of great tenderness. Every flight ends the traditional way: gently down into a Somerset field, a Champagne toast to the aeronauts' oath, and a flight certificate. The retrieve crew finds you; you just enjoy the coming-down."
+    ],
+    portrait: "https://plus.unsplash.com/premium_photo-1661508496931-dbbad43dff62?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A couple hugging in a balloon basket in flight."
+  },
+  services: [
+    { name: "Shared sunrise flights", description: "Lift off at first light with a handful of fellow passengers, drift an hour over the waking Levels, and land to a Champagne toast. The classic, and the calmest air of the day." },
+    { name: "Sunset flights", description: "Evening flights in the golden hours before dusk, floating over the moors as the light turns and the shadows lengthen. Fewer dates, and worth waiting for." },
+    { name: "Private charters", description: "The whole basket for just your group — family, friends, a team. Your own flight, your own toast, and the freedom to make it exactly the occasion you want it to be." },
+    { name: "Proposals & celebrations", description: "The proposal with the best odds in the county, and the birthday nobody forgets. We'll help you plan the moment, carry the ring safely, and keep the secret until you're aloft." },
+    { name: "Gift vouchers", description: "A flight in a box — the present that outshines everything under the tree. Open-dated and valid for two full flying seasons, so there's no pressure to fly before the weather's right." },
+    { name: "Memorial & ashes flights", description: "A quiet, dignified flight to scatter ashes over a landscape someone loved, handled with care and discretion. For many families the most fitting farewell imaginable." }
+  ],
+  why: [
+    { title: "We only fly when it's right.", body: "Ballooning lives and dies by the weather, and the discipline to scrub a flight is what keeps it safe and glorious. We watch the forecast obsessively and never launch into marginal air. Patience is the job." },
+    { title: "Pilots who know this sky.", body: "Every flight is commanded by a CAA-licensed commercial pilot with thousands of hours over the Levels specifically. Local wind, local fields, local weather — twenty years of it read into every decision." },
+    { title: "The whole ritual, not just the ride.", body: "The dawn meet, the inflation, the roar and the silence, the drift, the field landing, the Champagne toast and the certificate. We fly the complete tradition, exactly as it should be." }
+  ],
+  how: [
+    { step: "01", title: "Book & choose a season", body: "Book a shared flight, private charter or voucher, and pick sunrise or sunset. Because weather rules everything, you're booking onto a flying window, not a fixed day — flexibility is built in." },
+    { step: "02", title: "We watch the weather", body: "In the days before, we track the forecast and confirm or reschedule the evening before. It sounds fussy; it's the whole art. A rebooked flight is a good flight waiting for its day." },
+    { step: "03", title: "Dawn meet & inflation", body: "Meet at the launch field, watch the envelope come alive with cold-air fans and burner, then climb in. The moment the basket leaves the ground is one you'll replay for years." },
+    { step: "04", title: "Drift, land & toast", body: "An hour aloft, a gentle field landing, a Champagne toast to the aeronauts' oath, and your flight certificate. The retrieve crew brings you back to the start. Grinning." }
+  ],
+  testimonials: [
+    { quote: "I proposed at a thousand feet over the Tor with the mist below us and the sun coming up, and she said yes before I'd finished. The pilot carried the ring, timed it perfectly, then gave us space. It was the single best decision of my life, executed flawlessly. Thank you, forever.", name: "Daniel & Meg", context: "sunrise proposal flight" },
+    { quote: "Booked a sunrise flight for my dad's 70th and the whole family came to watch the launch. It rebooked twice for weather, which turned out to be exactly why I trusted them — when we finally flew, the air was like glass. He hasn't stopped talking about it. Worth every rebooking.", name: "Fiona H.", context: "milestone birthday" },
+    { quote: "We scattered my mother's ashes over the Levels she'd farmed all her life. Level & Drift handled it with such gentleness and dignity — the quiet, the care, the right words. It was the most beautiful goodbye we could have given her. I will always be grateful.", name: "The Coombes family", context: "memorial flight" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1600&q=85&auto=format&fit=crop", alt: "A hot air balloon rising at sunrise." },
+    { src: "https://plus.unsplash.com/premium_photo-1661508496931-dbbad43dff62?w=1600&q=85&auto=format&fit=crop", alt: "The burner firing inside a balloon envelope." },
+    { src: "https://images.unsplash.com/premium_photo-1661508519438-7607b261935e?w=1600&q=85&auto=format&fit=crop", alt: "Hot air balloons over open countryside." },
+    { src: "https://images.unsplash.com/premium_photo-1661508514220-58b354c902c1?w=1600&q=85&auto=format&fit=crop", alt: "A balloon drifting over fields at dawn." },
+    { src: "https://images.unsplash.com/premium_photo-1661508491630-7fa3d848cdec?w=1600&q=85&auto=format&fit=crop", alt: "The view down from a balloon basket." },
+    { src: "https://images.unsplash.com/photo-1500534623283-312aade485b7?w=1600&q=85&auto=format&fit=crop", alt: "A balloon high above a misty landscape." }
+  ],
+  faq: [
+    { q: "Why can't you just tell me the date I'll fly?", a: "Because hot air balloons fly on the weather's terms, not ours, and any operator who promises you a guaranteed fixed date is either going to disappoint you or take a risk we never will. Balloons need light, stable winds (under about 8–10 knots), good visibility, no rain and no threatening weather, and those conditions typically only occur reliably around sunrise and in the last hours before sunset. So when you book, you book onto a flight slot — a morning or an evening — and we confirm whether it's flying the evening before, once we have a firm forecast. If it's not right, we simply rebook you onto the next available slot, as many times as it takes, at no extra cost. It can feel frustrating if you're keen, but it is the single biggest reason we've flown for over twenty years without incident. A flight worth having is worth waiting for the right morning." },
+    { q: "Is it safe, and is it scary?", a: "Ballooning is one of aviation's safest and oldest forms of flight, and the honest experience of it is far calmer than people expect. Every flight is commanded by a CAA-licensed commercial balloon pilot, the balloon is maintained and inspected to strict aviation standards, and — crucially — we only ever fly in genuinely suitable conditions. As for scary: because the basket moves with the wind rather than against it, there's no wind in your face and very little sense of speed, and because you're standing in a solid basket rather than looking through a window, most people who consider themselves nervous of heights are completely fine. There's the roar of the burner, then long stretches of extraordinary silence and stillness. Far and away the most common thing we hear on landing is 'that was so much more peaceful than I imagined.'" },
+    { q: "What should I wear and bring, and how fit do I need to be?", a: "Dress as if for a country walk on the morning of the flight — layers, long trousers, and flat, sturdy shoes or boots you don't mind getting damp in a dewy or muddy field (no sandals or heels). A hat is sensible as the burner is warm overhead, and bring a camera or phone with a strap. You don't need to be especially fit, but you do need to be able to climb into and out of the basket unaided (it's about waist height, so a big step up and over) and to stand for the duration of the flight, which is around an hour — there's nowhere to sit. For that reason there's a lower age guideline (children need to see over the basket edge) and we'll talk through any mobility concerns honestly when you book. If in doubt, just ask; we'd always rather have the conversation than have someone struggle." },
+    { q: "How long is the flight, and how long is the whole morning?", a: "The flight itself is typically around an hour in the air, though it varies with the wind and where it takes us — we can't steer precisely, only choose our height to catch different wind directions, which is part of the adventure. The whole experience, however, takes the best part of a morning or evening, and you should set aside around four hours in total: meeting at the launch site, watching (and often helping with) the inflation, the flight, the landing wherever the wind delivers us, the Champagne toast, and the drive back from the landing field to the start in our retrieve vehicle. It's a leisurely, unrushed affair and that's the joy of it — this is not a fairground ride but a proper expedition into the sky. Bring the morning; don't schedule anything tight afterwards." },
+    { q: "Can I book a private flight or a proposal, and can people watch?", a: "Yes to all three, and they're some of our favourite flights to run. A private charter gives you the whole basket for your own group rather than sharing with strangers, ideal for families, couples, celebrations or teams; it costs more per person than a shared flight but buys you the sky to yourselves. Proposals are a speciality and we're delighted to help — we'll safely carry and hide the ring, help you plan the moment and the timing, brief the pilot to give you privacy at the right instant, and (whisper it) our success rate is one hundred percent. Friends and family are very welcome to come and watch the launch, which is a spectacle in itself, and if they'd like to follow the retrieve crew to guess where you'll land, they can be there for the toast too. Just tell us the plan when you book and we'll build the morning around it." },
+    { q: "What happens if the weather cancels my flight, or I need to rearrange?", a: "If we scrub a flight for weather — which we will, without hesitation, whenever conditions aren't right — we simply rebook you onto the next suitable slot at no cost, and we'll keep doing that until you fly; your booking and any voucher never expires because of weather cancellations. If you need to rearrange from your side, just give us reasonable notice and we'll move you to another available date within your voucher's validity. Gift vouchers are open-dated and valid for two full flying seasons precisely so there's never pressure to fly before the sky's ready. The only thing we ask is patience and a little flexibility around dawn and dusk; give us those, and we'll give you a morning you remember for the rest of your life. Nobody has ever regretted waiting for the right one." }
+  ],
+  area: { places: ["Somerset Levels", "Glastonbury", "Wells", "Street", "Bridgwater", "Taunton"] },
+  credentials: [
+    { label: "Since 2003", detail: "Twenty years reading this particular sky" },
+    { label: "CAA-licensed", detail: "Commercial balloon pilots on every flight" },
+    { label: "We scrub freely", detail: "We fly only in genuinely right conditions" },
+    { label: "Champagne toast", detail: "The full tradition, ending in a Somerset field" }
+  ],
+  location: { name: "Level & Drift", addressStreet: "Launch field, Common Moor", addressLocality: "Glastonbury", addressRegion: "Somerset", addressPostcode: "BA6 8TT", addressCountry: "United Kingdom" },
+  cta: { heading: "Book the morning you'll never stop talking about.", body: "Shared flights, private charters, proposals and vouchers — over the Somerset Levels at sunrise or sunset, ending in a Champagne toast. Flexible on dates, uncompromising on conditions. Come and see the county from above.", primary: { label: "Book a flight", href: "#book" }, secondary: { label: "01458 555 210", href: "tel:+441458555210" } },
+  messaging: { whatsapp: "https://wa.me/441458555210", messenger: "https://m.me/levelanddrift" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#161b2e; --sky:#eef1f6; --coral:#e8683f; --gold:#e6a935; --azure:#3f76c4;
+    --ink:#161b2e; --mid:#5f6680; --mid-d:#a6adc4; --rule:rgba(22,27,46,0.16); --rule-d:rgba(238,241,246,0.16);
+    --disp:"Oswald",Impact,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--sky);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--gold);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(40px,5.6vw,80px);line-height:0.94;margin:0 0 0.3em;letter-spacing:0.01em;text-transform:uppercase;}
+  .h2 em{font-style:normal;color:var(--coral);}
+  .body{color:var(--mid-d);line-height:1.7;}
+  section{padding:clamp(76px,9vw,130px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--coral);color:var(--sky);} .btn-primary:hover{background:var(--gold);color:var(--void);}
+  .btn-ghost{border:1.5px solid rgba(238,241,246,0.4);color:var(--sky);} .btn-ghost:hover{background:var(--sky);color:var(--void);border-color:var(--sky);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid-d);border-bottom:1.5px solid rgba(238,241,246,0.22);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(22,27,46,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid rgba(238,241,246,0.16);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:25px;text-decoration:none;letter-spacing:0.02em;text-transform:uppercase;}
+  .wm span{color:var(--coral);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,70px) 0 clamp(60px,7vw,100px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7.4vw,112px);line-height:0.9;letter-spacing:0.005em;text-transform:uppercase;margin:0 0 34px;max-width:17ch;}
+  .hero-headline .out{-webkit-text-stroke:1.5px var(--azure);color:transparent;}
+  .hero-headline .em{color:var(--coral);}
+  .hero-lower{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(30px,4vw,64px);align-items:end;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:2px;}
+  .hero-right .lede{color:var(--mid-d);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--gold);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(22,27,46,0.82);font-weight:700;}
+
+  .about{background:var(--sky);color:var(--ink);}
+  .about .h2{color:var(--ink);} .about .h2 em{color:var(--coral);}
+  .about .sw-head{color:var(--mid);border-color:var(--rule);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#3a4056;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid rgba(238,241,246,0.22);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid rgba(238,241,246,0.12);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(232,104,63,0.1);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(24px,2.6vw,34px);margin:0;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .svc-row p{color:var(--mid-d);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--sky);color:var(--ink);}
+  .why .sw-head{color:var(--mid);border-color:var(--rule);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--coral);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:27px;margin:0 0 10px;line-height:0.98;text-transform:uppercase;letter-spacing:0.01em;}
+  .why-grid p{color:#3a4056;margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid rgba(238,241,246,0.22);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:23px;margin:8px 0 8px;line-height:1.0;text-transform:uppercase;letter-spacing:0.01em;}
+  .how-grid p{color:var(--mid-d);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--void);}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(28px,3.7vw,52px);line-height:1.02;max-width:24ch;margin:0 0 24px;text-transform:uppercase;letter-spacing:0.01em;}
+  .t-quote em{font-style:normal;color:var(--coral);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid rgba(238,241,246,0.22);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid-d);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--gold);color:var(--void);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid rgba(238,241,246,0.16);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid rgba(238,241,246,0.22);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.06;text-transform:uppercase;letter-spacing:0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--gold);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid-d);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid rgba(238,241,246,0.3);border-radius:1px;font-weight:700;color:var(--mid-d);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid rgba(238,241,246,0.22);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.1;text-transform:uppercase;letter-spacing:0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--sky);color:var(--ink);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:600;font-size:22px;line-height:1.24;text-transform:uppercase;letter-spacing:0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:400;color:#3a4056;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1.5px solid rgba(238,241,246,0.2);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) invert(0.9) hue-rotate(190deg) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--coral);color:var(--sky);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--sky);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(44px,7vw,116px);line-height:0.9;margin:14px auto 18px;max-width:16ch;text-transform:uppercase;letter-spacing:0.01em;}
+  .cta-band h2 em{font-style:normal;-webkit-text-stroke:1.5px var(--sky);color:transparent;}
+  .cta-band p{color:rgba(238,241,246,0.9);max-width:50ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--sky);color:var(--coral);} .cta-band .btn-primary:hover{background:var(--gold);color:var(--void);}
+  .cta-band .btn-ghost{border-color:rgba(238,241,246,0.6);color:var(--sky);} .cta-band .btn-ghost:hover{background:var(--sky);color:var(--coral);}
+
+  footer{background:var(--void);border-top:1.5px solid rgba(238,241,246,0.16);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid-d);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(238,241,246,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid-d);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--coral);color:var(--sky);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(232,104,63,0.4);}
+  .msg-fab a:hover{background:var(--sky);color:var(--void);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"TouristAttraction","name":"Level & Drift","description":"Hot air balloon flights over the Somerset Levels at sunrise and sunset — shared basket flights, private charters, proposals and celebrations, with a Champagne toast on landing.","url":"https://levelanddrift.co.uk/","telephone":"+441458555210","email":"fly@levelanddrift.co.uk","address":{"@type":"PostalAddress","streetAddress":"Launch field, Common Moor","addressLocality":"Glastonbury","addressRegion":"Somerset","postalCode":"BA6 8TT","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.1450,"longitude":-2.7140},"areaServed":["Somerset Levels","Glastonbury","Wells","Taunton"],"image":["https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1600"],"foundingDate":"2003"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why can't you tell me the exact date I'll fly?","acceptedAnswer":{"@type":"Answer","text":"Balloons fly on the weather's terms. They need light stable winds, good visibility and no rain, which usually only occur near sunrise and sunset. You book onto a flight slot and we confirm the evening before; if it's not right we rebook you at no cost, as many times as needed. It's the biggest reason we've flown safely for over twenty years."}},
+{"@type":"Question","name":"Is it safe, and is it scary?","acceptedAnswer":{"@type":"Answer","text":"Ballooning is one of the safest, oldest forms of flight, and calmer than people expect. Every flight has a CAA-licensed commercial pilot, the balloon is inspected to aviation standards, and we only fly in suitable conditions. Because the basket moves with the wind there's no rush of air and little sense of speed, so most people nervous of heights are completely fine."}},
+{"@type":"Question","name":"What should I wear and how fit do I need to be?","acceptedAnswer":{"@type":"Answer","text":"Dress for a country walk — layers, long trousers, flat sturdy shoes for a dewy field. You need to climb into and out of a waist-high basket unaided and stand for about an hour. Children must see over the basket edge. Tell us any mobility concerns when you book and we'll advise honestly."}},
+{"@type":"Question","name":"How long is the flight and the whole experience?","acceptedAnswer":{"@type":"Answer","text":"Around an hour in the air, but set aside about four hours total: the meet, the inflation, the flight, the landing wherever the wind takes us, the Champagne toast and the drive back from the landing field. It's a leisurely expedition, not a fairground ride — bring the morning and don't schedule anything tight afterwards."}},
+{"@type":"Question","name":"Can I book a private flight or a proposal, and can people watch?","acceptedAnswer":{"@type":"Answer","text":"Yes. A private charter gives your group the whole basket. Proposals are a speciality — we carry and hide the ring, plan the timing and brief the pilot for privacy, with a 100% success rate. Friends can watch the launch and follow the retrieve to the toast. Tell us the plan when you book."}},
+{"@type":"Question","name":"What if weather cancels my flight or I need to rearrange?","acceptedAnswer":{"@type":"Answer","text":"We rebook weather-scrubbed flights onto the next suitable slot at no cost, and keep doing so until you fly; bookings and vouchers never expire for weather. Rearrange from your side with reasonable notice. Gift vouchers are open-dated for two full seasons so there's no pressure to fly before the sky's ready."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Level <span>&amp;</span> Drift</a>
+    <nav class="nav-links">
+      <a href="#about">The flight</a><a href="#services">What we fly</a><a href="#location">Launch site</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v78">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Hot air balloon flights · sunrise & sunset · Somerset Levels</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      One hour <span class="out">above the Levels,</span> with the whole county <span class="em">holding its breath.</span>
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=2000&q=85&auto=format&fit=crop"
+             alt="A hot air balloon rising at sunrise." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">Hot air balloon flights over the Somerset Levels — lifting off at first light or golden evening, drifting silent over the moors, the Tor and the mist, and landing to a Champagne toast in a field. Shared-basket flights, private charters, proposals and big-birthday surprises, flown by CAA-licensed pilots who've read this sky for twenty years.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a flight</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">How flying works</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Flying the Levels since 2003</span>
+    <span>CAA-licensed commercial pilots</span>
+    <span>We fly only when conditions are right</span>
+    <span>Champagne toast on landing</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v44">
+  <div class="wrap">
+    <div class="sw-head"><span>ALT 01 / THE FLIGHT</span><span>THE OLDEST WAY TO FLY</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">Ballooning is the oldest way to fly, and still the only one that feels like <em>magic.</em></h2>
+        <p>Level &amp; Drift fly hot air balloons over the Somerset Levels, and we've been doing it since 2003 because there is genuinely nothing else like it. You lift off with a roar of the burner and then — silence. No engine, no wings, just the wind carrying you and the whole flat sweep of the moors, the rhynes and droves, Glastonbury Tor rising out of the morning mist, unrolling beneath your feet. People come down changed by it.</p>
+        <p>Every flight is commanded by a CAA-licensed commercial balloon pilot with thousands of hours over this particular sky, because ballooning is entirely about reading weather and wind, and local knowledge is everything. We fly at the two times the air is calm and the light is glorious — just after sunrise and in the last hours before sunset — and we only fly when conditions are genuinely right, which is the single most important thing we do. A cancelled flight is a disappointment; a rushed one is a risk, and we don't take it.</p>
+        <p>We fly shared-basket flights where you'll share the sky with a handful of others, private charters for just your group, and the big occasions — proposals (we've never had a no), landmark birthdays, anniversaries, ashes-scattering flights of great tenderness. Every flight ends the traditional way: gently down into a Somerset field, a Champagne toast to the aeronauts' oath, and a flight certificate. The retrieve crew finds you; you just enjoy the coming-down.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://plus.unsplash.com/premium_photo-1661508496931-dbbad43dff62?w=1200&q=85&auto=format&fit=crop"
+           alt="A couple hugging in a balloon basket in flight." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" class="testimonials" data-component="SERVICES" data-variant="v71" style="background:var(--void);">
+  <div class="wrap">
+    <div class="sw-head"><span>ALT 02 / WHAT WE FLY</span><span>SHARED · PRIVATE · OCCASIONS</span></div>
+    <h2 class="h2">What we fly.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Shared sunrise flights</h3><p>Lift off at first light with a handful of fellow passengers, drift an hour over the waking Levels, and land to a Champagne toast. The classic, and the calmest air of the day.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Sunset flights</h3><p>Evening flights in the golden hours before dusk, floating over the moors as the light turns and the shadows lengthen. Fewer dates, and worth waiting for.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Private charters</h3><p>The whole basket for just your group — family, friends, a team. Your own flight, your own toast, and the freedom to make it exactly the occasion you want it to be.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Proposals &amp; celebrations</h3><p>The proposal with the best odds in the county, and the birthday nobody forgets. We'll help you plan the moment, carry the ring safely, and keep the secret until you're aloft.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Gift vouchers</h3><p>A flight in a box — the present that outshines everything under the tree. Open-dated and valid for two full flying seasons, so there's no pressure to fly before the weather's right.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Memorial &amp; ashes flights</h3><p>A quiet, dignified flight to scatter ashes over a landscape someone loved, handled with care and discretion. For many families the most fitting farewell imaginable.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v43">
+  <div class="wrap">
+    <div class="sw-head"><span>ALT 03 / THE DIFFERENCE</span><span>WHY FLY WITH US</span></div>
+    <h2 class="h2">Why fly with us.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>We only fly when it's right.</h3><p>Ballooning lives and dies by the weather, and the discipline to scrub a flight is what keeps it safe and glorious. We watch the forecast obsessively and never launch into marginal air. Patience is the job.</p></div>
+      <div><span class="no">02 / 03</span><h3>Pilots who know this sky.</h3><p>Every flight is commanded by a CAA-licensed commercial pilot with thousands of hours over the Levels specifically. Local wind, local fields, local weather — twenty years of it read into every decision.</p></div>
+      <div><span class="no">03 / 03</span><h3>The whole ritual, not just the ride.</h3><p>The dawn meet, the inflation, the roar and the silence, the drift, the field landing, the Champagne toast and the certificate. We fly the complete tradition, exactly as it should be.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>ALT 04 / HOW IT GOES</span><span>BOOK → WATCH SKY → INFLATE → DRIFT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Book &amp; choose a season</h3><p>Book a shared flight, private charter or voucher, and pick sunrise or sunset. Because weather rules everything, you're booking onto a flying window, not a fixed day — flexibility is built in.</p></li>
+      <li><span class="step">STEP 02</span><h3>We watch the weather</h3><p>In the days before, we track the forecast and confirm or reschedule the evening before. It sounds fussy; it's the whole art. A rebooked flight is a good flight waiting for its day.</p></li>
+      <li><span class="step">STEP 03</span><h3>Dawn meet &amp; inflation</h3><p>Meet at the launch field, watch the envelope come alive with cold-air fans and burner, then climb in. The moment the basket leaves the ground is one you'll replay for years.</p></li>
+      <li><span class="step">STEP 04</span><h3>Drift, land &amp; toast</h3><p>An hour aloft, a gentle field landing, a Champagne toast to the aeronauts' oath, and your flight certificate. The retrieve crew brings you back to the start. Grinning.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v43">
+  <div class="wrap">
+    <div class="sw-head"><span>ALT 05 / FROM THE BASKET</span><span>HOW IT LANDED</span></div>
+    <blockquote class="t-quote">“I proposed at a thousand feet over the Tor and she said yes before I'd <em>finished.</em>”</blockquote>
+    <div class="t-attr">Daniel &amp; Meg — sunrise proposal flight</div>
+    <div class="t-sub">
+      <figure><blockquote>“Booked a sunrise flight for my dad's 70th and the whole family came to watch the launch. It rebooked twice for weather, which turned out to be exactly why I trusted them — when we finally flew, the air was like glass. He hasn't stopped talking about it. Worth every rebooking.”</blockquote><figcaption>Fiona H. — milestone birthday</figcaption></figure>
+      <figure><blockquote>“We scattered my mother's ashes over the Levels she'd farmed all her life. Level &amp; Drift handled it with such gentleness and dignity — the quiet, the care, the right words. It was the most beautiful goodbye we could have given her. I will always be grateful.”</blockquote><figcaption>The Coombes family — memorial flight</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v71" class="about" style="background:var(--sky);">
+  <div class="wrap">
+    <div class="sw-head" style="color:var(--mid);border-color:var(--rule);"><span>ALT 06 / ALOFT</span><span>ENVELOPE, BURNER &amp; DRIFT</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?w=1600&q=85&auto=format&fit=crop" alt="A hot air balloon rising at sunrise." /><figcaption>LIFT-OFF</figcaption></figure>
+      <figure><img src="https://plus.unsplash.com/premium_photo-1661508508135-cd75fcef7269?w=1600&q=85&auto=format&fit=crop" alt="A couple in a balloon basket at sunrise." /><figcaption>FIRST FLIGHT</figcaption></figure>
+      <figure><img src="https://plus.unsplash.com/premium_photo-1661508519438-7607b261935e?w=1600&q=85&auto=format&fit=crop" alt="A couple in a balloon basket over sunny fields." /><figcaption>READY TO FLY</figcaption></figure>
+      <figure><img src="https://plus.unsplash.com/premium_photo-1661508514220-58b354c902c1?w=1600&q=85&auto=format&fit=crop" alt="A couple in a balloon basket at sunset." /><figcaption>THE DRIFT</figcaption></figure>
+      <figure><img src="https://plus.unsplash.com/premium_photo-1661508491630-7fa3d848cdec?w=1600&q=85&auto=format&fit=crop" alt="A hot air balloon seen from the ground." /><figcaption>IN FLIGHT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1500534623283-312aade485b7?w=1600&q=85&auto=format&fit=crop" alt="A balloon high above a misty landscape." /><figcaption>ABOVE THE MIST</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>ALT 07 / BEFORE YOU FLY</span><span>WEATHER, SAFETY & THE MORNING</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you fly.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441458555210" style="color:var(--gold);font-weight:700;">01458 555 210</a>. We love talking about the sky, and we'll always be straight about the weather.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why can't you just tell me the date I'll fly?</summary><p>Because hot air balloons fly on the weather's terms, not ours, and any operator who promises you a guaranteed fixed date is either going to disappoint you or take a risk we never will. Balloons need light, stable winds (under about 8–10 knots), good visibility, no rain and no threatening weather, and those conditions typically only occur reliably around sunrise and in the last hours before sunset. So when you book, you book onto a flight slot — a morning or an evening — and we confirm whether it's flying the evening before, once we have a firm forecast. If it's not right, we simply rebook you onto the next available slot, as many times as it takes, at no extra cost. It can feel frustrating if you're keen, but it is the single biggest reason we've flown for over twenty years without incident. A flight worth having is worth waiting for the right morning.</p></details>
+        <details><summary>Is it safe, and is it scary?</summary><p>Ballooning is one of aviation's safest and oldest forms of flight, and the honest experience of it is far calmer than people expect. Every flight is commanded by a CAA-licensed commercial balloon pilot, the balloon is maintained and inspected to strict aviation standards, and — crucially — we only ever fly in genuinely suitable conditions. As for scary: because the basket moves with the wind rather than against it, there's no wind in your face and very little sense of speed, and because you're standing in a solid basket rather than looking through a window, most people who consider themselves nervous of heights are completely fine. There's the roar of the burner, then long stretches of extraordinary silence and stillness. Far and away the most common thing we hear on landing is "that was so much more peaceful than I imagined."</p></details>
+        <details><summary>What should I wear and bring, and how fit do I need to be?</summary><p>Dress as if for a country walk on the morning of the flight — layers, long trousers, and flat, sturdy shoes or boots you don't mind getting damp in a dewy or muddy field (no sandals or heels). A hat is sensible as the burner is warm overhead, and bring a camera or phone with a strap. You don't need to be especially fit, but you do need to be able to climb into and out of the basket unaided (it's about waist height, so a big step up and over) and to stand for the duration of the flight, which is around an hour — there's nowhere to sit. For that reason there's a lower age guideline (children need to see over the basket edge) and we'll talk through any mobility concerns honestly when you book. If in doubt, just ask; we'd always rather have the conversation than have someone struggle.</p></details>
+        <details><summary>How long is the flight, and how long is the whole morning?</summary><p>The flight itself is typically around an hour in the air, though it varies with the wind and where it takes us — we can't steer precisely, only choose our height to catch different wind directions, which is part of the adventure. The whole experience, however, takes the best part of a morning or evening, and you should set aside around four hours in total: meeting at the launch site, watching (and often helping with) the inflation, the flight, the landing wherever the wind delivers us, the Champagne toast, and the drive back from the landing field to the start in our retrieve vehicle. It's a leisurely, unrushed affair and that's the joy of it — this is not a fairground ride but a proper expedition into the sky. Bring the morning; don't schedule anything tight afterwards.</p></details>
+        <details><summary>Can I book a private flight or a proposal, and can people watch?</summary><p>Yes to all three, and they're some of our favourite flights to run. A private charter gives you the whole basket for your own group rather than sharing with strangers, ideal for families, couples, celebrations or teams; it costs more per person than a shared flight but buys you the sky to yourselves. Proposals are a speciality and we're delighted to help — we'll safely carry and hide the ring, help you plan the moment and the timing, brief the pilot to give you privacy at the right instant, and (whisper it) our success rate is one hundred percent. Friends and family are very welcome to come and watch the launch, which is a spectacle in itself, and if they'd like to follow the retrieve crew to guess where you'll land, they can be there for the toast too. Just tell us the plan when you book and we'll build the morning around it.</p></details>
+        <details><summary>What happens if the weather cancels my flight, or I need to rearrange?</summary><p>If we scrub a flight for weather — which we will, without hesitation, whenever conditions aren't right — we simply rebook you onto the next suitable slot at no cost, and we'll keep doing that until you fly; your booking and any voucher never expires because of weather cancellations. If you need to rearrange from your side, just give us reasonable notice and we'll move you to another available date within your voucher's validity. Gift vouchers are open-dated and valid for two full flying seasons precisely so there's never pressure to fly before the sky's ready. The only thing we ask is patience and a little flexibility around dawn and dusk; give us those, and we'll give you a morning you remember for the rest of your life. Nobody has ever regretted waiting for the right one.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ALT 08 / WE FLY OVER</span><span>THE LEVELS & BEYOND</span></div>
+    <ul class="area-list">
+      <li>Somerset Levels</li><li>Glastonbury</li><li>Wells</li><li>Street</li><li>Bridgwater</li><li>Taunton</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v18" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ALT 09 / THE ESSENTIALS</span><span>HOW WE FLY</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2003</div><div class="detail">Twenty years reading this particular sky</div></div>
+      <div><div class="label">CAA-licensed</div><div class="detail">Commercial balloon pilots on every flight</div></div>
+      <div><div class="label">We scrub freely</div><div class="detail">We fly only in genuinely right conditions</div></div>
+      <div><div class="label">Champagne toast</div><div class="detail">The full tradition, ending in a Somerset field</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>ALT 10 / THE LAUNCH SITE</span><span>COMMON MOOR, GLASTONBURY</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Level &amp; Drift</strong><br />
+          Launch field, Common Moor<br />
+          Glastonbury BA6 8TT<br /><br />
+          <a href="tel:+441458555210" data-bind="business.phoneDisplay">01458 555 210</a><br />
+          <a href="mailto:fly@levelanddrift.co.uk" data-bind="business.email">fly@levelanddrift.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>FLYING SEASON</span><span>APR – OCT</span></div>
+          <div class="row"><span>SLOTS</span><span>SUNRISE / SUNSET</span></div>
+          <p class="gbp-note">Office open year-round for bookings and vouchers. Exact launch site confirmed the evening before each flight, once the forecast is firm — it depends on the wind direction on the day.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Level & Drift launch area, Glastonbury" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-2.7230%2C51.1410%2C-2.7050%2C51.1490&layer=mapnik&marker=51.1450%2C-2.7140"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v46">
+  <div class="wrap">
+    <div class="kick">ALT 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Book the morning you'll <em>never stop talking about.</em></h2>
+    <p data-bind="cta.body">Shared flights, private charters, proposals and vouchers — over the Somerset Levels at sunrise or sunset, ending in a Champagne toast. Flexible on dates, uncompromising on conditions. Come and see the county from above.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a flight</a>
+      <a class="btn btn-ghost" href="tel:+441458555210" data-bind="cta.secondary.label">01458 555 210</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441458555210" data-bind="messaging.whatsapp" aria-label="Message the crew">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:25px;">Level <span style="color:var(--coral);">&amp;</span> Drift</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">Hot air balloon flights over the Somerset Levels at sunrise and sunset. CAA-licensed pilots, flying since 2003.</p>
+      </div>
+      <div>
+        <h4>Flights</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid-d);">
+          Launch field, Common Moor<br />Glastonbury BA6 8TT<br />
+          <a href="tel:+441458555210">01458 555 210</a><br />
+          <a href="mailto:fly@levelanddrift.co.uk">fly@levelanddrift.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we fly</a><a href="#about">The flight</a><a href="#location">Launch site</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> LEVEL &amp; DRIFT</span>
+      <span>NO ENGINE · NO WINGS · JUST THE WIND</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

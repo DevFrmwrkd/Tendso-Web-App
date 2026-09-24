@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Kahon Balikbayan Cargo — door-to-door balikbayan boxes & padala from overseas to any province in the Philippines</title>
+<meta name="description" content="Kahon Balikbayan Cargo is a Filipino door-to-door cargo forwarder — we collect your balikbayan box overseas and deliver it to any doorstep in the Philippines, province to province, by sea or air, with tracking and one honest flat rate. Serving OFW families since 2005." />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Kahon Balikbayan Cargo", phone: "+63 2 8555 0140", phoneDisplay: "(02) 8555 0140", email: "padala@kahoncargo.ph", foundedYear: 2005 },
+  hero: {
+    kicker: "Door-to-door balikbayan box & padala · sea & air · any province",
+    headline: "From their hands overseas to your family's doorstep. That's the whole job.",
+    lede: "A Filipino door-to-door cargo forwarder built for OFW families. We collect the balikbayan box wherever your loved one is working, ship it by sea or air, and deliver it to any doorstep in the Philippines — city or far-flung barrio — with real tracking and one honest flat rate per box. No hidden charges when it lands. Just the pasalubong, arriving safe.",
+    primaryCta: { label: "Book a pick-up", href: "#book" },
+    secondaryCta: { label: "How padala works", href: "#services" },
+    image: "https://images.unsplash.com/photo-1526394931762-90052e97b376?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Boxes and parcels stacked ready for shipping."
+  },
+  trust: { years: "Delivering for OFW families since 2005" },
+  about: {
+    heading: "A balikbayan box is not cargo. It's love, packed by hand, sent home.",
+    paragraphs: [
+      "Kahon Balikbayan Cargo is a door-to-door forwarder for the boxes that hold a family together across an ocean. Every OFW knows the ritual: months of filling a box in a bedroom abroad — corned beef and chocolate, shoes for the kids, a dress for Nanay, toys, toiletries, the little luxuries that say 'I'm thinking of you' — then sending it home to arrive in time for a birthday, a fiesta, Christmas. We exist to make sure it gets there, whole and on time.",
+      "We started in 2005 because too many families were being stung — boxes lost, delivery delayed for months, surprise 'fees' demanded before a box would be handed over at the door. We do it differently: one clear flat rate per box quoted up front, real end-to-end tracking, and delivery genuinely to the door, whether that door is in Makati or a barangay three jeepney rides from the nearest town. Nothing more to pay when it arrives.",
+      "We forward by sea for the big regular boxes (the economical way, weeks in transit) and by air when it has to be there fast, and we cover every province and island in the country. Our people at the receiving end are Filipino, know the provinces, and treat every box like it's going to their own family — because half the time, they're delivering to families exactly like their own. Pack it with love; we'll carry it the rest of the way home."
+    ],
+    portrait: "https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Goods and parcels packed for shipping."
+  },
+  services: [
+    { name: "Door-to-door balikbayan box", description: "The heart of it: we collect the box overseas and deliver it to any doorstep in the Philippines, one flat rate per box, no charges on arrival. Regular box, jumbo box, whatever your loved one filled." },
+    { name: "Sea freight (economical)", description: "The standard balikbayan box way — shipped by sea at the most affordable rate, several weeks in transit. Best for the big regular sends timed ahead for fiestas, Christmas and birthdays. Book early." },
+    { name: "Air freight (fast)", description: "When it has to be there quickly — documents, medicine, a last-minute gift, an urgent send — we forward by air, priced by weight, delivered in days rather than weeks. Ask us for the fastest option." },
+    { name: "Any province, any island", description: "We deliver everywhere: Metro Manila to the remotest barangay, Luzon, Visayas, Mindanao, island provinces included. If your family can receive a jeepney, we can reach their door." },
+    { name: "Real end-to-end tracking", description: "Track the box from pick-up overseas to delivery at the door, with updates your family can follow too. No more wondering for months where the box is — you'll know, and so will they." },
+    { name: "Boxes, packing & pabili", description: "Need the box itself, packing help, or a hand sourcing what to send? We provide standard and jumbo balikbayan boxes and packing advice, so your send is secure and within the rules before it ships." }
+  ],
+  why: [
+    { title: "One flat rate. Nothing at the door.", body: "You pay one clear price per box up front and that's it — no surprise 'release fees,' no charges sprung on your family when the box arrives. The number we quote is the number you pay." },
+    { title: "Genuinely to the door.", body: "Not to a depot, not to the nearest town for your family to collect — to the actual doorstep, however far out the barrio. That last mile is the whole point of a padala service." },
+    { title: "Tracked, and treated with care.", body: "Real tracking from pick-up to delivery, and boxes handled by people who know these are gifts, not freight. Every box moved as carefully as if it were going to our own Nanay." }
+  ],
+  how: [
+    { step: "01", title: "Book a pick-up", body: "Message or call to arrange collection of the box from wherever your loved one is overseas, or drop it at a partner point. Tell us the destination doorstep in the Philippines and the deadline." },
+    { step: "02", title: "We weigh, seal & ship", body: "We check the box is packed within the rules, seal it, log it for tracking, and load it — sea for economy, air for speed. You get the flat rate and a tracking reference on the spot." },
+    { step: "03", title: "Track it all the way", body: "Follow the box from pick-up through shipping to arrival in-country. Your family can watch it come too — no months of silence wondering where the pasalubong has got to." },
+    { step: "04", title: "Delivered to the door", body: "Our people deliver to the doorstep, however far out, and hand it over with nothing more to pay. The box arrives whole, on time for the occasion, exactly as it was packed with love." }
+  ],
+  testimonials: [
+    { quote: "I've sent boxes home from Dubai for eight years and Kahon is the only forwarder I trust now. Flat rate, real tracking, and it actually arrives at my mother's door in the province — not a depot two towns away. My family never pays a peso on arrival. Finally, a padala done right.", name: "Rowena A.", context: "OFW, Dubai" },
+    { quote: "Our Christmas box from my son in Italy arrived on the 22nd, exactly as promised, right at our gate in Ilocos. Everything intact, nothing missing, no fees demanded. We cried opening it. Salamat for bringing him a little closer to home every year.", name: "Nanay Lucing", context: "receiving family, Ilocos Norte" },
+    { quote: "Needed to send medicine home urgently and they had it flown and at my father's door in three days. Clear pricing, constant updates, genuinely kind people who understood it mattered. This is what a Filipino cargo company should be. I recommend them to everyone abroad.", name: "Jefferson M.", context: "air freight, urgent send" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1526394931762-90052e97b376?w=1600&q=85&auto=format&fit=crop", alt: "Boxes and parcels stacked ready for shipping." },
+    { src: "https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=1600&q=85&auto=format&fit=crop", alt: "Goods packed for shipping." },
+    { src: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=1600&q=85&auto=format&fit=crop", alt: "Shelves of goods to send home." },
+    { src: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=85&auto=format&fit=crop", alt: "A delivery vehicle being loaded." },
+    { src: "https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=1600&q=85&auto=format&fit=crop", alt: "A cargo vessel on the water." },
+    { src: "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop", alt: "A family gathered at home." }
+  ],
+  faq: [
+    { q: "What exactly is a door-to-door balikbayan box service?", a: "It means we handle the box from the moment it leaves your loved one's hands overseas all the way to the moment it's placed at your family's doorstep in the Philippines — you don't touch it in between, and your family doesn't have to travel to collect it. We arrange the pick-up abroad (or you drop it at a partner point), ship it, clear it in-country, and deliver it to the actual home address, whether that's a condo in the city or a house down a barangay road far from the nearest town. 'Door-to-door' is the important phrase: some cheaper services are really 'door-to-depot,' leaving your family to arrange the final leg themselves, sometimes hours away. We don't do that. The whole reason a balikbayan box matters is that it arrives home — so we take it home. One booking, one flat rate, and the box turns up where your family actually lives." },
+    { q: "How much does it cost, and are there fees on arrival?", a: "We charge one clear flat rate per box for sea freight, quoted to you up front before you ship, and that is the entire cost — there is nothing more to pay when the box is delivered. This matters because the single most common horror story in this industry is a family being asked for a surprise 'release fee' or 'delivery charge' at the door before they'll be given their own box, sometimes a large sum they weren't warned about. We think that's wrong, so we don't do it: the price we quote is the price you pay, full stop, and your family owes nothing on arrival. Air freight is priced by weight rather than a flat box rate because it's a different, faster service, but the same principle holds — you know the full cost before it ships, with no charges sprung at the other end. Ask us for a quote and we'll give you a straight number." },
+    { q: "How long does a balikbayan box take to arrive?", a: "By sea — the standard and most economical way to send a balikbayan box — expect several weeks in transit, the exact time depending on the origin country and the destination province, plus a little more for the most remote areas. This is why we always tell families to send ahead of the occasion: if you want the box home for Christmas, a fiesta or a birthday, book the pick-up well in advance rather than cutting it fine, and we'll help you work back from the date. By air, it's days rather than weeks, which is the option to choose when something is urgent or time-sensitive — medicine, documents, a last-minute gift — though it costs more and suits smaller, lighter sends. We'll give you a realistic delivery window when you book, based on the actual route, and then you and your family can track it the whole way so there are no anxious months of silence." },
+    { q: "Which areas in the Philippines do you deliver to?", a: "All of them — that's a point of pride. We deliver across the entire country: Metro Manila and the other cities, of course, but just as importantly the provinces and the far-flung barrios, across Luzon, the Visayas and Mindanao, including the island provinces. So many OFW families come from places the big generic couriers treat as 'too remote,' and those are exactly the families a balikbayan service exists for. If your loved one's home can be reached by road, boat or the local means people actually use to get there, we will get the box to that door. When you book, just give us the complete address and any landmarks or local directions that help — provincial addresses often rely on them — and our in-country team, who know these regions, will do the rest. Nowhere is too far for the box to go home." },
+    { q: "What can I put in a balikbayan box, and what's not allowed?", a: "The classics are exactly what you'd expect and entirely fine: canned goods, chocolates and non-perishable food, clothing and shoes, toys, toiletries, small household items, and the everyday little luxuries that make up a proper pasalubong. There are, however, real rules set by customs and shipping regulations about what cannot go in — things like cash and jewellery beyond limits, certain electronics and batteries, aerosols and flammable items, perishable fresh food, and anything prohibited or restricted for import — and sending a banned item risks the whole box being delayed or held. Because these rules change and vary, the safest move is to check with us before you pack: we'll give you the current do's and don'ts, help you stay within weight and content limits, and flag anything questionable, so your box sails through rather than getting stuck. We can also supply the standard and jumbo boxes themselves and offer packing advice so everything arrives intact." },
+    { q: "How do I know my box won't get lost?", a: "Two things: real tracking, and people who treat the box as more than cargo. Every box we handle is logged and trackable from the pick-up overseas, through shipping, to delivery at the door, and you — and your family — can follow its progress rather than posting it into a void and hoping. That transparency alone prevents most of the anxiety, and it keeps us accountable at every handover. Beyond the system, it comes down to how the box is handled, and our team, in-country and out, are Filipinos who understand precisely what a balikbayan box is: months of a parent's or child's wages and love, packed by hand for a family they miss. We move every box with that in mind. Nothing in shipping is ever one-hundred-percent risk-free, but between end-to-end tracking, careful handling and being genuinely reachable when you have a question, we've earned the trust of families sending home for two decades. Message us anytime and a real person will tell you exactly where your box is." }
+  ],
+  area: { places: ["Metro Manila", "Luzon provinces", "Visayas", "Mindanao", "Island provinces", "Nationwide door-to-door"] },
+  credentials: [
+    { label: "Since 2005", detail: "Door-to-door padala for OFW families" },
+    { label: "One flat rate", detail: "Quoted up front, nothing owed on arrival" },
+    { label: "Sea & air", detail: "Economical by sea, fast by air" },
+    { label: "Every province", detail: "To the actual doorstep, however remote" }
+  ],
+  location: { name: "Kahon Balikbayan Cargo", addressStreet: "77 Quirino Highway, Novaliches", addressLocality: "Quezon City", addressRegion: "Metro Manila", addressPostcode: "1123", addressCountry: "Philippines" },
+  cta: { heading: "Send it home. We'll carry it to the door.", body: "Door-to-door balikbayan boxes and padala from overseas to any province in the Philippines — sea or air, real tracking, one honest flat rate and nothing to pay on arrival. Serving OFW families since 2005. Book a pick-up today.", primary: { label: "Book a pick-up", href: "#book" }, secondary: { label: "(02) 8555 0140", href: "tel:+63285550140" } },
+  messaging: { whatsapp: "https://wa.me/63285550140", messenger: "https://m.me/kahoncargo" }
+};
+</script>
+
+<style>
+  :root {
+    --navy:#0f2a47; --navy-2:#0a1e34; --sky:#f0f3f7; --sky-2:#ffffff; --ink:#16202e; --ink-2:#465266;
+    --flag-red:#c8362f; --sun:#e6a92c; --teal:#2a8f96;
+    --mid:#7c879a; --rule:rgba(15,42,71,0.13); --rule-d:rgba(240,243,247,0.16);
+    --disp:"Space Grotesk",system-ui,sans-serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--sky);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--flag-red);}
+  .wrap{width:min(1280px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--flag-red);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:700;font-size:clamp(36px,5.2vw,74px);line-height:1.0;margin:0 0 0.32em;letter-spacing:-0.02em;}
+  .h2 em{font-style:normal;color:var(--flag-red);}
+  .body{color:var(--ink-2);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:16px 32px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:3px;}
+  .btn-primary{background:var(--flag-red);color:var(--sky-2);} .btn-primary:hover{background:var(--navy);}
+  .btn-ghost{border:2px solid var(--navy);color:var(--navy);} .btn-ghost:hover{background:var(--navy);color:var(--sky-2);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);border-bottom:2px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,58px);font-weight:700;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(240,243,247,0.93);backdrop-filter:blur(10px);border-bottom:2px solid var(--navy);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:700;font-size:21px;text-decoration:none;letter-spacing:-0.03em;color:var(--navy);}
+  .wm span{color:var(--flag-red);}
+  .nav-links{display:flex;gap:24px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-2);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(30px,5vw,64px) 0 clamp(56px,7vw,96px);position:relative;}
+  .hero-headline{font-family:var(--disp);font-weight:700;font-size:clamp(38px,6.2vw,94px);line-height:0.98;letter-spacing:-0.03em;margin:0 0 32px;max-width:18ch;color:var(--navy);}
+  .hero-headline .em{color:var(--flag-red);}
+  .hero-lower{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(30px,4vw,60px);align-items:end;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:8px;border:3px solid var(--navy);}
+  .hero-photo::after{content:"DOOR-TO-DOOR · FLAT RATE · SINCE 2005";position:absolute;left:-8px;top:-14px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:0.08em;background:var(--sun);color:var(--navy);padding:8px 14px;border-radius:4px;border:2.5px solid var(--navy);transform:rotate(-2deg);}
+  .hero-right .lede{color:var(--ink-2);font-size:clamp(15px,1.5vw,17.5px);line-height:1.72;max-width:44ch;}
+  .hero-ctas{margin-top:26px;display:flex;gap:13px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-lower{grid-template-columns:1fr;} }
+
+  .trust{padding:0;background:var(--navy);color:var(--sky-2);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.85);font-weight:700;}
+
+  .about{background:var(--sky-2);color:var(--ink);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:8px;border:3px solid var(--navy);}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:var(--ink-2);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:2px solid var(--navy);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(200,54,47,0.08);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.08em;color:var(--teal);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:700;font-size:clamp(23px,2.5vw,33px);margin:0;line-height:1.04;letter-spacing:-0.02em;color:var(--navy);}
+  .svc-row p{color:var(--ink-2);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--navy);color:var(--sky);}
+  .why .sw-head{color:rgba(240,243,247,0.65);border-color:rgba(240,243,247,0.22);}
+  .why .h2{color:var(--sky-2);} .why .h2 em{color:var(--sun);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;color:var(--sun);display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:700;font-size:25px;margin:0 0 10px;line-height:1.06;letter-spacing:-0.02em;}
+  .why-grid p{color:rgba(240,243,247,0.84);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:3px solid var(--flag-red);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;color:var(--teal);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:700;font-size:22px;margin:8px 0 8px;line-height:1.04;letter-spacing:-0.02em;color:var(--navy);}
+  .how-grid p{color:var(--ink-2);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--navy-2);color:var(--sky);}
+  .t-quote{font-family:var(--disp);font-weight:700;font-size:clamp(26px,3.4vw,48px);line-height:1.1;max-width:26ch;margin:0 0 24px;letter-spacing:-0.025em;}
+  .t-quote em{font-style:normal;color:var(--sun);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--sun);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid rgba(240,243,247,0.2);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:rgba(240,243,247,0.82);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(240,243,247,0.6);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:6px;border:3px solid var(--navy);}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--flag-red);color:var(--sky-2);font-family:var(--mono);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--navy);}
+  .faq-list summary{font-family:var(--disp);font-weight:700;font-size:21px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;letter-spacing:-0.02em;color:var(--navy);}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--flag-red);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--ink-2);font-size:14.5px;max-width:64ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--navy);border-radius:3px;font-weight:700;color:var(--ink-2);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:3px solid var(--teal);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--flag-red);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:700;font-size:19px;line-height:1.14;letter-spacing:-0.02em;color:var(--navy);}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--sun);color:var(--navy);padding:34px;border-radius:8px;border:3px solid var(--navy);}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:700;font-size:21px;line-height:1.28;letter-spacing:-0.02em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;text-transform:none;font-weight:600;color:var(--navy-2);}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:2px solid rgba(15,42,71,0.24);padding-top:18px;letter-spacing:0.06em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--navy-2);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--navy-2);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:8px;border:3px solid var(--navy);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.15) contrast(1.02);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--flag-red);color:var(--sky-2);padding:clamp(80px,10vw,144px) 0;text-align:center;}
+  .cta-band .kick{color:var(--sky-2);}
+  .cta-band h2{font-family:var(--disp);font-weight:700;font-size:clamp(40px,6vw,100px);line-height:0.98;margin:14px auto 18px;max-width:16ch;letter-spacing:-0.03em;}
+  .cta-band h2 em{font-style:normal;color:var(--sun);}
+  .cta-band p{color:rgba(255,255,255,0.92);max-width:54ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--sky-2);color:var(--flag-red);} .cta-band .btn-primary:hover{background:var(--navy);color:var(--sky-2);}
+  .cta-band .btn-ghost{border-color:var(--sky-2);color:var(--sky-2);} .cta-band .btn-ghost:hover{background:var(--sky-2);color:var(--flag-red);}
+
+  footer{background:var(--navy-2);color:var(--sky);border-top:3px solid var(--sun);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:var(--sun);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:rgba(240,243,247,0.72);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid rgba(240,243,247,0.16);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:rgba(240,243,247,0.6);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--navy);color:var(--sky-2);padding:13px 20px;border-radius:3px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;box-shadow:0 8px 24px rgba(15,42,71,0.4);border:2.5px solid var(--sun);}
+  .msg-fab a:hover{background:var(--flag-red);border-color:var(--sky-2);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"MovingCompany","name":"Kahon Balikbayan Cargo","description":"Filipino door-to-door cargo forwarder — balikbayan boxes and padala from overseas to any doorstep in the Philippines, by sea or air, with tracking and one flat rate. Serving OFW families since 2005.","url":"https://kahoncargo.ph/","telephone":"+63285550140","email":"padala@kahoncargo.ph","address":{"@type":"PostalAddress","streetAddress":"77 Quirino Highway, Novaliches","addressLocality":"Quezon City","addressRegion":"Metro Manila","postalCode":"1123","addressCountry":"PH"},"geo":{"@type":"GeoCoordinates","latitude":14.7100,"longitude":121.0400},"areaServed":["Philippines","Luzon","Visayas","Mindanao"],"image":["https://images.unsplash.com/photo-1526394931762-90052e97b376?w=1600"],"foundingDate":"2005"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What is a door-to-door balikbayan box service?","acceptedAnswer":{"@type":"Answer","text":"We handle the box from your loved one's hands overseas to your family's doorstep in the Philippines — you don't touch it in between and your family doesn't travel to collect it. We arrange pick-up abroad, ship it, clear it in-country, and deliver to the actual home address, city or remote barangay. Cheaper 'door-to-depot' services leave the final leg to your family; we take it all the way home. One booking, one flat rate."}},
+{"@type":"Question","name":"How much does it cost, and are there fees on arrival?","acceptedAnswer":{"@type":"Answer","text":"One clear flat rate per box for sea freight, quoted up front, and that's the entire cost — nothing more to pay on delivery. We never spring a surprise 'release fee' at the door, which is the industry's most common horror story. Air freight is priced by weight, but the same principle holds: you know the full cost before shipping, with no charges at the other end. Ask us for a straight quote."}},
+{"@type":"Question","name":"How long does a balikbayan box take?","acceptedAnswer":{"@type":"Answer","text":"By sea — the standard, economical way — several weeks, depending on origin and destination, a little more for remote areas, so send ahead of Christmas, fiestas and birthdays. By air it's days, for urgent or time-sensitive sends, at higher cost for smaller loads. We give a realistic delivery window at booking based on the actual route, and you and your family track it the whole way."}},
+{"@type":"Question","name":"Which areas do you deliver to?","acceptedAnswer":{"@type":"Answer","text":"All of them — Metro Manila, the cities, and just as importantly the provinces and far-flung barrios across Luzon, the Visayas and Mindanao, including island provinces. If the home can be reached by road, boat or local means, we get the box to that door. Give us the complete address and any landmarks, and our in-country team who know these regions will do the rest."}},
+{"@type":"Question","name":"What can I put in a balikbayan box?","acceptedAnswer":{"@type":"Answer","text":"Canned goods, chocolates and non-perishable food, clothing, shoes, toys, toiletries and small household items are all fine. Customs and shipping rules prohibit or restrict things like cash and jewellery beyond limits, certain electronics and batteries, aerosols and flammables, and perishable fresh food. Rules change, so check with us before you pack — we'll give current do's and don'ts, keep you within limits, and supply boxes and packing advice."}},
+{"@type":"Question","name":"How do I know my box won't get lost?","acceptedAnswer":{"@type":"Answer","text":"Real tracking and careful people. Every box is logged and trackable from pick-up overseas through shipping to delivery, and you and your family can follow it rather than posting it into a void. Our team, in-country and out, are Filipinos who understand a balikbayan box is months of wages and love packed by hand, and handle it accordingly. Nothing in shipping is risk-free, but end-to-end tracking, careful handling and being reachable have earned families' trust for two decades. Message us and a real person tells you exactly where your box is."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Kahon <span>Cargo</span></a>
+    <nav class="nav-links">
+      <a href="#about">The service</a><a href="#services">What we ship</a><a href="#location">Find us</a><a href="#book">Book a pick-up</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v85" data-screen-label="Hero">
+  <div class="wrap">
+    <div class="kick" data-bind="hero.kicker" style="margin-bottom:22px;">Door-to-door balikbayan box & padala · sea & air · any province</div>
+    <h1 class="hero-headline" data-comment-anchor="hero-headline">
+      From their hands overseas to your family's <span class="em">doorstep.</span> That's the whole job.
+    </h1>
+    <div class="hero-lower">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1526394931762-90052e97b376?w=2000&q=85&auto=format&fit=crop"
+             alt="Boxes and parcels stacked ready for shipping." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-right">
+        <p class="lede" data-bind="hero.lede">A Filipino door-to-door cargo forwarder built for OFW families. We collect the balikbayan box wherever your loved one is working, ship it by sea or air, and deliver it to any doorstep in the Philippines — city or far-flung barrio — with real tracking and one honest flat rate per box. No hidden charges when it lands. Just the pasalubong, arriving safe.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a pick-up</a>
+          <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">How padala works</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Delivering for OFW families since 2005</span>
+    <span>One flat rate, nothing on arrival</span>
+    <span>Sea &amp; air freight</span>
+    <span>Every province, to the door</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v51" data-screen-label="About">
+  <div class="wrap">
+    <div class="sw-head"><span>BOX 01 / THE SERVICE</span><span>PACKED WITH LOVE, SENT HOME</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2">A balikbayan box is not cargo. It's love, packed by hand, sent <em>home.</em></h2>
+        <p>Kahon Balikbayan Cargo is a door-to-door forwarder for the boxes that hold a family together across an ocean. Every OFW knows the ritual: months of filling a box in a bedroom abroad — corned beef and chocolate, shoes for the kids, a dress for Nanay, toys, toiletries, the little luxuries that say "I'm thinking of you" — then sending it home to arrive in time for a birthday, a fiesta, Christmas. We exist to make sure it gets there, whole and on time.</p>
+        <p>We started in 2005 because too many families were being stung — boxes lost, delivery delayed for months, surprise "fees" demanded before a box would be handed over at the door. We do it differently: one clear flat rate per box quoted up front, real end-to-end tracking, and delivery genuinely to the door, whether that door is in Makati or a barangay three jeepney rides from the nearest town. Nothing more to pay when it arrives.</p>
+        <p>We forward by sea for the big regular boxes (the economical way, weeks in transit) and by air when it has to be there fast, and we cover every province and island in the country. Our people at the receiving end are Filipino, know the provinces, and treat every box like it's going to their own family — because half the time, they're delivering to families exactly like their own. Pack it with love; we'll carry it the rest of the way home.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=1200&q=85&auto=format&fit=crop"
+           alt="Goods and parcels packed for shipping." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v78" data-screen-label="Services">
+  <div class="wrap">
+    <div class="sw-head"><span>BOX 02 / WHAT WE SHIP</span><span>SEA · AIR · DOOR-TO-DOOR · TRACKED</span></div>
+    <h2 class="h2">What we ship.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Door-to-door balikbayan box</h3><p>The heart of it: we collect the box overseas and deliver it to any doorstep in the Philippines, one flat rate per box, no charges on arrival. Regular box, jumbo box, whatever your loved one filled.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Sea freight (economical)</h3><p>The standard balikbayan box way — shipped by sea at the most affordable rate, several weeks in transit. Best for the big regular sends timed ahead for fiestas, Christmas and birthdays. Book early.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Air freight (fast)</h3><p>When it has to be there quickly — documents, medicine, a last-minute gift, an urgent send — we forward by air, priced by weight, delivered in days rather than weeks. Ask us for the fastest option.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Any province, any island</h3><p>We deliver everywhere: Metro Manila to the remotest barangay, Luzon, Visayas, Mindanao, island provinces included. If your family can receive a jeepney, we can reach their door.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Real end-to-end tracking</h3><p>Track the box from pick-up overseas to delivery at the door, with updates your family can follow too. No more wondering for months where the box is — you'll know, and so will they.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Boxes, packing &amp; advice</h3><p>Need the box itself, packing help, or a hand knowing what to send? We provide standard and jumbo balikbayan boxes and packing advice, so your send is secure and within the rules before it ships.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>BOX 03 / THE DIFFERENCE</span><span>WHY FAMILIES TRUST US</span></div>
+    <h2 class="h2">Why families trust <em>us.</em></h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>One flat rate. Nothing at the door.</h3><p>You pay one clear price per box up front and that's it — no surprise 'release fees,' no charges sprung on your family when the box arrives. The number we quote is the number you pay.</p></div>
+      <div><span class="no">02 / 03</span><h3>Genuinely to the door.</h3><p>Not to a depot, not to the nearest town for your family to collect — to the actual doorstep, however far out the barrio. That last mile is the whole point of a padala service.</p></div>
+      <div><span class="no">03 / 03</span><h3>Tracked, and treated with care.</h3><p>Real tracking from pick-up to delivery, and boxes handled by people who know these are gifts, not freight. Every box moved as carefully as if it were going to our own Nanay.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>BOX 04 / HOW IT GOES</span><span>BOOK · SEAL · TRACK · DELIVER</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Book a pick-up</h3><p>Message or call to arrange collection of the box from wherever your loved one is overseas, or drop it at a partner point. Tell us the destination doorstep and the deadline.</p></li>
+      <li><span class="step">STEP 02</span><h3>We weigh, seal &amp; ship</h3><p>We check the box is packed within the rules, seal it, log it for tracking, and load it — sea for economy, air for speed. You get the flat rate and a tracking reference on the spot.</p></li>
+      <li><span class="step">STEP 03</span><h3>Track it all the way</h3><p>Follow the box from pick-up through shipping to arrival in-country. Your family can watch it come too — no months of silence wondering where the pasalubong has got to.</p></li>
+      <li><span class="step">STEP 04</span><h3>Delivered to the door</h3><p>Our people deliver to the doorstep, however far out, and hand it over with nothing more to pay. The box arrives whole, on time for the occasion, exactly as it was packed with love.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v50">
+  <div class="wrap">
+    <div class="sw-head"><span>BOX 05 / FROM OUR FAMILIES</span><span>PADALA DONE RIGHT</span></div>
+    <blockquote class="t-quote">“It actually arrives at my mother's door in the province — not a depot two towns away. My family never pays a peso on arrival. Finally, <em>padala done right.</em>”</blockquote>
+    <div class="t-attr">Rowena A. — OFW, Dubai</div>
+    <div class="t-sub">
+      <figure><blockquote>“Our Christmas box from my son in Italy arrived on the 22nd, exactly as promised, right at our gate in Ilocos. Everything intact, nothing missing, no fees demanded. We cried opening it. Salamat for bringing him a little closer to home every year.”</blockquote><figcaption>Nanay Lucing — receiving family, Ilocos Norte</figcaption></figure>
+      <figure><blockquote>“Needed to send medicine home urgently and they had it flown and at my father's door in three days. Clear pricing, constant updates, genuinely kind people who understood it mattered. This is what a Filipino cargo company should be. I recommend them to everyone abroad.”</blockquote><figcaption>Jefferson M. — air freight, urgent send</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v78" class="about" style="background:var(--sky-2);">
+  <div class="wrap">
+    <div class="sw-head"><span>BOX 06 / ON ITS WAY</span><span>FROM PICK-UP TO DOORSTEP</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1526394931762-90052e97b376?w=1600&q=85&auto=format&fit=crop" alt="Boxes and parcels stacked ready for shipping." /><figcaption>THE BOXES</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1516981879613-9f5da904015f?w=1600&q=85&auto=format&fit=crop" alt="Goods packed for shipping." /><figcaption>THE PACK</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=1600&q=85&auto=format&fit=crop" alt="Shelves of goods to send home." /><figcaption>THE PASALUBONG</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1600&q=85&auto=format&fit=crop" alt="A delivery vehicle being loaded." /><figcaption>THE LOAD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=1600&q=85&auto=format&fit=crop" alt="A cargo vessel on the water." /><figcaption>THE VOYAGE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1601050690597-df0568f70950?w=1600&q=85&auto=format&fit=crop" alt="A family gathered at home." /><figcaption>THE DOORSTEP</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>BOX 07 / GOOD TO KNOW</span><span>COST, TIME &amp; WHAT TO SEND</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Good to know.</h2>
+        <p class="body">Anything else — message us or ring <a href="tel:+63285550140" style="color:var(--flag-red);font-weight:700;">(02) 8555 0140</a>. Tell us where the box is and where it's going, and we'll quote you straight.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What exactly is a door-to-door balikbayan box service?</summary><p>It means we handle the box from the moment it leaves your loved one's hands overseas all the way to the moment it's placed at your family's doorstep in the Philippines — you don't touch it in between, and your family doesn't have to travel to collect it. We arrange the pick-up abroad (or you drop it at a partner point), ship it, clear it in-country, and deliver it to the actual home address, whether that's a condo in the city or a house down a barangay road far from the nearest town. 'Door-to-door' is the important phrase: some cheaper services are really 'door-to-depot,' leaving your family to arrange the final leg themselves, sometimes hours away. We don't do that. One booking, one flat rate, and the box turns up where your family actually lives.</p></details>
+        <details><summary>How much does it cost, and are there fees on arrival?</summary><p>We charge one clear flat rate per box for sea freight, quoted to you up front before you ship, and that is the entire cost — there is nothing more to pay when the box is delivered. This matters because the single most common horror story in this industry is a family being asked for a surprise 'release fee' or 'delivery charge' at the door before they'll be given their own box. We think that's wrong, so we don't do it: the price we quote is the price you pay, full stop, and your family owes nothing on arrival. Air freight is priced by weight rather than a flat box rate because it's a different, faster service, but the same principle holds — you know the full cost before it ships, with no charges sprung at the other end.</p></details>
+        <details><summary>How long does a balikbayan box take to arrive?</summary><p>By sea — the standard and most economical way — expect several weeks in transit, the exact time depending on the origin country and the destination province, plus a little more for the most remote areas. This is why we always tell families to send ahead of the occasion: if you want the box home for Christmas, a fiesta or a birthday, book the pick-up well in advance rather than cutting it fine, and we'll help you work back from the date. By air, it's days rather than weeks, the option to choose when something is urgent — medicine, documents, a last-minute gift — though it costs more and suits smaller sends. We'll give you a realistic delivery window when you book, and then you and your family can track it the whole way.</p></details>
+        <details><summary>Which areas in the Philippines do you deliver to?</summary><p>All of them — that's a point of pride. We deliver across the entire country: Metro Manila and the other cities, but just as importantly the provinces and the far-flung barrios, across Luzon, the Visayas and Mindanao, including the island provinces. So many OFW families come from places the big generic couriers treat as 'too remote,' and those are exactly the families a balikbayan service exists for. If your loved one's home can be reached by road, boat or the local means people actually use, we will get the box to that door. When you book, give us the complete address and any landmarks or local directions that help, and our in-country team, who know these regions, will do the rest.</p></details>
+        <details><summary>What can I put in a balikbayan box, and what's not allowed?</summary><p>The classics are exactly what you'd expect and entirely fine: canned goods, chocolates and non-perishable food, clothing and shoes, toys, toiletries, small household items, and the everyday little luxuries that make up a proper pasalubong. There are real rules set by customs and shipping regulations about what cannot go in — things like cash and jewellery beyond limits, certain electronics and batteries, aerosols and flammable items, perishable fresh food, and anything prohibited for import — and sending a banned item risks the whole box being delayed or held. Because these rules change and vary, the safest move is to check with us before you pack: we'll give you the current do's and don'ts, help you stay within weight and content limits, and flag anything questionable. We can also supply the boxes themselves and offer packing advice.</p></details>
+        <details><summary>How do I know my box won't get lost?</summary><p>Two things: real tracking, and people who treat the box as more than cargo. Every box we handle is logged and trackable from the pick-up overseas, through shipping, to delivery at the door, and you — and your family — can follow its progress rather than posting it into a void and hoping. That transparency alone prevents most of the anxiety, and it keeps us accountable at every handover. Beyond the system, our team, in-country and out, are Filipinos who understand precisely what a balikbayan box is: months of a parent's or child's wages and love, packed by hand for a family they miss. We move every box with that in mind. Nothing in shipping is ever one-hundred-percent risk-free, but between end-to-end tracking, careful handling and being genuinely reachable, we've earned the trust of families sending home for two decades.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BOX 08 / WE DELIVER TO</span><span>THE WHOLE COUNTRY</span></div>
+    <ul class="area-list">
+      <li>Metro Manila</li><li>Luzon provinces</li><li>Visayas</li><li>Mindanao</li><li>Island provinces</li><li>Nationwide door-to-door</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v25" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BOX 09 / THE ESSENTIALS</span><span>HOW WE FORWARD</span></div>
+    <div class="creds">
+      <div><div class="label">Since 2005</div><div class="detail">Door-to-door padala for OFW families</div></div>
+      <div><div class="label">One flat rate</div><div class="detail">Quoted up front, nothing owed on arrival</div></div>
+      <div><div class="label">Sea &amp; air</div><div class="detail">Economical by sea, fast by air</div></div>
+      <div><div class="label">Every province</div><div class="detail">To the actual doorstep, however remote</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" data-screen-label="Location" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>BOX 10 / THE HUB</span><span>QUIRINO HIGHWAY, QUEZON CITY</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Kahon Balikbayan Cargo</strong><br />
+          77 Quirino Highway, Novaliches<br />
+          Quezon City 1123<br /><br />
+          <a href="tel:+63285550140" data-bind="business.phoneDisplay">(02) 8555 0140</a><br />
+          <a href="mailto:padala@kahoncargo.ph" data-bind="business.email">padala@kahoncargo.ph</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SAT</span><span>8AM – 6PM</span></div>
+          <div class="row"><span>TRACKING</span><span>24/7 ONLINE</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. Overseas pick-ups are arranged through our partner points — message us and we'll set up collection wherever your loved one is.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Kahon Balikbayan Cargo, Quezon City" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=121.0250%2C14.7000%2C121.0550%2C14.7200&layer=mapnik&marker=14.7100%2C121.0400"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v53">
+  <div class="wrap">
+    <div class="kick">BOX 11 / SEND IT HOME</div>
+    <h2 data-bind="cta.heading">Send it home. We'll carry it to the <em>door.</em></h2>
+    <p data-bind="cta.body">Door-to-door balikbayan boxes and padala from overseas to any province in the Philippines — sea or air, real tracking, one honest flat rate and nothing to pay on arrival. Serving OFW families since 2005. Book a pick-up today.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a pick-up</a>
+      <a class="btn btn-ghost" href="tel:+63285550140" data-bind="cta.secondary.label">(02) 8555 0140</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/63285550140" data-bind="messaging.whatsapp" aria-label="Message the cargo team">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;color:var(--sky);">Kahon <span style="color:var(--sun);">Cargo</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:rgba(240,243,247,0.72);">A Filipino door-to-door cargo forwarder — balikbayan boxes and padala from overseas to any doorstep in the Philippines, since 2005.</p>
+      </div>
+      <div>
+        <h4>The hub</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:rgba(240,243,247,0.72);">
+          77 Quirino Highway, Novaliches<br />Quezon City 1123<br />
+          <a href="tel:+63285550140">(02) 8555 0140</a><br />
+          <a href="mailto:padala@kahoncargo.ph">padala@kahoncargo.ph</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we ship</a><a href="#about">The service</a><a href="#location">Find us</a><a href="#book">Book a pick-up</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> KAHON BALIKBAYAN CARGO</span>
+      <span>PACKED WITH LOVE · SENT HOME</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

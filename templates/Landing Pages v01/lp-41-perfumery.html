@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bruma — independent perfumery &amp; scent studio in Harrogate</title>
+<meta name="description" content="Bruma is an independent perfumery in Harrogate — a house line of nine fragrances blended on site, guided scent consultations, and bespoke perfume made to your brief over three sittings." />
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400;0,6..96,500;0,6..96,600;1,6..96,400;1,6..96,500&family=Manrope:wght@400;500;600;700&family=Inconsolata:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Bruma", phone: "+44 1423 705 118", phoneDisplay: "01423 705 118", email: "studio@brumaperfumery.co.uk", foundedYear: 2016 },
+  hero: {
+    kicker: "Independent perfumery · blended on site · Montpellier Quarter, Harrogate",
+    headline: "Nine perfumes. Blended here. Numbered, not named after moods.",
+    lede: "Bruma makes a house line of nine fragrances in the studio behind the shop — numbered, honestly described, and worn on skin before anything is decided. No celebrity bottles, no 'inspired by' dupes, no scent strips waved at you from a doorway. Perfume, treated as a craft.",
+    primaryCta: { label: "Book a consultation", href: "#book" },
+    secondaryCta: { label: "The formula library", href: "#services" },
+    image: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Perfume bottles and blotter strips on the studio bench."
+  },
+  trust: { years: "Blending since 2016" },
+  about: {
+    heading: "A shop in front, an organ in back.",
+    paragraphs: [
+      "The back room holds the perfumer's organ — three hundred and forty materials racked in tiers, from bergamot you'd recognise to a smoked-birch note that clears the room in the best way. Every Bruma fragrance is composed and blended there, matured for six weeks, and bottled by hand in batches of sixty.",
+      "The house line stays at nine. When a tenth formula earns its place, a current one retires — buyers of retired numbers are warned in writing, given first refusal on the final batch, and consoled in person.",
+      "Fragrances are numbered because names lie. № 4 is not called 'Midnight Whisper'; it is iris, carrot seed and cold air, and the card on the shelf says exactly that. You wear it for twenty minutes before we'll even discuss the bottle."
+    ],
+    portrait: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Hand-labelled perfume bottles in the studio."
+  },
+  services: [
+    { name: "The house line", description: "Nine numbered fragrances, blended and matured on site. Each shelf card lists the accord honestly — materials, not moods." },
+    { name: "The scent consultation", description: "Forty-five minutes, six strips, two skin tests, zero pressure. We map what you actually reach for, not what the counter assistant was told to move." },
+    { name: "Bespoke perfume", description: "Your brief, three sittings, a formula that exists nowhere else — logged in the book under your name, remade whenever you run out." },
+    { name: "The refill bench", description: "Bring the bottle back; we refill it for less than a new one. The glass is the expensive part and the landfill maths is embarrassing." },
+    { name: "Scent for spaces", description: "Candles and room sprays from the same organ, plus commissioned scent for shops, studios and one persistently damp gallery." },
+    { name: "The blending workshop", description: "Three hours at the organ, a structured tour of twenty materials, and a 30ml bottle of whatever you talk yourself into. Six seats, monthly." }
+  ],
+  why: [
+    { title: "Skin first, always.", body: "Paper strips audition a perfume; skin decides. Twenty minutes minimum on your wrist before we'll discuss a bottle. It changes the answer more often than not." },
+    { title: "The accord is on the card.", body: "Every fragrance lists its actual materials. If you're allergic, curious or just suspicious of marketing, the truth is on the shelf in 10pt type." },
+    { title: "Blended here, batch by batch.", body: "Sixty bottles at a time, matured six weeks, batch number on the base. When you reorder, you're getting the same formula from the same book." }
+  ],
+  how: [
+    { step: "01", title: "Talk first", body: "What you wear, what you hated, what the last bottle promised and didn't do. Honesty helps; grudges welcome." },
+    { step: "02", title: "Six strips", body: "A structured shortlist from the nine — plus a wildcard we think you're wrong about. People are wrong about the wildcard 40% of the time." },
+    { step: "03", title: "Two on skin", body: "Twenty minutes, a walk around the block, a coffee next door. Perfume is a time-based art; we give it time." },
+    { step: "04", title: "Decide slowly", body: "Buy the bottle, take a sample, or leave with nothing but opinions. All three are good outcomes; two of them come back eventually." }
+  ],
+  testimonials: [
+    { quote: "I've worn the same designer perfume for fifteen years. The consultation found me № 7 in half an hour — my partner now claims the old one 'was someone else's wife'. I have complicated feelings and a new signature.", name: "Rachel B.", context: "consultation convert" },
+    { quote: "The bespoke process was the best money I've spent on myself, full stop. Three sittings, real arguments about vetiver, and a formula with my name in the book. When I run out, they just… make more of me.", name: "James K.", context: "bespoke commission № 41" },
+    { quote: "Took my mum for her 70th. The perfumer treated her nose like it belonged to a professional. She left with № 2 and the posture of a duchess.", name: "Sophie T.", context: "birthday consultation" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=1600&q=85&auto=format&fit=crop", alt: "Bottles and blotters on the bench." },
+    { src: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=1600&q=85&auto=format&fit=crop", alt: "The house line, hand-labelled." },
+    { src: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=1600&q=85&auto=format&fit=crop", alt: "№ 4, current batch." },
+    { src: "https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=1600&q=85&auto=format&fit=crop", alt: "Materials racked at the organ." },
+    { src: "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?w=1600&q=85&auto=format&fit=crop", alt: "The consultation table, set for two." },
+    { src: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=1600&q=85&auto=format&fit=crop", alt: "Blotter strips, labelled in pencil." }
+  ],
+  faq: [
+    { q: "I don't know anything about perfume. Is that a problem?", a: "It's the ideal starting condition. You know what you like the smell of — rain, tomato leaves, your grandfather's coat — and that's the entire qualification. The vocabulary is our job." },
+    { q: "Why numbers instead of names?", a: "Because 'Velvet Dusk' tells you nothing and sets up a mood you'll try to smell. № 6 tells you nothing either — but the card underneath tells you everything: the accord, the materials, the batch. We'd rather you trust the card than the poetry." },
+    { q: "How does bespoke work?", a: "Three sittings over six to ten weeks. First: the brief — memories, materials, what it's for. Second: three trial accords on skin. Third: refinement and the final formula, logged under your name. It's remade on request, forever." },
+    { q: "Do you sell samples?", a: "2ml vials of the whole line, singly or as the full nine. It's the right way to buy perfume — a scent that dazzles in the shop and bores you by Thursday is a fact worth £6 to discover." },
+    { q: "What about allergies and sensitivities?", a: "Every formula's allergen list is printed and available before anything touches skin. Tell us what you react to; the organ is big enough to route around almost anything." },
+    { q: "Can I bring my partner / mother / sceptical friend?", a: "Please do — a second nose that knows you is genuinely useful data. Consultations seat two comfortably. The sceptical friends are our best converts; they fight hardest and buy fastest." }
+  ],
+  area: { places: ["Harrogate", "Knaresborough", "Ripon", "Wetherby", "Leeds", "York"] },
+  credentials: [
+    { label: "Made here", detail: "Composed, blended & bottled on site in batches of 60" },
+    { label: "Compliance", detail: "IFRA-compliant formulas, allergen lists printed" },
+    { label: "Training", detail: "Grasse-trained perfumer, 340-material organ" },
+    { label: "Refills", detail: "Refill bench for every bottle we've ever sold" }
+  ],
+  location: { name: "Bruma", addressStreet: "4 Montpellier Parade", addressLocality: "Harrogate", addressRegion: "North Yorkshire", addressPostcode: "HG1 2TJ", addressCountry: "United Kingdom" },
+  cta: { heading: "Twenty minutes on skin beats twenty years of guessing.", body: "Book a consultation. Bring your wrist and your grudges.", primary: { label: "Book a consultation", href: "#book" }, secondary: { label: "01423 705 118", href: "tel:+441423705118" } },
+  messaging: { whatsapp: "https://wa.me/441423705118", messenger: "https://m.me/brumaperfumery" }
+};
+</script>
+
+<style>
+  :root {
+    --blotter:#f6f4ef; --graphite:#2a2833; --iris:#5b4b8a; --lilac:#e6e1ef;
+    --brass:#a58a4e; --mid:#7b7684; --rule:rgba(42,40,51,0.15);
+    --display:"Bodoni Moda",serif;
+    --sans:"Manrope",system-ui,sans-serif;
+    --mono:"Inconsolata",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--blotter);color:var(--graphite);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  a:hover{color:var(--iris);}
+  .wrap{width:min(1160px,92vw);margin-inline:auto;}
+  .formula{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--iris);font-weight:600;}
+  .h2{font-family:var(--display);font-weight:500;font-size:clamp(30px,4.2vw,54px);line-height:1.08;margin:0 0 0.5em;letter-spacing:0.005em;}
+  .h2 em{font-style:italic;font-weight:400;}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(72px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:14px 30px;font-family:var(--mono);font-weight:600;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--graphite);color:var(--blotter);} .btn-primary:hover{background:var(--iris);}
+  .btn-ghost{border:1px solid var(--graphite);} .btn-ghost:hover{background:var(--graphite);color:var(--blotter);}
+  .strip-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);border-bottom:1px solid var(--graphite);padding-bottom:12px;margin-bottom:clamp(30px,4.5vw,58px);font-weight:600;}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(246,244,239,0.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--graphite);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--display);font-weight:600;font-size:21px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;}
+  .wm span{color:var(--iris);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);font-weight:600;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — blotter-strip composition: tall narrow photo like a scent strip */
+  .hero{padding:clamp(56px,7.5vw,104px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.15fr 0.85fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .hero h1{font-family:var(--display);font-weight:500;font-size:clamp(34px,4.6vw,62px);line-height:1.06;margin:22px 0 24px;letter-spacing:0.002em;}
+  .hero h1 em{font-style:italic;color:var(--iris);font-weight:400;}
+  .hero .lede{color:var(--mid);max-width:50ch;line-height:1.76;font-size:clamp(15px,1.4vw,17px);}
+  .hero-ctas{margin-top:34px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-strips{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:end;}
+  .hero-strips .photo{position:relative;}
+  .hero-strips img{width:100%;aspect-ratio:3/4;object-fit:cover;}
+  .hero-strips .photo::after{content:"";position:absolute;inset:12px;border:1px solid rgba(246,244,239,0.65);pointer-events:none;}
+  .blotters{display:flex;gap:8px;align-items:flex-end;height:100%;}
+  .blotters span{display:block;width:26px;background:#fff;border:1px solid var(--rule);border-radius:2px 2px 12px 12px;position:relative;}
+  .blotters span::after{content:attr(data-n);position:absolute;top:8px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:9px;color:var(--mid);}
+  .blotters span:nth-child(1){height:62%;} .blotters span:nth-child(2){height:84%;background:var(--lilac);border-color:var(--iris);} .blotters span:nth-child(3){height:72%;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .blotters{display:none;}}
+
+  .trust{padding:0;background:var(--graphite);color:var(--blotter);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(246,244,239,0.7);font-weight:600;}
+
+  .about{background:var(--lilac);}
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(40px,6vw,90px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18px);line-height:1.78;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — formula cards, numbered like the line */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .svc-card{background:#fff;border:1px solid var(--graphite);padding:clamp(24px,3vw,34px);position:relative;transition:0.2s;}
+  .svc-card:hover{box-shadow:6px 6px 0 var(--lilac);transform:translate(-2px,-2px);}
+  .svc-card .no{font-family:var(--display);font-size:30px;font-weight:400;font-style:italic;color:var(--iris);display:block;margin-bottom:10px;line-height:1;}
+  .svc-card h3{font-family:var(--display);font-weight:500;font-size:19px;margin:0 0 8px;line-height:1.25;}
+  .svc-card p{color:var(--mid);margin:0;font-size:14px;line-height:1.68;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;}}
+
+  .why{background:var(--iris);color:var(--blotter);}
+  .why .h2{color:var(--blotter);}
+  .why .strip-head{border-color:rgba(246,244,239,0.5);color:rgba(246,244,239,0.75);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;color:#cdbfe8;display:block;margin-bottom:14px;text-transform:uppercase;font-weight:600;}
+  .why-grid h3{font-family:var(--display);font-weight:500;font-size:22px;margin:0 0 10px;line-height:1.2;}
+  .why-grid p{color:rgba(246,244,239,0.88);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1px solid var(--graphite);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;color:var(--iris);text-transform:uppercase;font-weight:600;}
+  .how-grid h3{font-family:var(--display);font-weight:500;font-size:18px;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.66;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--lilac);}
+  .t-quote{font-family:var(--display);font-weight:500;font-size:clamp(22px,2.9vw,38px);line-height:1.24;max-width:32ch;margin:0 0 22px;}
+  .t-quote em{font-style:italic;color:var(--iris);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:600;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--graphite);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);font-weight:600;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — apothecary shelf */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .g-grid figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-top:10px;font-weight:600;border-bottom:1px solid var(--rule);padding-bottom:8px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--graphite);}
+  .faq-list summary{font-family:var(--display);font-weight:500;font-size:18.5px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"℞";color:var(--iris);flex-shrink:0;font-size:15px;transition:0.2s;}
+  .faq-list details[open] summary::after{color:var(--brass);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;padding:10px 20px;border:1px solid var(--graphite);font-weight:600;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1px solid var(--graphite);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--iris);margin-bottom:8px;font-weight:600;}
+  .creds .detail{font-family:var(--display);font-weight:500;font-size:15.5px;line-height:1.45;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#fff;border:1px solid var(--graphite);padding:32px;}
+  .nap address{font-style:normal;font-family:var(--display);font-weight:500;font-size:18px;line-height:1.55;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.64;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border:1px solid var(--graphite);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--graphite);color:var(--blotter);padding:clamp(84px,10vw,144px) 0;text-align:center;}
+  .cta-band .formula{color:var(--brass);}
+  .cta-band h2{font-family:var(--display);font-weight:500;font-size:clamp(32px,4.6vw,62px);line-height:1.08;margin:16px auto 18px;max-width:20ch;}
+  .cta-band h2 em{font-style:italic;color:#cdbfe8;font-weight:400;}
+  .cta-band p{color:rgba(246,244,239,0.78);max-width:44ch;margin:0 auto 34px;font-size:16.5px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--iris);color:var(--blotter);}
+  .cta-band .btn-primary:hover{background:var(--blotter);color:var(--graphite);}
+  .cta-band .btn-ghost{border-color:rgba(246,244,239,0.55);color:var(--blotter);}
+  .cta-band .btn-ghost:hover{background:var(--blotter);color:var(--graphite);}
+
+  footer{background:var(--blotter);border-top:1px solid var(--graphite);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--iris);margin:0 0 14px;font-weight:600;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);font-weight:600;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--iris);color:var(--blotter);padding:13px 20px;text-decoration:none;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;box-shadow:0 8px 24px rgba(91,75,138,0.35);}
+  .msg-fab a:hover{background:var(--graphite);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Bruma","description":"Independent perfumery and scent studio in Harrogate. House line of nine fragrances blended on site, consultations and bespoke perfume.","url":"https://brumaperfumery.co.uk/","telephone":"+441423705118","email":"studio@brumaperfumery.co.uk","address":{"@type":"PostalAddress","streetAddress":"4 Montpellier Parade","addressLocality":"Harrogate","addressRegion":"North Yorkshire","postalCode":"HG1 2TJ","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.9925,"longitude":-1.5450},"areaServed":["Harrogate","Knaresborough","Ripon","Leeds","York"],"image":["https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=1600"],"foundingDate":"2016"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I don't know anything about perfume. Is that a problem?","acceptedAnswer":{"@type":"Answer","text":"It's the ideal starting condition. You know what you like the smell of; the vocabulary is our job."}},
+{"@type":"Question","name":"Why numbers instead of names?","acceptedAnswer":{"@type":"Answer","text":"Names set up a mood you'll try to smell. The card under each number tells you the accord, the materials, the batch."}},
+{"@type":"Question","name":"How does bespoke work?","acceptedAnswer":{"@type":"Answer","text":"Three sittings over six to ten weeks: brief, trial accords on skin, refinement. The formula is logged under your name and remade on request."}},
+{"@type":"Question","name":"Do you sell samples?","acceptedAnswer":{"@type":"Answer","text":"2ml vials of the whole line, singly or as the full nine."}},
+{"@type":"Question","name":"What about allergies and sensitivities?","acceptedAnswer":{"@type":"Answer","text":"Every formula's allergen list is printed and available before anything touches skin."}},
+{"@type":"Question","name":"Can I bring someone?","acceptedAnswer":{"@type":"Answer","text":"Please do — consultations seat two comfortably, and a second nose that knows you is useful data."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">BRUMA<span>.</span></a>
+    <nav class="nav-links">
+      <a href="#services">The line</a><a href="#about">The studio</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v35">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="formula" data-bind="hero.kicker">Independent perfumery · blended on site · Montpellier Quarter, Harrogate</div>
+      <h1 data-bind="hero.headline">Nine perfumes. Blended here. <em>Numbered, not named after moods.</em></h1>
+      <p class="lede" data-bind="hero.lede">Bruma makes a house line of nine fragrances in the studio behind the shop — numbered, honestly described, and worn on skin before anything is decided. No celebrity bottles, no "inspired by" dupes, no scent strips waved at you from a doorway. Perfume, treated as a craft.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a consultation</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">The formula library</a>
+      </div>
+    </div>
+    <div class="hero-strips">
+      <div class="photo">
+        <img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=2000&q=85&auto=format&fit=crop"
+             alt="Perfume bottles and blotter strips on the studio bench." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="blotters" aria-hidden="true"><span data-n="№4"></span><span data-n="№7"></span><span data-n="№2"></span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Blending since 2016</span>
+    <span>340-material organ</span>
+    <span>Batches of sixty</span>
+    <span>Refills for every bottle</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v2">
+  <div class="wrap">
+    <div class="strip-head"><span>FORMULA 01 / THE STUDIO</span><span>SHOP IN FRONT · ORGAN IN BACK</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">A shop in front, <em>an organ in back.</em></h2>
+        <p>The back room holds the perfumer's organ — three hundred and forty materials racked in tiers, from bergamot you'd recognise to a smoked-birch note that clears the room in the best way. Every Bruma fragrance is composed and blended there, matured for six weeks, and bottled by hand in batches of sixty.</p>
+        <p>The house line stays at nine. When a tenth formula earns its place, a current one retires — buyers of retired numbers are warned in writing, given first refusal on the final batch, and consoled in person.</p>
+        <p>Fragrances are numbered because names lie. № 4 is not called "Midnight Whisper"; it is iris, carrot seed and cold air, and the card on the shelf says exactly that. You wear it for twenty minutes before we'll even discuss the bottle.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=1200&q=85&auto=format&fit=crop"
+           alt="Hand-labelled perfume bottles in the studio." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v28">
+  <div class="wrap">
+    <div class="strip-head"><span>FORMULA 02 / THE LIBRARY</span><span>NINE NUMBERS, SIX SERVICES</span></div>
+    <h2 class="h2">The formula library.</h2>
+    <div class="svc-grid">
+      <div class="svc-card"><span class="no">i.</span><h3>The house line</h3><p>Nine numbered fragrances, blended and matured on site. Each shelf card lists the accord honestly — materials, not moods.</p></div>
+      <div class="svc-card"><span class="no">ii.</span><h3>The scent consultation</h3><p>Forty-five minutes, six strips, two skin tests, zero pressure. We map what you actually reach for, not what the counter assistant was told to move.</p></div>
+      <div class="svc-card"><span class="no">iii.</span><h3>Bespoke perfume</h3><p>Your brief, three sittings, a formula that exists nowhere else — logged in the book under your name, remade whenever you run out.</p></div>
+      <div class="svc-card"><span class="no">iv.</span><h3>The refill bench</h3><p>Bring the bottle back; we refill it for less than a new one. The glass is the expensive part and the landfill maths is embarrassing.</p></div>
+      <div class="svc-card"><span class="no">v.</span><h3>Scent for spaces</h3><p>Candles and room sprays from the same organ, plus commissioned scent for shops, studios and one persistently damp gallery.</p></div>
+      <div class="svc-card"><span class="no">vi.</span><h3>The blending workshop</h3><p>Three hours at the organ, a structured tour of twenty materials, and a 30ml bottle of whatever you talk yourself into. Six seats, monthly.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="strip-head"><span>FORMULA 03 / METHOD</span><span>THE THREE-LINE MANIFESTO</span></div>
+    <h2 class="h2">How we sell perfume.</h2>
+    <div class="why-grid">
+      <div><span class="no">LINE 1/3</span><h3>Skin first, always.</h3><p>Paper strips audition a perfume; skin decides. Twenty minutes minimum on your wrist before we'll discuss a bottle. It changes the answer more often than not.</p></div>
+      <div><span class="no">LINE 2/3</span><h3>The accord is on the card.</h3><p>Every fragrance lists its actual materials. If you're allergic, curious or just suspicious of marketing, the truth is on the shelf in 10pt type.</p></div>
+      <div><span class="no">LINE 3/3</span><h3>Blended here, batch by batch.</h3><p>Sixty bottles at a time, matured six weeks, batch number on the base. When you reorder, you're getting the same formula from the same book.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="strip-head"><span>FORMULA 04 / A CONSULTATION</span><span>STRIPS → SKIN → SLOWLY</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Talk first</h3><p>What you wear, what you hated, what the last bottle promised and didn't do. Honesty helps; grudges welcome.</p></li>
+      <li><span class="step">Step 02</span><h3>Six strips</h3><p>A structured shortlist from the nine — plus a wildcard we think you're wrong about. People are wrong about the wildcard 40% of the time.</p></li>
+      <li><span class="step">Step 03</span><h3>Two on skin</h3><p>Twenty minutes, a walk around the block, a coffee next door. Perfume is a time-based art; we give it time.</p></li>
+      <li><span class="step">Step 04</span><h3>Decide slowly</h3><p>Buy the bottle, take a sample, or leave with nothing but opinions. All three are good outcomes; two of them come back eventually.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="strip-head"><span>FORMULA 05 / WORN &amp; REPORTED</span><span>SECOND OPINIONS INCLUDED</span></div>
+    <blockquote class="t-quote">“My partner now claims the old perfume ‘was someone else's wife’. I have complicated feelings <em>and a new signature.</em>”</blockquote>
+    <div class="t-attr">Rachel B. — consultation convert, № 7</div>
+    <div class="t-sub">
+      <figure><blockquote>“The bespoke process was the best money I've spent on myself, full stop. Three sittings, real arguments about vetiver, and a formula with my name in the book. When I run out, they just… make more of me.”</blockquote><figcaption>James K. — bespoke commission № 41</figcaption></figure>
+      <figure><blockquote>“Took my mum for her 70th. The perfumer treated her nose like it belonged to a professional. She left with № 2 and the posture of a duchess.”</blockquote><figcaption>Sophie T. — birthday consultation</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v28">
+  <div class="wrap">
+    <div class="strip-head"><span>FORMULA 06 / THE SHELVES</span><span>STUDIO &amp; SHOP</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=1600&q=85&auto=format&fit=crop" alt="Bottles and blotters on the bench." /><figcaption>THE BENCH, MID-SESSION</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1547887537-6158d64c35b3?w=1600&q=85&auto=format&fit=crop" alt="The house line, hand-labelled." /><figcaption>THE NINE, CURRENT BATCH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1541643600914-78b084683601?w=1600&q=85&auto=format&fit=crop" alt="№ 4, current batch." /><figcaption>№ 4 — IRIS / CARROT SEED / COLD AIR</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1615634260167-c8cdede054de?w=1600&q=85&auto=format&fit=crop" alt="Materials racked at the organ." /><figcaption>THE ORGAN, TIERS 1–3</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?w=1600&q=85&auto=format&fit=crop" alt="The consultation table, set for two." /><figcaption>SET FOR TWO NOSES</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?w=1600&q=85&auto=format&fit=crop" alt="Blotter strips, labelled in pencil." /><figcaption>STRIPS, PENCIL-LABELLED</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="strip-head"><span>FORMULA 07 / ASKED AT THE TABLE</span><span>USUALLY MID-SNIFF</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the table.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441423705118" style="color:var(--iris);">01423 705 118</a> or message. Mid-consultation the phone waits; the nose in the chair has priority.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I don't know anything about perfume. Is that a problem?</summary><p>It's the ideal starting condition. You know what you like the smell of — rain, tomato leaves, your grandfather's coat — and that's the entire qualification. The vocabulary is our job.</p></details>
+        <details><summary>Why numbers instead of names?</summary><p>Because "Velvet Dusk" tells you nothing and sets up a mood you'll try to smell. № 6 tells you nothing either — but the card underneath tells you everything: the accord, the materials, the batch. We'd rather you trust the card than the poetry.</p></details>
+        <details><summary>How does bespoke work?</summary><p>Three sittings over six to ten weeks. First: the brief — memories, materials, what it's for. Second: three trial accords on skin. Third: refinement and the final formula, logged under your name. It's remade on request, forever.</p></details>
+        <details><summary>Do you sell samples?</summary><p>2ml vials of the whole line, singly or as the full nine. It's the right way to buy perfume — a scent that dazzles in the shop and bores you by Thursday is a fact worth £6 to discover.</p></details>
+        <details><summary>What about allergies and sensitivities?</summary><p>Every formula's allergen list is printed and available before anything touches skin. Tell us what you react to; the organ is big enough to route around almost anything.</p></details>
+        <details><summary>Can I bring my partner / mother / sceptical friend?</summary><p>Please do — a second nose that knows you is genuinely useful data. Consultations seat two comfortably. The sceptical friends are our best converts; they fight hardest and buy fastest.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="strip-head"><span>FORMULA 08 / NOSES ARRIVE FROM</span><span>NORTH YORKSHIRE &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Harrogate</li><li>Knaresborough</li><li>Ripon</li><li>Wetherby</li><li>Leeds</li><li>York</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="strip-head"><span>FORMULA 09 / THE PAPERWORK</span><span>COMPLIANT &amp; DOCUMENTED</span></div>
+    <div class="creds">
+      <div><div class="label">Made here</div><div class="detail">Composed, blended &amp; bottled on site in batches of 60</div></div>
+      <div><div class="label">Compliance</div><div class="detail">IFRA-compliant formulas, allergen lists printed</div></div>
+      <div><div class="label">Training</div><div class="detail">Grasse-trained perfumer, 340-material organ</div></div>
+      <div><div class="label">Refills</div><div class="detail">Refill bench for every bottle we've ever sold</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="strip-head"><span>FORMULA 10 / FIND US</span><span>4 MONTPELLIER PARADE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Bruma</strong><br />
+          4 Montpellier Parade<br />
+          Harrogate HG1 2TJ<br /><br />
+          <a href="tel:+441423705118" data-bind="business.phoneDisplay">01423 705 118</a><br />
+          <a href="mailto:studio@brumaperfumery.co.uk" data-bind="business.email">studio@brumaperfumery.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>CONSULTATIONS</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Hours live on our Google Business Profile. Please don't wear a strong fragrance to a consultation — it argues with the work.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Bruma, Montpellier Parade, Harrogate" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.5550%2C53.9890%2C-1.5350%2C53.9960&layer=mapnik&marker=53.9925%2C-1.5450"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v5">
+  <div class="wrap">
+    <div class="formula">FORMULA 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Twenty minutes on skin beats <em>twenty years of guessing.</em></h2>
+    <p data-bind="cta.body">Book a consultation. Bring your wrist and your grudges.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a consultation</a>
+      <a class="btn btn-ghost" href="tel:+441423705118" data-bind="cta.secondary.label">01423 705 118</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441423705118" data-bind="messaging.whatsapp" aria-label="Message the studio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:21px;">BRUMA<span style="color:var(--iris);">.</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">An independent perfumery in Harrogate's Montpellier Quarter. Since 2016.</p>
+      </div>
+      <div>
+        <h4>The studio</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          4 Montpellier Parade<br />Harrogate HG1 2TJ<br />
+          <a href="tel:+441423705118">01423 705 118</a><br />
+          <a href="mailto:studio@brumaperfumery.co.uk">studio@brumaperfumery.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">The line</a><a href="#about">The studio</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> BRUMA PERFUMERY LTD</span>
+      <span>MATERIALS, NOT MOODS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bolt &amp; Barrel — locksmith in Norwich</title>
+<meta name="description" content="Bolt &amp; Barrel is an independent locksmith in Norwich — non-destructive entry, lock changes, insurance-grade upgrades and 24-hour emergencies, with upfront prices and no call-out con." />
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Bolt & Barrel", phone: "+44 1603 555 214", phoneDisplay: "01603 555 214", email: "call@boltandbarrel.co.uk", foundedYear: 2011 },
+  hero: {
+    kicker: "Locksmith · non-destructive entry · Norwich & NR postcodes",
+    headline: "Locked out? We pick it, not smash it.",
+    lede: "A DBS-checked local locksmith who opens most doors without drilling them — so you keep your lock and your money. Upfront prices agreed before we set off, no per-minute meter, and a real person answering the phone in Norwich, not a national call-centre selling your job to the nearest van.",
+    primaryCta: { label: "Call now", href: "tel:+441603555214" },
+    secondaryCta: { label: "What we do", href: "#services" },
+    image: "https://images.unsplash.com/photo-1622467827417-bbe2237067a9?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A locksmith working on a door lock."
+  },
+  trust: { years: "On the tools since 2011" },
+  about: {
+    heading: "Non-destructive first. Always.",
+    paragraphs: [
+      "Most lockouts don't need a drill. A skilled locksmith can pick, bump or manipulate the great majority of locks open, leaving them working afterward — so you're not paying for a new lock on top of the call-out. The vans that drill everything do it because it's quick and it sells you a replacement. We do it the harder, cheaper-for-you way, first.",
+      "Bolt & Barrel is one locksmith and one apprentice, covering Norwich and the NR postcodes. When you ring, you get us, not a booking agency that auctions your emergency to whoever's nearest and dearest. The price we quote on the phone is the price on the invoice, barring something genuinely unexpected we'll tell you about before we do it.",
+      "We're security experts as much as key-turners — snap-resistant euro cylinders, insurance-grade upgrades, and honest advice about what actually makes a door harder to get through versus what just looks reassuring. Half our work is making sure you never need the emergency number again."
+    ],
+    portrait: "https://images.unsplash.com/photo-1558002038-1055907df827?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Close-up of hands fitting a lock cylinder."
+  },
+  services: [
+    { name: "Emergency lockouts", description: "Locked out of home, car-park flat or business? Non-destructive entry wherever possible, 24 hours, with a price agreed before we roll — not after we arrive." },
+    { name: "Lock changes & rekeying", description: "New tenancy, lost keys, a departed ex — locks changed or rekeyed same day, so only the people you want holding a key are holding one." },
+    { name: "Insurance-grade upgrades", description: "British Standard and snap-resistant cylinders fitted to meet your policy wording. We check the exact clause so a claim isn't refused on a technicality." },
+    { name: "uPVC & multipoint repair", description: "The classic 'door won't lock unless I lift the handle just so' — worn multipoint mechanisms and misaligned uPVC doors fixed rather than replaced." },
+    { name: "Security surveys", description: "A walk-round of your home or premises with honest, no-upsell advice on the weak points and what's genuinely worth spending on. Report included." },
+    { name: "Safes & access control", description: "Safe opening and installation, keypad and smart locks, and access control for small businesses — specified and fitted to actually suit how you work." }
+  ],
+  why: [
+    { title: "Non-destructive, so you save.", body: "We pick and manipulate before we ever drill, so most jobs leave your existing lock working. You pay for entry, not for a replacement you didn't need." },
+    { title: "The quoted price is the price.", body: "Agreed on the phone before we set off, on the invoice at the end. No call-out con, no per-minute meter, no 'once we saw the job' surprises." },
+    { title: "Local, and it's actually us.", body: "Ring Bolt & Barrel and you get Bolt & Barrel — not a national agency selling your emergency to the nearest stranger. DBS-checked, insured, and from round here." }
+  ],
+  how: [
+    { step: "01", title: "Call and describe it", body: "Tell us the door, the lock and what's happened. We'll give you a price and a realistic arrival time on the phone, before anything's agreed." },
+    { step: "02", title: "We come to you", body: "Fast for emergencies, booked for everything else. You'll get a name and a number for who's turning up, and a van that says who we are." },
+    { step: "03", title: "Opened the gentle way", body: "Non-destructive entry wherever the lock allows, keeping your existing hardware working. If a change is genuinely needed, we tell you why first." },
+    { step: "04", title: "Left more secure", body: "We'll flag anything that made the break-in or lockout likely, and fix it if you want — or just tell you honestly that it's already fine." }
+  ],
+  testimonials: [
+    { quote: "Locked out at 11pm with a sleeping baby the other side of the door. He talked me down on the phone, arrived in twenty minutes, and had it open without a scratch in five. The price was exactly what he'd said. Angel with a pick set.", name: "Rebecca H.", context: "emergency lockout, Thorpe Hamlet" },
+    { quote: "A national firm quoted '£65 call-out' then wanted £280 on the doorstep. I sent them away and rang Bolt & Barrel — opened non-destructively, one price, half the money, no drama. Save the number.", name: "Danny F.", context: "avoided the call-out con" },
+    { quote: "Did a security survey after a break-in on our street. No scare tactics, just clear advice — two cylinders upgraded, one thing he told me not to bother with. I trust them precisely because they talked me out of spending.", name: "Priya M.", context: "security survey, Golden Triangle" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1622467827417-bbe2237067a9?w=1600&q=85&auto=format&fit=crop", alt: "Working on a door lock." },
+    { src: "https://images.unsplash.com/photo-1558002038-1055907df827?w=1600&q=85&auto=format&fit=crop", alt: "Fitting a lock cylinder." },
+    { src: "https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=1600&q=85&auto=format&fit=crop", alt: "A set of keys and tools." },
+    { src: "https://images.unsplash.com/photo-1609205807107-e8ec2120f9de?w=1600&q=85&auto=format&fit=crop", alt: "A euro cylinder lock close up." },
+    { src: "https://images.unsplash.com/photo-1580256081112-e49377338b7f?w=1600&q=85&auto=format&fit=crop", alt: "The van, ready for a call-out." },
+    { src: "https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?w=1600&q=85&auto=format&fit=crop", alt: "Keys being cut." }
+  ],
+  faq: [
+    { q: "Will you have to drill my lock?", a: "Rarely. The great majority of lockouts open non-destructively — picking, bumping or manipulating — which leaves your existing lock working and saves you the cost of a replacement. Sometimes a high-security or damaged lock has to be drilled, but we'll always tell you before we do it and why, never after." },
+    { q: "How much is a call-out?", a: "We agree the full price on the phone before we set off, based on what you describe — not a teaser 'call-out fee' that balloons on your doorstep. Barring something genuinely unexpected (which we'd explain first), the number we quote is the number you pay. No per-minute meter, ever." },
+    { q: "How fast can you get to me in an emergency?", a: "For lockouts across Norwich and the NR postcodes, usually within the hour and often much faster. When you call we'll give you a realistic time, not a fantasy one — and if someone closer could genuinely help you sooner, we'll say so." },
+    { q: "I've changed tenants / lost a key / split up. Can you make sure old keys don't work?", a: "Yes — changing or rekeying the lock means any previously cut key stops working, so only the people you want holding a key can get in. It's one of our most common jobs and usually done same day. If you just want reassurance, we'll advise what's worth doing." },
+    { q: "Will an upgrade actually satisfy my insurance?", a: "It will if it's specified to your policy — which is why we read the exact wording (often 'BS3621' or an anti-snap requirement) before fitting, rather than guessing. Fitting the wrong thing can void a claim, so we get it right and give you the paperwork to prove it." },
+    { q: "My uPVC door only locks if I lift the handle just right. Can that be fixed?", a: "Almost always, yes — it's a worn multipoint mechanism or a door that's dropped out of alignment, and both are repairable without replacing the whole door. Left alone it eventually fails shut or open, so it's worth sorting before it strands you." }
+  ],
+  area: { places: ["Norwich", "Thorpe St Andrew", "Hellesdon", "Sprowston", "Wymondham", "NR postcodes"] },
+  credentials: [
+    { label: "Checked", detail: "DBS-checked locksmiths, fully insured" },
+    { label: "Non-destructive", detail: "Picked & manipulated before drilled" },
+    { label: "Insurance-grade", detail: "BS3621 & anti-snap cylinders fitted to policy" },
+    { label: "Upfront", detail: "Price agreed on the phone, no call-out con" }
+  ],
+  location: { name: "Bolt & Barrel", addressStreet: "Workshop 4, St Augustines Yard", addressLocality: "Norwich", addressRegion: "Norfolk", addressPostcode: "NR3 3AN", addressCountry: "United Kingdom" },
+  cta: { heading: "Save the number before you need it.", body: "Locked out, moving in, or just want the door made properly secure — one call, one honest price, a real local locksmith.", primary: { label: "Call 01603 555 214", href: "tel:+441603555214" }, secondary: { label: "What we do", href: "#services" } },
+  messaging: { whatsapp: "https://wa.me/441603555214", messenger: "https://m.me/boltandbarrel" }
+};
+</script>
+
+<style>
+  :root {
+    --gunmetal:#20242a; --bone:#eef0f0; --amber:#f0a929; --brass:#b98a3e; --steel:#4a5560;
+    --ink:#1a1d22; --mid:#6d7580; --mid-d:#9aa4af; --rule:rgba(26,29,34,0.15); --rule-d:rgba(238,240,240,0.16);
+    --disp:"Archivo Black",system-ui,sans-serif; --sans:"Archivo",system-ui,sans-serif; --mono:"Spline Sans Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--bone);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--amber);}
+  .wrap{width:min(1260px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--steel);}
+  .h2{font-family:var(--disp);font-weight:400;font-size:clamp(32px,4.6vw,60px);line-height:1;letter-spacing:-0.02em;margin:0 0 0.42em;}
+  .body{color:var(--mid);line-height:1.68;}
+  section{padding:clamp(72px,9vw,124px) 0;}
+  .btn{display:inline-flex;align-items:center;gap:9px;padding:15px 28px;font-family:var(--sans);font-weight:700;font-size:14px;text-decoration:none;transition:0.16s;border-radius:6px;}
+  .btn-primary{background:var(--amber);color:var(--gunmetal);} .btn-primary:hover{background:var(--gunmetal);color:var(--amber);}
+  .btn-ghost{border:2px solid var(--gunmetal);} .btn-ghost:hover{background:var(--gunmetal);color:var(--bone);}
+  .idx-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);border-bottom:2px solid var(--gunmetal);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);}
+  .light .idx-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(238,240,240,0.95);backdrop-filter:blur(10px);border-bottom:2px solid var(--gunmetal);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 0;}
+  .wm{font-family:var(--disp);font-size:19px;text-decoration:none;letter-spacing:-0.02em;}
+  .wm span{color:var(--amber);}
+  .nav-links{display:flex;gap:24px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);align-items:center;}
+  .nav-links a{text-decoration:none;}
+  .nav-call{background:var(--amber);color:var(--gunmetal)!important;padding:9px 16px;border-radius:6px;font-weight:700;}
+  @media(max-width:760px){.nav-links a:not(.nav-call){display:none;}}
+
+  /* HERO — call-first emergency slab */
+  .hero{padding:clamp(48px,6.5vw,92px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.08fr 0.92fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:400;font-size:clamp(40px,5.6vw,80px);line-height:0.94;letter-spacing:-0.03em;margin:16px 0 22px;}
+  .hero h1 em{font-style:normal;color:var(--amber);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.68;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .hero-ctas .avail{font-family:var(--mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--steel);display:flex;align-items:center;gap:8px;}
+  .hero-ctas .avail::before{content:"";width:9px;height:9px;border-radius:50%;background:#3aa06b;box-shadow:0 0 0 3px rgba(58,160,107,0.25);}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .pin-tag{position:absolute;bottom:20px;left:-14px;background:var(--gunmetal);color:var(--bone);padding:13px 17px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;line-height:1.8;}
+  .pin-tag .hd{color:var(--amber);letter-spacing:0.14em;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .pin-tag{left:8px;}}
+
+  .trust{padding:0;background:var(--gunmetal);color:var(--bone);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(238,240,240,0.85);}
+
+  .about{background:var(--gunmetal);color:var(--bone);}
+  .about .h2{color:var(--bone);}
+  .about .h2 em{color:var(--amber);}
+  .about-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.72;margin:0 0 1em;color:rgba(238,240,240,0.82);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:2px solid var(--gunmetal);}
+  .svc-row{display:grid;grid-template-columns:104px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(240,169,41,0.08);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--brass);text-transform:uppercase;}
+  .svc-row h3{font-family:var(--disp);font-weight:400;font-size:clamp(20px,2.1vw,26px);margin:0;line-height:1.08;letter-spacing:-0.02em;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.64;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--amber);color:var(--gunmetal);}
+  .why .idx-head{border-color:rgba(32,36,42,0.3);color:rgba(32,36,42,0.65);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--steel);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--disp);font-weight:400;font-size:22px;margin:0 0 10px;line-height:1.04;letter-spacing:-0.02em;}
+  .why-grid p{color:rgba(32,36,42,0.82);margin:0;font-size:14.5px;line-height:1.66;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:2px solid var(--gunmetal);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--brass);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:400;font-size:18px;margin:8px 0 8px;letter-spacing:-0.02em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.62;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#e2e5e6;}
+  .t-quote{font-family:var(--disp);font-weight:400;font-size:clamp(23px,3vw,42px);line-height:1.04;max-width:30ch;margin:0 0 24px;letter-spacing:-0.025em;}
+  .t-quote em{font-style:normal;color:var(--brass);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px solid var(--gunmetal);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--gunmetal);color:var(--amber);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2px solid var(--gunmetal);}
+  .faq-list summary{font-family:var(--disp);font-weight:400;font-size:18px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;letter-spacing:-0.02em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--amber);font-size:22px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:2px solid var(--gunmetal);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:2px solid var(--gunmetal);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brass);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-weight:400;font-size:15px;line-height:1.2;letter-spacing:-0.01em;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--gunmetal);color:var(--bone);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:18px;line-height:1.35;letter-spacing:-0.01em;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-weight:400;font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(238,240,240,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(238,240,240,0.75);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(238,240,240,0.7);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:2px solid var(--gunmetal);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.5);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--gunmetal);color:var(--bone);padding:clamp(84px,10vw,148px) 0;text-align:center;}
+  .cta-band .kick{color:var(--amber);}
+  .cta-band h2{font-family:var(--disp);font-weight:400;font-size:clamp(38px,5.4vw,78px);line-height:0.96;margin:16px auto 18px;max-width:16ch;letter-spacing:-0.03em;}
+  .cta-band h2 em{font-style:normal;color:var(--amber);}
+  .cta-band p{color:rgba(238,240,240,0.85);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-ghost{border-color:rgba(238,240,240,0.6);color:var(--bone);}
+  .cta-band .btn-ghost:hover{background:var(--bone);color:var(--gunmetal);}
+
+  footer{background:var(--bone);border-top:2px solid var(--gunmetal);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--brass);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--amber);color:var(--gunmetal);padding:13px 20px;border-radius:6px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:700;box-shadow:0 8px 24px rgba(240,169,41,0.4);}
+  .msg-fab a:hover{background:var(--gunmetal);color:var(--amber);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Locksmith","name":"Bolt & Barrel","description":"Independent locksmith in Norwich — non-destructive entry, lock changes, insurance-grade upgrades and 24-hour emergencies with upfront prices.","url":"https://boltandbarrel.co.uk/","telephone":"+441603555214","email":"call@boltandbarrel.co.uk","address":{"@type":"PostalAddress","streetAddress":"Workshop 4, St Augustines Yard","addressLocality":"Norwich","addressRegion":"Norfolk","postalCode":"NR3 3AN","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":52.6360,"longitude":1.2920},"areaServed":["Norwich","Thorpe St Andrew","Hellesdon","Sprowston","Wymondham"],"image":["https://images.unsplash.com/photo-1622467827417-bbe2237067a9?w=1600"],"foundingDate":"2011"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Will you have to drill my lock?","acceptedAnswer":{"@type":"Answer","text":"Rarely — most lockouts open non-destructively, leaving your lock working. If a lock must be drilled we tell you before, not after."}},
+{"@type":"Question","name":"How much is a call-out?","acceptedAnswer":{"@type":"Answer","text":"We agree the full price on the phone before setting off. Barring something we'd explain first, the quote is what you pay."}},
+{"@type":"Question","name":"How fast can you get to me?","acceptedAnswer":{"@type":"Answer","text":"For lockouts across Norwich and NR postcodes, usually within the hour. We give a realistic time when you call."}},
+{"@type":"Question","name":"Can you stop old keys working?","acceptedAnswer":{"@type":"Answer","text":"Yes — changing or rekeying the lock means any previously cut key stops working, usually same day."}},
+{"@type":"Question","name":"Will an upgrade satisfy my insurance?","acceptedAnswer":{"@type":"Answer","text":"It will if specified to your policy — we read the wording (often BS3621 or anti-snap) before fitting and give you the paperwork."}},
+{"@type":"Question","name":"My uPVC door only locks if I lift the handle. Fixable?","acceptedAnswer":{"@type":"Answer","text":"Almost always — a worn multipoint mechanism or dropped door, repairable without replacing the whole door."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">BOLT <span>&amp;</span> BARREL</a>
+    <nav class="nav-links">
+      <a href="#about">The locksmith</a><a href="#services">Services</a><a href="#location">Area</a>
+      <a class="nav-call" href="tel:+441603555214">01603 555 214</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v60">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Locksmith · non-destructive entry · Norwich &amp; NR postcodes</div>
+      <h1 data-comment-anchor="hero-headline">Locked out? <em>We pick it, not smash it.</em></h1>
+      <p class="lede" data-bind="hero.lede">A DBS-checked local locksmith who opens most doors without drilling them — so you keep your lock and your money. Upfront prices agreed before we set off, no per-minute meter, and a real person answering the phone in Norwich, not a national call-centre selling your job to the nearest van.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="tel:+441603555214" data-bind="hero.primaryCta.label">Call now</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we do</a>
+        <span class="avail">24-hour emergencies</span>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1622467827417-bbe2237067a9?w=2000&q=85&auto=format&fit=crop"
+           alt="A locksmith working on a door lock." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="pin-tag">
+        <div class="hd">NON-DESTRUCTIVE</div>
+        METHOD · PICK / BUMP<br />LOCK · KEPT WORKING<br />PRICE · AGREED FIRST
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">On the tools since 2011</span>
+    <span>DBS-checked &amp; insured</span>
+    <span>Non-destructive first</span>
+    <span>Upfront pricing</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v26">
+  <div class="wrap">
+    <div class="idx-head"><span>KEY 01 / THE LOCKSMITH</span><span>NON-DESTRUCTIVE FIRST</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1558002038-1055907df827?w=1200&q=85&auto=format&fit=crop"
+           alt="Close-up of hands fitting a lock cylinder." />
+      <div class="about-prose">
+        <h2 class="h2">Non-destructive first. <em>Always.</em></h2>
+        <p>Most lockouts don't need a drill. A skilled locksmith can pick, bump or manipulate the great majority of locks open, leaving them working afterward — so you're not paying for a new lock on top of the call-out. The vans that drill everything do it because it's quick and it sells you a replacement. We do it the harder, cheaper-for-you way, first.</p>
+        <p>Bolt &amp; Barrel is one locksmith and one apprentice, covering Norwich and the NR postcodes. When you ring, you get us, not a booking agency that auctions your emergency to whoever's nearest and dearest. The price we quote on the phone is the price on the invoice, barring something genuinely unexpected we'll tell you about before we do it.</p>
+        <p>We're security experts as much as key-turners — snap-resistant euro cylinders, insurance-grade upgrades, and honest advice about what actually makes a door harder to get through versus what just looks reassuring. Half our work is making sure you never need the emergency number again.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v53">
+  <div class="wrap">
+    <div class="idx-head"><span>KEY 02 / SERVICES</span><span>WHAT WE'RE CALLED FOR</span></div>
+    <h2 class="h2">What we do.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Job 01</span><h3>Emergency lockouts</h3><p>Locked out of home, car-park flat or business? Non-destructive entry wherever possible, 24 hours, with a price agreed before we roll — not after we arrive.</p></div>
+      <div class="svc-row"><span class="no">Job 02</span><h3>Lock changes &amp; rekeying</h3><p>New tenancy, lost keys, a departed ex — locks changed or rekeyed same day, so only the people you want holding a key are holding one.</p></div>
+      <div class="svc-row"><span class="no">Job 03</span><h3>Insurance-grade upgrades</h3><p>British Standard and snap-resistant cylinders fitted to meet your policy wording. We check the exact clause so a claim isn't refused on a technicality.</p></div>
+      <div class="svc-row"><span class="no">Job 04</span><h3>uPVC &amp; multipoint repair</h3><p>The classic "door won't lock unless I lift the handle just so" — worn multipoint mechanisms and misaligned uPVC doors fixed rather than replaced.</p></div>
+      <div class="svc-row"><span class="no">Job 05</span><h3>Security surveys</h3><p>A walk-round of your home or premises with honest, no-upsell advice on the weak points and what's genuinely worth spending on. Report included.</p></div>
+      <div class="svc-row"><span class="no">Job 06</span><h3>Safes &amp; access control</h3><p>Safe opening and installation, keypad and smart locks, and access control for small businesses — specified and fitted to actually suit how you work.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v25">
+  <div class="wrap">
+    <div class="idx-head"><span>KEY 03 / WHY US</span><span>THREE PROMISES</span></div>
+    <h2 class="h2">Why call us.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Non-destructive, so you save.</h3><p>We pick and manipulate before we ever drill, so most jobs leave your existing lock working. You pay for entry, not for a replacement you didn't need.</p></div>
+      <div><span class="no">02 / 03</span><h3>The quoted price is the price.</h3><p>Agreed on the phone before we set off, on the invoice at the end. No call-out con, no per-minute meter, no "once we saw the job" surprises.</p></div>
+      <div><span class="no">03 / 03</span><h3>Local, and it's actually us.</h3><p>Ring Bolt &amp; Barrel and you get Bolt &amp; Barrel — not a national agency selling your emergency to the nearest stranger. DBS-checked, insured, and from round here.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>KEY 04 / A CALL-OUT</span><span>CALL → COME → OPEN → SECURE</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Call and describe it</h3><p>Tell us the door, the lock and what's happened. We'll give you a price and a realistic arrival time on the phone, before anything's agreed.</p></li>
+      <li><span class="step">Step 02</span><h3>We come to you</h3><p>Fast for emergencies, booked for everything else. You'll get a name and a number for who's turning up, and a van that says who we are.</p></li>
+      <li><span class="step">Step 03</span><h3>Opened the gentle way</h3><p>Non-destructive entry wherever the lock allows, keeping your existing hardware working. If a change is genuinely needed, we tell you why first.</p></li>
+      <li><span class="step">Step 04</span><h3>Left more secure</h3><p>We'll flag anything that made the break-in or lockout likely, and fix it if you want — or just tell you honestly that it's already fine.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v25">
+  <div class="wrap">
+    <div class="idx-head"><span>KEY 05 / CUSTOMERS</span><span>SAID ON THE DOORSTEP</span></div>
+    <blockquote class="t-quote">“Open in five minutes without a scratch, and the price was exactly what he'd said. <em>Angel with a pick set.</em>”</blockquote>
+    <div class="t-attr">Rebecca H. — emergency lockout, Thorpe Hamlet</div>
+    <div class="t-sub">
+      <figure><blockquote>“A national firm quoted '£65 call-out' then wanted £280 on the doorstep. I sent them away and rang Bolt &amp; Barrel — opened non-destructively, one price, half the money, no drama. Save the number.”</blockquote><figcaption>Danny F. — avoided the call-out con</figcaption></figure>
+      <figure><blockquote>“Did a security survey after a break-in on our street. No scare tactics, just clear advice — two cylinders upgraded, one thing he told me not to bother with. I trust them precisely because they talked me out of spending.”</blockquote><figcaption>Priya M. — security survey, Golden Triangle</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v53">
+  <div class="wrap">
+    <div class="idx-head"><span>KEY 06 / THE WORK</span><span>LOCKS, KEYS, THE VAN</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1622467827417-bbe2237067a9?w=1600&q=85&auto=format&fit=crop" alt="Working on a door lock." /><figcaption>ON THE DOOR</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1558002038-1055907df827?w=1600&q=85&auto=format&fit=crop" alt="Fitting a lock cylinder." /><figcaption>NEW CYLINDER IN</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1519710164239-da123dc03ef4?w=1600&q=85&auto=format&fit=crop" alt="A set of keys and tools." /><figcaption>KEYS &amp; TOOLS</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1609205807107-e8ec2120f9de?w=1600&q=85&auto=format&fit=crop" alt="A euro cylinder lock close up." /><figcaption>ANTI-SNAP EURO</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1580256081112-e49377338b7f?w=1600&q=85&auto=format&fit=crop" alt="The van, ready for a call-out." /><figcaption>READY TO ROLL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1517646287270-a5a9ca602e5c?w=1600&q=85&auto=format&fit=crop" alt="Keys being cut." /><figcaption>CUT TO CODE</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="idx-head"><span>KEY 07 / ASKED ON THE PHONE</span><span>OFTEN AT MIDNIGHT</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked on the phone.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441603555214" style="color:var(--brass);">01603 555 214</a>. A real person, day or night, no premium line and no hold music selling you insurance.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Will you have to drill my lock?</summary><p>Rarely. The great majority of lockouts open non-destructively — picking, bumping or manipulating — which leaves your existing lock working and saves you the cost of a replacement. Sometimes a high-security or damaged lock has to be drilled, but we'll always tell you before we do it and why, never after.</p></details>
+        <details><summary>How much is a call-out?</summary><p>We agree the full price on the phone before we set off, based on what you describe — not a teaser "call-out fee" that balloons on your doorstep. Barring something genuinely unexpected (which we'd explain first), the number we quote is the number you pay. No per-minute meter, ever.</p></details>
+        <details><summary>How fast can you get to me in an emergency?</summary><p>For lockouts across Norwich and the NR postcodes, usually within the hour and often much faster. When you call we'll give you a realistic time, not a fantasy one — and if someone closer could genuinely help you sooner, we'll say so.</p></details>
+        <details><summary>Can you make sure old keys don't work?</summary><p>Yes — changing or rekeying the lock means any previously cut key stops working, so only the people you want holding a key can get in. It's one of our most common jobs and usually done same day. If you just want reassurance, we'll advise what's worth doing.</p></details>
+        <details><summary>Will an upgrade actually satisfy my insurance?</summary><p>It will if it's specified to your policy — which is why we read the exact wording (often "BS3621" or an anti-snap requirement) before fitting, rather than guessing. Fitting the wrong thing can void a claim, so we get it right and give you the paperwork to prove it.</p></details>
+        <details><summary>My uPVC door only locks if I lift the handle just right. Fixable?</summary><p>Almost always, yes — it's a worn multipoint mechanism or a door that's dropped out of alignment, and both are repairable without replacing the whole door. Left alone it eventually fails shut or open, so it's worth sorting before it strands you.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>KEY 08 / WE COVER</span><span>NORWICH &amp; NR POSTCODES</span></div>
+    <ul class="area-list">
+      <li>Norwich</li><li>Thorpe St Andrew</li><li>Hellesdon</li><li>Sprowston</li><li>Wymondham</li><li>NR postcodes</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>KEY 09 / THE ESSENTIALS</span><span>CHECKED &amp; COVERED</span></div>
+    <div class="creds">
+      <div><div class="label">Checked</div><div class="detail">DBS-checked locksmiths, fully insured</div></div>
+      <div><div class="label">Non-destructive</div><div class="detail">Picked &amp; manipulated before drilled</div></div>
+      <div><div class="label">Insurance-grade</div><div class="detail">BS3621 &amp; anti-snap cylinders fitted to policy</div></div>
+      <div><div class="label">Upfront</div><div class="detail">Price agreed on the phone, no call-out con</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="idx-head"><span>KEY 10 / BASED AT</span><span>ST AUGUSTINES YARD</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Bolt &amp; Barrel</strong><br />
+          Workshop 4, St Augustines Yard<br />
+          Norwich NR3 3AN<br /><br />
+          <a href="tel:+441603555214" data-bind="business.phoneDisplay">01603 555 214</a><br />
+          <a href="mailto:call@boltandbarrel.co.uk" data-bind="business.email">call@boltandbarrel.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>EMERGENCIES</span><span>24 HOURS</span></div>
+          <div class="row"><span>WORKSHOP</span><span>SEE GOOGLE PROFILE</span></div>
+          <p class="gbp-note">Emergency line is 24 hours; workshop and booked-job hours live on our Google Business Profile. We cover the whole NR area from the yard off Pitt Street.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Bolt &amp; Barrel, Norwich" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=1.2830%2C52.6320%2C1.3010%2C52.6400&layer=mapnik&marker=52.6360%2C1.2920"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section class="cta-band" data-component="CTA-BAND" data-variant="v28">
+  <div class="wrap">
+    <div class="kick">KEY 11 / CALL</div>
+    <h2 data-bind="cta.heading">Save the number <em>before you need it.</em></h2>
+    <p data-bind="cta.body">Locked out, moving in, or just want the door made properly secure — one call, one honest price, a real local locksmith.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="tel:+441603555214" data-bind="cta.primary.label">Call 01603 555 214</a>
+      <a class="btn btn-ghost" href="#services" data-bind="cta.secondary.label">What we do</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441603555214" data-bind="messaging.whatsapp" aria-label="Message the locksmith">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:19px;">BOLT <span style="color:var(--amber);">&amp;</span> BARREL</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">An independent locksmith covering Norwich and the NR postcodes. On the tools since 2011.</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          Workshop 4, St Augustines Yard<br />Norwich NR3 3AN<br />
+          <a href="tel:+441603555214">01603 555 214</a><br />
+          <a href="mailto:call@boltandbarrel.co.uk">call@boltandbarrel.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Services</a><a href="#about">The locksmith</a><a href="#location">Area</a><a href="tel:+441603555214">Call</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> BOLT &amp; BARREL LOCKSMITHS LTD</span>
+      <span>PICK IT · DON'T SMASH IT</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

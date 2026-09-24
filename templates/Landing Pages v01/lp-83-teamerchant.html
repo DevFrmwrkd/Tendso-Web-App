@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Leaf & Ledger — tea merchant and tasting room in Harrogate</title>
+<meta name="description" content="Leaf & Ledger is a tea merchant and tasting room in Harrogate — loose-leaf teas sourced from named gardens, blended and packed by hand, brewing guidance, tastings, and wholesale for cafés." />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Leaf & Ledger", phone: "+44 1423 508 900", phoneDisplay: "01423 508 900", email: "steep@leafandledger.co.uk", foundedYear: 2014 },
+  hero: {
+    kicker: "Tea merchant & tasting room · loose-leaf · Harrogate",
+    headline: "One garden. One picking. Named on the tin.",
+    lede: "A proper tea merchant, not a wall of dusty teabags. We buy loose leaf from named gardens and single pickings, taste every lot before it goes on the shelf, and blend and pack by hand in Harrogate. You'll know the estate, the elevation and the year — because good tea is a harvest, not a flavour.",
+    primaryCta: { label: "Book a tasting", href: "#book" },
+    secondaryCta: { label: "What's on the shelf", href: "#services" },
+    image: "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Loose-leaf tea being measured into a scoop."
+  },
+  trust: { years: "On the counter since 2014" },
+  about: {
+    heading: "Tea is an agricultural product. Most shops sell it like sawdust.",
+    paragraphs: [
+      "We opened Leaf & Ledger in 2014 because the tea aisle had given up. Row upon row of dust and fannings in bags, blended to taste the same every year, with nothing on the box about where a single leaf grew. We wanted the opposite: whole-leaf tea from gardens we can name, tasted lot by lot, sold by people who can tell you why this Darjeeling tastes of muscatel and that one doesn't.",
+      "We buy from single estates and small gardens across India, China, Japan, Taiwan and Sri Lanka, and from a handful of growers we've visited ourselves. Everything is tasted before we buy it and again before it goes on the shelf. Our blends — breakfast, afternoon, chai — are built by hand from named components, not bought pre-mixed and rebranded.",
+      "And we'll teach you to brew it. Most 'bad tea' is good tea brewed wrong: water too hot, leaf too long, or a bag strangled in a mug. Come to a tasting, or just ask at the counter, and we'll send you home able to get the best out of what you buy. That's the whole job."
+    ],
+    portrait: "https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A pot of tea being poured into a cup."
+  },
+  services: [
+    { name: "Single-garden loose leaf", description: "Black, green, oolong, white and pu-erh from named estates and single pickings. Estate, elevation and year on every tin — tasted before it reaches you." },
+    { name: "House blends", description: "Breakfast, afternoon, Earl Grey, chai and seasonal blends built by hand from named components. Consistent because we make them, not because they're flat." },
+    { name: "Herbal & tisanes", description: "Caffeine-free infusions — rooibos, chamomile, peppermint, fruit — from whole botanicals, not tea-dust with a flavour sprayed on. Good enough for the evening." },
+    { name: "Teaware", description: "Pots, gaiwans, filters, kettles and everything you need to brew properly. We'll match the vessel to the tea and show you how to use it." },
+    { name: "Tastings & courses", description: "Guided tastings in the room upstairs — a single origin, a region, or a beginner's flight across the styles. For individuals, gifts and private groups." },
+    { name: "Wholesale for cafés", description: "Loose leaf and service kit for cafés, restaurants and hotels who want tea as good as their coffee, with staff training so it's brewed right every time." }
+  ],
+  why: [
+    { title: "Named on the tin.", body: "Estate, elevation, year. If we can't tell you where a tea grew and when it was picked, we don't put it on the shelf. Tea is a harvest, and harvests have addresses." },
+    { title: "Tasted before it's sold.", body: "We cup every lot before we buy and again before it goes out. You're not gambling on a pretty box; you're buying tea a human tasted and stood behind." },
+    { title: "Brewed right, taught free.", body: "Most bad tea is good tea brewed wrong. Ask at the counter or come to a tasting and we'll send you home able to get the best from every gram." }
+  ],
+  how: [
+    { step: "01", title: "Smell the shelf", body: "Come in and open the tins — we want you to smell the leaf before you buy. Tell us how you drink and we'll steer you, milk or no milk, bold or delicate." },
+    { step: "02", title: "Taste a brew", body: "We'll brew you a cup of anything you're unsure about. No one should buy fifty grams of a tea they've never tried; the kettle's always on." },
+    { step: "03", title: "Take the leaf & the method", body: "We weigh out what you want and write the brewing on the bag — water temperature, leaf, time. Get those three right and the tea does the rest." },
+    { step: "04", title: "Come back for the season", body: "First-flush Darjeeling in spring, fresh sencha in early summer, the new season's harvests as they land. We'll tell you what's just arrived." }
+  ],
+  testimonials: [
+    { quote: "I thought I didn't like green tea. Turns out I'd only ever had it stewed in boiling water. They brewed me a sencha at the right temperature and it was a completely different drink. I've bought loose leaf ever since.", name: "Anita R.", context: "convert, three years" },
+    { quote: "Did the origins tasting for my mum's birthday. Six teas, a proper flight, someone who could explain every one without being a bore about it. She talks about it still. Best value gift I've bought in ages.", name: "James P.", context: "tasting, party of two" },
+    { quote: "We switched our café tea to their loose leaf and they trained the staff to brew it. Tea sales doubled and the complaints stopped. Turns out people notice when it's actually good. Proper suppliers.", name: "Café owner", context: "wholesale, Harrogate" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=1600&q=85&auto=format&fit=crop", alt: "Loose-leaf tea in a scoop." },
+    { src: "https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=1600&q=85&auto=format&fit=crop", alt: "Tea being poured into a cup." },
+    { src: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=1600&q=85&auto=format&fit=crop", alt: "A cup of green tea." },
+    { src: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=1600&q=85&auto=format&fit=crop", alt: "Dried tea leaves close up." },
+    { src: "https://images.unsplash.com/photo-1563822249366-3efb23b8e0c9?w=1600&q=85&auto=format&fit=crop", alt: "A teapot and cups on a table." },
+    { src: "https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=1600&q=85&auto=format&fit=crop", alt: "A cup of freshly brewed tea." }
+  ],
+  faq: [
+    { q: "Why is loose-leaf tea better than teabags?", a: "It usually isn't a moral matter, it's a physical one: most teabags are filled with 'dust and fannings' — the broken scraps left after the whole leaves are sorted out — which brew fast, harsh and one-dimensional. Whole loose leaf has room to unfurl and give up its flavour in layers, and it can usually be brewed more than once. There are good teabags and we stock a few, but gram for gram, whole leaf gives you more tea, more character and better value. Come and taste the same garden both ways; the difference is not subtle." },
+    { q: "How do I brew tea properly at home?", a: "Three things matter: water temperature, quantity of leaf, and time. Black teas want water just off the boil; greens and whites want it cooler (around 70–80°C) or they scald and turn bitter; oolongs sit in between. Use a generous scoop of leaf and give it room — a basket or pot, not a strangled bag — and time it rather than guessing. We write the numbers on every bag we sell and we're always happy to talk you through a specific tea. Get those three right and even a modest tea tastes good." },
+    { q: "What does 'single garden' or 'single estate' mean?", a: "It means the tea comes from one named farm or estate, and often from one picking or 'flush', rather than being blended from many sources to hit a consistent flavour. Single-garden teas taste of their place and their season — a first-flush Darjeeling tastes different from a second-flush from the same estate — which is the whole pleasure of them. Blends have their place (our breakfast blend is built for milk and mornings), but a single garden is where you taste what tea actually is." },
+    { q: "Do you have caffeine-free options that are actually good?", a: "Yes — our herbal and tisane range is made from whole botanicals rather than tea-dust with flavour sprayed on, so a peppermint actually tastes of peppermint and a rooibos has body rather than being coloured water. We stock chamomile, peppermint, rooibos, fruit infusions and seasonal blends, all caffeine-free and all tasted the same way we taste our teas. Tell us whether you want something calming, something fruity or something to replace an after-dinner coffee and we'll point you right." },
+    { q: "Can I book a tasting, and what happens?", a: "Yes — tastings run in the room upstairs and are one of the nicest ways to get into tea. A session is usually a guided flight of several teas — a single origin explored in depth, a tour of a region, or a beginner's run across black, green, oolong and white — with someone talking you through what you're tasting and how it was made, without the pretension. We run open sessions and private bookings for birthdays, gifts and groups, and gift vouchers are available. It's informal, generous and there's always more tea in the pot." },
+    { q: "Do you supply cafés and restaurants?", a: "Gladly — it's a growing part of what we do. We supply loose leaf, service kit and, crucially, staff training, because tea as good as your coffee only works if the team knows how to brew it. We'll help you build a list that suits your menu and your customers, keep you stocked on a standing order, and come back to re-train as staff change. Give us a call and we'll talk through what your place needs rather than sell you a one-size box." }
+  ],
+  area: { places: ["Harrogate", "Knaresborough", "Ripon", "Wetherby", "Ilkley", "Otley"] },
+  credentials: [
+    { label: "Sourced", detail: "Single gardens & named estates worldwide" },
+    { label: "Tasted", detail: "Every lot cupped before it reaches the shelf" },
+    { label: "Blended", detail: "House blends built by hand from named leaf" },
+    { label: "Taught", detail: "Brewing method on every bag we sell" }
+  ],
+  location: { name: "Leaf & Ledger", addressStreet: "11 Montpellier Parade", addressLocality: "Harrogate", addressRegion: "North Yorkshire", addressPostcode: "HG1 2TJ", addressCountry: "United Kingdom" },
+  cta: { heading: "Come and open the tins.", body: "Smell the leaf, taste a brew, and take home tea you can name — with the method written on the bag. Or book the room upstairs for a guided tasting. The kettle's on and it's the right temperature.", primary: { label: "Book a tasting", href: "#book" }, secondary: { label: "01423 508 900", href: "tel:+441423508900" } },
+  messaging: { whatsapp: "https://wa.me/441423508900", messenger: "https://m.me/leafandledger" }
+};
+</script>
+
+<style>
+  :root {
+    --cream:#f3efe1; --ink:#232a1d; --amber:#9a6f2e; --leaf:#4c6b3c;
+    --mid:#6a6a54; --mid-d:#c6c3ab; --rule:rgba(35,42,29,0.16); --rule-d:rgba(243,239,225,0.18);
+    --disp:"Newsreader",Georgia,serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:16.5px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--amber);}
+  .wrap{width:min(1240px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--amber);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:500;font-size:clamp(34px,4.6vw,64px);line-height:1.04;margin:0 0 0.42em;letter-spacing:-0.01em;}
+  .h2 em{font-style:italic;color:var(--amber);font-weight:400;}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:2px;}
+  .btn-primary{background:var(--ink);color:var(--cream);} .btn-primary:hover{background:var(--leaf);}
+  .btn-ghost{border:1.5px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--cream);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);border-bottom:1.5px solid var(--ink);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);font-weight:700;}
+  .light .sw-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(243,239,225,0.95);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;}
+  .wm{font-family:var(--disp);font-weight:500;font-size:27px;text-decoration:none;letter-spacing:-0.01em;}
+  .wm span{color:var(--amber);font-style:italic;}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(48px,6.5vw,92px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:500;font-size:clamp(44px,6.2vw,90px);line-height:1.02;margin:18px 0 22px;letter-spacing:-0.02em;}
+  .hero h1 em{font-style:italic;color:var(--amber);font-weight:400;}
+  .hero .lede{color:var(--mid);max-width:50ch;line-height:1.72;font-size:clamp(15.5px,1.5vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:3px;}
+  .spec-card{position:absolute;bottom:22px;left:-16px;background:var(--cream);border:1.5px solid var(--ink);padding:16px 20px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;line-height:2;text-transform:uppercase;font-weight:700;box-shadow:0 12px 30px rgba(35,42,29,0.2);}
+  .spec-card b{font-family:var(--disp);font-weight:500;font-size:18px;display:block;letter-spacing:-0.01em;text-transform:none;color:var(--amber);margin-bottom:6px;}
+  .spec-card .row{display:flex;justify-content:space-between;gap:26px;color:var(--mid);}
+  .spec-card .row span:last-child{color:var(--ink);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .hero-photo{max-width:420px;}}
+
+  .trust{padding:0;background:var(--ink);color:var(--cream);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(243,239,225,0.85);font-weight:700;}
+
+  .about{background:var(--ink);color:var(--cream);}
+  .about .h2{color:var(--cream);} .about .h2 em{color:var(--amber);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:3px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:rgba(243,239,225,0.84);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1.5px solid var(--ink);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(154,111,46,0.07);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--amber);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:500;font-size:clamp(23px,2.4vw,32px);margin:0;line-height:1.04;letter-spacing:-0.01em;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--leaf);color:var(--cream);}
+  .why .sw-head{border-color:rgba(243,239,225,0.4);color:rgba(243,239,225,0.8);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--cream);opacity:0.72;display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:500;font-size:27px;margin:0 0 10px;line-height:1.04;letter-spacing:-0.01em;}
+  .why-grid p{color:rgba(243,239,225,0.92);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--ink);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--amber);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:500;font-size:23px;margin:8px 0 8px;line-height:1.06;letter-spacing:-0.01em;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#e9e4d1;}
+  .t-quote{font-family:var(--disp);font-weight:500;font-size:clamp(26px,3.5vw,48px);line-height:1.08;max-width:26ch;margin:0 0 24px;letter-spacing:-0.01em;}
+  .t-quote em{font-style:italic;color:var(--amber);font-weight:400;}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1.5px solid var(--ink);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:3px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--ink);color:var(--amber);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--ink);}
+  .faq-list summary{font-family:var(--disp);font-weight:500;font-size:22px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;letter-spacing:-0.01em;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--amber);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--ink);border-radius:2px;font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--ink);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:19px;line-height:1.18;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--ink);color:var(--cream);padding:34px;border-radius:3px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:500;font-size:22px;line-height:1.3;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(243,239,225,0.2);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(243,239,225,0.78);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(243,239,225,0.72);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:3px;border:1.5px solid var(--ink);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:sepia(0.2);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--ink);color:var(--cream);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--amber);}
+  .cta-band h2{font-family:var(--disp);font-weight:500;font-size:clamp(40px,6vw,92px);line-height:1.04;margin:14px auto 18px;max-width:17ch;letter-spacing:-0.02em;}
+  .cta-band h2 em{font-style:italic;color:var(--amber);font-weight:400;}
+  .cta-band p{color:rgba(243,239,225,0.86);max-width:48ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--amber);color:var(--cream);}
+  .cta-band .btn-primary:hover{background:var(--cream);color:var(--ink);}
+  .cta-band .btn-ghost{border-color:rgba(243,239,225,0.6);color:var(--cream);}
+  .cta-band .btn-ghost:hover{background:var(--cream);color:var(--ink);}
+
+  footer{background:var(--cream);border-top:1.5px solid var(--ink);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--amber);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--amber);color:var(--cream);padding:13px 20px;border-radius:2px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(154,111,46,0.4);}
+  .msg-fab a:hover{background:var(--ink);color:var(--cream);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Leaf & Ledger","description":"Tea merchant and tasting room in Harrogate — loose-leaf teas from named gardens, blended and packed by hand, brewing guidance, tastings, and wholesale for cafés.","url":"https://leafandledger.co.uk/","telephone":"+441423508900","email":"steep@leafandledger.co.uk","address":{"@type":"PostalAddress","streetAddress":"11 Montpellier Parade","addressLocality":"Harrogate","addressRegion":"North Yorkshire","postalCode":"HG1 2TJ","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":53.9920,"longitude":-1.5430},"areaServed":["Harrogate","Knaresborough","Ripon","Wetherby"],"image":["https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=1600"],"foundingDate":"2014"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why is loose-leaf tea better than teabags?","acceptedAnswer":{"@type":"Answer","text":"Most teabags hold broken dust and fannings that brew harsh and one-dimensional. Whole leaf unfurls and gives flavour in layers, can be re-brewed, and gram for gram gives more tea and better value."}},
+{"@type":"Question","name":"How do I brew tea properly at home?","acceptedAnswer":{"@type":"Answer","text":"Water temperature, leaf quantity and time. Black just off the boil, greens and whites cooler (70–80°C), oolongs between. Give the leaf room and time it. We write the numbers on every bag."}},
+{"@type":"Question","name":"What does single garden or single estate mean?","acceptedAnswer":{"@type":"Answer","text":"Tea from one named farm and often one picking, tasting of its place and season, rather than blended to a consistent flavour. It's where you taste what tea actually is."}},
+{"@type":"Question","name":"Do you have good caffeine-free options?","acceptedAnswer":{"@type":"Answer","text":"Yes — herbals and tisanes from whole botanicals, not flavoured dust. Chamomile, peppermint, rooibos, fruit and seasonal blends, all tasted the way we taste our teas."}},
+{"@type":"Question","name":"Can I book a tasting?","acceptedAnswer":{"@type":"Answer","text":"Yes — guided flights upstairs, from a single origin to a beginner's tour across the styles, without pretension. Open sessions, private groups and gift vouchers available."}},
+{"@type":"Question","name":"Do you supply cafés and restaurants?","acceptedAnswer":{"@type":"Answer","text":"Yes — loose leaf, service kit and staff training on a standing order, with a list built to suit your menu and re-training as staff change."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Leaf <span>&amp;</span> Ledger</a>
+    <nav class="nav-links">
+      <a href="#about">The merchant</a><a href="#services">What's on the shelf</a><a href="#location">Find us</a><a href="#book">Tastings</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v69">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Tea merchant &amp; tasting room · loose-leaf · Harrogate</div>
+      <h1 data-comment-anchor="hero-headline">One garden. One picking. <em>Named on the tin.</em></h1>
+      <p class="lede" data-bind="hero.lede">A proper tea merchant, not a wall of dusty teabags. We buy loose leaf from named gardens and single pickings, taste every lot before it goes on the shelf, and blend and pack by hand in Harrogate. You'll know the estate, the elevation and the year — because good tea is a harvest, not a flavour.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a tasting</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What's on the shelf</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=2000&q=85&auto=format&fit=crop"
+           alt="Loose-leaf tea being measured into a scoop." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="spec-card">
+        <b>First Flush Darjeeling</b>
+        <div class="row"><span>Garden</span><span>Named estate</span></div>
+        <div class="row"><span>Water</span><span>85°C</span></div>
+        <div class="row"><span>Steep</span><span>3 minutes</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">On the counter since 2014</span>
+    <span>Single-garden loose leaf</span>
+    <span>Tasted before it's sold</span>
+    <span>Brewing on every bag</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v35">
+  <div class="wrap">
+    <div class="sw-head"><span>STEEP 01 / THE MERCHANT</span><span>TEA IS A HARVEST</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=1200&q=85&auto=format&fit=crop"
+           alt="A pot of tea being poured into a cup." />
+      <div class="about-prose">
+        <h2 class="h2">Tea is an agricultural product. Most shops sell it <em>like sawdust.</em></h2>
+        <p>We opened Leaf &amp; Ledger in 2014 because the tea aisle had given up. Row upon row of dust and fannings in bags, blended to taste the same every year, with nothing on the box about where a single leaf grew. We wanted the opposite: whole-leaf tea from gardens we can name, tasted lot by lot, sold by people who can tell you why this Darjeeling tastes of muscatel and that one doesn't.</p>
+        <p>We buy from single estates and small gardens across India, China, Japan, Taiwan and Sri Lanka, and from a handful of growers we've visited ourselves. Everything is tasted before we buy it and again before it goes on the shelf. Our blends — breakfast, afternoon, chai — are built by hand from named components, not bought pre-mixed and rebranded.</p>
+        <p>And we'll teach you to brew it. Most "bad tea" is good tea brewed wrong: water too hot, leaf too long, or a bag strangled in a mug. Come to a tasting, or just ask at the counter, and we'll send you home able to get the best out of what you buy. That's the whole job.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v62">
+  <div class="wrap">
+    <div class="sw-head"><span>STEEP 02 / ON THE SHELF</span><span>GARDEN TO CUP</span></div>
+    <h2 class="h2">What's on the shelf.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Single-garden loose leaf</h3><p>Black, green, oolong, white and pu-erh from named estates and single pickings. Estate, elevation and year on every tin — tasted before it reaches you.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>House blends</h3><p>Breakfast, afternoon, Earl Grey, chai and seasonal blends built by hand from named components. Consistent because we make them, not because they're flat.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Herbal &amp; tisanes</h3><p>Caffeine-free infusions — rooibos, chamomile, peppermint, fruit — from whole botanicals, not tea-dust with a flavour sprayed on. Good enough for the evening.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Teaware</h3><p>Pots, gaiwans, filters, kettles and everything you need to brew properly. We'll match the vessel to the tea and show you how to use it.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Tastings &amp; courses</h3><p>Guided tastings in the room upstairs — a single origin, a region, or a beginner's flight across the styles. For individuals, gifts and private groups.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Wholesale for cafés</h3><p>Loose leaf and service kit for cafés, restaurants and hotels who want tea as good as their coffee, with staff training so it's brewed right every time.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v34">
+  <div class="wrap">
+    <div class="sw-head"><span>STEEP 03 / THE DIFFERENCE</span><span>WHY IT TASTES OF SOMEWHERE</span></div>
+    <h2 class="h2" style="color:var(--cream);">Why it tastes of somewhere.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Named on the tin.</h3><p>Estate, elevation, year. If we can't tell you where a tea grew and when it was picked, we don't put it on the shelf. Tea is a harvest, and harvests have addresses.</p></div>
+      <div><span class="no">02 / 03</span><h3>Tasted before it's sold.</h3><p>We cup every lot before we buy and again before it goes out. You're not gambling on a pretty box; you're buying tea a human tasted and stood behind.</p></div>
+      <div><span class="no">03 / 03</span><h3>Brewed right, taught free.</h3><p>Most bad tea is good tea brewed wrong. Ask at the counter or come to a tasting and we'll send you home able to get the best from every gram.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>STEEP 04 / HOW IT GOES</span><span>SMELL → TASTE → TAKE → RETURN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Smell the shelf</h3><p>Come in and open the tins — we want you to smell the leaf before you buy. Tell us how you drink and we'll steer you, milk or no milk, bold or delicate.</p></li>
+      <li><span class="step">STEP 02</span><h3>Taste a brew</h3><p>We'll brew you a cup of anything you're unsure about. No one should buy fifty grams of a tea they've never tried; the kettle's always on.</p></li>
+      <li><span class="step">STEP 03</span><h3>Take the leaf &amp; the method</h3><p>We weigh out what you want and write the brewing on the bag — water temperature, leaf, time. Get those three right and the tea does the rest.</p></li>
+      <li><span class="step">STEP 04</span><h3>Come back for the season</h3><p>First-flush Darjeeling in spring, fresh sencha in early summer, the new season's harvests as they land. We'll tell you what's just arrived.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v34">
+  <div class="wrap">
+    <div class="sw-head"><span>STEEP 05 / FROM THE COUNTER</span><span>SAID OVER THE POT</span></div>
+    <blockquote class="t-quote">“I thought I didn't like green tea. Turns out I'd only ever had it <em>stewed in boiling water.</em>”</blockquote>
+    <div class="t-attr">Anita R. — convert, three years</div>
+    <div class="t-sub">
+      <figure><blockquote>“Did the origins tasting for my mum's birthday. Six teas, a proper flight, someone who could explain every one without being a bore about it. She talks about it still. Best value gift I've bought in ages.”</blockquote><figcaption>James P. — tasting, party of two</figcaption></figure>
+      <figure><blockquote>“We switched our café tea to their loose leaf and they trained the staff to brew it. Tea sales doubled and the complaints stopped. Turns out people notice when it's actually good. Proper suppliers.”</blockquote><figcaption>Café owner — wholesale, Harrogate</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v62">
+  <div class="wrap">
+    <div class="sw-head"><span>STEEP 06 / THE LEAF</span><span>DRY &amp; STEEPED</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=1600&q=85&auto=format&fit=crop" alt="Loose-leaf tea in a scoop." /><figcaption>WEIGHED BY HAND</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?w=1600&q=85&auto=format&fit=crop" alt="Tea being poured into a cup." /><figcaption>POURED AT THE COUNTER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=1600&q=85&auto=format&fit=crop" alt="A cup of green tea." /><figcaption>THE RIGHT TEMPERATURE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=1600&q=85&auto=format&fit=crop" alt="Dried tea leaves close up." /><figcaption>WHOLE LEAF</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1563822249366-3efb23b8e0c9?w=1600&q=85&auto=format&fit=crop" alt="A teapot and cups." /><figcaption>THE TASTING ROOM</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1571934811356-5cc061b6821f?w=1600&q=85&auto=format&fit=crop" alt="A cup of freshly brewed tea." /><figcaption>STEEPING</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>STEEP 07 / ASKED AT THE COUNTER</span><span>OVER A CUP</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the counter.</h2>
+        <p class="body">Anything else — ring <a href="tel:+441423508900" style="color:var(--amber);font-weight:700;">01423 508 900</a>. If we're mid-tasting we'll call you back once the flight's poured.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why is loose-leaf tea better than teabags?</summary><p>It usually isn't a moral matter, it's a physical one: most teabags are filled with "dust and fannings" — the broken scraps left after the whole leaves are sorted out — which brew fast, harsh and one-dimensional. Whole loose leaf has room to unfurl and give up its flavour in layers, and it can usually be brewed more than once. There are good teabags and we stock a few, but gram for gram, whole leaf gives you more tea, more character and better value. Come and taste the same garden both ways; the difference is not subtle.</p></details>
+        <details><summary>How do I brew tea properly at home?</summary><p>Three things matter: water temperature, quantity of leaf, and time. Black teas want water just off the boil; greens and whites want it cooler (around 70–80°C) or they scald and turn bitter; oolongs sit in between. Use a generous scoop of leaf and give it room — a basket or pot, not a strangled bag — and time it rather than guessing. We write the numbers on every bag we sell and we're always happy to talk you through a specific tea. Get those three right and even a modest tea tastes good.</p></details>
+        <details><summary>What does "single garden" or "single estate" mean?</summary><p>It means the tea comes from one named farm or estate, and often from one picking or "flush", rather than being blended from many sources to hit a consistent flavour. Single-garden teas taste of their place and their season — a first-flush Darjeeling tastes different from a second-flush from the same estate — which is the whole pleasure of them. Blends have their place (our breakfast blend is built for milk and mornings), but a single garden is where you taste what tea actually is.</p></details>
+        <details><summary>Do you have caffeine-free options that are actually good?</summary><p>Yes — our herbal and tisane range is made from whole botanicals rather than tea-dust with flavour sprayed on, so a peppermint actually tastes of peppermint and a rooibos has body rather than being coloured water. We stock chamomile, peppermint, rooibos, fruit infusions and seasonal blends, all caffeine-free and all tasted the same way we taste our teas. Tell us whether you want something calming, something fruity or something to replace an after-dinner coffee and we'll point you right.</p></details>
+        <details><summary>Can I book a tasting, and what happens?</summary><p>Yes — tastings run in the room upstairs and are one of the nicest ways to get into tea. A session is usually a guided flight of several teas — a single origin explored in depth, a tour of a region, or a beginner's run across black, green, oolong and white — with someone talking you through what you're tasting and how it was made, without the pretension. We run open sessions and private bookings for birthdays, gifts and groups, and gift vouchers are available. It's informal, generous and there's always more tea in the pot.</p></details>
+        <details><summary>Do you supply cafés and restaurants?</summary><p>Gladly — it's a growing part of what we do. We supply loose leaf, service kit and, crucially, staff training, because tea as good as your coffee only works if the team knows how to brew it. We'll help you build a list that suits your menu and your customers, keep you stocked on a standing order, and come back to re-train as staff change. Give us a call and we'll talk through what your place needs rather than sell you a one-size box.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>STEEP 08 / CUSTOMERS COME FROM</span><span>ACROSS YORKSHIRE</span></div>
+    <ul class="area-list">
+      <li>Harrogate</li><li>Knaresborough</li><li>Ripon</li><li>Wetherby</li><li>Ilkley</li><li>Otley</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v9" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>STEEP 09 / THE ESSENTIALS</span><span>HOW WE BUY</span></div>
+    <div class="creds">
+      <div><div class="label">Sourced</div><div class="detail">Single gardens &amp; named estates worldwide</div></div>
+      <div><div class="label">Tasted</div><div class="detail">Every lot cupped before it reaches the shelf</div></div>
+      <div><div class="label">Blended</div><div class="detail">House blends built by hand from named leaf</div></div>
+      <div><div class="label">Taught</div><div class="detail">Brewing method on every bag we sell</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>STEEP 10 / FIND US</span><span>11 MONTPELLIER PARADE, HARROGATE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Leaf &amp; Ledger</strong><br />
+          11 Montpellier Parade<br />
+          Harrogate HG1 2TJ<br /><br />
+          <a href="tel:+441423508900" data-bind="business.phoneDisplay">01423 508 900</a><br />
+          <a href="mailto:steep@leafandledger.co.uk" data-bind="business.email">steep@leafandledger.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>MON – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>TASTINGS</span><span>BY BOOKING</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're the shopfront on Montpellier Parade with the tins in the window — you'll smell the counter before you're through the door.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Leaf & Ledger, Harrogate" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.5520%2C53.9880%2C-1.5340%2C53.9960&layer=mapnik&marker=53.9920%2C-1.5430"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v37">
+  <div class="wrap">
+    <div class="kick">STEEP 11 / TASTINGS</div>
+    <h2 data-bind="cta.heading">Come and <em>open the tins.</em></h2>
+    <p data-bind="cta.body">Smell the leaf, taste a brew, and take home tea you can name — with the method written on the bag. Or book the room upstairs for a guided tasting. The kettle's on and it's the right temperature.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a tasting</a>
+      <a class="btn btn-ghost" href="tel:+441423508900" data-bind="cta.secondary.label">01423 508 900</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441423508900" data-bind="messaging.whatsapp" aria-label="Message the tea merchant">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:27px;">Leaf <span style="color:var(--amber);font-style:italic;">&amp;</span> Ledger</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A tea merchant and tasting room in Harrogate. On the counter since 2014.</p>
+      </div>
+      <div>
+        <h4>The shop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;">
+          11 Montpellier Parade<br />Harrogate HG1 2TJ<br />
+          <a href="tel:+441423508900">01423 508 900</a><br />
+          <a href="mailto:steep@leafandledger.co.uk">steep@leafandledger.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What's on the shelf</a><a href="#about">The merchant</a><a href="#location">Find us</a><a href="#book">Tastings</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> LEAF &amp; LEDGER LTD</span>
+      <span>BLENDED &amp; PACKED IN HARROGATE</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

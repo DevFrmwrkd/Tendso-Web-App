@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bearings — skate shop &amp; indoor park in Leicester</title>
+<meta name="description" content="Bearings is a skater-owned shop and indoor park in Leicester — decks built on the counter, a 6,000 sq ft park, beginner sessions, and no attitude at the door. All ages, all levels." />
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Bearings", phone: "+44 116 442 7715", phoneDisplay: "0116 442 7715", email: "counter@bearings.cc", foundedYear: 2015 },
+  hero: {
+    kicker: "Skate shop + indoor park · skater-owned · Frog Island, Leicester",
+    headline: "PUSH. FALL. PUSH AGAIN.",
+    lede: "A proper skater-owned shop bolted onto a 6,000 square foot indoor park. Decks built on the counter by people who actually ride, a park that runs whatever the weather's doing, and a strict no-attitude-at-the-door policy. Eight or eighty, day one or pro — you're in.",
+    primaryCta: { label: "Park sessions", href: "#services" },
+    secondaryCta: { label: "Find the ramp", href: "#location" },
+    image: "https://images.unsplash.com/photo-1520045892732-304bc3ac5d8e?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A skater mid-air over a ramp in an indoor park."
+  },
+  trust: { years: "Rolling since 2015" },
+  about: {
+    heading: "Built by skaters. Obviously.",
+    paragraphs: [
+      "Bearings started as a shop with a mini-ramp in the back that got out of hand. Ten years on it's a full 6,000 sq ft indoor park with a shop attached, run by people who close early sometimes because the conditions outside are perfect and it would be rude not to.",
+      "We build decks on the counter — grip cut, trucks set, bearings pressed, wheels on — while you wait, sized to how you actually skate, not what's on the poster. Ask a daft question; there are no daft questions here, only the ones nobody answered when we started.",
+      "The park runs sessions for every level, from never-stood-on-one to sponsored. Helmets on for under-18s, no exceptions, and a coaching crew who remember exactly how terrifying the first drop-in feels because they filmed each other doing it badly."
+    ],
+    portrait: "https://images.unsplash.com/photo-1564982752979-3f7bc974d29a?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "New decks lined up in the shop."
+  },
+  services: [
+    { name: "The indoor park", description: "6,000 sq ft of mini-ramp, quarters, ledges and a proper bowl. Open sessions daily, rain or shine, floodlit and warm all winter." },
+    { name: "Decks built to order", description: "Choose the deck, we build the setup on the counter — grip, trucks, bearings, wheels, sized to your feet and your style. Rolls out the door ready." },
+    { name: "Beginner & kids sessions", description: "Quiet-hours coaching for first-timers of any age, boards and pads provided. The session where the first drop-in happens and nobody laughs." },
+    { name: "Lessons & coaching", description: "One-to-one and group coaching from the resident crew — first push to first grind to whatever you're chasing. Progress, filmed if you want it." },
+    { name: "Repairs, spares & grip", description: "Re-griped, bearings cleaned, trucks re-bushed, wheels swapped while you wait. The stuff that keeps an old board alive another year." },
+    { name: "Parties & lock-ins", description: "The whole park for birthdays, stag dos and one office team-build that got competitive. Coaches on, music up, first-aider present." }
+  ],
+  why: [
+    { title: "Skater-owned, skater-run.", body: "Everyone behind the counter rides. Your setup advice comes from people who'll be in the park an hour after their shift, not from a training manual." },
+    { title: "No attitude at the door.", body: "Skate shops have a reputation and we've spent ten years being the opposite of it. Beginners, kids, returners, and the nervous are the whole point, not the tolerated." },
+    { title: "Open whatever the weather.", body: "Indoor, floodlit, heated. The British summer is a rumour and the British winter is a fact; the park doesn't care about either. Ride year-round." }
+  ],
+  how: [
+    { step: "01", title: "Rock up", body: "Walk in, sign the waiver, grab a session. Boards and pads to borrow if you haven't got your own yet." },
+    { step: "02", title: "Pick your session", body: "Open skate if you know what you're doing, quiet-hours or coached if you don't. The board tells you what's on when." },
+    { step: "03", title: "Drop in", body: "Start on the flat, work to the mini, earn the bowl. Coaches float the whole session; ask for a spot on anything scary." },
+    { step: "04", title: "Get your setup dialled", body: "Loving it? We'll build you a board sized right, so the next session is on gear that actually fits you." }
+  ],
+  testimonials: [
+    { quote: "I'm 41 and started from zero after my kid did. Nobody blinked. Six months in I dropped into the bowl and the whole park cheered. Try getting that at a gym.", name: "Marcus D.", context: "adult beginner, bowl graduate" },
+    { quote: "My daughter was terrified of every other skatepark — too fast, too many teenagers. The quiet-hours session at Bearings turned her into a menace. Best kind of menace.", name: "Priya S.", context: "kids' session parent" },
+    { quote: "They built my board on the counter, talked me out of the trucks I thought I wanted, and were completely right. Skated better that day than in the previous year on the wrong setup.", name: "Jordan L.", context: "custom setup, converted" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1520045892732-304bc3ac5d8e?w=1600&q=85&auto=format&fit=crop", alt: "Air over the ramp." },
+    { src: "https://images.unsplash.com/photo-1564982752979-3f7bc974d29a?w=1600&q=85&auto=format&fit=crop", alt: "Building a deck on the counter." },
+    { src: "https://images.unsplash.com/photo-1531565637446-32307b194362?w=1600&q=85&auto=format&fit=crop", alt: "A skateboard on a striped crossing." },
+    { src: "https://images.unsplash.com/photo-1621544402532-78c290378588?w=1600&q=85&auto=format&fit=crop", alt: "A skater mid-air outdoors." },
+    { src: "https://images.unsplash.com/photo-1547447134-cd3f5c716030?w=1600&q=85&auto=format&fit=crop", alt: "A skateboard and its shadow." },
+    { src: "https://images.unsplash.com/photo-1572776685600-aca8c3456337?w=1600&q=85&auto=format&fit=crop", alt: "A skater pushing through the park." }
+  ],
+  faq: [
+    { q: "I've genuinely never skated. Can I come?", a: "That's who the quiet-hours and beginner sessions are built for. Boards and pads to borrow, coaches who float the whole time, and a room full of people who were also terrible once. Everyone starts on the flat; nobody starts in the bowl." },
+    { q: "Is it safe for kids?", a: "Helmets mandatory for under-18s, pads strongly pushed, coached sessions with proper ratios, and a first-aider on site every session. Skating has risk — we manage it hard and teach falling as a skill, because it is one." },
+    { q: "Do I need my own board?", a: "No — borrow ours to start, and buy when you're hooked (you will be). When you do, we build it on the counter sized to you, which beats anything off a website. Bring your own anytime; we'll tune it up." },
+    { q: "How much is a session?", a: "Priced per session with cheaper multi-passes and a membership if you're in three-plus times a week. Kids' and quiet-hours sessions are their own rate. Current prices are on the board and the Google profile; they don't hide." },
+    { q: "Can adults skate here or is it a kids' thing?", a: "Both, deliberately. Adult beginners are one of our biggest groups — there are dedicated adult sessions where the average age surprises everyone. It is never too late; our oldest regular is 63 and better than most." },
+    { q: "Can I hire the park?", a: "Yes — birthdays, groups, stag and hen dos, work team-builds. Whole-park or a coached zone, boards and pads included, a coach or two on the floor. Ring ahead; weekends book up fast." }
+  ],
+  area: { places: ["Frog Island", "city centre", "Clarendon Park", "Aylestone", "Oadby", "Wigston"] },
+  credentials: [
+    { label: "The park", detail: "6,000 sq ft indoor, floodlit & heated" },
+    { label: "Coaching", detail: "Skateboard England-affiliated coaches" },
+    { label: "Safety", detail: "First-aider every session, under-18 helmet rule" },
+    { label: "The shop", detail: "Setups built on the counter since 2015" }
+  ],
+  location: { name: "Bearings", addressStreet: "Unit 2, Soar Lane", addressLocality: "Frog Island, Leicester", addressRegion: "Leicestershire", addressPostcode: "LE3 5AH", addressCountry: "United Kingdom" },
+  cta: { heading: "STOP WATCHING. START PUSHING.", body: "Walk in, borrow a board, drop in for the first time today. All ages, all levels, no attitude at the door.", primary: { label: "Park sessions", href: "#services" }, secondary: { label: "0116 442 7715", href: "tel:+441164427715" } },
+  messaging: { whatsapp: "https://wa.me/441164427715", messenger: "https://m.me/bearingsskate" }
+};
+</script>
+
+<style>
+  :root {
+    --concrete:#20211e; --paper:#eceae2; --hazard:#f4db3f; --magenta:#ff2e7e; --sky:#2fb6d4;
+    --mid:#8b8c83; --rule:rgba(236,234,226,0.16); --rule-l:rgba(32,33,30,0.16);
+    --anton:"Anton",sans-serif; --sans:"Archivo",sans-serif; --mono:"Space Mono",monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--concrete);color:var(--paper);font-family:var(--sans);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--magenta);}
+  .wrap{width:min(1340px,94vw);margin-inline:auto;}
+  .tape{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--hazard);font-weight:700;}
+  .h2{font-family:var(--anton);font-weight:400;font-size:clamp(42px,6.4vw,102px);line-height:0.86;letter-spacing:0.01em;text-transform:uppercase;margin:0 0 0.4em;}
+  .h2 .hz{color:var(--hazard);} .h2 .mg{color:var(--magenta);}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(74px,9vw,132px) 0;position:relative;}
+  .btn{display:inline-flex;align-items:center;padding:16px 30px;font-family:var(--anton);font-size:16px;letter-spacing:0.05em;text-transform:uppercase;text-decoration:none;transition:0.15s;}
+  .btn-primary{background:var(--hazard);color:var(--concrete);} .btn-primary:hover{background:var(--magenta);color:#fff;}
+  .btn-ghost{border:2.5px solid var(--paper);} .btn-ghost:hover{background:var(--paper);color:var(--concrete);}
+  .grip-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--mid);border-bottom:2.5px solid var(--paper);padding-bottom:12px;margin-bottom:clamp(34px,4.5vw,60px);}
+  /* hazard stripe device */
+  .stripe{height:14px;background:repeating-linear-gradient(-45deg,var(--hazard) 0 22px,var(--concrete) 22px 44px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(32,33,30,0.94);backdrop-filter:blur(10px);border-bottom:2.5px solid var(--paper);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:13px 0;}
+  .wm{font-family:var(--anton);font-size:22px;text-transform:uppercase;letter-spacing:0.03em;text-decoration:none;}
+  .wm span{color:var(--hazard);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — three verbs stacked huge, photo band beneath */
+  .hero{padding:clamp(40px,5vw,72px) 0 0;}
+  .hero .kicker-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  .hero .kicker-row b{color:var(--hazard);}
+  .hero h1{font-family:var(--anton);font-weight:400;text-transform:uppercase;line-height:0.82;margin:26px 0 0;font-size:clamp(64px,15vw,240px);letter-spacing:0.01em;}
+  .hero h1 .l1{display:block;}
+  .hero h1 .l2{display:block;color:var(--magenta);}
+  .hero h1 .l3{display:block;color:var(--hazard);}
+  .hero-under{display:grid;grid-template-columns:1.2fr 0.8fr;gap:clamp(30px,5vw,80px);align-items:end;margin-top:clamp(30px,4vw,52px);}
+  .hero-photo{position:relative;overflow:hidden;border:2.5px solid var(--paper);}
+  .hero-photo img{width:100%;aspect-ratio:16/10;object-fit:cover;}
+  .hero-photo .tag{position:absolute;left:16px;bottom:14px;background:var(--concrete);color:var(--hazard);font-family:var(--mono);font-size:10px;letter-spacing:0.14em;padding:8px 12px;text-transform:uppercase;}
+  .hero-copy .lede{font-size:clamp(16px,1.5vw,19px);line-height:1.6;color:var(--paper);margin:0 0 24px;font-weight:500;}
+  .hero-ctas{display:flex;gap:14px;flex-wrap:wrap;}
+  @media(max-width:820px){.hero-under{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--hazard);color:var(--concrete);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:14px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;}
+
+  /* ABOUT — concrete, big outline word */
+  .about .ghost{position:absolute;top:4vw;right:-1vw;font-family:var(--anton);font-size:clamp(120px,22vw,340px);line-height:0.8;color:transparent;-webkit-text-stroke:1px rgba(255,46,126,0.16);pointer-events:none;user-select:none;text-transform:uppercase;}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(36px,5vw,84px);align-items:center;position:relative;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border:2.5px solid var(--paper);}
+  .about-prose p{font-size:clamp(16.5px,1.6vw,19.5px);line-height:1.72;margin:0 0 1em;color:#d6d4c9;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  /* SERVICES — session-board grid, hover flips to magenta */
+  .svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:2.5px solid var(--paper);}
+  .svc-cell{padding:clamp(24px,3vw,40px);border-right:2.5px solid var(--paper);border-bottom:2.5px solid var(--paper);transition:0.15s;min-height:220px;display:flex;flex-direction:column;}
+  .svc-cell:nth-child(3n){border-right:0;}
+  .svc-cell:nth-child(n+4){border-bottom:0;}
+  .svc-cell:hover{background:var(--magenta);color:#fff;}
+  .svc-cell:hover p{color:rgba(255,255,255,0.85);}
+  .svc-cell:hover .no{color:var(--concrete);}
+  .svc-cell .no{font-family:var(--mono);font-size:11px;letter-spacing:0.16em;color:var(--hazard);text-transform:uppercase;margin-bottom:auto;font-weight:700;}
+  .svc-cell h3{font-family:var(--anton);font-weight:400;font-size:23px;text-transform:uppercase;margin:22px 0 8px;line-height:0.95;}
+  .svc-cell p{color:var(--mid);margin:0;font-size:14px;line-height:1.6;}
+  @media(max-width:900px){.svc-grid{grid-template-columns:1fr 1fr;} .svc-cell:nth-child(3n){border-right:2.5px solid var(--paper);} .svc-cell:nth-child(2n){border-right:0;} .svc-cell:nth-child(n+4){border-bottom:2.5px solid var(--paper);} .svc-cell:nth-child(n+5){border-bottom:0;}}
+  @media(max-width:600px){.svc-grid{grid-template-columns:1fr;} .svc-cell{border-right:0 !important;border-bottom:2.5px solid var(--paper) !important;} .svc-cell:last-child{border-bottom:0 !important;}}
+
+  /* WHY — magenta */
+  .why{background:var(--magenta);color:#fff;}
+  .why .grip-head{border-color:rgba(255,255,255,0.5);color:rgba(255,255,255,0.8);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .n{font-family:var(--anton);font-size:clamp(64px,7.5vw,110px);line-height:0.8;color:var(--concrete);display:block;margin-bottom:16px;}
+  .why-grid h3{font-family:var(--anton);font-weight:400;font-size:24px;text-transform:uppercase;margin:0 0 10px;line-height:0.95;}
+  .why-grid p{color:rgba(255,255,255,0.92);margin:0;font-size:14.5px;line-height:1.66;font-weight:500;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:2.5px solid var(--paper);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--hazard);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--anton);font-weight:400;font-size:19px;text-transform:uppercase;margin:10px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#191a17;}
+  .t-quote{font-family:var(--anton);font-weight:400;font-size:clamp(28px,4.4vw,64px);line-height:0.94;text-transform:uppercase;max-width:24ch;margin:0 0 24px;}
+  .t-quote em{font-style:normal;color:var(--hazard);}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--magenta);margin-bottom:clamp(40px,5vw,64px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2.5px solid var(--paper);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.66;margin:0 0 12px;color:#d6d4c9;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — action strip */
+  .g-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:clamp(10px,1.4vw,18px);}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border:2.5px solid var(--paper);}
+  .g-grid img{width:100%;height:100%;object-fit:cover;transition:0.35s;filter:saturate(1.05);}
+  .g-grid figure:hover img{transform:scale(1.05);}
+  .g-grid figure:nth-child(1){grid-column:span 4;} .g-grid figure:nth-child(1) img{aspect-ratio:16/9;}
+  .g-grid figure:nth-child(2){grid-column:span 2;} .g-grid figure:nth-child(2) img{aspect-ratio:8/9.05;}
+  .g-grid figure:nth-child(n+3){grid-column:span 2;} .g-grid figure:nth-child(n+3) img{aspect-ratio:4/3;}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--concrete);color:var(--hazard);font-family:var(--mono);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;padding:6px 10px;}
+  @media(max-width:760px){.g-grid figure{grid-column:span 6 !important;} .g-grid figure img{aspect-ratio:4/3 !important;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:20px 0;}
+  .faq-list details:first-child{border-top:2.5px solid var(--paper);}
+  .faq-list summary{font-family:var(--anton);font-weight:400;font-size:20px;text-transform:uppercase;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.05;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"›";color:var(--magenta);flex-shrink:0;font-size:24px;transition:0.2s;line-height:1;}
+  .faq-list details[open] summary::after{transform:rotate(90deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:56ch;line-height:1.7;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;text-transform:uppercase;padding:11px 20px;border:2.5px solid var(--paper);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:clamp(26px,3.5vw,44px);border:2.5px solid var(--paper);}
+  .creds > div{padding:24px;border-right:2.5px solid var(--paper);}
+  .creds > div:last-child{border-right:0;}
+  .creds .label{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--hazard);margin-bottom:10px;font-weight:700;}
+  .creds .detail{font-family:var(--anton);font-weight:400;font-size:16px;line-height:1.15;text-transform:uppercase;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;} .creds > div{border-bottom:2.5px solid var(--paper);} .creds > div:nth-child(2n){border-right:0;} .creds > div:nth-child(n+3){border-bottom:0;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:#191a17;border:2.5px solid var(--paper);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--anton);font-weight:400;font-size:20px;line-height:1.3;text-transform:uppercase;}
+  .nap a{text-decoration:none;}
+  .hours{font-family:var(--mono);font-size:10px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--mid);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:var(--mid);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:2.5px solid var(--paper);filter:grayscale(1) invert(0.9) contrast(0.9);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--hazard);color:var(--concrete);padding:clamp(90px,11vw,160px) 0;position:relative;overflow:hidden;}
+  .cta-band::before{content:"";position:absolute;top:0;left:0;right:0;height:14px;background:repeating-linear-gradient(-45deg,var(--concrete) 0 22px,transparent 22px 44px);}
+  .cta-band h2{font-family:var(--anton);font-weight:400;font-size:clamp(46px,8.5vw,140px);line-height:0.86;text-transform:uppercase;margin:14px 0 22px;max-width:14ch;}
+  .cta-band h2 em{font-style:normal;color:var(--magenta);}
+  .cta-band p{color:rgba(32,33,30,0.8);max-width:46ch;margin:0 0 34px;font-size:17px;font-weight:500;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--concrete);color:var(--hazard);}
+  .cta-band .btn-primary:hover{background:var(--magenta);color:#fff;}
+  .cta-band .btn-ghost{border-color:var(--concrete);}
+  .cta-band .btn-ghost:hover{background:var(--concrete);color:var(--hazard);}
+
+  footer{background:var(--concrete);border-top:2.5px solid var(--paper);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--hazard);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;color:var(--mid);}
+  .footer-grid a:hover{color:var(--paper);}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--magenta);color:#fff;padding:14px 20px;text-decoration:none;font-family:var(--anton);font-size:15px;letter-spacing:0.04em;text-transform:uppercase;box-shadow:0 8px 26px rgba(255,46,126,0.4);}
+  .msg-fab a:hover{background:var(--hazard);color:var(--concrete);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SportsActivityLocation","name":"Bearings","description":"Skater-owned skate shop and 6,000 sq ft indoor park in Leicester — decks built to order, park sessions, coaching for all ages and levels.","url":"https://bearings.cc/","telephone":"+441164427715","email":"counter@bearings.cc","address":{"@type":"PostalAddress","streetAddress":"Unit 2, Soar Lane","addressLocality":"Leicester","addressRegion":"Leicestershire","postalCode":"LE3 5AH","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":52.6410,"longitude":-1.1420},"areaServed":["Leicester","Oadby","Wigston","Leicestershire"],"image":["https://images.unsplash.com/photo-1520045892732-304bc3ac5d8e?w=1600"],"foundingDate":"2015"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"I've never skated. Can I come?","acceptedAnswer":{"@type":"Answer","text":"That's who the quiet-hours and beginner sessions are built for. Boards and pads to borrow, coaches throughout."}},
+{"@type":"Question","name":"Is it safe for kids?","acceptedAnswer":{"@type":"Answer","text":"Helmets mandatory under 18, coached sessions with proper ratios, first-aider on site every session."}},
+{"@type":"Question","name":"Do I need my own board?","acceptedAnswer":{"@type":"Answer","text":"No — borrow ours to start; when you buy we build it on the counter sized to you."}},
+{"@type":"Question","name":"How much is a session?","acceptedAnswer":{"@type":"Answer","text":"Per session with cheaper multi-passes and membership. Current prices on the board and Google profile."}},
+{"@type":"Question","name":"Can adults skate here?","acceptedAnswer":{"@type":"Answer","text":"Yes — dedicated adult sessions; our oldest regular is 63. It's never too late."}},
+{"@type":"Question","name":"Can I hire the park?","acceptedAnswer":{"@type":"Answer","text":"Yes — birthdays, groups, stag and hen dos, boards and pads and coaches included. Ring ahead."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">BEAR<span>INGS</span></a>
+    <nav class="nav-links">
+      <a href="#services">Sessions</a><a href="#about">The park</a><a href="#location">Find us</a><a href="#book">Hire</a>
+    </nav>
+  </div>
+</header>
+
+<div class="stripe" aria-hidden="true"></div>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v50">
+  <div class="wrap">
+    <div class="kicker-row"><span data-bind="hero.kicker">Skate shop + indoor park · skater-owned · Frog Island, Leicester</span><b>OPEN · WHATEVER THE WEATHER</b></div>
+    <h1 data-comment-anchor="hero-headline" aria-label="Push. Fall. Push again.">
+      <span class="l1">PUSH.</span>
+      <span class="l2">FALL.</span>
+      <span class="l3">PUSH AGAIN.</span>
+    </h1>
+    <div class="hero-under">
+      <div class="hero-photo">
+        <img src="https://images.unsplash.com/photo-1520045892732-304bc3ac5d8e?w=2000&q=85&auto=format&fit=crop"
+             alt="A skater mid-air over a ramp in an indoor park." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+        <div class="tag">THE BOWL · OPEN SESSION</div>
+      </div>
+      <div class="hero-copy">
+        <p class="lede" data-bind="hero.lede">A proper skater-owned shop bolted onto a 6,000 square foot indoor park. Decks built on the counter by people who actually ride, a park that runs whatever the weather's doing, and a strict no-attitude-at-the-door policy. Eight or eighty, day one or pro — you're in.</p>
+        <div class="hero-ctas">
+          <a class="btn btn-primary" href="#services" data-bind="hero.primaryCta.label">Park sessions</a>
+          <a class="btn btn-ghost" href="#location" data-bind="hero.secondaryCta.label">Find the ramp</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Rolling since 2015</span>
+    <span>Skater-owned</span>
+    <span>6,000 sq ft, heated</span>
+    <span>No attitude at the door</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about" data-component="ABOUT" data-variant="v16">
+  <div class="ghost" aria-hidden="true">ROLL</div>
+  <div class="wrap">
+    <div class="grip-head"><span>SESSION 01 / THE SHOP</span><span>FROG ISLAND, LEICESTER</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1564982752979-3f7bc974d29a?w=1200&q=85&auto=format&fit=crop"
+           alt="New decks lined up in the shop." />
+      <div class="about-prose">
+        <h2 class="h2">Built by skaters. <span class="mg">Obviously.</span></h2>
+        <p>Bearings started as a shop with a mini-ramp in the back that got out of hand. Ten years on it's a full 6,000 sq ft indoor park with a shop attached, run by people who close early sometimes because the conditions outside are perfect and it would be rude not to.</p>
+        <p>We build decks on the counter — grip cut, trucks set, bearings pressed, wheels on — while you wait, sized to how you actually skate, not what's on the poster. Ask a daft question; there are no daft questions here, only the ones nobody answered when we started.</p>
+        <p>The park runs sessions for every level, from never-stood-on-one to sponsored. Helmets on for under-18s, no exceptions, and a coaching crew who remember exactly how terrifying the first drop-in feels because they filmed each other doing it badly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v43">
+  <div class="wrap">
+    <div class="grip-head"><span>SESSION 02 / THE BOARD</span><span>WHAT'S ON, WHEN</span></div>
+    <h2 class="h2">On the <span class="hz">board.</span></h2>
+    <div class="svc-grid">
+      <div class="svc-cell"><span class="no">SESH 01</span><h3>The indoor park</h3><p>6,000 sq ft of mini-ramp, quarters, ledges and a proper bowl. Open sessions daily, rain or shine, floodlit and warm all winter.</p></div>
+      <div class="svc-cell"><span class="no">SESH 02</span><h3>Decks built to order</h3><p>Choose the deck, we build the setup on the counter — grip, trucks, bearings, wheels, sized to your feet and your style. Rolls out the door ready.</p></div>
+      <div class="svc-cell"><span class="no">SESH 03</span><h3>Beginner &amp; kids sessions</h3><p>Quiet-hours coaching for first-timers of any age, boards and pads provided. The session where the first drop-in happens and nobody laughs.</p></div>
+      <div class="svc-cell"><span class="no">SESH 04</span><h3>Lessons &amp; coaching</h3><p>One-to-one and group coaching from the resident crew — first push to first grind to whatever you're chasing. Progress, filmed if you want it.</p></div>
+      <div class="svc-cell"><span class="no">SESH 05</span><h3>Repairs, spares &amp; grip</h3><p>Re-griped, bearings cleaned, trucks re-bushed, wheels swapped while you wait. The stuff that keeps an old board alive another year.</p></div>
+      <div class="svc-cell"><span class="no">SESH 06</span><h3>Parties &amp; lock-ins</h3><p>The whole park for birthdays, stag dos and one office team-build that got competitive. Coaches on, music up, first-aider present.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v15">
+  <div class="wrap">
+    <div class="grip-head"><span>SESSION 03 / THE DOOR POLICY</span><span>SPRAYED ON THE WALL</span></div>
+    <h2 class="h2">Why here, not there.</h2>
+    <div class="why-grid">
+      <div><span class="n">1</span><h3>Skater-owned, skater-run.</h3><p>Everyone behind the counter rides. Your setup advice comes from people who'll be in the park an hour after their shift, not from a training manual.</p></div>
+      <div><span class="n">2</span><h3>No attitude at the door.</h3><p>Skate shops have a reputation and we've spent ten years being the opposite of it. Beginners, kids, returners, and the nervous are the whole point, not the tolerated.</p></div>
+      <div><span class="n">3</span><h3>Open whatever the weather.</h3><p>Indoor, floodlit, heated. The British summer is a rumour and the British winter is a fact; the park doesn't care about either. Ride year-round.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="grip-head"><span>SESSION 04 / FIRST TIME</span><span>DOOR → DROP-IN</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Rock up</h3><p>Walk in, sign the waiver, grab a session. Boards and pads to borrow if you haven't got your own yet.</p></li>
+      <li><span class="step">STEP 02</span><h3>Pick your session</h3><p>Open skate if you know what you're doing, quiet-hours or coached if you don't. The board tells you what's on when.</p></li>
+      <li><span class="step">STEP 03</span><h3>Drop in</h3><p>Start on the flat, work to the mini, earn the bowl. Coaches float the whole session; ask for a spot on anything scary.</p></li>
+      <li><span class="step">STEP 04</span><h3>Get your setup dialled</h3><p>Loving it? We'll build you a board sized right, so the next session is on gear that actually fits you.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v15">
+  <div class="wrap">
+    <div class="grip-head"><span>SESSION 05 / FROM THE PARK</span><span>SHOUTED OVER THE MUSIC</span></div>
+    <blockquote class="t-quote">“I dropped into the bowl and the whole park cheered. <em>Try getting that at a gym.</em>”</blockquote>
+    <div class="t-attr">Marcus D. — adult beginner, bowl graduate</div>
+    <div class="t-sub">
+      <figure><blockquote>“My daughter was terrified of every other skatepark — too fast, too many teenagers. The quiet-hours session at Bearings turned her into a menace. Best kind of menace.”</blockquote><figcaption>Priya S. — kids' session parent</figcaption></figure>
+      <figure><blockquote>“They built my board on the counter, talked me out of the trucks I thought I wanted, and were completely right. Skated better that day than in the previous year on the wrong setup.”</blockquote><figcaption>Jordan L. — custom setup, converted</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v43">
+  <div class="wrap">
+    <div class="grip-head"><span>SESSION 06 / THE ROLL</span><span>SHOT MID-SESSION</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1520045892732-304bc3ac5d8e?w=1600&q=85&auto=format&fit=crop" alt="Air over the ramp." /><figcaption>AIR, THE MINI</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1564982752979-3f7bc974d29a?w=1600&q=85&auto=format&fit=crop" alt="Building a deck on the counter." /><figcaption>BUILT ON THE COUNTER</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1531565637446-32307b194362?w=1600&q=85&auto=format&fit=crop" alt="A skateboard on a striped crossing." /><figcaption>DECK ON THE LINES</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1621544402532-78c290378588?w=1600&q=85&auto=format&fit=crop" alt="A skater mid-air outdoors." /><figcaption>MID-AIR, OUTSIDE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1547447134-cd3f5c716030?w=1600&q=85&auto=format&fit=crop" alt="A skateboard and its shadow." /><figcaption>DECK &amp; SHADOW</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1572776685600-aca8c3456337?w=1600&q=85&auto=format&fit=crop" alt="A skater pushing through the park." /><figcaption>PUSHING ON</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="grip-head"><span>SESSION 07 / ASKED AT THE COUNTER</span><span>USUALLY BEFORE THE FIRST DROP-IN</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the <span class="mg">counter.</span></h2>
+        <p class="body">Anything else — ring <a href="tel:+441164427715" style="color:var(--hazard);font-weight:700;">0116 442 7715</a>. If the park's loud, message us; someone's always near a phone.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>I've genuinely never skated. Can I come?</summary><p>That's who the quiet-hours and beginner sessions are built for. Boards and pads to borrow, coaches who float the whole time, and a room full of people who were also terrible once. Everyone starts on the flat; nobody starts in the bowl.</p></details>
+        <details><summary>Is it safe for kids?</summary><p>Helmets mandatory for under-18s, pads strongly pushed, coached sessions with proper ratios, and a first-aider on site every session. Skating has risk — we manage it hard and teach falling as a skill, because it is one.</p></details>
+        <details><summary>Do I need my own board?</summary><p>No — borrow ours to start, and buy when you're hooked (you will be). When you do, we build it on the counter sized to you, which beats anything off a website. Bring your own anytime; we'll tune it up.</p></details>
+        <details><summary>How much is a session?</summary><p>Priced per session with cheaper multi-passes and a membership if you're in three-plus times a week. Kids' and quiet-hours sessions are their own rate. Current prices are on the board and the Google profile; they don't hide.</p></details>
+        <details><summary>Can adults skate here or is it a kids' thing?</summary><p>Both, deliberately. Adult beginners are one of our biggest groups — there are dedicated adult sessions where the average age surprises everyone. It is never too late; our oldest regular is 63 and better than most.</p></details>
+        <details><summary>Can I hire the park?</summary><p>Yes — birthdays, groups, stag and hen dos, work team-builds. Whole-park or a coached zone, boards and pads included, a coach or two on the floor. Ring ahead; weekends book up fast.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="grip-head"><span>SESSION 08 / THE CREW COMES FROM</span><span>LEICESTER &amp; BEYOND</span></div>
+    <ul class="area-list">
+      <li>Frog Island</li><li>city centre</li><li>Clarendon Park</li><li>Aylestone</li><li>Oadby</li><li>Wigston</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v2" style="padding-top:0;">
+  <div class="wrap">
+    <div class="grip-head"><span>SESSION 09 / THE PAPERWORK</span><span>GRIP-TAPED TO THE WALL</span></div>
+    <div class="creds">
+      <div><div class="label">The park</div><div class="detail">6,000 sq ft indoor, floodlit &amp; heated</div></div>
+      <div><div class="label">Coaching</div><div class="detail">Skateboard England-affiliated coaches</div></div>
+      <div><div class="label">Safety</div><div class="detail">First-aider every session, under-18 helmet rule</div></div>
+      <div><div class="label">The shop</div><div class="detail">Setups built on the counter since 2015</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="grip-head"><span>SESSION 10 / FIND THE RAMP</span><span>UNIT 2, SOAR LANE</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Bearings</strong><br />
+          Unit 2, Soar Lane<br />
+          Frog Island, Leicester LE3 5AH<br /><br />
+          <a href="tel:+441164427715" data-bind="business.phoneDisplay">0116 442 7715</a><br />
+          <a href="mailto:counter@bearings.cc" data-bind="business.email">counter@bearings.cc</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>SESSIONS</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>QUIET HOURS</span><span>WEEKDAY MORNINGS</span></div>
+          <p class="gbp-note">Session times live on our Google Business Profile and the booking page. The big unit by the river with the ramp you can hear from the car park.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Bearings, Soar Lane, Leicester" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-1.1510%2C52.6370%2C-1.1330%2C52.6450&layer=mapnik&marker=52.6410%2C-1.1420"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v18">
+  <div class="wrap">
+    <div class="tape" style="color:var(--concrete);">SESSION 11 / GO</div>
+    <h2>STOP WATCHING. <em>START PUSHING.</em></h2>
+    <p data-bind="cta.body">Walk in, borrow a board, drop in for the first time today. All ages, all levels, no attitude at the door.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#services" data-bind="cta.primary.label">Park sessions</a>
+      <a class="btn btn-ghost" href="tel:+441164427715" data-bind="cta.secondary.label">0116 442 7715</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441164427715" data-bind="messaging.whatsapp" aria-label="Message the shop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;">BEAR<span style="color:var(--hazard);">INGS</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A skater-owned shop and indoor park at Frog Island, Leicester. Since 2015.</p>
+      </div>
+      <div>
+        <h4>The park</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;color:var(--mid);">
+          Unit 2, Soar Lane<br />Leicester LE3 5AH<br />
+          <a href="tel:+441164427715">0116 442 7715</a><br />
+          <a href="mailto:counter@bearings.cc">counter@bearings.cc</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Sessions</a><a href="#about">The park</a><a href="#location">Find us</a><a href="#book">Hire</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> BEARINGS SKATE LTD</span>
+      <span>PUSH · FALL · PUSH AGAIN</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

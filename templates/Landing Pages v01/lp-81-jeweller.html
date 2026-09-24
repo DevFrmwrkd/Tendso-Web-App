@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ashcroft & Vane — goldsmith and bench jeweller in Hatton Garden, London</title>
+<meta name="description" content="Ashcroft & Vane is a working goldsmith on the edge of Hatton Garden, London — engagement and wedding rings made at the bench, remodelling of old gold, repairs, and ethically sourced stones." />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Ashcroft & Vane", phone: "+44 20 7242 5510", phoneDisplay: "020 7242 5510", email: "bench@ashcroftvane.co.uk", foundedYear: 2009 },
+  hero: {
+    kicker: "Goldsmith & bench jeweller · Hatton Garden, London",
+    headline: "Made at the bench. Worn for a lifetime.",
+    lede: "A working goldsmith, not a display cabinet. Rings are drawn, forged, set and finished by hand at our bench on the edge of Hatton Garden — your gold or ours, your stone or one we help you choose. We show you the metal, name the stone's origin, and never sell you a mystery.",
+    primaryCta: { label: "Book a bench consultation", href: "#book" },
+    secondaryCta: { label: "What we make", href: "#services" },
+    image: "https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A goldsmith working at the jeweller's bench."
+  },
+  trust: { years: "At the bench since 2009" },
+  about: {
+    heading: "A ring is the smallest thing you'll wear the longest.",
+    paragraphs: [
+      "We opened Ashcroft & Vane in 2009 after years at other people's benches, tired of watching couples sold shiny things made in a factory and marked up four times over. We wanted a room where the person who takes your brief is the person who makes the ring — and where you can see the metal move under the hammer.",
+      "Everything is made by hand at the bench: drawn, forged, filed, set and finished here in London. We work in recycled and traceable gold and platinum, and we deal only with stones whose origins we can stand behind — you'll always know where a diamond or sapphire came from before it goes into your ring.",
+      "We also love old gold. Bring in a grandmother's ring you never wear and we'll remodel it into something you will — same metal, same memory, new life. A jeweller who only sells new has forgotten that the best gold usually already belongs to you."
+    ],
+    portrait: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "A finished gold ring held in hand."
+  },
+  services: [
+    { name: "Engagement rings", description: "Designed with you and made at the bench — your stone or one we source, in recycled gold or platinum. You see sketches, then wax, then metal, before it's ever finished." },
+    { name: "Wedding rings", description: "Court, flat or bevelled, plain or set, made as a pair to sit right against the engagement ring. Forged and finished by hand, sized to fit for life." },
+    { name: "Remodelling old gold", description: "Bring in unworn pieces and we'll remake them — melting and reworking your own metal into something you'll actually wear. Same gold, new form." },
+    { name: "Repairs & resizing", description: "Resizing, re-tipping worn claws, re-shanking, restringing pearls and rescuing heirlooms. Done at our bench, not sent away to a stranger." },
+    { name: "Bespoke commissions", description: "Signet rings, pendants, earrings and one-off pieces made to your idea. We'll tell you honestly what's possible in the metal and what isn't." },
+    { name: "Stone sourcing", description: "Diamonds and coloured stones sourced to your budget with origin you can trust — we'll show you options and explain exactly what you're paying for." }
+  ],
+  why: [
+    { title: "The maker takes your brief.", body: "The person who sketches your ring is the person who forges it. Nothing is farmed out to a factory and marked up on the way back." },
+    { title: "Metal and origin, named.", body: "Recycled and traceable gold, stones with a provenance we'll show you. You should know what's on your finger and where it came from." },
+    { title: "Your gold, remade.", body: "We'll happily remodel heirloom metal instead of selling you new. The best gold is usually the gold you already own." }
+  ],
+  how: [
+    { step: "01", title: "Sit at the bench", body: "Come in for an unhurried consultation. Bring ideas, old rings, a budget, or nothing at all — we'll talk metal, stones and shape with no pressure." },
+    { step: "02", title: "Sketch & wax", body: "We draw the design and, for bespoke, carve a wax you can try on your finger. Nothing is cast in metal until the shape is right for you." },
+    { step: "03", title: "Made at the bench", body: "We forge, set and finish the piece here in London. You're welcome to see it in progress — most people can't resist a look." },
+    { step: "04", title: "Fitted & cared for", body: "We size it to fit, talk you through wear and cleaning, and you keep our number for resizing and repairs for the life of the ring." }
+  ],
+  testimonials: [
+    { quote: "They remade my late mother's engagement ring into a pendant I wear every day. Same gold, same little diamond, something I'll actually keep close instead of leaving in a drawer. I cried at the bench, honestly.", name: "Priya N.", context: "remodelled heirloom" },
+    { quote: "We designed our rings over two visits and watched them get made. Knowing exactly where our diamond came from mattered to us, and they answered every question straight. Nothing about it felt like a shop.", name: "Tom & Ellie", context: "engagement & wedding pair" },
+    { quote: "Re-tipped the worn claws on a ring three jewellers had told me to just replace. Saved the original, saved the sentiment, charged a fair price for proper bench work. I won't go anywhere else now.", name: "Margaret H.", context: "heirloom repair" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=1600&q=85&auto=format&fit=crop", alt: "A goldsmith at the bench." },
+    { src: "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1600&q=85&auto=format&fit=crop", alt: "A finished gold ring." },
+    { src: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1600&q=85&auto=format&fit=crop", alt: "A diamond ring close up." },
+    { src: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1600&q=85&auto=format&fit=crop", alt: "Gold rings arranged together." },
+    { src: "https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?w=1600&q=85&auto=format&fit=crop", alt: "Jewellery tools on the bench." },
+    { src: "https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=1600&q=85&auto=format&fit=crop", alt: "A ring in its box." }
+  ],
+  faq: [
+    { q: "How long does a bespoke ring take to make?", a: "For an engagement or wedding ring made from scratch, allow roughly four to six weeks from the design being agreed — longer if we're sourcing a particular stone or working a complex setting. Remodelling and repairs are usually quicker. We'll always give you an honest timeline at the bench and, if there's a wedding date bearing down, we'll tell you straight whether we can hit it rather than promise and disappoint. Rush jobs are sometimes possible; we'd rather you asked than assumed." },
+    { q: "Can you use my own gold or an old ring?", a: "Yes, and we love it when you do. We can melt down and rework your own gold, or reset stones from a piece you no longer wear into something you will. It keeps the metal and the memory and often costs less than starting from raw materials. There are limits — very worn or low-carat gold sometimes isn't ideal to reuse structurally — and we'll tell you honestly if that's the case and suggest the best way to honour the original piece." },
+    { q: "How do I know where your diamonds and stones come from?", a: "We work only with stones whose supply chain we can trace, and we'll show you the paperwork before you commit. For diamonds that means conflict-free sourcing and, where you want it, lab-grown or certified natural stones with full documentation. For coloured stones we deal with cutters and dealers we know personally. Provenance matters to us as much as it does to you, and we'd never ask you to take a stone's origin on faith." },
+    { q: "What metals do you work in?", a: "Mostly 18ct and 9ct gold in yellow, white and rose, and platinum — all from recycled and traceable sources. We can advise on which suits your hand, your lifestyle and your budget: platinum for hard-wearing white, 18ct for richness and colour, 9ct where budget matters and durability is a plus. We'll also be honest about upkeep — white gold needs occasional re-plating, platinum patinas rather than wears away — so you choose knowing how the ring will age." },
+    { q: "Do you do repairs and resizing on rings not made by you?", a: "We do — resizing, claw re-tipping, re-shanking, soldering, stone tightening, pearl restringing and rescuing heirlooms other jewellers have given up on. All of it is done at our own bench in London, not parcelled off to a trade workshop you'll never meet. Bring the piece in and we'll assess it honestly, quote before we start, and tell you if a repair genuinely isn't worth doing rather than take your money for a lost cause." },
+    { q: "Do I need an appointment?", a: "For a proper consultation — designing a ring, remodelling gold, choosing a stone — yes, please book, so we can give you an unhurried hour at the bench with the right person and the right materials to hand. For repairs, resizing quotes and quick questions you're welcome to drop in during opening hours. Booking ahead simply means you won't find us mid-setting with our loupe down and no time to do you justice." }
+  ],
+  area: { places: ["Hatton Garden", "Clerkenwell", "The City", "Islington", "Bloomsbury", "Farringdon"] },
+  credentials: [
+    { label: "Made", detail: "Forged, set & finished at our London bench" },
+    { label: "Metal", detail: "Recycled & traceable gold and platinum" },
+    { label: "Stones", detail: "Origin shown before it goes in your ring" },
+    { label: "Remodel", detail: "Old gold reworked into what you'll wear" }
+  ],
+  location: { name: "Ashcroft & Vane", addressStreet: "18 Greville Street", addressLocality: "London", addressRegion: "London", addressPostcode: "EC1N 8SB", addressCountry: "United Kingdom" },
+  cta: { heading: "Come and sit at the bench.", body: "Bring an idea, an old ring, or just a budget and a date. We'll talk metal and stones honestly, sketch something that's yours, and make it here in London by hand. No pressure, no mystery.", primary: { label: "Book a bench consultation", href: "#book" }, secondary: { label: "020 7242 5510", href: "tel:+442072425510" } },
+  messaging: { whatsapp: "https://wa.me/442072425510", messenger: "https://m.me/ashcroftvane" }
+};
+</script>
+
+<style>
+  :root {
+    --void:#171310; --pearl:#f4efe6; --gold:#b28a4c; --sage:#4a5347;
+    --ink:#f4efe6; --mid:#b9ae9c; --mid-l:#6a6154; --rule:rgba(244,239,230,0.16); --rule-l:rgba(23,19,16,0.16);
+    --disp:"Cormorant Garamond",Georgia,serif; --sans:"Jost",system-ui,sans-serif; --mono:"Space Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--void);color:var(--ink);font-family:var(--sans);font-size:16.5px;font-weight:300;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--gold);}
+  .wrap{width:min(1240px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .h2{font-family:var(--disp);font-weight:500;font-size:clamp(36px,4.8vw,66px);line-height:1.02;margin:0 0 0.42em;letter-spacing:0;}
+  .h2 em{font-style:italic;color:var(--gold);font-weight:400;}
+  .body{color:var(--mid);line-height:1.7;}
+  section{padding:clamp(74px,9vw,126px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 32px;font-family:var(--mono);font-weight:700;font-size:11.5px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:none;transition:0.16s;border-radius:1px;}
+  .btn-primary{background:var(--gold);color:var(--void);} .btn-primary:hover{background:var(--pearl);}
+  .btn-ghost{border:1px solid var(--gold);color:var(--gold);} .btn-ghost:hover{background:var(--gold);color:var(--void);}
+  .sw-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--mid);border-bottom:1px solid var(--rule);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,58px);font-weight:700;}
+  .light .sw-head{color:var(--mid-l);border-color:var(--rule-l);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(23,19,16,0.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--rule);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
+  .wm{font-family:var(--disp);font-weight:500;font-size:27px;text-decoration:none;letter-spacing:0.01em;}
+  .wm span{color:var(--gold);font-style:italic;}
+  .nav-links{display:flex;gap:28px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  .hero{padding:clamp(48px,6.5vw,92px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 0.95fr;gap:clamp(38px,5vw,80px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:500;font-size:clamp(46px,6.6vw,96px);line-height:1;margin:18px 0 22px;letter-spacing:0;}
+  .hero h1 em{font-style:italic;color:var(--gold);font-weight:400;}
+  .hero .lede{color:var(--mid);max-width:50ch;line-height:1.74;font-size:clamp(15.5px,1.5vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:14px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:2px;}
+  .spec-card{position:absolute;bottom:22px;left:-16px;background:var(--void);border:1px solid var(--gold);padding:16px 20px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;line-height:2;text-transform:uppercase;font-weight:700;box-shadow:0 12px 34px rgba(0,0,0,0.5);}
+  .spec-card b{font-family:var(--disp);font-weight:500;font-size:18px;display:block;letter-spacing:0;text-transform:none;color:var(--gold);margin-bottom:6px;}
+  .spec-card .row{display:flex;justify-content:space-between;gap:26px;color:var(--mid);}
+  .spec-card .row span:last-child{color:var(--pearl);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;} .hero-photo{max-width:420px;}}
+
+  .trust{padding:0;background:var(--gold);color:var(--void);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(23,19,16,0.82);font-weight:700;}
+
+  .about{background:var(--pearl);color:#241f19;}
+  .about .h2{color:#241f19;} .about .h2 em{color:var(--gold);}
+  .about-grid{display:grid;grid-template-columns:0.9fr 1.1fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;border-radius:2px;}
+  .about-prose p{font-size:clamp(16px,1.55vw,19px);line-height:1.76;margin:0 0 1em;color:#5a5346;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:1px solid var(--rule);}
+  .svc-row{display:grid;grid-template-columns:110px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(178,138,76,0.08);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .svc-row h3{font-family:var(--disp);font-weight:500;font-size:clamp(24px,2.5vw,33px);margin:0;line-height:1.04;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--sage);color:var(--pearl);}
+  .why .sw-head{border-color:rgba(244,239,230,0.32);color:rgba(244,239,230,0.8);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--pearl);opacity:0.72;display:block;margin-bottom:14px;text-transform:uppercase;font-weight:700;}
+  .why-grid h3{font-family:var(--disp);font-weight:500;font-size:28px;margin:0 0 10px;line-height:1.04;}
+  .why-grid p{color:rgba(244,239,230,0.9);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:1px solid var(--rule);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .how-grid h3{font-family:var(--disp);font-weight:500;font-size:24px;margin:8px 0 8px;line-height:1.06;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#1e1a15;}
+  .t-quote{font-family:var(--disp);font-weight:500;font-size:clamp(28px,3.7vw,50px);line-height:1.08;max-width:26ch;margin:0 0 24px;letter-spacing:0;}
+  .t-quote em{font-style:italic;color:var(--gold);font-weight:400;}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);font-weight:700;}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:1px solid var(--rule);padding-top:34px;}
+  .t-sub blockquote{font-size:15.5px;line-height:1.72;margin:0 0 12px;color:var(--mid);}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);font-weight:700;}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .g-grid figure{margin:0;position:relative;overflow:hidden;border-radius:2px;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;transition:0.3s;}
+  .g-grid figure:hover img{transform:scale(1.04);}
+  .g-grid figcaption{position:absolute;left:0;bottom:0;background:var(--void);color:var(--gold);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:6px 10px;font-weight:700;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq{background:var(--pearl);color:#241f19;}
+  .faq .sw-head{color:var(--mid-l);border-color:var(--rule-l);}
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq .h2{color:#241f19;}
+  .faq-list details{border-bottom:1px solid var(--rule-l);padding:22px 0;}
+  .faq-list details:first-child{border-top:1px solid var(--rule-l);}
+  .faq-list summary{font-family:var(--disp);font-weight:500;font-size:23px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;line-height:1.16;color:#241f19;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--gold);font-size:24px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:#5a5346;font-size:14.5px;max-width:62ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1px solid var(--gold);color:var(--gold);border-radius:1px;font-weight:700;}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1px solid var(--rule);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:700;}
+  .creds .detail{font-family:var(--disp);font-weight:500;font-size:20px;line-height:1.18;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--gold);color:var(--void);padding:34px;border-radius:2px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-weight:500;font-size:23px;line-height:1.3;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px solid rgba(23,19,16,0.22);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(23,19,16,0.72);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(23,19,16,0.7);margin-top:14px;line-height:1.62;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{min-height:380px;overflow:hidden;border-radius:2px;border:1px solid var(--rule);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:grayscale(0.3) brightness(0.9);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--void);color:var(--pearl);padding:clamp(84px,10vw,150px) 0;text-align:center;}
+  .cta-band .kick{color:var(--gold);}
+  .cta-band h2{font-family:var(--disp);font-weight:500;font-size:clamp(42px,6.2vw,96px);line-height:1.02;margin:14px auto 18px;max-width:17ch;letter-spacing:0;}
+  .cta-band h2 em{font-style:italic;color:var(--gold);font-weight:400;}
+  .cta-band p{color:rgba(244,239,230,0.82);max-width:48ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
+
+  footer{background:var(--void);border-top:1px solid var(--rule);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin:0 0 14px;font-weight:700;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14.5px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px solid var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);font-weight:700;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--gold);color:var(--void);padding:13px 20px;border-radius:1px;text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;box-shadow:0 8px 24px rgba(0,0,0,0.4);}
+  .msg-fab a:hover{background:var(--pearl);}
+  .msg-fab svg{width:14px;height:14px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"JewelryStore","name":"Ashcroft & Vane","description":"Working goldsmith and bench jeweller on the edge of Hatton Garden, London — engagement and wedding rings made by hand, remodelling of old gold, repairs, ethically sourced stones.","url":"https://ashcroftvane.co.uk/","telephone":"+442072425510","email":"bench@ashcroftvane.co.uk","address":{"@type":"PostalAddress","streetAddress":"18 Greville Street","addressLocality":"London","addressRegion":"London","postalCode":"EC1N 8SB","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":51.5205,"longitude":-0.1080},"areaServed":["Hatton Garden","Clerkenwell","The City","Islington"],"image":["https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=1600"],"foundingDate":"2009"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"How long does a bespoke ring take?","acceptedAnswer":{"@type":"Answer","text":"Roughly four to six weeks from an agreed design, longer for a special stone or complex setting. We give an honest timeline at the bench and are straight about wedding-date deadlines."}},
+{"@type":"Question","name":"Can you use my own gold or an old ring?","acceptedAnswer":{"@type":"Answer","text":"Yes — we melt and rework your own gold or reset your stones into new pieces, keeping the metal and the memory. We'll advise honestly if old metal isn't ideal to reuse."}},
+{"@type":"Question","name":"Where do your diamonds and stones come from?","acceptedAnswer":{"@type":"Answer","text":"Only from traceable, conflict-free sources, with paperwork shown before you commit. Lab-grown or certified natural, plus coloured stones from cutters we know personally."}},
+{"@type":"Question","name":"What metals do you work in?","acceptedAnswer":{"@type":"Answer","text":"18ct and 9ct gold in yellow, white and rose, and platinum — all recycled and traceable. We advise on which suits your hand, budget and upkeep."}},
+{"@type":"Question","name":"Do you repair and resize rings not made by you?","acceptedAnswer":{"@type":"Answer","text":"Yes — resizing, claw re-tipping, re-shanking, stone tightening, pearl restringing and heirloom rescues, all done at our own London bench, quoted before we start."}},
+{"@type":"Question","name":"Do I need an appointment?","acceptedAnswer":{"@type":"Answer","text":"Please book for consultations so we can give you an unhurried hour. Repairs, resizing quotes and quick questions are welcome as drop-ins during opening hours."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Ashcroft <span>&amp;</span> Vane</a>
+    <nav class="nav-links">
+      <a href="#about">The bench</a><a href="#services">What we make</a><a href="#location">Find us</a><a href="#book">Consultation</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v67">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Goldsmith &amp; bench jeweller · Hatton Garden, London</div>
+      <h1 data-comment-anchor="hero-headline">Made at the bench. <em>Worn for a lifetime.</em></h1>
+      <p class="lede" data-bind="hero.lede">A working goldsmith, not a display cabinet. Rings are drawn, forged, set and finished by hand at our bench on the edge of Hatton Garden — your gold or ours, your stone or one we help you choose. We show you the metal, name the stone's origin, and never sell you a mystery.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a bench consultation</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we make</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=2000&q=85&auto=format&fit=crop"
+           alt="A goldsmith working at the jeweller's bench." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="spec-card">
+        <b>Commission No. 214</b>
+        <div class="row"><span>Metal</span><span>18ct recycled</span></div>
+        <div class="row"><span>Stone</span><span>Traceable</span></div>
+        <div class="row"><span>Made</span><span>By hand, London</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the bench since 2009</span>
+    <span>Recycled &amp; traceable metal</span>
+    <span>Stone origin always shown</span>
+    <span>Old gold remodelled</span>
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v33">
+  <div class="wrap">
+    <div class="sw-head"><span>MARK 01 / THE BENCH</span><span>MAKER TAKES YOUR BRIEF</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1200&q=85&auto=format&fit=crop"
+           alt="A finished gold ring held in hand." />
+      <div class="about-prose">
+        <h2 class="h2">A ring is the smallest thing you'll wear <em>the longest.</em></h2>
+        <p>We opened Ashcroft &amp; Vane in 2009 after years at other people's benches, tired of watching couples sold shiny things made in a factory and marked up four times over. We wanted a room where the person who takes your brief is the person who makes the ring — and where you can see the metal move under the hammer.</p>
+        <p>Everything is made by hand at the bench: drawn, forged, filed, set and finished here in London. We work in recycled and traceable gold and platinum, and we deal only with stones whose origins we can stand behind — you'll always know where a diamond or sapphire came from before it goes into your ring.</p>
+        <p>We also love old gold. Bring in a grandmother's ring you never wear and we'll remodel it into something you will — same metal, same memory, new life. A jeweller who only sells new has forgotten that the best gold usually already belongs to you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v60">
+  <div class="wrap">
+    <div class="sw-head"><span>MARK 02 / WHAT WE MAKE</span><span>SKETCH TO FINGER</span></div>
+    <h2 class="h2">What we make.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">No. 01</span><h3>Engagement rings</h3><p>Designed with you and made at the bench — your stone or one we source, in recycled gold or platinum. You see sketches, then wax, then metal, before it's ever finished.</p></div>
+      <div class="svc-row"><span class="no">No. 02</span><h3>Wedding rings</h3><p>Court, flat or bevelled, plain or set, made as a pair to sit right against the engagement ring. Forged and finished by hand, sized to fit for life.</p></div>
+      <div class="svc-row"><span class="no">No. 03</span><h3>Remodelling old gold</h3><p>Bring in unworn pieces and we'll remake them — melting and reworking your own metal into something you'll actually wear. Same gold, new form.</p></div>
+      <div class="svc-row"><span class="no">No. 04</span><h3>Repairs &amp; resizing</h3><p>Resizing, re-tipping worn claws, re-shanking, restringing pearls and rescuing heirlooms. Done at our bench, not sent away to a stranger.</p></div>
+      <div class="svc-row"><span class="no">No. 05</span><h3>Bespoke commissions</h3><p>Signet rings, pendants, earrings and one-off pieces made to your idea. We'll tell you honestly what's possible in the metal and what isn't.</p></div>
+      <div class="svc-row"><span class="no">No. 06</span><h3>Stone sourcing</h3><p>Diamonds and coloured stones sourced to your budget with origin you can trust — we'll show you options and explain exactly what you're paying for.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v32">
+  <div class="wrap">
+    <div class="sw-head"><span>MARK 03 / THE DIFFERENCE</span><span>WHY IT'S WORTH IT</span></div>
+    <h2 class="h2" style="color:var(--pearl);">Why it's worth it.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>The maker takes your brief.</h3><p>The person who sketches your ring is the person who forges it. Nothing is farmed out to a factory and marked up on the way back.</p></div>
+      <div><span class="no">02 / 03</span><h3>Metal and origin, named.</h3><p>Recycled and traceable gold, stones with a provenance we'll show you. You should know what's on your finger and where it came from.</p></div>
+      <div><span class="no">03 / 03</span><h3>Your gold, remade.</h3><p>We'll happily remodel heirloom metal instead of selling you new. The best gold is usually the gold you already own.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>MARK 04 / HOW IT GOES</span><span>SIT → SKETCH → MAKE → FIT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Sit at the bench</h3><p>Come in for an unhurried consultation. Bring ideas, old rings, a budget, or nothing at all — we'll talk metal, stones and shape with no pressure.</p></li>
+      <li><span class="step">STEP 02</span><h3>Sketch &amp; wax</h3><p>We draw the design and, for bespoke, carve a wax you can try on your finger. Nothing is cast in metal until the shape is right for you.</p></li>
+      <li><span class="step">STEP 03</span><h3>Made at the bench</h3><p>We forge, set and finish the piece here in London. You're welcome to see it in progress — most people can't resist a look.</p></li>
+      <li><span class="step">STEP 04</span><h3>Fitted &amp; cared for</h3><p>We size it to fit, talk you through wear and cleaning, and you keep our number for resizing and repairs for the life of the ring.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v32">
+  <div class="wrap">
+    <div class="sw-head"><span>MARK 05 / FROM THE COUNTER</span><span>SAID AT THE BENCH</span></div>
+    <blockquote class="t-quote">“They remade my late mother's engagement ring into a pendant I <em>wear every day.</em>”</blockquote>
+    <div class="t-attr">Priya N. — remodelled heirloom</div>
+    <div class="t-sub">
+      <figure><blockquote>“We designed our rings over two visits and watched them get made. Knowing exactly where our diamond came from mattered to us, and they answered every question straight. Nothing about it felt like a shop.”</blockquote><figcaption>Tom &amp; Ellie — engagement &amp; wedding pair</figcaption></figure>
+      <figure><blockquote>“Re-tipped the worn claws on a ring three jewellers had told me to just replace. Saved the original, saved the sentiment, charged a fair price for proper bench work. I won't go anywhere else now.”</blockquote><figcaption>Margaret H. — heirloom repair</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v60">
+  <div class="wrap">
+    <div class="sw-head"><span>MARK 06 / THE WORK</span><span>BENCH &amp; FINISHED</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=1600&q=85&auto=format&fit=crop" alt="A goldsmith at the bench." /><figcaption>AT THE BENCH</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=1600&q=85&auto=format&fit=crop" alt="A finished gold ring." /><figcaption>FINISHED IN GOLD</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=1600&q=85&auto=format&fit=crop" alt="A diamond ring close up." /><figcaption>SET BY HAND</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1600&q=85&auto=format&fit=crop" alt="Gold rings arranged together." /><figcaption>THE PAIR</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1584302179602-e4c3d3fd629d?w=1600&q=85&auto=format&fit=crop" alt="Jewellery tools on the bench." /><figcaption>TOOLS OF IT</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1602751584552-8ba73aad10e1?w=1600&q=85&auto=format&fit=crop" alt="A ring in its box." /><figcaption>READY TO WEAR</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section class="faq" data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="sw-head"><span>MARK 07 / ASKED AT THE BENCH</span><span>BEFORE YOU COMMIT</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at the bench.</h2>
+        <p class="body" style="color:var(--mid-l);">Anything else — ring <a href="tel:+442072425510" style="color:var(--gold);font-weight:700;">020 7242 5510</a>. If we're mid-setting with the loupe down we'll call you back.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>How long does a bespoke ring take to make?</summary><p>For an engagement or wedding ring made from scratch, allow roughly four to six weeks from the design being agreed — longer if we're sourcing a particular stone or working a complex setting. Remodelling and repairs are usually quicker. We'll always give you an honest timeline at the bench and, if there's a wedding date bearing down, we'll tell you straight whether we can hit it rather than promise and disappoint. Rush jobs are sometimes possible; we'd rather you asked than assumed.</p></details>
+        <details><summary>Can you use my own gold or an old ring?</summary><p>Yes, and we love it when you do. We can melt down and rework your own gold, or reset stones from a piece you no longer wear into something you will. It keeps the metal and the memory and often costs less than starting from raw materials. There are limits — very worn or low-carat gold sometimes isn't ideal to reuse structurally — and we'll tell you honestly if that's the case and suggest the best way to honour the original piece.</p></details>
+        <details><summary>How do I know where your diamonds and stones come from?</summary><p>We work only with stones whose supply chain we can trace, and we'll show you the paperwork before you commit. For diamonds that means conflict-free sourcing and, where you want it, lab-grown or certified natural stones with full documentation. For coloured stones we deal with cutters and dealers we know personally. Provenance matters to us as much as it does to you, and we'd never ask you to take a stone's origin on faith.</p></details>
+        <details><summary>What metals do you work in?</summary><p>Mostly 18ct and 9ct gold in yellow, white and rose, and platinum — all from recycled and traceable sources. We can advise on which suits your hand, your lifestyle and your budget: platinum for hard-wearing white, 18ct for richness and colour, 9ct where budget matters and durability is a plus. We'll also be honest about upkeep — white gold needs occasional re-plating, platinum patinas rather than wears away — so you choose knowing how the ring will age.</p></details>
+        <details><summary>Do you do repairs and resizing on rings not made by you?</summary><p>We do — resizing, claw re-tipping, re-shanking, soldering, stone tightening, pearl restringing and rescuing heirlooms other jewellers have given up on. All of it is done at our own bench in London, not parcelled off to a trade workshop you'll never meet. Bring the piece in and we'll assess it honestly, quote before we start, and tell you if a repair genuinely isn't worth doing rather than take your money for a lost cause.</p></details>
+        <details><summary>Do I need an appointment?</summary><p>For a proper consultation — designing a ring, remodelling gold, choosing a stone — yes, please book, so we can give you an unhurried hour at the bench with the right person and the right materials to hand. For repairs, resizing quotes and quick questions you're welcome to drop in during opening hours. Booking ahead simply means you won't find us mid-setting with our loupe down and no time to do you justice.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>MARK 08 / CLIENTS COME FROM</span><span>ACROSS LONDON</span></div>
+    <ul class="area-list">
+      <li>Hatton Garden</li><li>Clerkenwell</li><li>The City</li><li>Islington</li><li>Bloomsbury</li><li>Farringdon</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v7" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>MARK 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Made</div><div class="detail">Forged, set &amp; finished at our London bench</div></div>
+      <div><div class="label">Metal</div><div class="detail">Recycled &amp; traceable gold and platinum</div></div>
+      <div><div class="label">Stones</div><div class="detail">Origin shown before it goes in your ring</div></div>
+      <div><div class="label">Remodel</div><div class="detail">Old gold reworked into what you'll wear</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="sw-head"><span>MARK 10 / FIND US</span><span>18 GREVILLE STREET, EC1N</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Ashcroft &amp; Vane</strong><br />
+          18 Greville Street<br />
+          London EC1N 8SB<br /><br />
+          <a href="tel:+442072425510" data-bind="business.phoneDisplay">020 7242 5510</a><br />
+          <a href="mailto:bench@ashcroftvane.co.uk" data-bind="business.email">bench@ashcroftvane.co.uk</a>
+        </address>
+        <div class="hours">
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>CONSULTATIONS</span><span>BY APPOINTMENT</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. We're up the stairs off Greville Street, on the quiet edge of Hatton Garden — ring the bell and come up to the bench.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Ashcroft & Vane, London" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-0.1170%2C51.5165%2C-0.0990%2C51.5245&layer=mapnik&marker=51.5205%2C-0.1080"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v35">
+  <div class="wrap">
+    <div class="kick">MARK 11 / CONSULTATION</div>
+    <h2 data-bind="cta.heading">Come and sit <em>at the bench.</em></h2>
+    <p data-bind="cta.body">Bring an idea, an old ring, or just a budget and a date. We'll talk metal and stones honestly, sketch something that's yours, and make it here in London by hand. No pressure, no mystery.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a bench consultation</a>
+      <a class="btn btn-ghost" href="tel:+442072425510" data-bind="cta.secondary.label">020 7242 5510</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/442072425510" data-bind="messaging.whatsapp" aria-label="Message the goldsmith">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:27px;">Ashcroft <span style="color:var(--gold);font-style:italic;">&amp;</span> Vane</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A working goldsmith on the edge of Hatton Garden, London. At the bench since 2009.</p>
+      </div>
+      <div>
+        <h4>The workshop</h4>
+        <address style="font-style:normal;font-size:14.5px;line-height:1.7;">
+          18 Greville Street<br />London EC1N 8SB<br />
+          <a href="tel:+442072425510">020 7242 5510</a><br />
+          <a href="mailto:bench@ashcroftvane.co.uk">bench@ashcroftvane.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">What we make</a><a href="#about">The bench</a><a href="#location">Find us</a><a href="#book">Consultation</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> ASHCROFT &amp; VANE LTD</span>
+      <span>FORGED &amp; SET IN LONDON</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

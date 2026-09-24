@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bridle &amp; Awl — saddler &amp; leather workshop in Newmarket</title>
+<meta name="description" content="Bridle &amp; Awl is a saddler and leather workshop in Newmarket — saddle fitting and repair, hand-stitched bridlework, and bespoke leather goods, all saddle-stitched by hand to outlast the buckle." />
+<link href="https://fonts.googleapis.com/css2?family=Aleo:ital,wght@0,500;0,600;1,500&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "Bridle & Awl", phone: "+44 1638 552 704", phoneDisplay: "01638 552 704", email: "bench@bridleandawl.co.uk", foundedYear: 2010 },
+  hero: {
+    kicker: "Saddler & leather workshop · hand-stitched · Newmarket",
+    headline: "Saddle-stitched by hand to outlast the buckle.",
+    lede: "A working saddler in the home of horseracing: saddle fitting and repair, bridlework restitched by hand, and bespoke leather goods built the slow way — two needles, one waxed thread, a stitch that can't unravel even if it's cut. Machine-stitched leather fails at a seam. Ours doesn't.",
+    primaryCta: { label: "Book the bench", href: "#book" },
+    secondaryCta: { label: "What we make & mend", href: "#services" },
+    image: "https://images.unsplash.com/photo-1605733513597-a8f8341084e6?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "A leatherworker hand-stitching on a stitching pony."
+  },
+  trust: { years: "At the bench since 2010" },
+  about: {
+    heading: "Two needles, one thread, no shortcuts.",
+    paragraphs: [
+      "The saddle stitch is the reason good leather lasts generations. Two needles pass through each hole from opposite sides, locking the waxed thread so that even if the stitching is cut, it won't run. A machine lock-stitch is faster and cheaper and unravels from a single broken loop. We stitch everything by hand, in a clamp called a pony, because the horse — and the customer — deserves the join that doesn't fail.",
+      "Bridle & Awl sits where it should: in Newmarket, among the yards. Half our work is equestrian — saddle fitting and reflocking, bridlework repair, the emergency restitch before a competition — and half is bespoke leather goods: belts, bags, dog leads and cases built to be handed down rather than replaced.",
+      "We work full-grain vegetable-tanned hide that ages into something better, cut and edged and burnished by hand. A well-made leather thing should look better in twenty years than the day you bought it. We build for that day, not for the sale."
+    ],
+    portrait: "https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "Hands stitching a leather strap at the bench."
+  },
+  services: [
+    { name: "Saddle fitting & reflock", description: "Fitting, checking and reflocking so the saddle sits right on the horse and the rider. A poorly fitting saddle ruins backs — equine and human. We get it level." },
+    { name: "Bridlework repair", description: "Restitching, new billets and keepers, replaced buckles, emergency repairs before a competition. Hand-stitched so the mend outlasts the strap around it." },
+    { name: "Bespoke belts & straps", description: "Full-grain belts cut and stitched to your measurement, with a buckle worth keeping. The belt you buy once and re-hole in a decade, not rebuy every year." },
+    { name: "Bags & cases", description: "Satchels, totes, tool rolls and cases in vegetable-tanned hide, saddle-stitched throughout and built to earn a patina. Made to a brief, made to last." },
+    { name: "Dog leads & collars", description: "Leads and collars in bridle leather with solid brass or stainless fittings, hand-stitched and edge-burnished. The pull that never wears through mid-walk." },
+    { name: "Restoration & repair", description: "Bring us the inherited satchel, the split saddlebag, the belt worn to the buckle. Most good leather is worth saving; we'll tell you honestly when it isn't." }
+  ],
+  why: [
+    { title: "Saddle-stitched, never machined.", body: "Two needles, one waxed thread, a lock at every hole. Cut it anywhere and it holds. A machine stitch runs from a single broken loop — we don't use one on anything that matters." },
+    { title: "Full-grain, vegetable-tanned.", body: "The hide that ages into something better, not the coated split that cracks. We cut, edge and burnish by hand so the piece looks best years from now, not on day one." },
+    { title: "Fitted to horse and rider.", body: "A saddle is a fit, not a purchase. We check it on the actual horse and the actual rider, because the wrong fit hurts a back that can't tell you it's hurting." }
+  ],
+  how: [
+    { step: "01", title: "Tell us the job", body: "A saddle to fit, a bridle to mend, a belt to build. Bring the horse's details or the brief, and we'll talk hide, thread and honest timescales." },
+    { step: "02", title: "Measured & cut", body: "Fitting on the horse for tack; measured to you for goods. Hide chosen and cut by hand, marked for stitching with a pricking iron." },
+    { step: "03", title: "Stitched at the pony", body: "Saddle-stitched by hand in the clamp, edges bevelled and burnished. Slow, but it's the slowness that makes it last." },
+    { step: "04", title: "Fitted & finished", body: "Tack refitted and checked; goods finished, oiled and handed over with care notes. We're here for repairs and re-holing down the years." }
+  ],
+  testimonials: [
+    { quote: "My mare had been backsore for months and I'd blamed everything but the saddle. Bridle & Awl reflocked it, got it level, and she's a different horse. I should have come here first.", name: "Charlotte E.", context: "saddle reflock, event yard" },
+    { quote: "I bought a belt from them nine years ago. It's been re-holed twice as I've changed shape and it looks better than the day I got it. I've bought precisely zero belts since. That's the whole point, isn't it.", name: "Marcus D.", context: "bespoke belt, nine years on" },
+    { quote: "They restitched my grandfather's satchel that three cobblers had turned away. Hand-stitched, matched the old thread, and it's back in daily use. I nearly cried at the counter.", name: "Priya S.", context: "satchel restoration" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1605733513597-a8f8341084e6?w=1600&q=85&auto=format&fit=crop", alt: "Hand-stitching on a stitching pony." },
+    { src: "https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1600&q=85&auto=format&fit=crop", alt: "Stitching a leather strap." },
+    { src: "https://images.unsplash.com/photo-1547949003-9792a18a2601?w=1600&q=85&auto=format&fit=crop", alt: "Leather tools laid out." },
+    { src: "https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1600&q=85&auto=format&fit=crop", alt: "A saddle on a stand." },
+    { src: "https://images.unsplash.com/photo-1591561954557-26941169b49e?w=1600&q=85&auto=format&fit=crop", alt: "Rolls of vegetable-tanned hide." },
+    { src: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=1600&q=85&auto=format&fit=crop", alt: "A finished leather bag." }
+  ],
+  faq: [
+    { q: "Why is hand saddle-stitching better than machine stitching?", a: "A saddle stitch uses two needles locking the thread at every single hole, so if the stitching is cut or damaged anywhere it stays put — it physically can't run. A machine lock-stitch is one continuous thread that unravels from a single broken loop. It's slower to do by hand, which is why cheap goods don't, and it's exactly why ours outlast them." },
+    { q: "My saddle might not fit my horse. Can you check?", a: "Yes — saddle fit is core to what we do, and a poor fit is behind a huge amount of back soreness and behaviour that gets blamed on the horse. We check the fit on the actual horse and rider, reflock or adjust where we can, and tell you honestly if a saddle simply won't work for that back." },
+    { q: "Can you repair leather I didn't buy from you?", a: "Gladly — restitching, new billets, replaced buckles, split seams and worn edges on tack and goods alike. Bring us the inherited satchel or the tired saddlebag; most good leather is worth saving, and we'll give you an honest opinion (and a quote) before we start." },
+    { q: "What leather do you use?", a: "Full-grain, vegetable-tanned hide for the most part — the kind that develops a patina and lasts decades rather than the coated splits that crack and peel. It costs more and it's worth it; we'll talk you through the options and match the hide to how the piece will actually be used." },
+    { q: "How long does a bespoke piece take?", a: "A belt, a week or two; a bag or bespoke tack, several weeks — hand-stitching can't be rushed without becoming machine work. Equestrian emergency repairs before a competition we'll always try to turn around fast; tell us the date and we'll be straight with you about what's possible." },
+    { q: "Do you sell ready-made goods too?", a: "We keep a small shelf of belts, leads, and small goods ready to take away, but the heart of it is made-to-order and repair. If you want something specific, a quick conversation gets you exactly the piece rather than the nearest thing on a shelf." }
+  ],
+  area: { places: ["Newmarket", "Bury St Edmunds", "Cambridge", "Ely", "Saffron Walden", "the racing yards"] },
+  credentials: [
+    { label: "Method", detail: "Hand saddle-stitched, two needles, waxed thread" },
+    { label: "Hide", detail: "Full-grain, vegetable-tanned, cut by hand" },
+    { label: "Saddle fitting", detail: "Fitted on horse & rider; reflocking on site" },
+    { label: "Repairs", detail: "Tack & goods restitched, not written off" }
+  ],
+  location: { name: "Bridle & Awl", addressStreet: "The Tack Room, 8 Palace Street", addressLocality: "Newmarket", addressRegion: "Suffolk", addressPostcode: "CB8 8EP", addressCountry: "United Kingdom" },
+  cta: { heading: "Built to be handed down.", body: "A saddle to fit, a bridle to mend, or a belt you'll buy once — book the bench and we'll stitch it to last.", primary: { label: "Book the bench", href: "#book" }, secondary: { label: "01638 552 704", href: "tel:+441638552704" } },
+  messaging: { whatsapp: "https://wa.me/441638552704", messenger: "https://m.me/bridleandawl" }
+};
+</script>
+
+<style>
+  :root {
+    --cream:#f1e8d8; --chestnut:#5a3520; --oxblood:#7a2a24; --tan:#c08a4e; --olive:#6a6a3c;
+    --ink:#2a1e14; --mid:#82715e; --mid-d:#c9b295; --rule:rgba(42,30,20,0.15); --rule-d:rgba(241,232,216,0.18);
+    --disp:"Aleo",serif; --sans:"Hanken Grotesk",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--cream);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;} a:hover{color:var(--oxblood);}
+  .wrap{width:min(1200px,93vw);margin-inline:auto;}
+  .kick{font-family:var(--mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--oxblood);}
+  .h2{font-family:var(--disp);font-weight:600;font-size:clamp(32px,4.6vw,58px);line-height:1.04;margin:0 0 0.45em;letter-spacing:-0.01em;}
+  .h2 em{font-style:italic;color:var(--chestnut);}
+  .body{color:var(--mid);line-height:1.72;}
+  section{padding:clamp(74px,9vw,128px) 0;}
+  .btn{display:inline-flex;align-items:center;padding:15px 30px;font-family:var(--sans);font-weight:600;font-size:13.5px;text-decoration:none;transition:0.18s;border-radius:5px;}
+  .btn-primary{background:var(--chestnut);color:var(--cream);} .btn-primary:hover{background:var(--oxblood);}
+  .btn-ghost{border:1.5px solid var(--chestnut);} .btn-ghost:hover{background:var(--chestnut);color:var(--cream);}
+  /* saddle-stitch dashed rule */
+  .st-head{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:10.5px;letter-spacing:0.15em;text-transform:uppercase;color:var(--mid);border-bottom:2px dashed var(--chestnut);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,60px);}
+  .light .st-head{color:var(--mid-d);border-color:var(--rule-d);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(241,232,216,0.94);backdrop-filter:blur(10px);border-bottom:2px dashed var(--chestnut);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:15px 0;}
+  .wm{font-family:var(--disp);font-weight:600;font-size:22px;text-decoration:none;letter-spacing:-0.01em;}
+  .wm em{font-style:italic;color:var(--oxblood);}
+  .nav-links{display:flex;gap:26px;font-family:var(--mono);font-size:10.5px;letter-spacing:0.13em;text-transform:uppercase;color:var(--mid);}
+  .nav-links a{text-decoration:none;}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — stitched-edge photo */
+  .hero{padding:clamp(50px,7vw,100px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1.06fr 0.94fr;gap:clamp(38px,5vw,84px);align-items:center;}
+  .hero h1{font-family:var(--disp);font-weight:600;font-size:clamp(38px,5.2vw,74px);line-height:1;letter-spacing:-0.02em;margin:20px 0 24px;}
+  .hero h1 em{font-style:italic;color:var(--chestnut);}
+  .hero .lede{color:var(--mid);max-width:48ch;line-height:1.74;font-size:clamp(15px,1.4vw,17.5px);}
+  .hero-ctas{margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;padding:10px;}
+  .hero-photo::before{content:"";position:absolute;inset:0;border:2px dashed var(--tan);pointer-events:none;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .stitch-tag{position:absolute;bottom:22px;left:-8px;background:var(--chestnut);color:var(--cream);padding:13px 17px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;line-height:1.8;}
+  .stitch-tag .hd{color:var(--tan);letter-spacing:0.14em;}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;background:var(--chestnut);color:var(--cream);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:15px 0;font-family:var(--mono);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:rgba(241,232,216,0.85);}
+
+  .about{background:var(--chestnut);color:var(--cream);}
+  .about .h2{color:var(--cream);}
+  .about .h2 em{color:var(--tan);}
+  .about-grid{display:grid;grid-template-columns:0.92fr 1.08fr;gap:clamp(38px,5vw,88px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,18.5px);line-height:1.76;margin:0 0 1em;color:rgba(241,232,216,0.84);}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-rows{border-top:2px dashed var(--chestnut);}
+  .svc-row{display:grid;grid-template-columns:104px 1fr 1.5fr;gap:clamp(18px,3vw,46px);padding:28px 0;border-bottom:1px dashed var(--rule);align-items:baseline;transition:0.15s;}
+  .svc-row:hover{background:rgba(122,42,36,0.06);padding-left:12px;}
+  .svc-row .no{font-family:var(--mono);font-size:10.5px;letter-spacing:0.12em;color:var(--oxblood);text-transform:uppercase;}
+  .svc-row h3{font-family:var(--disp);font-weight:600;font-size:clamp(21px,2.3vw,29px);margin:0;line-height:1.06;}
+  .svc-row p{color:var(--mid);margin:0;font-size:15px;line-height:1.66;}
+  @media(max-width:760px){.svc-row{grid-template-columns:1fr;gap:8px;}}
+
+  .why{background:var(--olive);color:var(--cream);}
+  .why .st-head{border-color:rgba(241,232,216,0.4);color:rgba(241,232,216,0.75);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(26px,4vw,60px);}
+  .why-grid .no{font-family:var(--mono);font-size:10px;letter-spacing:0.18em;color:var(--tan);display:block;margin-bottom:14px;text-transform:uppercase;}
+  .why-grid h3{font-family:var(--disp);font-weight:600;font-size:24px;margin:0 0 10px;line-height:1.06;}
+  .why-grid p{color:rgba(241,232,216,0.9);margin:0;font-size:14.5px;line-height:1.7;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,42px);padding:0;margin:0;}
+  .how-grid > li{list-style:none;border-top:2px dashed var(--chestnut);padding-top:16px;}
+  .how-grid .step{font-family:var(--mono);font-size:10px;letter-spacing:0.16em;color:var(--oxblood);text-transform:uppercase;}
+  .how-grid h3{font-family:var(--disp);font-weight:600;font-size:20px;margin:8px 0 8px;}
+  .how-grid p{color:var(--mid);margin:0;font-size:13.5px;line-height:1.64;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:#e6dac4;}
+  .t-quote{font-family:var(--disp);font-weight:600;font-size:clamp(24px,3.2vw,44px);line-height:1.12;max-width:32ch;margin:0 0 22px;font-style:italic;}
+  .t-attr{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);margin-bottom:clamp(38px,5vw,60px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,76px);border-top:2px dashed var(--chestnut);padding-top:34px;}
+  .t-sub blockquote{font-size:16px;line-height:1.7;margin:0 0 12px;}
+  .t-sub figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--mid);}
+  .t-sub figure{margin:0;}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2vw,26px);}
+  .g-grid figure{margin:0;}
+  .g-grid img{width:100%;aspect-ratio:4/5;object-fit:cover;}
+  .g-grid figcaption{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--mid);margin-top:10px;border-top:1px dashed var(--rule);padding-top:8px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,88px);}
+  .faq-list details{border-bottom:1px dashed var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:2px dashed var(--chestnut);}
+  .faq-list summary{font-family:var(--disp);font-weight:600;font-size:20px;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"+";color:var(--oxblood);font-size:20px;flex-shrink:0;transition:0.2s;}
+  .faq-list details[open] summary::after{transform:rotate(45deg);}
+  .faq-list p{margin:14px 0 0;color:var(--mid);font-size:14.5px;max-width:58ch;line-height:1.72;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border:1.5px solid var(--chestnut);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:2px dashed var(--chestnut);padding-top:14px;}
+  .creds .label{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--oxblood);margin-bottom:8px;}
+  .creds .detail{font-family:var(--disp);font-weight:600;font-size:16px;line-height:1.3;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{background:var(--chestnut);color:var(--cream);padding:34px;}
+  .nap address{font-style:normal;font-family:var(--disp);font-size:20px;line-height:1.4;}
+  .nap a{text-decoration:none;font-family:var(--sans);font-size:15px;}
+  .hours{font-family:var(--mono);font-size:10.5px;margin-top:24px;border-top:1px dashed rgba(241,232,216,0.3);padding-top:18px;letter-spacing:0.1em;text-transform:uppercase;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:rgba(241,232,216,0.75);}
+  .hours .gbp-note{font-family:var(--sans);font-size:12.5px;color:rgba(241,232,216,0.7);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;}
+  .map-frame{min-height:380px;overflow:hidden;border:2px dashed var(--chestnut);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;filter:sepia(0.25);}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--oxblood);color:var(--cream);padding:clamp(84px,10vw,148px) 0;text-align:center;}
+  .cta-band .kick{color:var(--tan);}
+  .cta-band h2{font-family:var(--disp);font-weight:600;font-size:clamp(38px,5.4vw,78px);line-height:1;margin:16px auto 18px;max-width:15ch;letter-spacing:-0.02em;}
+  .cta-band h2 em{font-style:italic;color:var(--tan);}
+  .cta-band p{color:rgba(241,232,216,0.9);max-width:46ch;margin:0 auto 34px;font-size:17px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+  .cta-band .btn-primary{background:var(--cream);color:var(--oxblood);}
+  .cta-band .btn-primary:hover{background:var(--tan);color:var(--ink);}
+  .cta-band .btn-ghost{border-color:rgba(241,232,216,0.6);color:var(--cream);}
+  .cta-band .btn-ghost:hover{background:var(--cream);color:var(--oxblood);}
+
+  footer{background:var(--cream);border-top:2px dashed var(--chestnut);padding:56px 0 30px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-family:var(--mono);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--oxblood);margin:0 0 14px;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;}
+  .colophon{margin-top:48px;padding-top:18px;border-top:1px dashed var(--rule);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-family:var(--mono);font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;color:var(--mid);}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--chestnut);color:var(--cream);padding:13px 20px;border-radius:5px;text-decoration:none;font-family:var(--sans);font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(90,53,32,0.35);}
+  .msg-fab a:hover{background:var(--oxblood);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Store","name":"Bridle & Awl","description":"Saddler and leather workshop in Newmarket — saddle fitting and repair, hand-stitched bridlework, and bespoke leather goods.","url":"https://bridleandawl.co.uk/","telephone":"+441638552704","email":"bench@bridleandawl.co.uk","address":{"@type":"PostalAddress","streetAddress":"The Tack Room, 8 Palace Street","addressLocality":"Newmarket","addressRegion":"Suffolk","postalCode":"CB8 8EP","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":52.2450,"longitude":0.4030},"areaServed":["Newmarket","Bury St Edmunds","Cambridge","Ely"],"image":["https://images.unsplash.com/photo-1605733513597-a8f8341084e6?w=1600"],"foundingDate":"2010"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"Why is hand saddle-stitching better than machine stitching?","acceptedAnswer":{"@type":"Answer","text":"A saddle stitch locks the thread at every hole, so if cut anywhere it stays put. A machine lock-stitch unravels from a single broken loop."}},
+{"@type":"Question","name":"Can you check if my saddle fits my horse?","acceptedAnswer":{"@type":"Answer","text":"Yes — we check fit on the actual horse and rider, reflock or adjust where we can, and tell you honestly if a saddle won't work."}},
+{"@type":"Question","name":"Can you repair leather I didn't buy from you?","acceptedAnswer":{"@type":"Answer","text":"Gladly — restitching, new billets, buckles, split seams on tack and goods. Most good leather is worth saving."}},
+{"@type":"Question","name":"What leather do you use?","acceptedAnswer":{"@type":"Answer","text":"Full-grain, vegetable-tanned hide that develops a patina and lasts decades, cut and burnished by hand."}},
+{"@type":"Question","name":"How long does a bespoke piece take?","acceptedAnswer":{"@type":"Answer","text":"A belt a week or two; a bag or bespoke tack several weeks. Competition emergency repairs we turn around fast."}},
+{"@type":"Question","name":"Do you sell ready-made goods?","acceptedAnswer":{"@type":"Answer","text":"A small shelf of belts, leads and small goods, but the heart of it is made-to-order and repair."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">Bridle <em>&amp;</em> Awl</a>
+    <nav class="nav-links">
+      <a href="#about">The workshop</a><a href="#services">Make &amp; mend</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v61">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kick" data-bind="hero.kicker">Saddler &amp; leather workshop · hand-stitched · Newmarket</div>
+      <h1 data-comment-anchor="hero-headline">Saddle-stitched by hand to <em>outlast the buckle.</em></h1>
+      <p class="lede" data-bind="hero.lede">A working saddler in the home of horseracing: saddle fitting and repair, bridlework restitched by hand, and bespoke leather goods built the slow way — two needles, one waxed thread, a stitch that can't unravel even if it's cut. Machine-stitched leather fails at a seam. Ours doesn't.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book the bench</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">What we make &amp; mend</a>
+      </div>
+    </div>
+    <div class="hero-photo">
+      <img src="https://images.unsplash.com/photo-1605733513597-a8f8341084e6?w=2000&q=85&auto=format&fit=crop"
+           alt="A hand-stitched leather satchel." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      <div class="stitch-tag">
+        <div class="hd">SADDLE STITCH</div>
+        NEEDLES · TWO<br />THREAD · WAXED LINEN<br />CUT IT · STILL HOLDS
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">At the bench since 2010</span>
+    <span>Hand saddle-stitched</span>
+    <span>Full-grain, veg-tanned</span>
+    <span>Fitted on horse &amp; rider</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" class="about light" data-component="ABOUT" data-variant="v27">
+  <div class="wrap">
+    <div class="st-head"><span>STITCH 01 / THE WORKSHOP</span><span>TWO NEEDLES, ONE THREAD</span></div>
+    <div class="about-grid">
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1200&q=85&auto=format&fit=crop"
+           alt="A leather satchel, hand-stitched." />
+      <div class="about-prose">
+        <h2 class="h2">Two needles, one thread, <em>no shortcuts.</em></h2>
+        <p>The saddle stitch is the reason good leather lasts generations. Two needles pass through each hole from opposite sides, locking the waxed thread so that even if the stitching is cut, it won't run. A machine lock-stitch is faster and cheaper and unravels from a single broken loop. We stitch everything by hand, in a clamp called a pony, because the horse — and the customer — deserves the join that doesn't fail.</p>
+        <p>Bridle &amp; Awl sits where it should: in Newmarket, among the yards. Half our work is equestrian — saddle fitting and reflocking, bridlework repair, the emergency restitch before a competition — and half is bespoke leather goods: belts, bags, dog leads and cases built to be handed down rather than replaced.</p>
+        <p>We work full-grain vegetable-tanned hide that ages into something better, cut and edged and burnished by hand. A well-made leather thing should look better in twenty years than the day you bought it. We build for that day, not for the sale.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v54">
+  <div class="wrap">
+    <div class="st-head"><span>STITCH 02 / MAKE &amp; MEND</span><span>FROM THE ORDER BOOK</span></div>
+    <h2 class="h2">What we make &amp; mend.</h2>
+    <div class="svc-rows">
+      <div class="svc-row"><span class="no">Job 01</span><h3>Saddle fitting &amp; reflock</h3><p>Fitting, checking and reflocking so the saddle sits right on the horse and the rider. A poorly fitting saddle ruins backs — equine and human. We get it level.</p></div>
+      <div class="svc-row"><span class="no">Job 02</span><h3>Bridlework repair</h3><p>Restitching, new billets and keepers, replaced buckles, emergency repairs before a competition. Hand-stitched so the mend outlasts the strap around it.</p></div>
+      <div class="svc-row"><span class="no">Job 03</span><h3>Bespoke belts &amp; straps</h3><p>Full-grain belts cut and stitched to your measurement, with a buckle worth keeping. The belt you buy once and re-hole in a decade, not rebuy every year.</p></div>
+      <div class="svc-row"><span class="no">Job 04</span><h3>Bags &amp; cases</h3><p>Satchels, totes, tool rolls and cases in vegetable-tanned hide, saddle-stitched throughout and built to earn a patina. Made to a brief, made to last.</p></div>
+      <div class="svc-row"><span class="no">Job 05</span><h3>Dog leads &amp; collars</h3><p>Leads and collars in bridle leather with solid brass or stainless fittings, hand-stitched and edge-burnished. The pull that never wears through mid-walk.</p></div>
+      <div class="svc-row"><span class="no">Job 06</span><h3>Restoration &amp; repair</h3><p>Bring us the inherited satchel, the split saddlebag, the belt worn to the buckle. Most good leather is worth saving; we'll tell you honestly when it isn't.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v26">
+  <div class="wrap">
+    <div class="st-head"><span>STITCH 03 / THE DIFFERENCE</span><span>WHY IT LASTS</span></div>
+    <h2 class="h2">Why hand-stitched wins.</h2>
+    <div class="why-grid">
+      <div><span class="no">01 / 03</span><h3>Saddle-stitched, never machined.</h3><p>Two needles, one waxed thread, a lock at every hole. Cut it anywhere and it holds. A machine stitch runs from a single broken loop — we don't use one on anything that matters.</p></div>
+      <div><span class="no">02 / 03</span><h3>Full-grain, vegetable-tanned.</h3><p>The hide that ages into something better, not the coated split that cracks. We cut, edge and burnish by hand so the piece looks best years from now, not on day one.</p></div>
+      <div><span class="no">03 / 03</span><h3>Fitted to horse and rider.</h3><p>A saddle is a fit, not a purchase. We check it on the actual horse and the actual rider, because the wrong fit hurts a back that can't tell you it's hurting.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="st-head"><span>STITCH 04 / THE PROCESS</span><span>BRIEF → CUT → STITCH → FIT</span></div>
+    <ol class="how-grid">
+      <li><span class="step">Step 01</span><h3>Tell us the job</h3><p>A saddle to fit, a bridle to mend, a belt to build. Bring the horse's details or the brief, and we'll talk hide, thread and honest timescales.</p></li>
+      <li><span class="step">Step 02</span><h3>Measured &amp; cut</h3><p>Fitting on the horse for tack; measured to you for goods. Hide chosen and cut by hand, marked for stitching with a pricking iron.</p></li>
+      <li><span class="step">Step 03</span><h3>Stitched at the pony</h3><p>Saddle-stitched by hand in the clamp, edges bevelled and burnished. Slow, but it's the slowness that makes it last.</p></li>
+      <li><span class="step">Step 04</span><h3>Fitted &amp; finished</h3><p>Tack refitted and checked; goods finished, oiled and handed over with care notes. We're here for repairs and re-holing down the years.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v26">
+  <div class="wrap">
+    <div class="st-head"><span>STITCH 05 / CUSTOMERS</span><span>SAID AT THE COUNTER</span></div>
+    <blockquote class="t-quote">“They reflocked it, got it level, and she's a different horse. I should have come here first.”</blockquote>
+    <div class="t-attr">Charlotte E. — saddle reflock, event yard</div>
+    <div class="t-sub">
+      <figure><blockquote>“I bought a belt from them nine years ago. It's been re-holed twice as I've changed shape and it looks better than the day I got it. I've bought precisely zero belts since. That's the whole point, isn't it.”</blockquote><figcaption>Marcus D. — bespoke belt, nine years on</figcaption></figure>
+      <figure><blockquote>“They restitched my grandfather's satchel that three cobblers had turned away. Hand-stitched, matched the old thread, and it's back in daily use. I nearly cried at the counter.”</blockquote><figcaption>Priya S. — satchel restoration</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v54">
+  <div class="wrap">
+    <div class="st-head"><span>STITCH 06 / THE BENCH</span><span>HIDE, AWL, PONY</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1605733513597-a8f8341084e6?w=1600&q=85&auto=format&fit=crop" alt="Hand-stitching on a stitching pony." /><figcaption>AT THE PONY</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1473188588951-666fce8e7c68?w=1600&q=85&auto=format&fit=crop" alt="Stitching a leather strap." /><figcaption>SADDLE STITCH, BY HAND</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1591561954557-26941169b49e?w=1600&q=85&auto=format&fit=crop" alt="Rolls of vegetable-tanned hide." /><figcaption>VEG-TANNED HIDE</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1605733513597-a8f8341084e6?w=1600&q=85&auto=format&fit=crop" alt="A hand-stitched leather satchel." /><figcaption>THE SATCHEL</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1627123424574-724758594e93?w=1600&q=85&auto=format&fit=crop" alt="A finished leather bag." /><figcaption>BUILT TO PATINA</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1547949003-9792a18a2601?w=1600&q=85&auto=format&fit=crop" alt="Leather tools laid out." /><figcaption>AWL &amp; EDGE TOOLS</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="st-head"><span>STITCH 07 / ASKED AT THE BENCH</span><span>OVER A STRAP</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Asked at <em>the bench.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441638552704" style="color:var(--oxblood);">01638 552 704</a>. Competition emergency? Say so when you call and we'll do what we can to jump the queue.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>Why is hand saddle-stitching better than machine stitching?</summary><p>A saddle stitch uses two needles locking the thread at every single hole, so if the stitching is cut or damaged anywhere it stays put — it physically can't run. A machine lock-stitch is one continuous thread that unravels from a single broken loop. It's slower to do by hand, which is why cheap goods don't, and it's exactly why ours outlast them.</p></details>
+        <details><summary>My saddle might not fit my horse. Can you check?</summary><p>Yes — saddle fit is core to what we do, and a poor fit is behind a huge amount of back soreness and behaviour that gets blamed on the horse. We check the fit on the actual horse and rider, reflock or adjust where we can, and tell you honestly if a saddle simply won't work for that back.</p></details>
+        <details><summary>Can you repair leather I didn't buy from you?</summary><p>Gladly — restitching, new billets, replaced buckles, split seams and worn edges on tack and goods alike. Bring us the inherited satchel or the tired saddlebag; most good leather is worth saving, and we'll give you an honest opinion (and a quote) before we start.</p></details>
+        <details><summary>What leather do you use?</summary><p>Full-grain, vegetable-tanned hide for the most part — the kind that develops a patina and lasts decades rather than the coated splits that crack and peel. It costs more and it's worth it; we'll talk you through the options and match the hide to how the piece will actually be used.</p></details>
+        <details><summary>How long does a bespoke piece take?</summary><p>A belt, a week or two; a bag or bespoke tack, several weeks — hand-stitching can't be rushed without becoming machine work. Equestrian emergency repairs before a competition we'll always try to turn around fast; tell us the date and we'll be straight with you about what's possible.</p></details>
+        <details><summary>Do you sell ready-made goods too?</summary><p>We keep a small shelf of belts, leads, and small goods ready to take away, but the heart of it is made-to-order and repair. If you want something specific, a quick conversation gets you exactly the piece rather than the nearest thing on a shelf.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="st-head"><span>STITCH 08 / CUSTOMERS COME FROM</span><span>NEWMARKET &amp; THE YARDS</span></div>
+    <ul class="area-list">
+      <li>Newmarket</li><li>Bury St Edmunds</li><li>Cambridge</li><li>Ely</li><li>Saffron Walden</li><li>The racing yards</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="st-head"><span>STITCH 09 / THE ESSENTIALS</span><span>HOW WE WORK</span></div>
+    <div class="creds">
+      <div><div class="label">Method</div><div class="detail">Hand saddle-stitched, two needles, waxed thread</div></div>
+      <div><div class="label">Hide</div><div class="detail">Full-grain, vegetable-tanned, cut by hand</div></div>
+      <div><div class="label">Saddle fitting</div><div class="detail">Fitted on horse &amp; rider; reflocking on site</div></div>
+      <div><div class="label">Repairs</div><div class="detail">Tack &amp; goods restitched, not written off</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="st-head"><span>STITCH 10 / FIND US</span><span>THE TACK ROOM, PALACE STREET</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">Bridle &amp; Awl</strong><br />
+          The Tack Room, 8 Palace Street<br />
+          Newmarket CB8 8EP<br /><br />
+          <a href="tel:+441638552704" data-bind="business.phoneDisplay">01638 552 704</a><br />
+          <a href="mailto:bench@bridleandawl.co.uk" data-bind="business.email">bench@bridleandawl.co.uk</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>SEE GOOGLE PROFILE</span></div>
+          <div class="row"><span>YARD VISITS</span><span>BY ARRANGEMENT</span></div>
+          <p class="gbp-note">Live hours on our Google Business Profile. Saddle fittings often happen at your yard — ring to arrange. Workshop's off the High Street, behind the clock tower.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of Bridle &amp; Awl, Palace Street, Newmarket" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=0.3940%2C52.2410%2C0.4120%2C52.2490&layer=mapnik&marker=52.2450%2C0.4030"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v29">
+  <div class="wrap">
+    <div class="kick">STITCH 11 / BOOK</div>
+    <h2 data-bind="cta.heading">Built to be <em>handed down.</em></h2>
+    <p data-bind="cta.body">A saddle to fit, a bridle to mend, or a belt you'll buy once — book the bench and we'll stitch it to last.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book the bench</a>
+      <a class="btn btn-ghost" href="tel:+441638552704" data-bind="cta.secondary.label">01638 552 704</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441638552704" data-bind="messaging.whatsapp" aria-label="Message the workshop">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="font-size:22px;">Bridle <em style="color:var(--oxblood);">&amp;</em> Awl</div>
+        <p class="body" style="margin-top:12px;max-width:34ch;">A saddler and leather workshop on Palace Street, Newmarket. At the bench since 2010.</p>
+      </div>
+      <div>
+        <h4>The workshop</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          The Tack Room, 8 Palace Street<br />Newmarket CB8 8EP<br />
+          <a href="tel:+441638552704">01638 552 704</a><br />
+          <a href="mailto:bench@bridleandawl.co.uk">bench@bridleandawl.co.uk</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Make &amp; mend</a><a href="#about">The workshop</a><a href="#location">Find us</a><a href="#book">Book</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> BRIDLE &amp; AWL LTD</span>
+      <span>CUT IT · IT STILL HOLDS</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>North of Ninety — portrait & commercial photography studio in Glasgow</title>
+<meta name="description" content="North of Ninety is a daylight photography studio in Glasgow's Merchant City — portraits, branding shoots, product and editorial work. Book a session or hire the studio." />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Zodiak:ital@1&family=Libre+Caslon+Text:ital@0;1&display=swap" rel="stylesheet" />
+
+<script>
+const CONFIG = {
+  business: { name: "North of Ninety", phone: "+44 141 552 8907", phoneDisplay: "0141 552 8907", email: "studio@northofninety.co", foundedYear: 2014 },
+  hero: {
+    kicker: "Daylight studio · Merchant City · Glasgow",
+    headline: "Everyone has a good side. We find it in about twenty minutes.",
+    lede: "A third-floor daylight studio for portraits, branding, product and editorial work. Two photographers, one retoucher, and the best north-facing windows in the city.",
+    primaryCta: { label: "Book a session", href: "#book" },
+    secondaryCta: { label: "Hire the studio", href: "#services" },
+    image: "https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=2000&q=85&auto=format&fit=crop",
+    imageAlt: "Photographer adjusting a light in a white daylight studio."
+  },
+  trust: { years: "Shooting in Merchant City since 2014" },
+  about: {
+    heading: "North light, no nonsense.",
+    paragraphs: [
+      "North of Ninety is on the third floor of a Victorian warehouse in Merchant City, chosen for one reason: six north-facing windows, each nearly three metres tall. North light doesn't move all day. It's why painters fought over these buildings a century ago and why we fought a yoga studio for the lease in 2014.",
+      "Two photographers work here — one from newspapers, one from fashion — and a retoucher who used to restore paintings and treats skin the same way: repair, don't repaint.",
+      "Most of the week is portraits and branding shoots. The rest is product tables, lookbooks, and the occasional band who want the freight lift in the photos. When we're not shooting, the studio is yours to hire, lights included."
+    ],
+    portrait: "https://images.unsplash.com/photo-1520390138845-fd2d229dd553?w=1200&q=85&auto=format&fit=crop",
+    portraitAlt: "The studio's north windows and a paper backdrop."
+  },
+  services: [
+    { name: "Portraits", description: "Headshots and personal portraits. One hour, guided the whole way, retouched files in 48 hours." },
+    { name: "Branding shoots", description: "Half or full day for founders and small teams — portraits, workspace, detail shots. One library, everything you need for a year." },
+    { name: "Product & still life", description: "Tabletop, jewellery, food, drink. Shot to your spec sheet or art-directed by us." },
+    { name: "Editorial & press", description: "Features, album art, book jackets. Fast turnaround for print deadlines." },
+    { name: "Studio hire", description: "The daylight room by the half-day, lights and stands included. Freight lift takes a car engine; it's taken two." },
+    { name: "Retouching", description: "Our retoucher takes outside work — repair-not-repaint, priced per image, test edit free." }
+  ],
+  why: [
+    { title: "North light, all day.", body: "Constant, soft, and flattering from nine to five. Half our portrait clients never see a flash fire." },
+    { title: "Directed, not posed.", body: "Nobody knows what to do with their hands. That's our job, not yours. We talk you through every frame." },
+    { title: "Repair, don't repaint.", body: "Retouching that leaves you looking like yourself on a very good day — not like a different, waxier person." }
+  ],
+  how: [
+    { step: "01", title: "Book", body: "Pick a slot online. Portraits run mornings; branding and product hold the afternoons." },
+    { step: "02", title: "Plan on a call", body: "Fifteen minutes: what the photos are for, what to wear, what to bring, what to skip." },
+    { step: "03", title: "Shoot", body: "Guided the whole way. Coffee's decent, playlist's negotiable, freight lift is memorable." },
+    { step: "04", title: "Select & deliver", body: "A web gallery same week. You pick, we retouch, files land within 48 hours of selection." }
+  ],
+  testimonials: [
+    { quote: "I have hated every photo of myself since school. I use my North of Ninety headshot everywhere and I've stopped flinching. That's worth triple what they charge.", name: "Fiona McA.", context: "solicitor, headshot client" },
+    { quote: "Our whole brand library — team, office, product — done in a day, and it still doesn't feel dated two years later.", name: "Ross G.", context: "founder, branding shoot" },
+    { quote: "The only studio I'll shoot jewellery in outside London. The light does half the work and they know exactly where it falls.", name: "Amara O.", context: "jewellery designer" }
+  ],
+  gallery: [
+    { src: "https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=1600&q=85&auto=format&fit=crop", alt: "Photographer adjusting a light by the north windows." },
+    { src: "https://images.unsplash.com/photo-1520390138845-fd2d229dd553?w=1600&q=85&auto=format&fit=crop", alt: "Paper backdrop and studio strobes." },
+    { src: "https://images.unsplash.com/photo-1493863641943-9b68992a8d07?w=1600&q=85&auto=format&fit=crop", alt: "Portrait session in progress." },
+    { src: "https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea?w=1600&q=85&auto=format&fit=crop", alt: "Camera and lenses laid out on the prep table." },
+    { src: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1600&q=85&auto=format&fit=crop", alt: "Medium-format camera on a tripod." },
+    { src: "https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1600&q=85&auto=format&fit=crop", alt: "Contact sheets pinned to the studio wall." }
+  ],
+  faq: [
+    { q: "What should I wear for a headshot?", a: "Plain, mid-tone, well-fitting, and something you already feel good in. Bring two options; we'll tell you in ten seconds which one the light likes. Avoid fine stripes — sensors hate them." },
+    { q: "How long until I get my photos?", a: "Web gallery inside the week, retouched selects within 48 hours of you choosing. Press deadlines can be same-day — say so when you book." },
+    { q: "How many photos do I get?", a: "Portraits: every usable frame in the gallery, with retouching included on your selects (three for a standard session). More selects can be added per image — the rate's on the booking page." },
+    { q: "I'm genuinely awkward in front of a camera. Will this be awful?", a: "You're describing 90% of our clients, including the actors. The session is directed from first frame to last — you'll never be left standing wondering what to do." },
+    { q: "Can I hire the studio without a photographer?", a: "Yes — half-day and full-day hire includes lights, stands, and backdrops. First-time hirers get a fifteen-minute walkthrough of the kit and the fuse board." },
+    { q: "Do you shoot on location?", a: "Branding and editorial, yes — offices, workshops, wherever the story is. Portraits we keep in the studio, because the windows are the product." },
+    { q: "Is the studio accessible?", a: "There's a lift (passenger, not just freight) and a step-free route from the street. The studio WC is on the same floor." },
+    { q: "Do you keep our photos private?", a: "Nothing goes in our portfolio or feed without written permission, ever. Corporate libraries are stored encrypted and deleted on your schedule." }
+  ],
+  area: { places: ["Merchant City", "West End", "Southside", "Dennistoun", "Finnieston", "Edinburgh (by arrangement)", "on location across Scotland"] },
+  credentials: [
+    { label: "AOP", detail: "Association of Photographers — both photographers" },
+    { label: "BIPP", detail: "Qualified member, portraiture" },
+    { label: "Insurance", detail: "Full public liability & kit cover, certificate on request" },
+    { label: "Data handling", detail: "ICO-registered, encrypted client libraries" }
+  ],
+  location: { name: "North of Ninety", addressStreet: "Third Floor, 42 Albion Street", addressLocality: "Merchant City, Glasgow", addressRegion: "Glasgow", addressPostcode: "G1 1LH", addressCountry: "United Kingdom" },
+  cta: { heading: "The light is best before noon.", body: "Portrait slots run mornings, Tuesday to Saturday. The calendar is live.", primary: { label: "Book a session", href: "#book" }, secondary: { label: "0141 552 8907", href: "tel:+441415528907" } },
+  messaging: { whatsapp: "https://wa.me/441415528907", messenger: "https://m.me/northofninety" }
+};
+</script>
+
+<style>
+  :root {
+    --white:#fafafa; --grey:#ececec; --ink:#111111; --soft:#6e6e6e;
+    --red:#e03616; --rule:rgba(17,17,17,0.14);
+    --sans:"Space Grotesk",system-ui,sans-serif;
+    --serif:"Libre Caslon Text",Georgia,serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{background:var(--white);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  img{max-width:100%;display:block;} a{color:inherit;}
+  .wrap{width:min(1320px,94vw);margin-inline:auto;}
+  .kicker{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--red);}
+  .h2{font-weight:700;font-size:clamp(30px,4.2vw,56px);line-height:1.0;letter-spacing:-0.03em;margin:0 0 0.45em;}
+  .h2 em{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:0;}
+  .body{color:var(--soft);line-height:1.65;}
+  section{padding:clamp(72px,9vw,128px) 0;}
+  .btn{display:inline-flex;gap:10px;padding:15px 26px;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;text-decoration:none;transition:0.18s;}
+  .btn-primary{background:var(--ink);color:var(--white);} .btn-primary:hover{background:var(--red);}
+  .btn-ghost{border:1.5px solid var(--ink);} .btn-ghost:hover{background:var(--ink);color:var(--white);}
+  .frame-line{display:flex;justify-content:space-between;align-items:baseline;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--soft);border-bottom:1.5px solid var(--ink);padding-bottom:12px;margin-bottom:clamp(32px,4.5vw,64px);}
+
+  .nav{position:sticky;top:0;z-index:50;background:rgba(250,250,250,0.92);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--ink);}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 0;}
+  .wm{font-weight:700;font-size:16px;letter-spacing:-0.02em;text-decoration:none;text-transform:uppercase;}
+  .wm .deg{color:var(--red);}
+  .nav-links{display:flex;gap:28px;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;font-weight:600;color:var(--soft);}
+  .nav-links a{text-decoration:none;} .nav-links a:hover{color:var(--ink);}
+  @media(max-width:760px){.nav-links{display:none;}}
+
+  /* HERO — contact-sheet split */
+  .hero{padding:clamp(48px,7vw,100px) 0;}
+  .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:clamp(36px,5vw,88px);align-items:end;}
+  .hero h1{font-weight:700;font-size:clamp(36px,5vw,72px);line-height:0.98;letter-spacing:-0.035em;margin:20px 0 24px;}
+  .hero h1 em{font-family:var(--serif);font-style:italic;font-weight:400;letter-spacing:0;}
+  .hero .lede{color:var(--soft);max-width:42ch;line-height:1.6;font-size:clamp(15px,1.4vw,18px);}
+  .hero-ctas{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;}
+  .hero-photo{position:relative;}
+  .hero-photo img{width:100%;aspect-ratio:4/5;object-fit:cover;filter:grayscale(1) contrast(1.06);}
+  .hero-photo .reg{position:absolute;top:14px;left:14px;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--white);background:var(--ink);padding:5px 10px;}
+  .hero-photo::after{content:"";position:absolute;inset:0;border:1.5px solid var(--ink);pointer-events:none;}
+  .hero-cap{display:flex;justify-content:space-between;margin-top:12px;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--soft);}
+  @media(max-width:820px){.hero-grid{grid-template-columns:1fr;}}
+
+  .trust{padding:0;border-top:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink);}
+  .trust .row{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;padding:16px 0;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--soft);}
+
+  .about-grid{display:grid;grid-template-columns:1.1fr 0.9fr;gap:clamp(36px,5vw,90px);align-items:center;}
+  .about-prose p{font-size:clamp(16px,1.5vw,19px);line-height:1.7;margin:0 0 1em;}
+  .about-grid img{aspect-ratio:4/5;object-fit:cover;width:100%;filter:grayscale(1);border:1.5px solid var(--ink);}
+  @media(max-width:820px){.about-grid{grid-template-columns:1fr;}}
+
+  .svc-list{border-top:1.5px solid var(--ink);margin-top:clamp(28px,4vw,48px);}
+  .svc-row{display:grid;grid-template-columns:70px 300px 1fr;gap:24px;padding:26px 0;border-bottom:1px solid var(--rule);align-items:baseline;}
+  .svc-row .num{font-size:10px;letter-spacing:0.2em;color:var(--red);font-weight:600;}
+  .svc-row .name{font-weight:700;font-size:24px;letter-spacing:-0.025em;}
+  .svc-row .desc{color:var(--soft);font-size:15px;max-width:54ch;}
+  @media(max-width:820px){.svc-row{grid-template-columns:56px 1fr;} .svc-row .desc{grid-column:1/-1;padding-left:80px;}}
+
+  .why{background:var(--ink);color:var(--white);}
+  .why .h2{color:var(--white);}
+  .why .frame-line{border-color:rgba(250,250,250,0.4);color:rgba(250,250,250,0.55);}
+  .why-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(24px,4vw,60px);}
+  .why-grid .num{font-family:var(--serif);font-style:italic;font-size:36px;color:var(--red);display:block;margin-bottom:16px;line-height:1;}
+  .why-grid h3{font-weight:700;font-size:22px;letter-spacing:-0.02em;margin:0 0 10px;line-height:1.15;}
+  .why-grid p{color:rgba(250,250,250,0.62);margin:0;font-size:14px;}
+  @media(max-width:760px){.why-grid{grid-template-columns:1fr;}}
+
+  .how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(20px,3vw,40px);padding:0;}
+  .how-grid > li{list-style:none;border-top:1.5px solid var(--ink);padding-top:16px;}
+  .how-grid .step{font-size:10px;letter-spacing:0.2em;color:var(--red);font-weight:600;}
+  .how-grid h3{font-weight:700;font-size:20px;letter-spacing:-0.02em;margin:10px 0 8px;}
+  .how-grid p{color:var(--soft);margin:0;font-size:13.5px;}
+  @media(max-width:760px){.how-grid{grid-template-columns:1fr 1fr;}}
+
+  .testimonials{background:var(--grey);}
+  .t-quote{font-family:var(--serif);font-style:italic;font-size:clamp(24px,3.2vw,44px);line-height:1.25;max-width:30ch;margin:0 0 22px;}
+  .t-attr{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--soft);margin-bottom:clamp(40px,5vw,64px);}
+  .t-sub{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,80px);border-top:1.5px solid var(--ink);padding-top:36px;}
+  .t-sub blockquote{font-size:17px;line-height:1.55;margin:0 0 12px;}
+  .t-sub figcaption{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--soft);}
+  @media(max-width:760px){.t-sub{grid-template-columns:1fr;}}
+
+  /* GALLERY — contact sheet, b/w until hover */
+  .g-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--ink);border:1.5px solid var(--ink);}
+  .g-grid figure{margin:0;background:var(--white);position:relative;}
+  .g-grid img{width:100%;aspect-ratio:4/3;object-fit:cover;filter:grayscale(1) contrast(1.05);transition:filter 0.35s;}
+  .g-grid img:hover{filter:grayscale(0);}
+  .g-grid figcaption{position:absolute;bottom:8px;right:10px;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;color:var(--white);background:var(--ink);padding:3px 8px;}
+  @media(max-width:760px){.g-grid{grid-template-columns:1fr 1fr;}}
+
+  .faq-grid{display:grid;grid-template-columns:2fr 3fr;gap:clamp(36px,5vw,90px);}
+  .faq-list details{border-bottom:1px solid var(--rule);padding:22px 0;}
+  .faq-list details:first-child{border-top:1.5px solid var(--ink);}
+  .faq-list summary{font-weight:600;font-size:18px;letter-spacing:-0.015em;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:20px;}
+  .faq-list summary::-webkit-details-marker{display:none;}
+  .faq-list summary::after{content:"→";color:var(--red);transition:transform 0.2s;flex-shrink:0;}
+  .faq-list details[open] summary::after{transform:rotate(90deg);}
+  .faq-list p{margin:14px 0 0;color:var(--soft);font-size:14.5px;max-width:58ch;}
+  @media(max-width:760px){.faq-grid{grid-template-columns:1fr;}}
+
+  .area-list{display:flex;flex-wrap:wrap;gap:8px;margin:24px 0 0;padding:0;}
+  .area-list li{list-style:none;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;padding:10px 18px;border:1.5px solid var(--ink);}
+
+  .creds{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(18px,2.5vw,36px);margin-top:clamp(26px,3.5vw,44px);}
+  .creds > div{border-top:1.5px solid var(--ink);padding-top:14px;}
+  .creds .label{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;color:var(--red);margin-bottom:8px;}
+  .creds .detail{font-weight:600;font-size:16px;letter-spacing:-0.015em;line-height:1.35;}
+  @media(max-width:760px){.creds{grid-template-columns:1fr 1fr;}}
+
+  .loc-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:clamp(24px,3.5vw,48px);margin-top:clamp(28px,4vw,48px);}
+  .nap{border:1.5px solid var(--ink);padding:32px;}
+  .nap address{font-style:normal;font-weight:600;font-size:21px;line-height:1.45;letter-spacing:-0.015em;}
+  .nap a{text-decoration:none;}
+  .hours{font-size:11px;margin-top:24px;border-top:1px solid var(--rule);padding-top:18px;letter-spacing:0.12em;text-transform:uppercase;font-weight:600;}
+  .hours .row{display:flex;justify-content:space-between;padding:4px 0;color:var(--soft);}
+  .hours .gbp-note{font-size:12px;color:var(--soft);margin-top:14px;line-height:1.6;letter-spacing:0;text-transform:none;font-weight:400;}
+  .map-frame{border:1.5px solid var(--ink);min-height:380px;filter:grayscale(1);}
+  .map-frame iframe{width:100%;height:100%;border:0;min-height:380px;}
+  @media(max-width:820px){.loc-grid{grid-template-columns:1fr;}}
+
+  .cta-band{background:var(--red);color:var(--white);padding:clamp(80px,10vw,140px) 0;}
+  .cta-band h2{font-weight:700;font-size:clamp(36px,5.4vw,80px);line-height:0.96;letter-spacing:-0.035em;margin:12px 0 18px;max-width:16ch;}
+  .cta-band h2 em{font-family:var(--serif);font-style:italic;font-weight:400;}
+  .cta-band p{color:rgba(255,255,255,0.88);max-width:44ch;margin:0 0 32px;}
+  .cta-band .ctas{display:flex;gap:12px;flex-wrap:wrap;}
+  .cta-band .btn-primary{background:var(--ink);color:var(--white);}
+  .cta-band .btn-ghost{border-color:var(--white);color:var(--white);}
+  .cta-band .btn-ghost:hover{background:var(--white);color:var(--red);}
+
+  footer{background:var(--ink);color:rgba(250,250,250,0.85);padding:60px 0 32px;}
+  .footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:40px;}
+  .footer-grid h4{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--red);margin:0 0 14px;font-weight:600;}
+  .footer-grid a{text-decoration:none;display:block;padding:3px 0;font-size:14px;color:var(--white);}
+  .colophon{margin-top:52px;padding-top:20px;border-top:1px solid rgba(250,250,250,0.18);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(250,250,250,0.5);font-weight:600;}
+  @media(max-width:760px){.footer-grid{grid-template-columns:1fr;}}
+
+  .msg-fab{position:fixed;right:20px;bottom:20px;z-index:100;}
+  .msg-fab a{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--white);padding:13px 19px;text-decoration:none;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;font-weight:600;box-shadow:0 8px 24px rgba(17,17,17,0.25);}
+  .msg-fab a:hover{background:var(--red);}
+  .msg-fab svg{width:13px;height:13px;}
+</style>
+
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"ProfessionalService","name":"North of Ninety","description":"Daylight photography studio in Glasgow's Merchant City — portraits, branding, product and editorial.","url":"https://northofninety.co/","telephone":"+441415528907","email":"studio@northofninety.co","address":{"@type":"PostalAddress","streetAddress":"Third Floor, 42 Albion Street","addressLocality":"Glasgow","addressRegion":"Glasgow","postalCode":"G1 1LH","addressCountry":"GB"},"geo":{"@type":"GeoCoordinates","latitude":55.8580,"longitude":-4.2447},"areaServed":["Glasgow","Edinburgh","Scotland"],"image":["https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=1600"],"foundingDate":"2014"}
+</script>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[
+{"@type":"Question","name":"What should I wear for a headshot?","acceptedAnswer":{"@type":"Answer","text":"Plain, mid-tone, well-fitting. Bring two options. Avoid fine stripes."}},
+{"@type":"Question","name":"How long until I get my photos?","acceptedAnswer":{"@type":"Answer","text":"Web gallery inside the week, retouched selects within 48 hours of choosing."}},
+{"@type":"Question","name":"How many photos do I get?","acceptedAnswer":{"@type":"Answer","text":"Every usable frame in the gallery; retouching included on your selects."}},
+{"@type":"Question","name":"I'm awkward in front of a camera. Will this be awful?","acceptedAnswer":{"@type":"Answer","text":"The session is directed from first frame to last — you'll never wonder what to do."}},
+{"@type":"Question","name":"Can I hire the studio without a photographer?","acceptedAnswer":{"@type":"Answer","text":"Yes — half-day and full-day hire, lights and backdrops included."}},
+{"@type":"Question","name":"Do you shoot on location?","acceptedAnswer":{"@type":"Answer","text":"Branding and editorial yes; portraits stay in the studio."}},
+{"@type":"Question","name":"Is the studio accessible?","acceptedAnswer":{"@type":"Answer","text":"Passenger lift and step-free route from the street; WC on the same floor."}},
+{"@type":"Question","name":"Do you keep our photos private?","acceptedAnswer":{"@type":"Answer","text":"Nothing is published without written permission. Libraries stored encrypted."}}]}
+</script>
+<script type="application/json" id="lp-config">{"business":"name, phone, phoneDisplay, email, foundedYear","hero":"kicker, headline, lede, primaryCta, secondaryCta, image, imageAlt","about":"heading, paragraphs[], portrait, portraitAlt","services":"Array<{name, description}>","why":"Array<{title, body}>","how":"Array<{step, title, body}>","testimonials":"Array<{quote, name, context}>","gallery":"Array<{src, alt}>","faq":"Array<{q, a}>","area":"{places[]}","credentials":"Array<{label, detail}>","location":"PostalAddress","cta":"{heading, body, primary, secondary}","messaging":"{whatsapp, messenger}"}</script>
+</head>
+
+<body>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="wm" href="#" data-bind="business.name">NORTH OF NINETY<span class="deg">°</span></a>
+    <nav class="nav-links">
+      <a href="#about">Studio</a><a href="#services">Work</a><a href="#location">Find us</a><a href="#book">Book</a>
+    </nav>
+  </div>
+</header>
+
+<!-- BLOCK: HERO [required] -->
+<section class="hero" data-component="HERO" data-variant="v12">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="kicker" data-bind="hero.kicker">Daylight studio · Merchant City · Glasgow</div>
+      <h1 data-bind="hero.headline">Everyone has a good side. <em>We find it in about twenty minutes.</em></h1>
+      <p class="lede" data-bind="hero.lede">A third-floor daylight studio for portraits, branding, product and editorial work. Two photographers, one retoucher, and the best north-facing windows in the city.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-primary" href="#book" data-bind="hero.primaryCta.label">Book a session</a>
+        <a class="btn btn-ghost" href="#services" data-bind="hero.secondaryCta.label">Hire the studio</a>
+      </div>
+    </div>
+    <div>
+      <div class="hero-photo">
+        <span class="reg">FRAME 001 · NORTH WINDOWS</span>
+        <img src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=2000&q=85&auto=format&fit=crop"
+             alt="Photographer adjusting a light in a white daylight studio." data-bind="hero.image" data-bind-alt="hero.imageAlt" />
+      </div>
+      <div class="hero-cap"><span>42 Albion St, 3/F</span><span>f/2 · 1/125 · ISO 100</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: HERO -->
+
+<!-- BLOCK: TRUST [recommended] -->
+<section class="trust" data-component="TRUST" data-variant="v1" style="padding:0;">
+  <div class="wrap row">
+    <span data-bind="trust.years">Shooting in Merchant City since 2014</span>
+    <span>AOP members</span>
+    <span>BIPP-qualified portraiture</span>
+    <span>ICO-registered data handling</span>
+    <!-- GBP-bound rating slot — never hardcoded. -->
+  </div>
+</section>
+<!-- /BLOCK: TRUST -->
+
+<!-- BLOCK: ABOUT [recommended] -->
+<section id="about" data-component="ABOUT" data-variant="v1">
+  <div class="wrap">
+    <div class="frame-line"><span>01 / THE STUDIO</span><span>NORTH LIGHT, ALL DAY</span></div>
+    <div class="about-grid">
+      <div class="about-prose">
+        <h2 class="h2" data-bind="about.heading">North light, <em>no nonsense.</em></h2>
+        <p>North of Ninety is on the third floor of a Victorian warehouse in Merchant City, chosen for one reason: six north-facing windows, each nearly three metres tall. North light doesn't move all day. It's why painters fought over these buildings a century ago and why we fought a yoga studio for the lease in 2014.</p>
+        <p>Two photographers work here — one from newspapers, one from fashion — and a retoucher who used to restore paintings and treats skin the same way: repair, don't repaint.</p>
+        <p>When we're not shooting, the studio is yours to hire, lights included.</p>
+      </div>
+      <img data-bind="about.portrait" data-bind-alt="about.portraitAlt"
+           src="https://images.unsplash.com/photo-1520390138845-fd2d229dd553?w=1200&q=85&auto=format&fit=crop"
+           alt="The studio's north windows and a paper backdrop." />
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: ABOUT -->
+
+<!-- BLOCK: SERVICES [required] -->
+<section id="services" data-component="SERVICES" data-variant="v5">
+  <div class="wrap">
+    <div class="frame-line"><span>02 / SERVICES</span><span>SIX WAYS IN</span></div>
+    <h2 class="h2">What we <em>shoot.</em></h2>
+    <div class="svc-list">
+      <div class="svc-row"><span class="num">F.01</span><span class="name">Portraits</span><span class="desc">Headshots and personal portraits. One hour, guided the whole way, retouched files in 48 hours.</span></div>
+      <div class="svc-row"><span class="num">F.02</span><span class="name">Branding shoots</span><span class="desc">Half or full day for founders and small teams — portraits, workspace, detail shots. One library, everything you need for a year.</span></div>
+      <div class="svc-row"><span class="num">F.03</span><span class="name">Product &amp; still life</span><span class="desc">Tabletop, jewellery, food, drink. Shot to your spec sheet or art-directed by us.</span></div>
+      <div class="svc-row"><span class="num">F.04</span><span class="name">Editorial &amp; press</span><span class="desc">Features, album art, book jackets. Fast turnaround for print deadlines.</span></div>
+      <div class="svc-row"><span class="num">F.05</span><span class="name">Studio hire</span><span class="desc">The daylight room by the half-day, lights and stands included. Freight lift takes a car engine; it's taken two.</span></div>
+      <div class="svc-row"><span class="num">F.06</span><span class="name">Retouching</span><span class="desc">Our retoucher takes outside work — repair-not-repaint, priced per image, test edit free.</span></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: SERVICES -->
+
+<!-- BLOCK: WHY-US [recommended] -->
+<section class="why" data-component="WHY-US" data-variant="v1">
+  <div class="wrap">
+    <div class="frame-line"><span>03 / WHY HERE</span><span>THREE REASONS</span></div>
+    <h2 class="h2">The short <em>argument.</em></h2>
+    <div class="why-grid" style="margin-top:clamp(28px,4vw,48px);">
+      <div><span class="num">i.</span><h3>North light, all day.</h3><p>Constant, soft, and flattering from nine to five. Half our portrait clients never see a flash fire.</p></div>
+      <div><span class="num">ii.</span><h3>Directed, not posed.</h3><p>Nobody knows what to do with their hands. That's our job, not yours. We talk you through every frame.</p></div>
+      <div><span class="num">iii.</span><h3>Repair, don't repaint.</h3><p>Retouching that leaves you looking like yourself on a very good day — not like a different, waxier person.</p></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: WHY-US -->
+
+<!-- BLOCK: HOW-IT-WORKS [recommended] -->
+<section data-component="HOW-IT-WORKS" data-variant="v1">
+  <div class="wrap">
+    <div class="frame-line"><span>04 / PROCESS</span><span>BOOK → DELIVER</span></div>
+    <ol class="how-grid">
+      <li><span class="step">STEP 01</span><h3>Book</h3><p>Pick a slot online. Portraits run mornings; branding and product hold the afternoons.</p></li>
+      <li><span class="step">STEP 02</span><h3>Plan on a call</h3><p>Fifteen minutes: what the photos are for, what to wear, what to bring, what to skip.</p></li>
+      <li><span class="step">STEP 03</span><h3>Shoot</h3><p>Guided the whole way. Coffee's decent, playlist's negotiable, freight lift is memorable.</p></li>
+      <li><span class="step">STEP 04</span><h3>Select &amp; deliver</h3><p>A web gallery same week. You pick, we retouch, files land within 48 hours of selection.</p></li>
+    </ol>
+  </div>
+</section>
+<!-- /BLOCK: HOW-IT-WORKS -->
+
+<!-- BLOCK: TESTIMONIALS [recommended] -->
+<section class="testimonials" data-component="TESTIMONIALS" data-variant="v2">
+  <div class="wrap">
+    <div class="frame-line"><span>05 / CLIENTS</span><span>ON THE RECORD</span></div>
+    <blockquote class="t-quote">“I have hated every photo of myself since school. I use my North of Ninety headshot everywhere and I've stopped flinching.”</blockquote>
+    <div class="t-attr">Fiona McA. — solicitor, headshot client</div>
+    <div class="t-sub">
+      <figure><blockquote>“Our whole brand library — team, office, product — done in a day, and it still doesn't feel dated two years later.”</blockquote><figcaption>Ross G. — founder, branding shoot</figcaption></figure>
+      <figure><blockquote>“The only studio I'll shoot jewellery in outside London. The light does half the work and they know exactly where it falls.”</blockquote><figcaption>Amara O. — jewellery designer</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: TESTIMONIALS -->
+
+<!-- BLOCK: GALLERY [recommended] -->
+<section data-component="GALLERY" data-variant="v2">
+  <div class="wrap">
+    <div class="frame-line"><span>06 / CONTACT SHEET</span><span>HOVER FOR COLOUR</span></div>
+    <div class="g-grid">
+      <figure><img src="https://images.unsplash.com/photo-1554048612-b6a482bc67e5?w=1600&q=85&auto=format&fit=crop" alt="Photographer adjusting a light by the north windows." /><figcaption>001</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1520390138845-fd2d229dd553?w=1600&q=85&auto=format&fit=crop" alt="Paper backdrop and studio strobes." /><figcaption>002</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1493863641943-9b68992a8d07?w=1600&q=85&auto=format&fit=crop" alt="Portrait session in progress." /><figcaption>003</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1471341971476-ae15ff5dd4ea?w=1600&q=85&auto=format&fit=crop" alt="Camera and lenses on the prep table." /><figcaption>004</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=1600&q=85&auto=format&fit=crop" alt="Medium-format camera on a tripod." /><figcaption>005</figcaption></figure>
+      <figure><img src="https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1600&q=85&auto=format&fit=crop" alt="Contact sheets pinned to the studio wall." /><figcaption>006</figcaption></figure>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: GALLERY -->
+
+<!-- BLOCK: FAQ [recommended] -->
+<section data-component="FAQ" data-variant="v1">
+  <div class="wrap">
+    <div class="frame-line"><span>07 / FAQ</span><span>ASKED BEFORE EVERY SHOOT</span></div>
+    <div class="faq-grid">
+      <div>
+        <h2 class="h2">Before you're <em>in front of it.</em></h2>
+        <p class="body">Anything else — ring <a href="tel:+441415528907" style="color:var(--red);">0141 552 8907</a>. If we're shooting, the retoucher picks up.</p>
+      </div>
+      <div class="faq-list">
+        <details><summary>What should I wear for a headshot?</summary><p>Plain, mid-tone, well-fitting, and something you already feel good in. Bring two options; we'll tell you in ten seconds which one the light likes. Avoid fine stripes — sensors hate them.</p></details>
+        <details><summary>How long until I get my photos?</summary><p>Web gallery inside the week, retouched selects within 48 hours of you choosing. Press deadlines can be same-day — say so when you book.</p></details>
+        <details><summary>How many photos do I get?</summary><p>Portraits: every usable frame in the gallery, with retouching included on your selects (three for a standard session). More selects can be added per image.</p></details>
+        <details><summary>I'm genuinely awkward in front of a camera. Will this be awful?</summary><p>You're describing 90% of our clients, including the actors. The session is directed from first frame to last — you'll never be left standing wondering what to do.</p></details>
+        <details><summary>Can I hire the studio without a photographer?</summary><p>Yes — half-day and full-day hire includes lights, stands, and backdrops. First-time hirers get a fifteen-minute walkthrough of the kit and the fuse board.</p></details>
+        <details><summary>Do you shoot on location?</summary><p>Branding and editorial, yes — offices, workshops, wherever the story is. Portraits we keep in the studio, because the windows are the product.</p></details>
+        <details><summary>Is the studio accessible?</summary><p>There's a lift (passenger, not just freight) and a step-free route from the street. The studio WC is on the same floor.</p></details>
+        <details><summary>Do you keep our photos private?</summary><p>Nothing goes in our portfolio or feed without written permission, ever. Corporate libraries are stored encrypted and deleted on your schedule.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: FAQ -->
+
+<!-- BLOCK: SERVICE-AREA [recommended] -->
+<section data-component="SERVICE-AREA" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="frame-line"><span>08 / RANGE</span><span>STUDIO + ON LOCATION</span></div>
+    <ul class="area-list">
+      <li>Merchant City</li><li>West End</li><li>Southside</li><li>Dennistoun</li><li>Finnieston</li>
+      <li>Edinburgh (by arrangement)</li><li>On location across Scotland</li>
+    </ul>
+  </div>
+</section>
+<!-- /BLOCK: SERVICE-AREA -->
+
+<!-- BLOCK: CREDENTIALS [recommended] -->
+<section data-component="CREDENTIALS" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="frame-line"><span>09 / CREDENTIALS</span><span>MEMBERSHIPS &amp; COVER</span></div>
+    <div class="creds">
+      <div><div class="label">AOP</div><div class="detail">Association of Photographers — both photographers</div></div>
+      <div><div class="label">BIPP</div><div class="detail">Qualified member, portraiture</div></div>
+      <div><div class="label">Insurance</div><div class="detail">Full public liability &amp; kit cover</div></div>
+      <div><div class="label">Data handling</div><div class="detail">ICO-registered, encrypted libraries</div></div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CREDENTIALS -->
+
+<!-- BLOCK: LOCATION [required] -->
+<section id="location" data-component="LOCATION" data-variant="v1" style="padding-top:0;">
+  <div class="wrap">
+    <div class="frame-line"><span>10 / LOCATION</span><span>42 ALBION STREET, 3/F</span></div>
+    <div class="loc-grid">
+      <div class="nap">
+        <address>
+          <strong data-bind="location.name">North of Ninety</strong><br />
+          Third Floor, 42 Albion Street<br />
+          Merchant City, Glasgow G1 1LH<br /><br />
+          <a href="tel:+441415528907" data-bind="business.phoneDisplay">0141 552 8907</a><br />
+          <a href="mailto:studio@northofninety.co" data-bind="business.email">studio@northofninety.co</a>
+        </address>
+        <div class="hours">
+          <!-- HOURS — GBP-bound slot. Do not hardcode. -->
+          <div class="row"><span>TUE – SAT</span><span>—</span></div>
+          <div class="row"><span>SUN – MON</span><span>HIRE ONLY</span></div>
+          <p class="gbp-note">Hours kept current on our Google Business Profile. The buzzer says "N90" — third button up.</p>
+        </div>
+      </div>
+      <div class="map-frame">
+        <iframe title="Map of North of Ninety, Albion Street, Glasgow" loading="lazy"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=-4.2520%2C55.8550%2C-4.2370%2C55.8610&layer=mapnik&marker=55.8580%2C-4.2447"></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: LOCATION -->
+
+<!-- BLOCK: CTA-BAND [recommended] -->
+<section id="book" class="cta-band" data-component="CTA-BAND" data-variant="v3">
+  <div class="wrap">
+    <div class="kicker" style="color:rgba(255,255,255,0.8);">11 / BOOKING</div>
+    <h2 data-bind="cta.heading">The light is best <em>before noon.</em></h2>
+    <p data-bind="cta.body">Portrait slots run mornings, Tuesday to Saturday. The calendar is live.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="#book" data-bind="cta.primary.label">Book a session</a>
+      <a class="btn btn-ghost" href="tel:+441415528907" data-bind="cta.secondary.label">0141 552 8907</a>
+    </div>
+  </div>
+</section>
+<!-- /BLOCK: CTA-BAND -->
+
+<!-- BLOCK: CLICK-TO-MESSAGE [recommended] -->
+<div class="msg-fab" data-component="CLICK-TO-MESSAGE" data-variant="v1">
+  <a href="https://wa.me/441415528907" data-bind="messaging.whatsapp" aria-label="Message the studio">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4A11 11 0 0 0 4.5 18.5L3 22l3.7-1.4A11 11 0 1 0 20 4Z"/></svg>
+    Message
+  </a>
+</div>
+<!-- /BLOCK: CLICK-TO-MESSAGE -->
+
+<!-- BLOCK: FOOTER [required] -->
+<footer data-component="FOOTER" data-variant="v1">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="wm" style="color:var(--white);font-size:18px;">NORTH OF NINETY<span class="deg" style="color:var(--red);">°</span></div>
+        <p class="body" style="margin-top:12px;max-width:34ch;color:rgba(250,250,250,0.65);">A daylight photography studio in Merchant City, Glasgow. Since 2014.</p>
+      </div>
+      <div>
+        <h4>The studio</h4>
+        <address style="font-style:normal;font-size:14px;line-height:1.7;">
+          Third Floor, 42 Albion Street<br />Glasgow G1 1LH<br />
+          <a href="tel:+441415528907">0141 552 8907</a><br />
+          <a href="mailto:studio@northofninety.co">studio@northofninety.co</a>
+        </address>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <a href="#services">Work</a><a href="#book">Book</a><a href="#about">Studio</a><a href="#location">Find us</a>
+      </div>
+    </div>
+    <div class="colophon">
+      <span>© <span id="year">2026</span> NORTH OF NINETY LTD · CO. № SC489021</span>
+      <span>F/2 AND BE THERE</span>
+    </div>
+  </div>
+</footer>
+<!-- /BLOCK: FOOTER -->
+
+<script>
+  (function () {
+    const get = (o,p) => p.split('.').reduce((a,k)=>{ if(a==null) return null; const m=k.match(/^(.+)\[(\d+)\]$/); return m?a[m[1]]?.[+m[2]]:a[k]; }, o);
+    document.querySelectorAll('[data-bind]').forEach(el => {
+      const v = get(CONFIG, el.dataset.bind);
+      if (v == null) return;
+      if (el.tagName === 'IMG') { el.src = v; const a = el.getAttribute('data-bind-alt'); if (a) el.alt = get(CONFIG, a) || el.alt; }
+      else if (el.tagName === 'A' && /^https?:|^mailto:|^tel:|^#/.test(String(v))) el.href = v;
+      else el.textContent = v;
+    });
+    document.getElementById('year').textContent = new Date().getFullYear();
+  })();
+</script>
+
+</body>
+</html>
