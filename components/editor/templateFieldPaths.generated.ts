@@ -8271,6 +8271,8 @@ export const TEMPLATE_FIELD_PATHS: Record<string, string[]> = {
         "location.headline",
         "location.hours.N.day",
         "location.hours.N.time",
+        "location.lat",
+        "location.lng",
         "location.phone",
         "location.sub",
         "location.tag",

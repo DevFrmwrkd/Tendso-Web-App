@@ -28,6 +28,13 @@
  *   location.address    (multi-line; each line kept)
  *   location.phone      data-field ONLY — see below
  *   location.hours.N.day / .time
+ *   location.lat / location.lng   — the coordinate pair, no data-field: they
+ *                                   feed the Leaflet boot rather than printing
+ *                                   anywhere, so there is nothing to click.
+ *                                   They are the OVERRIDE for a geocode that
+ *                                   landed on the wrong street, which is the
+ *                                   only reason an owner ever touches them.
+ *                                   layout.contact.lat / .lng sit behind them.
  *   location.directions.text + data-href-field on .href
  *
  * THE PHONE ANCHOR CARRIES data-field ONLY, no data-href-field. Its href is
