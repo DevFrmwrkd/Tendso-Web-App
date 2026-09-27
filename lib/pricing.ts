@@ -57,6 +57,16 @@ export const CAMPAIGN_DISCOUNTS: Record<string, number> = {
 };
 
 /**
+ * The price a campaign's discount is taken from, when it is not BASE_PRICE.
+ *
+ * OTR is sold as the full ₱4,999 website at 30% off (₱3,499), not as the ₱999
+ * starter at 30% off.
+ */
+export const CAMPAIGN_LIST_PRICES: Record<string, number> = {
+    otr: PRICE_CEILING,
+};
+
+/**
  * Codes people can type when the automatic discount did not stick.
  *
  * It usually does stick, so this is a fallback rather than a coupon field:
@@ -83,13 +93,23 @@ export function campaignDiscountRate(campaign?: string | null): number {
     return key ? CAMPAIGN_DISCOUNTS[key] : 0;
 }
 
+/** The undiscounted website price for a campaign — BASE_PRICE when it sets none. */
+export function campaignListPrice(campaign?: string | null): number {
+    const key = normalizeCampaign(campaign);
+    return (key && CAMPAIGN_LIST_PRICES[key]) || BASE_PRICE;
+}
+
 /**
  * The website price after a campaign, rounded to the peso.
  *
- * Takes the sell price rather than assuming the base, so a creator's own price
- * would discount correctly too if a campaign is ever pointed at that funnel.
+ * Starts from the campaign's own list price unless a sell price is passed, so a
+ * creator's own price would discount correctly too if a campaign is ever pointed
+ * at that funnel.
  */
-export function campaignSellPrice(campaign?: string | null, sellPrice: number = BASE_PRICE): number {
+export function campaignSellPrice(
+    campaign?: string | null,
+    sellPrice: number = campaignListPrice(campaign),
+): number {
     const rate = campaignDiscountRate(campaign);
     if (!rate) return sellPrice;
     return Math.round(sellPrice * (1 - rate));
