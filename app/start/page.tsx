@@ -35,8 +35,8 @@ import { api } from "@/convex/_generated/api";
 import { BUSINESS_TYPES } from "@/lib/prospectPrefill";
 import { INTAKE_QUESTIONS, meetsAnswerMinimum } from "@/lib/narrativeFromQa";
 import {
-    BASE_PRICE,
     CUSTOM_DOMAIN_ADDON,
+    campaignListPrice,
     campaignSellPrice,
     formatPHP,
     normalizeCampaign,
@@ -451,7 +451,8 @@ export default function StartPage() {
      *  the same module the mutation prices the row with. */
     /** The website half, after any campaign. The domain is never discounted. */
     const sellPrice = campaignSellPrice(campaign);
-    const discounted = sellPrice !== BASE_PRICE;
+    const listPrice = campaignListPrice(campaign);
+    const discounted = sellPrice !== listPrice;
     const total = ownerTotal(sellPrice, wantsCustomDomain ? "with_custom_domain" : "standard");
     // loadDraft already clamps questionIndex, but the value it clamps came out of
     // localStorage — belt and braces, because every read below assumes a question
@@ -1201,7 +1202,7 @@ export default function StartPage() {
                                 {discounted ? (
                                     <p className="text-sm font-semibold text-ink">
                                         Your {(campaign ?? "").toUpperCase()} discount is applied —{" "}
-                                        {formatPHP(BASE_PRICE - sellPrice)} off your website.
+                                        {formatPHP(listPrice - sellPrice)} off your website.
                                     </p>
                                 ) : (
                                     <>

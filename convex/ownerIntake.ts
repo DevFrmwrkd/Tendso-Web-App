@@ -624,8 +624,8 @@ export const submitOwnerIntake = mutation({
             //
             // A campaign takes its percentage off the WEBSITE half only, which is
             // what `campaignSellPrice` returns; the domain stays at cost because
-            // we buy it from a registrar. With the OTR campaign that is ₱699, or
-            // ₱1,199 with a domain.
+            // we buy it from a registrar. With the OTR campaign that is ₱3,499
+            // (30% off ₱4,999), or ₱3,999 with a domain.
             amount: ownerTotal(campaignSellPrice(campaign), submissionType),
             campaign: campaign ?? undefined,
             source: source ?? undefined,

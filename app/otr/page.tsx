@@ -7,7 +7,7 @@ import { useQuery } from "convex/react";
 
 import { api } from "@/convex/_generated/api";
 import { campaignFromLocation, rememberCampaign } from "@/lib/campaign";
-import { BASE_PRICE, campaignSellPrice, formatPHP } from "@/lib/pricing";
+import { campaignListPrice, campaignSellPrice, formatPHP } from "@/lib/pricing";
 
 /**
  * Where an Off The Record viewer lands after scanning the QR code.
@@ -60,6 +60,7 @@ const FALLBACK_CODE = "OTR30";
 /** A scan carries no query of its own, so this is what an untagged visit is. */
 const DEFAULT_SOURCE = "qr";
 
+const listPrice = campaignListPrice(CAMPAIGN);
 const websitePrice = campaignSellPrice(CAMPAIGN);
 
 /**
@@ -222,7 +223,7 @@ export default function OtrPage() {
                                 {formatPHP(websitePrice)}
                             </span>
                             <span className="text-lg text-ink-soft line-through tabular-nums lg:text-2xl">
-                                {formatPHP(BASE_PRICE)}
+                                {formatPHP(listPrice)}
                             </span>
                         </p>
                         <p className="mt-2 max-w-prose text-sm leading-relaxed text-ink-soft lg:mt-3 lg:text-base">
@@ -300,7 +301,7 @@ export default function OtrPage() {
                                     <dd className="whitespace-nowrap tabular-nums">
                                         <span className="font-bold">{formatPHP(websitePrice)}</span>{" "}
                                         <span className="text-ink-soft line-through">
-                                            {formatPHP(BASE_PRICE)}
+                                            {formatPHP(listPrice)}
                                         </span>
                                     </dd>
                                 </div>
