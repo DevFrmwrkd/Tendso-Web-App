@@ -1,0 +1,168 @@
+---
+/**
+ * Florist spine — shared base CSS injected once per page.
+ *
+ * Forked from BarbershopSpine.astro. Same primitives, same token contract
+ * (`--ink` / `--paper` / `--brass` / `--display` / `--cond` / `--serif` /
+ * `--body` / `--pad` / `--maxw`), re-anchored to the florist's own data-page
+ * code so the two categories cannot bleed into each other.
+ *
+ * SCOPING — index.astro imports every Page*.astro wrapper, so all `is:global`
+ * blocks land in ONE stylesheet shipped on EVERY generated page. An unanchored
+ * `.btn` or `body` here would paint every template in the codebase. Every
+ * selector below is anchored to the wrapper that renders this spine: PageBR,
+ * data-page BR. `:is(…)` carries the specificity of its most specific
+ * argument, so the anchor adds exactly (0,1,1) — the same weight a wrapper's
+ * own `html[data-page="X"]` prefix adds. A sister variant adds its code inside
+ * the `:is()` in every rule, the way PageBP was added to BarbershopSpine.
+ *
+ * WHY ONLY BR. The design arrived anchored to L, M, N, O and P — L for the
+ * wrapper and M–P "reserved so a sister variant needs no spine edit". Every
+ * one of the five was already a live template (salonspa:L–O, autoshop:P), and
+ * because this sheet ships in every build it would have given all five of
+ * them this category's body, buttons, headings and trust-band corrections.
+ * data-page codes are ONE global sequence across every family; a reserved
+ * code nobody renders is how the next family collides. Anchor only what
+ * exists.
+ */
+---
+<style is:global>
+  :is(html[data-page="BR"]) * { box-sizing: border-box; }
+  :is(html[data-page="BR"]) { scroll-behavior: smooth; }
+  :is(html[data-page="BR"]) body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  :is(html[data-page="BR"]) img { max-width: 100%; display: block; }
+  :is(html[data-page="BR"]) a { color: inherit; text-decoration: none; }
+  :is(html[data-page="BR"]) section { position: relative; }
+  :is(html[data-page="BR"]) .wrap { max-width: var(--maxw); margin: 0 auto; padding-inline: var(--pad); }
+  :is(html[data-page="BR"]) .pad-y { padding-block: clamp(72px, 9vw, 140px); }
+  :is(html[data-page="BR"]) .ink-sect { background: var(--ink); color: var(--paper); }
+  :is(html[data-page="BR"]) .ink-sect .h-sect { color: var(--paper); }
+  :is(html[data-page="BR"]) .ink-sect .kicker { color: var(--muted-light); }
+  :is(html[data-page="BR"]) .eyebrow {
+    font-family: var(--serif); font-style: italic;
+    font-size: clamp(20px,2.2vw,28px); color: var(--brass);
+    line-height: 1; margin: 0 0 18px;
+  }
+  :is(html[data-page="BR"]) .kicker {
+    font-family: var(--cond); text-transform: uppercase;
+    letter-spacing: .3em; font-weight: 500; font-size: 12px;
+    color: var(--muted); display: inline-flex; align-items: center; gap: 12px;
+  }
+  :is(html[data-page="BR"]) .kicker::before { content: ""; width: 34px; height: 1px; background: var(--brass); display: inline-block; }
+  :is(html[data-page="BR"]) .kicker.on-dark { color: var(--muted-light); }
+  /* Serif display, so looser tracking and more leading than the barbershop's
+     condensed sans — the hairlines collide otherwise. */
+  :is(html[data-page="BR"]) .h-sect {
+    font-family: var(--display); font-weight: 400;
+    font-size: clamp(40px,5.6vw,80px); line-height: .98;
+    letter-spacing: .012em; text-transform: uppercase; margin: 18px 0 0;
+  }
+  :is(html[data-page="BR"]) .lead { font-size: clamp(17px,1.4vw,20px); color: var(--muted); max-width: 54ch; }
+  :is(html[data-page="BR"]) .on-dark .lead,
+  :is(html[data-page="BR"]) .lead.on-dark { color: var(--muted-light); }
+  /* Buttons read background & text from the contrast-paired tokens, so a
+     pale or neon admin scheme can never produce cream-on-cream. */
+  :is(html[data-page="BR"]) .btn {
+    font-family: var(--cond); text-transform: uppercase;
+    letter-spacing: .16em; font-weight: 400; font-size: 13px;
+    padding: 16px 30px; display: inline-flex; align-items: center; gap: 10px;
+    border: 1px solid var(--ink); background: var(--ink); color: var(--on-ink, var(--paper));
+    cursor: pointer; transition: transform .25s ease, background .25s ease, color .25s ease, border-color .25s ease;
+    white-space: nowrap;
+  }
+  :is(html[data-page="BR"]) .btn:hover { background: var(--brass); border-color: var(--brass); color: var(--on-brass, var(--paper)); transform: translateY(-2px); }
+  :is(html[data-page="BR"]) .btn--brass { background: var(--brass); border-color: var(--brass); color: var(--on-brass, var(--paper)); }
+  :is(html[data-page="BR"]) .btn--brass:hover { background: var(--ink); border-color: var(--ink); color: var(--on-ink, var(--paper)); }
+  :is(html[data-page="BR"]) .btn--ghost { background: transparent; color: var(--on-paper, var(--ink)); border-color: var(--on-paper, var(--ink)); }
+  :is(html[data-page="BR"]) .btn--ghost:hover { background: var(--ink); color: var(--on-ink, var(--paper)); border-color: var(--ink); }
+  :is(html[data-page="BR"]) .btn--ghost.on-dark { color: var(--on-ink, var(--paper)); border-color: var(--on-ink, var(--paper)); }
+  :is(html[data-page="BR"]) .btn--ghost.on-dark:hover { background: var(--on-ink, var(--paper)); color: var(--ink); border-color: var(--on-ink, var(--paper)); }
+  :is(html[data-page="BR"]) .sect-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; flex-wrap: wrap; margin-bottom: 54px; }
+  :is(html[data-page="BR"]) .sect-head .lead { margin: 14px 0 0; }
+  :is(html[data-page="BR"]) .reveal { opacity: 0; transform: translateY(26px); transition: opacity .7s ease, transform .7s ease; }
+  :is(html[data-page="BR"]) .reveal.in { opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) {
+    :is(html[data-page="BR"]) .reveal { opacity: 1; transform: none; transition: none; }
+    :is(html[data-page="BR"]) * { animation: none !important; }
+  }
+
+  /* --------------------------------------------------------------------- */
+  /* Corrections to the shared sections, scoped to this category.           */
+  /*                                                                        */
+  /* The *F sections were written for a LIGHT accent — Forge's brass is     */
+  /* #C2954E, and ink on it is 7.03:1. This category's accent is the darker */
+  /* rose #A4585E, chosen so it clears AA on cream, and ink on it is        */
+  /* 2.44:1. Both bands that fill with --brass therefore need their text    */
+  /* turned light here.                                                     */
+  /*                                                                        */
+  /* SPECIFICITY. Astro stamps its scope attribute on EVERY compound of a   */
+  /* scoped selector, so TrustF's `.trust-cell .lbl` compiles to            */
+  /* `.trust-cell[cid] .lbl[cid]` at (0,4,0). A rule here written           */
+  /* `:is(html…) .trust-cell .lbl` is only (0,3,1) and LOSES — b is         */
+  /* compared before c. The `.trust` ancestor below lifts those two to      */
+  /* (0,4,1). The one-class rules (`.trust`, `.trust-cell`) already win.    */
+  /* --------------------------------------------------------------------- */
+  /* TrustF hard-codes `color: var(--ink)` on the band and dims its labels to
+     .85 / .6 opacity; on the rose that lands at ~2.9:1 for 11.5px text. */
+  :is(html[data-page="BR"]) .trust { color: var(--on-brass, var(--paper)); }
+  :is(html[data-page="BR"]) .trust-cell { border-right-color: rgba(var(--paper-rgb), .28); }
+  :is(html[data-page="BR"]) .trust .trust-cell .lbl { opacity: 1; font-weight: 500; }
+  :is(html[data-page="BR"]) .trust .trust-cell .src { opacity: 1; font-size: 12px; }
+
+  /* CtaBandF: the same band, the same ink-on-rose problem, and it was not
+     corrected — its headline, paragraph and both buttons sat at 2.44:1.
+     Rerouted at the TOKEN on the band itself, so every rule inside reads the
+     right colour whatever its specificity: text and the filled button take
+     --on-brass, the button's label takes --brass, the outlined button takes
+     --on-brass. All three are engine-maintained contrast tokens, so an admin
+     Color Scheme still lands legibly on the band. */
+  :is(html[data-page="BR"]) .cta-band { --ink: var(--on-brass); --on-ink: var(--brass); --on-paper: var(--on-brass); }
+  /* Two survivors the token cannot reach: the paragraph is dimmed with
+     rgba(--ink-rgb, .74), which lands at 3.4:1 on the rose — lifted by a
+     doubled class to (0,3,2) over CtaBandF's (0,3,1). And the kicker's colour
+     is an INLINE style on the shared component, which nothing but !important
+     beats. Its 34px rule is otherwise drawn in --brass on a --brass band. */
+  :is(html[data-page="BR"]) .cta-band.cta-band p { color: var(--on-brass, var(--paper)); }
+  :is(html[data-page="BR"]) .cta-band .kicker { color: var(--on-brass, var(--paper)) !important; }
+  :is(html[data-page="BR"]) .cta-band .kicker::before { background: var(--on-brass, var(--paper)); }
+
+  /* --------------------------------------------------------------------- */
+  /* Mobile-first tuning — shared scaffolding only. Grid stacking lives in  */
+  /* each section's own scoped block.                                       */
+  /*                                                                        */
+  /* The heading and lead ladders are capped at what the rule above them    */
+  /* yields at the breakpoint. As forked, `.h-sect` restated itself at      */
+  /* <=760 as clamp(34px, 8.5vw, 58px) while the base reads 42.6px at       */
+  /* 761px, so every section heading jumped 15px UP as the window crossed   */
+  /* 760 — and 2px again at 520. `.lead` did the same by 1px. Capped, the   */
+  /* ladder only ever shrinks as the viewport narrows.                      */
+  /* --------------------------------------------------------------------- */
+  @media (max-width: 760px) {
+    :is(html[data-page="BR"]) .pad-y { padding-block: clamp(52px, 8vw, 84px); }
+    :is(html[data-page="BR"]) .sect-head { margin-bottom: 34px; gap: 8px 24px; }
+    :is(html[data-page="BR"]) .h-sect { font-size: clamp(34px, 8.5vw, 42px); }
+    :is(html[data-page="BR"]) .lead { font-size: clamp(15px, 3.6vw, 17px); }
+    :is(html[data-page="BR"]) .btn { padding: 14px 24px; }
+    :is(html[data-page="BR"]) .trust .trust-cell:nth-child(-n+2) { border-bottom-color: rgba(var(--paper-rgb), .28); }
+  }
+  @media (max-width: 520px) {
+    :is(html[data-page="BR"]) .pad-y { padding-block: 46px; }
+    :is(html[data-page="BR"]) .sect-head { margin-bottom: 28px; }
+    :is(html[data-page="BR"]) .h-sect { font-size: clamp(30px, 9vw, 42px); }
+    :is(html[data-page="BR"]) .heroBR-actions,
+    :is(html[data-page="BR"]) .cta-actions { width: 100%; }
+    :is(html[data-page="BR"]) .heroBR-actions > .btn,
+    :is(html[data-page="BR"]) .cta-actions > .btn {
+      flex: 1 1 100%; justify-content: center;
+    }
+  }
+</style>
