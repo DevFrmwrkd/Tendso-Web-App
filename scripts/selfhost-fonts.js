@@ -59,13 +59,16 @@ async function main() {
             if (!m) continue;
             const weight = (block.match(/font-weight:\s*([^;]+);/) || [, "400"])[1].trim();
             const style = (block.match(/font-style:\s*([^;]+);/) || [, "normal"])[1].trim();
+            // Replace ONLY the url(); Google's block already carries its own
+            // format('woff2'), and a second one makes the src descriptor
+            // invalid, which silently drops the whole face.
             const file = `${slug(fam.name)}-${subset}-${slug(weight)}-${style}.woff2`;
             const bin = await fetch(m[1], { headers: { "User-Agent": UA } });
             if (!bin.ok) throw new Error(`${fam.name}: woff2 ${bin.status}`);
             fs.writeFileSync(path.join(FONT_DIR, file), Buffer.from(await bin.arrayBuffer()));
             files++;
             kept++;
-            out.push(`/* ${fam.name} — ${subset} ${weight} ${style} */\n${block.replace(m[0], `url(/fonts/${file}) format('woff2')`)}`);
+            out.push(`/* ${fam.name} — ${subset} ${weight} ${style} */\n${block.replace(m[0], `url(/fonts/${file})`)}`);
         }
         if (!kept) throw new Error(`${fam.name}: kept 0 blocks (subsets ${fam.subsets})`);
         chunks.push(out.join("\n\n"));
