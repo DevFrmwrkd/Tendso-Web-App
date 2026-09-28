@@ -225,20 +225,57 @@ export function rememberSubmitted(email: string, amount: number): void {
     }
 }
 
-export function readSubmitted(): SubmittedReceipt | null {
-    if (typeof window === "undefined") return null;
+function parseReceipt(raw: string | null): SubmittedReceipt | null {
+    if (!raw) return null;
+    // A receipt written by the previous build is a bare email string. Someone
+    // can be mid-submission across a deploy, so read that shape too.
+    if (!raw.startsWith("{")) return { email: raw, amount: null };
     try {
-        const raw = window.sessionStorage.getItem(RECEIPT_KEY);
-        if (!raw) return null;
-        // A receipt written by the previous build is a bare email string. Someone
-        // can be mid-submission across a deploy, so read that shape too.
-        if (!raw.startsWith("{")) return { email: raw, amount: null };
         const parsed = JSON.parse(raw) as Partial<SubmittedReceipt>;
         if (typeof parsed?.email !== "string") return null;
         return {
             email: parsed.email,
             amount: typeof parsed.amount === "number" ? parsed.amount : null,
         };
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * THE SNAPSHOT MUST BE THE SAME OBJECT EVERY CALL.
+ *
+ * This is read through useSyncExternalStore (app/start/thanks/page.tsx), which
+ * compares snapshots with Object.is and re-renders whenever they differ. While
+ * this returned the stored string, that was free — two equal strings are
+ * Object.is-equal. Returning a freshly built `{ email, amount }` is not: every
+ * call is a new reference, so React sees the store change on every render,
+ * loops, and dies with "Maximum update depth exceeded".
+ *
+ * That crash was not cosmetic. It lands on the ONE page that tells an owner
+ * their intake went through, so they saw a client-side exception over a
+ * submission that had already been written and billed — and had no reason to
+ * believe it worked. Reported from the field: "Jennifer & Agie's Flowershop",
+ * 2026-09-28, whose row was perfect while the owner was staring at an error.
+ *
+ * So the parsed value is cached against the exact raw string it came from, and
+ * re-parsed only when sessionStorage actually changes. The cache lives at module
+ * scope on purpose: it must outlive the component, which is precisely the thing
+ * being remounted on every one of those wasted renders.
+ */
+let cachedRaw: string | null | undefined;
+let cachedReceipt: SubmittedReceipt | null = null;
+
+export function readSubmitted(): SubmittedReceipt | null {
+    if (typeof window === "undefined") return null;
+    try {
+        const raw = window.sessionStorage.getItem(RECEIPT_KEY);
+        // `undefined` is the "never read" sentinel — getItem only ever returns
+        // string | null, so it can never collide with a real stored value.
+        if (raw === cachedRaw) return cachedReceipt;
+        cachedRaw = raw;
+        cachedReceipt = parseReceipt(raw);
+        return cachedReceipt;
     } catch {
         return null;
     }
