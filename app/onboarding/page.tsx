@@ -10,10 +10,7 @@ import Link from "next/link"
 import Logo from "@/public/tendso-logo.png"
 import { motion } from "framer-motion"
 import { Phone, Loader2, User, ArrowRight } from "lucide-react"
-import { Bricolage_Grotesque, Outfit } from 'next/font/google';
 
-const bricolage = Bricolage_Grotesque({ subsets: ['latin'], weight: ['400', '600', '800'] });
-const outfit = Outfit({ subsets: ['latin'], weight: ['300', '400', '600'] });
 
 function generateReferralCode(firstName: string, lastName: string): string {
     const namePrefix = (firstName.substring(0, 2) + lastName.substring(0, 1)).toUpperCase()
@@ -138,7 +135,7 @@ export default function OnboardingPage() {
     }
 
     return (
-        <div className={`min-h-screen w-full flex bg-black text-white selection:bg-[#E4B05E] selection:text-black overflow-x-hidden relative ${outfit.className}`}>
+        <div className={`min-h-screen w-full flex bg-black text-white selection:bg-[#E4B05E] selection:text-black overflow-x-hidden relative font-outfit`}>
             {/* BACKGROUND EFFECTS */}
             <div className="fixed inset-0 z-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
             <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-[#00F0FF] rounded-full mix-blend-screen filter blur-[200px] opacity-20 animate-pulse pointer-events-none" />
@@ -154,7 +151,7 @@ export default function OnboardingPage() {
                 >
                     <div className="flex flex-col items-center mb-10">
                         <Image src={Logo} alt="Tendso" width={190} height={34} className="mb-6" />
-                        <h1 className={`text-4xl md:text-5xl font-black uppercase tracking-tighter text-center mb-3 ${bricolage.className}`}>
+                        <h1 className={`text-4xl md:text-5xl font-black uppercase tracking-tighter text-center mb-3 font-bricolage`}>
                             Initialize <span className="text-[#00F0FF]">Agent</span>
                         </h1>
                         <p className="text-white/50 text-center font-light text-lg">
@@ -260,7 +257,7 @@ export default function OnboardingPage() {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className={`w-full h-14 bg-[#1D00FF] hover:bg-[#2B10FF] disabled:opacity-50 text-white rounded-2xl font-bold uppercase tracking-widest text-sm transition-all shadow-[0_0_20px_rgba(29,0,255,0.3)] hover:shadow-[0_0_30px_rgba(29,0,255,0.5)] active:scale-[0.98] mt-4 flex items-center justify-center gap-3 ${bricolage.className}`}
+                                    className={`w-full h-14 bg-[#1D00FF] hover:bg-[#2B10FF] disabled:opacity-50 text-white rounded-2xl font-bold uppercase tracking-widest text-sm transition-all shadow-[0_0_20px_rgba(29,0,255,0.3)] hover:shadow-[0_0_30px_rgba(29,0,255,0.5)] active:scale-[0.98] mt-4 flex items-center justify-center gap-3 font-bricolage`}
                                 >
                                     {loading ? (
                                         <>
