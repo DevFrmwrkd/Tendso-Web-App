@@ -86,8 +86,17 @@ const visibility = siteData.visibility ?? {};
 const title = layout.businessName
   ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
   : 'Welcome';
-// skipAuto: per-variant palette wins when admin leaves Color Scheme on auto.
-const { scheme: __themeScheme, pairing: __themePairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+// lockVariant: per-variant palette wins when admin leaves Color Scheme on auto.
+const { scheme: __themeScheme, pairing: __resolvedPairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+// FONT-PAIRING SENTINEL. lib/astro-builder.ts defaults layout.fontPairing to
+// the literal 'modern' whenever the owner never opened the font picker, and
+// lockVariant only blanks ''/'auto'/'default'. Without this line
+// buildOverrideCss swaps Space Grotesk + Inter in over Bodoni Moda with
+// !important on nearly every real site, and the didone this design is built
+// on never reaches a visitor. astro-builder's DEFAULT is treated as unset; a
+// deliberate pick of any other pairing still applies. Same two lines as
+// hospitality/PageBJ and trades/PageBQ.
+const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
 const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
 const __fontHref = buildFontHref(__themePairing);
 // The light-ground accent, emitted only when the variant's own palette is the
@@ -95,7 +104,13 @@ const __fontHref = buildFontHref(__themePairing);
 // elements, and the engine's html:root block declares it on the root, so the
 // two never meet in one cascade -- which is also why it has to be withheld
 // rather than out-weighted when a scheme is picked.
-const __lightGroundCss = __overrideCss ? '' : `
+//
+// Gated on the SCHEME, not on __overrideCss. The override block is non-empty
+// for a font pick alone, and a font pick leaves the palette exactly as this
+// wrapper declares it, so withholding here would put the 1.36:1 ice blue back
+// on the cream sections for nothing. That is precisely what the 'modern'
+// default above used to trigger on every real site.
+const __lightGroundCss = __themeScheme ? '' : `
 html[data-page="BP"] section.pad-y:not(.ink-sect):not(.cta-band) {
   --brass: #2D6CB4; --on-brass: #F4F1EA;
 }
