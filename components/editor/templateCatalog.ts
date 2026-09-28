@@ -15,7 +15,7 @@ export type TemplateFamily =
     | "generic" | "barbershop" | "salonspa" | "autoshop" | "restaurant"
     | "shirtstore" | "retail" | "medical" | "fitness" | "education"
     | "trades" | "foodcraft" | "services" | "filipino" | "hospitality"
-    | "layouts";
+    | "florist" | "layouts";
 
 import { TEMPLATE_SECTION_ORDER } from "./templateSectionOrder.generated";
 import { TEMPLATE_SECTION_LABELS, DEFAULT_SECTION_LABELS } from "./templateSectionLabels";
@@ -136,6 +136,12 @@ const HOSPITALITY_TEMPLATES: TemplateDef[] = [
     { letter: "BK", code: "hospitality:BK", label: "Villa Marindu", tagline: "Night & brass · private villas and whole-property stays", preview: "/template-previews/bk.html" },
 ];
 
+// Florist family. A new family, but its body is the barbershop's *F sections
+// restyled by FloristSpine — only the wrapper, header and hero are its own.
+const FLORIST_TEMPLATES: TemplateDef[] = [
+    { letter: "BR", code: "florist:BR", label: "Bloom", tagline: "Dusty rose & cream · flower shops, studios & event florists", preview: "/template-previews/br.html" },
+];
+
 /** Families in rail-display order, each with a human label. */
 export const TEMPLATE_FAMILIES: Array<{ family: TemplateFamily; label: string; templates: TemplateDef[] }> = [
     { family: "generic",     label: "Generic",        templates: GENERIC_TEMPLATES },
@@ -153,6 +159,7 @@ export const TEMPLATE_FAMILIES: Array<{ family: TemplateFamily; label: string; t
     { family: "services",    label: "Services",       templates: SERVICES_TEMPLATES },
     { family: "filipino",    label: "Filipino",       templates: FILIPINO_TEMPLATES },
     { family: "hospitality", label: "Hotels & Stays", templates: HOSPITALITY_TEMPLATES },
+    { family: "florist",     label: "Florist",        templates: FLORIST_TEMPLATES },
 ];
 
 export const ALL_TEMPLATES: TemplateDef[] = TEMPLATE_FAMILIES.flatMap((f) => f.templates);

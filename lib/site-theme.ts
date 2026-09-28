@@ -160,6 +160,11 @@ export const FONT_PAIRINGS: Record<string, FontPairing> = {
 export const AUTO_BY_BUSINESS_TYPE: Record<string, string> = {
     barber: 'brown', barbershop: 'brown',
     salon: 'pink', beauty: 'pink', spa: 'pink', nail: 'pink', hair: 'pink', aesthetic: 'pink',
+    // Florist family (BR · Bloom) default = pink, the rose the design is built
+    // on. ABOVE the retail line on purpose: the fuzzy scan below returns the
+    // FIRST key contained in the typed type, and "flower shop" normalises to
+    // `flowershop`, which contains retail's `shop`.
+    florist: 'pink', flower: 'pink', floral: 'pink', bouquet: 'pink',
     auto: 'orange', autoshop: 'orange', automotive: 'orange', mechanic: 'orange', tire: 'orange', garage: 'orange', carshop: 'orange', carrepair: 'orange',
     restaurant: 'orange', diner: 'orange', eatery: 'orange', bistro: 'orange', food: 'orange',
     cafe: 'orange', coffee: 'brown', roaster: 'brown', tea: 'brown',

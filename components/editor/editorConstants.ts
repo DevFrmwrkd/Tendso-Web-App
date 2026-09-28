@@ -114,6 +114,9 @@ export const CURATED: Record<TemplateFamily, string[]> = {
     services:    ["blue", "green", "professional", "whitegold"],
     filipino:    ["orange", "maroon", "gold", "purple", "green", "brown"],
     hospitality: ["brown", "green", "maroon", "dark", "red", "black", "pink"],
+    // Florist (BR · Bloom): the rose it ships in, the deeper wine, lilac,
+    // foliage green, kraft-paper brown and the bridal white-gold.
+    florist:     ["pink", "maroon", "purple", "green", "brown", "whitegold"],
     layouts:     ["blue", "green", "purple", "orange", "brown", "maroon", "professional", "dark"],
 };
 

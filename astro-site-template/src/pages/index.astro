@@ -65,6 +65,7 @@
  *   "hospitality:BK" → Villa Marindu · a whole private villa, night + brass
  *
  *   "trades:BQ"      → Bakal Fabrication Works · steel fabrication, welding & metal shops
+ *   "florist:BR"     → Bloom · dusty rose + cream, full-bleed photo (new family)
  *
  * Each PageX wrapper produces the full document (its own doctype, theme,
  * fonts, leaflet boot) so they do not compose with BaseLayout.
@@ -139,6 +140,7 @@ import PageBH from '../components/filipino/PageBH.astro';
 import PageBI from '../components/hospitality/PageBI.astro';
 import PageBJ from '../components/hospitality/PageBJ.astro';
 import PageBK from '../components/hospitality/PageBK.astro';
+import PageBR from '../components/florist/PageBR.astro';
 import siteData from '../data/site-data.json';
 
 // Live-editor support: template / colour / font / hidden-sections can be driven
@@ -193,10 +195,13 @@ const filipinoMatch = /^filipino:(B[B-H])$/.exec(heroStyle);
 const filipinoLetter = filipinoMatch ? filipinoMatch[1] : null;
 const hospitalityMatch = /^hospitality:(BI|BJ|BK)$/.exec(heroStyle);
 const hospitalityLetter = hospitalityMatch ? hospitalityMatch[1] : null;
+const floristMatch = /^florist:(BR)$/.exec(heroStyle);
+const floristLetter = floristMatch ? floristMatch[1] : null;
 const anyLetter = genericLetter || barbershopLetter || salonspaLetter
   || autoshopLetter || restaurantLetter || shirtstoreLetter
   || retailLetter || medicalLetter || fitnessLetter || educationLetter || tradesLetter || foodcraftLetter
-  || servicesLetter || layoutsLetter || filipinoLetter || hospitalityLetter;
+  || servicesLetter || layoutsLetter || filipinoLetter || hospitalityLetter
+  || floristLetter;
 ---
 
 {genericLetter === 'A' && <PageA siteData={data} />}
@@ -268,6 +273,7 @@ const anyLetter = genericLetter || barbershopLetter || salonspaLetter
 {hospitalityLetter === 'BI' && <PageBI siteData={data} />}
 {hospitalityLetter === 'BJ' && <PageBJ siteData={data} />}
 {hospitalityLetter === 'BK' && <PageBK siteData={data} />}
+{floristLetter === 'BR' && <PageBR siteData={data} />}
 {!anyLetter && (
   <BaseLayout
     businessName={layout.businessName ?? ''}

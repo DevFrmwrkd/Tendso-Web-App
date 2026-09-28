@@ -207,6 +207,27 @@ export const GENERIC_CONTENT_SCHEMA: GroupSpec[] = [
                     { kind: 'text', label: 'Line', path: '', placeholder: 'Line of headline' },
                 ],
             } as ListSpec,
+            // The small italic line under the headline ("since 2011"). HeroF,
+            // HeroJ, HeroBP and HeroBR all bind and draw it; nothing declared it,
+            // so it could never render on any of them. Only templates that bind
+            // it show this input — the manifest filters it everywhere else.
+            {
+                kind: 'text',
+                label: 'Line under the headline',
+                path: 'hero.thin',
+                placeholder: 'since 2016',
+            },
+            // How strongly the hero photo is darkened behind the headline.
+            // Bloom (florist:BR) reads it: a bright, busy photograph wants
+            // `strong`, a dark calm one can take `soft`. Anything else renders
+            // as `medium`, so a typo never removes the wash entirely.
+            {
+                kind: 'text',
+                label: 'Photo shade behind the headline',
+                path: 'hero.scrim',
+                placeholder: 'medium',
+                hint: 'Type soft, medium or strong. Use strong when the photo is bright or busy behind the words.',
+            },
             {
                 kind: 'textarea',
                 label: 'Sub-headline / elevator pitch',

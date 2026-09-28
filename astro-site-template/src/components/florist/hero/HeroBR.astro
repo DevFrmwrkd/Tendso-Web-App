@@ -1,0 +1,169 @@
+---
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+// Anchor guard — same contract as HeroF. PageBR reuses the *F sections, so its
+// anchor set matches PageF's. Keep PAGE_ANCHORS in step with PageBR.
+const PAGE_ANCHORS = new Set(['about', 'faq', 'how', 'services', 'top', 'visit', 'work']);
+const ANCHOR_ALIAS: Record<string, string> = { gallery: 'work', location: 'visit', shop: 'services', workshops: 'how' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const alias = ANCHOR_ALIAS[href.slice(1)];
+  if (PAGE_ANCHORS.has(href.slice(1))) return href;
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const hero = content.hero || {};
+const heroImage = hero.image || (hero.photos && hero.photos[0]) || (content.photos && content.photos[0]) || '';
+const headlineLines = Array.isArray(hero.headlineLines) && hero.headlineLines.length > 0
+  ? hero.headlineLines
+  : (hero.headline ? [hero.headline] : []);
+const thin = hero.thin || hero.sub_kicker || '';
+const sub = hero.sub || '';
+const cta1Text = hero.cta1?.text || '';
+const cta1Href = onPage(hero.cta1?.href, '#services');
+const cta2Text = hero.cta2?.text || '';
+const cta2Href = onPage(hero.cta2?.href, (layout.contact?.phone ? `tel:${layout.contact.phone.replace(/[^0-9+]/g, '')}` : '#'));
+// Scrim strength. The hero photograph is typically light and busy, so the
+// copy needs a graded wash behind it; how much depends on the image, which is
+// why it is a content field rather than a fixed value. Unknown values fall
+// back to medium rather than rendering no scrim at all.
+const scrimRaw = hero.scrim || 'medium';
+const scrim = ['soft', 'medium', 'strong'].includes(scrimRaw) ? scrimRaw : 'medium';
+// VISUAL lines, not array entries. The headline is capped at 14ch, which in
+// uppercase Playfair holds about 11 characters, so a single entry such as a
+// business name routinely wraps onto two or three lines. The height budget
+// below divides by this count; counting entries instead would budget a
+// wrapped one-liner as one line and push the hero past the viewport.
+// An estimate on purpose: too high costs a few pixels of headline, too low
+// costs the fit, so it rounds up.
+const CHARS_PER_LINE = 11;
+const visualLines = Math.max(1, headlineLines.reduce((n: number, l: string) => {
+  const text = String(l ?? '').replace(/<[^>]*>/g, '').trim();
+  return n + Math.max(1, Math.ceil(text.length / CHARS_PER_LINE));
+}, 0));
+---
+
+<section class="heroBR" id="top" style={`--hero-lines:${visualLines}`}>
+  <div class="heroBR-media">
+    <div class="bg-img" data-image-field="hero.image" style={heroImage ? `background-image: url('${heroImage}');` : ''}></div>
+  </div>
+  <span class={`heroBR-scrim is-${scrim}`}></span>
+  <span class="heroBR-frame"></span>
+
+  <div class="heroBR-inner">
+    {/* Guarded element, not guarded contents: with no name supplied the content
+        layer emits headlineLines: [], and an unconditional <h1> would ship an
+        empty heading. */}
+    {(headlineLines.length > 0 || thin) && (
+      <h1>
+        {headlineLines.map((line: string, i: number) => (
+          <span class="line"><span class="inner" data-field={`hero.headlineLines.${i}`} set:html={line}></span></span>
+        ))}
+        {thin && <span class="thin" data-field="hero.thin">{thin}</span>}
+      </h1>
+    )}
+    {(cta1Text || cta2Text) && (
+      <div class="heroBR-actions">
+        {cta1Text && (
+          <a class="btn btn--brass" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>
+        )}
+        {cta2Text && (
+          <a class="btn btn--ghost on-dark" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>
+        )}
+      </div>
+    )}
+    <span class="heroBR-rule" aria-hidden="true"><span></span><span></span></span>
+    {sub && <p class="heroBR-sub" data-field="hero.sub">{sub}</p>}
+  </div>
+</section>
+
+<style>
+  .heroBR {
+    background: var(--ink); color: var(--paper);
+    min-height: 100svh; overflow: hidden; position: relative;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .heroBR-media, .heroBR-media .bg-img { position: absolute; inset: 0; }
+  .heroBR-media { background: var(--ink-3); }
+  .heroBR-media .bg-img { background-size: cover; background-position: center; }
+  .heroBR-scrim { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .heroBR-scrim.is-soft { background: linear-gradient(96deg, rgba(48,30,26,.52) 0%, rgba(48,30,26,.22) 40%, transparent 66%); }
+  .heroBR-scrim.is-medium { background: linear-gradient(96deg, rgba(48,30,26,.68) 0%, rgba(48,30,26,.34) 40%, transparent 68%); }
+  .heroBR-scrim.is-strong { background: linear-gradient(96deg, rgba(48,30,26,.82) 0%, rgba(48,30,26,.48) 42%, rgba(48,30,26,.08) 72%); }
+  .heroBR-frame {
+    position: absolute; inset: 24px; z-index: 4; pointer-events: none;
+    border: 1px solid rgba(var(--paper-rgb), .42);
+  }
+  /* Click-through copy plate: it covers the full-bleed image, so leaving it
+     interactive would swallow every pointer event aimed at the photograph.
+     But ONLY the plate: every direct child takes pointer events back, so the
+     headline, sub-line and buttons stay clickable — the editor's click-to-edit
+     finds them — while the empty plate around them passes clicks through to
+     the photo. align-items keeps each child at its own content width, which
+     is what makes that split clean. */
+  .heroBR-inner {
+    position: relative; z-index: 5;
+    display: flex; flex-direction: column; align-items: flex-start;
+    pointer-events: none;
+    /* Height-aware on purpose. The hero asks for min-height: 100svh, but with
+       fixed 190px / 110px padding and up to three lines at 132px its content
+       ran ~990px — past a laptop screen. The design's numbers survive as the
+       ceilings; a short viewport compresses in proportion. The floor of the
+       top padding clears the inset nav bar (24px + ~88px). */
+    padding: clamp(124px, 17svh, 190px) clamp(56px, 7vw, 116px) clamp(48px, 9svh, 110px);
+  }
+  .heroBR-inner > * { pointer-events: auto; }
+  /* Width-driven as designed, then capped by the height it would cost:
+     --hero-lines is the ESTIMATED visual line count from the markup, since
+     the block's height is lines x size. A two-line name keeps the full 132px
+     on a full-HD screen; a long name compresses instead of overflowing. */
+  .heroBR h1 {
+    font-family: var(--display); font-weight: 400; text-transform: uppercase;
+    /* Floor 46px, not lower: the floors must only ever descend down the
+       ladder (46 / 46 / 40 / 34) or a very short window steps UP at 860. */
+    font-size: clamp(46px, min(8.2vw, calc(39svh / var(--hero-lines, 1))), 132px);
+    line-height: .98; letter-spacing: .004em;
+    margin: 0; max-width: 14ch; color: #F8F2E9;
+    text-shadow: 0 2px 30px rgba(48, 30, 26, .35);
+  }
+  .heroBR h1 .line { display: block; overflow: hidden; padding-bottom: .04em; }
+  .heroBR h1 .line .inner { display: block; }
+  .heroBR h1 .thin {
+    display: block; font-family: var(--serif); font-style: italic; font-weight: 500;
+    text-transform: none; color: var(--brass-bright); font-size: .3em;
+    letter-spacing: 0; line-height: 1; margin-top: .2em;
+  }
+  .heroBR-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: clamp(24px, 4.2svh, 44px); }
+  .heroBR-actions > :global(.btn) { padding: 21px 40px; font-size: 14px; }
+  /* Two-tone rule between the CTA and the sub-line — cream then accent. */
+  .heroBR-rule { display: flex; align-items: center; gap: 10px; margin-top: clamp(20px, 3.6svh, 38px); }
+  .heroBR-rule > span:first-child { width: 56px; height: 2px; background: #F8F2E9; display: block; }
+  .heroBR-rule > span:last-child { width: 110px; height: 2px; background: var(--brass-bright); display: block; }
+  .heroBR-sub {
+    font-family: var(--serif); font-size: clamp(20px, 1.8vw, 25px); line-height: 1.42;
+    color: #F5EDE3; margin: clamp(14px, 2.2svh, 22px) 0 0; max-width: 24ch;
+  }
+
+  /* Every restatement of the headline carries the SAME height cap as the base.
+     Without it a short viewport makes the base smaller than the rule below it
+     and the headline grows as the window narrows. The <=860 ceiling is 70px,
+     not the 84px it was designed with: the base reads 8.2vw = 70.6px at 861px,
+     so 84 made the headline jump 13px UP as the window crossed 860. */
+  @media (max-width: 860px) {
+    .heroBR-frame { inset: 14px; }
+    .heroBR-inner { padding: 150px var(--pad) 90px; }
+    .heroBR h1 { font-size: clamp(46px, min(11vw, calc(39svh / var(--hero-lines, 1))), 70px); }
+  }
+  @media (max-width: 760px) {
+    .heroBR-inner { padding: 132px var(--pad) 76px; }
+    .heroBR h1 { font-size: clamp(40px, min(12vw, calc(39svh / var(--hero-lines, 1))), 64px); max-width: 18ch; }
+    .heroBR-sub { font-size: 19px; }
+    .heroBR-actions { margin-top: 32px; }
+  }
+  @media (max-width: 520px) {
+    .heroBR h1 { font-size: clamp(34px, min(12.5vw, calc(39svh / var(--hero-lines, 1))), 50px); }
+    .heroBR-inner { padding: 118px var(--pad) 64px; }
+    .heroBR-rule { margin-top: 28px; }
+    .heroBR-rule > span:last-child { width: 78px; }
+  }
+</style>

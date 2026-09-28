@@ -1,0 +1,193 @@
+---
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+// Anchor guard — same contract as HeaderF. Resolve every in-page href against
+// what PageBR actually renders: keep it if the id exists, remap it when this
+// design carries the same section under another id, otherwise drop the link
+// (a nav entry that scrolls nowhere is as broken as a dead CTA). Off-page
+// hrefs (tel:, mailto:, http) pass through.
+// PageBR reuses the *F sections, so its anchor set matches PageF's.
+const PAGE_ANCHORS = new Set(['about', 'faq', 'how', 'services', 'top', 'visit', 'work']);
+const ANCHOR_ALIAS: Record<string, string> = { gallery: 'work', location: 'visit', shop: 'services', workshops: 'how' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const alias = ANCHOR_ALIAS[href.slice(1)];
+  if (PAGE_ANCHORS.has(href.slice(1))) return href;
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+// No invented wordmark: with no name supplied the mark is omitted. The anchor
+// holds text alone, so the editor bridge's innerHTML update is safe on it.
+const brand = (content as any).footer?.brand || layout.businessName || '';
+const navLinks: Array<{ href: string; label: string; i: number }> =
+  ((layout.navLinks && layout.navLinks.length) ? layout.navLinks : [])
+    .map((l: any, i: number) => ({ ...l, href: onPage(l.href, ''), i }))
+    .filter((l: any) => l.href);
+const phone = layout.contact?.phone || (content as any).contact?.phone || '';
+// Derived, not editable: the tel: target is the number with everything but
+// digits stripped. No data-href-field on that anchor — contact.phone holds a
+// string, and writing a `.href` twin into it replaces the number with {}.
+const phoneDigits = phone.replace(/[^0-9+]/g, '');
+// No default label — a label from the owner or no nav CTA. This template
+// carries no cart or checkout: landing pages don't transact.
+const ctaText = (content as any).navCtaText || '';
+const ctaHref = onPage((content as any).navCtaHref, '#visit');
+---
+{/* The design marks "Services" as the current tab. That emphasis is kept as
+    .is-active; aria-current="page" is not, because a #services fragment on a
+    one-page site is not the page the visitor is on. */}
+<header class="nav navBR">
+  {brand && <a href="#top" class="brand" data-field="footer.brand">{brand}</a>}
+  {(navLinks.length > 0 || ctaText || phone) && (
+    <button class="nav-burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav-br-menu">
+      <span></span><span></span><span></span>
+    </button>
+  )}
+  <div class="nav-panel" id="nav-br-menu">
+    <div class="nav-links">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class={link.href === '#services' ? 'is-active' : ''}
+          data-field={`navbar_links.${link.i}.label`}
+          data-href-field={`navbar_links.${link.i}.href`}
+        >{link.label}</a>
+      ))}
+    </div>
+    {/* .nav-actions, not .nav-cta: the theme engine pins `.nav-cta` with
+        !important for the navbar pills of older templates. */}
+    {(phone || ctaText) && (
+      <div class="nav-actions">
+        {phone && (
+          <a href={`tel:${phoneDigits}`} class="nav-phone" data-field="contact.phone">{phone}</a>
+        )}
+        {ctaText && <a href={ctaHref} class="btn btn--brass nav-book" data-field="navCtaText" data-href-field="navCtaHref">{ctaText}</a>}
+      </div>
+    )}
+  </div>
+</header>
+
+<script is:inline>
+  (function () {
+    var hdr = document.querySelector('header.navBR');
+    if (!hdr) return;
+    var burger = hdr.querySelector('.nav-burger');
+    var panel = hdr.querySelector('.nav-panel');
+    if (!burger || !panel) return;
+    function setOpen(open) {
+      hdr.classList.toggle('open', open);
+      burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    burger.addEventListener('click', function () { setOpen(!hdr.classList.contains('open')); });
+    panel.querySelectorAll('a').forEach(function (a) {
+      a.addEventListener('click', function () { setOpen(false); });
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+  })();
+</script>
+
+<style>
+  /* Frosted cream bar rather than a transparent floating header: this hero's
+     photograph is light, so a dark-on-cream bar is the only treatment that
+     stays legible over any image the owner uploads. Inset to sit inside the
+     hero's hairline frame, whose top edge it covers. */
+  header.navBR {
+    position: absolute; top: 24px; left: 24px; right: 24px; z-index: 1000;
+    /* THREE columns — brand | centred links | actions. As designed this was
+       `auto 1fr`, but .nav-panel is display:contents, so the links and the
+       actions both become grid items: three items in two columns, and the
+       phone + booking button wrapped onto a second row, doubling the bar
+       until it pressed on the headline. */
+    display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 32px;
+    padding: 22px 34px;
+    background: rgba(243, 234, 223, .86);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    transition: background .3s ease, padding .3s ease;
+  }
+  /* Once scrolled the bar leaves the frame and pins to the viewport. */
+  header.navBR.scrolled {
+    position: fixed; top: 0; left: 0; right: 0;
+    background: rgba(243, 234, 223, .96);
+    padding-block: 14px;
+  }
+  .brand {
+    font-family: var(--display); font-size: 25px;
+    letter-spacing: .09em; color: var(--ink);
+    text-transform: uppercase; line-height: 1; white-space: nowrap;
+  }
+  .nav-panel { display: contents; }
+  .nav-links { display: flex; gap: clamp(22px, 2.8vw, 46px); align-items: center; justify-self: center; white-space: nowrap; }
+  .nav-links :global(a) {
+    font-family: var(--cond); text-transform: uppercase; letter-spacing: .18em;
+    font-size: 12.5px; font-weight: 400; color: var(--ink); opacity: .78;
+    transition: opacity .25s ease;
+  }
+  .nav-links :global(a:hover), .nav-links :global(a.is-active) { opacity: 1; }
+  .nav-actions { display: flex; align-items: center; gap: 16px; justify-self: end; }
+  .nav-phone {
+    font-family: var(--cond); letter-spacing: .1em; font-size: 13px;
+    color: var(--ink); display: flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  .nav-book { padding: 14px 26px; }
+  .nav-burger { display: none; }
+  /* Between the burger breakpoint and ~1000px the three columns do not fit
+     with the number in them — at 861px it broke over four lines and doubled
+     the bar. The booking button keeps the row; the number is still one tap
+     away in the Location section and the footer, and in the drawer below. */
+  @media (min-width: 861px) and (max-width: 1000px) {
+    .nav-phone { display: none; }
+  }
+
+  @media (max-width: 1080px) {
+    header.navBR { padding: 16px 24px; gap: 18px; }
+    .nav-links { gap: 22px; }
+    .nav-links :global(a) { font-size: 11.5px; letter-spacing: .14em; }
+    .nav-book { padding: 12px 20px; }
+  }
+
+  /* Mobile (<=860px): brand + burger with a cream drawer. */
+  @media (max-width: 860px) {
+    header.navBR {
+      position: fixed; top: 0; left: 0; right: 0;
+      grid-template-columns: 1fr auto;
+      background: rgba(243, 234, 223, .96);
+      padding: 10px var(--pad);
+    }
+    .nav-burger {
+      display: inline-flex; flex-direction: column; justify-content: center; gap: 5px;
+      width: 44px; height: 44px; padding: 10px; margin-right: -8px;
+      background: transparent; border: 0; cursor: pointer; z-index: 2;
+    }
+    .nav-burger span {
+      display: block; width: 24px; height: 2px; background: var(--ink);
+      border-radius: 2px; transition: transform .3s ease, opacity .3s ease;
+    }
+    header.navBR.open .nav-burger span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    header.navBR.open .nav-burger span:nth-child(2) { opacity: 0; }
+    header.navBR.open .nav-burger span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    .nav-panel {
+      display: block; position: absolute; left: 0; right: 0; top: 100%;
+      background: #F3EADF; border-top: 1px solid var(--line);
+      box-shadow: 0 24px 40px -24px rgba(48, 30, 26, .35);
+      max-height: 0; overflow: hidden; opacity: 0; visibility: hidden;
+      transition: max-height .35s ease, opacity .25s ease, visibility .35s;
+    }
+    header.navBR.open .nav-panel {
+      max-height: calc(100vh - 60px); overflow-y: auto; opacity: 1; visibility: visible;
+    }
+    .nav-links { display: flex; flex-direction: column; gap: 0; align-items: stretch; justify-self: stretch; padding: 4px 0 0; white-space: normal; }
+    .nav-links :global(a) {
+      display: flex; align-items: center; min-height: 48px; padding: 4px var(--pad);
+      font-size: 15px; opacity: .92; border-bottom: 1px solid var(--line);
+    }
+    .nav-actions { flex-direction: column; align-items: stretch; gap: 0; justify-self: stretch; padding: 0 var(--pad) 16px; }
+    .nav-phone {
+      display: flex; justify-content: flex-start; min-height: 48px;
+      padding: 4px 0; font-size: 15px; border-bottom: 1px solid var(--line);
+    }
+    .nav-book { width: 100%; justify-content: center; min-height: 48px; margin-top: 14px; }
+  }
+</style>
