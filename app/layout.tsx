@@ -1,63 +1,16 @@
 import type { Metadata } from "next";
-import { Fraunces, Plus_Jakarta_Sans, Playfair_Display, JetBrains_Mono, Instrument_Serif, Onest } from "next/font/google";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { ConvexClerkProvider } from "@/components/providers/ConvexClerkProvider";
 import { JsonLd } from "@/components/JsonLd";
 import { organizationGraph, SITE_URL } from "@/lib/seo";
 import "./globals.css";
+import "./self-hosted-fonts.css";
 
-// Display serif — loaded as a VARIABLE font (wght + optical-size axes) so the
-// landing can use a refined ~560 display weight and let optical sizing track
-// the font size (Fraunces gets its high-contrast display cut at large sizes).
-const fraunces = Fraunces({
-  variable: "--font-fraunces",
-  subsets: ["latin", "latin-ext"],
-  axes: ["opsz"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
-
-// Display serif — Vision-style high-contrast editorial typeface
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "700", "800", "900"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
-// Monospace for eyebrows and the legal section markers (§ 01)
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  display: "swap",
-});
-
-// NEO LAB landing: italic-friendly magazine serif for display type
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
-  subsets: ["latin"],
-  weight: ["400"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
-
-// NEO LAB landing: clean editorial sans (the body face)
-const onest = Onest({
-  variable: "--font-onest",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  display: "swap",
-});
+// Typefaces are self-hosted (see app/self-hosted-fonts.css) rather than pulled
+// from next/font/google, which downloaded them during the build and could fail
+// the whole deploy when one fetch did. The --font-* variables that file declares
+// are the same ones globals.css already read, so nothing below changed.
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -94,7 +47,7 @@ export default function RootLayout({
         <JsonLd data={organizationGraph()} />
       </head>
       <body
-        className={`${fraunces.variable} ${plusJakarta.variable} ${playfair.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} ${onest.variable} antialiased`}
+        className="antialiased"
       >
         <ConvexClerkProvider>
           {children}
