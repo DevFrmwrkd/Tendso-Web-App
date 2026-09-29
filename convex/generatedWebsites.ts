@@ -189,12 +189,67 @@ export const listPublished = query({
     },
 });
 
+/**
+ * The site served at <slug>.sites.tendso.com.
+ *
+ * PUBLIC AND UNCREDENTIALED, because the thing it serves is a public website —
+ * anyone typing the hostname is entitled to the page. That is exactly why it
+ * returns a NARROW shape instead of the row: the document carries the owner's
+ * email, phone, the raw interview and admin bookkeeping, and a hosted site must
+ * never become a way to read those by guessing hostnames.
+ *
+ * `offlineAt` is returned because ABSENT MEANS LIVE (see schema) — the caller
+ * serves the holding page rather than the site when it is set, which is how
+ * unpublish works without deleting anything.
+ */
+export const getPublishedBySlug = query({
+    args: { slug: v.string() },
+    handler: async (ctx, args) => {
+        const doc = await ctx.db
+            .query('generatedWebsites')
+            .withIndex('by_slug', (q) => q.eq('slug', args.slug))
+            .first();
+        if (!doc) return null;
+        // A row that was never published has no business being served, even
+        // though its slug is assigned.
+        if (doc.status !== 'published') return null;
+
+        const submission = await ctx.db.get(doc.submissionId);
+        const htmlUrl = doc.htmlStorageId ? await ctx.storage.getUrl(doc.htmlStorageId) : null;
+        return {
+            slug: args.slug,
+            htmlContent: doc.htmlContent ?? null,
+            htmlUrl,
+            offlineAt: doc.offlineAt ?? null,
+            publishedAt: doc.publishedAt ?? null,
+            businessName: submission?.businessName ?? null,
+            // Only for the holding page, which is themed from the same two
+            // inputs the astro build uses so it matches the site it replaces.
+            // Both are design/category config, not owner contact details.
+            businessType: submission?.businessType ?? null,
+            customizations: (doc.customizations ?? null) as Record<string, unknown> | null,
+        };
+    },
+});
+
+/** Every slug already in use, so a new site can avoid colliding with one. */
+export const listSlugs = query({
+    args: {},
+    handler: async (ctx) => {
+        const rows = await ctx.db.query('generatedWebsites').collect();
+        return rows.map((r) => r.slug).filter((s): s is string => !!s);
+    },
+});
+
 // Publish website (shorthand for updatePublishingInfo with status=published)
 export const publish = mutation({
     args: {
         submissionId: v.id('submissions'),
         publishedUrl: v.string(),
         cfPagesProjectName: v.string(),
+        // Optional so an older caller (or a deploy still running the previous
+        // frontend) keeps working; the row simply has no hosted address yet.
+        slug: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const website = await ctx.db
@@ -211,6 +266,9 @@ export const publish = mutation({
             publishedUrl: args.publishedUrl,
             cfPagesProjectName: args.cfPagesProjectName,
             publishedAt: Date.now(),
+            // Written once and then left alone: an address an owner has been
+            // given must not move underneath them on a republish.
+            ...(args.slug && !website.slug ? { slug: args.slug } : {}),
             // A publish is also the restore path for an offline site: the same
             // Worker gets the real HTML back, so it is live again by definition.
             offlineAt: undefined,

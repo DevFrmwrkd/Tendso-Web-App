@@ -1,6 +1,8 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
+import { isSitesHost, slugFromHost } from '@/lib/siteSlug';
+
 const isPublicRoute = createRouteMatcher([
     '/',
     '/login(.*)',
@@ -94,6 +96,28 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+    // ── Hosted customer sites, BEFORE anything else ───────────────────────
+    // *.sites.tendso.com is a wildcard, so EVERY hostname under it resolves and
+    // reaches this app. Until this rewrite existed, all of them served the
+    // marketing homepage — infinitely many hostnames returning the same page,
+    // which is duplicate content on a domain we control.
+    //
+    // A site is identified by its HOST, never by a path, and the rewrite keeps
+    // the original Host header so app/hosted/[slug] can re-check it. Returning
+    // here also skips Clerk entirely: these are public pages for people who
+    // have no account and never will.
+    const host = req.headers.get('host');
+    if (isSitesHost(host)) {
+        // Note isSitesHost, not slugFromHost: a reserved word or a multi-label
+        // name under the wildcard is NOT a site we issued, but it still must
+        // not serve the marketing page. The route re-derives the slug from the
+        // Host and answers those with a noindex 404.
+        const url = req.nextUrl.clone();
+        url.pathname = `/hosted/${slugFromHost(host) ?? 'unknown'}`;
+        url.search = '';
+        return NextResponse.rewrite(url);
+    }
+
     if (isPublicRoute(req)) {
         return;
     }
