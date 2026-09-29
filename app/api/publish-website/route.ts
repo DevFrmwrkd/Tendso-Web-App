@@ -4,6 +4,8 @@ import { fetchQuery, fetchMutation } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { resolveWebsiteHtml } from '@/lib/website-html'
+import { resolveSiteSlug, siteUrlForSlug } from '@/lib/siteSlug'
+import { revalidatePath } from 'next/cache'
 
 /**
  * Publish a generated website to Cloudflare Pages
@@ -84,12 +86,24 @@ export async function POST(request: NextRequest) {
         const workerSubdomain = await getWorkersSubdomain(cfApiToken, cfAccountId)
         const publishedUrl = `https://${workerName}.${workerSubdomain}.workers.dev`
 
+        // ── The <slug>.sites.tendso.com address ───────────────────────────
+        // Assigned ONCE and never recomputed: the address is emailed to the
+        // owner and printed on their signage, so re-slugging a live site would
+        // break a link somebody already has. A rename of the business does not
+        // move the site.
+        let siteSlug = website.slug ?? null
+        if (!siteSlug) {
+            const taken = await fetchQuery(api.generatedWebsites.listSlugs, {})
+            siteSlug = resolveSiteSlug(submission.businessName, taken, String(submissionId))
+        }
+
         // Update generated website in Convex with published info
         try {
             await fetchMutation(api.generatedWebsites.publish, {
                 submissionId: submissionId as Id<"submissions">,
                 publishedUrl,
                 cfPagesProjectName: workerName,
+                slug: siteSlug,
             })
         } catch (updateError: any) {
             console.error('Database update error:', updateError?.message || updateError)
@@ -114,9 +128,26 @@ export async function POST(request: NextRequest) {
             console.error('Submission websiteUrl update error:', urlError?.message || urlError)
         }
 
+        // The hosted route caches a published page effectively forever and
+        // relies on THIS to drop it, which is what makes a publish show up
+        // immediately instead of after a TTL. Never let a purge failure fail a
+        // publish that already succeeded — the worst case is a stale page for a
+        // minute, against a site that is actually live.
+        try {
+            revalidatePath(`/hosted/${siteSlug}`)
+        } catch (purgeError: unknown) {
+            console.warn('[publish] cache purge failed for', siteSlug, purgeError)
+        }
+
+        const hostedUrl = siteUrlForSlug(siteSlug)
         return NextResponse.json({
             success: true,
+            // The workers.dev URL stays the reported one until the hosted route
+            // is verified in production. Both serve the same site; links already
+            // sent to owners keep working either way.
             url: publishedUrl,
+            hostedUrl,
+            slug: siteSlug,
             projectName: workerName,
             message: `Website published successfully to ${publishedUrl}`
         })

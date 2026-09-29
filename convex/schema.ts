@@ -292,8 +292,17 @@ export default defineSchema({
         // attached custom domain. Do not clear them here.
         offlineAt: v.optional(v.number()),
         // Domain customization
+        // NOTE: `subdomain` is DEAD — declared here but never written by any
+        // code path. Left in place rather than removed so an old row keeps
+        // validating; `slug` below is the field that is actually used.
         subdomain: v.optional(v.string()),
         customDomain: v.optional(v.string()),
+        // The label this site is served at: <slug>.sites.tendso.com.
+        // Assigned at publish and never changed afterwards — the address goes
+        // in an email to the owner and onto their tarpaulin, so re-slugging a
+        // live site would break a link somebody printed. Unique across the
+        // table; lib/siteSlug.ts resolves collisions with a -2 suffix.
+        slug: v.optional(v.string()),
         // ==================== CONTENT FIELDS (from mobile branch merge) ====================
         // Hero section
         heroTitle: v.optional(v.string()),
@@ -356,7 +365,10 @@ export default defineSchema({
         airtableSyncedAt: v.optional(v.number()),
     })
         .index('by_submissionId', ['submissionId'])
-        .index('by_status', ['status']),
+        .index('by_status', ['status'])
+        // Every request to a hosted site is a lookup on this index, so it is
+        // the hot path for customer traffic, not an admin convenience.
+        .index('by_slug', ['slug']),
 
     // ==================== AUDIT LOGS ====================
     auditLogs: defineTable({
