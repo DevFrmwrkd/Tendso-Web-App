@@ -12,9 +12,7 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import WebsitePreview from "@/components/WebsitePreview";
 import VisualEditor from "@/components/editor/VisualEditor";
 import ContentEditor, { EditorCustomizations } from "@/components/ContentEditor";
-// Type only: v1's component is no longer mounted. The interface moves out of
-// that file in the commit that deletes it.
-import { type SandboxEditorProps } from "@/components/editor/SandboxEditor";
+import { type SandboxEditorProps } from "@/components/editor/editorProps";
 import SandboxEditorV3 from "@/components/editor/SandboxEditorV3";
 import TopActionBar from "./_components/TopActionBar";
 import DetailsSidebar from "./_components/DetailsSidebar";

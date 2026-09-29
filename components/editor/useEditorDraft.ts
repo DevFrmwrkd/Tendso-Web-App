@@ -27,7 +27,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { SandboxEditorProps } from "./SandboxEditor";
+import type { SandboxEditorProps } from "./editorProps";
 import { TEMPLATE_BUCKETS } from "./templateCatalog";
 import { familyOf, templateByCode, BLOCK_TIER, type TemplateFamily } from "./templateCatalog";
 import { ALL_BLOCKS } from "./editorConstants";
