@@ -149,7 +149,47 @@ a font pick alone makes the override block non-empty.
 
 ---
 
-## 7. Files you must touch
+## 7. Mobile and tablet — not an afterthought
+
+Most Tendso customers reach these sites on a phone, on mobile data. A template
+that only works at 1440px is not finished.
+
+The house breakpoints are already settled. Measured across every template:
+
+| breakpoint | uses | what it is for |
+|---|---|---|
+| `max-width: 760px` | 610 | **Phone.** Stack to one column, hamburger nav, full-width CTAs |
+| `max-width: 520px` | 338 | Small-phone refinement — tighten type and padding |
+| `max-width: 900px` | 159 | **Tablet / narrow laptop** |
+
+**Use 760, 520 and 900. Do not invent your own.** The scattered 820 / 860 / 880
+breakpoints in older wrappers are the mess, not the model — a nav that hides at
+760 while its replacement appears at 980 leaves a **dead zone** where there is
+no navigation at all. That exact bug shipped in the salonspa family.
+
+Requirements:
+
+- **A hamburger nav in the header.** 44 of 50 header components already have
+  one (`.nav-burger` plus an inline toggle). Copy the pattern from your family's
+  header, or from `hospitality/HeaderBJ`.
+- **No horizontal overflow at 360px.** That is the test width — it is narrower
+  than most phones on purpose. Check it, do not assume it.
+- **Hide and show at the SAME breakpoint.** If the desktop nav hides at 760, the
+  burger appears at 760. Not 761, not 980.
+- **Type must never grow as the viewport narrows.** A base
+  `font-size: clamp(min, Nvw, max)` restated at a narrower breakpoint can yield
+  *more* at that breakpoint than one pixel above it, so the heading jumps up as
+  the window shrinks. `scripts/check-type-ladders.mjs` enforces this — it is one
+  of the five guards, and it has a baseline of 32 known offenders it will not
+  let you add to.
+- **Do not force one column where two already fit.** Stat bands and small
+  galleries that sit two-up at 360px without overflowing are deliberate; forcing
+  them single-column looks worse. Judge it at 360px rather than applying a rule.
+
+Verify at three widths, not one: **360**, **768** and **1440**. The tablet width
+is where the dead zones live, and it is the one people skip.
+
+## 8. Files you must touch
 
 Pick your letter from the end of the alphabet series (`BS`, `BT`, …) and check
 it is unused. A design's "reserved" letters are a **collision, not a courtesy** —
@@ -176,7 +216,7 @@ npm run templates:sync
 
 ---
 
-## 8. Verify — do not skip this
+## 9. Verify — do not skip this
 
 ```bash
 npm run check:templates     # all five guards
@@ -205,7 +245,7 @@ committed preview.
 
 ---
 
-## 9. Definition of done
+## 10. Definition of done
 
 - [ ] Every visible string and image has a `data-field` / `data-image-field` / `data-href-field`
 - [ ] Every path starts with a declared root — `check-template-field-roots` passes
@@ -214,11 +254,12 @@ committed preview.
 - [ ] Font sentinel present; fixture seeded with `'modern'`
 - [ ] All five guards pass, `tsc` clean, `jest` green, astro build succeeds
 - [ ] Rendered twice — full payload, and empty payload with every section hiding
+- [ ] Checked at 360px, 768px and 1440px — no overflow, nav reachable at every width
 - [ ] Previews diff contains **only** your new file
 
 ---
 
-## 10. What not to do
+## 11. What not to do
 
 - **Do not trade the design away.** If a design file was handed over, reproduce
   it — its palette and layout are the spec, not a starting point.
