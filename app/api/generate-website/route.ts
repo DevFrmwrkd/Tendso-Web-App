@@ -6,6 +6,7 @@ import { buildAstroSite } from '@/lib/astro-builder'
 import { buildRoleColorCss } from '@/lib/roleColors'
 import { asServiceArray } from '@/lib/services-shape'
 import { GROQ_TEXT_MODEL } from '@/lib/services/groqModels'
+import { autoTemplateFor, resolveHeroStyle } from '@/lib/templatePicker'
 import {
     groqService,
     delimitTranscript,
@@ -770,8 +771,18 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             }
         }
 
+        // A FULL code, never a bare letter. Every wrapper in index.astro is
+        // gated on `family:LETTER`, so the old `'A'` matched nothing and the
+        // page fell through to the "Coming soon" stub with zero sections. See
+        // lib/templatePicker.ts — it also spreads sites across the family that
+        // suits the trade, so two shops of the same kind do not come out
+        // identical. Only the DEFAULT: an explicit pick still wins below.
         const defaultCustomizations = {
-            heroStyle: 'A',
+            heroStyle: autoTemplateFor(
+                (submissionData as any)?.businessType,
+                String((submissionData as any)?._id ?? ''),
+                (submissionData as any)?.businessName,
+            ),
             aboutStyle: 'A',
             servicesStyle: 'A',
             galleryStyle: 'A',
@@ -785,9 +796,22 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
             fontPairing: 'modern',
             fontPairingId: 'modern'
         }
-        const finalCustomizations = customizations && Object.keys(customizations).length > 0
+        const mergedCustomizations = customizations && Object.keys(customizations).length > 0
             ? { ...defaultCustomizations, ...customizations }
             : defaultCustomizations
+        // The merge above lets a STORED heroStyle win, and some stored values are
+        // the old bare letter that renders nothing. Resolve it last so a real
+        // pick is kept, a bare letter is upgraded to the code it meant, and
+        // anything unrenderable falls to the automatic choice.
+        const finalCustomizations = {
+            ...mergedCustomizations,
+            heroStyle: resolveHeroStyle(
+                (mergedCustomizations as any).heroStyle,
+                (submissionData as any)?.businessType,
+                String((submissionData as any)?._id ?? ''),
+                (submissionData as any)?.businessName,
+            ),
+        }
 
         // Ensure all required fields are present with fallbacks from submission data
         const contentWithContact = {
