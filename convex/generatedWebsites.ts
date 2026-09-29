@@ -201,6 +201,13 @@ export const listPublished = query({
  * `offlineAt` is returned because ABSENT MEANS LIVE (see schema) — the caller
  * serves the holding page rather than the site when it is set, which is how
  * unpublish works without deleting anything.
+ *
+ * `seo` is the structured-data bundle for lib/site-seo.ts. Every field in it is
+ * ALREADY PRINTED ON THE PUBLISHED PAGE — the phone in the header, the address
+ * and map in the location block, the social links in the footer — so returning
+ * them here discloses nothing a visitor cannot read off the site itself. The
+ * owner's account email, their phone as distinct from the business one, and the
+ * interview stay out, as does every field for a row that is not published.
  */
 export const getPublishedBySlug = query({
     args: { slug: v.string() },
@@ -216,6 +223,34 @@ export const getPublishedBySlug = query({
 
         const submission = await ctx.db.get(doc.submissionId);
         const htmlUrl = doc.htmlStorageId ? await ctx.storage.getUrl(doc.htmlStorageId) : null;
+
+        // The admin-edited draft the astro build reads. Preferred over the raw
+        // submission for everything it holds, because it is what the visible
+        // page was built from — structured data that contradicts the page is
+        // the one kind Google is entitled to ignore.
+        // Only the handful of keys this query reads. extractedContent is
+        // v.any() — an editor draft whose shape varies by template family — so
+        // every field is narrowed at the point of use rather than trusted.
+        const content = (doc.extractedContent ?? {}) as {
+            contact?: { phone?: string; address?: string };
+            location?: { lat?: number; lng?: number };
+            business_city?: string;
+            googleMapsUrl?: string;
+            footer?: { social_links?: unknown };
+        };
+        const contact = content.contact ?? {};
+        const location = content.location ?? {};
+        const coords =
+            typeof location.lat === 'number' && typeof location.lng === 'number'
+                ? { lat: location.lat, lng: location.lng }
+                : submission?.coordinates ?? null;
+        const socialUrls: string[] = (Array.isArray(content.footer?.social_links)
+            ? content.footer.social_links
+            : []
+        )
+            .map((link) => (link as { url?: unknown } | null)?.url)
+            .filter((url): url is string => typeof url === 'string' && !!url);
+
         return {
             slug: args.slug,
             htmlContent: doc.htmlContent ?? null,
@@ -228,6 +263,39 @@ export const getPublishedBySlug = query({
             // Both are design/category config, not owner contact details.
             businessType: submission?.businessType ?? null,
             customizations: (doc.customizations ?? null) as Record<string, unknown> | null,
+            // A real domain, once one is live, is the address this site should
+            // canonicalise to — the .sites.tendso.com copy is then the
+            // duplicate, not the original. See app/hosted/[slug]/route.ts.
+            //
+            // GATED ON domainStatus, because customDomain is written the moment
+            // the domain is registered and stays written while DNS and SSL are
+            // still being provisioned. Canonicalising to an https address that
+            // does not answer yet would point Google at a dead page.
+            customDomain:
+                (submission as { domainStatus?: string } | null)?.domainStatus === 'live'
+                    ? doc.customDomain ?? null
+                    : null,
+            seo: {
+                // STRICTLY the two contact fields the page was built from, with
+                // no fall back to submission.ownerPhone / submission.address.
+                // Those are what the owner gave us to work from, not what they
+                // chose to publish: if the draft has no phone the page prints
+                // none, and structured data must not print one either.
+                telephone: (contact.phone as string | undefined) ?? null,
+                address: (contact.address as string | undefined) ?? null,
+                city: (content.business_city as string | undefined) ?? submission?.city ?? null,
+                // Qualifiers only — buildLocalBusinessJsonLd drops them unless
+                // there is an address for them to qualify.
+                region: submission?.province ?? null,
+                postalCode: submission?.postalCode ?? null,
+                // submission.coordinates is a legitimate source here even though
+                // it is not a draft field: it is the same value the build feeds
+                // the map block, so it describes the pin the visitor can see.
+                latitude: coords?.lat ?? null,
+                longitude: coords?.lng ?? null,
+                mapUrl: (content.googleMapsUrl as string | undefined) ?? null,
+                socialUrls,
+            },
         };
     },
 });
