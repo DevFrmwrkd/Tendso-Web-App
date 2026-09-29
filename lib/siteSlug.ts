@@ -158,3 +158,18 @@ export function isSitesHost(host: string | undefined | null): boolean {
 export function siteUrlForSlug(slug: string): string {
     return `https://${slug}${SITES_SUFFIX}`;
 }
+
+/**
+ * The request header proxy.ts uses to hand the requested path to the hosted
+ * route.
+ *
+ * Needed because the rewrite has to replace the pathname with the route's own,
+ * and the route still has to tell the site itself (`/`) apart from
+ * /robots.txt, /sitemap.xml and the invented paths it should refuse.
+ *
+ * Declared in this file rather than beside the rest of the SEO code so that
+ * proxy.ts can import it without pulling anything else into the middleware
+ * bundle — this module has no imports of its own, which is why proxy.ts uses
+ * it already.
+ */
+export const SITE_PATH_HEADER = 'x-tendso-site-path';

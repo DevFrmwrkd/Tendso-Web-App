@@ -3,8 +3,16 @@ import { fetchQuery } from 'convex/nextjs'
 
 import { api } from '@/convex/_generated/api'
 import { resolveWebsiteHtml } from '@/lib/website-html'
-import { slugFromHost, SITES_SUFFIX } from '@/lib/siteSlug'
+import { slugFromHost, SITES_SUFFIX, siteUrlForSlug, SITE_PATH_HEADER } from '@/lib/siteSlug'
 import { holdingPageHtml, resolveHoldingTheme } from '@/lib/holding-page'
+import {
+    buildLocalBusinessJsonLd,
+    injectSiteSeo,
+    readHeadFacts,
+    serializeJsonLd,
+    siteRobotsTxt,
+    siteSitemapXml,
+} from '@/lib/site-seo'
 
 /**
  * Serves a customer's website at <slug>.sites.tendso.com.
@@ -32,6 +40,13 @@ export const dynamic = 'force-dynamic'
 
 /** Sent on anything that is not a live customer site. */
 const NO_INDEX = 'noindex, nofollow'
+
+/**
+ * The only paths other than `/` a customer host answers. Both are generated per
+ * site from its canonical URL — there is no file to serve, and the wildcard
+ * means a shared one could not be right for every host anyway.
+ */
+const CRAWLER_PATHS = new Set(['/robots.txt', '/sitemap.xml'])
 
 function notFound(message: string) {
     return new Response(
@@ -64,6 +79,21 @@ export async function GET(request: NextRequest) {
         return notFound(`This address is not a Tendso site. Customer sites live at a ${SITES_SUFFIX} address.`)
     }
 
+    // What the visitor actually asked for. proxy.ts sets the header because the
+    // rewrite replaces the pathname with this route's own; see the note there.
+    // The fallback is `request.nextUrl`, which after a rewrite still holds the
+    // ORIGINAL url — belt and braces, so a request that somehow arrives without
+    // the header is read correctly rather than treated as the homepage.
+    const headerPath = request.headers.get(SITE_PATH_HEADER)
+    const nextPath = request.nextUrl.pathname
+    const requestedPath = headerPath || (nextPath.startsWith('/hosted/') ? '/' : nextPath)
+    if (requestedPath !== '/' && !CRAWLER_PATHS.has(requestedPath)) {
+        // A path that is not the site and not one of the two crawler files. It
+        // used to answer with the homepage and a 200, which made every invented
+        // address an indexable duplicate of the one real page.
+        return notFound('This Tendso site is a single page. Try the address without anything after the slash.')
+    }
+
     let site: Awaited<ReturnType<typeof fetchQuery<typeof api.generatedWebsites.getPublishedBySlug>>>
     try {
         site = await fetchQuery(api.generatedWebsites.getPublishedBySlug, { slug })
@@ -79,6 +109,48 @@ export async function GET(request: NextRequest) {
 
     if (!site) {
         return notFound('This website has not been published yet, or the address is misspelled.')
+    }
+
+    // THE ONE ADDRESS THIS SITE SHOULD BE INDEXED AT.
+    //
+    // Right now the same page is reachable at three hostnames — the workers.dev
+    // URL publish still deploys, the .sites.tendso.com address, and a real
+    // domain for the handful of owners who bought one — and without a canonical
+    // Google picks one of them itself and splits the ranking signals of a page
+    // that has very few to spare. A live custom domain wins, because that is the
+    // address the owner paid for and the one on their signage.
+    const canonicalOrigin = site.customDomain
+        ? `https://${site.customDomain.replace(/^https?:\/\//i, '').replace(/\/+$/, '')}`
+        : siteUrlForSlug(slug)
+    const canonicalUrl = `${canonicalOrigin}/`
+
+    if (requestedPath === '/robots.txt') {
+        return new Response(
+            // An offline site is served noindex everywhere else, so its
+            // robots.txt has to agree — a crawler that reads Allow here and
+            // noindex on the page has been told two different things.
+            site.offlineAt ? 'User-agent: *\nDisallow: /\n' : siteRobotsTxt(canonicalOrigin),
+            {
+                status: 200,
+                headers: {
+                    'content-type': 'text/plain;charset=UTF-8',
+                    'cache-control': 'public, max-age=0, s-maxage=3600',
+                },
+            },
+        )
+    }
+
+    if (requestedPath === '/sitemap.xml') {
+        if (site.offlineAt) {
+            return notFound('This website is offline.')
+        }
+        return new Response(siteSitemapXml(canonicalUrl, site.publishedAt), {
+            status: 200,
+            headers: {
+                'content-type': 'application/xml;charset=UTF-8',
+                'cache-control': 'public, max-age=0, s-maxage=3600',
+            },
+        })
     }
 
     // ABSENT MEANS LIVE. A site taken offline keeps its row, its slug and its
@@ -107,7 +179,34 @@ export async function GET(request: NextRequest) {
         })
     }
 
-    return new Response(html, {
+    // The head the templates cannot write for themselves: the canonical URL
+    // (unknowable at build time — the slug is assigned at publish, and a domain
+    // later) and LocalBusiness structured data. Injected here so every site
+    // already published gains both without being republished one at a time, and
+    // every future template gets them for free. See lib/site-seo.ts.
+    const headFacts = readHeadFacts(html)
+    const jsonLd = buildLocalBusinessJsonLd({
+        canonicalUrl,
+        businessName: site.businessName ?? '',
+        businessType: site.businessType,
+        heroStyle: (site.customizations as { heroStyle?: string } | null)?.heroStyle ?? null,
+        description: headFacts.description,
+        image: headFacts.image,
+        telephone: site.seo?.telephone,
+        address: site.seo?.address,
+        city: site.seo?.city,
+        region: site.seo?.region,
+        postalCode: site.seo?.postalCode,
+        latitude: site.seo?.latitude,
+        longitude: site.seo?.longitude,
+        mapUrl: site.seo?.mapUrl,
+        socialUrls: site.seo?.socialUrls,
+    })
+
+    return new Response(injectSiteSeo(html, {
+        canonicalUrl,
+        jsonLd: jsonLd ? serializeJsonLd(jsonLd) : null,
+    }), {
         status: 200,
         headers: {
             'content-type': 'text/html;charset=UTF-8',

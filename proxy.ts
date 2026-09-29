@@ -1,7 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
-import { isSitesHost, slugFromHost } from '@/lib/siteSlug';
+import { isSitesHost, slugFromHost, SITE_PATH_HEADER } from '@/lib/siteSlug';
 
 const isPublicRoute = createRouteMatcher([
     '/',
@@ -115,7 +115,28 @@ export default clerkMiddleware(async (auth, req) => {
         const url = req.nextUrl.clone();
         url.pathname = `/hosted/${slugFromHost(host) ?? 'unknown'}`;
         url.search = '';
-        return NextResponse.rewrite(url);
+
+        // The path the visitor asked for, forwarded as a request header.
+        //
+        // The rewrite has to overwrite the pathname with this route's own, and
+        // a query string added here does not survive to the handler either —
+        // verified locally: after a rewrite, `request.nextUrl` inside the route
+        // is still the ORIGINAL URL and the rewritten search is not on it. A
+        // request header is the one channel middleware and a Route Handler
+        // reliably share.
+        //
+        // This matters because until the route could see the path, EVERY
+        // address on a customer host answered with the homepage and a 200:
+        // /robots.txt returned 1.3 MB of markup, and any invented path was
+        // another indexable duplicate of the one real page. The route now
+        // serves `/`, generates the two crawler files, and 404s the rest.
+        //
+        // `set`, not `append`: a visitor can send this header themselves, and
+        // overwriting it here means what the route reads is always the path
+        // that was actually requested.
+        const headers = new Headers(req.headers);
+        headers.set(SITE_PATH_HEADER, req.nextUrl.pathname);
+        return NextResponse.rewrite(url, { request: { headers } });
     }
 
     if (isPublicRoute(req)) {
