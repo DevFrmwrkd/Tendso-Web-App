@@ -40,10 +40,19 @@ const OUT = path.join(ROOT, "components/editor/templateFieldPaths.generated.ts")
  * The content roots the schema declares. A token only counts as a path if it
  * starts with one of these, which keeps CSS classes and JS identifiers out.
  */
-const ROOTS = [
+// Exported so scripts/check-template-field-roots.mjs validates against the SAME
+// list rather than a copy of it. Two lists that can drift is the bug this
+// whole directory keeps re-learning.
+export const ROOTS = [
     "hero", "about", "services", "why", "how", "testimonials", "gallery", "faq",
     "area", "credentials", "location", "ctaBand", "footer", "trust", "marquee",
     "navbar_links", "business_name", "tagline", "navCtaText", "navCtaHref",
+    // Declared editable by genericContentSchema (contact.phone / .address /
+    // .email) and bound by 63 header components, but missing here — so the
+    // scan never collected it and the Content panel filtered the shop's own
+    // phone number out of every template. Found by
+    // scripts/check-template-field-roots.mjs.
+    "contact",
 ];
 
 /** `services.items.${it.i}.title` -> `services.items.N.title` */
@@ -125,7 +134,15 @@ ${body}
 };
 `;
 
-if (process.argv.includes("--check")) {
+// Only act when RUN. check-template-field-roots.mjs imports ROOTS from this
+// module so the two share one list instead of two that drift, and an import
+// must not rewrite a generated file as a side effect.
+const RUN_AS_SCRIPT =
+    process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (!RUN_AS_SCRIPT) {
+    // imported for ROOTS only
+} else if (process.argv.includes("--check")) {
     const current = fs.existsSync(OUT) ? fs.readFileSync(OUT, "utf8") : "";
     const norm = (s) => s.split("\r\n").join("\n");
     if (norm(current) !== norm(file)) {

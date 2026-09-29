@@ -9,7 +9,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint"
+    "lint": "eslint",
+    "templates:sync": "node scripts/gen-template-fields.mjs && node scripts/gen-template-sections.mjs && node scripts/build-template-previews.mjs",
+    "check:templates": "node scripts/gen-template-fields.mjs --check && node scripts/check-template-field-roots.mjs && node scripts/check-template-blocks.mjs && node scripts/check-template-parity.mjs && node scripts/check-type-ladders.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.94",
