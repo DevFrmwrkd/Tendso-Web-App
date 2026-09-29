@@ -12,8 +12,9 @@ import { PhotoLightbox } from "@/components/PhotoLightbox";
 import WebsitePreview from "@/components/WebsitePreview";
 import VisualEditor from "@/components/editor/VisualEditor";
 import ContentEditor, { EditorCustomizations } from "@/components/ContentEditor";
-import SandboxEditor, { type SandboxEditorProps } from "@/components/editor/SandboxEditor";
-import SandboxEditorV2 from "@/components/editor/SandboxEditorV2";
+// Type only: v1's component is no longer mounted. The interface moves out of
+// that file in the commit that deletes it.
+import { type SandboxEditorProps } from "@/components/editor/SandboxEditor";
 import SandboxEditorV3 from "@/components/editor/SandboxEditorV3";
 import TopActionBar from "./_components/TopActionBar";
 import DetailsSidebar from "./_components/DetailsSidebar";
@@ -207,26 +208,26 @@ export default function SubmissionDetailPage() {
     // Tab + state — default to the sandbox-style editor so the admin lands
     // directly on the click-to-edit experience that matches Landing Pages v01.
     const [activeTab, setActiveTab] = useState<TabKey>("editor");
-    // Per-admin editor preference: "v1" = classic SandboxEditor, "v2" = the
-    // redesigned SandboxEditorV2. It's an editing-surface choice (not submission
-    // data), so it lives in localStorage only and defaults to v1.
-    const [editorVersion, setEditorVersion] = useState<"v1" | "v2" | "v3">("v1");
+    // v3 IS THE EDITOR NOW. v1 and v2 are retired: no longer reachable, and
+    // deleted in the commit after this one.
+    //
+    // The stored preference is MIGRATED, not just ignored. This key has been
+    // persisting "v1" per-browser since the toggle shipped, so flipping the
+    // default alone would leave every admin who ever used the toggle — which is
+    // everyone, because v1 was the default — still mounting v1. And once v1's
+    // file is gone, a stored "v1" would hit a branch with nothing to render.
+    // Rewriting the key here means the migration has already happened by the
+    // time the files go, which is why the flip and the delete are two commits.
+    const [editorVersion] = useState<"v3">("v3");
     useEffect(() => {
         try {
-            const saved = window.localStorage.getItem("tendso.editorVersion");
-            if (saved === "v1" || saved === "v2" || saved === "v3") setEditorVersion(saved);
+            if (window.localStorage.getItem("tendso.editorVersion") !== "v3") {
+                window.localStorage.setItem("tendso.editorVersion", "v3");
+            }
         } catch {
-            /* localStorage unavailable — keep the v1 default */
+            /* localStorage unavailable — v3 is the default regardless */
         }
     }, []);
-    const chooseEditorVersion = (v: "v1" | "v2" | "v3") => {
-        setEditorVersion(v);
-        try {
-            window.localStorage.setItem("tendso.editorVersion", v);
-        } catch {
-            /* ignore persist failure */
-        }
-    };
     // Default the right details panel CLOSED so the page lands on the
     // 2-column sandbox layout (editor sidebar + iframe) that matches
     // Landing Pages v01 / sandbox.html. Admin can re-open with "Details".
@@ -954,28 +955,7 @@ export default function SubmissionDetailPage() {
                             {submission.source && ` · from ${submission.source}`}
                         </p>
                     </div>
-                    {/* Editor version switch — v1 (classic) vs v2 (redesigned). */}
-                    <div
-                        className="ml-auto inline-flex items-center rounded-lg border border-neutral-200 bg-neutral-100 p-0.5"
-                        role="group"
-                        aria-label="Editor version"
-                    >
-                        {(["v1", "v2", "v3"] as const).map((v) => (
-                            <button
-                                key={v}
-                                type="button"
-                                onClick={() => chooseEditorVersion(v)}
-                                aria-pressed={editorVersion === v}
-                                className={`rounded-md px-3 py-1.5 text-xs font-bold uppercase tracking-wide transition-colors ${
-                                    editorVersion === v
-                                        ? "bg-white text-amber-700 shadow-sm"
-                                        : "text-neutral-500 hover:text-neutral-700"
-                                }`}
-                            >
-                                {v}
-                            </button>
-                        ))}
-                    </div>
+                    {/* The editor-version switch is gone: v3 is the only editor. */}
                 </div>
             )}
 
@@ -1290,13 +1270,7 @@ export default function SubmissionDetailPage() {
                                     },
                                     detailsOpen: sidebarOpen,
                                 };
-                                return editorVersion === "v3" ? (
-                                    <SandboxEditorV3 {...editorProps} />
-                                ) : editorVersion === "v2" ? (
-                                    <SandboxEditorV2 {...editorProps} />
-                                ) : (
-                                    <SandboxEditor {...editorProps} />
-                                );
+                                return <SandboxEditorV3 {...editorProps} />;
                             })()}
                         </>
                     )}
