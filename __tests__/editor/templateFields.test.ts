@@ -9,6 +9,9 @@
  * gen-template-fields --check guards it against drift. These tests guard the
  * MANIFEST's shape and the promises the filter makes.
  */
+import fs from "node:fs";
+import path from "node:path";
+
 import { TEMPLATE_FIELD_PATHS } from "@/components/editor/templateFieldPaths.generated";
 import { TEMPLATE_SECTION_ORDER } from "@/components/editor/templateSectionOrder.generated";
 import {
@@ -48,14 +51,29 @@ describe("TEMPLATE_FIELD_PATHS", () => {
     });
 
     it("only records paths under a known content root", () => {
-        // Mirrors the ROOTS list in scripts/gen-template-fields.mjs. Anything
-        // outside it means the scan started matching CSS classes or identifiers.
-        const roots = new Set([
-            "hero", "about", "services", "why", "how", "testimonials", "gallery",
-            "faq", "area", "credentials", "location", "ctaBand", "footer", "trust",
-            "marquee", "navbar_links", "business_name", "tagline", "navCtaText",
-            "navCtaHref",
-        ]);
+        // READ the roots, do not restate them. This test used to carry its own
+        // copy of the list "mirroring" scripts/gen-template-fields.mjs, which
+        // made three places that had to agree: the generator, the guard, and
+        // here. Adding `contact` to the generator broke this test while the
+        // behaviour it protects was fine — the copy had simply drifted, which is
+        // the exact failure the template tooling keeps producing.
+        //
+        // Parsed out of the source rather than imported because the generator is
+        // an .mjs run by node, and jest's module interop is not worth the risk
+        // for one array.
+        const generator = fs.readFileSync(
+            path.join(__dirname, "..", "..", "scripts", "gen-template-fields.mjs"),
+            "utf8",
+        );
+        const block = generator.match(/export const ROOTS = \[([\s\S]*?)\];/);
+        expect(block).not.toBeNull();
+        const roots = new Set(
+            [...block![1].matchAll(/"([^"]+)"/g)].map((m) => m[1]),
+        );
+        expect(roots.size).toBeGreaterThan(15);
+
+        // Anything outside the list means the scan started matching CSS classes
+        // or identifiers.
         for (const paths of Object.values(TEMPLATE_FIELD_PATHS))
             for (const p of paths) expect(roots.has(p.split(".")[0])).toBe(true);
     });

@@ -1,0 +1,42 @@
+name: Templates
+
+# The template guards exist and are good; nothing ran them. Every one of them
+# was a script you had to remember, so a template could merge in a state the
+# editor cannot drive and nobody found out until an admin tried to edit a site.
+#
+# That is not hypothetical. `florist:BR` merged with templateFieldPaths.generated
+# stale, so two fields it renders — a bouquet's price and a review's rating —
+# were invisible in the Content panel. This job would have failed that PR.
+#
+# Deliberately separate from deploy-vercel.yml: this needs no secrets, no Vercel
+# token and no build, so it stays green (and fast) independently of whatever the
+# deploy pipeline is doing.
+
+on:
+  pull_request:
+    paths:
+      - "astro-site-template/src/components/**"
+      - "components/editor/**"
+      - "scripts/**"
+      - "package.json"
+      - ".github/workflows/check-templates.yml"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  guards:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # The guards are plain node scripts over the repo's own files — they read
+      # .astro sources and the generated TS, and import nothing from
+      # node_modules. Installing the full dependency tree just to run them would
+      # trade a 20-second job for a multi-minute one.
+      - name: Run the template guards
+        run: npm run check:templates
