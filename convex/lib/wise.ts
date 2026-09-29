@@ -9,24 +9,70 @@
 const SANDBOX_URL = 'https://api.sandbox.transferwise.tech'
 const PROD_URL = 'https://api.wise.com'
 
-function getBaseUrl(): string {
-    return process.env.WISE_SANDBOX === 'true' ? SANDBOX_URL : PROD_URL
+function isSandbox(): boolean {
+    return process.env.WISE_SANDBOX === 'true'
 }
 
+function getBaseUrl(): string {
+    return isSandbox() ? SANDBOX_URL : PROD_URL
+}
+
+/**
+ * Sandbox and production are SEPARATE Wise accounts — a production token is not
+ * valid against api.sandbox.transferwise.tech, and a production profile id does
+ * not exist there. So each is read from its own variable when WISE_SANDBOX is on.
+ *
+ * Deliberately separate variables rather than "overwrite WISE_API_TOKEN when
+ * testing": the prod token pays real creators, and a test run that begins by
+ * overwriting it is one forgotten revert away from either paying people from a
+ * sandbox that cannot, or firing test transfers at the live account.
+ *
+ * WISE_SANDBOX_PROFILE_ID has been set on the deployment for some time but was
+ * read by nothing — sandbox mode could never have worked, because getBaseUrl()
+ * switched hosts while the profile id stayed production.
+ */
 function getWiseToken(): string {
-    const token = process.env.WISE_API_TOKEN
-    if (!token) throw new Error('WISE_API_TOKEN env var must be set')
+    const token = isSandbox()
+        ? process.env.WISE_SANDBOX_API_TOKEN || process.env.WISE_API_TOKEN
+        : process.env.WISE_API_TOKEN
+    if (!token) {
+        throw new Error(
+            isSandbox()
+                ? 'WISE_SANDBOX_API_TOKEN (or WISE_API_TOKEN) must be set when WISE_SANDBOX=true'
+                : 'WISE_API_TOKEN env var must be set',
+        )
+    }
     return token
 }
 
 function getWiseProfileId(): string {
-    const id = process.env.WISE_PROFILE_ID
-    if (!id) throw new Error('WISE_PROFILE_ID env var must be set')
+    const id = isSandbox()
+        ? process.env.WISE_SANDBOX_PROFILE_ID || process.env.WISE_PROFILE_ID
+        : process.env.WISE_PROFILE_ID
+    if (!id) {
+        throw new Error(
+            isSandbox()
+                ? 'WISE_SANDBOX_PROFILE_ID (or WISE_PROFILE_ID) must be set when WISE_SANDBOX=true'
+                : 'WISE_PROFILE_ID env var must be set',
+        )
+    }
     return id
 }
 
+/**
+ * The dedicated Creator Payout jar, pinned onto the quote so Wise offers it as
+ * the funding source in the dashboard — creator payouts stay segregated from
+ * operating funds (docs/wise/WISE-PAYMENT-FLOW-MOBILE.md).
+ *
+ * In sandbox this must NOT fall back to the production jar id: that balance does
+ * not exist in the sandbox account, and pinning it makes every quote fail with
+ * an error that reads like a permissions problem. Absent is valid — the quote
+ * simply omits sourceBalanceId and Wise picks a default.
+ */
 function getPayoutBalanceId(): string | undefined {
-    const id = process.env.WISE_CREATOR_PAYOUT_BALANCE_ID
+    const id = isSandbox()
+        ? process.env.WISE_SANDBOX_PAYOUT_BALANCE_ID
+        : process.env.WISE_CREATOR_PAYOUT_BALANCE_ID
     return id && id.length > 0 ? id : undefined
 }
 
