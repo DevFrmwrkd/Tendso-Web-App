@@ -47,10 +47,15 @@ import { TEMPLATE_FAMILIES } from "@/components/editor/templateCatalog";
 const FAMILY_PATTERNS: ReadonlyArray<readonly [RegExp, string]> = [
     [/florist|flower|bloom|bouquet/, "florist"],
     [/hotel|resort|villa|inn|lodge|homestay|bnb|airbnb|stay/, "hospitality"],
+    // Ahead of trades (carpentry used to land there), foodcraft ("woodcraft"
+    // contains "craft"), restaurant ("kitchen cabinets" contains "kitchen") and
+    // retail ("furniture store" contains "store"). Deliberately no bare "wood":
+    // "Hollywood Salon" and "Driftwood Cafe" are not furniture makers.
+    [/wood ?work|wood ?craft|wood ?carv|furniture|joiner|cabinet|carpent/, "woodworks"],
     [/barber/, "barbershop"],
     [/salon|spa|massage|nail|hair|beauty|aesthet|lash|brow|wellness/, "salonspa"],
     [/auto|mechanic|vulcaniz|tire|garage|motor|carwash/, "autoshop"],
-    [/weld|fabricat|steel|metal|electric|aircon|hvac|plumb|construct|carpent|hardware/, "trades"],
+    [/weld|fabricat|steel|metal|electric|aircon|hvac|plumb|construct|hardware/, "trades"],
     [/cafe|coffee|roaster|tea|bakery|bake|pastry|dessert|brew/, "foodcraft"],
     [/restaurant|eatery|diner|bistro|carinderia|grill|food|kitchen|catering/, "restaurant"],
     [/shirt|apparel|clothing|boutique|thrift|ukay|garment/, "shirtstore"],

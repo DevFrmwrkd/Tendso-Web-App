@@ -35,6 +35,7 @@ describe('schemaTypeFor', () => {
         // of them — the hospitality family is the only thing that knows.
         expect(schemaTypeFor('Other', 'hospitality:BJ')).toBe('LodgingBusiness');
         expect(schemaTypeFor('', 'florist:BR')).toBe('Florist');
+        expect(schemaTypeFor('Other', 'woodworks:BY')).toBe('FurnitureStore');
     });
 
     it('is a plain LocalBusiness when nothing identifies the trade', () => {
