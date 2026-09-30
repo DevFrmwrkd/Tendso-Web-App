@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Loader2, Palette, FileEdit, Check, X, AlertTriangle, Trash2, ExternalLink, PanelRightClose, PanelRightOpen, Globe, ChevronLeft } from "lucide-react";
 import { isComped } from "@/lib/pricing";
+import { GIFTED_BY_MAX, isHouseCreator } from "@/lib/houseCreator";
 import { orderedEnhancedEntries } from "@/convex/lib/enhancedImages";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import WebsitePreview from "@/components/WebsitePreview";
@@ -253,6 +254,8 @@ export default function SubmissionDetailPage() {
 
     const [showGiveFreeModal, setShowGiveFreeModal] = useState(false);
     const [giveFreeReason, setGiveFreeReason] = useState("");
+    // Self-serve only: the name the owner's email credits with the gift.
+    const [giveFreeGiftedBy, setGiveFreeGiftedBy] = useState("");
     const [markingComped, setMarkingComped] = useState(false);
 
     const [showRejectModal, setShowRejectModal] = useState(false);
@@ -598,6 +601,9 @@ export default function SubmissionDetailPage() {
      */
     const handleGiveFree = async () => {
         if (!submissionData || !user) return;
+        // Self-serve sites have no real creator to name, so the admin must say
+        // who the gift is from. The route enforces this too.
+        if (isHouseCreator(submissionData.creator) && !giveFreeGiftedBy.trim()) return;
         setMarkingComped(true);
         try {
             const response = await fetch("/api/mark-comped", {
@@ -606,12 +612,14 @@ export default function SubmissionDetailPage() {
                 body: JSON.stringify({
                     submissionId: submissionData._id,
                     reason: giveFreeReason.trim() || undefined,
+                    giftedBy: giveFreeGiftedBy.trim() || undefined,
                 }),
             });
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "Failed to give this website away");
             setShowGiveFreeModal(false);
             setGiveFreeReason("");
+            setGiveFreeGiftedBy("");
             setModalType("success");
             setModalMessage(result.message || "Website given free. Creator credited.");
             setShowModal(true);
@@ -1460,6 +1468,35 @@ export default function SubmissionDetailPage() {
                             </div>
                         )}
 
+                        {/* Self-serve sites belong to the house account, not a person, so
+                            the email would credit "Tendso Self-Serve". The admin names
+                            the giver instead — required, shown to the owner. */}
+                        {isHouseCreator(submissionData?.creator) && (
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-neutral-700 mb-1.5">
+                                    Gift from <span className="text-rose-600">*</span>{" "}
+                                    <span className="text-neutral-400 font-normal">(shown to the owner)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={giveFreeGiftedBy}
+                                    onChange={(e) => setGiveFreeGiftedBy(e.target.value)}
+                                    placeholder="e.g. Off the Record"
+                                    maxLength={GIFTED_BY_MAX}
+                                    disabled={markingComped}
+                                    autoFocus
+                                    className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-50"
+                                />
+                                <p className="mt-1.5 text-xs text-neutral-500 leading-relaxed">
+                                    This is a self-serve site, so there&apos;s no creator to name. The email will say:{" "}
+                                    <span className="text-neutral-800">
+                                        &ldquo;<strong>{giveFreeGiftedBy.trim() || "…"}</strong> chose{" "}
+                                        <strong>{submission.business_name}</strong> for a free website&hellip;&rdquo;
+                                    </span>
+                                </p>
+                            </div>
+                        )}
+
                         <label className="block text-sm font-medium text-neutral-700 mb-1.5">
                             Reason <span className="text-neutral-400 font-normal">(optional, internal only)</span>
                         </label>
@@ -1482,7 +1519,7 @@ export default function SubmissionDetailPage() {
                             </button>
                             <button
                                 onClick={handleGiveFree}
-                                disabled={markingComped}
+                                disabled={markingComped || (isHouseCreator(submissionData?.creator) && !giveFreeGiftedBy.trim())}
                                 className="flex-1 py-3 px-4 rounded-xl font-semibold bg-amber-600 hover:bg-amber-700 text-white transition-colors disabled:opacity-50 min-h-[44px] text-sm inline-flex items-center justify-center gap-2"
                             >
                                 {markingComped && <Loader2 className="w-4 h-4 animate-spin" />}
