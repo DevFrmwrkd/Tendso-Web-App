@@ -9,9 +9,15 @@
  *   hero.kicker · hero.headline (set:html: an owner's <em>…</em> is the red
  *   phrase) OR hero.headlineLines.${i} (see THE HEADLINE) · hero.sub ·
  *   hero.cta1.text + hero.cta1.href · hero.cta2.text + hero.cta2.href ·
- *   data-image-field hero.image · data-image-field services.items.1.image (the
- *   second photo, shown AGAIN here on purpose, as the handoff specifies — the
- *   same field as the second shop card) · hero.meta1 · hero.meta2
+ *   data-image-field hero.image · data-image-field hero.image2 (the second
+ *   photo) · hero.meta1 · hero.meta2
+ *
+ * THE SECOND PHOTO. The handoff drew it as the second shop card's photo shown
+ * again (services.items.1.image), which left the hero one image of its own —
+ * no second service row with a photo, no second hero photo, and nothing to
+ * click. It now has its own field and shows, in order: hero.image2, the shop
+ * photo the design reused, then the owner's next uploaded photo not already
+ * on screen. The hook is always hero.image2.
  *
  * THE HEADLINE (HeroBS's rule). The AI copy writer fills hero.headlineLines —
  * never hero.headline — and the derive layer fills hero.headline with the
@@ -39,7 +45,7 @@
  *                                 sets its figure at the bottom, like a poster
  *   · lead alone                → one full-width photo
  *   · side photo, no lead       → the side photo takes the lead frame (its hook
- *                                 is still services.items.1.image)
+ *                                 is still hero.image2)
  *   · card alone                → the card alone, at the side column's width
  *   · nothing                   → no row; the typographic hero stands alone
  *
@@ -85,14 +91,24 @@ const meta2 = str(hero.meta2).trim();
 const svc = content.services || {};
 const svcItems: any[] = Array.isArray(svc.items) ? svc.items : (Array.isArray(content.services) ? content.services : []);
 const leadSrc = str(hero.image || (Array.isArray(hero.photos) && hero.photos[0]) || (Array.isArray(content.photos) && content.photos[0]) || '').trim();
-const sideSrc = str(svcItems[1]?.image).trim();
-const sideName = str(svcItems[1]?.title || svcItems[1]?.name).trim();
+// The second photo: hero.image2, else the shop photo the design reused, else
+// the owner's next uploaded photo — never the one already in the lead frame.
+// The shop card's name only labels it when it really is that card's photo.
+const svcSideSrc = str(svcItems[1]?.image).trim();
+const svcSideName = str(svcItems[1]?.title || svcItems[1]?.name).trim();
+const photoPool: string[] = (Array.isArray(content.photos) ? content.photos : []).map((p: any) => str(p).trim()).filter(Boolean);
+const sideCandidates: Array<[string, string]> = [
+  [str(hero.image2).trim(), ''],
+  [svcSideSrc, svcSideName],
+  ...photoPool.map((p): [string, string] => [p, '']),
+];
+const [sideSrc, sideName] = sideCandidates.find(([src]) => src && src !== leadSrc) ?? ['', ''];
 const bg = (u: string) => `background-image:url('${u.replace(/'/g, '%27').replace(/[\r\n]/g, '')}')`;
 type Photo = { src: string; field: string; label: string };
 const lead: Photo | null = leadSrc
   ? { src: leadSrc, field: 'hero.image', label: '' }
-  : (sideSrc ? { src: sideSrc, field: 'services.items.1.image', label: sideName } : null);
-const side: Photo | null = leadSrc && sideSrc ? { src: sideSrc, field: 'services.items.1.image', label: sideName } : null;
+  : (sideSrc ? { src: sideSrc, field: 'hero.image2', label: sideName } : null);
+const side: Photo | null = leadSrc && sideSrc ? { src: sideSrc, field: 'hero.image2', label: sideName } : null;
 const hasCard = Boolean(meta1);
 const hasMedia = Boolean(lead || side || hasCard);
 // The hero speaks when it has a headline, a sub-line or something to show. The

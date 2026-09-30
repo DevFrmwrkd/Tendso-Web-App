@@ -9,10 +9,17 @@
  * Editable hooks (all schema-owned):
  *   hero.kicker · hero.thin (the script line) · hero.headline · hero.sub ·
  *   hero.cta1.text + .href · hero.cta2.text + .href · hero.meta1 · hero.meta2 ·
- *   data-image-field hero.image (centre) and, BY DESIGN, the two side mats
- *   bind services.items.1.image and services.items.2.image — the second and
- *   third arrangements are shown again here (PORTING.md). Same field, same
- *   photo, twice on purpose.
+ *   data-image-field hero.image (centre), hero.image2 (left mat) and
+ *   hero.image3 (right mat).
+ *
+ * THE SIDE MATS. The handoff drew them as the second and third arrangements
+ * shown again (the service rows' image fields), so the hero could only ever take ONE
+ * image of its own: with fewer than three service rows, or no photos on rows
+ * 2-3, the mats never appeared and there was nothing in the hero to click. Each
+ * mat now has its own field, and shows, in order: that field, the service photo
+ * the design reused, then the owner's next uploaded photo not already on
+ * screen. The hook is always the hero field, so a click sets the hero's own
+ * photo instead of repainting a service card.
  *
  * THE HEADLINE reads two paths, exactly as foodcraft/HeroBO does and for the
  * same reason: the derive layer fills hero.headline with the bare business
@@ -59,8 +66,19 @@ const sRows: any[] = Array.isArray(S.items) ? S.items : [];
 // Display fallbacks only — the HOOK stays hero.image, the path the image picker
 // writes. Submission photos are the owner's own uploads.
 const heroImage = str(H.image) || str(Array.isArray(H.photos) ? H.photos[0] : '') || str(Array.isArray((content as any).photos) ? (content as any).photos[0] : '');
-const leftImage = str(sRows[1]?.image);
-const rightImage = str(sRows[2]?.image);
+// Side mats: own field first, then the design's reused service photo, then the
+// owner's next uploaded photo — never one already on screen, so the three
+// frames never show the same picture twice.
+const photoPool: string[] = (Array.isArray((content as any).photos) ? (content as any).photos : []).map(str).filter(Boolean);
+const onScreen = new Set<string>(heroImage ? [heroImage] : []);
+const pickSide = (...candidates: string[]): string => {
+  for (const c of candidates) {
+    if (c && !onScreen.has(c)) { onScreen.add(c); return c; }
+  }
+  return '';
+};
+const leftImage = pickSide(str(H.image2), str(sRows[1]?.image), ...photoPool);
+const rightImage = pickSide(str(H.image3), str(sRows[2]?.image), ...photoPool);
 const showSides = Boolean(heroImage && leftImage && rightImage);
 
 const kicker = str(H.kicker);
@@ -117,7 +135,7 @@ const hasHero = hasHeadline || Boolean(sub || thin || heroImage);
         <div class="hr-photos">
           {showSides && (
             <div class="hr-mat hr-mat--side hr-mat--l">
-              <img class="hr-img" src={leftImage} alt="" decoding="async" data-image-field="services.items.1.image" />
+              <img class="hr-img" src={leftImage} alt="" decoding="async" data-image-field="hero.image2" />
             </div>
           )}
           <div class="hr-mat hr-mat--main">
@@ -125,7 +143,7 @@ const hasHero = hasHeadline || Boolean(sub || thin || heroImage);
           </div>
           {showSides && (
             <div class="hr-mat hr-mat--side hr-mat--r">
-              <img class="hr-img" src={rightImage} alt="" decoding="async" data-image-field="services.items.2.image" />
+              <img class="hr-img" src={rightImage} alt="" decoding="async" data-image-field="hero.image3" />
             </div>
           )}
         </div>

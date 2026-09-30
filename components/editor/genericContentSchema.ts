@@ -175,6 +175,12 @@ export const GENERIC_CONTENT_SCHEMA: GroupSpec[] = [
         description: 'Top of the page — background image, headline, sub-copy, CTAs.',
         fields: [
             { kind: 'image', label: 'Background image', path: 'hero.image' },
+            // Extra hero photos for designs that frame more than one (Kalachuchi
+            // draws three, Gumamela two). They used to borrow the 2nd/3rd
+            // service photos, so the hero could only ever take one image of its
+            // own. Only templates that bind these paths show the inputs.
+            { kind: 'image', label: 'Second hero photo', path: 'hero.image2', hint: 'Shown beside the main photo on templates that frame more than one.' },
+            { kind: 'image', label: 'Third hero photo', path: 'hero.image3', hint: 'Shown beside the main photo on templates that frame three.' },
             {
                 kind: 'text',
                 label: 'Kicker / eyebrow',
