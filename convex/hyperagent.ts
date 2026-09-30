@@ -18,6 +18,7 @@
 import { v } from 'convex/values';
 import { internalAction, internalMutation, internalQuery, mutation } from './_generated/server';
 import { internal } from './_generated/api';
+import { mergeEnhancedImages } from './lib/enhancedImages';
 
 // Tendso's fixed photo order → roles. Products only when hasProducts.
 const PHOTO_ROLES = ['headshot', 'interior_1', 'interior_2', 'exterior', 'product_1', 'product_2'];
@@ -178,7 +179,9 @@ function normalizeImageKey(rawKey: string): string | null {
 export const ingestStudioResult = internalAction({
     args: { submissionId: v.id('submissions'), content: v.any(), images: v.any() },
     handler: async (ctx, args) => {
-        const enhancedImages: Record<string, { url: string | null; storageId: string }> = {};
+        // sourceUrl is kept so a retried callback carrying the same render is
+        // recognised in saveStudioContent instead of being stored twice.
+        const enhancedImages: Record<string, { url: string | null; storageId: string; sourceUrl: string }> = {};
         const images = (args.images || {}) as Record<string, string>;
 
         for (const [rawKey, sourceUrl] of Object.entries(images)) {
@@ -201,7 +204,7 @@ export const ingestStudioResult = internalAction({
                 const blob = await resp.blob();
                 const storageId = await ctx.storage.store(blob);
                 const url = await ctx.storage.getUrl(storageId);
-                enhancedImages[storeKey] = { url, storageId };
+                enhancedImages[storeKey] = { url, storageId, sourceUrl };
             } catch (e) {
                 console.warn(`[STUDIO] could not store image ${storeKey}: ${e}`);
             }
@@ -277,14 +280,16 @@ export const saveStudioContent = internalMutation({
             .withIndex('by_submissionId', (q) => q.eq('submissionId', args.submissionId))
             .first();
 
-        // GUARD: never clobber a previously-saved image set with an empty one. A push
-        // that arrives with no images (agent skipped the image step, or a copy-only
-        // re-push) must NOT wipe images a prior render already stored.
-        const incoming = (args.enhancedImages || {}) as Record<string, unknown>;
-        const hasIncomingImages = Object.keys(incoming).length > 0;
-        const enhancedImages = hasIncomingImages
-            ? incoming
-            : ((existing as { enhancedImages?: unknown })?.enhancedImages ?? {});
+        // A render ADDS images; it never takes one away. This used to replace the
+        // whole map, and every render reuses the same keys, so a second render made
+        // the first render's images vanish from the editor's picker (their files
+        // stayed in storage, orphaned). Now the new render takes the canonical keys
+        // and earlier images move to enhanced_archive_<N>. An empty push (the agent
+        // skipped the image step, or a copy-only re-push) changes nothing, as before.
+        const enhancedImages = mergeEnhancedImages(
+            (existing as { enhancedImages?: unknown })?.enhancedImages,
+            args.enhancedImages,
+        );
 
         const fields = {
             ...copy,

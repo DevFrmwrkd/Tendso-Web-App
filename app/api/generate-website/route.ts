@@ -7,6 +7,7 @@ import { buildRoleColorCss } from '@/lib/roleColors'
 import { asServiceArray } from '@/lib/services-shape'
 import { GROQ_TEXT_MODEL } from '@/lib/services/groqModels'
 import { autoTemplateFor, resolveHeroStyle } from '@/lib/templatePicker'
+import { orderedEnhancedEntries } from '@/convex/lib/enhancedImages'
 import {
     groqService,
     delimitTranscript,
@@ -471,7 +472,13 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                 // }
                 // First pass: collect storage IDs that need resolution
                 const enhancedEntries: Array<{ key: string; storageId?: string; url?: string }> = []
-                for (const [key, img] of Object.entries(enhancedImages)) {
+                // In PAGE order, not stored-object order. Templates place images by
+                // position — photos[0] is the hero and the About lead, the auto
+                // gallery is the first six — and nothing else reads the keys, so
+                // without this the render's enhanced_hero landed wherever the object
+                // happened to list it (usually behind every gallery_N). Newest render
+                // first; images kept from earlier renders (archive_N) last.
+                for (const [key, img] of orderedEnhancedEntries(enhancedImages as Record<string, unknown>)) {
                     const imgData = img as any
                     if (imgData && (imgData.url || imgData.storageId)) {
                         enhancedEntries.push({ key, storageId: imgData.storageId, url: imgData.url })
