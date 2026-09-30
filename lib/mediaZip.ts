@@ -77,7 +77,7 @@ export function buildMediaFileList(input: {
 }
 
 /**
- * Fetch one file for the zip, never from the browser cache.
+ * Fetch a photo for download (the zip, the lightbox), never from the browser cache.
  *
  * WHY. The page shows the owner's photos with plain <img> tags (the site
  * preview). R2 only adds CORS headers to a request that carries an Origin, and
@@ -87,7 +87,7 @@ export function buildMediaFileList(input: {
  * still refuses, one retry under a query string no <img> has used gets a
  * fresh cache key; if that fails too, the first error is the one reported.
  */
-async function fetchUncached(doFetch: typeof fetch, url: string): Promise<Response> {
+export async function fetchUncached(doFetch: typeof fetch, url: string): Promise<Response> {
     const init: RequestInit = { mode: 'cors', credentials: 'omit', cache: 'no-store' };
     try {
         return await doFetch(url, init);
