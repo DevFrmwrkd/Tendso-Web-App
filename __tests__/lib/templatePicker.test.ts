@@ -53,6 +53,22 @@ describe("autoTemplateFor", () => {
         expect(familyForBusinessType("Flower shop")).not.toBe("retail");
     });
 
+    it("sends furniture makers, cabinetry and joinery to woodworks", () => {
+        expect(familyForBusinessType("Woodworks")).toBe("woodworks");
+        expect(familyForBusinessType("Custom furniture")).toBe("woodworks");
+        expect(familyForBusinessType("Carpentry")).toBe("woodworks");
+        expect(familyForBusinessType("Other", "Yakal Joinery")).toBe("woodworks");
+        // Each of these used to be caught by a later pattern on a shared word.
+        expect(familyForBusinessType("Furniture store")).not.toBe("retail");
+        expect(familyForBusinessType("Woodcraft and carving")).not.toBe("foodcraft");
+        expect(familyForBusinessType("Kitchen cabinets")).not.toBe("restaurant");
+        // "wood" alone is not a trade.
+        expect(familyForBusinessType("Other", "Hollywood Salon")).toBe("salonspa");
+        expect(familyForBusinessType("Other", "Driftwood Cafe")).toBe("foodcraft");
+        // Metal work stays with the fabricators.
+        expect(familyForBusinessType("Other", "Rowald Metal Works")).toBe("trades");
+    });
+
     it("falls back to generic — not to nothing — for an unknown trade", () => {
         const code = autoTemplateFor("interdimensional plumbing consultancy for cats", "seed");
         expect(ALL_CODES.has(code)).toBe(true);

@@ -61,6 +61,10 @@ const SCHEMA_TYPE_BY_BUSINESS_TYPE: Record<string, string> = {
 const SCHEMA_TYPE_BY_TEMPLATE_FAMILY: Record<string, string> = {
     hospitality: 'LodgingBusiness',
     florist: 'Florist',
+    // Furniture makers, cabinetry shops and joiners. schema.org has no
+    // Carpenter type; FurnitureStore (LocalBusiness > Store) is the closest
+    // one that describes what these businesses sell.
+    woodworks: 'FurnitureStore',
     foodcraft: 'CafeOrCoffeeShop',
     restaurant: 'Restaurant',
     barbershop: 'HairSalon',
