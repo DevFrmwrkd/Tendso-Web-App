@@ -10,6 +10,7 @@ import {
     buildLocalBusinessJsonLd,
     injectSiteSeo,
     readHeadFacts,
+    readHeroImage,
     readMapCoords,
     schemaTypeFor,
     serializeJsonLd,
@@ -321,5 +322,123 @@ describe('crawler files', () => {
 
     it('omits lastmod rather than inventing one', () => {
         expect(siteSitemapXml(CANONICAL, null)).not.toContain('lastmod');
+    });
+});
+
+describe('readHeroImage', () => {
+    // The four shapes `data-image-field="hero.image"` actually takes, measured
+    // on live sites across four template families.
+    const FLORIST = '<img class="hr-img" src="https://cdn.example/hero.jpg" alt="" loading="eager" data-image-field="hero.image" data-astro-cid-yrcy4a>';
+    const BACKGROUND = `<div class="ph" data-image-field="hero.image" style="background-image:url('https://cdn.example/villa.jpg');" role="img"></div>`;
+    const NESTED = '<div class="well" data-image-field="hero.image" data-astro-cid-in7s53xz><img src="https://cdn.example/wood.jpg" alt="Layug" decoding="async"></div>';
+    const EMPTY_HERO = '<div class="well" data-image-field="hero.image"></div>';
+
+    it('reads the hero from an <img> carrying the attribute', () => {
+        expect(readHeroImage(FLORIST)).toBe('https://cdn.example/hero.jpg');
+    });
+
+    it('reads the hero from a CSS background on the same element', () => {
+        expect(readHeroImage(BACKGROUND)).toBe('https://cdn.example/villa.jpg');
+    });
+
+    it('reads the hero from an <img> nested inside the marked element', () => {
+        expect(readHeroImage(NESTED)).toBe('https://cdn.example/wood.jpg');
+    });
+
+    it('falls back to another real photograph when the hero has no image', () => {
+        // Still a picture of the business, which beats the empty grey box.
+        const html = `${EMPTY_HERO}<img src="https://cdn.example/gallery-1.jpg">`;
+        expect(readHeroImage(html)).toBe('https://cdn.example/gallery-1.jpg');
+    });
+
+    it('finds a photograph even with no hero marker at all', () => {
+        expect(readHeroImage('<main><img src="https://cdn.example/only.jpg"></main>'))
+            .toBe('https://cdn.example/only.jpg');
+    });
+
+    it('never returns an inline SVG texture', () => {
+        // The templates paint noise backgrounds with data: URIs. One of those as
+        // a link preview would be worse than none.
+        const noise = `<div data-image-field="hero.image" style="background-image:url(&quot;data:image/svg+xml,%3Csvg%3E%3C/svg%3E&quot;)"></div>`;
+        expect(readHeroImage(noise)).toBeNull();
+        expect(readHeroImage(`${noise}<img src="https://cdn.example/real.jpg">`))
+            .toBe('https://cdn.example/real.jpg');
+    });
+
+    it('reads nothing from a page with no images', () => {
+        expect(readHeroImage('<h1>Coming soon</h1>')).toBeNull();
+    });
+
+    it('ignores a relative src — og:image has to be absolute', () => {
+        expect(readHeroImage('<img data-image-field="hero.image" src="/local/hero.jpg">')).toBeNull();
+    });
+});
+
+describe('injectSiteSeo — the link-preview card', () => {
+    const SOCIAL = { title: 'Layug wood works — Timeless woodcraft', description: 'Since 1980.', image: 'https://cdn.example/wood.jpg' };
+
+    it('fills in the whole card when the template wrote none of it', () => {
+        // The normal case: no favicon uploaded, so every og:* tag is guarded out
+        // and the link renders as an empty grey box.
+        const out = injectSiteSeo(doc('<title>Layug wood works</title>'), { canonicalUrl: CANONICAL, social: SOCIAL });
+        expect(out).toContain('<meta property="og:title" content="Layug wood works — Timeless woodcraft">');
+        expect(out).toContain('<meta property="og:description" content="Since 1980.">');
+        expect(out).toContain('<meta property="og:image" content="https://cdn.example/wood.jpg">');
+        expect(out).toContain('<meta name="twitter:card" content="summary_large_image">');
+        expect(out).toContain('<meta name="twitter:image" content="https://cdn.example/wood.jpg">');
+    });
+
+    it('leaves a card the template already wrote completely alone', () => {
+        const existing =
+            '<meta property="og:title" content="Theirs">' +
+            '<meta property="og:description" content="Theirs too">' +
+            '<meta property="og:image" content="https://cdn.example/chosen.jpg">';
+        const out = injectSiteSeo(doc(existing), { canonicalUrl: CANONICAL, social: SOCIAL });
+        expect(out.match(/property="og:title"/g)).toHaveLength(1);
+        expect(out.match(/property="og:description"/g)).toHaveLength(1);
+        expect(out.match(/property="og:image"/g)).toHaveLength(1);
+        expect(out).toContain('https://cdn.example/chosen.jpg');
+        expect(out).not.toContain('https://cdn.example/wood.jpg');
+    });
+
+    it('never promises a large image it has no image for', () => {
+        const out = injectSiteSeo(doc('<title>x</title>'), {
+            canonicalUrl: CANONICAL,
+            social: { title: 'x', description: 'y', image: null },
+        });
+        expect(out).toContain('property="og:title"');
+        expect(out).not.toContain('twitter:card');
+        expect(out).not.toContain('og:image');
+    });
+
+    it('escapes the card, so an ampersand in a business name is valid markup', () => {
+        const out = injectSiteSeo(doc(''), {
+            canonicalUrl: CANONICAL,
+            social: { title: "Jennifer & Agie's Flowershop", image: 'https://cdn.example/a.jpg?w=1&h=2' },
+        });
+        expect(out).toContain('content="Jennifer &amp; Agie\'s Flowershop"');
+        expect(out).toContain('content="https://cdn.example/a.jpg?w=1&amp;h=2"');
+    });
+
+    it('adds nothing when no card was offered', () => {
+        const out = injectSiteSeo(doc('<title>x</title>'), { canonicalUrl: CANONICAL });
+        expect(out).not.toContain('og:title');
+        expect(out).not.toContain('og:image');
+    });
+});
+
+describe('readHeadFacts — title', () => {
+    it('reads the title Slack would otherwise scrape', () => {
+        expect(readHeadFacts(doc('<title>Layug wood works — Timeless woodcraft</title>')).title)
+            .toBe('Layug wood works — Timeless woodcraft');
+    });
+
+    it('collapses the whitespace templates leave in a multi-line title', () => {
+        expect(readHeadFacts(doc('<title>Aurora villa\n   —  Book Your Stay</title>')).title)
+            .toBe('Aurora villa — Book Your Stay');
+    });
+
+    it('is undefined when there is no title', () => {
+        expect(readHeadFacts(doc('')).title).toBeUndefined();
     });
 });
