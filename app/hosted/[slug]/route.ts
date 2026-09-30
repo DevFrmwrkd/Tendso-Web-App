@@ -9,6 +9,7 @@ import {
     buildLocalBusinessJsonLd,
     injectSiteSeo,
     readHeadFacts,
+    readHeroImage,
     readMapCoords,
     serializeJsonLd,
     siteRobotsTxt,
@@ -191,13 +192,22 @@ export async function GET(request: NextRequest) {
     const coords = site.seo?.latitude != null && site.seo?.longitude != null
         ? { latitude: site.seo.latitude, longitude: site.seo.longitude }
         : readMapCoords(html)
+
+    // The page's own og:image when the admin uploaded a favicon, else a
+    // photograph the page already shows. Without this a site published without
+    // that one upload has NO og:image, NO og:title and NO og:description, and
+    // every share of its link renders an empty grey box — which is exactly how
+    // the first two sites published through this route look in Slack.
+    const socialImage = headFacts.image ?? readHeroImage(html)
     const jsonLd = buildLocalBusinessJsonLd({
         canonicalUrl,
         businessName: site.businessName ?? '',
         businessType: site.businessType,
         heroStyle: (site.customizations as { heroStyle?: string } | null)?.heroStyle ?? null,
         description: headFacts.description,
-        image: headFacts.image,
+        // Same photograph the card uses. `image` was simply absent from the
+        // schema of every site without a favicon, for the same reason.
+        image: socialImage ?? undefined,
         telephone: site.seo?.telephone,
         address: site.seo?.address,
         city: site.seo?.city,
@@ -212,6 +222,14 @@ export async function GET(request: NextRequest) {
     return new Response(injectSiteSeo(html, {
         canonicalUrl,
         jsonLd: jsonLd ? serializeJsonLd(jsonLd) : null,
+        social: {
+            // The <title> and description the template already wrote. Slack
+            // scrapes these anyway when og:* is missing; stating them means
+            // every reader gets the same card rather than each guessing.
+            title: headFacts.title,
+            description: headFacts.description,
+            image: socialImage,
+        },
     }), {
         status: 200,
         headers: {

@@ -95,14 +95,15 @@ export function schemaTypeFor(
 
 /** What the served HTML already states about itself. */
 export interface HtmlHeadFacts {
+    title?: string;
     description?: string;
     image?: string;
 }
 
 /**
- * Read the description and og:image back out of the document.
+ * Read the title, description and og:image back out of the document.
  *
- * Deliberately taken from the HTML rather than from Convex: these two are
+ * Deliberately taken from the HTML rather than from Convex: all three are
  * already in the head of every template, and re-deriving them from the row
  * risks structured data that disagrees with the visible page — which is the one
  * thing Google treats as a reason to ignore it.
@@ -115,11 +116,82 @@ export function readHeadFacts(html: string): HtmlHeadFacts {
         return value ? decodeEntities(value) : undefined;
     };
     return {
+        title: meta(/<title[^>]*>([\s\S]*?)<\/title>/i)?.replace(/\s+/g, ' ').trim() || undefined,
         description:
             meta(/<meta\s+name=["']description["']\s+content=["']([^"']*)["']/i) ??
             meta(/<meta\s+property=["']og:description["']\s+content=["']([^"']*)["']/i),
         image: meta(/<meta\s+property=["']og:image["']\s+content=["']([^"']*)["']/i),
     };
+}
+
+/**
+ * A photograph of the business, for the link preview.
+ *
+ * WHY THIS IS NEEDED AT ALL. Every template writes og:image behind a guard:
+ *
+ *     {(layout.ogImage || layout.favicon) && <meta property="og:image" ...>}
+ *
+ * and the admin editor has exactly one control that can fill either — "Set
+ * favicon". There is no og:image slot at all. So a site published without that
+ * one upload carries NO og:image, NO og:title and NO og:description, and every
+ * share of its link — Slack, Messenger, Viber, iMessage — renders an empty grey
+ * box. That is not hypothetical: it is what the first two sites published
+ * through the hosted path look like in Slack right now.
+ *
+ * A favicon would be the wrong fix even when present. It is a small square
+ * logo, and a social card wants roughly 1200x630. The site's hero photo is
+ * both available and correct.
+ *
+ * FOUND THROUGH THE EDITOR CONTRACT, which is the one thing every template
+ * shares: the hero carries `data-image-field="hero.image"`. Measured across
+ * four live sites, that attribute sits on four different shapes —
+ *
+ *   <img data-image-field="hero.image" src="…">                    florist BS
+ *   <div data-image-field="hero.image" style="background-image:url(…)">
+ *   <div class="well" data-image-field="hero.image"><img src="…">  woodworks BY
+ *   <div data-image-field="hero.image">   (no image assigned)
+ *
+ * — so rather than guess at the shape, this takes the first absolute image URL
+ * within a bounded window after the attribute. The window is why the last shape
+ * degrades gracefully: it finds the next section's photo instead, which is
+ * still a real photograph of the business, and that is also exactly what the
+ * document-order fallback below would have returned.
+ *
+ * data: URIs are skipped throughout — the templates use inline SVG noise
+ * textures as backgrounds, and one of those as a link preview would be worse
+ * than none.
+ */
+export function readHeroImage(html: string): string | null {
+    const heroAt = html.search(/data-image-field=["']hero\.image\d*["']/i);
+    if (heroAt >= 0) {
+        const tagStart = html.lastIndexOf('<', heroAt);
+        const found = firstAbsoluteImageUrl(
+            html.slice(tagStart >= 0 ? tagStart : heroAt, heroAt + HERO_WINDOW),
+        );
+        if (found) return found;
+    }
+    // No hero attribute, or nothing image-shaped near it. Any photograph the
+    // page shows is a better card than an empty grey box.
+    return firstAbsoluteImageUrl(html);
+}
+
+/**
+ * How far past the hero marker to look. Generous enough to clear the attribute
+ * salad Astro emits (data-astro-cid-*, loading, fetchpriority, decoding) and to
+ * reach an <img> nested one level in, short enough that it is still the hero's
+ * own neighbourhood.
+ */
+const HERO_WINDOW = 1000;
+
+/** The first http(s) image URL in a fragment, from an <img src> or a CSS background. */
+function firstAbsoluteImageUrl(fragment: string): string | null {
+    // `[^>]*` and not `[^>]+`: the latter required at least one attribute before
+    // `src`, so a bare `<img src="…">` — which is how three of the four template
+    // shapes write it — matched nothing at all.
+    const pattern = /(?:<img[^>]*\ssrc=["'](https?:\/\/[^"']+)["']|background-image:\s*url\(\s*["']?(https?:\/\/[^"')]+))/i;
+    const m = pattern.exec(fragment);
+    const url = m?.[1] || m?.[2];
+    return url ? decodeEntities(url.trim()) : null;
 }
 
 /**
@@ -289,6 +361,17 @@ export interface InjectSeoOptions {
     canonicalUrl: string;
     /** Already-serialised JSON-LD, or null to inject none. */
     jsonLd?: string | null;
+    /**
+     * The link-preview card, filled in only where the template left it out.
+     * See readHeroImage for why that is the common case rather than the rare
+     * one.
+     */
+    social?: {
+        title?: string;
+        description?: string;
+        /** Absolute URL of a photograph of the business. */
+        image?: string | null;
+    };
 }
 
 /** Escape a value for use inside a double-quoted HTML attribute. */
@@ -329,12 +412,44 @@ export function injectSiteSeo(html: string, options: InjectSeoOptions): string {
             tags.push(`<meta property="og:url" content="${attr(options.canonicalUrl)}">`);
         }
     }
-    // Every template sets og:title/description but none sets og:type, and a
-    // card without it is treated as a generic link. Safe either way — it says
-    // nothing about which address the page lives at.
+    // og:type says nothing about which address the page lives at, so it is safe
+    // to add either way. No template sets one, and a card without it is treated
+    // as a generic link.
     if (!/<meta\s[^>]*property=["']og:type["']/i.test(head)) {
         tags.push(`<meta property="og:type" content="website">`);
     }
+
+    // ── The link-preview card ─────────────────────────────────────────────
+    //
+    // Every one of these is written by the templates ONLY when somebody
+    // uploaded a favicon, because they sit behind `{(ogImage || favicon) && …}`
+    // and the editor has no og:image control at all. Skip that single upload —
+    // which is the normal case — and the page ships with none of them, so every
+    // share of the link renders an empty grey box with a scraped title.
+    //
+    // Each is filled in only where it is missing, so a site that DOES have a
+    // favicon keeps exactly the card it has today.
+    const social = options.social;
+    if (social?.title && !/<meta\s[^>]*property=["']og:title["']/i.test(head)) {
+        tags.push(`<meta property="og:title" content="${attr(social.title)}">`);
+    }
+    if (social?.description && !/<meta\s[^>]*property=["']og:description["']/i.test(head)) {
+        tags.push(`<meta property="og:description" content="${attr(social.description)}">`);
+    }
+    if (social?.image && !/<meta\s[^>]*property=["']og:image["']/i.test(head)) {
+        tags.push(`<meta property="og:image" content="${attr(social.image)}">`);
+        // summary_large_image, because the image is a photograph of the
+        // business rather than a logo. Paired with the image and gated on the
+        // same condition: a large-image card with no image is a worse result
+        // than the small card it replaces.
+        if (!/<meta\s[^>]*name=["']twitter:card["']/i.test(head)) {
+            tags.push(`<meta name="twitter:card" content="summary_large_image">`);
+        }
+        if (!/<meta\s[^>]*name=["']twitter:image["']/i.test(head)) {
+            tags.push(`<meta name="twitter:image" content="${attr(social.image)}">`);
+        }
+    }
+
     if (options.jsonLd && !declaresCanonical && !/type=["']application\/ld\+json["']/i.test(html)) {
         tags.push(`<script type="application/ld+json">${options.jsonLd}</script>`);
     }
