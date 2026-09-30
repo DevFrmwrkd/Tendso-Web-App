@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { internalQuery, internalMutation, internalAction } from './_generated/server';
 import { internal } from './_generated/api';
 import { deployHoldingPage, resolveHoldingTheme } from '../lib/holding-page';
+import { needsCloudflareWorker } from '../lib/publish-target';
 
 const THREE_DAYS = 3 * 24 * 60 * 60 * 1000;
 
@@ -124,7 +125,18 @@ export const checkAndUnpublish = internalAction({
                 submissionId: submission._id,
             });
 
-            if (website?.cfPagesProjectName) {
+            // THE SAME PREDICATE THE PUBLISH AND UNPUBLISH ROUTES USE, not the
+            // bare presence of cfPagesProjectName.
+            //
+            // That field records that a Worker was once deployed, not that one
+            // exists — aurora-villa and neighborhood have been deleted by hand —
+            // and deployHoldingPage's PUT is create-or-update. So this cron would
+            // have RESURRECTED a deleted Worker, unattended, and served a holding
+            // page at an address that was deliberately retired. A site with a
+            // hosted address needs no Worker touched: markSubmissionUnpublished
+            // sets offlineAt and app/hosted/[slug] serves the holding page from
+            // that alone.
+            if (needsCloudflareWorker(website, submission) && website?.cfPagesProjectName) {
                 await ctx.runAction(internal.unpublish.takeWebsiteOffline, {
                     submissionId: submission._id,
                     projectName: website.cfPagesProjectName,
@@ -133,8 +145,9 @@ export const checkAndUnpublish = internalAction({
                     customizations: website.customizations,
                 });
             } else {
-                // Nothing was ever deployed for this submission — there is no
-                // Worker to serve a holding page, so record the state directly.
+                // Either nothing was ever deployed for this submission, or the
+                // site is served from its hosted address and its Worker is no
+                // longer ours to maintain. Either way, record the state directly.
                 await ctx.runMutation(internal.unpublish.markSubmissionUnpublished, {
                     submissionId: submission._id,
                 });
