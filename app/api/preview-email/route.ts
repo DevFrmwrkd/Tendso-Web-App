@@ -3,6 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { fetchQuery } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
+import { cleanGiftedBy, isHouseCreator } from '@/lib/houseCreator'
 
 /**
  * Preview the email that was (or would be) sent to the client.
@@ -98,10 +99,15 @@ export async function GET(request: NextRequest) {
                 const withCreator = await fetchQuery(api.submissions.getByIdWithCreator, {
                     id: submissionId as Id<'submissions'>,
                 })
-                creatorName = [withCreator?.creator?.firstName, withCreator?.creator?.lastName]
-                    .filter(Boolean)
-                    .join(' ')
-                    .trim()
+                // A self-serve site's creator is the house account, not a person:
+                // the real email names whoever the admin types at "Give free", so
+                // the preview takes ?giftedBy= and otherwise shows the unnamed variant.
+                creatorName = isHouseCreator(withCreator?.creator)
+                    ? cleanGiftedBy(searchParams.get('giftedBy'))
+                    : [withCreator?.creator?.firstName, withCreator?.creator?.lastName]
+                        .filter(Boolean)
+                        .join(' ')
+                        .trim()
             } catch {
                 // Preview-only — the unnamed variant is a legitimate render.
             }

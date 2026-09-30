@@ -4,6 +4,7 @@ import { fetchQuery, fetchMutation } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { sendPromoWebsiteLiveEmail } from '@/lib/email/service'
+import { cleanGiftedBy, isHouseCreator } from '@/lib/houseCreator'
 
 /**
  * PROMO — give the website away, pay the creator anyway.
@@ -29,6 +30,7 @@ export async function POST(request: NextRequest) {
 
         const body = await request.json()
         const { submissionId, reason } = body
+        const giftedBy = cleanGiftedBy(body.giftedBy)
 
         if (!submissionId) {
             return NextResponse.json({ error: 'Submission ID is required' }, { status: 400 })
@@ -44,13 +46,32 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
         }
 
+        // A self-serve site is attributed to the house creator, which is not a
+        // person — the email would read "Tendso Self-Serve chose <business>…".
+        // There the admin names the giver instead, and it is REQUIRED: checked
+        // here, before anything is credited, so a missing name costs nothing.
+        const selfServe = isHouseCreator(submission.creator)
+        if (selfServe && !giftedBy) {
+            return NextResponse.json(
+                { error: 'This is a self-serve site, so there is no creator to name. Enter the name the owner should see as the giver.' },
+                { status: 400 },
+            )
+        }
+
+        // The typed giver is also kept in the internal reason, so the record says
+        // which name the owner was told.
+        const reasonText = typeof reason === 'string' ? reason.trim() : ''
+        const storedReason = selfServe
+            ? `${reasonText ? `${reasonText} · ` : ''}gifted as "${giftedBy}"`
+            : reasonText
+
         // Credit the creator and stamp the row as comped. Every refusal that
         // matters (already settled, custom-domain tier, no website yet) lives in
         // the mutation, so it applies to any caller and not just this route.
         await fetchMutation(api.admin.markComped, {
             submissionId: submissionId as Id<'submissions'>,
             adminId: userId,
-            reason: typeof reason === 'string' && reason.trim() ? reason.trim() : undefined,
+            reason: storedReason || undefined,
         })
 
         // Tell the owner their site is live and free. NOT the payment
@@ -73,10 +94,13 @@ export async function POST(request: NextRequest) {
             // renders as a dead href — fine-ish on a receipt the owner expected,
             // wrong on an unsolicited "here is your free website" email, where a
             // broken link is the difference between a gift and a phishing smell.
-            const creatorName = [submission.creator?.firstName, submission.creator?.lastName]
-                .filter(Boolean)
-                .join(' ')
-                .trim()
+            // Self-serve: the name the admin typed. Otherwise the real creator.
+            const creatorName = selfServe
+                ? giftedBy
+                : [submission.creator?.firstName, submission.creator?.lastName]
+                    .filter(Boolean)
+                    .join(' ')
+                    .trim()
 
             if (publishedUrl) {
                 try {
@@ -99,7 +123,7 @@ export async function POST(request: NextRequest) {
             success: true,
             emailSent,
             message: emailSent
-                ? `Website given free. Creator credited, and ${submission.ownerEmail} was told it is live at no charge.`
+                ? `Website given free. Creator credited, and ${submission.ownerEmail} was told it is live at no charge${selfServe ? `, from "${giftedBy}"` : ''}.`
                 : 'Website given free and creator credited. No email went out — publish the site and/or add an owner email, then notify them manually.',
         })
     } catch (error: any) {
