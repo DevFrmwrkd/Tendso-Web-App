@@ -5,6 +5,7 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { deployHoldingPage, resolveHoldingTheme } from '@/lib/holding-page'
 import { revalidatePath } from 'next/cache'
+import { needsCloudflareWorker } from '@/lib/publish-target'
 
 /**
  * Take a published website offline.
@@ -63,14 +64,25 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Website is not published' }, { status: 400 })
         }
 
-        // cfPagesProjectName holds the Worker script name despite the field's
-        // name (see convex/domains.ts, which attaches custom domains to it).
-        // ABSENT IS NORMAL NOW — see the note above.
-        const workerName = website.cfPagesProjectName
-
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<"submissions">
         })
+
+        // cfPagesProjectName holds the Worker script name despite the field's
+        // name (see convex/domains.ts, which attaches custom domains to it).
+        // ABSENT IS NORMAL NOW — see the note above.
+        //
+        // GATED ON THE SAME PREDICATE PUBLISH USES, not on the presence of the
+        // field. The field records that a Worker was once deployed, not that one
+        // exists — two have already been deleted by hand — and
+        // deployHoldingPage's PUT is create-or-update, so taking one of those
+        // sites offline would have RECREATED its Worker and published a holding
+        // page at an address that was deliberately retired. Pointing the two
+        // routes at one predicate is what keeps them from disagreeing about which
+        // sites Cloudflare still serves.
+        const workerName = needsCloudflareWorker(website, submission)
+            ? website.cfPagesProjectName
+            : undefined
 
         if (workerName) {
             const cfApiToken = process.env.CLOUDFLARE_API_TOKEN

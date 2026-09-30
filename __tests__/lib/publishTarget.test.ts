@@ -18,10 +18,35 @@ describe('needsCloudflareWorker', () => {
             .toBe(false);
     });
 
-    it('is true when the site already has a Worker', () => {
-        // Otherwise an existing Worker goes stale while the row advertises a
-        // different address, and whoever holds the old link gets an old page.
+    it('is true when a Worker is still the site’s only address', () => {
+        // No slug yet, so that Worker IS the site. Letting it go stale would
+        // leave whoever holds the link on an old page.
         expect(needsCloudflareWorker({ cfPagesProjectName: 'deluxia-coffee' }, {})).toBe(true);
+    });
+
+    it('is FALSE once the site has a hosted address, even though the field is set', () => {
+        // THE REGRESSION THIS GUARDS. cfPagesProjectName records that a Worker
+        // was once deployed, not that one exists — aurora-villa and neighborhood
+        // were deleted by hand. PUT /workers/scripts/{name} is create-or-update,
+        // so returning true here would resurrect a deleted script on the next
+        // publish or unpublish and put a second copy of the page back online.
+        expect(needsCloudflareWorker({ cfPagesProjectName: 'aurora-villa', slug: 'aurora-villa' }, {}))
+            .toBe(false);
+        expect(needsCloudflareWorker({ cfPagesProjectName: 'neighborhood', slug: 'neighborhood' }, {}))
+            .toBe(false);
+    });
+
+    it('still needs one for a custom-domain site that also has a slug', () => {
+        // Ben-Joe: the Worker serves benjoetiresupply.com, so the slug does not
+        // release us from maintaining it.
+        expect(needsCloudflareWorker(
+            { cfPagesProjectName: 'ben-joe-tire-supply', customDomain: 'benjoetiresupply.com', slug: 'ben-joe-tire-supply' },
+            {},
+        )).toBe(true);
+        expect(needsCloudflareWorker(
+            { cfPagesProjectName: 'x', slug: 'x' },
+            { requestedDomain: 'benjoetiresupply.com' },
+        )).toBe(true);
     });
 
     it('is true when a domain is already live on it', () => {
@@ -37,6 +62,10 @@ describe('needsCloudflareWorker', () => {
 
     it('ignores an empty string, which is not a request for a domain', () => {
         expect(needsCloudflareWorker({ cfPagesProjectName: '' }, { requestedDomain: '' })).toBe(false);
+    });
+
+    it('never needs one for a site that has a slug and nothing else', () => {
+        expect(needsCloudflareWorker({ slug: 'kels-meatshop' }, {})).toBe(false);
     });
 });
 
