@@ -1,0 +1,195 @@
+---
+/**
+ * woodworks / FooterBW — the black colophon: the business name as a giant
+ * condensed wordmark, a hairline, then four columns — the blurb, contact rows,
+ * an index of page links, the social links — and a mono colophon row. Plus the
+ * floating message pill, drawn ONLY for a chat channel the owner gave.
+ *
+ * Editable hooks (all schema-owned):
+ *   footer.brand · footer.blurb
+ *   footer.visit.title — the contact column heading
+ *   contact.address · contact.phone · contact.email (tel: / mailto: anchors
+ *                        carry data-field ONLY — the href is derived)
+ *   footer.explore.title · footer.explore.links.${i}.text + .href
+ *   footer.social.${i}.platform + .url
+ *   footer.notes.${i}
+ *   hero.cta1.text — the floating pill's label
+ *
+ * "Follow" is template chrome — the design draws it as a fixed heading, so it
+ * stays literal and appears only above real social links. Both other headings
+ * are the owner's fields; an empty value removes the heading, not the column.
+ *
+ * THE INDEX falls back to the nav links when the owner has no explore rows,
+ * WITHOUT index hooks (they would address an array that does not exist). Every
+ * in-page link is resolved against the ids this design renders and dropped when
+ * it has nowhere to go; the column carries data-anchor-list so PageBW's anchor
+ * pass also drops a link whose section is switched off.
+ *
+ * THE FLOATING PILL. The gate is a real chat CHANNEL — layout.contact's
+ * whatsapp (→ wa.me) or messenger (→ m.me) as the owner typed it — never the
+ * CTA label or href (derived on every site) and never the messaging block
+ * (derived from any phone number). Label: the hero's primary action. It is a
+ * sibling AFTER </footer> with no .btn class, so the engine's
+ * `footer .btn { color: on-ink }` pin can never reach it.
+ *
+ * THE WORDMARK is sized to fit: the design's clamp, capped so the LONGEST WORD
+ * of the owner's name fits the measure at any width — a long single-word name
+ * shrinks instead of breaking mid-word or pushing the page sideways.
+ *
+ * COLOUR: the ground is the fixed --shop black (see PageBW), so every string on
+ * it is --on-shop or --accent-light and legible under every scheme.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+// Anchor guard — identical copies in Header, Hero, Services, CtaBand, Footer.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'how', 'gallery', 'about', 'why', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { contact: 'visit', location: 'visit', work: 'gallery' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const c = (content as any) || {};
+const f = c.footer || {};
+const str = (v: any): string => String(v ?? '').trim();
+const brand = str(f.brand) || str(layout?.businessName);
+const fit = brand ? Math.max(4, ...brand.split(/\s+/).map((w) => w.length)) : 4;
+const blurb = str(f.blurb);
+const visitTitle = str(f.visit?.title);
+const address = str(layout?.contact?.address);
+const phone = str(layout?.contact?.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const email = str(layout?.contact?.email);
+const exploreTitle = str(f.explore?.title);
+const exploreFromOwner = Array.isArray(f.explore?.links) && f.explore.links.length > 0;
+const explore = ((exploreFromOwner
+  ? f.explore.links
+  : (Array.isArray(layout?.navLinks) ? layout.navLinks.map((l: any) => ({ text: l?.label, href: l?.href })) : [])) as any[])
+  .map((l: any, i: number) => ({
+    text: str(l?.text), href: onPage(l?.href, ''),
+    textHook: exploreFromOwner ? `footer.explore.links.${i}.text` : undefined,
+    hrefHook: exploreFromOwner ? `footer.explore.links.${i}.href` : undefined,
+  }))
+  .filter((l) => l.text && l.href);
+const social = ((Array.isArray(f.social) && f.social.length ? f.social : (Array.isArray(layout?.socialLinks) ? layout.socialLinks : [])) as any[])
+  .map((s: any, i: number) => ({ platform: str(s?.platform), url: str(s?.url), i }))
+  .filter((s) => s.platform && s.url);
+const notes = (Array.isArray(f.notes) ? f.notes : [])
+  .map((n: any, i: number) => ({ v: str(n), i }))
+  .filter((n) => n.v);
+const hasContact = Boolean(address || phone || email);
+const hasGrid = Boolean(blurb || hasContact || explore.length || social.length);
+
+// Floating pill: the gate is the CHANNEL the owner typed, never the label.
+const waDigits = str(layout?.contact?.whatsapp).replace(/[^0-9]/g, '');
+const messenger = str(layout?.contact?.messenger);
+const msgHref = waDigits
+  ? `https://wa.me/${waDigits}`
+  : messenger
+    ? (/^https?:/i.test(messenger) ? messenger : `https://m.me/${messenger.replace(/^@/, '')}`)
+    : '';
+const msgText = msgHref ? str(c.hero?.cta1?.text) : '';
+---
+{(brand || hasGrid || notes.length > 0) && (
+<footer class="ft" data-collapse>
+  <div class="wrap" data-collapse>
+    {brand && <p class="ft-mark" data-field="footer.brand" style={`--fit:${fit}`}>{brand}</p>}
+    {hasGrid && (
+      <div class="ft-grid" data-collapse>
+        {blurb && <p class="ft-blurb" data-field="footer.blurb">{blurb}</p>}
+        {hasContact && (
+          <div class="ft-col">
+            {visitTitle && <h3 class="ft-h" data-field="footer.visit.title">{visitTitle}</h3>}
+            {address && <p class="ft-row" data-field="contact.address">{address}</p>}
+            {phone && <p class="ft-row"><a href={telHref} data-field="contact.phone">{phone}</a></p>}
+            {email && <p class="ft-row"><a href={`mailto:${email}`} data-field="contact.email">{email}</a></p>}
+          </div>
+        )}
+        {explore.length > 0 && (
+          <div class="ft-col" data-anchor-list>
+            {exploreTitle && <h3 class="ft-h" data-field="footer.explore.title">{exploreTitle}</h3>}
+            <div class="ft-links">
+              {explore.map((l) => (
+                <a href={l.href} data-field={l.textHook} data-href-field={l.hrefHook}>{l.text}</a>
+              ))}
+            </div>
+          </div>
+        )}
+        {social.length > 0 && (
+          <div class="ft-col">
+            <h3 class="ft-h">Follow</h3>
+            <div class="ft-links">
+              {social.map((s) => (
+                <a href={s.url} target="_blank" rel="noopener noreferrer" data-field={`footer.social.${s.i}.platform`} data-href-field={`footer.social.${s.i}.url`}>{s.platform}</a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+    {notes.length > 0 && (
+      <div class="ft-notes">
+        {notes.map((n) => <span data-field={`footer.notes.${n.i}`}>{n.v}</span>)}
+      </div>
+    )}
+  </div>
+</footer>
+)}
+{msgHref && msgText && (
+  <a class="fab" href={msgHref} target="_blank" rel="noopener noreferrer" data-field="hero.cta1.text">{msgText}</a>
+)}
+<style>
+  .ft {
+    background-color: var(--shop); color: rgba(var(--on-shop-rgb),.75);
+    padding: clamp(48px,6vw,80px) 0 clamp(96px,10vw,120px);
+  }
+  /* PageBW's anchor pass can empty the fallback index; a grid, or a whole
+     footer, left with nothing visible goes rather than framing nothing. */
+  .ft[data-empty], .ft-grid[data-empty] { display: none; }
+  .ft .ft-mark {
+    display: block; margin: 0;
+    font-family: var(--disp); font-weight: 900; font-stretch: 72%; line-height: .8;
+    font-size: min(calc(clamp(64px,14vw,220px) * var(--disp-k, 1)), calc((min(100vw, var(--maxw)) - 2 * var(--gutter)) / (var(--fit, 6) * var(--glyph, .62))));
+    text-transform: uppercase; color: var(--on-shop); overflow-wrap: anywhere;
+  }
+  .ft-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,200px), 1fr));
+    gap: 32px; margin-top: clamp(32px,4vw,48px); padding-top: 28px;
+    border-top: 1px solid rgba(var(--on-shop-rgb),.2);
+  }
+  .ft-grid:first-child { margin-top: 0; }
+  .ft-grid .ft-blurb { margin: 0; max-width: 34ch; min-width: 0; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
+  .ft-col { min-width: 0; font-family: var(--mono); font-size: 13px; line-height: 1.6; }
+  .ft-col[data-empty] { display: none; }
+  .ft-col .ft-h {
+    margin: 0 0 12px; font-family: var(--mono); font-size: 11px; font-weight: 600;
+    line-height: 1.6; text-transform: uppercase; color: var(--accent-light);
+  }
+  .ft-col .ft-row { margin: 0 0 6px; overflow-wrap: anywhere; }
+  .ft-col .ft-row:last-child { margin-bottom: 0; }
+  .ft-links { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  .ft-col a { overflow-wrap: anywhere; }
+  .ft-col a:hover { color: var(--on-shop); }
+  .ft-notes {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
+    margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(var(--on-shop-rgb),.2);
+    font-family: var(--mono); font-size: 12px; line-height: 1.6; color: rgba(var(--on-shop-rgb),.55);
+  }
+  .ft-notes:first-child { margin-top: 0; }
+  .ft-notes span { min-width: 0; overflow-wrap: anywhere; }
+
+  /* The floating pill: orange fill, ink keyline and the design's hard 4px
+     offset shadow; hover goes ink with a paper label. */
+  .fab {
+    position: fixed; right: clamp(12px,2vw,24px); bottom: clamp(12px,2vw,24px); z-index: 60;
+    display: block; max-width: calc(100vw - 24px); min-height: 54px; padding: 0 22px;
+    background-color: var(--accent); border: 1px solid var(--ink); color: var(--on-fill);
+    font-family: var(--sans); font-size: 14px; font-weight: 700; line-height: 52px;
+    text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    box-shadow: 4px 4px 0 var(--ink);
+  }
+  .fab:hover { background-color: var(--ink); color: var(--paper); }
+</style>

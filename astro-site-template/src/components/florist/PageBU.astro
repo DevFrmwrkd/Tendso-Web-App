@@ -1,0 +1,436 @@
+---
+/**
+ * florist / PageBU — a dark floral atelier. Deep green night, Gloock display
+ * over Manrope body, one champagne accent, hairline rules and square corners.
+ * Fully self-contained, like hospitality/PageBJ: it shares nothing with the
+ * older florist PageBR / FloristSpine files in this folder.
+ *
+ * ROLE OF THIS FILE: the wrapper emits the WHOLE document (doctype, head,
+ * tokens, fonts, Leaflet css + js, skip link, map boot). It does NOT compose
+ * with BaseLayout. It is the only file in the variant that touches `siteData`;
+ * the sixteen section components receive only `layout` + `content`.
+ *
+ * EDITABLE HOOKS OWNED BY THIS FILE: none. It only READS layout.businessName /
+ * layout.tagline (title), content.description (meta description),
+ * layout.favicon and layout.ogImage. Every data-field / data-image-field /
+ * data-href-field hook lives in a section component, with the design's exact
+ * paths. Section visibility is the fourteen camelCase `visibility.*` keys
+ * below, each tested `!== false` (undefined renders).
+ *
+ * THE ONE HARDCODED VISIBLE STRING is the skip link's "Skip to content"
+ * (visible on focus only). The footer's "Follow" and the location rows'
+ * Address / Hours / Phone labels are template chrome in their sections, each
+ * gated on the value it labels.
+ *
+ * TOKEN PLAN (decided for a DARK design under the colour engine).
+ *
+ *   THE FIXED WORLD. The night greens and the two text tones live in names
+ *   buildOverrideCss does not know, so an admin colour pick cannot touch them:
+ *     --night  (page ground, hero panel, the label on every champagne fill)
+ *     --night-2 (the raised bands, the mobile drawer, photo wells)
+ *     --night-3 (photo wells inside a raised band, the closing-band hover)
+ *     --night-4 (footer ground)   --cream (text)   --sage (secondary text)
+ *   Why fixed: every light scheme the florist family offers (pink, purple,
+ *   green, brown, whitegold) would otherwise turn this night page into a pale
+ *   one, which is a different design — the mistake PageBJ had to undo and
+ *   PageBK avoids the same way.
+ *
+ *   THE ONE MOVING PART is the champagne, declared as --accent-light plus
+ *   --accent-rgb for its tints. Why --accent-light and not --accent: the
+ *   engine writes palette.primary into --accent, a mid-tone tuned for LIGHT
+ *   paper, which measures on this night 1.54 (maroon), 2.57 (brown), 3.40
+ *   (pink), 3.97 (purple). --accent-light receives palette.accent, the
+ *   scheme's light tint, which is the champagne's actual role here (a light
+ *   accent on a dark ground): 7.53 pink, 6.18 purple, 9.65 green, 5.08 brown,
+ *   8.87 whitegold, 2.37 maroon (maroon is the one scheme that breaks; see
+ *   the report). --accent and the other engine aliases are declared with the
+ *   champagne so an inherited rule finds a sane value, but no selector in
+ *   this template reads --accent.
+ *
+ *   THE LABEL ON A CHAMPAGNE FILL is the fixed --night, not the engine's
+ *   --on-accent. The engine picks that label by luminance with a 0.5
+ *   threshold and returns white on the pink, purple and brown tints (2.23,
+ *   2.72, 3.31:1), where the night holds 7.53, 6.18 and 5.08.
+ *
+ *   THE ONLY !important IN THIS TEMPLATE (one decision, three declarations).
+ *   On any explicit pick buildOverrideCss also emits `html, body {
+ *   background: var(--paper) !important; color: var(--ink) !important }`.
+ *   Sections paint their own grounds, but the canvas (overscroll, and what
+ *   the translucent sticky header shows at the top of the page) is html/body,
+ *   so the html and body grounds and the body text colour are pinned to the
+ *   night world here with a more specific !important. That keeps the fixed
+ *   world whole under a pick.
+ *
+ * CONTRAST, native palette: cream/night 14.01, sage/night 8.93, sage/night-2
+ * 7.88, champagne/night 9.84, champagne/night-2 8.68, night on champagne 9.84.
+ *
+ * FONT-PAIRING SENTINEL (two lines, wrapper-local): lib/astro-builder.ts
+ * defaults layout.fontPairing to the literal 'modern' and lockVariant does not
+ * blank it, so without the sentinel buildOverrideCss force-swaps Space
+ * Grotesk + Inter onto nearly every real site. astro-builder's default is
+ * treated as unset; a deliberate admin pick still applies.
+ *
+ * FORBIDDEN CLASS NAMES (buildOverrideCss pins them with !important):
+ *   .btn-primary .btn-ghost .btn-yellow .btn-light .nav-cta .nav-right
+ *   .testi .cta-band .trust, and `hero` as a class anywhere.
+ * Buttons here are .btn with .btn--fill / .btn--line / .btn--quiet, the
+ * closing band's own two variants, and .linkc for the directions link.
+ *
+ * DESIGN ISOLATION: every selector in the global block is anchored
+ * html[data-page="BU"], including the reset, body, img, a and ::selection.
+ * Base primitives are wrapped in :where() so an Astro-scoped section rule
+ * (0,2,0) always beats them (0,1,1).
+ *
+ * RENDER ORDER, exactly as the design draws it: Header, Hero (#top), Marquee
+ * (#marquee), Trust, Services (#services), About (#about), Why (#why), Gallery
+ * (#gallery), How (#how), Testimonials (#reviews), Credentials (#credentials),
+ * Area (#area), Faq (#faq), Location (#visit), then outside <main> the closing
+ * band (#book) and the Footer, followed by the floating message pill.
+ *
+ * LEAFLET: this wrapper loads leaflet.css + leaflet.js and defines
+ * window.__floristBUInitMap (family-unique). LocationBU calls that exact name,
+ * or parks its arguments in window.__floristBUPending, which the boot script
+ * drains right after defining the function (no timer can run out on a slow
+ * leaflet.js download).
+ * Keep `el.innerHTML = ''` in the boot, it erases the drawn fallback face, and
+ * keep id="map" literal. Tiles are the design's own CARTO dark_all night map,
+ * the same style PageBK uses; lib/carto.ts adds the key at publish.
+ */
+import HeaderBU from './header/HeaderBU.astro';
+import HeroBU from './hero/HeroBU.astro';
+import MarqueeBU from './marquee/MarqueeBU.astro';
+import TrustBU from './trust/TrustBU.astro';
+import ServicesBU from './services/ServicesBU.astro';
+import AboutBU from './about/AboutBU.astro';
+import WhyBU from './why/WhyBU.astro';
+import GalleryBU from './gallery/GalleryBU.astro';
+import HowBU from './how/HowBU.astro';
+import TestimonialsBU from './testimonials/TestimonialsBU.astro';
+import CredentialsBU from './credentials/CredentialsBU.astro';
+import AreaBU from './area/AreaBU.astro';
+import FaqBU from './faq/FaqBU.astro';
+import LocationBU from './location/LocationBU.astro';
+import CtaBandBU from './ctaBand/CtaBandBU.astro';
+import FooterBU from './footer/FooterBU.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __resolvedPairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+// 'modern' is astro-builder's DEFAULT, not a choice (lib/astro-builder.ts).
+// Treating it as unset keeps Gloock + Manrope; a deliberate admin pick applies.
+const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="BU">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <!-- Browser-chrome tint. A meta tag cannot read a CSS var, so this repeats
+       the fixed --night ground the sticky header sits on. -->
+  <meta name="theme-color" content="#13201A" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <!-- The design's own faces, verbatim from its helmet link: Gloock (one
+       weight) for display, Manrope 400-700 for body and tracked caps. -->
+  <link href="https://fonts.googleapis.com/css2?family=Gloock&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+
+  <style is:global>
+    /* ═══════════════════════════════════════════════════════════════════════
+       PageBU · florist · dark atelier. Tokens + shared base primitives. EVERY
+       selector is anchored html[data-page="BU"] so nothing leaks into a sister
+       wrapper, and nothing leaks in. Base primitives sit inside :where() so an
+       Astro-scoped section rule always wins them.
+
+       HEAD ORDER is load-bearing: this block, then the {__fontHref} link, then
+       LAST the set:html override block. The engine's html:root !important
+       only beats these tokens because it arrives later.
+       (Never write a literal end-style tag in this block, comments included.)
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    html[data-page="BU"] {
+      /* ── THE FIXED WORLD. Names the override engine does not know, so an
+            admin colour pick leaves the night alone (see the frontmatter). */
+      --night: #13201A;
+      --night-2: #1B2B23;
+      --night-3: #24382D;
+      --night-4: #0E1813;
+      --cream: #EFEADF;
+      --sage: #B9BFB2;
+      --night-rgb: 19,32,26;
+      --cream-rgb: 239,234,223;
+      --sage-rgb: 185,191,178;
+
+      /* ── THE ONE MOVING PART: the champagne. The engine rewrites these two
+            with palette.accent / palette.accentRgb on an explicit pick. */
+      --accent-light: #D8C49B;
+      --accent-rgb: 216,196,155;
+
+      /* ── The engine's own vocabulary, declared so any inherited rule finds
+            a sane value. NO SELECTOR IN THIS TEMPLATE READS THESE. */
+      --accent: #D8C49B;
+      --accent-soft: #D8C49B;
+      --accent-deep: #D8C49B;
+      --paper: #13201A;
+      --paper-2: #1B2B23;
+      --card: #1B2B23;
+      --ink: #EFEADF;
+      --ink-soft: #B9BFB2;
+      --line: #323C36;
+      --muted: #B9BFB2;
+      --paper-rgb: 19,32,26;
+      --ink-rgb: 239,234,223;
+      --on-accent: #13201A;
+      --on-primary: #13201A;
+      --on-ink: #13201A;
+      --on-paper: #EFEADF;
+      --on-brass: #13201A;
+
+      /* ── type + metrics */
+      --disp: "Gloock", Georgia, "Times New Roman", serif;
+      --serif: "Gloock", Georgia, "Times New Roman", serif;
+      --sans: "Manrope", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      /* No monospace in this design; its tracked caps are Manrope 700. */
+      --mono: "Manrope", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      --maxw: 1320px;
+      --gutter: clamp(18px,4vw,56px);
+    }
+
+    /* ── reset + document ─────────────────────────────────────────────── */
+    html[data-page="BU"] *,
+    html[data-page="BU"] *::before,
+    html[data-page="BU"] *::after { box-sizing: border-box; }
+    html[data-page="BU"] {
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+      /* The sticky header is 79px; every in-page anchor lands clear of it. On
+         the root rather than per section so FAQ rows and the map are covered
+         and keyboard focus never hides under the rail. */
+      scroll-padding-top: 90px;
+      /* Pinned: see THE ONLY !important IN THIS TEMPLATE in the frontmatter. */
+      background-color: var(--night) !important;
+    }
+    /* The fixed message pill (FooterBU's .fab, a sibling after </footer>)
+       covers the bottom band of the viewport: up to 54px plus its 24px
+       offset. When it renders, reserve that band too, so a keyboard-focused
+       link or FAQ row is scrolled clear of the pill instead of under it
+       (WCAG 2.4.11). Gated on the pill, so pages without one are unchanged. */
+    html[data-page="BU"]:has(> body > a.fab) { scroll-padding-bottom: 88px; }
+    @media (prefers-reduced-motion: reduce) { html[data-page="BU"] { scroll-behavior: auto; } }
+    html[data-page="BU"] body {
+      margin: 0; padding: 0;
+      background-color: var(--night) !important;
+      color: var(--cream) !important;
+      font-family: var(--sans); font-size: 16.5px; line-height: 1.7;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+      overflow-wrap: break-word;
+    }
+    html[data-page="BU"] main { display: block; background-color: var(--night); color: var(--cream); }
+    /* Element resets sit at ZERO specificity (the whole selector inside
+       :where), exactly as weak as the design's own bare `a {…}` reset. A
+       bare `html[…] a` would score (0,1,2): it out-ranked every button
+       primitive below and reset each label to the inherited colour, and it
+       beat Leaflet's `.leaflet-bar a` / attribution link colours too. */
+    :where(html[data-page="BU"] img) { max-width: 100%; display: block; }
+    :where(html[data-page="BU"] a) { color: inherit; text-decoration: none; }
+    /* The design's one global hover: an unstyled link turns champagne.
+       Zero-specificity as well, so every control that styles its own hover
+       (all of this template's, and Leaflet's) keeps it. */
+    :where(html[data-page="BU"] a:hover) { color: var(--accent-light); }
+    html[data-page="BU"] ::selection { background: var(--accent-light); color: var(--night); }
+    /* text-transform is DECLARED, not defaulted: an unscoped uppercase heading
+       rule from another template once reached every page through index.astro.
+       No line-height here on purpose — the design's small headings inherit the
+       page's 1.7, and each display heading sets its own. */
+    html[data-page="BU"] :where(h1,h2,h3,h4) {
+      margin: 0; font-family: var(--disp); font-weight: 400; color: inherit;
+      letter-spacing: 0; text-transform: none;
+    }
+    html[data-page="BU"] :where(p, figure, blockquote, dl, dd) { margin: 0; }
+
+    /* ── layout scaffolding: the design's 1320px column and fluid gutter ── */
+    html[data-page="BU"] :where(.wrap) {
+      max-width: var(--maxw);
+      margin-left: auto; margin-right: auto;
+      padding-left: var(--gutter); padding-right: var(--gutter);
+    }
+
+    /* ── .kick — the eyebrow: 12px Manrope 700, .24em, champagne ────────── */
+    html[data-page="BU"] :where(.kick) {
+      margin: 0;
+      font-family: var(--sans); font-size: 12px; font-weight: 700;
+      letter-spacing: .24em; text-transform: uppercase;
+      color: var(--accent-light);
+    }
+
+    /* ── .h2 — the display headline, in the design's three sizes ─────────── */
+    html[data-page="BU"] :where(.h2) {
+      margin: 16px 0 0;
+      font-family: var(--disp); font-weight: 400; color: var(--cream);
+    }
+    html[data-page="BU"] :where(.h2:first-child) { margin-top: 0; }
+    html[data-page="BU"] :where(.h2--xl) { font-size: clamp(34px,4.8vw,66px); line-height: 1.04; }
+    html[data-page="BU"] :where(.h2--lg) { font-size: clamp(32px,4.4vw,58px); line-height: 1.06; }
+    html[data-page="BU"] :where(.h2--md) { font-size: clamp(32px,4.2vw,54px); line-height: 1.06; }
+
+    /* ── BUTTONS. Square, tracked caps, a 1px border on every variant. Each
+          variant declares its own fill and restates fill AND label on hover,
+          straight from the design's style-hover attributes. No transition:
+          the design swaps instantly. ───────────────────────────────────── */
+    html[data-page="BU"] :where(.btn) {
+      /* DECLARED, not left to chance: index.astro bundles every template's
+         global CSS, so a control with no fill of its own takes whatever lands
+         last. */
+      background-color: transparent;
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 54px; padding: 0 30px;
+      border: 1px solid transparent; border-radius: 0;
+      font-family: var(--sans); font-size: 13px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase; text-decoration: none;
+      color: var(--cream); cursor: pointer;
+    }
+    /* champagne fill, night label; hover turns the fill cream */
+    html[data-page="BU"] :where(.btn--fill) {
+      background-color: var(--accent-light); border-color: var(--accent-light); color: var(--night);
+    }
+    html[data-page="BU"] :where(.btn--fill:hover) {
+      background-color: var(--cream); border-color: var(--cream); color: var(--night);
+    }
+    /* champagne hairline, champagne label; hover fills champagne */
+    html[data-page="BU"] :where(.btn--line) {
+      background-color: transparent; border-color: var(--accent-light); color: var(--accent-light);
+    }
+    html[data-page="BU"] :where(.btn--line:hover) {
+      background-color: var(--accent-light); border-color: var(--accent-light); color: var(--night);
+    }
+    /* the quiet secondary: cream label in a faint cream hairline */
+    html[data-page="BU"] :where(.btn--quiet) {
+      background-color: transparent; border-color: rgba(var(--cream-rgb),.4); color: var(--cream);
+    }
+    html[data-page="BU"] :where(.btn--quiet:hover) {
+      background-color: transparent; border-color: var(--cream); color: var(--cream);
+    }
+
+    /* ── .linkc — the underlined text action (directions). Only the label
+          colour moves on hover; the rule under it stays champagne. ───────── */
+    html[data-page="BU"] :where(.linkc) {
+      display: inline-flex; align-items: center; min-height: 44px;
+      font-family: var(--sans); font-size: 13px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--accent-light); border-bottom: 1px solid var(--accent-light);
+    }
+    html[data-page="BU"] :where(.linkc:hover) { color: var(--cream); }
+
+    /* ── FOCUS. The design draws none, so one ring for everything: a cream
+          outline clear of the control, legible on every night ground. The
+          champagne closing band restates it in night. ─────────────────── */
+    html[data-page="BU"] :where(a, button, summary, [tabindex]):focus-visible {
+      outline: 2px solid var(--cream); outline-offset: 3px;
+    }
+
+    /* ── skip link (the one hardcoded visible string) ──────────────────── */
+    html[data-page="BU"] :where(.skip) {
+      position: absolute; left: -999px; top: 0; z-index: 100;
+      background-color: var(--accent-light); color: var(--night);
+      padding: 12px 18px;
+      font-family: var(--sans); font-size: 12px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+    }
+    html[data-page="BU"] :where(.skip:focus) { left: 0; top: 0; }
+  </style>
+
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <HeaderBU layout={layout} content={content} />
+  <main id="main">
+    {visibility.heroSection !== false && <HeroBU content={content} layout={layout} />}
+    {visibility.marqueeBlock !== false && <MarqueeBU content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustBU content={content} layout={layout} />}
+    {visibility.servicesSection !== false && <ServicesBU content={content} layout={layout} />}
+    {visibility.aboutSection !== false && <AboutBU content={content} layout={layout} />}
+    {visibility.whyUsBlock !== false && <WhyBU content={content} layout={layout} />}
+    {visibility.gallerySection !== false && <GalleryBU content={content} layout={layout} />}
+    {visibility.howItWorksBlock !== false && <HowBU content={content} layout={layout} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsBU content={content} layout={layout} />}
+    {visibility.credentialsBlock !== false && <CredentialsBU content={content} layout={layout} />}
+    {visibility.serviceAreaBlock !== false && <AreaBU content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqBU content={content} layout={layout} />}
+    {visibility.locationBlock !== false && <LocationBU content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandBU content={content} layout={layout} />}
+  <FooterBU layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    // florist / BU Leaflet boot. The global name is family-unique on purpose: a
+    // preview harness can render two wrappers in one document, and a shared
+    // name cross-wires the maps. LocationBU calls it with (lat, lng, label), or
+    // — because its script runs BEFORE this one, and a slow leaflet.js can
+    // hold this definition back for as long as the download takes — parks the
+    // arguments in window.__floristBUPending, drained at the bottom of this
+    // script. No timer on either side, so a slow CDN only delays the map.
+    window.__floristBUInitMap = function (lat, lng, label) {
+      var tries = 0;
+      (function go() {
+        var el = document.getElementById('map');
+        if (!el || el.__buMap) return;
+        // leaflet.js is a parser-blocking tag above, so by the time this runs
+        // L exists — unless leaflet.js FAILED (blocked, offline, integrity
+        // mismatch). This short retry only guards a document that runs the
+        // boot out of order; giving up leaves the drawn fallback face, which
+        // is a perfectly good thing to be left with.
+        if (typeof window.L === 'undefined') { if (tries++ < 25) setTimeout(go, 80); return; }
+        // Erases LocationBU's drawn fallback face; without it the tiles stack
+        // on top of the drawn grid.
+        el.innerHTML = '';
+        var map = window.L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 16);
+        el.__buMap = map;
+        // The design's own night basemap (CARTO dark_all, as PageBK). The
+        // URL keeps the shape lib/carto.ts rewrites, so the key is added at
+        // publish time.
+        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19, subdomains: 'abcd'
+        }).addTo(map);
+        // The design's pin: an 18px champagne dot in a 5px champagne halo.
+        // Colours are READ from the live tokens, so an explicit admin colour
+        // pick recolours the pin too (the engine sets them on html:root).
+        var cs = window.getComputedStyle(document.documentElement);
+        var champ = (cs.getPropertyValue('--accent-light') || '').trim() || '#D8C49B';
+        var rgb = (cs.getPropertyValue('--accent-rgb') || '').trim() || '216,196,155';
+        var icon = window.L.divIcon({
+          className: '',
+          html: '<div style="width:18px;height:18px;border-radius:50%;background:' + champ + ';box-shadow:0 0 0 5px rgba(' + rgb + ',.25)"></div>',
+          iconSize: [18, 18], iconAnchor: [9, 9]
+        });
+        // No popup and no tooltip: the design's pin carries neither. The map
+        // node itself is labelled (role="img" + aria-label in LocationBU).
+        window.L.marker([lat, lng], { icon: icon, keyboard: false }).addTo(map);
+      })();
+    };
+    // Drain LocationBU's parked call (see above).
+    (function () {
+      var p = window.__floristBUPending;
+      if (!p) return;
+      window.__floristBUPending = null;
+      window.__floristBUInitMap(p[0], p[1], p[2]);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+---
+/**
+ * florist / WhyBS — the blush-tint band of reasons: a centred script eyebrow
+ * and Gilda headline, then one blush-cream card per reason, each opened by a
+ * Pinyon Script NUMBER WORD ("one", "two" …), a Gilda title and a soft body.
+ *
+ * Editable hooks: why.tag · why.headline · why.items.${i}.title ·
+ * why.items.${i}.body (the canonical key, spelled in the hook even when the
+ * value arrived under an alias) — ORIGINAL index, blank rows dropped.
+ *
+ * THE NUMBER WORDS ARE DECORATIVE: computed from the DISPLAY index (so the
+ * cards always read one, two, three with no gap after a blank row is
+ * dropped), aria-hidden, and bound to nothing. Past twelve they fall back to
+ * figures rather than inventing a spelling scheme.
+ *
+ * SECTION GATE: at least one reason. The derive layer fills the eyebrow and
+ * the headline on every named site, so neither counts.
+ *
+ * COUNTS: auto-fit with a 230px floor gives the design's 4-up on a desk, 2-up
+ * on a tablet and one column on a phone. One or two cards keep the width four
+ * would have had, centred, rather than stretching across the page.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => String(v ?? '').trim();
+const W = (content as any).why || {};
+const tag = str(W.tag);
+const headline = str(W.headline);
+const items: any[] = Array.isArray(W.items) ? W.items : [];
+const rows = items
+  .map((it: any, i: number) => ({ title: str(it?.title), body: str(it?.body ?? it?.desc ?? it?.description), i }))
+  .filter((r: { title: string; body: string }) => r.title || r.body);
+const WORDS = ['one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+const word = (k: number): string => WORDS[k] ?? String(k + 1);
+---
+{rows.length > 0 && (
+  <section class="wy" id="why">
+    <div class="k-wrap">
+      {(tag || headline) && (
+        <div class="wy-head">
+          {tag && <p class="k-tag" data-field="why.tag">{tag}</p>}
+          {headline && <h2 class="wy-h2" data-field="why.headline" set:html={headline}></h2>}
+        </div>
+      )}
+      <div class="wy-grid" data-n={String(Math.min(rows.length, 3))}>
+        {rows.map((r, k) => (
+          <div class="wy-card">
+            <span class="wy-no" aria-hidden="true">{word(k)}</span>
+            {r.title && <h3 class="wy-t" data-field={`why.items.${r.i}.title`}>{r.title}</h3>}
+            {r.body && <p class="wy-b" data-field={`why.items.${r.i}.body`}>{r.body}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .wy { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--band); }
+  .wy-head { text-align: center; max-width: 720px; margin: 0 auto; }
+  .wy-h2 {
+    margin: 6px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.4vw, 56px); line-height: 1.1; text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  .wy-head > :first-child { margin-top: 0; }
+  .wy-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+    gap: clamp(14px, 2vw, 24px); margin-top: clamp(36px, 5vw, 56px);
+  }
+  .wy-grid:first-child { margin-top: 0; }
+  /* data-n is capped at 3, so only the one- and two-card cases are narrowed. */
+  .wy-grid[data-n="1"] { max-width: 330px; margin-inline: auto; }
+  .wy-grid[data-n="2"] { max-width: 684px; margin-inline: auto; }
+  .wy-card {
+    min-width: 0; padding: 30px 26px; border-radius: 22px;
+    background-color: var(--paper); text-align: center;
+  }
+  .wy-no {
+    display: block; font-family: var(--script); font-size: 34px; line-height: 1; color: var(--rose-ink);
+  }
+  .wy-t {
+    margin: 12px 0 8px; font-family: var(--disp); font-weight: 400;
+    font-size: 23px; line-height: 1.2; overflow-wrap: break-word;
+  }
+  .wy-b { margin: 0; font-size: 15px; color: var(--ink-soft); }
+  .wy-no + .wy-b { margin-top: 12px; }
+</style>

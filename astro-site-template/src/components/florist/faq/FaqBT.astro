@@ -1,0 +1,70 @@
+---
+/**
+ * florist / FaqBT — Gumamela's questions (#faq): the full-bleed BLUSH band, a
+ * narrow 880px column holding a big headline and a stack of paper disclosure
+ * rows ruled in 2px ink, each a display-face question with a red + at the end.
+ *
+ * Editable hooks: faq.headline (set:html; an <em> prints upright in the hero's
+ * red) · faq.items.${i}.q · faq.items.${i}.a (ORIGINAL index).
+ *
+ * Native details/summary, as drawn: the first row opens by default (the
+ * design's markup sets `open` on it), the rest start closed. The + is
+ * decorative (aria-hidden) and sits OUTSIDE the question's data-field span, so
+ * an inline edit can never write it into the question.
+ *
+ * NOT ONE ANSWER IS SUPPLIED BY THIS FILE. A row with no question is dropped;
+ * an answerless question renders as a question. GATE: at least one question.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const faq = content.faq || {};
+const str = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
+const headline = str(faq.headline).trim();
+const items: any[] = Array.isArray(faq.items) ? faq.items : (Array.isArray(content.faq) ? content.faq : []);
+const rows = items
+  .map((it: any, i: number) => ({ q: str(it?.q ?? it?.question).trim(), a: str(it?.a ?? it?.answer).trim(), i }))
+  .filter((r) => Boolean(r.q));
+---
+{rows.length > 0 && (
+  <section class="gm-faq" id="faq">
+    <div class="fq-wrap">
+      {headline && <h2 class="fq-h" data-field="faq.headline" set:html={headline}></h2>}
+      <div class:list={['fq-list', !headline && 'fq-list--top']}>
+        {rows.map((r, k) => (
+          <details class="fq-row" open={k === 0}>
+            <summary class="fq-sum">
+              <span data-field={`faq.items.${r.i}.q`}>{r.q}</span>
+              <span class="fq-plus" aria-hidden="true">+</span>
+            </summary>
+            {r.a && <p class="fq-a" data-field={`faq.items.${r.i}.a`}>{r.a}</p>}
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .gm-faq { padding: clamp(56px,7vw,104px) 0; background-color: var(--paper-2); }
+  .fq-wrap { max-width: 880px; margin: 0 auto; padding: 0 var(--gutter); }
+  .fq-h {
+    margin: 0; font-family: var(--disp); font-weight: 800; color: var(--ink);
+    font-size: clamp(34px,5vw,68px); line-height: .98; letter-spacing: -.04em;
+    overflow-wrap: break-word;
+  }
+  /* :global() because Astro cannot scope markup that arrived via set:html. */
+  .fq-h :global(em), .fq-h :global(i) { font-style: normal; color: var(--accent-text); }
+  .fq-list { margin-top: clamp(28px,4vw,44px); display: flex; flex-direction: column; gap: 10px; }
+  .fq-list--top { margin-top: 0; }
+  .fq-row {
+    border-radius: 20px; background-color: var(--paper); color: var(--ink);
+    border: 2px solid var(--ink); padding: 0 22px;
+  }
+  .fq-sum {
+    display: flex; justify-content: space-between; gap: 16px; padding: 20px 0;
+    font-family: var(--disp); font-weight: 700; font-size: clamp(18px,1.8vw,21px);
+    line-height: 1.6; list-style: none; cursor: pointer; overflow-wrap: anywhere;
+  }
+  .fq-sum::-webkit-details-marker { display: none; }
+  .fq-plus { flex: none; color: var(--accent-text); }
+  .fq-a { margin: 0 0 20px; line-height: 1.6; color: var(--ink-soft); overflow-wrap: break-word; }
+</style>

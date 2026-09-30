@@ -1,0 +1,65 @@
+---
+/**
+ * woodworks / WhyBW — "why homeowners pick us": a condensed h2 over a grid of
+ * ink-outlined cards, each opened by an orange mono reference number, then a
+ * condensed caps title and a line of body copy.
+ *
+ * Editable hooks (all schema-owned):
+ *   why.headline · why.items.${i}.title · why.items.${i}.body (canonical key,
+ *   spelled in the hook even when the value arrived as desc / description)
+ *
+ * THE REFERENCE NUMBER IS DECORATIVE: "W-01", "W-02"… computed from the
+ * DISPLAY index (no gap after a dropped row), aria-hidden and unbound — the
+ * part-number styling of the design, carrying no content. Every hook uses the
+ * row's ORIGINAL index.
+ *
+ * No reason is supplied by this file; with no filled row the section is
+ * omitted (the headline is derived on every site and never keeps it alive).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const why = (content as any).why || {};
+const str = (v: any): string => String(v ?? '').trim();
+const headline = str(why.headline);
+const items: any[] = Array.isArray(why.items) ? why.items : [];
+const rows = items
+  .map((it: any, i: number) => ({ i, title: str(it?.title), body: str(it?.body ?? it?.desc ?? it?.description) }))
+  .filter((r) => Boolean(r.title || r.body));
+---
+{rows.length > 0 && (
+  <section id="why" class="wy">
+    <div class="wrap">
+      {headline && <h2 class="h2 h2--md wy-h2" data-field="why.headline">{headline}</h2>}
+      <div class="wy-grid">
+        {rows.map((r, k) => (
+          <div class="wy-card">
+            <span class="wy-n" aria-hidden="true">W-{String(k + 1).padStart(2, '0')}</span>
+            {r.title && <h3 class="wy-t" data-field={`why.items.${r.i}.title`}>{r.title}</h3>}
+            {r.body && <p class="wy-b" data-field={`why.items.${r.i}.body`}>{r.body}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .wy { padding: clamp(56px,7vw,112px) 0; }
+  .wy-h2 { margin-top: 0; text-wrap: balance; }
+  .wy-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,240px), 1fr));
+    gap: clamp(14px,2vw,24px); margin-top: clamp(32px,4vw,48px);
+  }
+  .wy-grid:first-child { margin-top: 0; }
+  .wy-card { min-width: 0; padding: 24px; border: 1px solid var(--ink); }
+  /* Inline, as drawn: the number sits on the card's own 16.5px/1.6 strut. */
+  .wy-n { font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--accent-deep); }
+  .wy-card .wy-t {
+    margin: 10px 0 6px; font-family: var(--disp); font-size: 22px; font-weight: 800;
+    font-stretch: 85%; line-height: 1.6; text-transform: uppercase; color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .wy-card .wy-b {
+    margin: 0; font-size: 15px; line-height: 1.6; color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+  .wy-n + .wy-b { margin-top: 10px; }
+</style>

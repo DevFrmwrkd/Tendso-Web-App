@@ -1,0 +1,84 @@
+---
+/**
+ * florist / HowBS — "how ordering works": on the blush tint band, a centred
+ * script eyebrow, Gilda headline and short lede over a row of steps, each a
+ * 64px white disc holding a rose Gilda numeral, a Gilda title and a soft line.
+ * The LAST step's disc is filled rose with a light numeral — the delivery,
+ * where the order ends.
+ *
+ * Editable hooks: how.tag · how.headline · how.sub · how.steps.${i}.title ·
+ * how.steps.${i}.body (canonical key; tolerates desc / description in the
+ * value) — ORIGINAL index, blank rows dropped.
+ *
+ * THE NUMERALS ARE DECORATIVE: computed from the DISPLAY index (1, 2, 3 with
+ * no gap after a dropped row), aria-hidden, and bound to nothing — the <ol>
+ * already tells assistive tech the order. The filled disc follows the last
+ * SHOWN step for the same reason.
+ *
+ * SECTION GATE: at least one step. The derive layer fills the eyebrow.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => String(v ?? '').trim();
+const W = (content as any).how || {};
+const tag = str(W.tag);
+const headline = str(W.headline);
+const sub = str(W.sub);
+const steps: any[] = Array.isArray(W.steps) ? W.steps : (Array.isArray(W.items) ? W.items : []);
+const rows = steps
+  .map((s: any, i: number) => ({ title: str(s?.title), body: str(s?.body ?? s?.desc ?? s?.description), i }))
+  .filter((r: { title: string; body: string }) => r.title || r.body);
+---
+{rows.length > 0 && (
+  <section class="hw" id="how">
+    <div class="k-wrap">
+      {(tag || headline || sub) && (
+        <div class="hw-head">
+          {tag && <p class="k-tag" data-field="how.tag">{tag}</p>}
+          {headline && <h2 class="hw-h2" data-field="how.headline" set:html={headline}></h2>}
+          {sub && <p class="hw-sub" data-field="how.sub">{sub}</p>}
+        </div>
+      )}
+      <ol class="hw-steps">
+        {rows.map((r, k) => (
+          <li class="hw-step">
+            <div class:list={['hw-disc', k === rows.length - 1 && 'hw-disc--last']} aria-hidden="true">{k + 1}</div>
+            {r.title && <h3 class="hw-t" data-field={`how.steps.${r.i}.title`}>{r.title}</h3>}
+            {r.body && <p class="hw-b" data-field={`how.steps.${r.i}.body`}>{r.body}</p>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+)}
+<style>
+  .hw { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--band); }
+  .hw-head { text-align: center; max-width: 720px; margin: 0 auto; }
+  .hw-h2 {
+    margin: 6px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.4vw, 56px); line-height: 1.1; text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  .hw-sub { margin: 14px auto 0; max-width: 48ch; color: var(--ink-soft); }
+  .hw-head > :first-child { margin-top: 0; }
+
+  .hw-steps {
+    list-style: none; margin: clamp(36px, 5vw, 56px) 0 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 32px clamp(18px, 2.4vw, 32px); text-align: center;
+  }
+  .hw-steps:first-child { margin-top: 0; }
+  .hw-step { min-width: 0; }
+  .hw-disc {
+    width: 64px; height: 64px; margin: 0 auto; border-radius: 50%;
+    background-color: var(--sheet); display: flex; align-items: center; justify-content: center;
+    font-family: var(--disp); font-size: 24px; color: var(--rose-ink);
+  }
+  .hw-disc--last { background-color: var(--accent); color: var(--on-rose); }
+  .hw-t {
+    margin: 18px 0 6px; font-family: var(--disp); font-weight: 400; font-size: 23px;
+    overflow-wrap: break-word;
+  }
+  .hw-b { margin: 0 auto; max-width: 28ch; font-size: 15px; color: var(--ink-soft); }
+  .hw-disc + .hw-b { margin-top: 18px; }
+</style>

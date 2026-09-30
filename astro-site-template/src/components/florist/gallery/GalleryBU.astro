@@ -1,0 +1,93 @@
+---
+/**
+ * florist / GalleryBU — the portfolio (#gallery), on the raised night-2 band.
+ * A two-part head inside the page column, then a FULL-BLEED horizontal strip
+ * of 4:5 photographs with a sage caption under each, scroll-snapped.
+ *
+ * Editable hooks: gallery.tag · gallery.headline · gallery.sub ·
+ * gallery.items.${t.i}.image (data-image-field) · gallery.items.${t.i}.caption
+ * (ORIGINAL index). The third tile's image is also shown in AboutBU, by
+ * design — the same field in both places. gallery.headline is set:html (the
+ * AI and the editor may mark an <em>); it prints upright in champagne, as
+ * Gloock has no italic cut.
+ *
+ * The strip is copied from the design as-is: padding at both ends plus
+ * `scroll-snap-type: x mandatory`, which makes the browser snap the first tile
+ * to the strip's edge on load — exactly what the reference render shows.
+ *
+ * A tile needs its photo (a caption alone would float with no frame), so
+ * image-less rows are dropped; the section renders only with at least one
+ * photo. A caption renders only when typed. With a caption the photo is
+ * decoration beside it; without one it is announced under the business name.
+ */
+interface Props { content: any; layout?: any; }
+const { content, layout } = Astro.props;
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const cssUrl = (u: string): string => u.replace(/[\r\n]/g, '').replace(/'/g, '%27');
+const gallery = content.gallery || {};
+const tag = str(gallery.tag);
+const headline = str(gallery.headline);
+const sub = str(gallery.sub);
+const raw: any[] = Array.isArray(gallery.items) ? gallery.items : (Array.isArray(content.gallery) ? content.gallery : []);
+const tiles = raw
+  .map((t: any, i: number) => ({ image: str(t?.image), caption: str(t?.caption), i }))
+  .filter((t) => t.image);
+const photoLabel = str(layout?.businessName);
+---
+{tiles.length > 0 && (
+  <section id="gallery" class="gal">
+    {(tag || headline || sub) && (
+      <div class="wrap">
+        <div class="g-head">
+          {(tag || headline) && (
+            <div class="g-head-l">
+              {tag && <p class="kick" data-field="gallery.tag">{tag}</p>}
+              {headline && <h2 class="h2 h2--xl g-h2" data-field="gallery.headline" set:html={headline}></h2>}
+            </div>
+          )}
+          {sub && <p class="g-sub" data-field="gallery.sub">{sub}</p>}
+        </div>
+      </div>
+    )}
+    <div class="g-strip">
+      {tiles.map((t) => (
+        <figure class="g-fig">
+          <div
+            class="g-ph"
+            data-image-field={`gallery.items.${t.i}.image`}
+            role={!t.caption && photoLabel ? 'img' : undefined}
+            aria-label={!t.caption && photoLabel ? photoLabel : undefined}
+            aria-hidden={t.caption || !photoLabel ? 'true' : undefined}
+            style={`background-image:url('${cssUrl(t.image)}');`}
+          ></div>
+          {t.caption && <figcaption class="g-cap" data-field={`gallery.items.${t.i}.caption`}>{t.caption}</figcaption>}
+        </figure>
+      ))}
+    </div>
+  </section>
+)}
+<style>
+  .gal { padding: clamp(56px,7vw,112px) 0; background-color: var(--night-2); color: var(--cream); }
+  .g-head {
+    display: flex; flex-wrap: wrap; gap: 16px 64px; align-items: flex-end;
+    margin-bottom: clamp(32px,4vw,48px);
+  }
+  .g-head-l { flex: 1 1 440px; min-width: 0; }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .g-h2 :global(em), .g-h2 :global(i) { font-style: normal; color: var(--accent-light); }
+  .g-sub { flex: 1 1 320px; min-width: 0; margin: 0; max-width: 44ch; color: var(--sage); }
+
+  .g-strip {
+    display: flex; gap: clamp(12px,1.6vw,20px);
+    overflow-x: auto;
+    padding: 0 var(--gutter) 12px;
+    scroll-snap-type: x mandatory;
+  }
+  .g-fig { flex: 0 0 clamp(260px,34vw,460px); margin: 0; scroll-snap-align: start; }
+  .g-ph {
+    aspect-ratio: 4/5;
+    background-color: var(--night-3);
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+  }
+  .g-cap { margin-top: 12px; font-size: 14px; color: var(--sage); }
+</style>

@@ -1,0 +1,106 @@
+---
+/**
+ * woodworks / CtaBandBW — the closing band: full-bleed safety orange, one giant
+ * condensed caps line in white, then a sentence on the left and two square
+ * actions on the right — an ink-filled one and a white outline one, both
+ * turning white-filled on hover. Anchors #book, where the page's in-page
+ * actions resolve by default.
+ *
+ * Editable hooks (all schema-owned):
+ *   ctaBand.headline · ctaBand.sub
+ *   ctaBand.cta.text + data-href-field ctaBand.cta.href    — the ink action
+ *   ctaBand.cta2.text + data-href-field ctaBand.cta2.href  — the outline action
+ *   contact.phone — the outline action's stand-in when the second action is
+ *                   blank, exactly as the schema's "Second CTA button" field
+ *                   promises ("left blank, this falls back to your phone number
+ *                   as a tel: link"). A tel: anchor carries data-field ONLY.
+ *
+ * THE PATH IS ctaBand.cta, as the schema declares; the legacy cta1 is read for
+ * DISPLAY only so an older site still shows its button.
+ *
+ * NEVER FABRICATED: no headline, sentence, label or number is supplied here.
+ * The phone stand-in prints the owner's own number and nothing else — no
+ * "Call us" wording. The band renders only with a headline or a real action.
+ *
+ * COLOUR: the ground is --accent and every string on it --on-fill (white
+ * natively; PageBW recomputes it per scheme so a gold or black fill gets an ink
+ * label). The hover fill is --on-fill with --on-fill-alt on top — natively the
+ * design's white fill and ink label. CLASS NAMES: .bk, never .cta-band, whose
+ * `.btn` label buildOverrideCss pins to the on-ink colour.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+// Anchor guard — identical copies in Header, Hero, Services, CtaBand, Footer.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'how', 'gallery', 'about', 'why', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { contact: 'visit', location: 'visit', work: 'gallery' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const band = (content as any).ctaBand || {};
+const str = (v: any): string => String(v ?? '').trim();
+const headline = str(band.headline);
+const sub = str(band.sub);
+const ctaText = str(band.cta?.text) || str(band.cta1?.text);
+const ctaHref = onPage(band.cta?.href || band.cta1?.href, '#visit');
+const cta2Text = str(band.cta2?.text);
+const cta2Href = onPage(band.cta2?.href, '#visit');
+const phone = str(layout?.contact?.phone) || str((content as any).contact?.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const hasActions = Boolean(ctaText || cta2Text || phone);
+---
+{(headline || ctaText || cta2Text) && (
+  <section id="book" class="bk">
+    <div class="wrap">
+      {headline && <h2 class="bk-h" data-field="ctaBand.headline">{headline}</h2>}
+      {(sub || hasActions) && (
+        <div class="bk-foot">
+          {sub && <p class="bk-sub" data-field="ctaBand.sub">{sub}</p>}
+          {hasActions && (
+            <div class="bk-acts">
+              {ctaText && <a class="btn bk-b1" href={ctaHref} data-field="ctaBand.cta.text" data-href-field="ctaBand.cta.href">{ctaText}</a>}
+              {cta2Text
+                ? <a class="btn bk-b2" href={cta2Href} data-field="ctaBand.cta2.text" data-href-field="ctaBand.cta2.href">{cta2Text}</a>
+                : phone && <a class="btn bk-b2" href={telHref} data-field="contact.phone">{phone}</a>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .bk {
+    padding: clamp(56px,7vw,104px) 0;
+    background-color: var(--accent); color: var(--on-fill);
+  }
+  .bk .bk-h {
+    margin: 0; font-family: var(--disp); font-size: calc(clamp(46px,8.4vw,136px) * var(--disp-k, 1)); font-weight: 900;
+    font-stretch: 72%; line-height: .86; letter-spacing: 0; text-transform: uppercase;
+    color: var(--on-fill); text-wrap: balance; overflow-wrap: anywhere;
+  }
+  .bk-foot {
+    display: flex; flex-wrap: wrap; gap: 20px 48px; align-items: center;
+    justify-content: space-between; margin-top: clamp(24px,3vw,40px);
+  }
+  .bk-foot:first-child { margin-top: 0; }
+  .bk-foot .bk-sub {
+    margin: 0; max-width: 46ch; min-width: 0; font-size: 17px; line-height: 1.6;
+    color: var(--on-fill); overflow-wrap: anywhere;
+  }
+  .bk-acts { display: flex; flex-wrap: wrap; gap: 10px; min-width: 0; max-width: 100%; }
+  .bk .bk-b1, .bk .bk-b2 {
+    min-height: 56px; padding: 0 28px; letter-spacing: 0;
+  }
+  .bk .bk-b1 { background-color: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .bk .bk-b1:hover { background-color: var(--on-fill); border-color: var(--on-fill); color: var(--on-fill-alt); }
+  .bk .bk-b2 { background-color: transparent; border-color: var(--on-fill); color: var(--on-fill); }
+  .bk .bk-b2:hover { background-color: var(--on-fill); border-color: var(--on-fill); color: var(--on-fill-alt); }
+  @media (max-width: 520px) {
+    .bk .bk-b1, .bk .bk-b2 { max-width: 100%; white-space: normal; }
+  }
+</style>

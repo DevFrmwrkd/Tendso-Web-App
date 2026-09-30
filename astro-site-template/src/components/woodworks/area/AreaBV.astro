@@ -1,0 +1,106 @@
+---
+/**
+ * woodworks / AreaBV — the delivery-area section: the eyebrow, a Young Serif headline and
+ * the owner's paragraph on the left; on the right a hairline ledger of places,
+ * each a Young Serif name with its muted delivery note pushed right.
+ *
+ * Editable hooks:
+ *   area.tag · area.headline (set:html) · area.body
+ *   area.rows.${i}.place · area.rows.${i}.time   — the design's ledger (primary)
+ *   area.places.${i}                             — the fallback ledger
+ *
+ * TWO LISTS, ONE LEDGER. The design draws area.rows (a place with its delivery
+ * note). The copy extraction writes area.places (a plain list of place names)
+ * and never area.rows, and lib/derive-content-defaults.ts fills area.places
+ * with the owner's city. So rows stay primary; when no row survives the blank
+ * filter, the non-blank area.places entries are drawn in the SAME ledger, place
+ * only — no note cell and nothing dangling where one would be — each bound to
+ * its ORIGINAL index. Without the fallback those places would be dropped
+ * silently, and the Content panel (which only offers paths a template binds)
+ * would hide the list from the owner too.
+ *
+ * GATE: rows, places or the paragraph. The eyebrow and the derived headline
+ * never open the section by themselves (a heading over nothing).
+ *
+ * NEVER FABRICATED: no distance, travel time or coverage claim is written
+ * here; every note is the owner's own string. Place and note are guarded
+ * independently; blank rows are dropped with their ORIGINAL index kept.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+const ar = (content as any).area || {};
+const tag = str(ar.tag);
+const headline = str(ar.headline);
+const body = str(ar.body);
+const rows = (Array.isArray(ar.rows) ? ar.rows : [])
+  .map((r: any, i: number) => ({ place: str(r?.place), time: str(r?.time), i }))
+  .filter((r: { place: string; time: string }) => Boolean(r.place || r.time));
+// Fallback ledger: area.places, used only when no design row survives.
+const places = rows.length > 0 ? [] : (Array.isArray(ar.places) ? ar.places : [])
+  .map((p: unknown, i: number) => ({ place: str(p), i }))
+  .filter((p: { place: string }) => p.place !== '');
+const show = rows.length > 0 || places.length > 0 || Boolean(body);
+---
+{show && (
+  <section class="area" id="area">
+    <div class="wrap area-in">
+      {(tag || headline || body) && (
+        <div class="area-l">
+          {tag && <p class="kick" data-field="area.tag">{tag}</p>}
+          {headline && <h2 class="area-h2" data-field="area.headline" set:html={headline}></h2>}
+          {body && <p class="area-body" data-field="area.body">{body}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class="area-r">
+          {rows.map((r: { place: string; time: string; i: number }) => (
+            <div class="area-row">
+              {r.place && <span class="area-place" data-field={`area.rows.${r.i}.place`}>{r.place}</span>}
+              {r.time && <span class="area-time" data-field={`area.rows.${r.i}.time`}>{r.time}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+      {places.length > 0 && (
+        <div class="area-r">
+          {places.map((p: { place: string; i: number }) => (
+            <div class="area-row">
+              <span class="area-place" data-field={`area.places.${p.i}`}>{p.place}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  /* Every value below is the design's inline style, verbatim. */
+  .area { padding: clamp(56px, 7vw, 112px) 0; }
+  .area-in { display: flex; flex-wrap: wrap; gap: 28px clamp(40px, 6vw, 96px); }
+  .area-l { flex: 1 1 340px; min-width: 0; }
+  .area-h2 {
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px); line-height: 1.06;
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+  .kick + .area-h2 { margin-top: 14px; }
+  .area-body { max-width: 42ch; color: var(--ink-soft); overflow-wrap: anywhere; }
+  .area-l > * + .area-body { margin-top: 16px; }
+
+  .area-r { flex: 1 1 420px; min-width: 0; }
+  .area-row {
+    display: flex; justify-content: space-between; gap: 16px;
+    padding: 16px 0; border-top: 1px solid rgba(var(--ink-rgb), .18);
+  }
+  .area-row:last-child { border-bottom: 1px solid rgba(var(--ink-rgb), .18); }
+  .area-place { min-width: 0; font-family: var(--disp); font-size: 19px; overflow-wrap: anywhere; }
+  /* flex:none as drawn, so the note keeps its line while the place wraps —
+     capped so a long owner note can never push the row past 360px. A note
+     with no place still sits right, where the column reads it. */
+  .area-time {
+    flex: none; max-width: 62%; margin-left: auto; text-align: right;
+    font-size: 14px; color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+</style>

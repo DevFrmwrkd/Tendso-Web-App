@@ -1,0 +1,220 @@
+---
+/**
+ * woodworks / FooterBY — the colophon, on the deepest night: a large centred
+ * Caslon wordmark and the standing blurb; under a brass rule, up to three
+ * columns (contact, the owner's links, their social channels) headed in brass
+ * caps; and under a second rule the owner's two-part colophon line. Plus the
+ * floating message pill, drawn ONLY for a chat channel the owner gave us.
+ *
+ * Editable hooks:
+ *   footer.brand · footer.blurb
+ *   footer.visit.title                     — the contact column heading
+ *   contact.address · contact.phone · contact.email — the contact rows (the
+ *                                            tel:/mailto: anchors carry
+ *                                            data-field only; their hrefs are
+ *                                            derived from the value)
+ *   footer.explore.title                   — the links column heading
+ *   footer.explore.links.${i}.text + .href — the links column
+ *   footer.social.${i}.platform + .url     — the channels column
+ *   footer.notes.${i}                      — the colophon line
+ *   hero.cta1.text                         — the message pill's label
+ *
+ * THE LINKS COLUMN falls back, for DISPLAY only, to the nav list when the owner
+ * has not written one — with NO index hooks, because footer.explore.links.<i>
+ * would point at an array that does not exist (FooterBJ's rule). "Follow" is a
+ * literal structural label, drawn only above real channels, exactly as the
+ * design prints it; the other two headings are the owner's own strings.
+ *
+ * THE PILL. The GATE is the CHANNEL, never the label: derive-content-defaults
+ * gives every site a hero CTA, so gating on it put a chat bubble on businesses
+ * with no chat at all. It comes only from layout.contact.whatsapp (→ wa.me) or
+ * layout.contact.messenger (→ m.me), which astro-builder passes through as the
+ * owner typed them — never layout.messaging.*, which is derived from any phone
+ * number. It is a sibling AFTER the closing footer tag and carries no .btn, so
+ * the engine's `footer .btn` pin cannot reach it; with no hero CTA label there
+ * is no pill, whatever the channel.
+ *
+ * NO .btn ANYWHERE IN THE FOOTER (the engine pins `footer .btn` to on-ink).
+ * Every row and column hides itself when empty, and the whole footer is not
+ * drawn when there is nothing to put in it.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+// Anchor guard — identical in HeaderBY, HeroBY, ServicesBY, CtaBandBY and
+// FooterBY. A links column is wayfinding, so an unreachable in-page entry is
+// DROPPED rather than re-pointed. The pill never goes through it: a chat
+// channel is never an in-page anchor.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'how', 'gallery', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit', location: 'visit', testimonials: 'reviews' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  const h = String(href ?? '').trim();
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const c = (content as any) || {};
+const f = c.footer || {};
+const brand = txt(f.brand) || txt(layout.businessName);
+const blurb = txt(f.blurb) || txt(f.brand_blurb);
+const contact = layout.contact || {};
+const address = txt(contact.address);
+const phone = txt(contact.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const email = txt(contact.email);
+const visitTitle = txt(f.visit?.title);
+const exploreTitle = txt(f.explore?.title);
+const exploreFromAdmin = Array.isArray(f.explore?.links) && f.explore.links.length > 0;
+const exploreLinks: Array<{ text: string; href: string; i: number }> =
+  ((exploreFromAdmin
+    ? f.explore.links
+    : (Array.isArray(layout.navLinks) ? layout.navLinks.map((l: any) => ({ text: l?.label, href: l?.href })) : [])) as any[])
+    .map((l: any, i: number) => ({ text: txt(l?.text), href: onPage(l?.href, ''), i }))
+    .filter((l) => l.text && l.href);
+// A channel needs BOTH a name and a url: either one alone is a nameless link or
+// a link to nowhere. The site producer writes these as the legacy social_links
+// list (surfaced as layout.socialLinks), which the sidebar displays through the
+// schema's fallback and hoists into footer.social, same order, before its first
+// row edit — so the house read (FooterBJ, FooterF) is the new list, else the
+// legacy one, and the row hooks stay valid either way.
+const social: Array<{ platform: string; url: string; i: number }> =
+  ((Array.isArray(f.social) && f.social.length ? f.social : (Array.isArray(layout.socialLinks) ? layout.socialLinks : [])) as any[])
+    .map((s: any, i: number) => ({ platform: txt(s?.platform), url: txt(s?.url), i }))
+    .filter((s) => s.platform && s.url);
+const notes = (Array.isArray(f.notes) ? f.notes : [])
+  .map((n: any, i: number) => ({ v: txt(n), i }))
+  .filter((n) => n.v);
+const hasDetails = Boolean(address || phone || email);
+const hasCols = hasDetails || exploreLinks.length > 0 || social.length > 0;
+const hasTop = Boolean(brand || blurb);
+const show = hasTop || hasCols || notes.length > 0;
+
+// The message pill (see the frontmatter). Digits only for wa.me; a messenger
+// value may be a full URL or a bare page name.
+const waDigits = txt(contact.whatsapp).replace(/[^0-9]/g, '');
+const messenger = txt(contact.messenger);
+const msgHref = waDigits
+  ? `https://wa.me/${waDigits}`
+  : messenger
+    ? (/^https?:/i.test(messenger) ? messenger : `https://m.me/${messenger.replace(/^@/, '')}`)
+    : '';
+const msgText = msgHref ? txt(c.hero?.cta1?.text) : '';
+---
+{show && (
+  <footer class="colophon" data-hide-if-empty>
+    <div class="wrap">
+      {hasTop && (
+        <div class="sig">
+          {brand && <p class="sig-name" data-field="footer.brand">{brand}</p>}
+          {blurb && <p class="sig-blurb" data-field="footer.blurb">{blurb}</p>}
+        </div>
+      )}
+      {hasCols && (
+        <div class:list={['cols', !hasTop && 'cols--top']} data-hide-if-empty>
+          {hasDetails && (
+            <div class="col">
+              {visitTitle && <h3 class="col-h" data-field="footer.visit.title">{visitTitle}</h3>}
+              {address && <p class="col-row" data-field="contact.address">{address}</p>}
+              {phone && <p class="col-row"><a class="col-a" href={telHref} data-field="contact.phone">{phone}</a></p>}
+              {email && <p class="col-row"><a class="col-a" href={`mailto:${email}`} data-field="contact.email">{email}</a></p>}
+            </div>
+          )}
+          {exploreLinks.length > 0 && (
+            <div class="col" data-link-group>
+              {exploreTitle && <h3 class="col-h" data-field="footer.explore.title">{exploreTitle}</h3>}
+              <div class="col-list">
+                {exploreLinks.map((l) => exploreFromAdmin
+                  ? <a class="col-a" href={l.href} data-field={`footer.explore.links.${l.i}.text`} data-href-field={`footer.explore.links.${l.i}.href`}>{l.text}</a>
+                  : <a class="col-a" href={l.href}>{l.text}</a>
+                )}
+              </div>
+            </div>
+          )}
+          {social.length > 0 && (
+            <div class="col">
+              <h3 class="col-h">Follow</h3>
+              <div class="col-list">
+                {social.map((s) => (
+                  <a class="col-a" href={s.url} target="_blank" rel="noopener noreferrer" data-field={`footer.social.${s.i}.platform`} data-href-field={`footer.social.${s.i}.url`}>{s.platform}</a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      {notes.length > 0 && (
+        <div class:list={['notes', !(hasTop || hasCols) && 'notes--top']}>
+          {notes.map((n) => <span data-field={`footer.notes.${n.i}`}>{n.v}</span>)}
+        </div>
+      )}
+    </div>
+  </footer>
+)}
+{msgHref && msgText && (
+  <a class="pill" href={msgHref} target="_blank" rel="noopener noreferrer" data-field="hero.cta1.text">{msgText}</a>
+)}
+<style>
+  .colophon {
+    padding: clamp(56px, 7vw, 88px) 0 clamp(96px, 10vw, 120px);
+    background-color: var(--night-3); color: var(--grey);
+  }
+  .sig { text-align: center; }
+  .sig-name {
+    display: block; margin: 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(40px, 7vw, 88px); line-height: 1; color: var(--bone); overflow-wrap: break-word;
+  }
+  .sig-blurb { margin: 18px auto 0; max-width: 52ch; font-size: 15px; color: var(--grey); overflow-wrap: break-word; }
+  .sig > :first-child { margin-top: 0; }
+
+  .cols {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    gap: 32px; margin-top: clamp(40px, 5vw, 56px); padding-top: 32px;
+    border-top: 1px solid rgba(var(--accent-rgb), .25);
+  }
+  .cols--top { margin-top: 0; padding-top: 0; border-top: 0; }
+  .col { min-width: 0; }
+  /* line-height 1.7: the design states none here, so it inherits the page's. */
+  .col-h {
+    margin: 0 0 12px; font-family: var(--sans); font-size: 11px; font-weight: 600;
+    line-height: 1.7; letter-spacing: .2em; text-transform: uppercase; color: var(--accent-light);
+  }
+  .col-row { margin: 0 0 6px; font-size: 15px; color: var(--grey); overflow-wrap: anywhere; }
+  .col-row:last-child { margin-bottom: 0; }
+  .col-list { display: flex; flex-direction: column; gap: 4px; font-size: 15px; }
+  .col-a { color: var(--grey); overflow-wrap: anywhere; }
+  .col-a:hover { color: var(--bone); }
+
+  .notes {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
+    margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(var(--accent-rgb), .25);
+    font-size: 12.5px; color: rgba(var(--grey-rgb), .75);
+  }
+  .notes--top { margin-top: 0; padding-top: 0; border-top: 0; }
+  .notes span { overflow-wrap: anywhere; }
+
+  /* The floating pill: brass, night label, a deep shadow; bone on hover. A
+     sibling of the footer, so no footer pin can reach it. */
+  /* display:block + a 54px line, not inline-flex: identical for the design's
+     one-line label, and it lets a long owner label ellipsise inside the
+     viewport instead of running off the right edge of a phone. */
+  .pill {
+    position: fixed; right: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px); z-index: 60;
+    display: block; min-height: 54px; line-height: 54px; padding: 0 24px;
+    max-width: calc(100vw - 24px);
+    background-color: var(--accent-light); color: var(--night);
+    font-family: var(--sans); font-size: 12.5px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, .4);
+  }
+  .pill:hover { background-color: var(--bone); color: var(--night); }
+  /* The shared DUO focus ring is a box-shadow too; keep the drop shadow under
+     it so neither replaces the other. */
+  .pill:focus-visible {
+    outline: 3px solid var(--night); outline-offset: 0;
+    box-shadow: 0 0 0 6px var(--accent-light), 0 14px 30px rgba(0, 0, 0, .4);
+  }
+</style>

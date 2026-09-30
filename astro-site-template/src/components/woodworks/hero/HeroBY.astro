@@ -1,0 +1,208 @@
+---
+/**
+ * woodworks / HeroBY — Yakal's opening. Everything on one centred
+ * axis: a brass kicker between two brass rules, the oversized Caslon
+ * headline, the lede, a brass and a hairline button, then one wide photograph
+ * inside a double brass frame, and a row of three quiet grey lines under it.
+ *
+ * Editable hooks (all declared by components/editor/genericContentSchema.ts):
+ *   hero.kicker · hero.headline OR hero.headlineLines.${i} (see below) ·
+ *   hero.sub ·
+ *   hero.cta1.text + hero.cta1.href · hero.cta2.text + hero.cta2.href ·
+ *   data-image-field hero.image ·
+ *   hero.meta1 · hero.meta2 · hero.thin — the three lines under the photo.
+ *   hero.thin is the third of them (a one-line promise in the design's
+ *   sample): owner data like the other two, bound exactly where the design
+ *   draws it.
+ *
+ * THE HEADLINE reads two paths, exactly as florist/HeroBS and foodcraft/HeroBO
+ * do and for the same reason: derive-content-defaults fills hero.headline with
+ * the bare business name, while the AI copy extraction writes
+ * hero.headlineLines and never hero.headline. So hero.headline wins whenever
+ * it is AUTHORED (anything but that auto-filled name); when it is only the
+ * auto-fill, the surviving headlineLines rows win, flowed inline inside the
+ * same h1 (this design's headline is one balanced sentence), each bound to its
+ * ORIGINAL row index. The field a click opens is always the field the visible
+ * words came from. Both paths render through set:html (astro-builder balances
+ * owner markup): the schema invites <em> in a headline, and here an <em> keeps
+ * the upright Caslon (the face has no italic) and takes the brass instead.
+ *
+ * NEVER FABRICATED. No line here is supplied by the template; each element is
+ * guarded from OUTSIDE its tag, and the section itself needs a headline (from
+ * either path), a lede or a photograph to exist — two buttons over nothing are
+ * not a hero.
+ *
+ * NO PHOTO ⇒ NO FRAME. The double frame is omitted rather than drawn around an
+ * empty well, and the meta row takes the frame's top spacing plus a brass
+ * hairline, so the text-only hero still ends on a deliberate rule instead of
+ * trailing off under the buttons.
+ *
+ * CLASS-NAME LAW: the section is .opening, never .hero (the engine force-
+ * paints `.hero .btn-ghost` white with !important). Buttons are .btn--fill /
+ * .btn--line, which no engine pin reaches, and their colours are restated here
+ * at (0,3,0) so no leaked rule from another family can reach them either.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+// Anchor guard — identical in HeaderBY, HeroBY, ServicesBY, CtaBandBY and
+// FooterBY. derive-content-defaults sets hero.cta1.href '#visit' and
+// hero.cta2.href '#services'; both exist here. Anything else in-page resolves
+// through the alias table or falls back to the closing band.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'how', 'gallery', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit', location: 'visit', testimonials: 'reviews' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  const h = String(href ?? '').trim();
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const hero = (content as any).hero || {};
+const kicker = txt(hero.kicker);
+// THE HEADLINE — see the doc comment.
+const bizName = txt(layout?.businessName);
+const headline = txt(hero.headline);
+const lineRows: Array<{ text: string; i: number }> = (Array.isArray(hero.headlineLines) ? hero.headlineLines : [])
+  .map((t: any, i: number) => ({ text: txt(t), i }))
+  .filter((l: { text: string }) => l.text !== '');
+const useRows = lineRows.length > 0
+  && (headline === '' || headline === bizName)
+  && lineRows.map((l) => l.text).join(' ') !== headline;
+const hasHeadline = useRows || headline !== '';
+const sub = txt(hero.sub);
+const cta1Text = txt(hero.cta1?.text);
+const cta1Href = onPage(hero.cta1?.href, '#book');
+const cta2Text = txt(hero.cta2?.text);
+const cta2Href = onPage(hero.cta2?.href, '#book');
+// Display fallback only: an owner who sent photos with the submission but has
+// not picked a hero image yet still gets their own first photo here. The HOOK
+// is always hero.image, the path the sidebar's picker writes.
+const photos = Array.isArray((content as any).photos) ? (content as any).photos : [];
+const image = txt(hero.image) || txt(photos[0]);
+// The accessible name is the owner's own business name, never a description of
+// a picture nobody has looked at. With no name the photo is decorative.
+const alt = txt(layout?.businessName);
+const meta1 = txt(hero.meta1);
+const meta2 = txt(hero.meta2);
+const thin = txt(hero.thin);
+const hasMeta = Boolean(meta1 || meta2 || thin);
+const show = hasHeadline || Boolean(sub || image);
+---
+{show && (
+  <section id="top" class="opening">
+    <div class="wrap">
+      {kicker && (
+        <div class="kick-row">
+          <span class="kick-rule" aria-hidden="true"></span>
+          <p class="eyebrow kick" data-field="hero.kicker">{kicker}</p>
+          <span class="kick-rule" aria-hidden="true"></span>
+        </div>
+      )}
+      {hasHeadline && (
+        useRows ? (
+          <h1 class="title">
+            {lineRows.map((l, k) => (
+              <Fragment>{k > 0 && ' '}<span data-field={`hero.headlineLines.${l.i}`} set:html={l.text}></span></Fragment>
+            ))}
+          </h1>
+        ) : (
+          <h1 class="title" data-field="hero.headline" set:html={headline}></h1>
+        )
+      )}
+      {sub && <p class="lede" data-field="hero.sub">{sub}</p>}
+      {(cta1Text || cta2Text) && (
+        <div class="acts" data-link-group>
+          {cta1Text && <a class="btn btn--fill" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+          {cta2Text && <a class="btn btn--line" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+        </div>
+      )}
+      {image && (
+        <div class="frame">
+          <div class="well" data-image-field="hero.image">
+            <img src={image} alt={alt} decoding="async" fetchpriority="high" />
+          </div>
+        </div>
+      )}
+      {hasMeta && (
+        <div class:list={['metas', !image && 'metas--solo']}>
+          {meta1 && <span data-field="hero.meta1">{meta1}</span>}
+          {meta2 && <span data-field="hero.meta2">{meta2}</span>}
+          {thin && <span data-field="hero.thin">{thin}</span>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .opening {
+    padding: clamp(48px, 6vw, 88px) 0 clamp(56px, 7vw, 96px);
+    background-color: var(--night); color: var(--bone); text-align: center;
+  }
+
+  .kick-row { display: flex; align-items: center; justify-content: center; gap: 16px; color: var(--accent-light); }
+  .kick-rule { flex: 0 1 80px; height: 1px; background-color: var(--accent-light); }
+  .kick {
+    margin: 0; font-family: var(--sans); font-size: 12px; font-weight: 500;
+    letter-spacing: .26em; text-transform: uppercase; color: var(--accent-light);
+    min-width: 0; overflow-wrap: anywhere;
+  }
+
+  .title {
+    margin: 24px auto 0; max-width: 14ch;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(46px, 7.6vw, 116px); line-height: .98; letter-spacing: -.01em;
+    color: var(--bone); text-wrap: balance; overflow-wrap: break-word;
+  }
+  /* An owner's (or the copy extraction's) <em>: Libre Caslon Display ships no
+     italic, so rather than a synthesised slant the phrase stays upright and
+     takes the design's one metal. :global() because Astro cannot scope markup
+     that arrived through set:html. */
+  .title :global(em),
+  .title :global(i) { font-style: normal; color: var(--accent-light); }
+  .lede {
+    max-width: 52ch; margin: 26px auto 34px;
+    font-size: clamp(16px, 1.3vw, 18px); color: var(--grey); text-wrap: pretty;
+  }
+  /* A lede with no buttons after it closes the text block itself. */
+  .lede:last-child { margin-bottom: 0; }
+
+  .acts { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .acts .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 54px; padding: 0 30px; max-width: 100%; border-radius: 0;
+    font-family: var(--sans); font-size: 13px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; text-align: center;
+  }
+  .acts .btn--fill { background-color: var(--accent-light); border: 1px solid var(--accent-light); color: var(--night); }
+  .acts .btn--fill:hover { background-color: var(--bone); border-color: var(--bone); color: var(--night); }
+  .acts .btn--line { background-color: transparent; border: 1px solid rgba(var(--bone-rgb), .4); color: var(--bone); }
+  .acts .btn--line:hover { background-color: transparent; border-color: var(--accent-light); color: var(--accent-light); }
+
+  /* The double frame: a brass rule around a padded well, and a fainter brass
+     hairline drawn just inside the photograph. */
+  .frame {
+    margin-top: clamp(44px, 5vw, 72px);
+    padding: clamp(8px, 1vw, 12px);
+    border: 1px solid rgba(var(--accent-rgb), .45);
+  }
+  .well {
+    position: relative; overflow: hidden;
+    aspect-ratio: 16 / 8; min-height: 260px; width: 100%;
+    background-color: var(--night-2);
+    outline: 1px solid rgba(var(--accent-rgb), .25); outline-offset: -1px;
+  }
+  .well img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  .metas {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    gap: 18px; margin-top: 28px; text-align: center;
+  }
+  .metas span { font-size: 14px; color: var(--grey); overflow-wrap: anywhere; }
+  .metas--solo {
+    margin-top: clamp(44px, 5vw, 72px); padding-top: 28px;
+    border-top: 1px solid rgba(var(--accent-rgb), .25);
+  }
+</style>

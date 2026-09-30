@@ -1,0 +1,221 @@
+---
+/**
+ * woodworks / FooterBX — "Acacia Studio"'s colophon on the bone ground: the
+ * Newsreader wordmark and blurb, then Contact, Explore and Follow columns under
+ * small olive caps, and a hairline row of the owner's notes. Plus the floating
+ * olive message pill — drawn ONLY for a chat channel the owner actually gave.
+ *
+ * Editable hooks:
+ *   footer.brand · footer.blurb
+ *   footer.visit.title                       — the contact column heading
+ *   contact.address · contact.phone (tel:, data-field only) ·
+ *   contact.email (mailto:, data-field only)
+ *   footer.explore.title · footer.explore.links.${i}.text + .href
+ *   footer.social.${i}.platform + .url
+ *   footer.notes.${i}
+ *   hero.cta1.text                           — the message pill's label
+ *
+ * Column headings are bound, not literal, except "Follow": the design draws it
+ * as fixed chrome, so it stays literal and appears only above real channels.
+ * Every column and every row inside it hides itself when empty, and with
+ * nothing at all to show no footer element is emitted (never an empty band).
+ *
+ * FALLBACKS WITHOUT HOOKS: with no explore links of the owner's own, the
+ * column shows the nav links (resolved against this page) with NO index
+ * hooks — the owner's list does not exist yet, so a hook would point at
+ * nothing. Social rows behave the same way when they come from the legacy
+ * social list. A social row needs both a name and a url.
+ *
+ * EXPLORE LINKS resolve against the ids this build renders (`links`, see
+ * HeaderBX): a link to a section that is not on the page is dropped, and the
+ * column goes when none is left.
+ *
+ * THE MESSAGE PILL. The GATE is a real chat channel the owner typed —
+ * WhatsApp (wa.me/<digits>) or Messenger (m.me/…) on the contact record —
+ * never the CTA label or href, and never the messaging block, which is
+ * derived from any phone number. Its label is the hero's primary action text.
+ * It renders as a sibling AFTER the footer and carries no .btn class, so the
+ * engine's `footer .btn` pin cannot reach it.
+ *
+ * No element in this footer carries a .btn class.
+ */
+interface Props { layout: any; content: any; links?: { anchors?: string[]; contact?: string }; }
+const { layout, content, links } = Astro.props;
+// Anchor guard — identical in every BX component that renders an in-page href
+// (the full explanation is in HeaderBX). The footer draws links only, never a
+// button, so it has no fallback: an unreachable link is dropped.
+const ALL_ANCHORS = ['main', 'top', 'marquee', 'services', 'custom', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book'];
+const LIVE = new Set<string>(Array.isArray(links?.anchors) ? links.anchors : ALL_ANCHORS);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: any): string => {
+  const h = String(href ?? '').trim();
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (LIVE.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && LIVE.has(alias) ? `#${alias}` : '';
+};
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const c = (content as any) || {};
+const f = c.footer || {};
+const ct = layout?.contact || {};
+const brand = str(f.brand || layout?.businessName);
+const blurb = str(f.blurb);
+const visitTitle = str(f.visit?.title);
+const address = str(ct.address || c.contact?.address);
+const phone = str(ct.phone || c.contact?.phone);
+const phoneHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const email = str(ct.email || c.contact?.email);
+const exploreTitle = str(f.explore?.title);
+const exploreOwn = Array.isArray(f.explore?.links) && f.explore.links.length > 0;
+const exploreLinks: Array<{ text: string; href: string; textHook?: string; hrefHook?: string }> =
+  ((exploreOwn
+    ? f.explore.links
+    : (Array.isArray(layout?.navLinks) ? layout.navLinks.map((l: any) => ({ text: l?.label, href: l?.href })) : [])) as any[])
+    .map((l: any, i: number) => ({
+      text: str(l?.text),
+      href: onPage(l?.href),
+      textHook: exploreOwn ? `footer.explore.links.${i}.text` : undefined,
+      hrefHook: exploreOwn ? `footer.explore.links.${i}.href` : undefined,
+    }))
+    .filter((l) => l.text && l.href);
+const socialOwn = Array.isArray(f.social) && f.social.length > 0;
+const social: Array<{ platform: string; url: string; platformHook?: string; urlHook?: string }> =
+  ((socialOwn ? f.social : (Array.isArray(layout?.socialLinks) ? layout.socialLinks : [])) as any[])
+    .map((s: any, i: number) => ({
+      platform: str(s?.platform),
+      url: str(s?.url),
+      platformHook: socialOwn ? `footer.social.${i}.platform` : undefined,
+      urlHook: socialOwn ? `footer.social.${i}.url` : undefined,
+    }))
+    .filter((s) => s.platform && s.url);
+const notes = (Array.isArray(f.notes) ? f.notes : [])
+  .map((n: any, i: number) => ({ v: str(n), i }))
+  .filter((n: { v: string }) => n.v);
+const hasBrandCol = Boolean(brand || blurb);
+const hasContactCol = Boolean(address || phone || email);
+const hasGrid = hasBrandCol || hasContactCol || exploreLinks.length > 0 || social.length > 0;
+
+// Floating message pill — see THE MESSAGE PILL above.
+const waDigits = String(ct.whatsapp || '').replace(/[^0-9]/g, '');
+const messenger = str(ct.messenger);
+const msgHref = waDigits
+  ? `https://wa.me/${waDigits}`
+  : messenger
+    ? (/^https?:/i.test(messenger) ? messenger : `https://m.me/${messenger.replace(/^@/, '')}`)
+    : '';
+const msgText = msgHref ? str(c.hero?.cta1?.text) : '';
+---
+{(hasGrid || notes.length > 0) && (
+<footer class="foot">
+  <div class="wrap">
+    {hasGrid && (
+      <div class="foot-grid">
+        {hasBrandCol && (
+          <div class="foot-col">
+            {brand && <p class="foot-wm" data-field="footer.brand">{brand}</p>}
+            {blurb && <p class="foot-blurb" data-field="footer.blurb">{blurb}</p>}
+          </div>
+        )}
+        {hasContactCol && (
+          <div class="foot-col">
+            {visitTitle && <h3 class="foot-h" data-field="footer.visit.title">{visitTitle}</h3>}
+            {address && <p class="foot-line" data-field="contact.address">{address}</p>}
+            {phone && <p class="foot-line"><a href={phoneHref} data-field="contact.phone">{phone}</a></p>}
+            {email && <p class="foot-line"><a href={`mailto:${email}`} data-field="contact.email">{email}</a></p>}
+          </div>
+        )}
+        {exploreLinks.length > 0 && (
+          <div class="foot-col">
+            {exploreTitle && <h3 class="foot-h" data-field="footer.explore.title">{exploreTitle}</h3>}
+            <div class="foot-links">
+              {exploreLinks.map((l) => (
+                <a href={l.href} data-field={l.textHook} data-href-field={l.hrefHook}>{l.text}</a>
+              ))}
+            </div>
+          </div>
+        )}
+        {social.length > 0 && (
+          <div class="foot-col">
+            <h3 class="foot-h">Follow</h3>
+            <div class="foot-links">
+              {social.map((s) => (
+                <a href={s.url} target="_blank" rel="noopener noreferrer" data-field={s.platformHook} data-href-field={s.urlHook}>{s.platform}</a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+    {notes.length > 0 && (
+      <div class:list={['foot-notes', !hasGrid && 'foot-notes--solo']}>
+        {notes.map((n: { v: string; i: number }) => (
+          <span data-field={`footer.notes.${n.i}`}>{n.v}</span>
+        ))}
+      </div>
+    )}
+  </div>
+</footer>
+)}
+{msgHref && msgText && (
+  <a class="fab" href={msgHref} target="_blank" rel="noopener noreferrer" data-field="hero.cta1.text">{msgText}</a>
+)}
+<style>
+  /* The bottom padding keeps the last row clear of the floating pill. */
+  .foot { padding: clamp(48px,6vw,72px) 0 clamp(96px,10vw,120px); }
+  .foot-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,200px),1fr));
+    gap: 32px;
+  }
+  .foot-col { min-width: 0; }
+  .foot-wm {
+    margin: 0; font-family: var(--disp); font-weight: 400; font-size: 30px;
+    line-height: 1.65; color: var(--ink); overflow-wrap: anywhere;
+  }
+  .foot-blurb {
+    margin: 10px 0 0; max-width: 34ch; font-size: 15px; line-height: 1.65;
+    color: var(--ink-soft); overflow-wrap: break-word;
+  }
+  .foot-blurb:first-child { margin-top: 0; }
+  .foot-h {
+    margin: 0 0 12px; font-family: var(--sans); font-size: 12px; font-weight: 600;
+    line-height: 1.65; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent-deep); overflow-wrap: anywhere;
+  }
+  .foot-line {
+    margin: 0 0 6px; font-size: 15px; line-height: 1.65;
+    color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+  .foot-line:last-child { margin-bottom: 0; }
+  .foot-links {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+    font-size: 15px; line-height: 1.65; color: var(--ink-soft);
+  }
+  .foot-links a { overflow-wrap: anywhere; }
+  .foot-line a:hover,
+  .foot-links a:hover { color: var(--accent-deep); }
+
+  .foot-notes {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
+    margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line);
+    font-size: 13px; line-height: 1.65; color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+  .foot-notes--solo { margin-top: 0; }
+
+  /* The floating message pill: olive, bone label, a soft ink shadow. Block
+     display so a long owner label ellipsises instead of running off-screen. */
+  .fab {
+    position: fixed; right: clamp(12px,2vw,24px); bottom: clamp(12px,2vw,24px); z-index: 60;
+    display: block; max-width: calc(100vw - 24px); min-height: 54px; padding: 0 24px;
+    border-radius: 999px; background-color: var(--accent-deep); color: var(--on-primary);
+    font-family: var(--sans); font-size: 15px; font-weight: 600; line-height: 54px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    box-shadow: 0 14px 30px rgba(var(--ink-rgb), .25);
+  }
+  .fab:hover { background-color: var(--ink); color: var(--paper); }
+  /* The duo focus ring must survive the pill's own shadow: restated together. */
+  .fab:focus-visible {
+    outline: 3px solid var(--paper); outline-offset: 0;
+    box-shadow: 0 14px 30px rgba(var(--ink-rgb), .25), 0 0 0 6px var(--ink);
+  }
+</style>

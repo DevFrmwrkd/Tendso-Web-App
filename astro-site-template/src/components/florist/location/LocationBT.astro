@@ -1,0 +1,207 @@
+---
+/**
+ * florist / LocationBT — Gumamela's shop visit (#visit): an INK card on the
+ * left (marigold eyebrow, paper headline, Address / Hours / Phone rows under
+ * marigold caps labels, a paper directions button) beside a real map ruled in
+ * 2px ink that stretches to the card's height.
+ *
+ * Editable hooks:
+ *   location.tag · location.headline (set:html; an <em> prints upright in
+ *   the card's marigold) · location.address · location.hours ·
+ *   location.phone (a tel: anchor, data-field only — its href is derived from
+ *   the value) · location.directions.text + data-href-field
+ *   location.directions.href
+ * Also READ, never printed: location.lat and location.lng (the map pin).
+ *
+ * The address and phone DISPLAY fall back to the owner's contact details,
+ * exactly as the sidebar shows them (the schema lists contact.address and
+ * contact.phone as their fallbacks); the hooks stay location.*.
+ *
+ * "Address", "Hours" and "Phone" are template chrome, each printed only above a
+ * value. Nothing here invents an hour, a landmark or a travel time.
+ *
+ * Map strategy, three tiers (LocationBI's):
+ *   1. coordinates → window.__floristBTInitMap(lat, lng, label)
+ *   2. else an address → client-side Nominatim lookup, then the same boot
+ *   3. else → the drawn face (a blush grid under the design's pin)
+ * The drawn face lives INSIDE #map until Leaflet mounts; PageBT's boot empties
+ * #map first. No coordinates and no address → no map cell at all, and the card
+ * keeps its own width instead of stretching across the hole.
+ *
+ * NO BOOT TIMER. These scripts run mid-body, before the parser reaches PageBT's
+ * leaflet.js, so however slow that download is they cannot wait it out. They
+ * leave (lat, lng, label) on window.__floristBTMapArgs and mount at once only
+ * when Leaflet is already there; PageBT's boot script, which runs only after
+ * leaflet.js has loaded, mounts from those args. A geocode that answers after
+ * the boot finds Leaflet ready and mounts itself. PageBT's _leaflet_id guard
+ * stops a double mount.
+ *
+ * GATE: a map, an address, a phone or an hours line. The eyebrow and headline
+ * are derived on every site and never open the section on their own.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const loc = content.location || {};
+const str = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
+const tag = str(loc.tag).trim();
+const headline = str(loc.headline).trim();
+const address = str(loc.address || layout.contact?.address || content.contact?.address).trim();
+const addressLines: string[] = address ? address.split('\n').map((l: string) => l.trim()).filter(Boolean) : [];
+// location.hours is ONE line of text in the schema; anything else is ignored.
+const hours = typeof loc.hours === 'string' ? loc.hours.trim() : '';
+const phone = str(loc.phone || layout.contact?.phone || content.contact?.phone).trim();
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const dirText = str(loc.directions?.text).trim();
+const dirHref = str(loc.directions?.href).trim()
+  || (address ? `https://maps.google.com/?q=${encodeURIComponent(address.replace(/\n/g, ' '))}` : '');
+// A CLEARED coordinate field leaves '' which Number() turns into 0 — a pin in
+// the Gulf of Guinea. Reject blank and out-of-range values so a cleared field
+// falls through to the address lookup. `??` so a genuine 0 survives.
+const num = (v: any, max: number): number | null => {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && Math.abs(n) <= max ? n : null;
+};
+const lat = num(loc.lat, 90) ?? num(layout.contact?.lat, 90);
+const lng = num(loc.lng, 180) ?? num(layout.contact?.lng, 180);
+const label = str(layout.businessName).trim();
+const mapAria = label ? `Map showing ${label}` : 'Map';
+const hasCoords = lat !== null && lng !== null;
+const hasAddress = Boolean(address);
+const hasMap = hasCoords || hasAddress;
+const hasRows = Boolean(address || hours || phone);
+const hasLoc = hasMap || hasRows;
+---
+{hasLoc && (
+  <section class="gm-visit" id="visit">
+    <div class:list={['wrap', 'vs-in', !hasMap && 'vs-in--nomap']}>
+      <div class="vs-card">
+        {tag && <p class="eyebrow vs-tag" data-field="location.tag">{tag}</p>}
+        {headline && <h2 class="vs-h" data-field="location.headline" set:html={headline}></h2>}
+        {hasRows && (
+          <dl class="vs-rows">
+            {address && (
+              <div>
+                <dt>Address</dt>
+                <dd data-field="location.address">
+                  {addressLines.map((line: string, i: number) => (<>{i > 0 && <br />}{line}</>))}
+                </dd>
+              </div>
+            )}
+            {hours && (
+              <div>
+                <dt>Hours</dt>
+                <dd data-field="location.hours">{hours}</dd>
+              </div>
+            )}
+            {phone && (
+              <div>
+                <dt>Phone</dt>
+                <dd><a class="vs-tel" href={telHref} data-field="location.phone">{phone}</a></dd>
+              </div>
+            )}
+          </dl>
+        )}
+        {dirText && dirHref && (
+          <a class="btn btn--paper vs-dir" href={dirHref} target="_blank" rel="noopener noreferrer" data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
+        )}
+      </div>
+      {hasMap && (
+        <div class="vs-mapcol">
+          <div id="map" class="vs-map" role="img" aria-label={mapAria}>
+            <div class="vs-face" aria-hidden="true"><span class="vs-pin"></span></div>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+{hasLoc && hasCoords && (
+  <script is:inline define:vars={{ lat, lng, label }}>
+    (function init() {
+      // Hand-off, not a timer: PageBT's boot mounts from these args once
+      // leaflet.js has loaded, however long that takes.
+      window.__floristBTMapArgs = [lat, lng, label];
+      if (window.__floristBTInitMap && window.L) window.__floristBTInitMap(lat, lng, label);
+    })();
+  </script>
+)}
+{hasLoc && !hasCoords && hasAddress && (
+  <script is:inline define:vars={{ address, label }}>
+    (function geocodeThenInit() {
+      // Same hand-off as the coordinates path: if Leaflet is not there yet,
+      // PageBT's boot mounts from the stored args when it is.
+      function tryInit(la, ln) {
+        window.__floristBTMapArgs = [la, ln, label];
+        if (window.__floristBTInitMap && window.L) { window.__floristBTInitMap(la, ln, label); }
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query;
+        fetch(url, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) return;
+            var la = parseFloat(results[0].lat);
+            var ln = parseFloat(results[0].lon);
+            if (isNaN(la) || isNaN(ln)) return;
+            tryInit(la, ln);
+          })
+          .catch(function () { /* keep the drawn face */ });
+      } catch (e) { /* never block render */ }
+    })();
+  </script>
+)}
+<style>
+  .gm-visit { padding: clamp(56px,7vw,104px) 0; }
+  .vs-in { display: flex; flex-wrap: wrap; gap: clamp(28px,4vw,56px); }
+  .vs-card {
+    flex: 1 1 340px; min-width: 0; padding: clamp(24px,3vw,36px); border-radius: 28px;
+    background-color: var(--ink); color: var(--paper);
+  }
+  /* No map cell: the card keeps a card's width rather than a full-width slab. */
+  .vs-in--nomap .vs-card { flex: 0 1 560px; }
+  .vs-tag { color: var(--accent-light); }
+  .vs-h {
+    margin: 12px 0 0; font-family: var(--disp); font-weight: 800; color: var(--paper);
+    font-size: clamp(30px,3.8vw,48px); line-height: 1; letter-spacing: -.04em;
+    overflow-wrap: break-word;
+  }
+  .vs-h:first-child { margin-top: 0; }
+  /* On the ink card the highlight takes the card's marigold (its eyebrow's
+     colour). :global() because Astro cannot scope set:html markup. */
+  .vs-h :global(em), .vs-h :global(i) { font-style: normal; color: var(--accent-light); }
+  .vs-rows { margin: 26px 0 0; display: flex; flex-direction: column; gap: 14px; }
+  .vs-rows:first-child { margin-top: 0; }
+  .vs-rows dt {
+    font-size: 12px; font-weight: 700; line-height: 1.6; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent-light);
+  }
+  .vs-rows dd { margin: 4px 0 0; line-height: 1.6; overflow-wrap: anywhere; }
+  /* The design's red link hover; --on-ink-hover moves it to the marigold under
+     an admin scheme, whose red on the ink card falls to ~2.1:1. */
+  .vs-tel:hover { color: var(--on-ink-hover); }
+  .vs-dir { min-height: 48px; margin-top: 26px; padding: 0 22px; font-size: 17px; }
+  .vs-card > .vs-dir:first-child { margin-top: 0; }
+  .vs-mapcol { flex: 1.4 1 420px; min-width: 0; }
+  .vs-map {
+    position: relative; z-index: 0; height: 100%; min-height: 360px;
+    border-radius: 28px; overflow: hidden;
+    background-color: var(--paper-2); border: 2px solid var(--ink);
+  }
+  /* Tier-3 only: a blush grid under the design's pin. PageBT's boot empties
+     #map before Leaflet draws, so tiles never stack on top of it. */
+  .vs-face {
+    position: absolute; inset: 0;
+    background-color: var(--paper-2);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(var(--ink-rgb),.07) 0 1px, transparent 1px 44px),
+      repeating-linear-gradient(90deg, rgba(var(--ink-rgb),.07) 0 1px, transparent 1px 44px);
+  }
+  .vs-pin {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    width: 22px; height: 22px; border-radius: 50%;
+    background-color: var(--accent); border: 3px solid var(--ink);
+    box-shadow: 0 0 0 3px var(--accent-light);
+  }
+</style>

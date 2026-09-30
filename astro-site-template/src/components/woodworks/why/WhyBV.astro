@@ -1,0 +1,65 @@
+---
+/**
+ * woodworks / WhyBV — the reasons section: a Young Serif headline over a row of
+ * reasons, each opened by a 2px walnut rule, a Young Serif title and one muted
+ * line. The grid is the design's auto-fit (four-up on a desktop, two-up on a
+ * tablet, stacked on a phone).
+ *
+ * Editable hooks:
+ *   why.headline (set:html) · why.items.${i}.title · why.items.${i}.body
+ * The body hook spells the canonical key even when the value arrived under a
+ * legacy alias.
+ *
+ * The design draws NO eyebrow over this section, so none is rendered (the
+ * builder derives one for every site; printing it would add a line the
+ * design does not have).
+ *
+ * SECTION GATE: at least one filled reason. The headline alone is derived
+ * for every named business and is never a section on its own. Blank rows are
+ * dropped with their ORIGINAL index kept.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+const wy = (content as any).why || {};
+const headline = str(wy.headline);
+const rows = (Array.isArray(wy.items) ? wy.items : [])
+  .map((it: any, i: number) => ({ title: str(it?.title), body: str(it?.body) || str(it?.desc) || str(it?.description), i }))
+  .filter((r: { title: string; body: string }) => Boolean(r.title || r.body));
+---
+{rows.length > 0 && (
+  <section class="why" id="why">
+    <div class="wrap">
+      {headline && <h2 class="why-h2" data-field="why.headline" set:html={headline}></h2>}
+      <div class="why-grid">
+        {rows.map((r: { title: string; body: string; i: number }) => (
+          <div class="why-it">
+            {r.title && <h3 class="why-t" data-field={`why.items.${r.i}.title`}>{r.title}</h3>}
+            {r.body && <p class="why-b" data-field={`why.items.${r.i}.body`}>{r.body}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  /* Every value below is the design's inline style, verbatim. */
+  .why { padding: clamp(56px, 7vw, 112px) 0; }
+  .why-h2 {
+    max-width: 20ch; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(34px, 4.8vw, 64px); line-height: 1.04; letter-spacing: -.015em;
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+  .why-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 0 clamp(24px, 4vw, 48px);
+  }
+  .why-h2 + .why-grid { margin-top: clamp(32px, 4vw, 56px); }
+  .why-it { min-width: 0; padding: 24px 0; border-top: 2px solid var(--ink); }
+  .why-t { font-family: var(--disp); font-weight: 400; font-size: 23px; overflow-wrap: anywhere; }
+  .why-t + .why-b { margin-top: 8px; }
+  /* max-width only matters for a lone reason stretched across the row; at the
+     design's four-up it never binds. */
+  .why-b { max-width: 60ch; font-size: 15.5px; color: var(--ink-soft); overflow-wrap: anywhere; }
+</style>

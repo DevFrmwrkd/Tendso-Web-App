@@ -1,0 +1,90 @@
+---
+/**
+ * woodworks / GalleryBV — the recent-work grid: the split head (eyebrow + Young Serif
+ * h2, the owner's line on the right) over a grid of 4:3 photos with a muted
+ * caption under each. The grid is the design's auto-fit: four-up on a
+ * desktop, two-up on a tablet, stacked on a phone.
+ *
+ * Editable hooks:
+ *   gallery.tag · gallery.headline (set:html) · gallery.sub
+ *   data-image-field gallery.items.${i}.image · gallery.items.${i}.caption
+ *
+ * Rows are FILTERED to the ones that carry a photo (a caption over no picture
+ * is a label for nothing), with the ORIGINAL index kept in every hook. The
+ * section exists only when at least one photo does; the builder's derived
+ * eyebrow and headline never open it on their own.
+ *
+ * A single photo is capped at the width of two tracks rather than stretched
+ * into a 1184px-wide print; from two photos up the design's grid applies
+ * unchanged. Photos carry an empty alt: the owner's caption, when there is
+ * one, is the figure's text, and nothing is invented to describe a picture
+ * nobody looked at.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+const c = content as any;
+const gl = (c.gallery && typeof c.gallery === 'object' && !Array.isArray(c.gallery)) ? c.gallery : {};
+const tag = str(gl.tag);
+const headline = str(gl.headline);
+const sub = str(gl.sub);
+const raw: any[] = Array.isArray(gl.items) ? gl.items : (Array.isArray(c.gallery) ? c.gallery : []);
+const tiles = raw
+  .map((t: any, i: number) => ({ image: str(t?.image), caption: str(t?.caption), i }))
+  .filter((t: { image: string }) => Boolean(t.image));
+---
+{tiles.length > 0 && (
+  <section class="gal" id="gallery">
+    <div class="wrap">
+      {(tag || headline || sub) && (
+        <div class="gal-head">
+          {(tag || headline) && (
+            <div class="gal-head-l">
+              {tag && <p class="kick" data-field="gallery.tag">{tag}</p>}
+              {headline && <h2 class="gal-h2" data-field="gallery.headline" set:html={headline}></h2>}
+            </div>
+          )}
+          {sub && <p class="gal-sub" data-field="gallery.sub">{sub}</p>}
+        </div>
+      )}
+      <div class:list={['gal-grid', tiles.length === 1 && 'is-one']}>
+        {tiles.map((t: { image: string; caption: string; i: number }) => (
+          <figure class="gal-fig">
+            <div class="gal-ph" data-image-field={`gallery.items.${t.i}.image`}>
+              <img src={t.image} alt="" decoding="async" />
+            </div>
+            {t.caption && <figcaption class="gal-cap" data-field={`gallery.items.${t.i}.caption`}>{t.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  /* Every value below is the design's inline style, verbatim. */
+  .gal { padding: clamp(56px, 7vw, 112px) 0; }
+  .gal-head {
+    display: flex; flex-wrap: wrap; gap: 16px 64px; align-items: flex-end;
+    margin-bottom: clamp(32px, 4vw, 48px);
+  }
+  .gal-head-l { flex: 1 1 440px; min-width: 0; }
+  .gal-h2 {
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(34px, 4.8vw, 64px); line-height: 1.04; overflow-wrap: anywhere;
+  }
+  .kick + .gal-h2 { margin-top: 14px; }
+  .gal-sub { flex: 1 1 320px; min-width: 0; max-width: 44ch; color: var(--ink-soft); }
+
+  .gal-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: clamp(14px, 2vw, 24px);
+  }
+  .gal-grid.is-one { grid-template-columns: minmax(0, 580px); }
+  .gal-fig { min-width: 0; }
+  .gal-ph { position: relative; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background-color: var(--paper-2); }
+  /* Out of flow, so the owner photo's own proportions can never override the
+     frame's ratio (a column-flex item takes its content height as a minimum). */
+  .gal-ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .gal-cap { margin-top: 10px; font-size: 14.5px; color: var(--ink-soft); overflow-wrap: anywhere; }
+</style>

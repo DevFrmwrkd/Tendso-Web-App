@@ -1,0 +1,448 @@
+---
+/**
+ * woodworks / PageBY — "Yakal" (an heirloom joinery workshop that
+ * builds to commission: tables, doors, beds, panelling, restoration).
+ *
+ * Night & brass: Libre Caslon Display over IBM Plex Sans on a warm near-black
+ * ground, lifted one step on alternate bands and sunk one step in the footer,
+ * with bone text, a warm grey for secondary copy, and ONE metal. The brass
+ * draws every eyebrow, numeral, hairline, photo frame and fill. Corners are
+ * square everywhere; the only ornament is the lozenge (the rotated square in
+ * the wordmark, the step markers and the map pin).
+ *
+ * ROLE OF THIS FILE: the wrapper emits the WHOLE document (doctype, head,
+ * tokens, fonts, Leaflet, skip link, boot script). It does NOT compose with
+ * BaseLayout. It is the only file in the variant that touches `siteData`; the
+ * sixteen section components receive `content` + `layout` only.
+ *
+ * EDITABLE HOOKS OWNED BY THIS FILE: none. It only READS layout.businessName
+ * and layout.tagline (the title), content.description (meta description),
+ * layout.favicon and layout.ogImage. Every data-field / data-image-field /
+ * data-href-field lives in a section component. Section visibility is the
+ * camelCase `visibility.*` keys below, each tested `!== false`.
+ *
+ * THE ONE HARDCODED VISIBLE STRING is the skip link's "Skip to content", an
+ * a11y affordance visible on focus only, exactly as PageBJ ships it.
+ *
+ * ── TOKEN PLAN: WHAT AN ADMIN COLOUR PICK MAY MOVE, AND WHY ──────────────
+ *
+ * THE FIXED WORLD. --night / --night-2 / --night-3 (the three grounds),
+ * --bone (text), --grey (secondary text) and their rgb triplets are names the
+ * override engine does not know, so no scheme can touch them. The woodworks
+ * family curates brown, green, orange, gold, dark and black, and four of those
+ * six are LIGHT schemes: near-white --paper under near-black --ink. Mapping the
+ * night onto --paper would turn this page into a light design on four picks
+ * out of six, which is a different design, the exact mistake PageBK records
+ * having to undo on Kubo Stays. The night is the design, so it stays.
+ *
+ * THE ONE MOVING PART is the brass, and it is carried by --accent-light (with
+ * --accent-rgb for its hairline tints), NOT by --accent. The engine maps
+ * --accent to palette.primary and --accent-light to palette.accent, and on
+ * this ground only palette.accent survives every curated scheme. The brown
+ * primary #795548 measures 2.72:1 on the night, so every eyebrow and numeral
+ * would fade; palette.accent measures 5.39:1 (brown) to 10.3:1 (gold) on
+ * --night and never less than 4.88:1 on --night-2. It is also the engine's own
+ * "accent on a dark ground" (PageBR draws the same line with --brass-bright).
+ *
+ * THE LABEL ON A BRASS FILL is the fixed --night, NOT the engine's --on-accent.
+ * pickOn() flips to white below luminance 0.5, which would put white on
+ * palette.accent in four of the six schemes (brown 3.31:1, orange 2.26:1, dark
+ * 2.54:1, black 2.61:1). The design's night label holds 5.39:1 or better in all
+ * six: the closing band, every brass button, the last step marker, the pill.
+ *
+ * THE ENGINE'S VOCABULARY (--paper --paper-2 --card --ink --ink-soft --line
+ * --accent --accent-deep and the --on-* aliases) is declared with the design's
+ * values so an inherited rule finds something sane. No selector here reads it.
+ *
+ * THE SAFETY NET. With any scheme, buildOverrideCss also forces the html and
+ * body grounds to the scheme's paper and their colour to its ink, with
+ * !important. So every band here paints its own ground and sets its own
+ * colour, and __nightCss (gated on __themeScheme, never on __overrideCss,
+ * because a font pick alone makes the override non-empty) restates the night
+ * on html and body so a light scheme cannot show through in the overscroll.
+ * Those two rules are the only !important in the template.
+ *
+ * VERIFIED CONTRAST (sRGB relative luminance, the design's palette):
+ *   bone/night 14.2 · bone/night-2 12.8 · bone/night-3 14.9
+ *   grey/night 8.52 · grey/night-2 7.72 · grey/night-3 9.00
+ *   brass/night 7.71 · brass/night-2 6.98 · night on a brass fill 7.71
+ *   the footer colophon (grey at .75 over night-3) 5.52
+ * Every pair clears AA at its size. Under the six curated schemes the brass
+ * becomes palette.accent: brown 5.39 / 4.88 (night / night-2), green 10.2 /
+ * 9.27, orange 7.88 / 7.14, gold 10.3 / 9.35, dark 7.02 / 6.36, black 6.82 /
+ * 6.18, and the night label on each fill takes the first number of its pair.
+ *
+ * FONTS: Libre Caslon Display (one weight, 400, no italic) and IBM Plex Sans
+ * 400/500/600, verbatim from the design. Every display element states
+ * font-weight 400 so the single Caslon cut is never synthesised bold.
+ *
+ * FONT-PAIRING SENTINEL (two lines, wrapper-local): lib/astro-builder.ts
+ * defaults layout.fontPairing to the literal 'modern' and lockVariant only
+ * blanks ''/'auto'/'default', so without the sentinel buildOverrideCss swaps
+ * Space Grotesk + Inter in with !important on nearly every real site. The
+ * builder's DEFAULT is treated as unset; a deliberate admin pick still applies.
+ *
+ * FORBIDDEN CLASS NAMES (read lib/genericThemeOverrides.ts before adding a
+ * button): .btn-primary .btn-ghost .btn-yellow .btn-light .nav-cta .nav-right
+ * .testi .cta-band .trust, and `hero` as a class. Buttons here are .btn with
+ * .btn--fill / .btn--line / .btn--brass / .btn--ink / .btn--inkline, and the
+ * footer holds no .btn at all (the engine pins `footer .btn` to on-ink).
+ * Class names also avoid Tailwind utility words (hidden, flex, grid, border,
+ * outline, blur, sticky), because BaseLayout's Tailwind ships on every page and
+ * generates a utility for any class name it recognises.
+ *
+ * RENDER ORDER, exactly as the design draws it: Header, Hero (#top), Marquee
+ * (#marquee), Trust, Services (#services), About (#about), Why (#why), How
+ * (#how), Gallery (#gallery), Testimonials (#reviews), Credentials
+ * (#credentials), Area (#area), Faq (#faq), Location (#visit), CtaBand (#book,
+ * outside main as drawn), Footer, then the floating message pill.
+ *
+ * DEAD IN-PAGE LINKS. Every onPage() copy resolves an href against the ids this
+ * design CAN render; a section whose content gate fails is simply not in the
+ * document, and on a first build the derived nav points at two or three of
+ * them. The boot script below hides any in-page link whose target is missing,
+ * then any group marked data-link-group with no live link left (the nav, the
+ * rail itself, the hero's buttons, a footer column, the closing band), any
+ * block marked data-hide-if-empty with no live text left (the footer), and a
+ * burger whose drawer went; it repeats until nothing changes. So no control
+ * on the page scrolls nowhere, and nothing is left as an empty shell.
+ *
+ * LEAFLET: this wrapper loads leaflet.css + leaflet.js and defines
+ * window.__woodworksBYInitMap (family-unique: a preview harness can render two
+ * wrappers in one document). LocationBY calls that exact name. Keep
+ * `el.innerHTML = ''` in the boot (it erases the drawn fallback face) and keep
+ * id="map" literal. The tiles are CARTO dark_all, the basemap the design draws;
+ * the URL is the design's own (as PageBK draws it), and lib/carto.ts appends the
+ * CARTO key to it at publish time like every other tile URL.
+ */
+import HeaderBY from './header/HeaderBY.astro';
+import HeroBY from './hero/HeroBY.astro';
+import MarqueeBY from './marquee/MarqueeBY.astro';
+import TrustBY from './trust/TrustBY.astro';
+import ServicesBY from './services/ServicesBY.astro';
+import AboutBY from './about/AboutBY.astro';
+import WhyBY from './why/WhyBY.astro';
+import HowBY from './how/HowBY.astro';
+import GalleryBY from './gallery/GalleryBY.astro';
+import TestimonialsBY from './testimonials/TestimonialsBY.astro';
+import CredentialsBY from './credentials/CredentialsBY.astro';
+import AreaBY from './area/AreaBY.astro';
+import FaqBY from './faq/FaqBY.astro';
+import LocationBY from './location/LocationBY.astro';
+import CtaBandBY from './ctaBand/CtaBandBY.astro';
+import FooterBY from './footer/FooterBY.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __resolvedPairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+// 'modern' is astro-builder's DEFAULT, not a choice (lib/astro-builder.ts).
+// Treating it as unset keeps Libre Caslon; a deliberate admin pick applies.
+const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+// The night is the design (see TOKEN PLAN). With a scheme picked, the engine
+// forces html/body to its paper + ink with !important at (0,0,1); these two
+// rules restate the fixed world at (0,1,1) and (0,1,2), so they win. Gated on
+// the SCHEME: a font pick alone leaves the palette exactly as declared.
+const __nightCss = __themeScheme
+  ? 'html[data-page="BY"] { background-color: var(--night) !important; } html[data-page="BY"] body { background-color: var(--night) !important; color: var(--bone) !important; }'
+  : '';
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="BY">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <!-- Browser-chrome tint. A meta tag cannot read a CSS var, so this repeats
+       the --night ground the sticky header sits on. -->
+  <meta name="theme-color" content="#1B1712" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <!-- Yakal's native fonts, verbatim from the design's helmet. -->
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Display&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+
+  <style is:global>
+    /* ═══════════════════════════════════════════════════════════════════════
+       PageBY · "Yakal" — woodworks. Tokens + shared base primitives.
+       EVERY selector is prefixed html[data-page="BY"] so nothing leaks into a
+       sister wrapper, or in.
+
+       SPECIFICITY. The appearance-bearing primitives are wrapped in :where()
+       at (0,1,1), so an Astro-scoped section rule (0,2,0) always wins. The
+       sections restate the colours of every control they draw at (0,3,0) or
+       more, which is also what keeps a leaked unscoped `.btn:hover` (0,2,0)
+       from another family off these buttons.
+
+       (Never write a literal closing style tag inside this block, comments
+        included: it is an HTML raw-text element.)
+       ═══════════════════════════════════════════════════════════════════════ */
+
+    html[data-page="BY"] {
+      /* ── THE FIXED WORLD. Unknown to the override engine on purpose. ── */
+      --night: #1B1712;
+      --night-2: #25201A;
+      --night-3: #14110D;
+      --bone: #EEE4D3;
+      --grey: #BDB2A0;
+      --night-rgb: 27,23,18;
+      --bone-rgb: 238,228,211;
+      --grey-rgb: 189,178,160;
+
+      /* ── THE ONE MOVING PART: the brass. The engine remaps these two to
+            palette.accent / palette.accentRgb on an explicit pick. ─────── */
+      --accent-light: #D6A152;
+      --accent-rgb: 214,161,82;
+
+      /* ── The engine's vocabulary, declared so any inherited rule finds
+            something sane. NO SELECTOR IN THIS TEMPLATE READS THEM. ─────── */
+      --accent: #D6A152;
+      --accent-deep: #B4843F;
+      --paper: #1B1712;
+      --paper-2: #25201A;
+      --card: #25201A;
+      --ink: #EEE4D3;
+      --ink-soft: #BDB2A0;
+      --line: #4A3A22;
+      --paper-rgb: 27,23,18;
+      --ink-rgb: 238,228,211;
+      --on-accent: #1B1712;
+      --on-primary: #1B1712;
+      --on-brass: #1B1712;
+      --on-ink: #1B1712;
+      --on-paper: #EEE4D3;
+
+      /* ── type + metrics ─────────────────────────────────────────────── */
+      --disp: "Libre Caslon Display", Georgia, "Times New Roman", serif;
+      --serif: "Libre Caslon Display", Georgia, "Times New Roman", serif;
+      --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      /* No monospace in this design; its tracked caps are Plex Sans. */
+      --mono: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      --maxw: 1240px;
+      --gut: clamp(18px, 4vw, 48px);
+    }
+
+    /* ── reset + document ─────────────────────────────────────────────── */
+    html[data-page="BY"] *,
+    html[data-page="BY"] *::before,
+    html[data-page="BY"] *::after { box-sizing: border-box; }
+    html[data-page="BY"] {
+      -webkit-text-size-adjust: 100%;
+      background-color: var(--night);
+      scroll-behavior: smooth;
+      /* The sticky header is 76px (77 with its hairline). One declaration on
+         the root lands every in-page anchor, FAQ row and map node clear of
+         it, and keeps keyboard focus out from under the rail. */
+      scroll-padding-top: 88px;
+    }
+    @media (prefers-reduced-motion: reduce) { html[data-page="BY"] { scroll-behavior: auto; } }
+    html[data-page="BY"] body {
+      margin: 0; padding: 0;
+      background-color: var(--night); color: var(--bone);
+      font-family: var(--sans); font-size: 16.5px; line-height: 1.7;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    html[data-page="BY"] img { max-width: 100%; display: block; }
+    /* Both link rules sit at (0,1,1) so the hover (later in source) wins over
+       the reset, and any section rule that gives a link a colour of its own
+       (0,2,0+) wins over both. Neither reaches inside the Leaflet widget: its
+       zoom buttons and attribution keep Leaflet's own link colours. */
+    html[data-page="BY"] :where(a:not(.leaflet-container a)) { color: inherit; text-decoration: none; }
+    /* The design's one global hover: an unstyled link warms to brass. Every
+       control with a colour of its own restates its hover in its section. */
+    html[data-page="BY"] :where(a:not(.leaflet-container a):hover) { color: var(--accent-light); }
+    html[data-page="BY"] ::selection { background: var(--accent-light); color: var(--night); }
+    /* text-transform is DECLARED, not defaulted: an unscoped uppercase rule in
+       another wrapper's global block once capitalised every mixed-case design
+       in the catalogue. */
+    html[data-page="BY"] :where(h1,h2,h3,h4) {
+      margin: 0; font-family: var(--disp); font-weight: 400; color: inherit;
+      letter-spacing: 0; line-height: 1.1; text-transform: none;
+    }
+    html[data-page="BY"] :where(p, figure, blockquote, dl, dd, ol, ul) { margin: 0; }
+    html[data-page="BY"] :where(summary) { list-style: none; cursor: pointer; }
+    html[data-page="BY"] summary::-webkit-details-marker { display: none; }
+
+    /* ── layout scaffolding: the design's 1240px measure with its gutter ── */
+    html[data-page="BY"] :where(.wrap) {
+      max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gut);
+    }
+
+    /* ── .eyebrow — 12px caps at .26em in brass, over every section head ── */
+    html[data-page="BY"] :where(.eyebrow) {
+      margin: 0; font-family: var(--sans); font-size: 12px; font-weight: 500;
+      letter-spacing: .26em; text-transform: uppercase; color: var(--accent-light);
+    }
+
+    /* ── BUTTONS. Square, tracked caps, no radius, no shadow, no motion.
+          DECLARED, not left to chance: a button with no background of its own
+          is filled by whichever leaked rule lands last, so the base states
+          `transparent` and each variant states its own fill and label, with a
+          hover that restates both so a label can never strand.
+            .btn--fill     brass fill, night label  → bone fill, night label
+            .btn--line     bone hairline + label    → brass hairline + label
+            .btn--brass    brass hairline + label   → brass fill, night label
+            .btn--ink      night fill, bone label   → night-2 fill, bone label
+            .btn--inkline  night hairline + label   → night fill, bone label
+          The last two only ever sit on the brass closing band. ─────────── */
+    html[data-page="BY"] :where(.btn) {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 54px; padding: 0 30px; max-width: 100%;
+      background-color: transparent; border: 1px solid transparent; border-radius: 0;
+      font-family: var(--sans); font-size: 13px; font-weight: 600;
+      letter-spacing: .14em; text-transform: uppercase; text-align: center;
+      text-decoration: none; cursor: pointer;
+    }
+    html[data-page="BY"] :where(.btn--fill) { background-color: var(--accent-light); border-color: var(--accent-light); color: var(--night); }
+    html[data-page="BY"] :where(.btn--fill:hover) { background-color: var(--bone); border-color: var(--bone); color: var(--night); }
+    html[data-page="BY"] :where(.btn--line) { background-color: transparent; border-color: rgba(var(--bone-rgb), .4); color: var(--bone); }
+    html[data-page="BY"] :where(.btn--line:hover) { background-color: transparent; border-color: var(--accent-light); color: var(--accent-light); }
+    html[data-page="BY"] :where(.btn--brass) { background-color: transparent; border-color: var(--accent-light); color: var(--accent-light); }
+    html[data-page="BY"] :where(.btn--brass:hover) { background-color: var(--accent-light); border-color: var(--accent-light); color: var(--night); }
+    html[data-page="BY"] :where(.btn--ink) { background-color: var(--night); border-color: var(--night); color: var(--bone); }
+    html[data-page="BY"] :where(.btn--ink:hover) { background-color: var(--night-2); border-color: var(--night-2); color: var(--bone); }
+    html[data-page="BY"] :where(.btn--inkline) { background-color: transparent; border-color: var(--night); color: var(--night); }
+    html[data-page="BY"] :where(.btn--inkline:hover) { background-color: var(--night); border-color: var(--night); color: var(--bone); }
+
+    /* ── FOCUS · one DUO ring: a 3px night outline inside a brass halo, so it
+          reads on the night, on a brass fill and over a photograph alike. ── */
+    html[data-page="BY"] :where(a, button, summary, [tabindex]):focus-visible {
+      outline: 3px solid var(--night); outline-offset: 0;
+      box-shadow: 0 0 0 6px var(--accent-light);
+    }
+
+    /* ── skip link ─────────────────────────────────────────────────────── */
+    html[data-page="BY"] :where(.skip) {
+      position: absolute; left: -999px; top: 0; z-index: 100;
+      background-color: var(--accent-light); color: var(--night);
+      padding: 12px 18px;
+      font-family: var(--sans); font-weight: 600; font-size: 12px;
+      letter-spacing: .14em; text-transform: uppercase;
+    }
+    html[data-page="BY"] :where(.skip:focus) { left: 0; top: 0; }
+    html[data-page="BY"] :where(.skip:hover) { color: var(--night); }
+  </style>
+
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__nightCss}></style>
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <HeaderBY layout={layout} content={content} />
+  <main id="main">
+    {visibility.heroSection !== false && <HeroBY content={content} layout={layout} />}
+    {visibility.marqueeBlock !== false && <MarqueeBY content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustBY content={content} layout={layout} />}
+    {visibility.servicesSection !== false && <ServicesBY content={content} layout={layout} />}
+    {visibility.aboutSection !== false && <AboutBY content={content} layout={layout} />}
+    {visibility.whyUsBlock !== false && <WhyBY content={content} layout={layout} />}
+    {visibility.howItWorksBlock !== false && <HowBY content={content} layout={layout} />}
+    {visibility.gallerySection !== false && <GalleryBY content={content} layout={layout} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsBY content={content} layout={layout} />}
+    {visibility.credentialsBlock !== false && <CredentialsBY content={content} layout={layout} />}
+    {visibility.serviceAreaBlock !== false && <AreaBY content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqBY content={content} layout={layout} />}
+    {visibility.locationBlock !== false && <LocationBY content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandBY content={content} layout={layout} />}
+  <FooterBY layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      // ── Dead in-page links (see the frontmatter). A link whose #target is
+      //    not in the document is hidden; then a link group with no live link
+      //    left, a text block with no live text left, and a burger whose
+      //    drawer went with them. '#top' is exempt: HTML scrolls it to the
+      //    top of the page whether or not an element carries that id.
+      var all = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
+      var live = function (el) { return !el.closest('[data-dead]'); };
+      var changed = false;
+      var dead = function (el) { el.setAttribute('data-dead', ''); el.style.display = 'none'; changed = true; };
+      var reaches = function (href) {
+        if (!href || href.charAt(0) !== '#' || href.length < 2) return true;
+        var id = href.slice(1);
+        try { id = decodeURIComponent(id); } catch (e) {}
+        if (id.toLowerCase() === 'top') return true;
+        var t = document.getElementById(id);
+        return !!t && live(t);
+      };
+      var hasLink = function (root) {
+        return root.querySelectorAll('a[href]').length > 0 &&
+          Array.prototype.some.call(root.querySelectorAll('a[href]'), live);
+      };
+      var hasText = function (root) {
+        var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        for (var n = w.nextNode(); n; n = w.nextNode()) {
+          if (n.nodeValue.trim() && live(n.parentElement)) return true;
+        }
+        return false;
+      };
+      // Repeat until nothing changes: removing a band can strand a link that
+      // pointed at it, which can empty another group.
+      for (var round = 0; round < 5; round++) {
+        changed = false;
+        all('a[href^="#"]').forEach(function (a) { if (live(a) && !reaches(a.getAttribute('href'))) dead(a); });
+        all('[data-link-group]').forEach(function (g) { if (live(g) && !hasLink(g)) dead(g); });
+        all('[data-hide-if-empty]').reverse().forEach(function (el) { if (live(el) && !hasText(el)) dead(el); });
+        all('button[aria-controls]').forEach(function (b) {
+          var t = document.getElementById(b.getAttribute('aria-controls'));
+          if (live(b) && (!t || !live(t))) dead(b);
+        });
+        if (!changed) break;
+      }
+
+      // ── Yakal / BY Leaflet boot — (lat, lng, label) from
+      //    LocationBY. The short retry covers a slow or blocked CDN and then
+      //    gives up: the drawn fallback face is a perfectly good end state.
+      window.__woodworksBYInitMap = function (lat, lng, label) {
+        var tries = 0;
+        (function go() {
+          var el = document.getElementById('map');
+          if (!el) return;
+          if (typeof window.L === 'undefined') {
+            if (tries++ < 25) setTimeout(go, 80);
+            return;
+          }
+          // Erases LocationBY's drawn fallback face before the tiles paint.
+          el.innerHTML = '';
+          var map = window.L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 15);
+          // dark_all, as the design draws it: a labelled basemap (a client
+          // finding the workshop needs the road names) and the only one of
+          // the CARTO set that sits inside a night page rather than on it.
+          window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19, subdomains: 'abcd'
+          }).addTo(map);
+          // The design's pin: a brass lozenge in a soft brass halo. Colours are
+          // READ from the live tokens, so an explicit admin pick recolours the
+          // pin with the rest of the brass (the engine sets them on html:root).
+          var cs = window.getComputedStyle(document.documentElement);
+          var brass = (cs.getPropertyValue('--accent-light') || '').trim() || '#D6A152';
+          var rgb = (cs.getPropertyValue('--accent-rgb') || '').trim() || '214,161,82';
+          var icon = window.L.divIcon({
+            className: '',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8],
+            html: '<div style="width:16px;height:16px;background:' + brass +
+                  ';transform:rotate(45deg);box-shadow:0 0 0 4px rgba(' + rgb + ',.25)"></div>'
+          });
+          window.L.marker([lat, lng], { icon: icon, title: label || '', keyboard: false }).addTo(map);
+        })();
+      };
+    })();
+  </script>
+</body>
+</html>

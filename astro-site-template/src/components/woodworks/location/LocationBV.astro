@@ -1,0 +1,199 @@
+---
+/**
+ * woodworks / LocationBV — the visit section: the eyebrow, a Young Serif
+ * headline and the owner's line; a hairline ledger of Address / Hours / Phone;
+ * the underlined directions link; and, beside it, the map in the design's
+ * warm sepia wash with its rust pin.
+ *
+ * Editable hooks:
+ *   location.tag · location.headline (set:html) · location.sub
+ *   location.address · location.hours · location.phone (tel: anchor, so it
+ *   carries data-field ONLY — its href is derived from the value)
+ *   location.directions.text + data-href-field location.directions.href
+ *
+ * The three ledger labels (Address, Hours, Phone) are fixed template chrome,
+ * each rendered only beside a value. The address and phone fall back to the
+ * contact block for display — exactly the read fallbacks the schema declares
+ * for those two boxes — so the page and the sidebar always show the same
+ * thing. The directions arrow is generated content, so it can never enter the
+ * stored label.
+ *
+ * Map strategy, three tiers (LocationBI's):
+ *   1. build-time lat/lng (location first, then contact; a blank or
+ *      out-of-range value is rejected, never read as 0) -> window.__woodworksBVInitMap
+ *   2. else any address -> client-side Nominatim lookup, then the same boot
+ *   3. else -> the drawn face (a linen grid with the design's pin)
+ * With neither coordinates nor an address there is no map cell at all: the
+ * drawn pin would claim a place nobody gave. The literal id="map" and the
+ * global name are a contract with PageBV.
+ *
+ * SECTION GATE: an address, a phone, hours or coordinates. The builder derives
+ * an eyebrow and a headline for every site; those alone are an empty shell.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+const lc = (content as any).location || {};
+const ct = (layout && layout.contact) || {};
+const tag = str(lc.tag);
+const headline = str(lc.headline);
+const sub = str(lc.sub);
+const address = str(lc.address) || str(ct.address);
+const addressLines: string[] = address ? address.split('\n').map((s) => s.trim()).filter(Boolean) : [];
+const hours = str(lc.hours);
+const phone = str(lc.phone) || str(ct.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const dirText = str(lc.directions?.text);
+const dirHref = str(lc.directions?.href) || (address
+  ? `https://maps.google.com/?q=${encodeURIComponent(address.replace(/\n/g, ' '))}`
+  : '');
+// A CLEARED coordinate field leaves '', which Number() turns into 0 — a pin in
+// the Gulf of Guinea. Reject blank and out-of-range values; `??` so a genuine
+// 0 survives.
+const num = (v: any, max: number): number | null => {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && Math.abs(n) <= max ? n : null;
+};
+const lat = num(lc.lat, 90) ?? num(ct.lat, 90);
+const lng = num(lc.lng, 180) ?? num(ct.lng, 180);
+const hasCoords = lat !== null && lng !== null;
+const hasAddress = Boolean(address);
+const hasMap = hasCoords || hasAddress;
+const label = str(layout?.businessName);
+const mapAria = label ? `Map showing ${label}` : 'Map';
+const show = hasMap || Boolean(phone || hours);
+// Coordinates alone (no words at all) draw the map without an empty column.
+const hasCopy = Boolean(tag || headline || sub || address || hours || phone || (dirText && dirHref));
+---
+{show && (
+  <section class="loc" id="visit">
+    <div class:list={['wrap', 'loc-in', !hasMap && 'no-map']}>
+      {hasCopy && (
+      <div class="loc-copy">
+        {tag && <p class="kick" data-field="location.tag">{tag}</p>}
+        {headline && <h2 class="loc-h2" data-field="location.headline" set:html={headline}></h2>}
+        {sub && <p class="loc-sub" data-field="location.sub">{sub}</p>}
+        {(address || hours || phone) && (
+          <dl class="loc-dl">
+            {address && (
+              <div class="loc-row">
+                <dt>Address</dt>
+                <dd data-field="location.address">{addressLines.map((line, i) => (<>{i > 0 && <br />}{line}</>))}</dd>
+              </div>
+            )}
+            {hours && (
+              <div class="loc-row">
+                <dt>Hours</dt>
+                <dd data-field="location.hours">{hours}</dd>
+              </div>
+            )}
+            {phone && (
+              <div class="loc-row">
+                <dt>Phone</dt>
+                <dd><a href={telHref} data-field="location.phone">{phone}</a></dd>
+              </div>
+            )}
+          </dl>
+        )}
+        {dirText && dirHref && (
+          <a class="linkc loc-dir" href={dirHref} target="_blank" rel="noopener noreferrer" data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
+        )}
+      </div>
+      )}
+      {hasMap && (
+        <div class="loc-map">
+          <div id="map" role="img" aria-label={mapAria}>
+            <div class="map-face" aria-hidden="true"><span class="map-pin"></span></div>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+{show && hasCoords && (
+  <script is:inline define:vars={{ lat, lng, label }}>
+    (function init() {
+      if (window.__woodworksBVInitMap) window.__woodworksBVInitMap(lat, lng, label);
+      else setTimeout(init, 80);
+    })();
+  </script>
+)}
+{show && !hasCoords && hasAddress && (
+  <script is:inline define:vars={{ address, label }}>
+    (function geocodeThenInit() {
+      var attempt = 0;
+      function tryInit(la, ln) {
+        if (window.__woodworksBVInitMap) { window.__woodworksBVInitMap(la, ln, label); }
+        else if (attempt++ < 25) { setTimeout(function () { tryInit(la, ln); }, 80); }
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) return;
+            var la = parseFloat(results[0].lat);
+            var ln = parseFloat(results[0].lon);
+            if (isNaN(la) || isNaN(ln)) return;
+            tryInit(la, ln);
+          })
+          .catch(function () { /* keep the drawn face */ });
+      } catch (e) { /* never block render */ }
+    })();
+  </script>
+)}
+<style>
+  /* Every value below is the design's inline style, verbatim. */
+  .loc { padding: clamp(56px, 7vw, 112px) 0; }
+  .loc-in { display: flex; flex-wrap: wrap; gap: 40px clamp(40px, 6vw, 88px); align-items: stretch; }
+  .loc-copy { flex: 1 1 340px; min-width: 0; }
+  .no-map .loc-copy { max-width: 640px; }
+  .loc-h2 {
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px); line-height: 1.06;
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+  .kick + .loc-h2 { margin-top: 14px; }
+  .loc-sub { max-width: 40ch; color: var(--ink-soft); overflow-wrap: anywhere; }
+  .loc-copy > * + .loc-sub { margin-top: 16px; }
+
+  .loc-copy > * + .loc-dl { margin-top: 28px; }
+  .loc-row { padding: 14px 0; border-top: 1px solid rgba(var(--ink-rgb), .18); }
+  .loc-row:last-child { border-bottom: 1px solid rgba(var(--ink-rgb), .18); }
+  .loc-row dt {
+    font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .loc-row dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+  .loc-row dd a:hover { color: var(--accent-deep); }
+  .loc-copy > * + .loc-dir { margin-top: 20px; }
+  /* The design's trailing arrow on the directions link is generated, so the stored
+     label stays the owner's words (and the second declaration keeps it out
+     of the accessible name where alt-text syntax is supported). */
+  .loc-dir::after { content: "\2192"; content: "\2192" / ""; margin-left: .3em; }
+
+  /* The map cell: the design's 10px frame, oatmeal while tiles load, and its
+     warm wash (sepia .25, saturate .8) over the tiles. isolation keeps
+     Leaflet's pane z-indexes under the sticky header and the pill. */
+  .loc-map {
+    flex: 1.3 1 420px; min-width: 0; position: relative; min-height: 360px;
+    border-radius: 10px; overflow: hidden; isolation: isolate;
+    background-color: var(--paper-2);
+  }
+  #map { position: absolute; inset: 0; filter: sepia(.25) saturate(.8); }
+  /* Tier-3 face: a linen street grid under the design's pin (a rust dot in a
+     linen ring and a walnut hairline), all token-built. */
+  .map-face {
+    position: absolute; inset: 0; background-color: var(--paper-2);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(var(--ink-rgb), .07) 0 1px, transparent 1px 44px),
+      repeating-linear-gradient(90deg, rgba(var(--ink-rgb), .07) 0 1px, transparent 1px 44px);
+  }
+  .map-pin {
+    position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px;
+    border-radius: 50%; background-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--paper), 0 0 0 5px var(--ink);
+  }
+</style>

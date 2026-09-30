@@ -1,0 +1,405 @@
+---
+/**
+ * woodworks / PageBV — "Narra & Co." (solid-wood furniture makers).
+ *
+ * Linen and walnut: Young Serif display over Work Sans body on a warm linen
+ * ground, a rust accent, and dark walnut bands (the marquee strip, the custom
+ * commission slab, the how-it-works band, the footer and the hero spec card)
+ * carrying tan labels. Sharp-ish 6px controls, 10px plates, no motion.
+ *
+ * ROLE OF THIS FILE: the wrapper emits the WHOLE document (doctype, head,
+ * tokens, fonts, Leaflet boot, skip link). It does NOT compose with
+ * BaseLayout. It is the only file in the variant that touches siteData; the
+ * fifteen section components receive only layout and content.
+ *
+ * EDITABLE HOOKS OWNED BY THIS FILE: none. It only READS layout.businessName
+ * and layout.tagline (for the title), the content description (meta
+ * description), layout.favicon and layout.ogImage. Every data-field,
+ * data-image-field and data-href-field hook lives in a section component.
+ * Section visibility is the camelCase visibility keys below, each tested
+ * with !== false (undefined renders).
+ *
+ * THE ONE HARDCODED VISIBLE STRING in the whole template is the skip link's
+ * "Skip to content" below: an a11y affordance, visible on focus only.
+ *
+ * PROP PLUMBING: every section is handed BOTH content and layout, even the
+ * ones that read only content. Extra props are inert in Astro.
+ *
+ * DESIGN ISOLATION: every selector in the global block is prefixed
+ * html[data-page="BV"], including the box-sizing reset, body, img, a,
+ * ::selection and the base primitives, because index.astro bundles every
+ * wrapper's global CSS onto every customer page.
+ *
+ * TOKEN PLAN (THE DESIGN IS THE SPECIFICATION; every native value is lifted
+ * verbatim from "Woodworks BV - Narra.dc.html"):
+ *   roles the engine may move, so an admin colour pick recolours coherently
+ *     ground #EFE6D8 is --paper; the oatmeal band #E4D7C3 is --paper-2; the
+ *     card #F7F1E7 is --card; text #2A1D14 is --ink; the muted brown #5E4E40
+ *     is --ink-soft; the rust #8A3B1E is --accent when it is a FILL (buttons,
+ *     the closing band, the last how step, the message pill, the logo rings)
+ *     and --accent-deep when it is TEXT on a light ground (eyebrows, stars,
+ *     the FAQ plus, the directions rule). Natively the two are the same rust;
+ *     under a scheme the engine maps them to primary and primaryDeep, and the
+ *     deep one is the text-safe tone. The label on a rust fill is
+ *     --on-primary (#FFF5EA natively; pickOn(primary) under a scheme, which
+ *     is the engine's own pairing for --accent).
+ *   the FIXED WOOD WORLD the engine does not know, deliberately
+ *     --wood #2A1D14, --wood-2 #3D2B1F, --on-wood #EFE6D8 and --tan #D9A77F.
+ *     The walnut bands ARE the design (the PageBJ precedent for its green):
+ *     an admin pick recolours paper, ink and rust around them and the bands
+ *     stay walnut with linen text and tan labels, which is legible in every
+ *     scheme because none of those four tokens can move.
+ *   two soft labels on the rust fill
+ *     --on-accent-2 #FFE9DA (body copy) and --on-accent-3 #EFE6D8 (the last
+ *     step's title). They cannot be derived from --on-primary by mixing, so
+ *     they are native tokens, re-pointed to --on-primary by the small style
+ *     node gated on the resolved scheme below (never on the override CSS,
+ *     which a font pick alone makes non-empty).
+ *
+ * FONT-PAIRING SENTINEL (verbatim from PageBJ): lib/astro-builder.ts defaults
+ * layout.fontPairing to the literal 'modern' and lockVariant only blanks
+ * ''/'auto'/'default', so without the sentinel buildOverrideCss would
+ * force-swap Space Grotesk + Inter onto nearly every real site. 'modern' is
+ * treated as unset; a deliberate admin pick still applies.
+ *
+ * FORBIDDEN CLASS NAMES (lib/genericThemeOverrides.ts pins them):
+ *   .btn-primary .btn-ghost .btn-yellow .btn-light .nav-cta .nav-right
+ *   .testi .cta-band .trust, and hero as a class on any element.
+ * Buttons here are .btn--fill / .btn--line / .linkc plus section-scoped
+ * modifiers; the footer carries no .btn at all (it would inherit the
+ * engine's footer label pin) and the message pill is a sibling after it.
+ *
+ * RENDER ORDER, exactly as the design draws it: Header, Hero (#top), Marquee
+ * (#marquee), Trust, Services (#services), About (#about), Why (#why), How
+ * (#how), Gallery (#gallery), Testimonials (#reviews), Credentials
+ * (#credentials), Area (#area), Faq (#faq), Location (#visit) inside main,
+ * then the closing band (#book), the Footer and the floating message pill.
+ *
+ * NO MOTION: the design has no reveal, no marquee scroll and no hover
+ * transition, so none is added. Smooth anchor scrolling is the design's own
+ * and is switched off under prefers-reduced-motion.
+ *
+ * Leaflet: this wrapper loads leaflet.css and leaflet.js and defines
+ * window.__woodworksBVInitMap (family-unique). LocationBV calls that exact
+ * name. Keep el.innerHTML = '' in the boot (it erases the drawn fallback
+ * face) and keep id="map" literal.
+ */
+import HeaderBV from './header/HeaderBV.astro';
+import HeroBV from './hero/HeroBV.astro';
+import MarqueeBV from './marquee/MarqueeBV.astro';
+import TrustBV from './trust/TrustBV.astro';
+import ServicesBV from './services/ServicesBV.astro';
+import AboutBV from './about/AboutBV.astro';
+import WhyBV from './why/WhyBV.astro';
+import HowBV from './how/HowBV.astro';
+import GalleryBV from './gallery/GalleryBV.astro';
+import TestimonialsBV from './testimonials/TestimonialsBV.astro';
+import CredentialsBV from './credentials/CredentialsBV.astro';
+import AreaBV from './area/AreaBV.astro';
+import FaqBV from './faq/FaqBV.astro';
+import LocationBV from './location/LocationBV.astro';
+import CtaBandBV from './ctaBand/CtaBandBV.astro';
+import FooterBV from './footer/FooterBV.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __resolvedPairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+// 'modern' is astro-builder's DEFAULT, not a choice (lib/astro-builder.ts).
+// Treating it as unset keeps Young Serif + Work Sans; a deliberate pick applies.
+const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+// Gated on the resolved SCHEME, never on the override CSS: a font pick alone
+// makes that string non-empty. The two soft labels on the rust fill have no
+// engine equivalent, so under an explicit scheme they follow --on-primary,
+// the engine's own label for its --accent.
+// SPECIFICITY, not source order: Astro hoists the global block below into the
+// bundled stylesheet at the END of the document, while this set:html node
+// stays inline in the head — so a plain html[data-page] rule here would lose
+// the tie to the native tokens. The extra :root makes it (0,2,1).
+const __schemeFix = __themeScheme
+  ? 'html[data-page="BV"]:root{--on-accent-2:var(--on-primary);--on-accent-3:var(--on-primary);}'
+  : '';
+const __og = layout.ogImage || layout.favicon || '';
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="BV">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <!-- Browser-chrome tint. A meta tag cannot read a CSS var, so this repeats
+       the linen ground (--paper) the sticky header sits on. -->
+  <meta name="theme-color" content="#EFE6D8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <!-- The design's own faces, exactly as its helmet link loads them: Young
+       Serif (one weight, 400) for display, Work Sans 400-700 for body and
+       labels. Always loaded, so the variant reads as designed when the admin
+       never touched the font dropdown. -->
+  <link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {__og && <meta property="og:image" content={__og} />}
+
+  <style is:global>
+    /* ═══════════════════════════════════════════════════════════════════════
+       PageBV · "Narra & Co." — woodworks. Tokens + shared base primitives.
+       EVERY selector is prefixed html[data-page="BV"] so nothing leaks into a
+       sister wrapper, or in.
+
+       LOAD-BEARING FACTS:
+       1. SPECIFICITY. Every appearance-bearing primitive is wrapped in
+          :where(), so it scores (0,1,1) and an Astro-scoped section rule
+          (0,2,0) always wins. :where() adds ZERO specificity, so if a control
+          looks wrong in the full build, suspect a leak from another family.
+       2. SOURCE ORDER. The link hover sits BEFORE the button rules: all of
+          them score (0,1,1), and a later a:hover would repaint every button
+          label rust on hover.
+       3. HEAD ORDER. This block is followed by the scheme-gated fix, the
+          font-pick link and then, LAST in the head, the engine's override
+          node. Astro hoists THIS block into the bundled stylesheet at the end
+          of the document, so neither later node can rely on source order: the
+          engine wins with !important, the scheme fix with a :root compound.
+          (Never write a literal closing style tag inside this block,
+          comments included — it is a raw-text element.)
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    html[data-page="BV"] {
+      /* grounds — linen page, oatmeal band, pale card */
+      --paper: #EFE6D8;
+      --paper-2: #E4D7C3;
+      --card: #F7F1E7;
+      /* ink — the design's walnut near-black, and its muted brown */
+      --ink: #2A1D14;
+      --ink-soft: #5E4E40;
+      --muted: #5E4E40;
+      /* ink at the design's 18% over linen (#CCC2B5). Rules draw hairlines
+         as rgba(var(--ink-rgb), alpha) to keep each of the design's alphas. */
+      --line: #CCC2B5;
+      --stone: #CCC2B5;
+      /* rust — a FILL is --accent, TEXT on a light ground is --accent-deep */
+      --accent: #8A3B1E;
+      --accent-deep: #8A3B1E;
+      --accent-light: #D9A77F;
+      --accent-soft: #D9A77F;
+      /* rgb triplets for token-driven tints */
+      --paper-rgb: 239,230,216;
+      --ink-rgb: 42,29,20;
+      --accent-rgb: 138,59,30;
+      /* contrast aliases the engine and inherited rules expect */
+      --on-primary: #FFF5EA;
+      --on-accent: #FFF5EA;
+      --on-ink: #EFE6D8;
+      --on-paper: #2A1D14;
+      /* THE FIXED WOOD WORLD. Names the engine does not know, on purpose:
+         the walnut bands are the design, and they carry their own linen text
+         and tan labels, so no scheme can strand a label on them. */
+      --wood: #2A1D14;
+      --wood-2: #3D2B1F;
+      --on-wood: #EFE6D8;
+      --on-wood-rgb: 239,230,216;
+      --tan: #D9A77F;
+      /* drop shadows stay walnut in every scheme (a white glow under a dark
+         scheme's light ink would read as a halo, not a shadow) */
+      --shadow-rgb: 42,29,20;
+      /* soft labels on the rust fill (see the frontmatter) */
+      --on-accent-2: #FFE9DA;
+      --on-accent-3: #EFE6D8;
+      /* type + metrics */
+      --disp: "Young Serif", Georgia, "Times New Roman", serif;
+      --serif: "Young Serif", Georgia, "Times New Roman", serif;
+      --sans: "Work Sans", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      /* The design has no monospace; its tracked caps are Work Sans 600. */
+      --mono: "Work Sans", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      --maxw: 1280px;
+      --gut: clamp(18px, 4vw, 48px);
+    }
+
+    /* VERIFIED CONTRAST (sRGB relative luminance, the design's palette):
+       ink/paper 13.22 · ink/card 14.55 · ink/paper-2 11.53
+       ink-soft/paper 6.43 · ink-soft/paper-2 5.61 · ink-soft/card 7.08
+       rust/paper 6.23 · rust/paper-2 5.43 · rust/card 6.86 (eyebrows, stars)
+       on-primary/rust 7.16 (buttons, closing band) · on-accent-2/rust 6.58
+       on-wood/wood 13.22 · tan/wood 7.62 · tan/wood-2 6.26 (walnut labels)
+       linen at 80% over wood 8.92, over wood-2 7.56 · at 60% (colophon) 5.63
+       Every pairing the design draws clears WCAG AA. */
+
+    /* ── reset + document ─────────────────────────────────────────────── */
+    html[data-page="BV"] *,
+    html[data-page="BV"] *::before,
+    html[data-page="BV"] *::after { box-sizing: border-box; }
+    html[data-page="BV"] {
+      -webkit-text-size-adjust: 100%;
+      /* the design's own html{scroll-behavior:smooth} */
+      scroll-behavior: smooth;
+      /* The sticky header is 77px (76 + its hairline). One declaration on the
+         root covers every in-page anchor, FAQ rows and the map included. */
+      scroll-padding-top: 89px;
+    }
+    @media (prefers-reduced-motion: reduce) { html[data-page="BV"] { scroll-behavior: auto; } }
+    html[data-page="BV"] body {
+      margin: 0; padding: 0;
+      background-color: var(--paper); color: var(--ink);
+      font-family: var(--sans); font-size: 17px; font-weight: 400; line-height: 1.65;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    html[data-page="BV"] img { max-width: 100%; display: block; }
+    html[data-page="BV"] :where(a) { color: inherit; text-decoration: none; }
+    /* the design's global a:hover{color:#8A3B1E} — BEFORE the buttons (fact 2) */
+    html[data-page="BV"] :where(a:hover) { color: var(--accent-deep); }
+    /* The page-scoped reset above ties Leaflet's own `.leaflet-container a`
+       and, coming later, would win; the design's unscoped reset did not, so
+       its map shows Leaflet's link colour in the attribution. Restore it. */
+    html[data-page="BV"] .leaflet-container .leaflet-control-attribution a { color: #0078A8; }
+    html[data-page="BV"] ::selection { background-color: var(--accent); color: var(--on-primary); }
+    /* text-transform is DECLARED, not defaulted: an unscoped uppercase heading
+       rule from another template once capitalised every mixed-case design. */
+    html[data-page="BV"] :where(h1, h2, h3, h4) {
+      margin: 0; font-family: var(--disp); font-weight: 400; color: inherit;
+      letter-spacing: 0; text-transform: none;
+    }
+    html[data-page="BV"] :where(p, figure, blockquote, dl, dd, ol, ul) { margin: 0; }
+    html[data-page="BV"] :where(ol, ul) { padding: 0; }
+    /* Owner emphasis inside a display heading (headings are set:html, because
+       generated headlines may carry <em>). Young Serif ships no italic, so the
+       emphasis is the rust, not a synthesised slant. Bands restate it. */
+    html[data-page="BV"] :where(h1, h2) :where(em, i) { font-style: normal; color: var(--accent-deep); }
+
+    /* ── layout scaffolding: the design's 1280px container, gutter inside ── */
+    html[data-page="BV"] :where(.wrap) {
+      max-width: var(--maxw); margin-inline: auto; padding-inline: var(--gut);
+    }
+
+    /* ── .kick — the eyebrow: 12px Work Sans 600 caps, .2em, rust ────────── */
+    html[data-page="BV"] :where(.kick) {
+      margin: 0; font-family: var(--sans); font-size: 12px; font-weight: 600;
+      letter-spacing: .2em; text-transform: uppercase; color: var(--accent-deep);
+      overflow-wrap: anywhere;
+    }
+
+    /* ── BUTTONS ─────────────────────────────────────────────────────────
+       Straight from the design's style-hover specs:
+         .btn--fill  rust fill + rust border, #FFF5EA label -> walnut fill, linen label
+         .btn--line  clear fill, walnut border + label       -> walnut fill, linen label
+       Every variant DECLARES its own background-color, and every hover
+       restates fill, border AND label, so a label can never strand. No
+       transition: the design's hovers are instant. */
+    html[data-page="BV"] :where(.btn) {
+      background-color: transparent;
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 54px; padding: 0 28px;
+      border: 1.5px solid transparent; border-radius: 6px;
+      font-family: var(--sans); font-size: 15px; font-weight: 600;
+      letter-spacing: 0; text-transform: none; text-decoration: none; text-align: center;
+      cursor: pointer;
+    }
+    html[data-page="BV"] :where(.btn--fill) {
+      background-color: var(--accent); border-color: var(--accent); color: var(--on-primary);
+    }
+    html[data-page="BV"] :where(.btn--fill:hover) {
+      background-color: var(--ink); border-color: var(--ink); color: var(--paper);
+    }
+    html[data-page="BV"] :where(.btn--line) {
+      background-color: transparent; border-color: var(--ink); color: var(--ink);
+    }
+    html[data-page="BV"] :where(.btn--line:hover) {
+      background-color: var(--ink); border-color: var(--ink); color: var(--paper);
+    }
+
+    /* ── .linkc — the design's underlined text action (directions) ─────── */
+    html[data-page="BV"] :where(.linkc) {
+      display: inline-flex; align-items: center; min-height: 44px;
+      background-color: transparent; color: inherit; font-weight: 600;
+      border-bottom: 2px solid var(--accent-deep);
+    }
+    html[data-page="BV"] :where(.linkc:hover) { color: var(--accent-deep); }
+
+    /* ── FOCUS · a DUO ring: a linen outline inside a walnut halo, so it reads
+          on the linen page (halo) and on every walnut or rust band (outline). */
+    html[data-page="BV"] :where(a, button, summary, [tabindex]):focus-visible {
+      outline: 3px solid var(--paper); outline-offset: 0;
+      box-shadow: 0 0 0 6px var(--ink);
+      border-radius: 6px;
+    }
+
+    /* ── skip link ──────────────────────────────────────────────────── */
+    html[data-page="BV"] :where(.skip) {
+      position: absolute; left: -999px; top: 0; z-index: 100;
+      background-color: var(--ink); color: var(--paper);
+      padding: 12px 18px; border-radius: 0 0 6px 0;
+      font-family: var(--sans); font-size: 14px; font-weight: 600;
+    }
+    html[data-page="BV"] :where(.skip:focus) { left: 0; top: 0; color: var(--paper); }
+  </style>
+  {__schemeFix && <style is:global set:html={__schemeFix}></style>}
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <HeaderBV layout={layout} content={content} />
+  <main id="main">
+    {visibility.heroSection !== false && <HeroBV content={content} layout={layout} />}
+    {visibility.marqueeBlock !== false && <MarqueeBV content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustBV content={content} layout={layout} />}
+    {visibility.servicesSection !== false && <ServicesBV content={content} layout={layout} />}
+    {visibility.aboutSection !== false && <AboutBV content={content} layout={layout} />}
+    {visibility.whyUsBlock !== false && <WhyBV content={content} layout={layout} />}
+    {visibility.howItWorksBlock !== false && <HowBV content={content} layout={layout} />}
+    {visibility.gallerySection !== false && <GalleryBV content={content} layout={layout} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsBV content={content} layout={layout} />}
+    {visibility.credentialsBlock !== false && <CredentialsBV content={content} layout={layout} />}
+    {visibility.serviceAreaBlock !== false && <AreaBV content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqBV content={content} layout={layout} />}
+    {visibility.locationBlock !== false && <LocationBV content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandBV content={content} layout={layout} />}
+  <FooterBV layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      // Narra & Co. / BV Leaflet boot — accepts (lat, lng, label) from
+      // LocationBV. The global name is family-unique on purpose: a preview
+      // harness can render two wrappers in one document, and a shared name
+      // cross-wires the maps.
+      window.__woodworksBVInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map');
+        if (!el || el._leaflet_id) return;
+        // Erases LocationBV's drawn fallback face; without this the tiles
+        // stack on top of the drawn grid.
+        el.innerHTML = '';
+        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 15);
+        L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19, subdomains: 'abcd'
+        }).addTo(map);
+        // The design's pin — a 20px rust dot in a linen ring and a walnut
+        // hairline — with its colours READ from the live tokens, so an explicit
+        // admin colour pick recolours the pin too (the engine sets them on
+        // html:root, this same element).
+        var cs = window.getComputedStyle(document.documentElement);
+        var accent = (cs.getPropertyValue('--accent') || '').trim() || '#8A3B1E';
+        var paper = (cs.getPropertyValue('--paper') || '').trim() || '#EFE6D8';
+        var ink = (cs.getPropertyValue('--ink') || '').trim() || '#2A1D14';
+        var icon = L.divIcon({
+          className: '',
+          html: '<div style="width:20px;height:20px;border-radius:50%;background:' + accent + ';box-shadow:0 0 0 4px ' + paper + ',0 0 0 5px ' + ink + '"></div>',
+          iconSize: [20, 20], iconAnchor: [10, 10]
+        });
+        L.marker([lat, lng], { icon: icon, title: label || '', keyboard: false }).addTo(map);
+      };
+    })();
+  </script>
+</body>
+</html>

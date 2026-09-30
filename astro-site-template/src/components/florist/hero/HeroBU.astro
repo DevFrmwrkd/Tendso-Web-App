@@ -1,0 +1,175 @@
+---
+/**
+ * florist / HeroBU — the opening (#top). A full-bleed photograph, then a night
+ * panel that rises over its lower edge carrying a champagne kicker, the big
+ * Gloock headline, a lede and two square buttons; under it a hairline row of
+ * two short meta lines.
+ *
+ * Editable hooks (design paths, kept exactly):
+ *   hero.image (data-image-field) · hero.kicker · hero.headline · hero.sub ·
+ *   hero.cta1.text + hero.cta1.href · hero.cta2.text + hero.cta2.href ·
+ *   hero.meta1 · hero.meta2
+ * plus hero.headlineLines.${l.i} (see THE HEADLINE).
+ *
+ * THE HEADLINE reads two paths, exactly as HeroBS / foodcraft HeroBO do and
+ * for the same reason: the derive layer fills hero.headline with the bare
+ * business name, while the AI copy extraction writes hero.headlineLines (short
+ * lines, the last may carry an <em>) and never hero.headline. So
+ * hero.headline wins whenever it is AUTHORED (non-empty and not that
+ * auto-filled name); when it is only the auto-fill, the surviving
+ * headlineLines rows win, flowed inline inside the same h1 (this design's
+ * headline is one sentence), each bound to its ORIGINAL row index and fed with
+ * set:html. The field a click opens is always the field the visible words came
+ * from. The design draws no emphasis and Gloock has no italic cut, so an <em>
+ * inside the headline is carried by the champagne accent, upright — never a
+ * synthesised oblique.
+ *
+ * NO PHOTO, DELIBERATE LAYOUT. The panel's negative top margin only makes
+ * sense over a photograph. With no hero.image the photo block is omitted (no
+ * placeholder), the panel loses its overlap and its top padding, and the
+ * section takes the same breathing room above the copy that it keeps below
+ * it — a text-led opening on the night, not a hole where a picture was.
+ *
+ * SECTION GATE: the owner's words or photo (image, kicker, headline or sub).
+ * Buttons and meta lines alone never open the band — derived CTAs exist on
+ * every site, and a pair of buttons under nothing is an empty shell.
+ *
+ * The section class is "opening", never "hero" (buildOverrideCss pins
+ * `.hero .btn-ghost` white with !important). Buttons are .btn--fill and
+ * .btn--quiet from PageBU.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+// Anchor guard — identical in HeaderBU, ServicesBU, CtaBandBU and FooterBU.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+// A url('…') value must survive the owner's URL: quote and newline escaped.
+const cssUrl = (u: string): string => u.replace(/[\r\n]/g, '').replace(/'/g, '%27');
+const hero = content.hero || {};
+const image = str(hero.image);
+const kicker = str(hero.kicker);
+// THE HEADLINE — see the doc comment.
+const bizName = str(layout?.businessName);
+const headline = str(hero.headline);
+const lineRows: Array<{ text: string; i: number }> = (Array.isArray(hero.headlineLines) ? hero.headlineLines : [])
+  .map((t: any, i: number) => ({ text: typeof t === 'string' || typeof t === 'number' ? str(t) : '', i }))
+  .filter((l: { text: string }) => l.text !== '');
+const useRows = lineRows.length > 0
+  && (headline === '' || headline === bizName)
+  && lineRows.map((l) => l.text).join(' ') !== headline;
+const hasHeadline = useRows || headline !== '';
+const sub = str(hero.sub);
+const cta1Text = str(hero.cta1?.text);
+const cta1Href = onPage(str(hero.cta1?.href), '#book');
+const cta2Text = str(hero.cta2?.text);
+const cta2Href = onPage(str(hero.cta2?.href), '#services');
+const meta1 = str(hero.meta1);
+const meta2 = str(hero.meta2);
+// The photo is announced under the owner's own business name, never a
+// description of a picture nobody has looked at; with no name it is decoration.
+const photoLabel = str(layout?.businessName);
+const hasPanel = Boolean(kicker || hasHeadline || sub || cta1Text || cta2Text);
+const hasHero = Boolean(image || kicker || hasHeadline || sub);
+---
+{hasHero && (
+  <section id="top" class:list={['opening', !image && 'no-photo']}>
+    {image && (
+      <div
+        class="op-photo"
+        data-image-field="hero.image"
+        role={photoLabel ? 'img' : undefined}
+        aria-label={photoLabel || undefined}
+        aria-hidden={photoLabel ? undefined : 'true'}
+        style={`background-image:url('${cssUrl(image)}');`}
+      ></div>
+    )}
+    <div class="wrap">
+      {hasPanel && (
+        <div class="op-panel">
+          {kicker && <p class="kick op-kick" data-field="hero.kicker">{kicker}</p>}
+          {hasHeadline && (
+            useRows ? (
+              <h1 class="op-h1">
+                {lineRows.map((l, k) => (
+                  <Fragment>{k > 0 && ' '}<span data-field={`hero.headlineLines.${l.i}`} set:html={l.text}></span></Fragment>
+                ))}
+              </h1>
+            ) : (
+              <h1 class="op-h1" data-field="hero.headline" set:html={headline}></h1>
+            )
+          )}
+          {sub && <p class="op-sub" data-field="hero.sub">{sub}</p>}
+          {(cta1Text || cta2Text) && (
+            <div class="op-ctas">
+              {cta1Text && <a class="btn btn--fill" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+              {cta2Text && <a class="btn btn--quiet" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+            </div>
+          )}
+        </div>
+      )}
+      {(meta1 || meta2) && (
+        <div class="op-meta">
+          {meta1 && <span data-field="hero.meta1">{meta1}</span>}
+          {meta2 && <span data-field="hero.meta2">{meta2}</span>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .opening { padding: 0 0 clamp(56px,7vw,104px); background-color: var(--night); color: var(--cream); }
+  .opening.no-photo { padding-top: clamp(56px,7vw,104px); }
+
+  .op-photo {
+    height: clamp(420px,72vh,780px);
+    background-color: var(--night-2);
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+  }
+
+  /* The night panel rising over the photograph's lower edge. Square, no
+     shadow — it reads as a cut-out of the page itself. */
+  .op-panel {
+    position: relative;
+    margin-top: calc(-1 * clamp(80px,14vw,200px));
+    max-width: 760px;
+    background-color: var(--night);
+    padding: clamp(28px,4vw,56px) clamp(22px,4vw,56px) 0 0;
+  }
+  .no-photo .op-panel { margin-top: 0; padding-top: 0; }
+
+  .op-h1 {
+    margin: 18px 0 0;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(42px,6.6vw,96px); line-height: 1; letter-spacing: -.02em;
+    color: var(--cream); text-wrap: balance;
+  }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .op-h1 :global(em),
+  .op-h1 :global(i) { font-style: normal; color: var(--accent-light); }
+  .op-sub {
+    max-width: 50ch; margin: 24px 0 32px;
+    font-size: clamp(16px,1.3vw,18px); color: var(--sage); text-wrap: pretty;
+  }
+  /* Whichever element opens the panel sits flush with its padding. */
+  .op-panel > :first-child { margin-top: 0; }
+  .op-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+  /* With no lede the buttons keep the design's gap under the headline. */
+  .op-kick + .op-ctas,
+  .op-h1 + .op-ctas { margin-top: 32px; }
+
+  .op-meta {
+    display: flex; flex-wrap: wrap; gap: 6px 32px;
+    margin-top: 36px; padding-top: 18px;
+    border-top: 1px solid rgba(var(--cream-rgb),.14);
+    font-size: 13.5px; color: var(--sage);
+  }
+</style>

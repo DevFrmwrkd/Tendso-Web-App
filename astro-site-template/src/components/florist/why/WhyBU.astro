@@ -1,0 +1,67 @@
+---
+/**
+ * florist / WhyBU — the reasons (#why): one wide Gloock h2 (the design gives
+ * this section no eyebrow), then a hairline-topped grid of reasons, each a
+ * champagne Gloock title over a sage line.
+ *
+ * Editable hooks: why.headline · why.items.${r.i}.title · why.items.${r.i}.body
+ * (ORIGINAL index; the canonical `body` key is spelled in the hook even when
+ * the value arrived as a legacy desc/description). why.headline is set:html
+ * (the AI and the editor may mark an <em>); it prints upright in champagne,
+ * as Gloock has no italic cut.
+ *
+ * why.tag is deliberately NOT rendered: the design draws no eyebrow here, and
+ * the page must not grow an element the design does not have.
+ *
+ * SECTION GATE: at least one reason. The content layer derives a headline for
+ * every site; a headline over no reasons never renders. The grid is the
+ * design's auto-fit, so two to five reasons all fill the row.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const why = content.why || {};
+const headline = str(why.headline);
+const items: any[] = Array.isArray(why.items) ? why.items : [];
+const rows = items
+  .map((it: any, i: number) => ({
+    title: str(it?.title),
+    body: str(it?.body ?? it?.desc ?? it?.description),
+    i,
+  }))
+  .filter((r) => r.title || r.body);
+---
+{rows.length > 0 && (
+  <section id="why" class="why">
+    <div class="wrap">
+      {headline && <h2 class="h2 h2--lg w-h2" data-field="why.headline" set:html={headline}></h2>}
+      <div class="w-grid">
+        {rows.map((r) => (
+          <div class="w-item">
+            {r.title && <h3 class="w-h3" data-field={`why.items.${r.i}.title`}>{r.title}</h3>}
+            {r.body && <p class="w-p" data-field={`why.items.${r.i}.body`}>{r.body}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .why { padding: clamp(56px,7vw,112px) 0; background-color: var(--night); color: var(--cream); }
+  .w-h2 { margin: 0; max-width: 20ch; text-wrap: balance; }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .w-h2 :global(em), .w-h2 :global(i) { font-style: normal; color: var(--accent-light); }
+  .w-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%,250px),1fr));
+    gap: 0 clamp(24px,4vw,56px);
+  }
+  .w-h2 + .w-grid { margin-top: clamp(36px,5vw,64px); }
+  .w-item { min-width: 0; padding: 26px 0; border-top: 1px solid rgba(var(--cream-rgb),.14); }
+  .w-h3 {
+    margin: 0 0 8px;
+    font-family: var(--disp); font-weight: 400; font-size: 24px;
+    color: var(--accent-light);
+  }
+  .w-p { margin: 0; font-size: 15.5px; color: var(--sage); }
+</style>

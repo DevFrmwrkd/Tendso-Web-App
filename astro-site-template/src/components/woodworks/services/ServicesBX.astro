@@ -1,0 +1,228 @@
+---
+/**
+ * woodworks / ServicesBX — "Acacia Studio"'s collections (#services) and, under
+ * them, the full-bleed olive MADE TO ORDER band (#custom).
+ *
+ * Collections: an eyebrow and a light Newsreader h2 (with the design's italic
+ * phrase, so set:html) beside the owner's paragraph, then a grid of tall 3:4
+ * photographs, each followed by a name / small-meta row and one line of copy.
+ *
+ * The band binds services.whole.* and the services card button, so it belongs
+ * to this component. The two are TWO full-bleed sections wrapped in ONE
+ * data-block="services" element: the editor bridge hides the element carrying
+ * that marker when the Services block is switched off, so both go together.
+ *
+ * Editable hooks:
+ *   services.tag · services.headline (set:html) · services.sub
+ *   services.items.${i}.image (img) · .title · .meta · .desc
+ *   services.whole.tag · services.whole.headline · services.whole.body
+ *   services.ctaLabel + data-href-field services.ctaHref   — the band's button
+ *
+ * LISTS: blank rows are dropped and every hook keeps the row's ORIGINAL index,
+ * so removing a collection can never misdirect an edit into its neighbour.
+ *
+ * NO PHOTO: the 3:4 well is drawn only around a real photograph. A card without
+ * one starts on a hairline instead, so an all-text grid reads as a ledger of
+ * collections rather than a row of missing pictures.
+ *
+ * GATES: the grid renders only with at least one filled row — the derived
+ * eyebrow and headline alone are a heading over nothing. The band renders only
+ * with a headline or body (its eyebrow or button alone is not a band).
+ * (PageBX's LIVE ANCHORS mirrors both gates.)
+ *
+ * THE BAND BUTTON resolves against the ids this build renders (`links`, see
+ * HeaderBX): its own target, else the closing call, the showroom, then the
+ * owner's phone or email; with nowhere to go it is not drawn.
+ *
+ * Both headlines render with set:html: the design writes an italic phrase
+ * into the collections headline, and the AI copy step may put an <em>
+ * highlight into any headline (astro-builder balances the inline HTML).
+ *
+ * Theming: the band ground is --accent-deep with --on-primary type (see
+ * PageBX's token plan); the band's own tints are the template-private
+ * --band-tag / --band-body. The band button is a bone pill with an ink label
+ * that turns ink on hover, restating fill and label both.
+ */
+interface Props { content: any; layout?: any; links?: { anchors?: string[]; contact?: string }; }
+const { content, links } = Astro.props;
+// Anchor guard — identical in every BX component that renders an in-page href
+// (the full explanation is in HeaderBX).
+const ALL_ANCHORS = ['main', 'top', 'marquee', 'services', 'custom', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book'];
+const LIVE = new Set<string>(Array.isArray(links?.anchors) ? links.anchors : ALL_ANCHORS);
+const CONTACT = String(links?.contact ?? '').trim();
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: any): string => {
+  const h = String(href ?? '').trim();
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (LIVE.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && LIVE.has(alias) ? `#${alias}` : '';
+};
+const act = (href: any, ...fallbacks: string[]): string => [href, ...fallbacks].map(onPage).find(Boolean) || CONTACT;
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const c = (content as any) || {};
+const s = (c.services && typeof c.services === 'object' && !Array.isArray(c.services)) ? c.services : {};
+const tag = str(s.tag);
+const headline = str(s.headline);
+const sub = str(s.sub);
+// Both shapes: the wrapped { items: [] } and the legacy bare array — and both
+// vocabularies (name/description arrive from older pipelines).
+const raw: any[] = Array.isArray(s.items) ? s.items : (Array.isArray(c.services) ? c.services : []);
+const rows = raw
+  .map((it: any, i: number) => ({
+    title: str(it?.title ?? it?.name),
+    meta: str(it?.meta),
+    desc: str(it?.desc ?? it?.description),
+    image: str(it?.image),
+    i,
+  }))
+  .filter((r) => Boolean(r.title || r.meta || r.desc || r.image));
+// One card alone across a 1248px row would be a 1600px-tall photograph; one or
+// two cards keep the width a card has in the design's four-up row instead.
+const n = rows.length;
+
+const w = s.whole || {};
+const wTag = str(w.tag);
+const wHeadline = str(w.headline);
+const wBody = str(w.body);
+const ctaHref = act(s.ctaHref, '#book', '#visit');
+const ctaLabel = ctaHref ? str(s.ctaLabel) : '';
+
+const hasGrid = n > 0;
+const hasBand = Boolean(wHeadline || wBody);
+---
+{(hasGrid || hasBand) && (
+  <div data-block="services">
+    {hasGrid && (
+      <section id="services" class="coll">
+        <div class="wrap">
+          {(tag || headline || sub) && (
+            <div class="coll-head">
+              {(tag || headline) && (
+                <div class="coll-head-l">
+                  {tag && <p class="eyebrow" data-field="services.tag">{tag}</p>}
+                  {headline && <h2 class="display coll-h" data-field="services.headline" set:html={headline}></h2>}
+                </div>
+              )}
+              {sub && <p class="coll-sub" data-field="services.sub">{sub}</p>}
+            </div>
+          )}
+          <div class="coll-grid" data-n={n <= 2 ? String(n) : undefined}>
+            {rows.map((it) => (
+              <article class:list={['coll-card', !it.image && 'coll-card--text']}>
+                {it.image && (
+                  <div class="pic coll-ph" data-image-field={`services.items.${it.i}.image`}>
+                    <img src={it.image} alt="" loading="lazy" decoding="async" />
+                  </div>
+                )}
+                {(it.title || it.meta) && (
+                  <div class="coll-top">
+                    {it.title && <h3 class="coll-t" data-field={`services.items.${it.i}.title`}>{it.title}</h3>}
+                    {it.meta && <span class="coll-m" data-field={`services.items.${it.i}.meta`}>{it.meta}</span>}
+                  </div>
+                )}
+                {it.desc && <p class="coll-d" data-field={`services.items.${it.i}.desc`}>{it.desc}</p>}
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+    {hasBand && (
+      <section id="custom" class="mto">
+        <div class="wrap mto-in">
+          <div class="mto-copy">
+            {wTag && <p class="mto-tag" data-field="services.whole.tag">{wTag}</p>}
+            {wHeadline && <h2 class="display mto-h" data-field="services.whole.headline" set:html={wHeadline}></h2>}
+            {wBody && <p class="mto-body" data-field="services.whole.body">{wBody}</p>}
+            {ctaLabel && (
+              <a class="mto-btn" href={ctaHref} data-field="services.ctaLabel" data-href-field="services.ctaHref">{ctaLabel}</a>
+            )}
+          </div>
+        </div>
+      </section>
+    )}
+  </div>
+)}
+<style>
+  /* ── collections ─────────────────────────────────────────────────── */
+  .coll { padding: clamp(56px,7vw,104px) 0; }
+  .coll-head {
+    display: flex; flex-wrap: wrap; align-items: flex-end;
+    gap: 16px 64px; margin-bottom: clamp(32px,4vw,52px);
+  }
+  .coll-head-l { flex: 1 1 440px; min-width: 0; }
+  .coll-h { margin-top: 12px; font-size: clamp(36px,4.8vw,66px); color: var(--ink); }
+  .coll-h:first-child { margin-top: 0; }
+  .coll-h :global(i),
+  .coll-h :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+  .coll-sub {
+    flex: 1 1 320px; min-width: 0; margin: 0; max-width: 44ch;
+    color: var(--ink-soft); text-wrap: pretty;
+  }
+
+  .coll-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,250px),1fr));
+    gap: clamp(18px,2.4vw,32px);
+  }
+  .coll-grid[data-n="1"] { max-width: 400px; }
+  .coll-grid[data-n="2"] { max-width: 840px; }
+  .coll-card { min-width: 0; }
+  .coll-ph { aspect-ratio: 3 / 4; border-radius: 16px; }
+  .coll-card--text { border-top: 1px solid var(--line); padding-top: 16px; }
+
+  .coll-top {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 12px; margin-top: 16px;
+  }
+  .coll-card--text .coll-top { margin-top: 0; }
+  /* The title keeps its automatic minimum, as in the design, so it never
+     shrinks below its longest word: the meta beside it is what wraps. The
+     max-width caps that minimum at the card, so a single word wider than the
+     card still breaks (break-word, which leaves the minimum alone) instead of
+     overflowing. */
+  .coll-t {
+    margin: 0; max-width: 100%; font-family: var(--disp); font-weight: 400;
+    font-size: 26px; line-height: 1.65; color: var(--ink); overflow-wrap: break-word;
+  }
+  .coll-m {
+    min-width: 0; font-size: 13px; line-height: 1.65; color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+  .coll-d { margin: 6px 0 0; font-size: 15px; line-height: 1.65; color: var(--ink-soft); text-wrap: pretty; }
+  .coll-ph + .coll-d { margin-top: 16px; }
+  .coll-card--text .coll-d:first-child { margin-top: 0; }
+
+  /* ── the made-to-order band ─────────────────────────────────────── */
+  .mto {
+    padding: clamp(56px,7vw,104px) 0;
+    background-color: var(--accent-deep); color: var(--on-primary);
+  }
+  .mto-in {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 36px clamp(40px,6vw,96px);
+  }
+  .mto-copy { flex: 1 1 420px; min-width: 0; max-width: 760px; }
+  .mto-tag {
+    margin: 0; font-size: 13px; font-weight: 600; line-height: 1.65;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: var(--band-tag); overflow-wrap: anywhere;
+  }
+  .mto-h { margin-top: 12px; font-size: clamp(34px,4.6vw,62px); color: var(--on-primary); }
+  .mto-h:first-child { margin-top: 0; }
+  .mto-h :global(i),
+  .mto-h :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+  .mto-body { margin: 20px 0 0; max-width: 46ch; line-height: 1.65; color: var(--band-body); text-wrap: pretty; }
+  .mto-body:first-child { margin-top: 0; }
+  .mto-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 52px; padding: 10px 26px; margin-top: 30px;
+    border-radius: 999px; border: 1px solid var(--on-primary);
+    background-color: var(--on-primary); color: var(--ink);
+    font-family: var(--sans); font-size: 15px; font-weight: 600; line-height: 1.3;
+    text-align: center; overflow-wrap: anywhere;
+  }
+  .mto-btn:first-child { margin-top: 0; }
+  .mto-btn:hover { background-color: var(--ink); border-color: var(--ink); color: var(--paper); }
+</style>

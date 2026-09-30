@@ -1,0 +1,215 @@
+---
+/**
+ * woodworks / LocationBY — "the workshop": eyebrow and Caslon headline over a
+ * short ledger (Address, Hours, Phone), a brass underlined directions link,
+ * and a real map in a brass frame beside it. Map and ledger share a wrapping
+ * row; the frame stretches to the ledger's height and never drops below 360px.
+ *
+ * Map strategy, three tiers, mirroring LocationBI:
+ *   1. coordinates (location.lat/lng, then layout.contact.lat/lng)
+ *        → window.__woodworksBYInitMap(lat, lng, label)
+ *   2. else an address → client-side Nominatim lookup, then the same boot
+ *   3. else            → the drawn face below stays: a night grid, two brass
+ *                        roads and the design's lozenge pin
+ * The drawn face lives INSIDE #map until Leaflet mounts; PageBY's boot empties
+ * #map first, which is what erases it. The literal id="map" and the exact
+ * global name are a contract with PageBY.
+ * No coordinates and no address ⇒ no map cell at all: a pin on a drawn street
+ * grid is a claim about where the business is, and there is nothing behind it.
+ *
+ * Editable hooks (schema-owned, `location` group):
+ *   location.tag · location.headline · location.address · location.hours ·
+ *   location.phone (a tel: anchor: data-field ONLY; its href is derived from
+ *   the value, so a data-href-field would write "tel:…" back into the field) ·
+ *   location.directions.text + data-href-field location.directions.href
+ * Address and phone DISPLAY the owner's contact details when the location
+ * copies are empty, which is the schema's own declared fallback for both.
+ *
+ * STRUCTURAL LABELS. "Address", "Hours" and "Phone" are literal template
+ * chrome (like LocationBI's "Finding us"), each drawn only above its value.
+ * "Map showing …" is the map's accessible name, built from the owner's name.
+ *
+ * NEVER FABRICATED: no hour, route or phone is supplied here, and the section
+ * needs a map, an address, hours or a phone: derive-content-defaults always
+ * sets the eyebrow and headline, and a heading over nothing is an empty shell.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const loc = (content as any).location || {};
+const contact = layout?.contact || {};
+const tag = txt(loc.tag);
+const headline = txt(loc.headline);
+const address = txt(loc.address) || txt(contact.address);
+const addressLines = address ? address.split('\n').map((l) => l.trim()).filter(Boolean) : [];
+const hours = typeof loc.hours === 'string' ? loc.hours.trim() : '';
+const phone = txt(loc.phone) || txt(contact.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const dirText = txt(loc.directions?.text);
+const dirHref = txt(loc.directions?.href)
+  || (address ? `https://maps.google.com/?q=${encodeURIComponent(addressLines.join(', '))}` : '');
+// A CLEARED coordinate field leaves '' — which Number() turns into 0 and pins
+// the business in the Gulf of Guinea. Reject blank and out-of-range values so
+// a cleared field falls through to the address lookup. `??` so a real 0 lives.
+const num = (v: any, max: number): number | null => {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && Math.abs(n) <= max ? n : null;
+};
+const lat = num(loc.lat, 90) ?? num(contact.lat, 90);
+const lng = num(loc.lng, 180) ?? num(contact.lng, 180);
+const label = txt(layout?.businessName);
+const mapAria = label ? `Map showing ${label}` : 'Map';
+const hasCoords = lat !== null && lng !== null;
+const hasAddress = address.length > 0;
+const hasMap = hasCoords || hasAddress;
+const hasRows = Boolean(address || hours || phone);
+const show = hasMap || hasRows;
+---
+{show && (
+  <section id="visit" class="workshop">
+    <div class:list={['wrap', 'visit-grid', !hasMap && 'visit-grid--solo']}>
+      <div class="visit-copy">
+        {tag && <p class="eyebrow" data-field="location.tag">{tag}</p>}
+        {headline && <h2 class="visit-h" data-field="location.headline" set:html={headline}></h2>}
+        {hasRows && (
+          <dl class="facts">
+            {address && (
+              <div class="fact">
+                <dt>Address</dt>
+                <dd data-field="location.address">{addressLines.map((line, i) => (<>{i > 0 && <br />}{line}</>))}</dd>
+              </div>
+            )}
+            {hours && (
+              <div class="fact">
+                <dt>Hours</dt>
+                <dd data-field="location.hours">{hours}</dd>
+              </div>
+            )}
+            {phone && (
+              <div class="fact">
+                <dt>Phone</dt>
+                <dd><a class="tel" href={telHref} data-field="location.phone">{phone}</a></dd>
+              </div>
+            )}
+          </dl>
+        )}
+        {dirText && dirHref && (
+          <a class="route-link" href={dirHref} target="_blank" rel="noopener noreferrer" data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
+        )}
+      </div>
+      {hasMap && (
+        <div class="map-frame">
+          <div id="map" role="img" aria-label={mapAria}>
+            <div class="map-face" aria-hidden="true">
+              <span class="road road-a"></span>
+              <span class="road road-b"></span>
+              <span class="pin"></span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+{show && hasCoords && (
+  <script is:inline define:vars={{ lat, lng, label }}>
+    (function init() {
+      var tries = 0;
+      (function go() {
+        if (window.__woodworksBYInitMap) window.__woodworksBYInitMap(lat, lng, label);
+        else if (tries++ < 40) setTimeout(go, 80);
+      })();
+    })();
+  </script>
+)}
+{show && !hasCoords && hasAddress && (
+  <script is:inline define:vars={{ address, label }}>
+    (function geocodeThenInit() {
+      var attempt = 0;
+      function tryInit(la, ln) {
+        if (window.__woodworksBYInitMap) { window.__woodworksBYInitMap(la, ln, label); }
+        else if (attempt++ < 25) { setTimeout(function () { tryInit(la, ln); }, 80); }
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query;
+        fetch(url, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) return;
+            var la = parseFloat(results[0].lat);
+            var ln = parseFloat(results[0].lon);
+            if (isNaN(la) || isNaN(ln)) return;
+            tryInit(la, ln);
+          })
+          .catch(function () { /* keep the drawn face */ });
+      } catch (e) { /* never block render */ }
+    })();
+  </script>
+)}
+<style>
+  .workshop { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--night); color: var(--bone); }
+  .visit-grid { display: flex; flex-wrap: wrap; gap: 40px clamp(40px, 6vw, 88px); align-items: stretch; }
+  .visit-copy { flex: 1 1 340px; min-width: 0; }
+  .visit-copy > :first-child { margin-top: 0; }
+  /* No map: the ledger on a centred measure instead of a 1144px-wide table. */
+  .visit-grid--solo .visit-copy { max-width: 760px; margin: 0 auto; }
+  .visit-h {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px); line-height: 1.06; color: var(--bone);
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+
+  .facts { margin: 28px 0 0; }
+  .fact { padding: 14px 0; border-top: 1px solid rgba(var(--bone-rgb), .14); }
+  .fact:last-child { border-bottom: 1px solid rgba(var(--bone-rgb), .14); }
+  .fact dt {
+    font-size: 11px; font-weight: 500; letter-spacing: .18em; text-transform: uppercase; color: var(--grey);
+  }
+  .fact dd { margin: 4px 0 0; color: var(--bone); overflow-wrap: anywhere; }
+  .fact .tel { color: var(--bone); }
+  .fact .tel:hover { color: var(--accent-light); }
+
+  /* The directions link: brass caps on a brass underline; the hover warms the
+     label to bone and keeps the rule. */
+  .route-link {
+    display: inline-flex; align-items: center; min-height: 44px; margin-top: 18px;
+    font-size: 13px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent-light); border-bottom: 1px solid var(--accent-light);
+  }
+  .route-link:hover { color: var(--bone); }
+
+  .map-frame {
+    flex: 1.3 1 420px; min-width: 0; display: flex;
+    padding: 10px; border: 1px solid rgba(var(--accent-rgb), .4);
+  }
+  /* z-index:0 makes the map its own stacking context, so Leaflet's panes and
+     controls (z-index up to 1000) can never paint over the sticky header.
+     The dark ink is a belt for anything in Leaflet's white controls that
+     inherits colour rather than setting its own. */
+  #map {
+    position: relative; flex: 1 1 auto; width: 100%; min-height: 360px;
+    overflow: hidden; background-color: var(--night-2); color: var(--night); z-index: 0;
+  }
+  .map-face {
+    position: absolute; inset: 0;
+    background-color: var(--night-2);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(var(--accent-rgb), .06) 0 1px, transparent 1px 44px),
+      repeating-linear-gradient(90deg, rgba(var(--accent-rgb), .06) 0 1px, transparent 1px 44px);
+  }
+  .road { position: absolute; background-color: rgba(var(--accent-rgb), .18); }
+  .road-a { left: -10%; right: -10%; top: 54%; height: 3px; transform: rotate(-14deg); }
+  .road-b { top: -10%; bottom: -10%; left: 46%; width: 2px; transform: rotate(18deg); }
+  /* The design's pin: a brass lozenge in a soft brass halo. */
+  .pin {
+    position: absolute; left: 50%; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px;
+    background-color: var(--accent-light); transform: rotate(45deg);
+    box-shadow: 0 0 0 4px rgba(var(--accent-rgb), .25);
+  }
+  /* An owner's (or the copy extraction's) <em> in the headline: upright (the
+     Caslon has no italic) and in the design's one metal. :global() because
+     set:html markup cannot be scoped. */
+  .visit-h :global(em), .visit-h :global(i) { font-style: normal; color: var(--accent-light); }
+</style>

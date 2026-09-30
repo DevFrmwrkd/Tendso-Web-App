@@ -1,0 +1,203 @@
+---
+/**
+ * woodworks / HeroBW — "Molave"'s opening spread, laid out like a shop
+ * drawing: a ruled mono meta line (kicker left, figure right), a giant
+ * condensed caps headline, the lede beside two square actions, then one wide
+ * 21:9 photograph with a dimension line drawn under it — end ticks, two rules
+ * and the owner's own caption in the middle.
+ *
+ * Editable hooks (all schema-owned):
+ *   hero.kicker · hero.meta1 · hero.headline OR hero.headlineLines.${i} (see
+ *   below) · hero.sub ·
+ *   hero.cta1.text + hero.cta1.href · hero.cta2.text + hero.cta2.href ·
+ *   data-image-field hero.image · hero.meta2 (the dimension-line caption)
+ *
+ * THE HEADLINE reads two paths, as florist/HeroBS, hospitality/HeroBJ and
+ * foodcraft/HeroBO do, and for the same reason: lib/derive-content-defaults.ts
+ * fills hero.headline with the bare business name, while the AI copy extraction
+ * writes hero.headlineLines (short lines, the last may carry an <em>) and never
+ * hero.headline. So hero.headline wins whenever it is AUTHORED (anything but
+ * that auto-filled name); when it is only the auto-fill, the surviving
+ * headlineLines rows win — one row per line inside the same h1 (the design sets
+ * its headline as stacked caps lines), each bound to its ORIGINAL row index.
+ * The field a click opens is always the field the visible words came from.
+ * Both paths render through set:html (astro-builder balances inline HTML), and
+ * an owner's <em> takes the design's orange-on-light — upright, because the
+ * design loads no italic cut of Archivo.
+ *
+ * THE DIMENSION LINE IS THE PHOTO'S CAPTION. It annotates the picture above it
+ * (a measurement and a job name in the design), so it renders only with a photo:
+ * without one it would be a measurement of nothing. Its ticks and rules are
+ * aria-hidden decoration; the caption text itself stays readable.
+ *
+ * NO PHOTO, NO FRAME. The spread then ends on the lede and the actions — a
+ * typographic hero, which is how the design reads above the fold anyway. The
+ * gap to the next band is this section's bottom padding (the design's marquee
+ * margin, moved here so the hero keeps its breathing room when the marquee is
+ * switched off).
+ *
+ * Nothing is supplied by this file: no headline, no figure in the meta line,
+ * no caption. Every element is guarded from OUTSIDE its tag.
+ *
+ * CLASS NAMES: the section is .top (its id is the design's #top), never .hero —
+ * buildOverrideCss force-paints `.hero .btn-ghost` white. Buttons are
+ * .btn--fill / .btn--line.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+// Anchor guard — identical copies in Header, Hero, Services, CtaBand, Footer.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'how', 'gallery', 'about', 'why', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { contact: 'visit', location: 'visit', work: 'gallery' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const hero = (content as any).hero || {};
+const str = (v: any): string => String(v ?? '').trim();
+const kicker = str(hero.kicker);
+const meta1 = str(hero.meta1);
+// THE HEADLINE — see the doc comment.
+const bizName = str(layout?.businessName);
+const headline = str(hero.headline);
+const lineRows: Array<{ text: string; i: number }> = (Array.isArray(hero.headlineLines) ? hero.headlineLines : [])
+  .map((t: any, i: number) => ({ text: str(t), i }))
+  .filter((l: { text: string }) => l.text !== '');
+const useRows = lineRows.length > 0
+  && (headline === '' || headline === bizName)
+  && lineRows.map((l) => l.text).join(' ') !== headline;
+const hasHeadline = useRows || headline !== '';
+const sub = str(hero.sub);
+const cta1Text = str(hero.cta1?.text);
+const cta1Href = onPage(hero.cta1?.href, '#book');
+const cta2Text = str(hero.cta2?.text);
+const cta2Href = onPage(hero.cta2?.href, '#book');
+// Display fallback only: the owner's first submitted photo. The HOOK is always
+// hero.image, the path the sidebar's picker writes.
+const photos = Array.isArray((content as any).photos) ? (content as any).photos : [];
+const image = str(hero.image) || str(photos[0]);
+const meta2 = str(hero.meta2);
+// The photo's accessible name is the owner's own business name — no invented
+// description of what the picture shows.
+const alt = str(layout?.businessName);
+const hasActs = Boolean(cta1Text || cta2Text);
+// The actions are derived on EVERY site (lib/derive-content-defaults.ts), so
+// they never keep the spread alive on their own: two lone buttons at the top
+// of a page are not a hero. It needs a line of the owner's own copy or a photo.
+const hasSection = Boolean(kicker || meta1 || hasHeadline || sub || image);
+---
+{hasSection && (
+  <section id="top" class="top">
+    <div class="wrap">
+      {(kicker || meta1) && (
+        <div class="top-meta">
+          {kicker && <span data-field="hero.kicker">{kicker}</span>}
+          {meta1 && <span class="top-m1" data-field="hero.meta1">{meta1}</span>}
+        </div>
+      )}
+      {hasHeadline && (
+        useRows ? (
+          <h1 class="top-h1">
+            {lineRows.map((l) => (
+              <span class="top-ln" data-field={`hero.headlineLines.${l.i}`} set:html={l.text}></span>
+            ))}
+          </h1>
+        ) : (
+          <h1 class="top-h1" data-field="hero.headline" set:html={headline}></h1>
+        )
+      )}
+      {(sub || hasActs) && (
+        <div class:list={['top-foot', image && 'top-foot--shot']}>
+          {sub && <p class="top-sub" data-field="hero.sub">{sub}</p>}
+          {hasActs && (
+            <div class="top-acts">
+              {cta1Text && <a class="btn btn--fill" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+              {cta2Text && <a class="btn btn--line" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+    {image && (
+      <div class="wrap">
+        <div class="shot">
+          <div class="shot-frame" data-image-field="hero.image">
+            <img src={image} alt={alt} decoding="async" fetchpriority="high" />
+          </div>
+          {meta2 && (
+            <div class="dim">
+              <span class="dim-tick" aria-hidden="true"></span>
+              <span class="dim-rule" aria-hidden="true"></span>
+              <span class="dim-cap" data-field="hero.meta2">{meta2}</span>
+              <span class="dim-rule" aria-hidden="true"></span>
+              <span class="dim-tick" aria-hidden="true"></span>
+            </div>
+          )}
+        </div>
+      </div>
+    )}
+  </section>
+)}
+<style>
+  .top { padding: clamp(28px,4vw,56px) 0 clamp(40px,5vw,64px); }
+
+  /* The ruled meta line: kicker left, figure right, one ink hairline under. */
+  .top-meta {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 24px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--ink);
+    font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--ink-soft);
+  }
+  .top-meta span { min-width: 0; overflow-wrap: anywhere; }
+
+  .top-h1 {
+    margin: clamp(20px,3vw,36px) 0 0;
+    font-family: var(--disp); font-size: calc(clamp(52px,10.4vw,168px) * var(--disp-k, 1)); font-weight: 900;
+    font-stretch: 72%; line-height: .86; letter-spacing: -.02em; text-transform: uppercase;
+    color: var(--ink); overflow-wrap: anywhere;
+  }
+  .top-h1:first-child { margin-top: 0; }
+  .top-h1 .top-ln { display: block; }
+  /* An owner's emphasis: the design's orange text colour, kept upright. */
+  .top-h1 :global(em), .top-h1 :global(i) { font-style: normal; color: var(--accent-deep); }
+
+  .top-foot {
+    display: flex; flex-wrap: wrap; gap: 24px clamp(24px,5vw,72px); align-items: flex-end;
+    margin-top: clamp(24px,3vw,40px);
+  }
+  .top-foot:first-child { margin-top: 0; }
+  /* The gap between the actions and the photograph belongs to the photograph:
+     with no photo the spread ends on the actions. */
+  .top-foot--shot { padding-bottom: clamp(28px,3vw,40px); }
+  .top-foot .top-sub {
+    flex: 1 1 380px; min-width: 0; max-width: 52ch; margin: 0;
+    font-size: clamp(16px,1.4vw,19px); line-height: 1.6; color: var(--ink-soft);
+    text-wrap: pretty; overflow-wrap: anywhere;
+  }
+  .top-acts { flex: 0 1 auto; display: flex; flex-wrap: wrap; gap: 10px; min-width: 0; max-width: 100%; }
+
+  .shot { position: relative; }
+  .shot-frame {
+    position: relative; overflow: hidden;
+    aspect-ratio: 21 / 9; min-height: 280px; width: 100%; min-width: 0;
+    background-color: var(--card);
+  }
+  .shot-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  /* The dimension line: |——— caption ———| */
+  .dim {
+    display: flex; align-items: center; gap: 10px; margin-top: 10px;
+    font-family: var(--mono); font-size: 11.5px; line-height: 1.6; color: var(--ink-soft);
+  }
+  .dim-tick { flex: none; width: 1px; height: 12px; background-color: var(--ink); }
+  /* The rules give way first (as drawn), so the caption keeps its one line. */
+  .dim-rule { flex: 1 1 0; min-width: 0; height: 1px; background-color: var(--ink); }
+  .dim-cap { flex: 0 1 auto; min-width: 0; text-align: center; overflow-wrap: anywhere; }
+
+  /* A long owner label must wrap rather than push a nowrap button past 360px. */
+  @media (max-width: 520px) {
+    .top-acts .btn { max-width: 100%; white-space: normal; }
+  }
+</style>

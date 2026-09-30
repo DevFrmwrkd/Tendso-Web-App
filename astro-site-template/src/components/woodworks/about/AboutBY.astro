@@ -1,0 +1,114 @@
+---
+/**
+ * woodworks / AboutBY — "our story", on the lifted night band: eyebrow, Caslon
+ * headline, a Caslon lead, the grey body paragraphs, then a signature under a
+ * brass rule (name in Caslon, role in tracked caps); a framed 4:5 photograph
+ * sits beside the copy and drops under it once the two cannot share a row.
+ *
+ * Editable hooks (all schema-owned, `about` group):
+ *   about.tag · about.headline · about.lead · about.paragraphs.${i} ·
+ *   about.signatureName · about.role · data-image-field about.image
+ *
+ * THE SIGNATURE reads about.signatureName and, while that is empty, the
+ * schema's own declared fallback (the "Signature line"), exactly as the
+ * sidebar displays it and as AboutF does, so the page and the form never
+ * disagree. The HOOK is always about.signatureName. The role line is drawn
+ * only under a name: a role with no name attributes a claim to nobody.
+ *
+ * NEVER FABRICATED. No founder, no year, no team size is supplied here. The
+ * section needs real body content (a lead, a paragraph, a signature or a
+ * photo): derive-content-defaults always sets the eyebrow and names the
+ * headline after the business, so counting those would ship a heading over
+ * nothing on every first build.
+ *
+ * NO PHOTO ⇒ NO FRAME. The copy then takes a centred 760px measure rather
+ * than a lone column hugging the left edge of a 1240px band.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const about = (content as any).about && typeof (content as any).about === 'object' ? (content as any).about : {};
+const tag = txt(about.tag);
+const headline = txt(about.headline);
+const lead = txt(about.lead);
+const paragraphs: any[] = Array.isArray(about.paragraphs) ? about.paragraphs : (about.body ? [about.body] : []);
+// Blank rows dropped, ORIGINAL index kept for the hook.
+const paras = paragraphs
+  .map((p: any, i: number) => ({ text: txt(p), i }))
+  .filter((p) => p.text.length > 0);
+const name = txt(about.signatureName) || txt(about.signature);
+const role = txt(about.role);
+const image = txt(about.image);
+const show = Boolean(lead || paras.length || name || image);
+---
+{show && (
+  <section id="about" class="story">
+    <div class:list={['wrap', 'story-grid', !image && 'story-grid--solo']}>
+      <div class="story-copy">
+        {tag && <p class="eyebrow" data-field="about.tag">{tag}</p>}
+        {headline && <h2 class="story-h" data-field="about.headline" set:html={headline}></h2>}
+        {lead && <p class="story-lead" data-field="about.lead">{lead}</p>}
+        {paras.map((p) => (
+          <p class="story-p" data-field={`about.paragraphs.${p.i}`}>{p.text}</p>
+        ))}
+        {name && (
+          <div class="sign">
+            <p class="sign-name" data-field="about.signatureName">{name}</p>
+            {role && <p class="sign-role" data-field="about.role">{role}</p>}
+          </div>
+        )}
+      </div>
+      {image && (
+        <div class="frame">
+          <div class="well" data-image-field="about.image">
+            {/* alt="" on purpose: the owner never said who or what is in the
+                picture, and naming it after the signature would be a claim. */}
+            <img src={image} alt="" decoding="async" />
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .story { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--night-2); color: var(--bone); }
+  .story-grid { display: flex; flex-wrap: wrap; gap: clamp(40px, 6vw, 96px); align-items: center; }
+  .story-copy { flex: 1 1 440px; min-width: 0; }
+  .story-grid--solo .story-copy { max-width: 760px; margin: 0 auto; }
+
+  .story-h {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(34px, 4.6vw, 60px); line-height: 1.04; color: var(--bone);
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  .story-lead {
+    margin: 24px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(20px, 1.9vw, 24px); line-height: 1.45; color: var(--bone); text-wrap: pretty;
+  }
+  /* The first body paragraph sits 18px under what precedes it, the rest 12px
+     apart — the design's rhythm. */
+  .story-p { margin: 12px 0 0; color: var(--grey); text-wrap: pretty; overflow-wrap: break-word; }
+  .story-lead + .story-p,
+  .story-h + .story-p,
+  .eyebrow + .story-p { margin-top: 18px; }
+  .story-copy > :first-child { margin-top: 0; }
+
+  .sign { margin-top: 28px; padding-top: 18px; border-top: 1px solid rgba(var(--accent-rgb), .3); }
+  .story-copy > .sign:first-child { margin-top: 0; }
+  .sign-name { margin: 0; font-family: var(--disp); font-weight: 400; font-size: 23px; color: var(--bone); overflow-wrap: break-word; }
+  .sign-role {
+    margin: 2px 0 0; font-size: 12px; font-weight: 500; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--grey); overflow-wrap: break-word;
+  }
+
+  .frame {
+    flex: 1 1 360px; min-width: 0; max-width: 480px; margin-inline: auto;
+    padding: 10px; border: 1px solid rgba(var(--accent-rgb), .4);
+  }
+  .well { position: relative; overflow: hidden; aspect-ratio: 4 / 5; background-color: var(--night); }
+  .well img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* An owner's (or the copy extraction's) <em> in the headline: upright (the
+     Caslon has no italic) and in the design's one metal. :global() because
+     set:html markup cannot be scoped. */
+  .story-h :global(em), .story-h :global(i) { font-style: normal; color: var(--accent-light); }
+</style>

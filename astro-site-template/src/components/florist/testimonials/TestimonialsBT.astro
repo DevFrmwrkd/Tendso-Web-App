@@ -1,0 +1,97 @@
+---
+/**
+ * florist / TestimonialsBT — Gumamela's reviews (#reviews): on the left a red
+ * eyebrow, one big Bricolage pull-quote and a small source line; on the right a
+ * stack of blush cards, each a row of red stars, the quote and who said it.
+ *
+ * Editable hooks:
+ *   testimonials.tag · testimonials.bigQuote · testimonials.source
+ *   testimonials.items.${i}.rating · .quote · .who (ORIGINAL index)
+ *
+ * THE STARS ARE THE OWNER'S NUMBER, never a row the template prints. The
+ * design draws five over every quote; here a card shows stars only for a
+ * rating the owner typed, rounded and capped at 5 (a value under 1 draws none —
+ * a star is never invented out of a zero), named for a screen reader with that
+ * same number. The star row carries its data-field for click-to-focus, and
+ * data-derived so the live preview never swaps the glyphs for the raw digit.
+ * A card with no rating simply opens with its quote.
+ *
+ * Any star, score or platform claim in the pull-quote column is the owner's own
+ * text in testimonials.source. A row with no quote is dropped (the card IS the
+ * quote). GATE: at least one quote, or the owner's pull-quote.
+ *
+ * CLASS-NAME LAW: never .testi (the engine pins `.testi` to the on-ink colour).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const t = content.testimonials || {};
+const str = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
+const tag = str(t.tag).trim();
+const bigQuote = str(t.bigQuote).trim();
+const source = str(t.source).trim();
+const items: any[] = Array.isArray(t.items) ? t.items : (Array.isArray(content.testimonials) ? content.testimonials : []);
+const starsOf = (v: any): number => {
+  const r = Number(str(v).trim() === '' ? NaN : v);
+  if (!Number.isFinite(r)) return 0;
+  const n = Math.round(r);
+  return n >= 1 ? Math.min(5, n) : 0;
+};
+const rows = items
+  .map((it: any, i: number) => {
+    const row = it && typeof it === 'object' ? it : { quote: it };
+    return {
+      quote: str(row.quote).trim(),
+      who: str(row.who ?? row.author ?? row.name).trim(),
+      stars: starsOf(row.rating),
+      i,
+    };
+  })
+  .filter((r) => Boolean(r.quote));
+const hasLead = Boolean(tag || bigQuote || source);
+const show = rows.length > 0 || Boolean(bigQuote);
+---
+{show && (
+  <section class="gm-rev" id="reviews">
+    <div class="wrap rv-in">
+      {hasLead && (
+        <div class="rv-lead">
+          {tag && <p class="eyebrow" data-field="testimonials.tag">{tag}</p>}
+          {bigQuote && <blockquote class="rv-big" data-field="testimonials.bigQuote">{bigQuote}</blockquote>}
+          {source && <p class="rv-src" data-field="testimonials.source">{source}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class="rv-list">
+          {rows.map((r) => (
+            <figure class="rv-card">
+              {r.stars > 0 && (
+                <span class="rv-stars" role="img" aria-label={`${r.stars} out of 5`} data-field={`testimonials.items.${r.i}.rating`} data-derived>{'★'.repeat(r.stars)}</span>
+              )}
+              <blockquote class:list={['rv-q', r.stars === 0 && 'rv-q--first']} data-field={`testimonials.items.${r.i}.quote`}>{r.quote}</blockquote>
+              {r.who && <figcaption class="rv-who" data-field={`testimonials.items.${r.i}.who`}>{r.who}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .gm-rev { padding: clamp(56px,7vw,104px) 0; }
+  .rv-in { display: flex; flex-wrap: wrap; gap: clamp(28px,4vw,56px); }
+  .rv-lead { flex: 1 1 360px; min-width: 0; }
+  .rv-big {
+    margin: 14px 0 0; font-family: var(--disp); font-weight: 700; color: var(--ink);
+    font-size: clamp(28px,3.4vw,46px); line-height: 1.08; letter-spacing: -.03em;
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  .rv-src { margin: 18px 0 0; font-size: 14.5px; line-height: 1.6; color: var(--ink-soft); }
+  .rv-lead > :first-child { margin-top: 0; }
+  .rv-list { flex: 1.2 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+  .rv-card { margin: 0; padding: 24px; border-radius: 24px; background-color: var(--paper-2); color: var(--ink); }
+  .rv-stars { color: var(--accent-text); letter-spacing: 3px; line-height: 1.6; }
+  .rv-q { margin: 10px 0 12px; font-size: 17px; line-height: 1.5; color: var(--ink); overflow-wrap: break-word; }
+  .rv-q--first { margin-top: 0; }
+  .rv-q:last-child { margin-bottom: 0; }
+  .rv-who { font-size: 13.5px; font-weight: 700; line-height: 1.6; }
+</style>

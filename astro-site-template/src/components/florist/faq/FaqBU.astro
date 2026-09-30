@@ -1,0 +1,72 @@
+---
+/**
+ * florist / FaqBU — the questions (#faq), on the raised night-2 band: an
+ * intro column (eyebrow + Gloock h2) beside hairline-ruled native disclosure
+ * rows — a Gloock question with a champagne plus, and a sage answer.
+ *
+ * Editable hooks: faq.tag · faq.headline · faq.items.${r.i}.q ·
+ * faq.items.${r.i}.a (ORIGINAL index; legacy question/answer keys read too).
+ * faq.headline is set:html (the AI and the editor may mark an <em>); it
+ * prints upright in champagne, as Gloock has no italic cut.
+ *
+ * The FIRST displayed row is open, as the design's markup marks it (its
+ * preview runtime dropped the empty `open` attribute, which is why the
+ * reference render shows every row shut). The plus is aria-hidden decoration
+ * OUTSIDE the question's data-field span, and it does not change or move —
+ * the design gives it no open state. Native <details>, so no script.
+ *
+ * SECTION GATE: at least one question. A row with no question is dropped (the
+ * question IS the control's label); an answer is optional.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const faq = content.faq || {};
+const tag = str(faq.tag);
+const headline = str(faq.headline);
+const items: any[] = Array.isArray(faq.items) ? faq.items : (Array.isArray(faq) ? faq : []);
+const rows = items
+  .map((it: any, i: number) => ({ q: str(it?.q ?? it?.question), a: str(it?.a ?? it?.answer), i }))
+  .filter((r) => r.q);
+---
+{rows.length > 0 && (
+  <section id="faq" class="faq">
+    <div class="wrap f-grid">
+      {(tag || headline) && (
+        <div class="f-intro">
+          {tag && <p class="kick" data-field="faq.tag">{tag}</p>}
+          {headline && <h2 class="h2 h2--md f-h2" data-field="faq.headline" set:html={headline}></h2>}
+        </div>
+      )}
+      <div class="f-list">
+        {rows.map((r, k) => (
+          <details class="f-item" open={k === 0}>
+            <summary class="f-q"><span data-field={`faq.items.${r.i}.q`}>{r.q}</span><span class="f-plus" aria-hidden="true">+</span></summary>
+            {r.a && <p class="f-a" data-field={`faq.items.${r.i}.a`}>{r.a}</p>}
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .faq { padding: clamp(56px,7vw,112px) 0; background-color: var(--night-2); color: var(--cream); }
+  .f-grid { display: flex; flex-wrap: wrap; gap: 36px clamp(40px,6vw,96px); }
+  .f-intro { flex: 1 1 300px; min-width: 0; }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .f-h2 :global(em), .f-h2 :global(i) { font-style: normal; color: var(--accent-light); }
+  .f-list { flex: 1.6 1 440px; min-width: 0; }
+  .f-item { border-top: 1px solid rgba(var(--cream-rgb),.16); }
+  .f-item:last-child { border-bottom: 1px solid rgba(var(--cream-rgb),.16); }
+  .f-q {
+    display: flex; justify-content: space-between; gap: 16px;
+    padding: 22px 0;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(18px,1.8vw,22px); color: var(--cream);
+    list-style: none; cursor: pointer;
+  }
+  .f-q::-webkit-details-marker { display: none; }
+  .f-q::marker { content: ''; }
+  .f-plus { color: var(--accent-light); }
+  .f-a { margin: 0 0 22px; max-width: 60ch; color: var(--sage); }
+</style>

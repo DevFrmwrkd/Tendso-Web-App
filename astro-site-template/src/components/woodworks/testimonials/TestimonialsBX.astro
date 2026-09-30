@@ -1,0 +1,81 @@
+---
+/**
+ * woodworks / TestimonialsBX — "Acacia Studio"'s reviews (#reviews), on the
+ * tinted bone band: on the left an eyebrow, one large italic pull-quote and a
+ * small source line; on the right a stack of short quotes between hairlines,
+ * each signed in small bold type.
+ *
+ * Editable hooks:
+ *   testimonials.tag · testimonials.bigQuote · testimonials.source
+ *   testimonials.items.${i}.quote · testimonials.items.${i}.who
+ *
+ * NEVER FABRICATED. No star row, no score, no review count, no platform name
+ * is drawn by this file. The quotation marks around the pull-quote and any
+ * star in the source line are the OWNER's own characters (the design keeps
+ * them inside the field), so nothing here can assert a rating the owner did
+ * not type.
+ *
+ * GATE: a quote — a filled row or the pull-quote. An eyebrow or a source line
+ * alone is not a reviews section. Rows need a quote (a name alone attributes
+ * nothing); blank rows are dropped and every hook keeps the ORIGINAL index.
+ * Either column may be absent; the other then takes the full width.
+ *
+ * CLASS-NAME LAW: .words, never the forbidden testi class (the engine pins it
+ * to the on-ink colour, bone text on this bone band).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const tm = (content as any).testimonials && !Array.isArray((content as any).testimonials) ? (content as any).testimonials : {};
+const tag = str(tm.tag);
+const bigQuote = str(tm.bigQuote);
+const source = str(tm.source);
+const items: any[] = Array.isArray(tm.items) ? tm.items : (Array.isArray((content as any).testimonials) ? (content as any).testimonials : []);
+const rows = items
+  .map((it: any, i: number) => ({ quote: str(it?.quote), who: str(it?.who ?? it?.author ?? it?.name), i }))
+  .filter((r) => Boolean(r.quote));
+const hasSection = rows.length > 0 || Boolean(bigQuote);
+const hasLead = Boolean(tag || bigQuote || source);
+---
+{hasSection && (
+  <section id="reviews" class="words">
+    <div class="wrap words-in">
+      {hasLead && (
+        <div class="words-l">
+          {tag && <p class="eyebrow" data-field="testimonials.tag">{tag}</p>}
+          {bigQuote && <blockquote class="words-big" data-field="testimonials.bigQuote">{bigQuote}</blockquote>}
+          {source && <p class="words-src" data-field="testimonials.source">{source}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class="words-r">
+          {rows.map((r) => (
+            <figure class="words-item">
+              <blockquote class="words-q" data-field={`testimonials.items.${r.i}.quote`}>{r.quote}</blockquote>
+              {r.who && <figcaption class="words-who" data-field={`testimonials.items.${r.i}.who`}>{r.who}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .words { padding: clamp(56px,7vw,104px) 0; background-color: var(--card); }
+  .words-in { display: flex; flex-wrap: wrap; gap: 36px clamp(40px,6vw,96px); }
+  .words-l { flex: 1 1 380px; min-width: 0; }
+  .words-big {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 300; font-style: italic;
+    font-size: clamp(28px,3.6vw,48px); line-height: 1.15; letter-spacing: -.015em;
+    color: var(--ink); text-wrap: balance; overflow-wrap: break-word;
+  }
+  .words-src { margin: 18px 0 0; font-size: 14px; line-height: 1.65; color: var(--ink-soft); overflow-wrap: break-word; }
+  .words-l > :first-child { margin-top: 0; }
+
+  .words-r { flex: 1.2 1 420px; min-width: 0; display: flex; flex-direction: column; }
+  .words-item { margin: 0; padding: 22px 0; border-top: 1px solid var(--stone); }
+  .words-item:last-child { border-bottom: 1px solid var(--stone); }
+  .words-q { margin: 0 0 10px; font-size: 17px; line-height: 1.55; color: var(--ink); overflow-wrap: break-word; }
+  .words-q:last-child { margin-bottom: 0; }
+  .words-who { display: block; font-size: 14px; font-weight: 600; line-height: 1.65; color: var(--ink); overflow-wrap: break-word; }
+</style>

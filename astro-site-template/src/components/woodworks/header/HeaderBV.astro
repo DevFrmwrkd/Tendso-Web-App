@@ -1,0 +1,203 @@
+---
+/**
+ * woodworks / HeaderBV — the sticky linen rail: a rust tree-ring mark, the
+ * Young Serif wordmark with the locality in tracked caps under it, four
+ * wayfinding links, and the walnut "quote" pill. At 900px and below the links
+ * fold into a burger drawer on the oatmeal band; the pill stays in the rail.
+ *
+ * Editable hooks:
+ *   footer.brand                                     — the wordmark
+ *   footer.locality                                  — the caps line under it
+ *   navbar_links.${i}.label + navbar_links.${i}.href — each nav link (ORIGINAL,
+ *                                                      pre-filter index; the
+ *                                                      desktop row and the
+ *                                                      drawer are ONE element)
+ *   navCtaText + navCtaHref                          — the walnut pill
+ *
+ * The pill's DISPLAY falls back to the hero's primary action (HeaderBJ's rule:
+ * lib/astro-builder.ts always fills navCtaText, but a hand-edited site may
+ * not), while its hooks stay navCtaText / navCtaHref so the header answers to
+ * the Header group only.
+ *
+ * Never visibility-gated. With no brand and no locality the whole wordmark
+ * lock is OMITTED (a placeholder name once shipped as a customer's own), and a
+ * flexible spacer keeps the links and the pill on the right. The tree-ring
+ * mark is decoration (aria-hidden) and only ever sits beside a real name.
+ *
+ * Colour: tokens only. The pill is --ink with a --paper label, hovering to the
+ * rust fill with its --on-primary label, exactly as the design's style-hover.
+ * It is not .btn / .nav-cta / .nav-right, whose labels the engine pins.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+// Anchor guard, identical in HeaderBV / HeroBV / ServicesBV / CtaBandBV /
+// FooterBV (a section component receives only content + layout, so there is
+// no shared import). lib/derive-content-defaults.ts hands out '#visit',
+// '#services', '#about', '#why', '#work' and layout.navLinks defaults to
+// '#gallery' / '#contact': keep an in-page href when PageBV renders that id,
+// remap the two this design carries under another name, otherwise fall back
+// (buttons) or drop the link (nav). Off-page hrefs (viber:, tel:, mailto:,
+// http) pass through untouched.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'how', 'gallery', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: unknown, fallback: string): string => {
+  const h = typeof href === 'string' ? href.trim() : '';
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+
+const c = (content as any) || {};
+const ft = c.footer || {};
+const brand = str(ft.brand) || str(layout.businessName);
+const locality = str(ft.locality);
+// Nav links read layout.navLinks (where astro-builder puts the owner's
+// navigation). Each is resolved against this page and DROPPED when it has no
+// section to reach or no label (an empty anchor is a 0-width tap target). The
+// original index rides along so the per-link hooks stay correct.
+const navLinks: Array<{ label: string; href: string; i: number }> =
+  (Array.isArray(layout.navLinks) ? layout.navLinks : [])
+    .map((l: any, i: number) => ({ label: str(l?.label), href: onPage(l?.href, ''), i }))
+    .filter((l: { label: string; href: string }) => l.label && l.href);
+const hr = c.hero || {};
+const ctaText = str(c.navCtaText) || str(hr.cta1?.text);
+const ctaHref = onPage(str(c.navCtaHref) || hr.cta1?.href, '#book');
+---
+<header class="hdr">
+  <div class="wrap hdr-in">
+    {(brand || locality) ? (
+      <a class="hdr-mark" href="#top">
+        <span class="hdr-ring" aria-hidden="true"></span>
+        <span class="hdr-words">
+          {brand && <span class="hdr-name" data-field="footer.brand">{brand}</span>}
+          {locality && <span class="hdr-loc" data-field="footer.locality">{locality}</span>}
+        </span>
+      </a>
+    ) : (
+      <span class="hdr-spacer" aria-hidden="true"></span>
+    )}
+    {navLinks.length > 0 && (
+      <nav class="hdr-nav" id="bv-nav" aria-label="Primary">
+        {navLinks.map((link) => (
+          <a href={link.href} data-field={`navbar_links.${link.i}.label`} data-href-field={`navbar_links.${link.i}.href`}>{link.label}</a>
+        ))}
+      </nav>
+    )}
+    {ctaText && <a class="hdr-cta" href={ctaHref} data-field="navCtaText" data-href-field="navCtaHref">{ctaText}</a>}
+    {navLinks.length > 0 && (
+      <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="bv-nav">
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+    )}
+  </div>
+</header>
+<script is:inline>
+  (function () {
+    var hdr = document.querySelector('header.hdr');
+    if (!hdr) return;
+    var btn = hdr.querySelector('.burger');
+    if (!btn) return;
+    function setOpen(open) {
+      hdr.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function () { setOpen(!hdr.classList.contains('open')); });
+    // The pill lives OUTSIDE the drawer; tapping it with the drawer open must
+    // still close the drawer.
+    hdr.querySelectorAll('.hdr-nav a, .hdr-cta').forEach(function (a) {
+      a.addEventListener('click', function () { setOpen(false); });
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+  })();
+</script>
+<style>
+  /* The design's rail: linen at 95% under a 10px blur, one ink hairline. */
+  .hdr {
+    position: sticky; top: 0; z-index: 50;
+    background-color: rgba(var(--paper-rgb), .95);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(var(--ink-rgb), .16);
+  }
+  .hdr-in { height: 76px; display: flex; align-items: center; gap: 18px; }
+
+  /* Wordmark lock. It takes the auto margin, so the links, pill and burger
+     sit right; with no name at all the spacer does the same job. */
+  .hdr-mark { display: flex; align-items: center; gap: 12px; margin-right: auto; min-width: 0; }
+  .hdr-spacer { flex: 1 1 auto; min-width: 0; }
+  /* The tree-ring mark: rust disc, two linen rings, drawn with inset shadows
+     exactly as the design does. --accent / --paper, so a scheme recolours it. */
+  .hdr-ring {
+    flex: none; width: 34px; height: 34px; border-radius: 50%;
+    background-color: var(--accent);
+    box-shadow: inset 0 0 0 5px var(--accent), inset 0 0 0 7px var(--paper),
+      inset 0 0 0 11px var(--accent), inset 0 0 0 13px var(--paper);
+  }
+  .hdr-words { display: flex; flex-direction: column; min-width: 0; overflow: hidden; line-height: 1.1; }
+  /* A long name ellipsises rather than pushing the pill and burger off a
+     360px screen — the design's own nowrap + ellipsis. */
+  .hdr-name {
+    font-family: var(--disp); font-weight: 400; font-size: clamp(20px, 2.2vw, 25px);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hdr-loc {
+    min-width: 0; font-family: var(--sans); font-size: 11px; font-weight: 600;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--ink-soft);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .hdr-nav { display: flex; gap: 28px; margin-right: 10px; }
+  .hdr-nav a { font-family: var(--sans); font-size: 15px; font-weight: 500; white-space: nowrap; color: var(--ink); }
+  .hdr-nav a:hover { color: var(--accent-deep); }
+
+  /* The walnut pill (design: #2A1D14 fill, linen label; hover rust fill,
+     #FFF5EA label). Both states restate fill and label. */
+  .hdr-cta {
+    flex: none; display: inline-flex; align-items: center;
+    min-height: 44px; padding: 0 20px; border-radius: 6px;
+    background-color: var(--ink); color: var(--paper);
+    font-family: var(--sans); font-size: 14px; font-weight: 600; white-space: nowrap;
+  }
+  .hdr-cta:hover { background-color: var(--accent); color: var(--on-primary); }
+
+  .burger {
+    display: none; flex: none; flex-direction: column; justify-content: center; gap: 5px;
+    width: 46px; height: 44px; padding: 0 12px; margin: 0;
+    background-color: transparent; border: 1px solid rgba(var(--ink-rgb), .4); border-radius: 6px;
+    cursor: pointer;
+  }
+  .burger span { display: block; height: 2px; background-color: var(--ink); }
+
+  /* ONE collapse breakpoint, the design's vw <= 900: links out and burger in
+     at the same width, so there is never a band with no navigation. The same
+     <nav> becomes the drawer — the design's oatmeal panel with Young Serif
+     rows under a walnut rule. */
+  @media (max-width: 900px) {
+    .burger { display: flex; }
+    .hdr-nav {
+      display: none; position: absolute; left: 0; right: 0; top: 100%;
+      margin: 0; flex-direction: column; gap: 0;
+      background-color: var(--paper-2); border-bottom: 1px solid var(--ink);
+      padding: 6px 0 12px; max-height: calc(100vh - 77px); overflow-y: auto;
+    }
+    .hdr.open .hdr-nav { display: flex; }
+    /* Drawer rows, keyed to the OPEN state: they are a different presentation
+       of the links (the desktop row is gone at this width), not the desktop
+       type growing as the viewport narrows. */
+    .hdr.open .hdr-nav a {
+      min-height: 54px; display: flex; align-items: center; padding: 0 var(--gut);
+      font-family: var(--disp); font-weight: 400; font-size: 22px; white-space: normal;
+      overflow-wrap: anywhere; border-bottom: 1px solid rgba(var(--ink-rgb), .12);
+    }
+    .hdr.open .hdr-nav a:last-child { border-bottom: 0; }
+  }
+  /* Small phones: an owner-typed label longer than the design's short sample label
+     ellipsises instead of pushing the burger past 360px. */
+  @media (max-width: 520px) {
+    .hdr-cta { display: block; max-width: 42vw; line-height: 44px; overflow: hidden; text-overflow: ellipsis; }
+  }
+</style>

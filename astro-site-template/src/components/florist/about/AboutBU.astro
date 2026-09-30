@@ -1,0 +1,140 @@
+---
+/**
+ * florist / AboutBU — the atelier story (#about), on the raised night-2 band.
+ * Left: eyebrow, Gloock h2, a Gloock lead, sage paragraphs, and a hairline
+ * sign-off (name in Gloock, role in tracked caps). Right: two 3:4 photographs
+ * side by side, the second dropped lower — a staggered pair.
+ *
+ * Editable hooks (design paths, kept exactly):
+ *   about.tag · about.headline · about.lead · about.paragraphs.${p.i} ·
+ *   about.signatureName · about.role · about.image (data-image-field) ·
+ *   gallery.items.2.image (data-image-field) — the SECOND photo is the
+ *   gallery's third tile ON PURPOSE (handoff note): one upload, shown in both
+ *   places, and the editor's image picker writes the one field for both.
+ *
+ * about.headline is set:html: the AI copy writer is told it "may include
+ * <em>highlight</em>" and the editor can mark one (astro-builder balances the
+ * inline tags). Gloock has no italic cut, so an <em>/<i> prints upright in the
+ * champagne accent, exactly as HeroBU treats the hero headline.
+ *
+ * about.signatureName DISPLAYS its schema fallback about.signature when it is
+ * empty — genericContentSchema declares exactly that fallback, so the page and
+ * the sidebar box always show the same value. The hook stays signatureName.
+ *
+ * Paragraph spacing follows the design: the first displayed paragraph sits
+ * 18px under what precedes it, each later one 12px (display index only; the
+ * hooks keep the ORIGINAL index, blank rows dropped).
+ *
+ * PHOTOS: each frame renders only with its own image (no placeholder). One
+ * photo alone takes the column without the stagger. With neither, the photo
+ * column is omitted and the copy keeps a reading measure instead of running
+ * the full 1320px — a deliberate text-led band, not a hole.
+ *
+ * SECTION GATE: the owner's story (lead or a paragraph) or the about photo.
+ * A heading and a signature alone never render; the gallery tile does not
+ * count, because on its own it would be a repeat of a gallery picture under an
+ * empty heading.
+ */
+interface Props { content: any; layout?: any; }
+const { content, layout } = Astro.props;
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const cssUrl = (u: string): string => u.replace(/[\r\n]/g, '').replace(/'/g, '%27');
+const about = content.about || {};
+const tag = str(about.tag);
+const headline = str(about.headline);
+const lead = str(about.lead);
+const paras = (Array.isArray(about.paragraphs) ? about.paragraphs : [])
+  .map((t: any, i: number) => ({ t: typeof t === 'string' || typeof t === 'number' ? str(t) : '', i }))
+  .filter((p: { t: string; i: number }) => p.t);
+const sigName = str(about.signatureName || about.signature);
+const role = str(about.role);
+const img1 = str(about.image);
+const galleryItems: any[] = Array.isArray(content.gallery?.items) ? content.gallery.items : [];
+const img2 = str(galleryItems[2]?.image);
+const hasPhotos = Boolean(img1 || img2);
+// The about photo is announced under the owner's own business name; the
+// gallery tile is already announced in the gallery, so here it is decoration.
+const photoLabel = str(layout?.businessName);
+const hasSection = Boolean(lead || paras.length || img1);
+---
+{hasSection && (
+  <section id="about" class="abt">
+    <div class:list={['wrap', 'a-grid', !hasPhotos && 'a-grid--solo']}>
+      <div class="a-copy">
+        {tag && <p class="kick" data-field="about.tag">{tag}</p>}
+        {headline && <h2 class="h2 h2--lg a-h2" data-field="about.headline" set:html={headline}></h2>}
+        {lead && <p class="a-lead" data-field="about.lead">{lead}</p>}
+        {paras.map((p, k) => (
+          <p class:list={['a-p', k === 0 && 'a-p--first']} data-field={`about.paragraphs.${p.i}`}>{p.t}</p>
+        ))}
+        {(sigName || role) && (
+          <div class="a-sig">
+            {sigName && <p class="a-name" data-field="about.signatureName">{sigName}</p>}
+            {role && <p class="a-role" data-field="about.role">{role}</p>}
+          </div>
+        )}
+      </div>
+      {hasPhotos && (
+        <div class="a-photos">
+          {img1 && (
+            <div
+              class="a-ph a-ph--1"
+              data-image-field="about.image"
+              role={photoLabel ? 'img' : undefined}
+              aria-label={photoLabel || undefined}
+              aria-hidden={photoLabel ? undefined : 'true'}
+              style={`background-image:url('${cssUrl(img1)}');`}
+            ></div>
+          )}
+          {img2 && (
+            <div
+              class:list={['a-ph', 'a-ph--2', !img1 && 'a-ph--alone']}
+              data-image-field="gallery.items.2.image"
+              aria-hidden="true"
+              style={`background-image:url('${cssUrl(img2)}');`}
+            ></div>
+          )}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .abt { padding: clamp(56px,7vw,112px) 0; background-color: var(--night-2); color: var(--cream); }
+  .a-grid { display: flex; flex-wrap: wrap; align-items: flex-start; gap: clamp(40px,6vw,96px); }
+  .a-copy { flex: 1 1 440px; min-width: 0; }
+  .a-grid--solo .a-copy { max-width: 760px; }
+  .a-copy > :first-child { margin-top: 0; }
+
+  .a-h2 { text-wrap: balance; }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .a-h2 :global(em), .a-h2 :global(i) { font-style: normal; color: var(--accent-light); }
+  .a-lead {
+    margin: 26px 0 0;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(19px,1.8vw,23px); line-height: 1.5; color: var(--cream);
+    text-wrap: pretty;
+  }
+  .a-p { margin: 12px 0 0; color: var(--sage); text-wrap: pretty; }
+  .a-p--first { margin-top: 18px; }
+
+  .a-sig { margin-top: 28px; padding-top: 18px; border-top: 1px solid rgba(var(--cream-rgb),.16); }
+  .a-name { margin: 0; font-family: var(--disp); font-weight: 400; font-size: 22px; color: var(--cream); }
+  .a-role {
+    margin: 2px 0 0;
+    font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--sage);
+  }
+  .a-role:first-child { margin-top: 0; }
+
+  .a-photos { flex: 1 1 380px; min-width: 0; display: flex; gap: clamp(12px,1.6vw,20px); }
+  .a-ph {
+    min-width: 0; aspect-ratio: 3/4;
+    background-color: var(--night-3);
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+  }
+  .a-ph--1 { flex: 1.3 1 0; }
+  .a-ph--2 { flex: 1 1 0; margin-top: clamp(40px,8vw,120px); }
+  /* The stagger is relative to the first photo; alone, it drops it. */
+  .a-ph--alone { margin-top: 0; }
+</style>

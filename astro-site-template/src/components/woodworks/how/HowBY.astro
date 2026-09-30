@@ -1,0 +1,104 @@
+---
+/**
+ * woodworks / HowBY — "how a commission comes together", on the lifted night
+ * band: a centred head, then the owner's steps in an auto-fit row, each opened
+ * by a brass lozenge carrying its number, a Caslon title and a grey line. The
+ * LAST step's lozenge is filled solid brass with a night numeral: the design's
+ * way of saying "and then it is yours".
+ *
+ * Editable hooks (schema-owned, `how` group):
+ *   how.tag · how.headline · how.sub ·
+ *   how.steps.${i}.title · how.steps.${i}.body
+ * Rows come from how.steps (canonical `body`, tolerating desc / description)
+ * and fall back to a legacy items list, as HowBJ does.
+ *
+ * THE NUMERALS ARE DERIVED from the DISPLAY index (1, 2, 3, never a gap),
+ * aria-hidden and bound to nothing; the filled lozenge is simply the last one
+ * displayed. Every hook carries the row's ORIGINAL index, so dropping a blank
+ * row can neither renumber the sequence wrongly nor misdirect an edit.
+ *
+ * NEVER FABRICATED: no step, lead time or delivery promise is written here.
+ * Blank rows are dropped and an all-blank list removes the whole band; the
+ * derived eyebrow alone never opens it.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const how = (content as any).how || {};
+const steps: any[] = Array.isArray(how.steps) ? how.steps : (Array.isArray(how.items) ? how.items : []);
+const rows = steps
+  .map((s: any, i: number) => ({ title: txt(s?.title), body: txt(s?.body ?? s?.desc ?? s?.description), i }))
+  .filter((r) => Boolean(r.title || r.body));
+const tag = txt(how.tag);
+const headline = txt(how.headline);
+const sub = txt(how.sub);
+const hasHead = Boolean(tag || headline || sub);
+---
+{rows.length > 0 && (
+  <section id="how" class="making">
+    <div class="wrap">
+      {hasHead && (
+        <div class="making-head">
+          {tag && <p class="eyebrow" data-field="how.tag">{tag}</p>}
+          {headline && <h2 class="making-h" data-field="how.headline" set:html={headline}></h2>}
+          {sub && <p class="making-sub" data-field="how.sub">{sub}</p>}
+        </div>
+      )}
+      <ol class:list={['steps', !hasHead && 'steps--top']}>
+        {rows.map((r, k) => (
+          <li class="step">
+            <div class:list={['loz', k === rows.length - 1 && 'loz--last']} aria-hidden="true">
+              <span class="loz-n">{k + 1}</span>
+            </div>
+            {r.title && <h3 class="step-t" data-field={`how.steps.${r.i}.title`}>{r.title}</h3>}
+            {r.body && <p class="step-p" data-field={`how.steps.${r.i}.body`}>{r.body}</p>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+)}
+<style>
+  .making { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--night-2); color: var(--bone); }
+  .making-head { text-align: center; max-width: 720px; margin: 0 auto; }
+  .making-head > :first-child { margin-top: 0; }
+  .making-h {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(34px, 4.6vw, 60px); line-height: 1.04; color: var(--bone);
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  .making-sub { margin: 16px auto 0; max-width: 48ch; color: var(--grey); }
+
+  .steps {
+    list-style: none; margin: clamp(40px, 5vw, 64px) 0 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 32px clamp(18px, 2.4vw, 32px); text-align: center;
+  }
+  .steps--top { margin-top: 0; }
+  .step { min-width: 0; }
+  /* The lozenge: a 56px square turned 45°, its numeral turned back upright. */
+  .loz {
+    width: 56px; height: 56px; margin: 0 auto;
+    border: 1px solid var(--accent-light); background-color: transparent; transform: rotate(45deg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .loz-n {
+    transform: rotate(-45deg);
+    font-family: var(--disp); font-weight: 400; font-size: 22px; color: var(--accent-light);
+  }
+  .loz--last { background-color: var(--accent-light); }
+  .loz--last .loz-n { color: var(--night); }
+  /* line-height 1.7: the design states none here, so it inherits the page's. */
+  .step-t {
+    margin: 22px 0 6px; font-family: var(--disp); font-weight: 400; font-size: 23px;
+    line-height: 1.7; color: var(--bone); overflow-wrap: break-word;
+  }
+  .step-p { margin: 0 auto; max-width: 28ch; font-size: 15px; color: var(--grey); overflow-wrap: break-word; }
+  /* A step with no title: the line keeps the title's clearance, or the turned
+     lozenge's lower corner would sit on it. */
+  .loz + .step-p { margin-top: 22px; }
+  /* An owner's (or the copy extraction's) <em> in the headline: upright (the
+     Caslon has no italic) and in the design's one metal. :global() because
+     set:html markup cannot be scoped. */
+  .making-h :global(em), .making-h :global(i) { font-style: normal; color: var(--accent-light); }
+</style>

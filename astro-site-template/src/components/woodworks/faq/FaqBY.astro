@@ -1,0 +1,83 @@
+---
+/**
+ * woodworks / FaqBY — "before you commission", on the lifted night band and
+ * an 880px measure: a centred head, then native <details> rows ruled in
+ * brass. Each question is Caslon with a brass "+" at the far end; the first
+ * row opens by default, as drawn. No animation (the design has none).
+ *
+ * Editable hooks (schema-owned, `faq` group):
+ *   faq.tag · faq.headline · faq.items.${i}.q · faq.items.${i}.a
+ * The stored value may be the wrapped {items} or a bare array (the schema's
+ * fallback); AI rows may still say question / answer, which astro-builder
+ * aliases and this file also reads. Hooks spell the canonical keys.
+ *
+ * The question is bound on an inner span and the "+" sits OUTSIDE it,
+ * aria-hidden, so an inline edit of the question can never swallow the glyph.
+ *
+ * NEVER FABRICATED: a row needs a question (the question IS the label); the
+ * answer is drawn only when there is one. derive-content-defaults only ever
+ * emits questions this same submission can answer, and the section is gone
+ * when no row survives.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const f = (content as any).faq;
+const faq = f && typeof f === 'object' && !Array.isArray(f) ? f : {};
+const items: any[] = Array.isArray(faq.items) ? faq.items : (Array.isArray(f) ? f : []);
+const rows = items
+  .map((it: any, i: number) => ({ q: txt(it?.q ?? it?.question), a: txt(it?.a ?? it?.answer), i }))
+  .filter((r) => Boolean(r.q));
+const tag = txt(faq.tag);
+const headline = txt(faq.headline);
+---
+{rows.length > 0 && (
+  <section id="faq" class="asked">
+    <div class="asked-in">
+      {(tag || headline) && (
+        <div class="asked-head">
+          {tag && <p class="eyebrow" data-field="faq.tag">{tag}</p>}
+          {headline && <h2 class="asked-h" data-field="faq.headline" set:html={headline}></h2>}
+        </div>
+      )}
+      <div class:list={['qs', !(tag || headline) && 'qs--top']}>
+        {rows.map((r, k) => (
+          <details class="q" open={k === 0}>
+            <summary class="q-s">
+              <span class="q-text" data-field={`faq.items.${r.i}.q`}>{r.q}</span>
+              <span class="q-plus" aria-hidden="true">+</span>
+            </summary>
+            {r.a && <p class="q-a" data-field={`faq.items.${r.i}.a`}>{r.a}</p>}
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .asked { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--night-2); color: var(--bone); }
+  .asked-in { max-width: 880px; margin: 0 auto; padding: 0 var(--gut); }
+  .asked-head { text-align: center; }
+  .asked-head > :first-child { margin-top: 0; }
+  .asked-h {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px); line-height: 1.06; color: var(--bone); overflow-wrap: break-word;
+  }
+  .qs { margin-top: clamp(28px, 4vw, 44px); }
+  .qs--top { margin-top: 0; }
+  .q { border-top: 1px solid rgba(var(--accent-rgb), .3); }
+  .q:last-child { border-bottom: 1px solid rgba(var(--accent-rgb), .3); }
+  .q-s {
+    display: flex; justify-content: space-between; gap: 16px; padding: 22px 0;
+    list-style: none; cursor: pointer;
+    font-family: var(--disp); font-weight: 400; font-size: clamp(19px, 1.8vw, 22px); color: var(--bone);
+  }
+  .q-s::-webkit-details-marker { display: none; }
+  .q-text { min-width: 0; overflow-wrap: break-word; }
+  .q-plus { flex: none; color: var(--accent-light); }
+  .q-a { margin: 0 0 22px; max-width: 60ch; color: var(--grey); overflow-wrap: break-word; }
+  /* An owner's (or the copy extraction's) <em> in the headline: upright (the
+     Caslon has no italic) and in the design's one metal. :global() because
+     set:html markup cannot be scoped. */
+  .asked-h :global(em), .asked-h :global(i) { font-style: normal; color: var(--accent-light); }
+</style>

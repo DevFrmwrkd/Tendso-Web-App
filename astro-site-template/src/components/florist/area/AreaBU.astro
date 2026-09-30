@@ -1,0 +1,80 @@
+---
+/**
+ * florist / AreaBU — where the atelier works (#area), under a hairline: an
+ * intro column (eyebrow, Gloock h2, sage body) beside a two-column list of
+ * places, each a Gloock name between hairlines.
+ *
+ * Editable hooks: area.tag · area.headline · area.body · area.places.${r.i}
+ * (ORIGINAL index, blank rows dropped). area.headline is set:html (the AI and
+ * the editor may mark an <em>); it prints upright in champagne, as Gloock has
+ * no italic cut.
+ *
+ * The places list is always two columns, as the design draws it at every
+ * width (it fits two-up at 360px). The closing hairline runs under the LAST
+ * ROW, whether that row holds one place or two.
+ *
+ * SECTION GATE (AreaBJ's rule): a body, or at least two places. The content
+ * layer derives "Serving <city>" plus that same city as the only place, which
+ * is a heading repeating itself over a one-line list; the section waits for
+ * the owner's own coverage instead.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const area = content.area || {};
+const tag = str(area.tag);
+const headline = str(area.headline);
+const body = str(area.body);
+const places: any[] = Array.isArray(area.places) ? area.places : [];
+const rows = places
+  .map((p: any, i: number) => ({ v: typeof p === 'string' || typeof p === 'number' ? str(p) : '', i }))
+  .filter((r) => r.v);
+const lastRowFrom = rows.length - (rows.length % 2 === 0 ? 2 : 1);
+const show = rows.length >= 2 || Boolean(body);
+---
+{show && (
+  <section id="area" class="area">
+    <div class="wrap ar-grid">
+      {(tag || headline || body) && (
+        <div class="ar-copy">
+          {tag && <p class="kick" data-field="area.tag">{tag}</p>}
+          {headline && <h2 class="h2 h2--md ar-h2" data-field="area.headline" set:html={headline}></h2>}
+          {body && <p class="ar-body" data-field="area.body">{body}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class="ar-places">
+          {rows.map((r, k) => (
+            <span class:list={['ar-place', k >= lastRowFrom && 'ar-place--end']} data-field={`area.places.${r.i}`}>{r.v}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .area {
+    padding: clamp(56px,7vw,112px) 0;
+    border-top: 1px solid rgba(var(--cream-rgb),.12);
+    background-color: var(--night); color: var(--cream);
+  }
+  .ar-grid { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 28px clamp(40px,6vw,96px); }
+  .ar-copy { flex: 1 1 340px; min-width: 0; }
+  .ar-copy > :first-child { margin-top: 0; }
+  .ar-h2 { text-wrap: balance; }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .ar-h2 :global(em), .ar-h2 :global(i) { font-style: normal; color: var(--accent-light); }
+  .ar-body { margin: 18px 0 0; max-width: 42ch; color: var(--sage); }
+  .ar-places {
+    flex: 1 1 420px; min-width: 0;
+    display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+    gap: 0 clamp(16px,3vw,32px);
+  }
+  .ar-place {
+    padding: 16px 0;
+    border-top: 1px solid rgba(var(--cream-rgb),.14);
+    font-family: var(--disp); font-weight: 400; font-size: 20px; color: var(--cream);
+    overflow-wrap: anywhere;
+  }
+  .ar-place--end { border-bottom: 1px solid rgba(var(--cream-rgb),.14); }
+</style>

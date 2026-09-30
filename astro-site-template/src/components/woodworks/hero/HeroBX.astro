@@ -1,0 +1,172 @@
+---
+/**
+ * woodworks / HeroBX — "Acacia Studio"'s opening (#top): one wide, rounded
+ * photograph almost the full width of the page, then a two-part row under it —
+ * the olive kicker and the huge LIGHT Newsreader headline on the left, the
+ * lede and two pill actions on the right, both sitting on a shared baseline.
+ *
+ * Editable hooks:
+ *   hero.image (data-image-field) · hero.kicker · hero.headline (set:html) or
+ *   hero.headlineLines.${i} (set:html, ORIGINAL index) — see THE HEADLINE ·
+ *   hero.sub · hero.cta1.text + hero.cta1.href · hero.cta2.text + hero.cta2.href
+ *
+ * THE HEADLINE reads two paths (HeroBS / HeroBO precedent): the derive layer
+ * fills hero.headline with the bare business name, while the AI copy
+ * extraction writes hero.headlineLines and never hero.headline. So
+ * hero.headline wins whenever it is AUTHORED (non-empty and not that
+ * auto-filled name); when it is only the auto-fill, the non-blank
+ * headlineLines rows win, flowed inline inside the same h1 (this design's
+ * headline is one sentence), each bound to its ORIGINAL row index. The name
+ * shows only when there are no rows. The field a click opens is always the
+ * field the visible words came from.
+ *
+ * THE ITALIC PHRASE. The design writes it into the headline itself, as an
+ * inline <i> around the closing words (the AI's last line may carry <em>), so
+ * every headline node renders with set:html (astro-builder balances owner
+ * inline HTML) and both <i> and <em> take the design's treatment: italic, same
+ * ink, no colour swap.
+ *
+ * NO PHOTO. The row keeps its layout and the section takes the design's own
+ * section rhythm as top padding instead of the photo, so a text-only opening
+ * reads as a deliberate editorial start rather than a gap where a picture was.
+ * No placeholder frame is ever drawn. Display falls back to the owner's first
+ * submission photo (never to anything of ours); the hook stays hero.image.
+ *
+ * GATE: a headline (authored, rows, or the name), a lede or a photo. Buttons
+ * alone are not an opening. (PageBX's LIVE ANCHORS mirrors this gate.)
+ *
+ * BUTTONS resolve against the ids this build renders (`links`, see HeaderBX):
+ * the primary falls back to the closing call, the showroom, then the owner's
+ * phone or email. The secondary is dropped when it names a section this build
+ * does not render; an empty or unknown href falls back only to a section the
+ * primary is not already pointing at. A button with nowhere to go is not
+ * drawn.
+ *
+ * CLASS-NAME LAW: the section is .opening, never the forbidden hero class;
+ * buttons are .btn--fill / .btn--line.
+ */
+interface Props { content: any; layout: any; links?: { anchors?: string[]; contact?: string }; }
+const { content, layout, links } = Astro.props;
+// Anchor guard — identical in every BX component that renders an in-page href
+// (the full explanation is in HeaderBX).
+const ALL_ANCHORS = ['main', 'top', 'marquee', 'services', 'custom', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book'];
+const LIVE = new Set<string>(Array.isArray(links?.anchors) ? links.anchors : ALL_ANCHORS);
+const CONTACT = String(links?.contact ?? '').trim();
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: any): string => {
+  const h = String(href ?? '').trim();
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (LIVE.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && LIVE.has(alias) ? `#${alias}` : '';
+};
+const act = (href: any, ...fallbacks: string[]): string => [href, ...fallbacks].map(onPage).find(Boolean) || CONTACT;
+// A secondary names its destination ("See our work"), so when that is one of
+// the design's sections and this build does not render it, the button goes;
+// only an empty or unknown href falls back.
+const act2 = (href: any, primary: string, ...fallbacks: string[]): string => {
+  const own = onPage(href);
+  if (own) return own;
+  const id = String(href ?? '').trim().replace(/^#/, '');
+  if (id && (ALL_ANCHORS.includes(id) || ANCHOR_ALIAS[id])) return '';
+  return fallbacks.map(onPage).find((x) => x && x !== primary) || '';
+};
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const op = (content as any).hero || {};
+const photos: any[] = Array.isArray((content as any).photos) ? (content as any).photos : [];
+const image = str(op.image || photos[0]);
+const kicker = str(op.kicker);
+// THE HEADLINE — see the doc comment.
+const bizName = str(layout?.businessName);
+const headline = str(op.headline);
+const lineRows: Array<{ text: string; i: number }> = (Array.isArray(op.headlineLines) ? op.headlineLines : [])
+  .map((t: any, i: number) => ({ text: str(t), i }))
+  .filter((l: { text: string }) => l.text !== '');
+const useRows = lineRows.length > 0
+  && (headline === '' || headline === bizName)
+  && lineRows.map((l) => l.text).join(' ') !== headline;
+const hasHeadline = useRows || headline !== '';
+const sub = str(op.sub);
+const cta1Href = act(op.cta1?.href, '#book', '#visit');
+const cta1Text = cta1Href ? str(op.cta1?.text) : '';
+const cta2Href = act2(op.cta2?.href, cta1Text ? cta1Href : '', '#book', '#visit');
+const cta2Text = cta2Href ? str(op.cta2?.text) : '';
+const hasHero = hasHeadline || Boolean(sub || image);
+---
+{hasHero && (
+  <section id="top" class:list={['opening', !image && 'opening--text']}>
+    {image && (
+      <div class="op-frame">
+        <div class="pic op-photo" data-image-field="hero.image">
+          <img src={image} alt="" fetchpriority="high" decoding="async" />
+        </div>
+      </div>
+    )}
+    <div class="wrap op-row">
+      {(kicker || hasHeadline) && (
+        <div class="op-main">
+          {kicker && <p class="eyebrow" data-field="hero.kicker">{kicker}</p>}
+          {hasHeadline && (
+            useRows ? (
+              <h1 class="op-h1">
+                {lineRows.map((l, k) => (
+                  <Fragment>{k > 0 && ' '}<span data-field={`hero.headlineLines.${l.i}`} set:html={l.text}></span></Fragment>
+                ))}
+              </h1>
+            ) : (
+              <h1 class="op-h1" data-field="hero.headline" set:html={headline}></h1>
+            )
+          )}
+        </div>
+      )}
+      {(sub || cta1Text || cta2Text) && (
+        <div class="op-side">
+          {sub && <p class="op-sub" data-field="hero.sub">{sub}</p>}
+          {(cta1Text || cta2Text) && (
+            <div class="op-ctas">
+              {cta1Text && <a class="btn--fill" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+              {cta2Text && <a class="btn--line" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .opening { padding: 0 0 clamp(56px,7vw,104px); }
+  /* No photo: the design's section rhythm replaces it above the row. */
+  .opening--text { padding-top: clamp(56px,7vw,104px); }
+
+  .op-frame { max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(12px,2vw,24px); }
+  .op-photo {
+    width: 100%; aspect-ratio: 16 / 7; min-height: 300px;
+    border-radius: clamp(14px,2vw,24px);
+  }
+
+  .op-row {
+    display: flex; flex-wrap: wrap; align-items: flex-end;
+    gap: 24px clamp(32px,6vw,96px); margin-top: clamp(32px,4vw,56px);
+  }
+  .opening--text .op-row { margin-top: 0; }
+  .op-main { flex: 1.3 1 460px; min-width: 0; }
+  .op-side { flex: 1 1 340px; min-width: 0; }
+
+  .op-h1 {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 300;
+    font-size: clamp(44px,6.8vw,104px); line-height: .98; letter-spacing: -.03em;
+    text-wrap: balance; color: var(--ink); overflow-wrap: break-word;
+  }
+  .op-h1:first-child { margin-top: 0; }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .op-h1 :global(i),
+  .op-h1 :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+
+  .op-sub {
+    margin: 0; max-width: 44ch; font-size: clamp(16px,1.3vw,18px); line-height: 1.65;
+    color: var(--ink-soft); text-wrap: pretty;
+  }
+  .op-ctas { display: flex; flex-wrap: wrap; gap: 10px; }
+  .op-sub + .op-ctas { margin-top: 26px; }
+</style>

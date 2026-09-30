@@ -1,0 +1,99 @@
+---
+/**
+ * woodworks / AboutBW — "the shop": on the tinted band, the owner's story beside
+ * one 4:3 workshop photograph. Eyebrow, condensed h2, a larger lead paragraph,
+ * the body paragraphs, then a signature row under an ink rule — the founder's
+ * name in condensed caps and their role in mono beside it.
+ *
+ * Editable hooks (all schema-owned):
+ *   about.tag · about.headline · about.lead · about.paragraphs.${i}
+ *   about.signatureName — the name. Its schema field DISPLAYS the signature
+ *                          line when it is empty, so the page does the same
+ *                          (a sidebar showing text the page hides is a lie)
+ *   about.role          — the mono line beside the name
+ *   data-image-field about.image
+ *
+ * NEVER FABRICATED: no name, no founding year, no team size. The role only
+ * renders beside a name (a role attributed to nobody is a claim with no
+ * owner). The section needs real body content — a lead, a paragraph, a photo or
+ * a name; the eyebrow and headline are derived on every site and never keep it
+ * alive alone.
+ *
+ * NO PHOTO, NO PLATE: the copy column then takes the row, held to a readable
+ * measure rather than stretched across 1224px.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const about = (content as any).about || {};
+const str = (v: any): string => String(v ?? '').trim();
+const tag = str(about.tag);
+const headline = str(about.headline);
+const lead = str(about.lead);
+const paragraphs: any[] = Array.isArray(about.paragraphs) ? about.paragraphs : [];
+const paras = paragraphs
+  .map((p: any, i: number) => ({ i, text: str(p) }))
+  .filter((p) => Boolean(p.text));
+const { signature: signatureLine } = about;
+const name = str(about.signatureName) || str(signatureLine);
+const role = str(about.role);
+const image = str(about.image);
+const hasSection = Boolean(lead || name || image) || paras.length > 0;
+---
+{hasSection && (
+  <section id="about" class="ab">
+    <div class:list={['wrap', 'ab-in', !image && 'ab-in--solo']}>
+      <div class="ab-copy">
+        {tag && <p class="eyebrow" data-field="about.tag">{tag}</p>}
+        {headline && <h2 class="h2 h2--md ab-h2" data-field="about.headline">{headline}</h2>}
+        {lead && <p class="ab-lead" data-field="about.lead">{lead}</p>}
+        {paras.map((p) => (
+          <p class="ab-p" data-field={`about.paragraphs.${p.i}`}>{p.text}</p>
+        ))}
+        {name && (
+          <div class="ab-sig">
+            <span class="ab-name" data-field="about.signatureName">{name}</span>
+            {role && <span class="ab-role" data-field="about.role">{role}</span>}
+          </div>
+        )}
+      </div>
+      {image && (
+        <div class="ab-img" data-image-field="about.image">
+          <img src={image} alt="" loading="lazy" decoding="async" />
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .ab { padding: clamp(56px,7vw,112px) 0; background-color: var(--paper-2); }
+  .ab-in { display: flex; flex-wrap: wrap; gap: clamp(36px,5vw,80px); align-items: center; }
+  .ab-copy { flex: 1 1 440px; min-width: 0; }
+  .ab-in--solo .ab-copy { max-width: 820px; }
+  .ab-h2 { text-wrap: balance; }
+  .ab-copy .ab-lead {
+    margin: 24px 0 0; font-size: clamp(18px,1.6vw,20px); line-height: 1.55; font-weight: 500;
+    color: var(--ink); text-wrap: pretty; overflow-wrap: anywhere;
+  }
+  .ab-copy .ab-p {
+    margin: 16px 0 0; color: var(--ink-soft); text-wrap: pretty; overflow-wrap: anywhere;
+  }
+  .ab-copy > :first-child { margin-top: 0; }
+  .ab-sig {
+    margin-top: 26px; padding-top: 16px; border-top: 1px solid var(--ink);
+    display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: baseline;
+  }
+  .ab-name {
+    font-family: var(--disp); font-size: 20px; font-weight: 800; font-stretch: 90%;
+    line-height: 1.6; text-transform: uppercase; color: var(--ink); overflow-wrap: anywhere;
+  }
+  .ab-role {
+    font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+  .ab-img {
+    position: relative; overflow: hidden;
+    flex: 1 1 380px; min-width: 0; aspect-ratio: 4 / 3;
+    background-color: var(--card);
+  }
+  .ab-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+</style>

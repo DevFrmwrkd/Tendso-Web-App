@@ -1,0 +1,248 @@
+---
+/**
+ * florist / FooterBS — the ink footer: the wordmark set huge in tracked Gilda
+ * caps, the blush locality under it and the owner's blurb, centred; then a
+ * hairline and up to four columns (visit · this page · hours · follow) with
+ * blush caps headings; then the colophon row. Plus the floating rose "message
+ * us" pill, drawn ONLY for a chat channel the owner actually gave.
+ *
+ * Editable hooks:
+ *   footer.brand · footer.locality · footer.blurb
+ *   footer.visit.title · contact.address · contact.phone (tel:) ·
+ *   contact.email (mailto:) — tel:/mailto: anchors carry data-field ONLY,
+ *   their href is derived from the value
+ *   footer.explore.title · footer.explore.links.${i}.text + .href
+ *   footer.hours.${i}.day · footer.hours.${i}.time
+ *   footer.social.${i}.platform + .url
+ *   footer.notes.${i}
+ *   hero.cta1.text — the floating pill's label
+ *
+ * "Follow" is the one fixed heading (the design hardcodes it; every other
+ * column heading is bound), printed only above real social links. Every
+ * column and every row inside it is gated on its own value.
+ *
+ * THE LINKS COLUMN falls back to the nav links when the owner has no links of
+ * their own — WITHOUT index hooks, because those rows do not exist at
+ * footer.explore.links and an edit there would create a fresh array that
+ * orphans what the page shows. In-page links go through the same anchor guard
+ * as the header and are dropped when nothing on this page can receive them.
+ *
+ * THE FLOATING PILL. TRAP — the gate is the CHANNEL, not the label: the derive
+ * layer gives every site a hero CTA ("Get in touch" → #visit), so gating on it
+ * would float a chat bubble on every business alive. Only the owner's own
+ * WhatsApp number (→ wa.me/<digits>) or Messenger handle (→ m.me/…) opens it —
+ * never the derived messaging digits, which exist for anyone with a landline.
+ * It is a sibling AFTER the footer with no .btn class, so the engine's
+ * `footer .btn` pin cannot reach it; its dot is generated content, so an
+ * inline edit of the label can never swallow it.
+ *
+ * BUTTON POLICY: the engine pins `footer .btn { color: <on-ink> }`; this
+ * footer holds no .btn — every link here is a plain text link.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+// Anchor guard — the same table as HeaderBS / HeroBS / ServicesBS / CtaBandBS.
+// Links-column entries that cannot land anywhere are DROPPED.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit', location: 'visit', testimonials: 'reviews', home: 'top' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  const h = String(href ?? '').trim();
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: any): string => String(v ?? '').trim();
+const C = (content as any) || {};
+const F = C.footer || {};
+const LC = layout?.contact || {};
+const brand = str(F.brand) || str(layout?.businessName);
+const locality = str(F.locality);
+const blurb = str(F.blurb);
+
+const visitTitle = str(F.visit?.title);
+const address = str(LC.address);
+const addressLines: string[] = address ? address.split('\n').map((s) => s.trim()).filter(Boolean) : [];
+const phone = str(LC.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const email = str(LC.email);
+const hasVisit = Boolean(address || phone || email);
+
+const exploreTitle = str(F.explore?.title);
+const ownLinks = Array.isArray(F.explore?.links) && F.explore.links.length > 0;
+const ownRows = ownLinks
+  ? (F.explore.links as any[])
+      .map((l: any, i: number) => ({ text: str(l?.text), href: onPage(l?.href, ''), i }))
+      .filter((l: { text: string; href: string }) => l.text && l.href)
+  : [];
+const navRows = ownLinks
+  ? []
+  : (Array.isArray(layout?.navLinks) ? layout.navLinks : [])
+      .map((l: any) => ({ text: str(l?.label), href: onPage(l?.href, '') }))
+      .filter((l: { text: string; href: string }) => l.text && l.href);
+const hasExplore = ownRows.length > 0 || navRows.length > 0;
+
+const hours = (Array.isArray(F.hours) ? F.hours : [])
+  .map((h: any, i: number) => ({ day: str(h?.day), time: str(h?.time), i }))
+  .filter((h: { day: string; time: string }) => h.day || h.time);
+
+const socialSrc: any[] = Array.isArray(F.social) && F.social.length ? F.social : (Array.isArray(layout?.socialLinks) ? layout.socialLinks : []);
+const social = socialSrc
+  .map((s: any, i: number) => ({ platform: str(s?.platform), url: str(s?.url), i }))
+  .filter((s: { platform: string; url: string }) => s.platform && s.url);
+
+const notes = (Array.isArray(F.notes) ? F.notes : [])
+  .map((n: any, i: number) => ({ v: str(n), i }))
+  .filter((n: { v: string }) => n.v !== '');
+
+const hasTop = Boolean(brand || locality || blurb);
+const hasGrid = hasVisit || hasExplore || hours.length > 0 || social.length > 0;
+
+// The floating pill — see the TRAP note above.
+const hero = C.hero || {};
+const waDigits = String(LC.whatsapp ?? '').replace(/[^0-9]/g, '');
+const messenger = str(LC.messenger);
+const msgHref = waDigits
+  ? `https://wa.me/${waDigits}`
+  : messenger
+    ? (/^https?:/i.test(messenger) ? messenger : `https://m.me/${messenger.replace(/^@/, '')}`)
+    : '';
+const msgText = msgHref ? str(hero.cta1?.text) : '';
+---
+<footer class="ft">
+  <div class="k-wrap">
+    {hasTop && (
+      <div class="ft-top">
+        {brand && <span class="ft-brand" data-field="footer.brand">{brand}</span>}
+        {locality && <span class="ft-loc" data-field="footer.locality">{locality}</span>}
+        {blurb && <p class="ft-blurb" data-field="footer.blurb">{blurb}</p>}
+      </div>
+    )}
+    {hasGrid && (
+      <div class:list={['ft-grid', !hasTop && 'ft-grid--first']}>
+        {hasVisit && (
+          <div class="ft-col">
+            {visitTitle && <h3 class="ft-h" data-field="footer.visit.title">{visitTitle}</h3>}
+            {address && (
+              <p class="ft-line" data-field="contact.address">
+                {addressLines.map((line: string, i: number) => (<Fragment>{i > 0 && <br />}{line}</Fragment>))}
+              </p>
+            )}
+            {phone && <p class="ft-line"><a href={telHref} data-field="contact.phone">{phone}</a></p>}
+            {email && <p class="ft-line"><a href={`mailto:${email}`} data-field="contact.email">{email}</a></p>}
+          </div>
+        )}
+        {hasExplore && (
+          <div class="ft-col">
+            {exploreTitle && <h3 class="ft-h" data-field="footer.explore.title">{exploreTitle}</h3>}
+            <div class="ft-links">
+              {ownRows.map((l) => (
+                <a href={l.href} data-field={`footer.explore.links.${l.i}.text`} data-href-field={`footer.explore.links.${l.i}.href`}>{l.text}</a>
+              ))}
+              {navRows.map((l) => <a href={l.href}>{l.text}</a>)}
+            </div>
+          </div>
+        )}
+        {hours.length > 0 && (
+          <div class="ft-col">
+            {hours.map((h) => (
+              <div class="ft-hours">
+                {h.day && <h3 class="ft-h" data-field={`footer.hours.${h.i}.day`}>{h.day}</h3>}
+                {h.time && <p class="ft-line" data-field={`footer.hours.${h.i}.time`}>{h.time}</p>}
+              </div>
+            ))}
+          </div>
+        )}
+        {social.length > 0 && (
+          <div class="ft-col">
+            <h3 class="ft-h">Follow</h3>
+            <div class="ft-links">
+              {social.map((s) => (
+                <a href={s.url} target="_blank" rel="noopener noreferrer" data-field={`footer.social.${s.i}.platform`} data-href-field={`footer.social.${s.i}.url`}>{s.platform}</a>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+    {notes.length > 0 && (
+      <div class:list={['ft-notes', !hasTop && !hasGrid && 'ft-notes--first']}>
+        {notes.map((n) => <span data-field={`footer.notes.${n.i}`}>{n.v}</span>)}
+      </div>
+    )}
+  </div>
+</footer>
+{msgHref && msgText && (
+  <a class="ft-fab" href={msgHref} target="_blank" rel="noopener noreferrer" data-field="hero.cta1.text">{msgText}</a>
+)}
+<style>
+  .ft {
+    background-color: var(--ink); color: rgba(var(--paper-rgb), .78);
+    padding: clamp(56px, 7vw, 88px) 0 clamp(96px, 10vw, 120px);
+  }
+  .ft a { color: inherit; }
+  .ft a:hover { color: var(--paper); }
+
+  .ft-top { text-align: center; }
+  .ft-brand {
+    display: block; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(40px, 7vw, 88px); line-height: 1; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--paper); overflow-wrap: anywhere;
+  }
+  .ft-loc {
+    display: block; margin-top: 10px; font-size: 11px; font-weight: 500;
+    letter-spacing: .3em; text-transform: uppercase; color: var(--blush);
+  }
+  .ft-blurb { margin: 20px auto 0; max-width: 52ch; font-size: 15.5px; }
+  .ft-top > :first-child { margin-top: 0; }
+
+  .ft-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+    gap: 32px; margin-top: clamp(40px, 5vw, 56px); padding-top: 32px;
+    border-top: 1px solid rgba(var(--paper-rgb), .16);
+  }
+  .ft-grid--first { margin-top: 0; padding-top: 0; border-top: 0; }
+  .ft-col { min-width: 0; }
+  .ft-h {
+    margin: 0 0 12px; font-family: var(--sans); font-size: 11px; font-weight: 500;
+    line-height: 1.7; letter-spacing: .22em; text-transform: uppercase; color: var(--blush);
+  }
+  .ft-line { margin: 0 0 6px; font-size: 15px; overflow-wrap: anywhere; }
+  .ft-col > .ft-line:last-child { margin-bottom: 0; }
+  .ft-hours + .ft-hours { margin-top: 14px; }
+  .ft-hours > .ft-line { margin: 0; }
+  .ft-links { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; font-size: 15px; }
+  .ft-links a { overflow-wrap: anywhere; }
+
+  .ft-notes {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px;
+    margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(var(--paper-rgb), .16);
+    font-size: 12.5px; color: rgba(var(--paper-rgb), .62);
+  }
+  .ft-notes--first { margin-top: 0; padding-top: 0; border-top: 0; }
+
+  /* The floating pill — fixed, rose, a light dot before the label; ink on
+     hover, as drawn. The dot is ::before, never an element inside the field. */
+  /* A block (not flex) box on purpose: text-overflow only works on a block
+     container, and a long owner label must end in an ellipsis at 360px rather
+     than run off the screen. line-height does the vertical centring. */
+  .ft-fab {
+    position: fixed; right: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px); z-index: 60;
+    display: inline-block; min-height: 54px; line-height: 54px; padding: 0 24px;
+    max-width: calc(100vw - 24px); border-radius: 999px;
+    background-color: var(--accent); color: var(--on-rose);
+    font-family: var(--sans); font-size: 14.5px; font-weight: 500; letter-spacing: .04em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    box-shadow: 0 14px 30px rgba(var(--shade-rgb), .24);
+  }
+  .ft-fab::before {
+    content: ''; display: inline-block; width: 8px; height: 8px; margin-right: 10px;
+    border-radius: 50%; background-color: currentColor; vertical-align: middle;
+  }
+  .ft-fab:hover { background-color: var(--ink); color: var(--paper); }
+  /* The hover wash and the focus ring share box-shadow: restate the ring so a
+     hovered-and-focused pill keeps it. */
+  .ft-fab:focus-visible { border-radius: 999px; box-shadow: 0 0 0 6px var(--ink); }
+</style>

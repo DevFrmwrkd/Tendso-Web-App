@@ -1,0 +1,225 @@
+---
+/**
+ * woodworks / HeroBV — "Narra & Co."'s opening: a tracked rust kicker, the big
+ * Young Serif headline, the lede, two actions and a quiet meta line on the
+ * left; on the right the photo, with the walnut SPEC CARD (a label/value
+ * sheet for the piece on the bench) overlapping its lower-left corner.
+ *
+ * Editable hooks:
+ *   hero.kicker · hero.headline OR hero.headlineLines.${i} (set:html, see
+ *   below) · hero.sub
+ *   hero.cta1.text + hero.cta1.href · hero.cta2.text + hero.cta2.href
+ *   hero.meta1 · hero.meta2 · data-image-field hero.image
+ *   hero.thin                         — the spec card's tan eyebrow
+ *   hero.usps.${i}.title / .text      — the card's label / value rows
+ *
+ * THE SPEC CARD is a LIST: blank rows are dropped, every surviving row keeps
+ * its ORIGINAL array index in its hooks, and the card is not drawn at all
+ * when no row survives (its eyebrow alone is a heading over nothing). Both
+ * cells of a row always render so the two-column grid can never shift a value
+ * into the label column; an empty cell carries no hook and is 0px wide/tall.
+ *
+ * THE HEADLINE reads two paths, exactly as florist/HeroBS and foodcraft/HeroBO
+ * do and for the same reason: lib/derive-content-defaults.ts fills
+ * hero.headline with the bare business name, while the copy extraction writes
+ * hero.headlineLines and never hero.headline. So hero.headline wins whenever
+ * it is AUTHORED (non-empty and not the auto-filled business name); when it is
+ * only that auto-fill, the surviving (non-blank) hero.headlineLines rows win,
+ * flowed inline inside the same h1 (the design's headline is one balanced
+ * sentence), each bound to its ORIGINAL row index as hero.headlineLines.N. The
+ * auto-filled name is the fallback only when there are no rows. The field a
+ * click opens is always the field the visible words came from.
+ * Both paths are set:html because generated headlines may carry an <em>
+ * highlight; the wrapper paints owner emphasis rust (Young Serif has no
+ * italic). Every other string is plain text.
+ *
+ * THE PHOTO is hero.image, falling back for DISPLAY to the owner's first
+ * submission photo (the intake form's uploads), as HeroBS / HeroBJ do; the
+ * hook is always hero.image.
+ *
+ * NO PHOTO, NO FRAME. Without any photo the plate is not drawn: with spec
+ * rows the card sits in the right-hand column as a plain card; with neither,
+ * the copy column takes the row alone (a typographic hero, headline capped
+ * to a readable measure). Nothing is reserved for a picture that is not there.
+ *
+ * SECTION GATE: a headline (either path), kicker, lede, meta, photo or a
+ * spec row. Two
+ * buttons alone are not a hero (the builder derives their labels for every
+ * site), so a bare site draws no hero rather than two orphan buttons.
+ *
+ * CLASS-NAME LAW: the section is .top, never the engine-pinned hero class,
+ * and the buttons are .btn--fill / .btn--line.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+// Anchor guard, identical in HeaderBV / HeroBV / ServicesBV / CtaBandBV /
+// FooterBV — see HeaderBV for the reasoning.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'how', 'gallery', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: unknown, fallback: string): string => {
+  const h = typeof href === 'string' ? href.trim() : '';
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+
+const hr = (content as any).hero || {};
+const kicker = str(hr.kicker);
+// THE HEADLINE — see the doc comment.
+const bizName = str(layout?.businessName);
+const headline = str(hr.headline);
+const lineRows: Array<{ text: string; i: number }> = (Array.isArray(hr.headlineLines) ? hr.headlineLines : [])
+  .map((t: unknown, i: number) => ({ text: str(t), i }))
+  .filter((l: { text: string }) => l.text !== '');
+const useRows = lineRows.length > 0
+  && (headline === '' || headline === bizName)
+  && lineRows.map((l) => l.text).join(' ') !== headline;
+const hasHeadline = useRows || headline !== '';
+const sub = str(hr.sub);
+// Display fallbacks only (HeroBS / HeroBJ): the owner's own submission photos.
+// The HOOK stays hero.image, the path the image picker writes.
+const image = str(hr.image)
+  || str(Array.isArray(hr.photos) ? hr.photos[0] : '')
+  || str(Array.isArray((content as any).photos) ? (content as any).photos[0] : '');
+const cta1Text = str(hr.cta1?.text);
+const cta1Href = onPage(hr.cta1?.href, '#book');
+const cta2Text = str(hr.cta2?.text);
+const cta2Href = onPage(hr.cta2?.href, '#services');
+const meta1 = str(hr.meta1);
+const meta2 = str(hr.meta2);
+const thin = str(hr.thin);
+type Spec = { title: string; text: string; i: number };
+const specs: Spec[] = (Array.isArray(hr.usps) ? hr.usps : [])
+  .map((u: any, i: number) => ({ title: str(u?.title), text: str(u?.text), i }))
+  .filter((u: Spec) => Boolean(u.title || u.text));
+const hasCard = specs.length > 0;
+const hasMedia = Boolean(image) || hasCard;
+const hasCopy = hasHeadline || Boolean(kicker || sub || cta1Text || cta2Text || meta1 || meta2);
+const show = hasHeadline || Boolean(kicker || sub || image || hasCard || meta1 || meta2);
+---
+{show && (
+  <section class="top" id="top">
+    <div class:list={['wrap', 'top-in', !hasMedia && 'solo', !hasCopy && 'no-copy']}>
+      {hasCopy && (
+      <div class="top-copy">
+        {kicker && <p class="kick" data-field="hero.kicker">{kicker}</p>}
+        {hasHeadline && (
+          useRows ? (
+            <h1 class="top-h1">
+              {lineRows.map((l, k) => (
+                <Fragment>{k > 0 && ' '}<span data-field={`hero.headlineLines.${l.i}`} set:html={l.text}></span></Fragment>
+              ))}
+            </h1>
+          ) : (
+            <h1 class="top-h1" data-field="hero.headline" set:html={headline}></h1>
+          )
+        )}
+        {sub && <p class="top-sub" data-field="hero.sub">{sub}</p>}
+        {(cta1Text || cta2Text) && (
+          <div class="top-ctas">
+            {cta1Text && <a class="btn btn--fill" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+            {cta2Text && <a class="btn btn--line" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+          </div>
+        )}
+        {(meta1 || meta2) && (
+          <div class="top-meta">
+            {meta1 && <span data-field="hero.meta1">{meta1}</span>}
+            {meta2 && <span data-field="hero.meta2">{meta2}</span>}
+          </div>
+        )}
+      </div>
+      )}
+      {hasMedia && (
+        <div class:list={['top-media', !image && 'no-photo', !hasCard && 'no-card']}>
+          {image && (
+            <div class="top-photo" data-image-field="hero.image">
+              <img src={image} alt="" decoding="async" fetchpriority="high" />
+            </div>
+          )}
+          {hasCard && (
+            <div class="spec">
+              {thin && <p class="spec-k" data-field="hero.thin">{thin}</p>}
+              <dl class="spec-dl">
+                {specs.map((u) => (
+                  <Fragment>
+                    <dt data-field={u.title ? `hero.usps.${u.i}.title` : undefined}>{u.title}</dt>
+                    <dd data-field={u.text ? `hero.usps.${u.i}.text` : undefined}>{u.text}</dd>
+                  </Fragment>
+                ))}
+              </dl>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  /* Every value below is the design's inline style, verbatim. */
+  .top { padding: clamp(36px, 5vw, 72px) 0 clamp(56px, 7vw, 96px); }
+  .top-in { display: flex; flex-wrap: wrap; gap: clamp(36px, 5vw, 72px); align-items: center; }
+  .top-copy { flex: 1 1 420px; min-width: 0; }
+
+  .top-h1 {
+    margin: 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(42px, 6.4vw, 92px); line-height: 1.02; letter-spacing: -.02em;
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+  .kick + .top-h1 { margin-top: 20px; }
+  .top-sub {
+    max-width: 46ch; font-size: clamp(16px, 1.4vw, 18.5px); color: var(--ink-soft);
+    text-wrap: pretty;
+  }
+  .top-copy > * + .top-sub { margin-top: 24px; }
+  .top-ctas { display: flex; flex-wrap: wrap; gap: 12px; }
+  .top-copy > * + .top-ctas { margin-top: 32px; }
+  .top-meta { display: flex; flex-wrap: wrap; gap: 6px 28px; font-size: 14px; color: var(--ink-soft); }
+  .top-copy > * + .top-meta { margin-top: 34px; }
+
+  /* No media column: the copy takes the row, and the headline keeps a
+     measure instead of running 1184px wide. */
+  .solo .top-h1 { max-width: 15ch; }
+  /* No copy column (a photo-only hero): the plate keeps the design's column
+     proportion, centred, instead of a 1184px-wide print. */
+  .no-copy .top-media { flex: 0 1 620px; margin-inline: auto; }
+
+  .top-media { flex: 1.1 1 400px; min-width: 0; position: relative; padding-bottom: 40px; }
+  /* Only the overlapping card needs the 40px of air under the photo. */
+  .top-media.no-card { padding-bottom: 0; }
+  .top-photo {
+    position: relative; aspect-ratio: 5 / 4; border-radius: 10px; overflow: hidden;
+    background-color: var(--paper-2);
+  }
+  /* Out of flow, so the owner photo's own proportions can never override the
+     frame's ratio (a column-flex item takes its content height as a minimum). */
+  .top-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  /* The walnut spec card: part of the fixed wood world, so its linen text and
+     tan eyebrow stay legible whatever colour scheme is picked. */
+  .spec {
+    position: absolute; left: clamp(12px, 3vw, 32px); bottom: 0;
+    width: 340px; max-width: calc(100% - 24px);
+    padding: 20px 22px; border-radius: 8px;
+    background-color: var(--wood); color: var(--on-wood);
+    box-shadow: 0 20px 40px rgba(var(--shadow-rgb), .2);
+  }
+  /* No photo to overlap: the card stands in the column as a plain card. */
+  .no-photo { padding-bottom: 0; }
+  .no-photo .spec { position: static; margin-left: clamp(12px, 3vw, 32px); }
+  .spec-k {
+    font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--tan); overflow-wrap: anywhere;
+  }
+  .spec-dl {
+    display: grid; grid-template-columns: auto 1fr; gap: 8px 18px;
+    font-size: 14px;
+  }
+  .spec-k + .spec-dl { margin-top: 12px; }
+  .spec-dl dt { color: rgba(var(--on-wood-rgb), .7); overflow-wrap: anywhere; }
+  .spec-dl dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+</style>

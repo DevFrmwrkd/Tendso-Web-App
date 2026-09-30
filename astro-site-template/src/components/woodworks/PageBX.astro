@@ -1,0 +1,467 @@
+---
+/**
+ * woodworks / PageBX — "Acacia Studio" (contemporary furniture studios).
+ *
+ * Bone & olive, light and quiet: Newsreader (light 300, with the optical-size
+ * axis and real italics) over Hanken Grotesk, on a bone ground with a second,
+ * darker bone for the tinted bands, one full-bleed olive band (made to order)
+ * and one ink slab (the closing call). The signature is the LIGHT serif at
+ * display sizes with an italic phrase inside the headline.
+ *
+ * ROLE OF THIS FILE: the wrapper emits the WHOLE document (doctype, head,
+ * tokens, fonts, Leaflet, skip link, boot script). It does not compose with
+ * BaseLayout. It is the only file in the variant that touches `siteData`; the
+ * section components receive only `layout` + `content`.
+ *
+ * EDITABLE HOOKS OWNED BY THIS FILE: none. It only READS layout.businessName /
+ * layout.tagline (title), content.description (meta description),
+ * layout.favicon and layout.ogImage. Every data-field / data-image-field /
+ * data-href-field hook lives in a section component.
+ *
+ * THE ONE HARDCODED VISIBLE STRING is the skip link's "Skip to content" — an
+ * a11y affordance, visible on focus only (PageBJ precedent).
+ *
+ * DESIGN ISOLATION: every selector in the global block is prefixed
+ * html[data-page="BX"], including the reset, body, img, a and ::selection.
+ * Base primitives sit inside :where() so a scoped section rule always wins.
+ *
+ * TOKEN PLAN (the design's colours on the engine's vocabulary):
+ *   --paper      #F7F4EF  the bone ground
+ *   --card       #ECE7DE  the second bone: the tinted bands (why, reviews,
+ *                         faq), photo wells, the burger. Deliberately --card
+ *                         and not --paper-2: in every light scheme the engine
+ *                         paints paper-2 pure white, while its `card` is the
+ *                         tinted sibling of paper, so a pick keeps the
+ *                         band-against-page relationship the design draws.
+ *   --ink        #26251F  text, the nav pill, the closing slab
+ *   --ink-soft   #5F5C52  secondary text (and --muted, the same value)
+ *   --line       #DDD6C9  hairlines on the bone
+ *   --stone      #CFC7B8  the darker rule the design uses on tinted bands and
+ *                         the delivery ledger (the engine maps it to line)
+ *   --accent-deep #5E6B3A the olive wherever contrast matters: eyebrows, links,
+ *                         step numerals, filled buttons and the made-to-order
+ *                         GROUND. The engine maps it to the scheme's deep
+ *                         primary, which holds contrast against its paper and
+ *                         under --on-primary in every curated woodworks scheme
+ *                         (the plain primary does not: white on gold 2.45:1).
+ *   --accent     #5E6B3A  the same olive, used only where nothing sits on it
+ *                         and nothing reads it: the map pin and ::selection.
+ *   --on-primary #F7F4EF  the label on an olive fill (engine: pickOn(primary))
+ * Template-private (the engine does not know these names; the design's exact
+ * tints natively, re-pointed at engine tokens by the palette block below when
+ * an admin picks a scheme, so no bone tint is left sitting on a new ground):
+ *   --band-tag #E3E7D2 · --band-body #EEF0E4 (type on the olive band)
+ *   --cta-hover #E3E7D2 (the closing slab's button hover)
+ *   --rule-strong #BDB5A6 (the outline button's rim)
+ *
+ * FONT SENTINEL: lib/astro-builder.ts defaults layout.fontPairing to the
+ * literal 'modern'; treated as unset here, so Newsreader + Hanken Grotesk ship
+ * unless an admin deliberately picks a pairing.
+ *
+ * FORBIDDEN CLASS NAMES (lib/genericThemeOverrides.ts pins them):
+ *   .btn-primary .btn-ghost .btn-yellow .btn-light .nav-cta .nav-right
+ *   .testi .cta-band .trust, and `hero` as a class. Buttons here are
+ *   .btn--fill / .btn--line, and no element carries a bare .btn class, so the
+ *   engine's `footer .btn` pin has nothing to reach either.
+ *
+ * LIVE ANCHORS, resolved at BUILD time. Every section hides itself when the
+ * owner has not filled it, so a derived nav entry or button can name an id
+ * this build never renders (a first build has no services, gallery or about
+ * yet). The frontmatter below computes the ids that DO render — each line
+ * mirrors the named component's own GATE, keep them in step — and hands them,
+ * with the owner's own contact channel, to every component that prints an
+ * in-page href (Header, Hero, Services, CtaBand, Footer) as `links`. Their
+ * onPage() guard drops a nav or footer link to an id not in the set; a button
+ * falls back instead (the design's fallback section, then the owner's phone or
+ * email) and is left out only when nothing is left to point at. Nothing is
+ * hidden by script, so the editor preview (whose bridge re-shows sections by
+ * resetting inline display) shows exactly what the live page does, and a page
+ * without JavaScript carries no dead link either.
+ *
+ * Leaflet: this wrapper defines window.__woodworksBXInitMap (family-unique)
+ * and LocationBX calls that exact name. Keep `el.innerHTML = ''` — it erases
+ * the drawn fallback face — and keep id="map" literal.
+ */
+import HeaderBX from './header/HeaderBX.astro';
+import HeroBX from './hero/HeroBX.astro';
+import MarqueeBX from './marquee/MarqueeBX.astro';
+import TrustBX from './trust/TrustBX.astro';
+import ServicesBX from './services/ServicesBX.astro';
+import AboutBX from './about/AboutBX.astro';
+import WhyBX from './why/WhyBX.astro';
+import GalleryBX from './gallery/GalleryBX.astro';
+import HowBX from './how/HowBX.astro';
+import TestimonialsBX from './testimonials/TestimonialsBX.astro';
+import CredentialsBX from './credentials/CredentialsBX.astro';
+import AreaBX from './area/AreaBX.astro';
+import FaqBX from './faq/FaqBX.astro';
+import LocationBX from './location/LocationBX.astro';
+import CtaBandBX from './ctaBand/CtaBandBX.astro';
+import FooterBX from './footer/FooterBX.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __resolvedPairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+// 'modern' is astro-builder's DEFAULT, not a choice (lib/astro-builder.ts).
+// Treating it as unset keeps Newsreader; a deliberate admin pick still applies.
+const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+// Palette follow-through for the template-private tints. Gated on an explicit
+// scheme that actually produced a palette (the engine block carries --paper),
+// never on the override block merely being non-empty: a font pick alone fills
+// it too. The doubled selector outranks the base token block whatever order
+// the bundler emits the two in.
+const __schemePicked = Boolean(__themeScheme) && /--paper:/.test(__overrideCss);
+const __paletteFix = __schemePicked
+  ? 'html[data-page="BX"]:root{--band-tag:var(--on-primary);--band-body:var(--on-primary);--cta-hover:var(--paper-2);--rule-strong:color-mix(in srgb,var(--ink) 30%,var(--paper));}'
+  : '';
+
+// ── LIVE ANCHORS (see the frontmatter doc) ─────────────────────────────────
+// Each line mirrors the GATE of the component it names; change one, change
+// the other. A drift is never a crash: at worst a link to a section that did
+// render is dropped, or one to a section that did not is kept.
+const S = (v: any): string => (v == null ? '' : String(v)).trim();
+const obj = (v: any): any => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+const arr = (v: any): any[] => (Array.isArray(v) ? v : []);
+const some = (xs: any[], f: (x: any) => any): boolean => xs.some((x) => Boolean(f(x)));
+const on = (key: string): boolean => visibility[key] !== false;
+const C = content as any;
+const ct = obj(layout.contact);
+const live = new Set<string>(['main']);
+{
+  // HeroBX (#top): a headline (authored or rows), a lede, or a photo.
+  const h = obj(C.hero);
+  if (on('heroSection') && (S(h.headline) || some(arr(h.headlineLines), S) || S(h.sub) || S(h.image || arr(C.photos)[0]))) live.add('top');
+  // MarqueeBX (#marquee): its one line.
+  if (on('marqueeBlock') && S(C.marquee?.text)) live.add('marquee');
+  // ServicesBX (#services): a filled collection; (#custom): a band headline or body.
+  const sv = obj(C.services);
+  const items = Array.isArray(sv.items) ? sv.items : arr(C.services);
+  if (on('servicesSection') && some(items, (it) => S(it?.title ?? it?.name) || S(it?.meta) || S(it?.desc ?? it?.description) || S(it?.image))) live.add('services');
+  if (on('servicesSection') && (S(sv.whole?.headline) || S(sv.whole?.body))) live.add('custom');
+  // AboutBX (#about): a paragraph, the photo, or a statement that is not the
+  // derived "About <name>" label.
+  const ab = obj(C.about);
+  const aboutLabel = S(layout.businessName || C.business_name) ? `About ${S(layout.businessName || C.business_name)}` : '';
+  if (on('aboutSection') && (some(arr(ab.paragraphs), S) || S(ab.image) || (S(ab.headline) && S(ab.headline) !== aboutLabel))) live.add('about');
+  // WhyBX (#why): a filled reason.
+  if (on('whyUsBlock') && some(arr(obj(C.why).items), (it) => S(it?.title) || S(it?.body ?? it?.desc ?? it?.description))) live.add('why');
+  // GalleryBX (#gallery): a tile with a photo.
+  const gl = obj(C.gallery);
+  if (on('gallerySection') && some(Array.isArray(gl.items) ? gl.items : arr(C.gallery), (t) => S(t?.image))) live.add('gallery');
+  // HowBX (#how): a filled step.
+  const hw = obj(C.how);
+  if (on('howItWorksBlock') && some(Array.isArray(hw.steps) ? hw.steps : arr(hw.items), (st) => S(st?.title) || S(st?.body ?? st?.desc ?? st?.description))) live.add('how');
+  // TestimonialsBX (#reviews): a quote, or the big quote.
+  const tm = obj(C.testimonials);
+  if (on('testimonialsBlock') && (some(Array.isArray(tm.items) ? tm.items : arr(C.testimonials), (it) => S(it?.quote)) || S(tm.bigQuote))) live.add('reviews');
+  // CredentialsBX (#credentials): a filled row.
+  const cr = obj(C.credentials);
+  if (on('credentialsBlock') && some(Array.isArray(cr.items) ? cr.items : arr(C.credentials), (it) => S(it?.title ?? it?.label) || S(it?.body ?? it?.desc ?? it?.detail ?? it?.description))) live.add('credentials');
+  // AreaBX (#area): a filled row, the note, or a places list that is more than
+  // the derive layer's lone business city (places count only with no rows).
+  const ar = obj(C.area);
+  const areaRows = some(arr(ar.rows), (r) => S(r?.place) || S(r?.time));
+  const places = arr(ar.places).map((p) => S(p && typeof p === 'object' ? (p.place ?? p.name) : p)).filter(Boolean);
+  const cityOnly = places.length === 1 && S(C.business_city) !== '' && places[0].toLowerCase() === S(C.business_city).toLowerCase();
+  if (on('serviceAreaBlock') && (areaRows || (places.length > 0 && !cityOnly) || S(ar.body))) live.add('area');
+  // FaqBX (#faq): a question.
+  const fq = obj(C.faq);
+  if (on('faqBlock') && some(Array.isArray(fq.items) ? fq.items : arr(C.faq), (it) => S(it?.q ?? it?.question))) live.add('faq');
+  // LocationBX (#visit): coordinates, an address, hours or a phone.
+  const loc = obj(C.location);
+  const coord = (v: any, max: number): number | null => {
+    if (v === null || v === undefined || String(v).trim() === '') return null;
+    const n = Number(v);
+    return Number.isFinite(n) && Math.abs(n) <= max ? n : null;
+  };
+  const coords = (coord(loc.lat, 90) ?? coord(ct.lat, 90)) !== null && (coord(loc.lng, 180) ?? coord(ct.lng, 180)) !== null;
+  const hours = typeof loc.hours === 'string' ? S(loc.hours) : some(arr(loc.hours), (r) => S(r?.day) || S(r?.time));
+  if (on('locationBlock') && (coords || S(loc.address || ct.address) || hours || S(loc.phone || ct.phone))) live.add('visit');
+}
+// The owner's own way to be reached: where a button with no live target goes.
+const __phone = S(ct.phone || C.contact?.phone);
+const __email = S(ct.email || C.contact?.email);
+const contactHref = __phone ? `tel:${__phone.replace(/[^0-9+]/g, '')}` : (__email ? `mailto:${__email}` : '');
+{
+  // CtaBandBX (#book): words AND a pill that has somewhere to go. Resolved
+  // last because its pills fall back to #visit and then the contact channel,
+  // exactly as CtaBandBX's act() does.
+  const cb = obj(C.ctaBand);
+  const ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+  const onPage = (href: any): string => {
+    const h = S(href);
+    if (!h || !h.startsWith('#')) return h;
+    const id = h.slice(1);
+    if (live.has(id)) return h;
+    return ALIAS[id] && live.has(ALIAS[id]) ? `#${ALIAS[id]}` : '';
+  };
+  const DESIGN_IDS = ['main', 'top', 'marquee', 'services', 'custom', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book', 'work', 'contact'];
+  const primary = [cb.cta, cb.cta1, cb.primary].find((x: any) => x && S(x.text));
+  const p1 = primary ? (onPage(primary.href) || onPage('#visit') || contactHref) : '';
+  const id2 = S(cb.cta2?.href).replace(/^#/, '');
+  const p2 = !S(cb.cta2?.text) ? ''
+    : onPage(cb.cta2?.href) || (id2 && DESIGN_IDS.includes(id2) ? '' : [onPage('#visit')].find((x) => x && x !== p1) || '');
+  if (on('ctaBandBlock') && (S(cb.headline) || S(cb.sub)) && (p1 || p2)) live.add('book');
+}
+const links = { anchors: [...live], contact: contactHref };
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="BX">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <!-- Browser-chrome tint: the bone ground the sticky header sits on. A meta
+       cannot read a CSS var, so this duplicates --paper. -->
+  <meta name="theme-color" content="#F7F4EF" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <!-- Acacia Studio's native fonts, verbatim from the design: Newsreader with
+       its optical-size axis and the 300-600 weight range in BOTH roman and
+       italic (the italic phrase is the signature, so it must be a real cut),
+       plus Hanken Grotesk for body and labels. -->
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+
+  <style is:global>
+    /* ═══════════════════════════════════════════════════════════════════════
+       PageBX · "Acacia Studio" — woodworks. Tokens + shared base primitives.
+       EVERY selector is prefixed html[data-page="BX"].
+
+       SPECIFICITY: the primitives sit inside :where() at (0,1,1), so an
+       Astro-scoped section rule (0,2,0) always wins, including its hover.
+       HEAD ORDER: this block, then the {__fontHref} link, then the engine's
+       override block LAST, whose html:root{...!important} must come later.
+       (Never write a literal closing style tag inside this block, comments
+       included: the parser would end the stylesheet right there.)
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    html[data-page="BX"] {
+      /* grounds */
+      --paper: #F7F4EF;
+      --paper-2: #ECE7DE;
+      --card: #ECE7DE;
+      /* ink */
+      --ink: #26251F;
+      --ink-soft: #5F5C52;
+      --muted: #5F5C52;
+      --line: #DDD6C9;
+      --stone: #CFC7B8;
+      /* the olive — see the token plan in the frontmatter */
+      --accent: #5E6B3A;
+      --accent-deep: #5E6B3A;
+      --accent-light: #E3E7D2;
+      --accent-soft: #EEF0E4;
+      /* rgb triplets for token-driven tints */
+      --paper-rgb: 247,244,239;
+      --ink-rgb: 38,37,31;
+      --accent-rgb: 94,107,58;
+      /* contrast aliases the engine and inherited rules expect */
+      --on-primary: #F7F4EF;
+      --on-accent: #F7F4EF;
+      --on-ink: #F7F4EF;
+      --on-paper: #26251F;
+      /* template-private tints (re-pointed under a scheme pick, see head) */
+      --band-tag: #E3E7D2;
+      --band-body: #EEF0E4;
+      --cta-hover: #E3E7D2;
+      --rule-strong: #BDB5A6;
+      /* type + metrics */
+      --disp: "Newsreader", Georgia, "Times New Roman", serif;
+      --serif: "Newsreader", Georgia, "Times New Roman", serif;
+      --sans: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      /* The design has no monospace; the engine sets the token and shared
+         primitives read it, so it is the body face. */
+      --mono: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      --maxw: 1360px;
+      --gut: clamp(18px,4vw,56px);
+      --r-card: 16px;
+    }
+
+    /* VERIFIED CONTRAST (the design's palette, sRGB relative luminance):
+       ink/paper 14.00 · ink/card 12.48 · ink-soft/paper 6.10 · ink-soft/card 5.43
+       olive/paper 5.26 (eyebrows, links) · paper on olive 5.26 (buttons, band)
+       band-body on olive 5.01 · band-tag on olive 4.57 · paper on ink 14.00
+       ink on the closing button's hover tint 12.16. Every pairing clears AA. */
+
+    /* ── reset + document ─────────────────────────────────────────────── */
+    html[data-page="BX"] *,
+    html[data-page="BX"] *::before,
+    html[data-page="BX"] *::after { box-sizing: border-box; }
+    html[data-page="BX"] {
+      -webkit-text-size-adjust: 100%; scroll-behavior: smooth;
+      /* The sticky header is 72px; every in-page anchor lands below it. */
+      scroll-padding-top: 84px;
+    }
+    @media (prefers-reduced-motion: reduce) { html[data-page="BX"] { scroll-behavior: auto; } }
+    html[data-page="BX"] body {
+      margin: 0; padding: 0;
+      background-color: var(--paper); color: var(--ink);
+      font-family: var(--sans); font-size: 17px; line-height: 1.65;
+      font-weight: 400; letter-spacing: 0;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+    html[data-page="BX"] :where(img) { max-width: 100%; display: block; }
+    html[data-page="BX"] :where(a) { color: inherit; text-decoration: none; }
+    /* The design's one global hover: a plain link turns olive. Every button
+       restates its own label colour on hover, so none of them inherits this. */
+    html[data-page="BX"] :where(a:hover) { color: var(--accent-deep); }
+    html[data-page="BX"] ::selection { background-color: var(--accent); color: var(--on-primary); }
+    /* text-transform is DECLARED, not defaulted: an unscoped uppercase heading
+       rule from another family must never capitalise this design. */
+    html[data-page="BX"] :where(h1, h2, h3, h4) {
+      margin: 0; font-family: var(--disp); font-weight: 400; color: inherit;
+      letter-spacing: 0; line-height: 1.65; text-transform: none;
+    }
+    html[data-page="BX"] :where(p, figure, blockquote, dl, dd) { margin: 0; }
+    html[data-page="BX"] :where(ol, ul) { margin: 0; padding: 0; list-style: none; }
+    html[data-page="BX"] :where(button) { font: inherit; }
+    html[data-page="BX"] :where(summary) { list-style: none; cursor: pointer; }
+    html[data-page="BX"] :where(summary)::-webkit-details-marker { display: none; }
+
+    /* ── layout scaffolding ───────────────────────────────────────────── */
+    html[data-page="BX"] :where(.wrap) {
+      width: 100%; max-width: var(--maxw); margin-inline: auto; padding-inline: var(--gut);
+    }
+
+    /* ── .eyebrow: 13px tracked caps in olive ─────────────────────────── */
+    html[data-page="BX"] :where(.eyebrow) {
+      margin: 0; font-family: var(--sans); font-size: 13px; font-weight: 600;
+      line-height: 1.65; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--accent-deep); overflow-wrap: anywhere;
+    }
+
+    /* ── .display: the light Newsreader headline. Size is per section. ─── */
+    html[data-page="BX"] :where(.display) {
+      margin: 0; font-family: var(--disp); font-weight: 300; line-height: 1.02;
+      letter-spacing: -.025em; text-transform: none; text-wrap: balance;
+      color: inherit; overflow-wrap: break-word;
+    }
+
+    /* ── BUTTONS. Pills, straight from the design's inline styles.
+          .btn--fill  olive fill, bone label; hover: ink fill
+          .btn--line  hairline rim, ink label; hover: ink rim
+          Each declares its own fill, and each hover restates fill AND label,
+          so no leaked or engine rule can strand a label. */
+    html[data-page="BX"] :where(.btn--fill, .btn--line) {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 52px; padding: 10px 26px; border-radius: 999px;
+      border: 1px solid transparent; background-color: transparent;
+      font-family: var(--sans); font-size: 15px; font-weight: 600; line-height: 1.3;
+      letter-spacing: 0; text-transform: none; text-align: center;
+      text-decoration: none; cursor: pointer; overflow-wrap: anywhere;
+    }
+    html[data-page="BX"] :where(.btn--fill) {
+      background-color: var(--accent-deep); border-color: var(--accent-deep); color: var(--on-primary);
+    }
+    html[data-page="BX"] :where(.btn--fill:hover) {
+      background-color: var(--ink); border-color: var(--ink); color: var(--paper);
+    }
+    html[data-page="BX"] :where(.btn--line) {
+      background-color: transparent; border-color: var(--rule-strong); color: var(--ink);
+    }
+    html[data-page="BX"] :where(.btn--line:hover) {
+      background-color: transparent; border-color: var(--ink); color: var(--ink);
+    }
+
+    /* ── .pic: a photo well. The img covers it; the well is only ever drawn
+          around a real photo (sections omit it when there is none). */
+    html[data-page="BX"] :where(.pic) {
+      position: relative; overflow: hidden; min-width: 0;
+      border-radius: var(--r-card); background-color: var(--card);
+    }
+    html[data-page="BX"] :where(.pic img) {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      max-width: none; object-fit: cover; display: block;
+    }
+
+    /* ── FOCUS: one duo ring — a bone outline inside an ink halo — legible on
+          the bone, on the olive band and on the ink slab alike. No radius is
+          set here: outline and shadow follow each element's own corners, and
+          a radius at this specificity would square off every scoped pill. */
+    html[data-page="BX"] :where(a, button, summary, [tabindex]):focus-visible {
+      outline: 3px solid var(--paper); outline-offset: 0;
+      box-shadow: 0 0 0 6px var(--ink);
+    }
+
+    /* ── skip link ────────────────────────────────────────────────────── */
+    html[data-page="BX"] :where(.skip) {
+      position: absolute; left: -999px; top: 0; z-index: 100;
+      background-color: var(--ink); color: var(--paper);
+      padding: 12px 18px; border-radius: 0 0 12px 0;
+      font-family: var(--sans); font-size: 14px; font-weight: 600;
+    }
+    html[data-page="BX"] :where(.skip:focus) { left: 0; top: 0; color: var(--paper); }
+  </style>
+
+  <style is:global set:html={__paletteFix}></style>
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <HeaderBX layout={layout} content={content} links={links} />
+  <main id="main">
+    {visibility.heroSection !== false && <HeroBX content={content} layout={layout} links={links} />}
+    {visibility.marqueeBlock !== false && <MarqueeBX content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustBX content={content} layout={layout} />}
+    {visibility.servicesSection !== false && <ServicesBX content={content} layout={layout} links={links} />}
+    {visibility.aboutSection !== false && <AboutBX content={content} layout={layout} />}
+    {visibility.whyUsBlock !== false && <WhyBX content={content} layout={layout} />}
+    {visibility.gallerySection !== false && <GalleryBX content={content} layout={layout} />}
+    {visibility.howItWorksBlock !== false && <HowBX content={content} layout={layout} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsBX content={content} layout={layout} />}
+    {visibility.credentialsBlock !== false && <CredentialsBX content={content} layout={layout} />}
+    {visibility.serviceAreaBlock !== false && <AreaBX content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqBX content={content} layout={layout} />}
+    {visibility.locationBlock !== false && <LocationBX content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandBX content={content} layout={layout} links={links} />}
+  <FooterBX layout={layout} content={content} links={links} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      // Acacia / BX Leaflet boot — accepts (lat, lng, label) from LocationBX.
+      // Family-unique global name: a preview harness can render two wrappers
+      // in one document, and a shared name cross-wires the maps.
+      window.__woodworksBXInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map'); if (!el || el.getAttribute('data-map-ready')) return;
+        el.setAttribute('data-map-ready', '1');
+        // Erases LocationBX's drawn fallback face; without this the tiles
+        // stack on top of it.
+        el.innerHTML = '';
+        var map = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 16);
+        L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19 }).addTo(map);
+        // The design's pin: an olive dot in a bone ring. Colours are READ from
+        // the live tokens, so an admin colour pick recolours the pin too.
+        var cs = window.getComputedStyle(document.documentElement);
+        var accent = (cs.getPropertyValue('--accent') || '').trim() || '#5E6B3A';
+        var paper = (cs.getPropertyValue('--paper') || '').trim() || '#F7F4EF';
+        var inkRgb = (cs.getPropertyValue('--ink-rgb') || '').trim() || '38,37,31';
+        var icon = L.divIcon({
+          className: '',
+          html: '<div style="width:18px;height:18px;border-radius:50%;background:' + accent + ';box-shadow:0 0 0 5px ' + paper + ',0 4px 12px rgba(' + inkRgb + ',.3)"></div>',
+          iconSize: [18, 18], iconAnchor: [9, 9]
+        });
+        L.marker([lat, lng], { icon: icon, keyboard: false }).addTo(map);
+      };
+    })();
+  </script>
+</body>
+</html>

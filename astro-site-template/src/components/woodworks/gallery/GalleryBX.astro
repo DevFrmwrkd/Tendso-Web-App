@@ -1,0 +1,81 @@
+---
+/**
+ * woodworks / GalleryBX — "Acacia Studio"'s projects (#gallery): an eyebrow and
+ * a light Newsreader h2 beside a short paragraph, then a wrapping row of 3:2
+ * photographs with small captions under them. The design's rhythm is a wide
+ * frame, two narrow ones, then a wide one; flex-wrap lets each row grow to the
+ * full width, so any count lands without a hole (one photo runs full width,
+ * two sit wide + narrow, four reproduce the design exactly).
+ *
+ * Editable hooks:
+ *   gallery.tag · gallery.headline · gallery.sub
+ *   gallery.items.${i}.image (img) · gallery.items.${i}.caption
+ *
+ * Tiles are FILTERED to the rows that carry a photo — a caption with no photo
+ * is never drawn over an empty frame — and every hook keeps the ORIGINAL
+ * index. The wide / narrow rhythm follows the DISPLAY index. With no photo at
+ * all the section is not rendered. (PageBX's LIVE ANCHORS mirrors this gate.)
+ *
+ * The headline renders with set:html: the AI copy step may put an <em>
+ * highlight into it (astro-builder balances the inline HTML).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const g = (content as any).gallery && !Array.isArray((content as any).gallery) ? (content as any).gallery : {};
+const tag = str(g.tag);
+const headline = str(g.headline);
+const sub = str(g.sub);
+const raw: any[] = Array.isArray(g.items) ? g.items : (Array.isArray((content as any).gallery) ? (content as any).gallery : []);
+const tiles = raw
+  .map((t: any, i: number) => ({ image: str(t?.image), caption: str(t?.caption), i }))
+  .filter((t) => Boolean(t.image));
+---
+{tiles.length > 0 && (
+  <section id="gallery" class="proj">
+    <div class="wrap">
+      {(tag || headline || sub) && (
+        <div class="proj-head">
+          {(tag || headline) && (
+            <div class="proj-head-l">
+              {tag && <p class="eyebrow" data-field="gallery.tag">{tag}</p>}
+              {headline && <h2 class="display proj-h" data-field="gallery.headline" set:html={headline}></h2>}
+            </div>
+          )}
+          {sub && <p class="proj-sub" data-field="gallery.sub">{sub}</p>}
+        </div>
+      )}
+      <div class="proj-grid">
+        {tiles.map((t, k) => (
+          <figure class:list={['proj-fig', (k % 4 === 0 || k % 4 === 3) && 'proj-fig--wide']}>
+            <div class="pic proj-ph" data-image-field={`gallery.items.${t.i}.image`}>
+              <img src={t.image} alt="" loading="lazy" decoding="async" />
+            </div>
+            {t.caption && <figcaption class="proj-cap" data-field={`gallery.items.${t.i}.caption`}>{t.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .proj { padding: clamp(56px,7vw,104px) 0; }
+  .proj-head {
+    display: flex; flex-wrap: wrap; align-items: flex-end;
+    gap: 16px 64px; margin-bottom: clamp(32px,4vw,52px);
+  }
+  .proj-head-l { flex: 1 1 440px; min-width: 0; }
+  /* This one h2 is not balanced in the design. */
+  .proj-h { margin-top: 12px; font-size: clamp(36px,4.8vw,66px); text-wrap: wrap; color: var(--ink); }
+  .proj-h:first-child { margin-top: 0; }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .proj-h :global(i),
+  .proj-h :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+  .proj-sub { flex: 1 1 320px; min-width: 0; margin: 0; max-width: 44ch; color: var(--ink-soft); }
+
+  .proj-grid { display: flex; flex-wrap: wrap; gap: clamp(12px,1.6vw,20px); }
+  .proj-fig { flex: 1 1 280px; min-width: 0; margin: 0; }
+  .proj-fig--wide { flex: 1.5 1 420px; }
+  .proj-ph { aspect-ratio: 3 / 2; border-radius: 16px; }
+  .proj-cap { margin-top: 10px; font-size: 14px; line-height: 1.65; color: var(--ink-soft); overflow-wrap: break-word; }
+</style>

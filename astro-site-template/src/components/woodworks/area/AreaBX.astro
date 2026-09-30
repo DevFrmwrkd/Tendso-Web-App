@@ -1,0 +1,125 @@
+---
+/**
+ * woodworks / AreaBX — "Acacia Studio"'s delivery ledger (#area), opened by a
+ * hairline: an eyebrow, a light Newsreader headline and a short note on the
+ * left; on the right a ruled list of places, each with the owner's own
+ * delivery line pushed to the right.
+ *
+ * Editable hooks:
+ *   area.tag · area.headline · area.body
+ *   area.rows.${i}.place · area.rows.${i}.time   — the design's ledger
+ *   area.places.${i}                             — the fallback list
+ *
+ * TWO LISTS. The design draws place + delivery-line pairs (the rows list).
+ * The AI copy extraction writes the plain places list instead and never the
+ * rows, so rows stay primary and, when no non-blank row survives, the places
+ * render in the SAME ruled list — place only, no time cell, no separator —
+ * each bound to its ORIGINAL index. Without this an AI-written site would show
+ * the headline and drop its places, and the editor would hide the list too.
+ *
+ * GATE: a filled row, a place, or the note. The derived headline ("Serving
+ * <city>") is written for every business with a city, so on its own it would
+ * be a heading over nothing — and the derive layer also fills the places list
+ * with just that city, so a list holding ONLY the business city (the
+ * auto-fill) does not open the section by itself; it still prints if the
+ * section opens for anything else. No distance, travel time or coverage is
+ * invented: every row is the owner's own text, printed verbatim. Blank rows
+ * are dropped and every hook keeps the ORIGINAL index. (PageBX's LIVE
+ * ANCHORS mirrors this gate.)
+ *
+ * SQUEEZE: the delivery line is what gives way, as in the design — it may
+ * shrink and wrap, so a long one can never push the page past 360px — while
+ * the place keeps its automatic minimum and never breaks mid-word (only a
+ * single word wider than the whole row breaks).
+ *
+ * The headline renders with set:html: the AI copy step may put an <em>
+ * highlight into it (astro-builder balances the inline HTML).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const ar = (content as any).area || {};
+const tag = str(ar.tag);
+const headline = str(ar.headline);
+const body = str(ar.body);
+const rows = (Array.isArray(ar.rows) ? ar.rows : [])
+  .map((r: any, i: number) => ({ place: str(r?.place), time: str(r?.time), i }))
+  .filter((r: { place: string; time: string }) => Boolean(r.place || r.time));
+// The fallback list, used only when no row survives. A legacy shape stored
+// objects here; their place/name is read so nothing prints "[object Object]".
+const places = rows.length > 0 ? [] : (Array.isArray(ar.places) ? ar.places : [])
+  .map((p: any, i: number) => ({ text: str(p && typeof p === 'object' ? (p.place ?? p.name) : p), i }))
+  .filter((p: { text: string }) => p.text !== '');
+const city = str((content as any).business_city);
+const cityAutoFillOnly = places.length === 1 && city !== '' && places[0].text.toLowerCase() === city.toLowerCase();
+const hasSection = rows.length > 0 || (places.length > 0 && !cityAutoFillOnly) || Boolean(body);
+---
+{hasSection && (
+  <section id="area" class="reach">
+    <div class="wrap reach-in">
+      {(tag || headline || body) && (
+        <div class="reach-l">
+          {tag && <p class="eyebrow" data-field="area.tag">{tag}</p>}
+          {headline && <h2 class="display reach-h" data-field="area.headline" set:html={headline}></h2>}
+          {body && <p class="reach-body" data-field="area.body">{body}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class="reach-r">
+          {rows.map((r: { place: string; time: string; i: number }) => (
+            <div class="reach-row">
+              {r.place && <span class="reach-place" data-field={`area.rows.${r.i}.place`}>{r.place}</span>}
+              {r.time && <span class="reach-time" data-field={`area.rows.${r.i}.time`}>{r.time}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+      {rows.length === 0 && places.length > 0 && (
+        <div class="reach-r">
+          {places.map((p: { text: string; i: number }) => (
+            <div class="reach-row">
+              <span class="reach-place" data-field={`area.places.${p.i}`}>{p.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .reach { padding: clamp(56px,7vw,104px) 0; border-top: 1px solid var(--line); }
+  .reach-in {
+    display: flex; flex-wrap: wrap; align-items: flex-start;
+    gap: 28px clamp(40px,6vw,96px);
+  }
+  .reach-l { flex: 1 1 340px; min-width: 0; }
+  .reach-h {
+    margin-top: 12px; font-size: clamp(32px,4.2vw,56px); line-height: 1.04;
+    color: var(--ink);
+  }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .reach-h :global(i),
+  .reach-h :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+  .reach-body { margin: 16px 0 0; max-width: 42ch; line-height: 1.65; color: var(--ink-soft); overflow-wrap: break-word; }
+  .reach-l > :first-child { margin-top: 0; }
+
+  .reach-r { flex: 1 1 420px; min-width: 0; }
+  .reach-row {
+    display: flex; justify-content: space-between; gap: 16px;
+    padding: 16px 0; border-top: 1px solid var(--stone);
+  }
+  .reach-row:last-child { border-bottom: 1px solid var(--stone); }
+  /* Automatic minimum kept (see SQUEEZE): never narrower than its longest
+     word; max-width caps that minimum at the row so one over-long word still
+     breaks (break-word leaves the minimum alone) instead of overflowing. */
+  .reach-place {
+    max-width: 100%; font-family: var(--disp); font-weight: 400; font-size: 20px;
+    line-height: 1.65; color: var(--ink); overflow-wrap: break-word;
+  }
+  /* A time with no place still sits on the right, where the eye looks for it. */
+  .reach-time {
+    flex: 0 1 auto; min-width: 0; margin-left: auto;
+    font-size: 14px; line-height: 1.65; color: var(--ink-soft);
+    text-align: right; overflow-wrap: anywhere;
+  }
+</style>

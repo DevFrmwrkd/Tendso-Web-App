@@ -1,0 +1,113 @@
+---
+/**
+ * woodworks / AboutBV — the story section, on the oatmeal band: a tall 4:5
+ * portrait on the left; on the right the rust eyebrow, the Young Serif
+ * headline, a heavier lead, the owner's paragraphs, and a hairline-ruled
+ * signature (name in Young Serif, role in tracked caps).
+ *
+ * Editable hooks:
+ *   about.image (img) · about.tag · about.headline (set:html) · about.lead
+ *   about.paragraphs.${i} · about.signatureName · about.role
+ *
+ * THE SIGNATURE NAME. The hook is about.signatureName, the design's path. The
+ * schema declares that field with the older one-line signature as its read
+ * fallback, so the sidebar box SHOWS that value when the name is empty; the
+ * page displays the same fallback so the two can never disagree. The role
+ * line only ever renders under a name (a role attributed to nobody is a
+ * claim with no one behind it).
+ *
+ * SECTION GATE: real body copy or a photo — the lead, a paragraph or the
+ * image. The eyebrow, headline and signature are derived for every named
+ * business by lib/derive-content-defaults.ts, so counting them would ship a
+ * heading over nothing. Blank paragraph rows are dropped with their ORIGINAL
+ * index kept.
+ *
+ * NO PHOTO, NO FRAME: without about.image the portrait well is not drawn and
+ * the copy column takes the row at a readable measure.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+const ab = (content as any).about || {};
+const image = str(ab.image);
+const tag = str(ab.tag);
+const headline = str(ab.headline);
+const lead = str(ab.lead);
+const paras = (Array.isArray(ab.paragraphs) ? ab.paragraphs : [])
+  .map((t: unknown, i: number) => ({ text: str(t), i }))
+  .filter((p: { text: string }) => p.text.length > 0);
+const name = str(ab.signatureName) || str(ab.signature);
+const role = str(ab.role);
+const show = Boolean(lead || image) || paras.length > 0;
+// A portrait with no words beside it draws no empty copy column.
+const hasCopy = Boolean(tag || headline || lead || name) || paras.length > 0;
+---
+{show && (
+  <section class="ab" id="about">
+    <div class:list={['wrap', 'ab-in', !image && 'no-photo']}>
+      {image && (
+        <div class="ab-ph" data-image-field="about.image">
+          <img src={image} alt="" decoding="async" />
+        </div>
+      )}
+      {hasCopy && (
+      <div class="ab-copy">
+        {tag && <p class="kick" data-field="about.tag">{tag}</p>}
+        {headline && <h2 class="ab-h2" data-field="about.headline" set:html={headline}></h2>}
+        {lead && <p class="ab-lead" data-field="about.lead">{lead}</p>}
+        {paras.map((p: { text: string; i: number }) => (
+          <p class="ab-p" data-field={`about.paragraphs.${p.i}`}>{p.text}</p>
+        ))}
+        {name && (
+          <div class="ab-sig">
+            <p class="ab-name" data-field="about.signatureName">{name}</p>
+            {role && <p class="ab-role" data-field="about.role">{role}</p>}
+          </div>
+        )}
+      </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  /* Every value below is the design's inline style, verbatim. */
+  .ab { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--paper-2); }
+  .ab-in { display: flex; flex-wrap: wrap; gap: clamp(36px, 5vw, 80px); align-items: center; }
+  .ab-ph {
+    flex: 1 1 360px; min-width: 0; max-width: 520px; margin-inline: auto;
+    position: relative; aspect-ratio: 4 / 5; border-radius: 10px; overflow: hidden;
+    background-color: var(--paper);
+  }
+  /* Out of flow, so the owner photo's own proportions can never override the
+     frame's ratio (a column-flex item takes its content height as a minimum). */
+  .ab-ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ab-copy { flex: 1 1 420px; min-width: 0; }
+  /* No portrait: the copy keeps a reading measure instead of running the
+     full container. */
+  .no-photo .ab-copy { max-width: 760px; }
+
+  .ab-h2 {
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.4vw, 58px); line-height: 1.06;
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+  .kick + .ab-h2 { margin-top: 14px; }
+  .ab-lead {
+    font-size: clamp(18px, 1.6vw, 20px); line-height: 1.55; font-weight: 500;
+    text-wrap: pretty; overflow-wrap: anywhere;
+  }
+  .ab-copy > * + .ab-lead { margin-top: 24px; }
+  .ab-p { color: var(--ink-soft); text-wrap: pretty; overflow-wrap: anywhere; }
+  .kick + .ab-p, .ab-h2 + .ab-p { margin-top: 24px; }
+  .ab-lead + .ab-p { margin-top: 16px; }
+  .ab-p + .ab-p { margin-top: 12px; }
+
+  .ab-sig { padding-top: 18px; border-top: 1px solid rgba(var(--ink-rgb), .2); }
+  .ab-copy > * + .ab-sig { margin-top: 28px; }
+  .ab-name { font-family: var(--disp); font-weight: 400; font-size: 21px; overflow-wrap: anywhere; }
+  .ab-role {
+    margin-top: 2px; font-size: 12px; font-weight: 600; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+</style>

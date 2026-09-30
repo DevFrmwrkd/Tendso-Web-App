@@ -1,0 +1,259 @@
+---
+/**
+ * florist / ServicesBS — "the index": a centred head, then the owner's
+ * arrangements in the design's two registers, then the weddings band.
+ *
+ *   · the FIRST THREE shown rows are the big cards: a matted 4:5 photograph,
+ *     the owner's script numbering ("No. 1" — their own row tag), the name,
+ *     a tracked caps line and the description;
+ *   · every row AFTER those is a compact white card: a square thumbnail beside
+ *     the name, a rose caps line and the description.
+ *   · the weddings band: a rounded blush slab with a circular photograph in a
+ *     thick white ring, a script eyebrow, a Gilda headline, a paragraph and
+ *     one ink pill.
+ *
+ * Editable hooks (all schema-owned):
+ *   services.tag · services.headline · services.sub
+ *   services.items.${i}.image · .tag (big cards only, as drawn) · .title ·
+ *   .meta · .desc — ORIGINAL index; blank rows are dropped first, and which
+ *   register a row lands in is decided by its DISPLAY position
+ *   services.whole.tag · services.whole.headline · services.whole.body
+ *   services.ctaLabel + data-href-field services.ctaHref — the band's pill
+ *   gallery.items.2.image — the band's photograph, BY DESIGN the same field as
+ *   the gallery's circular plate (PORTING.md): one photo, shown twice.
+ *
+ * ONE <section id="services"> holds both the grid and the band, because the
+ * design draws the band INSIDE the services container — so the Services
+ * toggle hides the pair together with no data-block marker needed.
+ *
+ * NO PHOTO, NO MAT. A row without an image drops its mat (big card) or its
+ * thumbnail (compact card) and stays a clean text card; nothing draws a
+ * placeholder rectangle. The band's photo circle is likewise only drawn around
+ * a real gallery.items.2.image, and the copy then takes the whole slab.
+ *
+ * COUNTS. auto-fit with a 300px floor gives the design's 3-up (and 2-up on a
+ * tablet, 1-up on a phone) with no media query. One or two big cards are held
+ * to the width three would have had, centred, so a lone arrangement never
+ * stretches into a 1144px-wide, 1400px-tall photograph; one compact card is
+ * held to half the row for the same reason.
+ *
+ * SECTION GATE: at least one shown row, or a band with a headline or body.
+ * The head alone never renders it (the derive layer fills tag and headline on
+ * every site). The band never opens on its eyebrow alone.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+// Anchor guard — the same table as HeaderBS / HeroBS / CtaBandBS / FooterBS.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit', location: 'visit', testimonials: 'reviews', home: 'top' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  const h = String(href ?? '').trim();
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: any): string => String(v ?? '').trim();
+const S = (content as any).services || {};
+const tag = str(S.tag);
+const headline = str(S.headline);
+const sub = str(S.sub);
+// Both shapes (the wrapped object and the legacy bare array), and both
+// vocabularies (name/description from the legacy rows).
+const raw: any[] = Array.isArray(S.items) ? S.items : (Array.isArray(S) ? S : []);
+type Row = { title: string; desc: string; meta: string; tag: string; image: string; i: number };
+const rows: Row[] = raw
+  .map((it: any, i: number) => ({
+    title: str(it?.title ?? it?.name),
+    desc: str(it?.desc ?? it?.description),
+    meta: str(it?.meta),
+    tag: str(it?.tag),
+    image: str(it?.image),
+    i,
+  }))
+  .filter((r: Row) => Boolean(r.title || r.desc || r.meta || r.tag || r.image));
+const feature = rows.slice(0, 3);
+const compact = rows.slice(3);
+// No photo on any of the big cards (the copy-written first site): they take
+// the compact cards' white sheet, so the list reads as one set of cards rather
+// than bare text above a lone white one.
+const textOnly = feature.length > 0 && !feature.some((r) => r.image);
+
+const G = (content as any).gallery || {};
+const gRows: any[] = Array.isArray(G.items) ? G.items : [];
+const bandImage = str(gRows[2]?.image);
+const W = S.whole || {};
+const wTag = str(W.tag);
+const wHeadline = str(W.headline);
+const wBody = str(W.body);
+const ctaLabel = str(S.ctaLabel);
+const ctaHref = onPage(S.ctaHref, '#book');
+const hasBand = Boolean(wHeadline || wBody);
+const hasSection = rows.length > 0 || hasBand;
+---
+{hasSection && (
+  <section class="sv" id="services">
+    <div class="k-wrap">
+      {(tag || headline || sub) && (
+        <div class="sv-head">
+          {tag && <p class="k-tag" data-field="services.tag">{tag}</p>}
+          {headline && <h2 class="sv-h2" data-field="services.headline" set:html={headline}></h2>}
+          {sub && <p class="sv-sub" data-field="services.sub">{sub}</p>}
+        </div>
+      )}
+
+      {feature.length > 0 && (
+        <div class:list={['sv-feat', textOnly && 'sv-feat--text']} data-n={String(feature.length)}>
+          {feature.map((r) => (
+            <article class="sv-card">
+              {r.image && (
+                <div class="sv-mat">
+                  <img class="sv-img" src={r.image} alt={r.title} decoding="async" data-image-field={`services.items.${r.i}.image`} />
+                </div>
+              )}
+              {r.tag && <span class="sv-no" data-field={`services.items.${r.i}.tag`}>{r.tag}</span>}
+              {r.title && <h3 class="sv-name" data-field={`services.items.${r.i}.title`}>{r.title}</h3>}
+              {r.meta && <p class="sv-meta" data-field={`services.items.${r.i}.meta`}>{r.meta}</p>}
+              {r.desc && <p class="sv-desc" data-field={`services.items.${r.i}.desc`}>{r.desc}</p>}
+            </article>
+          ))}
+        </div>
+      )}
+
+      {compact.length > 0 && (
+        <div class="sv-mini" data-n={String(compact.length)}>
+          {compact.map((r) => (
+            <article class="sv-row">
+              {r.image && (
+                <img class="sv-thumb" src={r.image} alt={r.title} decoding="async" data-image-field={`services.items.${r.i}.image`} />
+              )}
+              <div class="sv-row-copy">
+                {r.title && <h3 class="sv-row-name" data-field={`services.items.${r.i}.title`}>{r.title}</h3>}
+                {r.meta && <p class="sv-row-meta" data-field={`services.items.${r.i}.meta`}>{r.meta}</p>}
+                {r.desc && <p class="sv-row-desc" data-field={`services.items.${r.i}.desc`}>{r.desc}</p>}
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+
+      {hasBand && (
+        <div class:list={['sv-band', rows.length === 0 && 'sv-band--first']}>
+          {bandImage && (
+            <img class="sv-band-img" src={bandImage} alt="" decoding="async" data-image-field="gallery.items.2.image" />
+          )}
+          <div class="sv-band-copy">
+            {wTag && <p class="k-tag sv-band-tag" data-field="services.whole.tag">{wTag}</p>}
+            {wHeadline && <h3 class="sv-band-h" data-field="services.whole.headline" set:html={wHeadline}></h3>}
+            {wBody && <p class="sv-band-body" data-field="services.whole.body">{wBody}</p>}
+            {ctaLabel && <a class="btn btn--ink" href={ctaHref} data-field="services.ctaLabel" data-href-field="services.ctaHref">{ctaLabel}</a>}
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .sv { padding: clamp(56px, 7vw, 112px) 0; }
+
+  .sv-head { text-align: center; max-width: 720px; margin: 0 auto clamp(40px, 5vw, 64px); }
+  .sv-h2 {
+    margin: 6px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(34px, 4.6vw, 60px); line-height: 1.08; text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  .sv-sub {
+    margin: 16px auto 0; max-width: 48ch; color: var(--ink-soft); text-wrap: pretty;
+  }
+  /* Whichever line opens the head sits flush on it. */
+  .sv-head > :first-child { margin-top: 0; }
+
+  /* ── the big cards ────────────────────────────────────────────────── */
+  .sv-feat {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: clamp(28px, 3vw, 40px) clamp(18px, 2.4vw, 32px);
+  }
+  /* One or two cards keep the width three would have had, centred. */
+  .sv-feat[data-n="1"] { max-width: 380px; margin-inline: auto; }
+  .sv-feat[data-n="2"] { max-width: 792px; margin-inline: auto; }
+  .sv-card { min-width: 0; }
+  .sv-feat--text .sv-card { padding: 24px 26px; background-color: var(--sheet); border-radius: 18px; }
+  .sv-mat {
+    aspect-ratio: 4 / 5; padding: 8px; background-color: var(--sheet); border-radius: 18px;
+    box-shadow: 0 14px 30px rgba(var(--shade-rgb), .07);
+  }
+  .sv-img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; background-color: var(--band); }
+  .sv-no {
+    display: block; margin-top: 20px; font-family: var(--script); font-size: 28px;
+    line-height: 1; color: var(--rose-ink);
+  }
+  /* A card with no photo starts on its first line, not 20px down. */
+  .sv-card > .sv-no:first-child { margin-top: 0; }
+  .sv-name {
+    margin: 6px 0 4px; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(24px, 2.4vw, 30px); line-height: 1.15; overflow-wrap: break-word;
+  }
+  .sv-mat + .sv-name { margin-top: 20px; }
+  .sv-card > .sv-name:first-child { margin-top: 0; }
+  .sv-meta {
+    margin: 0 0 10px; font-size: 12px; font-weight: 500; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink-soft);
+  }
+  .sv-mat + .sv-meta, .sv-no + .sv-meta { margin-top: 10px; }
+  .sv-desc { margin: 0; font-size: 15.5px; color: var(--ink-soft); text-wrap: pretty; }
+  .sv-mat + .sv-desc, .sv-no + .sv-desc { margin-top: 10px; }
+
+  /* ── the compact cards ───────────────────────────────────────────── */
+  .sv-mini {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: clamp(18px, 2.4vw, 32px); margin-top: clamp(28px, 3vw, 40px);
+  }
+  .sv-mini[data-n="1"] { max-width: 560px; margin-inline: auto; }
+  /* No big cards above (fewer than four rows can never reach here, but the
+     rule costs nothing): the list then starts right under the head. */
+  .sv-head + .sv-mini { margin-top: 0; }
+  .sv-row {
+    display: flex; gap: 18px; align-items: center; min-width: 0;
+    padding: 14px; background-color: var(--sheet); border-radius: 18px;
+  }
+  .sv-thumb {
+    flex: 0 0 clamp(88px, 10vw, 120px); width: clamp(88px, 10vw, 120px);
+    aspect-ratio: 1 / 1; object-fit: cover; border-radius: 12px; background-color: var(--band);
+  }
+  .sv-row-copy { min-width: 0; }
+  .sv-row-name {
+    margin: 0 0 4px; font-family: var(--disp); font-weight: 400;
+    font-size: 22px; line-height: 1.2; overflow-wrap: break-word;
+  }
+  .sv-row-meta {
+    margin: 0 0 6px; font-size: 11.5px; font-weight: 500; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--rose-ink);
+  }
+  .sv-row-desc { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--ink-soft); }
+
+  /* ── the weddings band ───────────────────────────────────────────── */
+  .sv-band {
+    margin-top: clamp(48px, 6vw, 80px);
+    display: flex; flex-wrap: wrap; align-items: center; gap: 28px clamp(28px, 5vw, 64px);
+    background-color: var(--band); border-radius: 28px; padding: clamp(28px, 4vw, 56px);
+  }
+  .sv-band--first { margin-top: 0; }
+  .sv-band-img {
+    flex: 1 1 280px; min-width: 0; max-width: 420px; aspect-ratio: 1 / 1;
+    object-fit: cover; border-radius: 50%;
+    background-color: var(--line); border: 10px solid var(--sheet);
+  }
+  .sv-band-copy { flex: 1 1 360px; min-width: 0; }
+  .sv-band-tag { font-size: clamp(30px, 3vw, 40px); }
+  .sv-band-h {
+    margin: 8px 0 0; max-width: 20ch; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(28px, 3.4vw, 44px); line-height: 1.12; text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  .sv-band-copy > .sv-band-h:first-child { margin-top: 0; }
+  .sv-band-body { max-width: 48ch; margin: 16px 0 26px; color: var(--ink-soft); text-wrap: pretty; }
+  .sv-band-copy > .sv-band-body:last-child { margin-bottom: 0; }
+  .sv-band-copy > .sv-band-h + .btn { margin-top: 26px; }
+</style>

@@ -1,0 +1,86 @@
+---
+/**
+ * florist / HowBU — the process (#how): an intro column (eyebrow, Gloock h2,
+ * sage sub) beside a hairline-ruled ordered list whose steps each open with a
+ * champagne Roman numeral.
+ *
+ * Editable hooks: how.tag · how.headline · how.sub · how.steps.${s.i}.title ·
+ * how.steps.${s.i}.body (ORIGINAL index; canonical `body` spelled in the hook
+ * even when the value arrived as desc/description; legacy how.items read too).
+ * how.headline is set:html (the AI and the editor may mark an <em>); it prints
+ * upright in champagne, as Gloock has no italic cut.
+ *
+ * THE NUMERALS ARE DECORATION: computed from the DISPLAY index (so removing a
+ * blank row never leaves a gap in I, II, III…), aria-hidden, and bound to no
+ * field. The ordered list already carries the sequence for assistive tech.
+ *
+ * SECTION GATE: at least one step. A derived eyebrow alone never renders.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const how = content.how || {};
+const tag = str(how.tag);
+const headline = str(how.headline);
+const sub = str(how.sub);
+const steps: any[] = Array.isArray(how.steps) ? how.steps : (Array.isArray(how.items) ? how.items : []);
+const rows = steps
+  .map((s: any, i: number) => ({ title: str(s?.title), body: str(s?.body ?? s?.desc ?? s?.description), i }))
+  .filter((r) => r.title || r.body);
+const roman = (n: number): string => {
+  const table: Array<[number, string]> = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+  let out = '';
+  for (const [v, s] of table) { while (n >= v) { out += s; n -= v; } }
+  return out;
+};
+---
+{rows.length > 0 && (
+  <section id="how" class="how">
+    <div class="wrap h-grid">
+      {(tag || headline || sub) && (
+        <div class="h-intro">
+          {tag && <p class="kick" data-field="how.tag">{tag}</p>}
+          {headline && <h2 class="h2 h2--lg h-h2" data-field="how.headline" set:html={headline}></h2>}
+          {sub && <p class="h-sub" data-field="how.sub">{sub}</p>}
+        </div>
+      )}
+      <ol class="h-list">
+        {rows.map((s, k) => (
+          <li class="h-step">
+            <span class="h-num" aria-hidden="true">{roman(k + 1)}</span>
+            <div class="h-body">
+              {s.title && <h3 class="h-h3" data-field={`how.steps.${s.i}.title`}>{s.title}</h3>}
+              {s.body && <p class="h-p" data-field={`how.steps.${s.i}.body`}>{s.body}</p>}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+)}
+<style>
+  .how { padding: clamp(56px,7vw,112px) 0; background-color: var(--night); color: var(--cream); }
+  .h-grid { display: flex; flex-wrap: wrap; gap: 36px clamp(40px,6vw,96px); }
+  .h-intro { flex: 1 1 320px; min-width: 0; }
+  .h-h2 { text-wrap: balance; }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .h-h2 :global(em), .h-h2 :global(i) { font-style: normal; color: var(--accent-light); }
+  .h-sub { margin: 18px 0 0; max-width: 40ch; color: var(--sage); }
+  .h-intro > :first-child { margin-top: 0; }
+
+  .h-list { flex: 1.4 1 460px; min-width: 0; list-style: none; margin: 0; padding: 0; }
+  .h-step {
+    display: flex; gap: clamp(16px,3vw,32px);
+    padding: 24px 0;
+    border-top: 1px solid rgba(var(--cream-rgb),.14);
+  }
+  .h-step:last-child { border-bottom: 1px solid rgba(var(--cream-rgb),.14); }
+  .h-num {
+    flex: none; width: 44px;
+    font-family: var(--disp); font-weight: 400; font-size: 28px; line-height: 1.1;
+    color: var(--accent-light); white-space: nowrap;
+  }
+  .h-body { min-width: 0; }
+  .h-h3 { margin: 0 0 6px; font-family: var(--disp); font-weight: 400; font-size: 23px; color: var(--cream); }
+  .h-p { margin: 0; font-size: 15.5px; color: var(--sage); }
+</style>

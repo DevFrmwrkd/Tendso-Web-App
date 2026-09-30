@@ -1,0 +1,217 @@
+---
+/**
+ * woodworks / ServicesBV — the catalogue section: a split head (eyebrow + Young Serif
+ * h2 on the left, the owner's paragraph on the right), a grid of pale cards
+ * (photo, rust lead-time line, name, blurb), and under them the WALNUT BAND —
+ * the last item drawn wide, photo beside copy, with the section's one button.
+ *
+ * Editable hooks:
+ *   services.tag · services.headline (set:html) · services.sub
+ *   services.items.${i}.image (img) · .meta · .title · .desc
+ *   services.ctaLabel + data-href-field services.ctaHref — the band's button
+ *
+ * WHICH ITEM IS THE BAND. The design draws four items: three catalogue cards
+ * and, last, the custom-commission slab carrying the section button. That is
+ * kept as a rule an owner can predict: the LAST filled item is the band and
+ * everything before it is a card. One item alone is therefore drawn as the
+ * band (a wide photo-and-copy slab, not one card stretched across the row),
+ * and the section button always has its home.
+ *
+ * LISTS: blank rows are dropped and every hook keeps the row's ORIGINAL array
+ * index, so removing item 2 can never send an edit to item 3. The legacy
+ * name / description spellings are read for display; the hooks always spell
+ * the canonical keys.
+ *
+ * NO PHOTO, NO FRAME: a card or band without an image draws no well — the
+ * copy simply starts at the top. The card grid uses auto-fill (the design's
+ * auto-fit filled row is identical at every width for three cards) so one or
+ * two cards keep a card's width instead of stretching across 1184px.
+ *
+ * NEVER FABRICATED: no price, lead time or item is supplied here; the section
+ * renders only when the owner listed at least one item (the builder's derived
+ * heading alone never opens it).
+ *
+ * Colour: the cards are --card on --paper with --ink / --ink-soft text and the
+ * --accent-deep lead-time line; the band is the fixed wood world (walnut
+ * ground, linen text, tan lead-time line, linen button hovering tan), so it
+ * reads the same under every admin scheme.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+// Anchor guard, identical in HeaderBV / HeroBV / ServicesBV / CtaBandBV /
+// FooterBV — see HeaderBV for the reasoning.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'how', 'gallery', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: unknown, fallback: string): string => {
+  const h = typeof href === 'string' ? href.trim() : '';
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+
+const c = content as any;
+const sv = (c.services && typeof c.services === 'object' && !Array.isArray(c.services)) ? c.services : {};
+const tag = str(sv.tag);
+const headline = str(sv.headline);
+const sub = str(sv.sub);
+// Both shapes: the wrapped object with items, and the legacy bare array.
+const raw: any[] = Array.isArray(sv.items) ? sv.items : (Array.isArray(c.services) ? c.services : []);
+type Row = { title: string; desc: string; meta: string; image: string; i: number };
+const rows: Row[] = raw
+  .map((it: any, i: number) => ({
+    title: str(it?.title) || str(it?.name),
+    desc: str(it?.desc) || str(it?.description),
+    meta: str(it?.meta),
+    image: str(it?.image),
+    i,
+  }))
+  .filter((r: Row) => Boolean(r.title || r.desc || r.meta || r.image));
+const feat: Row | null = rows.length ? rows[rows.length - 1] : null;
+const cards: Row[] = rows.slice(0, -1);
+// The band's button. Display falls back to the page's primary action so it is
+// never pointed at nothing; the hook stays services.ctaHref either way.
+const ctaLabel = str(sv.ctaLabel);
+const ctaHref = onPage(str(sv.ctaHref) || c.hero?.cta1?.href, '#book');
+---
+{rows.length > 0 && (
+  <section class="svc" id="services">
+    <div class="wrap">
+      {(tag || headline || sub) && (
+        <div class="svc-head">
+          {(tag || headline) && (
+            <div class="svc-head-l">
+              {tag && <p class="kick" data-field="services.tag">{tag}</p>}
+              {headline && <h2 class="svc-h2" data-field="services.headline" set:html={headline}></h2>}
+            </div>
+          )}
+          {sub && <p class="svc-sub" data-field="services.sub">{sub}</p>}
+        </div>
+      )}
+
+      {cards.length > 0 && (
+        <div class="svc-grid">
+          {cards.map((r) => (
+            <article class="svc-card">
+              {r.image && (
+                <div class="svc-ph" data-image-field={`services.items.${r.i}.image`}>
+                  <img src={r.image} alt="" decoding="async" />
+                </div>
+              )}
+              {(r.meta || r.title || r.desc) && (
+                <div class="svc-body">
+                  {r.meta && <p class="svc-meta" data-field={`services.items.${r.i}.meta`}>{r.meta}</p>}
+                  {r.title && <h3 class="svc-title" data-field={`services.items.${r.i}.title`}>{r.title}</h3>}
+                  {r.desc && <p class="svc-desc" data-field={`services.items.${r.i}.desc`}>{r.desc}</p>}
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
+      )}
+
+      {feat && (
+        <div class="svc-band">
+          {feat.image && (
+            <div class="band-ph" data-image-field={`services.items.${feat.i}.image`}>
+              <img src={feat.image} alt="" decoding="async" />
+            </div>
+          )}
+          {(feat.meta || feat.title || feat.desc || ctaLabel) && (
+            <div class="band-copy">
+              {feat.meta && <p class="band-meta" data-field={`services.items.${feat.i}.meta`}>{feat.meta}</p>}
+              {feat.title && <h3 class="band-title" data-field={`services.items.${feat.i}.title`}>{feat.title}</h3>}
+              {feat.desc && <p class="band-desc" data-field={`services.items.${feat.i}.desc`}>{feat.desc}</p>}
+              {ctaLabel && <a class="btn band-cta" href={ctaHref} data-field="services.ctaLabel" data-href-field="services.ctaHref">{ctaLabel}</a>}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  /* Every value below is the design's inline style, verbatim. */
+  .svc { padding: clamp(56px, 7vw, 112px) 0; }
+
+  .svc-head {
+    display: flex; flex-wrap: wrap; gap: 16px 64px; align-items: flex-end;
+    margin-bottom: clamp(36px, 5vw, 56px);
+  }
+  .svc-head-l { flex: 1 1 440px; min-width: 0; }
+  .svc-h2 {
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(34px, 4.8vw, 64px); line-height: 1.04; letter-spacing: -.015em;
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+  .kick + .svc-h2 { margin-top: 14px; }
+  .svc-sub {
+    flex: 1 1 320px; min-width: 0; max-width: 44ch;
+    color: var(--ink-soft); text-wrap: pretty;
+  }
+
+  .svc-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+    gap: clamp(18px, 2.4vw, 28px);
+  }
+  .svc-card {
+    display: flex; flex-direction: column; min-width: 0;
+    background-color: var(--card); border-radius: 10px; overflow: hidden;
+  }
+  .svc-ph { position: relative; aspect-ratio: 4 / 3; background-color: var(--paper-2); }
+  /* Out of flow, so the owner photo's own proportions can never override the
+     frame's ratio (a column-flex item takes its content height as a minimum). */
+  .svc-ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .svc-body { padding: 22px 22px 26px; }
+  .svc-meta {
+    font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--accent-deep); overflow-wrap: anywhere;
+  }
+  .svc-title {
+    font-family: var(--disp); font-weight: 400; font-size: 24px; line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+  .svc-meta + .svc-title { margin-top: 8px; }
+  .svc-desc { font-size: 15.5px; color: var(--ink-soft); text-wrap: pretty; }
+  .svc-title + .svc-desc { margin-top: 6px; }
+  .svc-meta + .svc-desc { margin-top: 8px; }
+
+  /* The walnut band. Fixed wood world: walnut ground, linen copy, tan line,
+     a linen button hovering to tan — none of which an admin scheme moves. */
+  .svc-band {
+    display: flex; flex-wrap: wrap; gap: 24px clamp(28px, 4vw, 56px); align-items: center;
+    padding: clamp(24px, 3vw, 40px); border-radius: 10px;
+    background-color: var(--wood); color: var(--on-wood);
+  }
+  .svc-grid + .svc-band { margin-top: clamp(18px, 2.4vw, 28px); }
+  .band-ph {
+    position: relative; flex: 1 1 300px; min-width: 0; aspect-ratio: 16 / 10;
+    border-radius: 8px; overflow: hidden; background-color: var(--wood-2);
+  }
+  /* Out of flow, so the owner photo's own proportions can never override the
+     frame's ratio (a column-flex item takes its content height as a minimum). */
+  .band-ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .band-copy { flex: 1 1 360px; min-width: 0; }
+  .band-meta {
+    font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--tan); overflow-wrap: anywhere;
+  }
+  .band-title {
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(28px, 3vw, 40px); line-height: 1.1; overflow-wrap: anywhere;
+  }
+  .band-meta + .band-title { margin-top: 10px; }
+  .band-desc { max-width: 46ch; color: rgba(var(--on-wood-rgb), .82); text-wrap: pretty; }
+  .band-title + .band-desc,
+  .band-meta + .band-desc { margin-top: 10px; }
+  .band-copy > * + .band-cta { margin-top: 24px; }
+  .band-cta {
+    min-height: 52px; padding: 0 26px;
+    background-color: var(--on-wood); border-color: var(--on-wood); color: var(--wood);
+  }
+  .band-cta:hover { background-color: var(--tan); border-color: var(--tan); color: var(--wood); }
+</style>

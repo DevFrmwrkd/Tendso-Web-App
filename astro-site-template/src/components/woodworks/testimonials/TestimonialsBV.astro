@@ -1,0 +1,112 @@
+---
+/**
+ * woodworks / TestimonialsBV — the reviews section, on the oatmeal band: a
+ * rust eyebrow, one big Young Serif pull-quote with its source line under it,
+ * then pale quote cards — a rust star row, the quote, and who said it.
+ *
+ * Editable hooks:
+ *   testimonials.tag · testimonials.bigQuote (set:html) · testimonials.source
+ *   testimonials.items.${i}.rating · .quote · .who
+ *
+ * THE STARS ARE DRAWN FROM THE OWNER'S NUMBER, never hardcoded. The design
+ * prints five stars over every card; five stars for a customer who never gave
+ * a score is a claim invented on the owner's behalf. So the row exists only
+ * for a rating the owner typed: a number is rounded and capped at 5 (a value
+ * that rounds below 1 draws nothing, never one star), and a rating typed as
+ * star glyphs is counted the same way. The row carries the design's rating
+ * hook with data-derived — it RENDERS the number, it is not the number — so
+ * clicking it focuses the "Rating out of 5" box, while the editor bridge
+ * never overwrites the glyphs with a raw digit. Its accessible name states
+ * the same number that is drawn.
+ *
+ * NEVER FABRICATED: no review count, average, platform or badge is supplied.
+ * The pull-quote's own quotation marks, and any star in the source line, are
+ * the owner's characters inside the owner's field. A row with no quote is
+ * dropped (the card IS the quote); blank rows keep their ORIGINAL index.
+ *
+ * SECTION GATE: a quote card or the pull-quote. The eyebrow and source line
+ * alone are never a section.
+ *
+ * CLASS-NAME NOTE: the section is .rv, never the engine-pinned .testi.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+const c = content as any;
+const ts = (c.testimonials && typeof c.testimonials === 'object' && !Array.isArray(c.testimonials)) ? c.testimonials : {};
+const tag = str(ts.tag);
+const bigQuote = str(ts.bigQuote);
+const source = str(ts.source);
+const items: any[] = Array.isArray(ts.items) ? ts.items : (Array.isArray(c.testimonials) ? c.testimonials : []);
+// Only a finite number, or a string of star glyphs, becomes stars.
+const starsOf = (v: unknown): number => {
+  const s = str(v);
+  if (!s) return 0;
+  const n = /^[★☆\s]+$/.test(s) ? (s.match(/★/g) || []).length : Math.round(Number(s));
+  return Number.isFinite(n) && n >= 1 ? Math.min(5, n) : 0;
+};
+const rows = items
+  .map((it: any, i: number) => ({
+    quote: str(it?.quote),
+    who: str(it?.who) || str(it?.author) || str(it?.name),
+    stars: starsOf(it?.rating),
+    i,
+  }))
+  .filter((r: { quote: string }) => Boolean(r.quote));
+const show = rows.length > 0 || Boolean(bigQuote);
+---
+{show && (
+  <section class="rv" id="reviews">
+    <div class="wrap">
+      {(tag || bigQuote || source) && (
+        <div class="rv-head">
+          {tag && <p class="kick" data-field="testimonials.tag">{tag}</p>}
+          {bigQuote && <blockquote class="rv-big" data-field="testimonials.bigQuote" set:html={bigQuote}></blockquote>}
+          {source && <p class="rv-src" data-field="testimonials.source">{source}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class:list={['rv-grid', rows.length === 1 && 'is-one']}>
+          {rows.map((r: { quote: string; who: string; stars: number; i: number }) => (
+            <figure class="rv-card">
+              {r.stars > 0 && (
+                <span class="rv-stars" role="img" aria-label={`${r.stars} out of 5`} data-field={`testimonials.items.${r.i}.rating`} data-derived>{'★'.repeat(r.stars)}</span>
+              )}
+              <blockquote class="rv-q" data-field={`testimonials.items.${r.i}.quote`}>{r.quote}</blockquote>
+              {r.who && <figcaption class="rv-who" data-field={`testimonials.items.${r.i}.who`}>{r.who}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  /* Every value below is the design's inline style, verbatim. */
+  .rv { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--paper-2); }
+  .rv-head { max-width: 900px; }
+  .rv-big {
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(26px, 3.4vw, 44px); line-height: 1.2;
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+  .rv-big :global(em), .rv-big :global(i) { font-style: normal; color: var(--accent-deep); }
+  .kick + .rv-big { margin-top: 18px; }
+  .rv-src { font-size: 14px; color: var(--ink-soft); overflow-wrap: anywhere; }
+  .rv-head > * + .rv-src { margin-top: 18px; }
+
+  .rv-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: clamp(16px, 2.4vw, 24px);
+  }
+  /* One card keeps a card's measure instead of a 1184px line of quote. */
+  .rv-grid.is-one { grid-template-columns: minmax(0, 580px); }
+  .rv-head + .rv-grid { margin-top: clamp(36px, 4vw, 56px); }
+  .rv-card { min-width: 0; padding: 26px; background-color: var(--card); border-radius: 10px; }
+  .rv-stars { color: var(--accent-deep); letter-spacing: 3px; }
+  .rv-q { font-size: 16.5px; line-height: 1.55; overflow-wrap: anywhere; }
+  .rv-stars + .rv-q { margin-top: 12px; }
+  .rv-who { font-size: 13.5px; font-weight: 600; overflow-wrap: anywhere; }
+  .rv-q + .rv-who { margin-top: 16px; }
+</style>

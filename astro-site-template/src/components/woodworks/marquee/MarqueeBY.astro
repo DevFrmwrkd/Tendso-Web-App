@@ -1,0 +1,40 @@
+---
+/**
+ * woodworks / MarqueeBY — the brass line. One centred line of Caslon in brass
+ * on the lifted night band, ruled top and bottom in brass. It is STATIC in the
+ * design (a balanced, wrapping line, not a scrolling ticker), so it does not
+ * move here either.
+ *
+ * Editable hook: marquee.text — ONE owner string, printed verbatim. Any
+ * separators in it (the design's sample uses ◆) are the owner's characters,
+ * not the template's, so nothing is split, joined or decorated here.
+ *
+ * derive-content-defaults composes marquee.text from the owner's own name,
+ * city and trade, and omits it entirely when there are none of those; the
+ * band is simply not rendered without text.
+ *
+ * A <div id="marquee">, as drawn: it is a decorative band, not a section with
+ * a heading of its own.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const text = String((content as any).marquee?.text ?? '').trim();
+---
+{text && (
+  <div id="marquee" class="strip">
+    <p class="strip-line" data-field="marquee.text">{text}</p>
+  </div>
+)}
+<style>
+  .strip {
+    background-color: var(--night-2);
+    border-top: 1px solid rgba(var(--accent-rgb), .25);
+    border-bottom: 1px solid rgba(var(--accent-rgb), .25);
+    padding: 22px var(--gut);
+  }
+  .strip-line {
+    margin: 0; text-align: center;
+    font-family: var(--disp); font-weight: 400; font-size: clamp(19px, 2.2vw, 28px);
+    color: var(--accent-light); text-wrap: balance; overflow-wrap: break-word;
+  }
+</style>

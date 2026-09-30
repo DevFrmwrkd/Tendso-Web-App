@@ -1,0 +1,202 @@
+---
+/**
+ * woodworks / HeaderBY — the night rail. A translucent near-black bar under a
+ * brass hairline: the brass lozenge and the Caslon wordmark on the left, four
+ * tracked-caps links, and a square brass CTA that never leaves the screen. At
+ * <=900px the links fold into a drawer of large Caslon names under the bar.
+ *
+ * Editable hooks:
+ *   footer.brand                                     — the wordmark
+ *   navbar_links.${i}.label + navbar_links.${i}.href — each link (ORIGINAL
+ *                                                      pre-filter index)
+ *   navCtaText + navCtaHref                          — the brass CTA
+ *
+ * ONE LIST, TWO LOOKS. The design draws the drawer as a second <nav> repeating
+ * the same four hooks; here it is the SAME <nav> restyled at <=900px, so every
+ * link exists once in the document and the editor never has two targets for
+ * one field.
+ *
+ * WHY THE CTA HOOKS navCtaText AND NOT hero.cta1.text: editorBridge resolves a
+ * Blocks toggle by counting hooks of a prefix, so a header carrying hero.*
+ * hooks would answer to the Hero toggle. The DISPLAY falls back to the hero's
+ * primary action (HeaderBJ's rule) so a first build is never label-less.
+ *
+ * With no brand the wordmark and its lozenge are OMITTED: 'Your Business'
+ * was a shipped placeholder that rendered as the customer's own name.
+ * The design shows no locality beside this wordmark, so none is drawn.
+ *
+ * Never visibility-gated. The rail carries data-link-group, so on a page whose
+ * every link resolves to a section that did not render (a bare build), the
+ * wrapper's boot removes the empty rail rather than leaving a blank bar.
+ *
+ * Colour: tokens only (see PageBY's TOKEN PLAN). The CTA's label is --night,
+ * not --on-accent, and it is not .btn / .nav-cta / inside .nav-right, all of
+ * which buildOverrideCss pins.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+// Anchor guard. lib/derive-content-defaults.ts hands out '#about', '#services',
+// '#why', '#work' and '#visit'; layout.navLinks' own default adds '#contact'.
+// Resolve every in-page href against the ids PageBY renders: keep it if the id
+// exists, remap it when this design carries the same section under another id,
+// otherwise fall back (buttons) or drop it (links). Off-page hrefs (viber:,
+// tel:, mailto:, http) pass through untouched. Keep this table identical in
+// HeaderBY, HeroBY, ServicesBY, CtaBandBY and FooterBY.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'how', 'gallery', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit', location: 'visit', testimonials: 'reviews' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  const h = String(href ?? '').trim();
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const c = (content as any) || {};
+const brand = txt(c.footer?.brand) || txt(layout.businessName);
+// The derived list, resolved against this page; a link with no reachable
+// section or no label is dropped (an empty <a> is a 0-width tap target). The
+// ORIGINAL index rides along as .i so the per-link hooks stay correct.
+const navLinks: Array<{ href: string; label: string; i: number }> =
+  (Array.isArray(layout.navLinks) ? layout.navLinks : [])
+    .map((l: any, i: number) => ({ label: txt(l?.label), href: onPage(l?.href, ''), i }))
+    .filter((l: { label: string; href: string }) => l.href && l.label);
+const hero = c.hero || {};
+const ctaText = txt(c.navCtaText) || txt(hero.cta1?.text);
+const ctaHref = onPage(c.navCtaHref || hero.cta1?.href, '#book');
+---
+<header class="rail" data-by-header data-link-group>
+  <div class="rail-in">
+    {brand && (
+      <a class="mark" href="#top">
+        <span class="loz" aria-hidden="true"><span class="loz-core"></span></span>
+        <span class="word" data-field="footer.brand">{brand}</span>
+      </a>
+    )}
+    {navLinks.length > 0 && (
+      <nav class="links" id="by-nav" aria-label="Primary" data-link-group>
+        {navLinks.map((link) => (
+          <a href={link.href} data-field={`navbar_links.${link.i}.label`} data-href-field={`navbar_links.${link.i}.href`}>{link.label}</a>
+        ))}
+      </nav>
+    )}
+    {ctaText && <a class="rail-cta" href={ctaHref} data-field="navCtaText" data-href-field="navCtaHref">{ctaText}</a>}
+    {navLinks.length > 0 && (
+      <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="by-nav">
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+    )}
+  </div>
+</header>
+<script is:inline>
+  (function () {
+    var hdr = document.querySelector('header[data-by-header]');
+    if (!hdr) return;
+    var btn = hdr.querySelector('.burger');
+    if (!btn) return;
+    function setOpen(open) {
+      hdr.classList.toggle('is-open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function () { setOpen(!hdr.classList.contains('is-open')); });
+    // The CTA sits OUTSIDE the drawer, so tapping it while the drawer is open
+    // must close the drawer too.
+    hdr.querySelectorAll('.links a, .rail-cta').forEach(function (a) {
+      a.addEventListener('click', function () { setOpen(false); });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || !hdr.classList.contains('is-open')) return;
+      setOpen(false);
+      btn.focus();
+    });
+  })();
+</script>
+<style>
+  .rail {
+    position: sticky; top: 0; z-index: 50;
+    background-color: rgba(var(--night-rgb), .94);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(var(--accent-rgb), .25);
+    color: var(--bone);
+  }
+  /* justify-content: flex-end keeps the CTA and burger pinned right when the
+     wordmark is absent; with it present, its auto margin does the work. */
+  .rail-in {
+    max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gut);
+    height: 76px; display: flex; align-items: center; justify-content: flex-end; gap: 18px;
+  }
+
+  /* The wordmark: lozenge + Caslon name. The name ellipsises before anything
+     else gives way, exactly as the design does at 360px. */
+  .mark { display: flex; align-items: center; gap: 12px; margin-right: auto; min-width: 0; color: var(--bone); }
+  .mark:hover { color: var(--accent-light); }
+  .loz {
+    flex: none; width: 30px; height: 30px;
+    border: 1px solid var(--accent-light); transform: rotate(45deg);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .loz-core { width: 10px; height: 10px; background-color: var(--accent-light); }
+  .word {
+    font-family: var(--disp); font-weight: 400; font-size: clamp(22px, 2.4vw, 28px);
+    letter-spacing: .02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .links { display: flex; gap: 30px; margin-right: 12px; }
+  .links a {
+    font-family: var(--sans); font-size: 13px; font-weight: 500;
+    letter-spacing: .14em; text-transform: uppercase; white-space: nowrap;
+    color: var(--bone);
+  }
+  .links a:hover { color: var(--accent-light); }
+
+  /* The brass CTA. Night label on brass (7.71:1, and >= 5.39:1 under every
+     curated scheme); the hover swaps the fill to bone and keeps the label. */
+  .rail-cta {
+    flex: none; display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px;
+    background-color: var(--accent-light); color: var(--night); border: 0;
+    font-family: var(--sans); font-size: 12.5px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; white-space: nowrap;
+  }
+  .rail-cta:hover { background-color: var(--bone); color: var(--night); }
+
+  /* The burger: three bone hairlines in a brass-ruled square, as drawn. It
+     does not morph into a cross; the design has no such motion. */
+  .burger {
+    display: none; flex: none; width: 46px; height: 44px;
+    flex-direction: column; justify-content: center; gap: 6px; padding: 0 12px;
+    background-color: transparent; border: 1px solid rgba(var(--accent-rgb), .5);
+    border-radius: 0; cursor: pointer;
+  }
+  .burger span { display: block; height: 1px; background-color: var(--bone); }
+
+  /* ONE collapse breakpoint, the design's own (vw <= 900): links out and the
+     burger in at the same width, so there is never a band with neither. */
+  @media (max-width: 900px) {
+    .burger { display: flex; }
+    .links {
+      display: none; position: absolute; left: 0; right: 0; top: 100%;
+      margin: 0; flex-direction: column; gap: 0; padding: 8px 0 14px; text-align: center;
+      background-color: var(--night-2); border-bottom: 1px solid rgba(var(--accent-rgb), .3);
+      max-height: calc(100vh - 76px); overflow-y: auto;
+    }
+    .rail.is-open .links { display: flex; }
+    .links a {
+      min-height: 56px; display: flex; align-items: center; justify-content: center;
+      padding: 0 var(--gut);
+      font-family: var(--disp); font-size: 26px; font-weight: 400;
+      letter-spacing: 0; text-transform: none; white-space: normal; overflow-wrap: anywhere;
+    }
+  }
+  /* A long owner label must not push the wordmark and burger off a 360px
+     screen: past 42vw the label ellipsises. display:block (not inline-flex) so
+     text-overflow applies; the 44px line keeps the label centred and the tap
+     target at 44px. The design's one-word label is well under the cap. */
+  @media (max-width: 520px) {
+    .rail-cta {
+      display: block; line-height: 44px; max-width: 42vw;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+  }
+</style>

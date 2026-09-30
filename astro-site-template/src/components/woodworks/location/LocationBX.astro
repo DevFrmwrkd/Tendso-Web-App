@@ -1,0 +1,200 @@
+---
+/**
+ * woodworks / LocationBX — "Acacia Studio"'s showroom (#visit): on the left an
+ * eyebrow, a light Newsreader headline and a ruled fact list (Address, Hours,
+ * Phone) with an olive "Get directions" link under it; on the right a
+ * rounded, desaturated map as tall as the column beside it.
+ *
+ * Editable hooks:
+ *   location.tag · location.headline · location.address · location.hours ·
+ *   location.phone (tel: anchor, data-field only — its href is derived from
+ *   the value) · location.directions.text + data-href-field
+ *   location.directions.href
+ * Also read: location.lat / location.lng (the map), with the contact block as
+ * the display fallback for the address and the phone.
+ *
+ * The row labels (Address / Hours / Phone) are template chrome, literal like
+ * LocationBI's "Finding us", and each is drawn only beside a value. The arrow
+ * after the directions label is generated content, so it can never enter the
+ * stored label (a trailing arrow the owner typed is not doubled).
+ *
+ * Map strategy, three tiers (LocationBI's rule):
+ *   1. build-time coordinates → window.__woodworksBXInitMap(lat, lng, label)
+ *   2. else an address        → client-side Nominatim lookup, then the boot
+ *   3. else                   → the drawn fallback face stays
+ * No coordinates and no address → no map cell at all (a pin on a drawn map is
+ * a claim about where the business is). The drawn face lives INSIDE #map until
+ * Leaflet mounts; PageBX's boot clears it. id="map" and the global's name are
+ * a contract with PageBX.
+ *
+ * GATE: a map, an address, hours or a phone. The derived eyebrow and headline
+ * alone are a heading over nothing. (PageBX's LIVE ANCHORS mirrors this gate.)
+ *
+ * The headline renders with set:html: the AI copy step may put an <em>
+ * highlight into it (astro-builder balances the inline HTML).
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const loc = (content as any).location || {};
+const ct = layout?.contact || {};
+const tag = str(loc.tag);
+const headline = str(loc.headline);
+const address = str(loc.address || ct.address);
+const addressLines = address ? address.split('\n').map((l: string) => l.trim()).filter(Boolean) : [];
+// The schema declares the hours as ONE text line. A legacy site may still hold
+// day/time rows there; those are joined for display rather than dropped.
+const hours = typeof loc.hours === 'string'
+  ? loc.hours.trim()
+  : Array.isArray(loc.hours)
+    ? loc.hours.map((r: any) => [str(r?.day), str(r?.time)].filter(Boolean).join(' ')).filter(Boolean).join(' · ')
+    : '';
+const phone = str(loc.phone || ct.phone);
+const phoneHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const dirText = str(loc.directions?.text).replace(/\s*[→›»]+\s*$/, '');
+const dirHref = str(loc.directions?.href) || (address
+  ? `https://maps.google.com/?q=${encodeURIComponent(address.replace(/\n/g, ' '))}`
+  : '');
+// A CLEARED coordinate field is '' (Number('') is 0, which would pin the map in
+// the Gulf of Guinea). Reject blank and out-of-range values so a cleared field
+// falls through to the address lookup. `??` so a genuine 0 survives.
+const num = (v: any, max: number): number | null => {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && Math.abs(n) <= max ? n : null;
+};
+const lat = num(loc.lat, 90) ?? num(ct.lat, 90);
+const lng = num(loc.lng, 180) ?? num(ct.lng, 180);
+const label = str(layout?.businessName);
+const mapAria = label ? `Map showing ${label}` : 'Map';
+const hasCoords = lat !== null && lng !== null;
+const hasAddress = Boolean(address);
+const hasMap = hasCoords || hasAddress;
+const hasFacts = Boolean(address || hours || phone);
+const hasSection = hasMap || hasFacts;
+---
+{hasSection && (
+  <section id="visit" class="visit">
+    <div class="wrap visit-in">
+      <div class="visit-l">
+        {tag && <p class="eyebrow" data-field="location.tag">{tag}</p>}
+        {headline && <h2 class="display visit-h" data-field="location.headline" set:html={headline}></h2>}
+        {hasFacts && (
+          <dl class="visit-dl">
+            {address && (
+              <div class="visit-row">
+                <dt>Address</dt>
+                <dd data-field="location.address">{addressLines.map((line: string, i: number) => (<>{i > 0 && <br />}{line}</>))}</dd>
+              </div>
+            )}
+            {hours && (
+              <div class="visit-row">
+                <dt>Hours</dt>
+                <dd data-field="location.hours">{hours}</dd>
+              </div>
+            )}
+            {phone && (
+              <div class="visit-row">
+                <dt>Phone</dt>
+                <dd><a href={phoneHref} data-field="location.phone">{phone}</a></dd>
+              </div>
+            )}
+          </dl>
+        )}
+        {dirText && dirHref && (
+          <a class="visit-dir" href={dirHref} target="_blank" rel="noopener noreferrer" data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
+        )}
+      </div>
+      {hasMap && (
+        <div class="visit-r">
+          <div id="map" class="visit-map" role="img" aria-label={mapAria}>
+            <div class="map-face" aria-hidden="true"><span class="map-pin"></span></div>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+{hasSection && hasCoords && (
+  <script is:inline define:vars={{ lat, lng, label }}>
+    (function init() {
+      if (window.__woodworksBXInitMap) window.__woodworksBXInitMap(lat, lng, label);
+      else setTimeout(init, 80);
+    })();
+  </script>
+)}
+{hasSection && !hasCoords && hasAddress && (
+  <script is:inline define:vars={{ address, label }}>
+    (function geocodeThenInit() {
+      var attempt = 0;
+      function tryInit(la, ln) {
+        if (window.__woodworksBXInitMap) { window.__woodworksBXInitMap(la, ln, label); }
+        else if (attempt++ < 25) { setTimeout(function () { tryInit(la, ln); }, 80); }
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        var url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query;
+        fetch(url, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) return;
+            var la = parseFloat(results[0].lat);
+            var ln = parseFloat(results[0].lon);
+            if (isNaN(la) || isNaN(ln)) return;
+            tryInit(la, ln);
+          })
+          .catch(function () { /* keep the drawn fallback face */ });
+      } catch (e) { /* never block render */ }
+    })();
+  </script>
+)}
+<style>
+  .visit { padding: clamp(56px,7vw,104px) 0; }
+  .visit-in {
+    display: flex; flex-wrap: wrap; align-items: stretch;
+    gap: 40px clamp(40px,6vw,88px);
+  }
+  .visit-l { flex: 1 1 340px; min-width: 0; }
+  .visit-h { margin-top: 12px; font-size: clamp(32px,4.2vw,56px); line-height: 1.04; color: var(--ink); }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .visit-h :global(i),
+  .visit-h :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+  .visit-dl { margin: 26px 0 0; }
+  .visit-l > :first-child { margin-top: 0; }
+  .visit-row { padding: 14px 0; border-top: 1px solid var(--line); }
+  .visit-row:last-child { border-bottom: 1px solid var(--line); }
+  .visit-row dt {
+    font-size: 12px; font-weight: 600; line-height: 1.65; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-soft);
+  }
+  .visit-row dd { margin: 4px 0 0; line-height: 1.65; color: var(--ink); overflow-wrap: anywhere; }
+  .visit-dir {
+    display: inline-flex; align-items: center; min-height: 44px; margin-top: 18px;
+    background-color: transparent; font-weight: 600; color: var(--accent-deep);
+    border-bottom: 1px solid var(--accent-deep); overflow-wrap: anywhere;
+  }
+  .visit-dir::after { content: "\00a0\2192"; content: "\00a0\2192" / ""; }
+  .visit-dir:hover { background-color: transparent; color: var(--ink); }
+
+  .visit-r { flex: 1.3 1 420px; min-width: 0; }
+  /* As tall as the fact column beside it (a stretched flex item resolves the
+     100%), never shorter than 360px — which is all it is once stacked. */
+  .visit-map {
+    position: relative; z-index: 0; height: 100%; min-height: 360px;
+    border-radius: 16px; overflow: hidden; background-color: var(--card);
+    filter: saturate(.5);
+  }
+  /* The drawn fallback face: a faint plotted grid and the design's pin. Every
+     value is a token, so it recolours with an admin scheme. */
+  .map-face {
+    position: absolute; inset: 0; background-color: var(--card);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(var(--ink-rgb),.06) 0 1px, transparent 1px 48px),
+      repeating-linear-gradient(90deg, rgba(var(--ink-rgb),.06) 0 1px, transparent 1px 48px);
+  }
+  .map-pin {
+    position: absolute; left: 50%; top: 50%; width: 18px; height: 18px;
+    margin: -9px 0 0 -9px; border-radius: 50%; background-color: var(--accent);
+    box-shadow: 0 0 0 5px var(--paper), 0 4px 12px rgba(var(--ink-rgb),.3);
+  }
+</style>

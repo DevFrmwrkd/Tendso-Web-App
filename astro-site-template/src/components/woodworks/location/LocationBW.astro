@@ -1,0 +1,193 @@
+---
+/**
+ * woodworks / LocationBW — "visit the shop": eyebrow, condensed h2 and a short
+ * paragraph, then a mono ledger ruled in ink (ADDR / HOURS / TEL), an
+ * underlined Directions link, and beside it a real map in a hairline frame —
+ * grey tiles and the design's square orange pin.
+ *
+ * Editable hooks (all schema-owned):
+ *   location.tag · location.headline · location.sub
+ *   location.address (falls back to contact.address, as its schema field does)
+ *   location.hours   (the schema's single "Hours line")
+ *   location.phone   (falls back to contact.phone; a tel: anchor, so it carries
+ *                     data-field ONLY — its href is derived from the value)
+ *   location.directions.text + data-href-field location.directions.href
+ * Reads location.lat / location.lng (then layout.contact) for the map.
+ *
+ * The ledger's ADDR / HOURS / TEL are template chrome — structural labels, each
+ * printed only beside a value. Nothing here invents an hour, a number, a
+ * landmark or a travel time.
+ *
+ * MAP, three tiers (LocationBI's rule): 1. coordinates → the wrapper's
+ * window.__woodworksBWInitMap(lat, lng, label); 2. else an address → a
+ * client-side Nominatim lookup, then the same boot; 3. else the drawn face (a
+ * drafting grid under the square pin) stays. No coordinates AND no address → no
+ * map cell at all: a pin with nothing real behind it is a claim about where the
+ * shop is. The literal id="map" and the boot's name are a contract with PageBW.
+ *
+ * DELIBERATE DEVIATION: the design greys the WHOLE map, which also greys its
+ * orange pin (the reference render shows a grey square). The grey is applied to
+ * the tile layer only, so the pin the design specifies — orange, recoloured by
+ * an admin pick — is the one that shows.
+ *
+ * The Directions arrow is generated content, so it can never enter the stored
+ * label.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const loc = (content as any).location || {};
+const str = (v: any): string => String(v ?? '').trim();
+const tag = str(loc.tag);
+const headline = str(loc.headline);
+const sub = str(loc.sub);
+const address = str(loc.address) || str(layout?.contact?.address);
+const addressLines: string[] = address ? address.split('\n').map((l) => l.trim()).filter(Boolean) : [];
+const hours = typeof loc.hours === 'string' ? loc.hours.trim() : '';
+const phone = str(loc.phone) || str(layout?.contact?.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const dirText = str(loc.directions?.text);
+const dirHref = str(loc.directions?.href) || (address
+  ? `https://maps.google.com/?q=${encodeURIComponent(address.replace(/\n/g, ' '))}`
+  : '');
+// A CLEARED coordinate field leaves '' and Number('') is 0 — a pin in the Gulf
+// of Guinea. Reject blank and out-of-range values so a cleared field falls
+// through to the address lookup. `??` keeps a genuine 0.
+const num = (v: any, max: number): number | null => {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && Math.abs(n) <= max ? n : null;
+};
+const lat = num(loc.lat, 90) ?? num(layout?.contact?.lat, 90);
+const lng = num(loc.lng, 180) ?? num(layout?.contact?.lng, 180);
+const label = str(layout?.businessName) || address;
+const mapAria = label ? `Map showing ${label}` : 'Map';
+const hasCoords = lat !== null && lng !== null;
+const hasAddress = Boolean(address);
+const hasMap = hasCoords || hasAddress;
+const hasLedger = Boolean(address || hours || phone);
+const hasSection = hasMap || hasLedger;
+---
+{hasSection && (
+  <section id="visit" class="vs">
+    <div class:list={['wrap', 'vs-in', !hasMap && 'vs-in--solo']}>
+      <div class="vs-copy">
+        {tag && <p class="eyebrow" data-field="location.tag">{tag}</p>}
+        {headline && <h2 class="h2 h2--md" data-field="location.headline">{headline}</h2>}
+        {sub && <p class="vs-sub" data-field="location.sub">{sub}</p>}
+        {hasLedger && (
+          <dl class="vs-dl">
+            {address && (
+              <div class="vs-row">
+                <dt>ADDR</dt>
+                <dd data-field="location.address">{addressLines.map((line, k) => (<>{k > 0 && <br />}{line}</>))}</dd>
+              </div>
+            )}
+            {hours && (
+              <div class="vs-row">
+                <dt>HOURS</dt>
+                <dd data-field="location.hours">{hours}</dd>
+              </div>
+            )}
+            {phone && (
+              <div class="vs-row">
+                <dt>TEL</dt>
+                <dd><a class="vs-tel" href={telHref} data-field="location.phone">{phone}</a></dd>
+              </div>
+            )}
+          </dl>
+        )}
+        {dirText && dirHref && (
+          <a class="linkc vs-dir" href={dirHref} target="_blank" rel="noopener noreferrer" data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
+        )}
+      </div>
+      {hasMap && (
+        <div class="vs-mapcol">
+          <div id="map" class="vs-map" role="img" aria-label={mapAria}>
+            <div class="vs-face" aria-hidden="true"><span class="vs-pin"></span></div>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+{hasSection && hasCoords && (
+  <script is:inline define:vars={{ lat, lng, label }}>
+    (function () {
+      var attempt = 0;
+      (function init() {
+        if (window.__woodworksBWInitMap && window.L) window.__woodworksBWInitMap(lat, lng, label);
+        else if (attempt++ < 100) setTimeout(init, 80);
+      })();
+    })();
+  </script>
+)}
+{hasSection && !hasCoords && hasAddress && (
+  <script is:inline define:vars={{ address, label }}>
+    (function geocodeThenInit() {
+      var attempt = 0;
+      function tryInit(la, ln) {
+        if (window.__woodworksBWInitMap && window.L) { window.__woodworksBWInitMap(la, ln, label); }
+        else if (attempt++ < 60) { setTimeout(function () { tryInit(la, ln); }, 100); }
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) return;
+            var la = parseFloat(results[0].lat);
+            var ln = parseFloat(results[0].lon);
+            if (isNaN(la) || isNaN(ln)) return;
+            tryInit(la, ln);
+          })
+          .catch(function () { /* keep the drawn face */ });
+      } catch (e) { /* never block render */ }
+    })();
+  </script>
+)}
+<style>
+  .vs { padding: clamp(56px,7vw,112px) 0; }
+  .vs-in { display: flex; flex-wrap: wrap; gap: 40px clamp(40px,6vw,88px); align-items: stretch; }
+  .vs-copy { flex: 1 1 340px; min-width: 0; }
+  .vs-in--solo .vs-copy { max-width: 820px; }
+  .vs-copy .vs-sub {
+    margin: 16px 0 0; max-width: 40ch; color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+  .vs-copy .vs-sub:first-child { margin-top: 0; }
+
+  .vs-dl { margin: 26px 0 0; font-family: var(--mono); font-size: 14px; line-height: 1.6; }
+  .vs-dl:first-child { margin-top: 0; }
+  .vs-row { display: flex; gap: 16px; padding: 12px 0; border-top: 1px solid var(--ink); }
+  .vs-row:last-child { border-bottom: 1px solid var(--ink); }
+  .vs-row dt { flex: 0 0 72px; color: var(--ink-soft); }
+  .vs-row dd { margin: 0; min-width: 0; color: var(--ink); overflow-wrap: anywhere; }
+  .vs-tel { color: var(--ink); }
+  .vs-tel:hover { color: var(--accent-deep); }
+
+  .vs-copy .vs-dir { margin-top: 18px; }
+  .vs-copy .vs-dir:first-child { margin-top: 0; }
+  .vs-dir::after { content: '→'; margin-left: .3em; }
+
+  .vs-mapcol { flex: 1.3 1 420px; min-width: 0; }
+  .vs-map {
+    position: relative; z-index: 0; isolation: isolate;
+    height: 100%; min-height: 360px; overflow: hidden;
+    background-color: var(--card); border: 1px solid var(--ink);
+  }
+  /* The design's grey map, applied to the tiles so the pin keeps its colour. */
+  .vs-map :global(.leaflet-tile-pane) { filter: grayscale(1) contrast(1.05); }
+  /* The drawn face (tier 3): a drafting grid under the square pin. The boot
+     empties #map before Leaflet draws, so tiles never stack on top of it. */
+  .vs-face {
+    position: absolute; inset: 0;
+    background-color: var(--card);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(var(--ink-rgb),.07) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, rgba(var(--ink-rgb),.07) 0 1px, transparent 1px 40px);
+  }
+  .vs-pin {
+    position: absolute; left: 50%; top: 50%; width: 18px; height: 18px;
+    transform: translate(-50%,-50%);
+    background-color: var(--accent); border: 2px solid var(--ink);
+  }
+</style>

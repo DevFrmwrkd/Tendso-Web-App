@@ -1,0 +1,205 @@
+---
+/**
+ * florist / HeroBS — centred, and split: blush-cream over the blush tint at
+ * 58%. A tracked caps kicker, the owner's Pinyon Script line tucked into the
+ * top of the headline, a huge Gilda Display h1, the lede, two pills, then three
+ * matted photographs — the centre upright, the two sides tilted -3° / +3° —
+ * straddling the colour split, and two small meta lines under them.
+ *
+ * Editable hooks (all schema-owned):
+ *   hero.kicker · hero.thin (the script line) · hero.headline · hero.sub ·
+ *   hero.cta1.text + .href · hero.cta2.text + .href · hero.meta1 · hero.meta2 ·
+ *   data-image-field hero.image (centre) and, BY DESIGN, the two side mats
+ *   bind services.items.1.image and services.items.2.image — the second and
+ *   third arrangements are shown again here (PORTING.md). Same field, same
+ *   photo, twice on purpose.
+ *
+ * THE HEADLINE reads two paths, exactly as foodcraft/HeroBO does and for the
+ * same reason: the derive layer fills hero.headline with the bare business
+ * name, while the copy extraction writes hero.headlineLines and never
+ * hero.headline. So hero.headline wins whenever it is AUTHORED (anything but
+ * that auto-filled name); when it is only the auto-fill, surviving
+ * headlineLines rows win, flowed inline inside the same h1 (this design's
+ * headline is one sentence), each bound to its ORIGINAL row index. The field a
+ * click opens is always the field the visible words came from.
+ *
+ * NO PHOTO, NO MATS. The photo row renders only around a real hero.image; the
+ * side mats only as a PAIR (one tilted mat beside the centre reads as a
+ * mistake). Without a hero photo the colour split is dropped too — it exists to
+ * sit behind the mats, and through the middle of the copy it would read as a
+ * band starting nowhere — so the hero becomes one calm blush-cream block.
+ *
+ * SECTION GATE: a headline, a lede, the script line or the photograph. The
+ * kicker and the two buttons are not counted: the derive layer fills the
+ * buttons on every site, so counting them would ship a hero of two pills.
+ *
+ * CLASS-NAME LAW: the section is .hr, never .hero (the engine force-paints
+ * `.hero .btn-ghost`); the pills are .btn--fill / .btn--line.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+// Anchor guard — the same table as HeaderBS / ServicesBS / CtaBandBS /
+// FooterBS. Buttons FALL BACK rather than drop: the derive layer points
+// cta1 at '#visit' and cta2 at '#services', both real ids here.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit', location: 'visit', testimonials: 'reviews', home: 'top' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  const h = String(href ?? '').trim();
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: any): string => String(v ?? '').trim();
+const H = (content as any).hero || {};
+const S = (content as any).services || {};
+const sRows: any[] = Array.isArray(S.items) ? S.items : [];
+// Display fallbacks only — the HOOK stays hero.image, the path the image picker
+// writes. Submission photos are the owner's own uploads.
+const heroImage = str(H.image) || str(Array.isArray(H.photos) ? H.photos[0] : '') || str(Array.isArray((content as any).photos) ? (content as any).photos[0] : '');
+const leftImage = str(sRows[1]?.image);
+const rightImage = str(sRows[2]?.image);
+const showSides = Boolean(heroImage && leftImage && rightImage);
+
+const kicker = str(H.kicker);
+const thin = str(H.thin);
+const sub = str(H.sub);
+const meta1 = str(H.meta1);
+const meta2 = str(H.meta2);
+
+// THE HEADLINE — see the doc comment.
+const bizName = str(layout?.businessName);
+const headline = str(H.headline);
+const lineRows: Array<{ text: string; i: number }> = (Array.isArray(H.headlineLines) ? H.headlineLines : [])
+  .map((t: any, i: number) => ({ text: str(t), i }))
+  .filter((l: { text: string }) => l.text !== '');
+const useRows = lineRows.length > 0
+  && (headline === '' || headline === bizName)
+  && lineRows.map((l) => l.text).join(' ') !== headline;
+const hasHeadline = useRows || headline !== '';
+
+const cta1Text = str(H.cta1?.text);
+const cta1Href = onPage(H.cta1?.href, '#book');
+const cta2Text = str(H.cta2?.text);
+const cta2Href = onPage(H.cta2?.href, '#services');
+
+const hasHero = hasHeadline || Boolean(sub || thin || heroImage);
+---
+{hasHero && (
+  <section class:list={['hr', heroImage && 'hr--split']} id="top">
+    <div class="k-wrap hr-in">
+      {kicker && <p class="hr-kick" data-field="hero.kicker">{kicker}</p>}
+      {/* The script line is tucked into the headline's cap height by a
+          negative bottom margin — only when a headline follows it. The design
+          marks it aria-hidden: it is an ornament over the h1, not its opening. */}
+      {thin && <p class:list={['hr-thin', hasHeadline && 'hr-thin--over']} data-field="hero.thin" aria-hidden="true">{thin}</p>}
+      {hasHeadline && (
+        useRows ? (
+          <h1 class="hr-h1">
+            {lineRows.map((l, k) => (
+              <Fragment>{k > 0 && ' '}<span data-field={`hero.headlineLines.${l.i}`} set:html={l.text}></span></Fragment>
+            ))}
+          </h1>
+        ) : (
+          <h1 class="hr-h1" data-field="hero.headline" set:html={headline}></h1>
+        )
+      )}
+      {sub && <p class="hr-sub" data-field="hero.sub">{sub}</p>}
+      {(cta1Text || cta2Text) && (
+        <div class="hr-ctas">
+          {cta1Text && <a class="btn btn--fill" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
+          {cta2Text && <a class="btn btn--line" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+        </div>
+      )}
+      {heroImage && (
+        <div class="hr-photos">
+          {showSides && (
+            <div class="hr-mat hr-mat--side hr-mat--l">
+              <img class="hr-img" src={leftImage} alt="" decoding="async" data-image-field="services.items.1.image" />
+            </div>
+          )}
+          <div class="hr-mat hr-mat--main">
+            <img class="hr-img" src={heroImage} alt="" loading="eager" fetchpriority="high" decoding="async" data-image-field="hero.image" />
+          </div>
+          {showSides && (
+            <div class="hr-mat hr-mat--side hr-mat--r">
+              <img class="hr-img" src={rightImage} alt="" decoding="async" data-image-field="services.items.2.image" />
+            </div>
+          )}
+        </div>
+      )}
+      {(meta1 || meta2) && (
+        <div class="hr-meta">
+          {meta1 && <span data-field="hero.meta1">{meta1}</span>}
+          {meta2 && <span data-field="hero.meta2">{meta2}</span>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  /* No photo: one calm ground. With the mats: the design's hard split at 58%,
+     blush-cream over the tint, which the mats straddle. */
+  .hr { position: relative; background-color: var(--paper);
+    padding: clamp(48px, 7vw, 96px) 0 clamp(56px, 7vw, 96px); }
+  .hr--split { background-image: linear-gradient(var(--paper) 0 58%, var(--band) 58% 100%); }
+  .hr-in { text-align: center; }
+
+  .hr-kick {
+    margin: 0; font-size: 12px; font-weight: 500; letter-spacing: .32em;
+    text-transform: uppercase; color: var(--ink-soft);
+  }
+  .hr-thin {
+    margin: 18px 0 0; font-family: var(--script); font-weight: 400;
+    font-size: clamp(40px, 5.6vw, 76px); line-height: 1; color: var(--rose-ink);
+  }
+  .hr-thin--over { margin-bottom: -.35em; }
+  .hr-h1 {
+    margin: 0 auto; max-width: 16ch;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(42px, 6.8vw, 96px); line-height: 1.04; letter-spacing: -.01em;
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  /* With no script line above it the headline still needs air under the
+     kicker; the script line's own 18px is what normally supplies it. */
+  .hr-kick + .hr-h1 { margin-top: 18px; }
+  .hr-sub {
+    max-width: 50ch; margin: 26px auto 34px;
+    font-size: clamp(16px, 1.4vw, 18.5px); color: var(--ink-soft); text-wrap: pretty;
+  }
+  .hr-ctas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+
+  /* The mats. flex-basis 0 and the two grow factors (1 / 1.35) give the
+     design's proportions at every width; the max-widths stop them at 320 and
+     440 on a wide screen. aspect-ratio sizes each mat from its width. */
+  .hr-photos {
+    display: flex; gap: clamp(10px, 2vw, 28px); align-items: flex-end; justify-content: center;
+    margin-top: clamp(40px, 5vw, 72px);
+  }
+  .hr-mat {
+    min-width: 0; padding: clamp(6px, .8vw, 10px);
+    background-color: var(--sheet); border-radius: 18px;
+  }
+  .hr-mat--side {
+    flex: 1 1 0; max-width: 320px; aspect-ratio: 3 / 4;
+    box-shadow: 0 20px 40px rgba(var(--shade-rgb), .08);
+  }
+  .hr-mat--l { transform: rotate(-3deg); }
+  .hr-mat--r { transform: rotate(3deg); }
+  .hr-mat--main {
+    flex: 1.35 1 0; max-width: 440px; aspect-ratio: 4 / 5;
+    position: relative; z-index: 1;
+    box-shadow: 0 24px 48px rgba(var(--shade-rgb), .1);
+  }
+  .hr-img {
+    width: 100%; height: 100%; object-fit: cover;
+    border-radius: 12px; background-color: var(--band);
+  }
+
+  .hr-meta {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 32px;
+    margin-top: clamp(32px, 4vw, 48px); font-size: 14px; color: var(--ink-soft);
+  }
+</style>
