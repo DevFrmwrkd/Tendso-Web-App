@@ -102,6 +102,40 @@ describe('downloadMediaZip', () => {
         expect(missing).toContain('originals/photo-03  —  no downloadable URL');
     });
 
+    it('never reads from the browser cache, where an <img> may have left a copy without CORS headers', async () => {
+        const inits: RequestInit[] = [];
+        const inner = fakeFetch({ 'https://r2/a': {}, 'https://cv/h': {} });
+        await downloadMediaZip({
+            zipName: 'x',
+            files: buildMediaFileList({ originals: ['https://r2/a'], enhanced: [{ key: 'enhanced_hero', url: 'https://cv/h' }] }),
+            fetchImpl: ((url: string, init: RequestInit) => { inits.push(init); return inner(url, init); }) as unknown as typeof fetch,
+            deliver: () => {},
+        });
+        expect(inits).toHaveLength(2);
+        for (const init of inits) expect(init).toEqual({ mode: 'cors', credentials: 'omit', cache: 'no-store' });
+    });
+
+    it('retries a blocked download once under a fresh cache key', async () => {
+        const result = await downloadMediaZip({
+            zipName: 'x',
+            files: buildMediaFileList({ originals: ['https://r2/a.jpg'], enhanced: [] }),
+            // The plain URL is "blocked"; only the cache-busted one answers.
+            fetchImpl: fakeFetch({ 'https://r2/a.jpg?tendso-zip=1': {} }),
+            deliver: () => {},
+        });
+        expect(result).toEqual({ added: 1, failed: [] });
+    });
+
+    it('reports the original error when the retry does not succeed either', async () => {
+        const result = await downloadMediaZip({
+            zipName: 'x',
+            files: buildMediaFileList({ originals: ['https://r2/a'], enhanced: [] }),
+            fetchImpl: fakeFetch({ 'https://r2/a?tendso-zip=1': { status: 403 } }),
+            deliver: () => {},
+        });
+        expect(result.failed).toEqual([{ path: 'originals/photo-01', reason: 'Failed to fetch' }]);
+    });
+
     it('rejects an empty download as a failure rather than zipping a 0-byte photo', async () => {
         const result = await downloadMediaZip({
             zipName: 'x',

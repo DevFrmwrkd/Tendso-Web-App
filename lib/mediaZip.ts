@@ -76,6 +76,35 @@ export function buildMediaFileList(input: {
     return [...originals, ...enhanced];
 }
 
+/**
+ * Fetch one file for the zip, never from the browser cache.
+ *
+ * WHY. The page shows the owner's photos with plain <img> tags (the site
+ * preview). R2 only adds CORS headers to a request that carries an Origin, and
+ * does not send `Vary: Origin`, so the browser caches those photos without
+ * them, and a CORS fetch of the same URL is served from that entry and fails
+ * with "Failed to fetch". `no-store` goes to the network instead. If a browser
+ * still refuses, one retry under a query string no <img> has used gets a
+ * fresh cache key; if that fails too, the first error is the one reported.
+ */
+async function fetchUncached(doFetch: typeof fetch, url: string): Promise<Response> {
+    const init: RequestInit = { mode: 'cors', credentials: 'omit', cache: 'no-store' };
+    try {
+        return await doFetch(url, init);
+    } catch (first) {
+        let retry: Response | null = null;
+        try {
+            const busted = new URL(url);
+            busted.searchParams.set('tendso-zip', '1');
+            retry = await doFetch(busted.toString(), init);
+        } catch {
+            // Fall through to the original error.
+        }
+        if (retry?.ok) return retry;
+        throw first;
+    }
+}
+
 /** Fetch every file (a few at a time), zip them, and hand the zip to the browser as a download. */
 export async function downloadMediaZip(opts: {
     zipName: string;
@@ -97,7 +126,7 @@ export async function downloadMediaZip(opts: {
             const f = opts.files[i];
             try {
                 if (!f.url) throw new Error('no downloadable URL');
-                const res = await doFetch(f.url, { mode: 'cors', credentials: 'omit' });
+                const res = await fetchUncached(doFetch, f.url);
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = new Uint8Array(await res.arrayBuffer());
                 if (data.length === 0) throw new Error('empty file');
