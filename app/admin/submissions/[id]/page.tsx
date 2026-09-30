@@ -8,6 +8,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Loader2, Palette, FileEdit, Check, X, AlertTriangle, Trash2, ExternalLink, PanelRightClose, PanelRightOpen, Globe, ChevronLeft } from "lucide-react";
 import { isComped } from "@/lib/pricing";
+import { orderedEnhancedEntries } from "@/convex/lib/enhancedImages";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import WebsitePreview from "@/components/WebsitePreview";
 import VisualEditor from "@/components/editor/VisualEditor";
@@ -103,7 +104,10 @@ export default function SubmissionDetailPage() {
         if (!enhancedImageData) return null;
         const categories: Record<string, string[]> = {};
         const allUrls: string[] = [];
-        for (const [key, img] of Object.entries(enhancedImageData)) {
+        // Page order: the latest render first, images kept from earlier renders
+        // (archive_N) after it — so the picker's AI-enhanced tab leads with the set
+        // the admin just rendered rather than whatever order the object lists.
+        for (const [key, img] of orderedEnhancedEntries(enhancedImageData)) {
             let imageUrl = "";
             if (typeof img === "string") {
                 imageUrl = img;
