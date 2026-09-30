@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Image from "next/image"
+import { extensionFor, fetchUncached } from "@/lib/mediaZip"
 
 interface PhotoLightboxProps {
     photos: string[]
@@ -39,12 +40,15 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }: PhotoLightb
                     onClick={async (e) => {
                         e.stopPropagation()
                         try {
-                            const res = await fetch(photos[currentIndex])
+                            // Uncached: the site preview has usually shown this photo already,
+                            // and that cached copy has no CORS headers (see fetchUncached).
+                            const res = await fetchUncached(fetch, photos[currentIndex])
+                            if (!res.ok) throw new Error(`HTTP ${res.status}`)
                             const blob = await res.blob()
                             const url = URL.createObjectURL(blob)
                             const a = document.createElement('a')
                             a.href = url
-                            a.download = `photo-${currentIndex + 1}.jpg`
+                            a.download = `photo-${currentIndex + 1}.${extensionFor(res.headers.get('content-type'), photos[currentIndex])}`
                             document.body.appendChild(a)
                             a.click()
                             document.body.removeChild(a)
