@@ -1,0 +1,67 @@
+---
+/**
+ * woodworks / TrustBW — "at a glance": a ruled strip of up to four big
+ * condensed figures, each over a mono label, divided by 20% ink hairlines,
+ * closed by one full ink rule.
+ *
+ * Editable hooks (the schema's trust.cells list):
+ *   trust.cells.${i}.num · trust.cells.${i}.label
+ *
+ * NEVER FABRICATED: nothing derives this band (astro-builder also forces the
+ * Trust toggle off when the list is empty). Not one figure, zero or dash is
+ * supplied here; a blank row is dropped with its ORIGINAL index kept, and a
+ * half-filled row prints only what was typed.
+ *
+ * The grid is the design's auto-fit (150px floor), so the figures sit four
+ * across on a desktop and two-up on a phone exactly as drawn. The first cell
+ * has no left pad and the last no divider, whatever the count.
+ *
+ * CLASS NAMES: .tr / .tr-num / .tr-lbl — never .trust / .num / .lbl, which
+ * buildOverrideCss paints with the on-ink colour (right only on a black band).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const trust = (content as any).trust || {};
+const cells: any[] = Array.isArray(trust.cells) ? trust.cells : (Array.isArray(trust) ? trust : []);
+const rows = cells
+  .map((cell: any, i: number) => ({ num: String(cell?.num ?? '').trim(), label: String(cell?.label ?? '').trim(), i }))
+  .filter((r) => Boolean(r.num || r.label));
+---
+{rows.length > 0 && (
+  <section class="tr" aria-label="At a glance">
+    <div class="wrap tr-grid">
+      {rows.map((r) => (
+        <div class="tr-cell">
+          {r.num && <b class="tr-num" data-field={`trust.cells.${r.i}.num`}>{r.num}</b>}
+          {r.label && <span class="tr-lbl" data-field={`trust.cells.${r.i}.label`}>{r.label}</span>}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+<style>
+  /* The top rule is drawn by the band itself so the strip still reads as ruled
+     when the black marquee above it is switched off; under the marquee it
+     simply merges into the black. */
+  .tr { border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink); }
+  .tr:first-child { border-top: 0; }
+  .tr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,150px), 1fr)); }
+  .tr-cell {
+    min-width: 0; padding: 28px 18px;
+    border-right: 1px solid rgba(var(--ink-rgb),.2);
+  }
+  .tr-cell:first-child { padding-left: 0; }
+  .tr-cell:last-child { border-right: 0; }
+  .tr-num {
+    display: block; font-family: var(--disp); font-size: clamp(36px,4.4vw,60px);
+    font-weight: 800; font-stretch: 80%; line-height: 1; color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .tr-lbl {
+    display: block; margin-top: 8px;
+    font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+  .tr-num + .tr-lbl { margin-top: 8px; }
+  .tr-lbl:first-child { margin-top: 0; }
+</style>

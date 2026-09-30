@@ -1,0 +1,52 @@
+---
+/**
+ * woodworks / TrustBV — the at-a-glance strip under the marquee: big Young
+ * Serif figures, each over a short muted label, on the linen ground with one
+ * hairline beneath. The grid is the design's auto-fit, so four cells sit
+ * four-up on a desktop and two-up at 360px without a media query.
+ *
+ * Editable hooks (the schema's trust.cells list):
+ *   trust.cells.${i}.num · trust.cells.${i}.label
+ *
+ * NEVER FABRICATED: a year, a count, a warranty or a rating is a claim only
+ * the owner may make. content.trust has no derived default, so the strip
+ * exists only where an owner filled it in. Blank rows are dropped with their
+ * ORIGINAL index kept; figure and label are guarded independently.
+ *
+ * CLASS-NAME LAW: the section is .glance and its cells .gl-*, never the
+ * engine-pinned .trust / .num / .lbl (they force an on-ink label colour that
+ * would put near-white text on this linen ground). No id: nothing links here.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+const tr = (content as any).trust || {};
+const cells: any[] = Array.isArray(tr.cells) ? tr.cells : (Array.isArray(tr) ? tr : []);
+const rows = cells
+  .map((c: any, i: number) => ({ num: str(c?.num), label: str(c?.label), i }))
+  .filter((r) => Boolean(r.num || r.label));
+---
+{rows.length > 0 && (
+  <section class="glance">
+    <div class="wrap gl-grid">
+      {rows.map((r) => (
+        <div class="gl-cell">
+          {r.num && <b class="gl-num" data-field={`trust.cells.${r.i}.num`}>{r.num}</b>}
+          {r.label && <span class="gl-lbl" data-field={`trust.cells.${r.i}.label`}>{r.label}</span>}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+<style>
+  .glance { padding: clamp(40px, 5vw, 64px) 0; border-bottom: 1px solid rgba(var(--ink-rgb), .14); }
+  .gl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 28px 16px; }
+  .gl-cell { min-width: 0; }
+  .gl-num {
+    display: block; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(34px, 4vw, 52px); line-height: 1; overflow-wrap: anywhere;
+  }
+  .gl-lbl { display: block; font-size: 14px; color: var(--ink-soft); overflow-wrap: anywhere; }
+  .gl-num + .gl-lbl { margin-top: 10px; }
+</style>

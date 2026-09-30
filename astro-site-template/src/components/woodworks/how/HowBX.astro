@@ -1,0 +1,73 @@
+---
+/**
+ * woodworks / HowBX — "Acacia Studio"'s ordering steps (#how), opened by a
+ * hairline: an eyebrow and a light Newsreader headline, then the owner's steps
+ * in a row, each under a large italic olive numeral ("1.", "2." …).
+ *
+ * Editable hooks:
+ *   how.tag · how.headline · how.steps.${i}.title · how.steps.${i}.body
+ *
+ * The numerals are DECORATIVE: computed from the DISPLAY index (so dropping a
+ * blank row never leaves a gap in the count), aria-hidden, and bound to no
+ * field. Every hook keeps the row's ORIGINAL index.
+ *
+ * GATE: at least one filled step. No timing, lead time or payment promise is
+ * written by this file; with no steps the section is not rendered. (PageBX's
+ * LIVE ANCHORS mirrors this gate.)
+ *
+ * The headline renders with set:html: the AI copy step may put an <em>
+ * highlight into any headline (astro-builder balances the inline HTML).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const hw = (content as any).how || {};
+const tag = str(hw.tag);
+const headline = str(hw.headline);
+const steps: any[] = Array.isArray(hw.steps) ? hw.steps : (Array.isArray(hw.items) ? hw.items : []);
+const rows = steps
+  .map((st: any, i: number) => ({ title: str(st?.title), body: str(st?.body ?? st?.desc ?? st?.description), i }))
+  .filter((r) => Boolean(r.title || r.body));
+---
+{rows.length > 0 && (
+  <section id="how" class="steps">
+    <div class="wrap">
+      {tag && <p class="eyebrow" data-field="how.tag">{tag}</p>}
+      {headline && <h2 class="display steps-h" data-field="how.headline" set:html={headline}></h2>}
+      <ol class="steps-list">
+        {rows.map((st, k) => (
+          <li class="steps-item">
+            <span class="steps-n" aria-hidden="true">{`${k + 1}.`}</span>
+            {st.title && <h3 class="steps-t" data-field={`how.steps.${st.i}.title`}>{st.title}</h3>}
+            {st.body && <p class="steps-b" data-field={`how.steps.${st.i}.body`}>{st.body}</p>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+)}
+<style>
+  .steps { padding: clamp(56px,7vw,104px) 0; border-top: 1px solid var(--line); }
+  .steps-h { margin-top: 12px; font-size: clamp(34px,4.6vw,62px); color: var(--ink); }
+  .steps-h:first-child { margin-top: 0; }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .steps-h :global(i),
+  .steps-h :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+  .steps-list {
+    list-style: none; margin: clamp(32px,4vw,52px) 0 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,220px),1fr));
+    gap: 28px clamp(18px,2.4vw,32px);
+  }
+  .steps-list:first-child { margin-top: 0; }
+  .steps-item { min-width: 0; }
+  .steps-n {
+    display: block; font-family: var(--disp); font-style: italic; font-weight: 400;
+    font-size: 44px; line-height: 1; color: var(--accent-deep);
+  }
+  .steps-t {
+    margin: 12px 0 6px; font-family: var(--disp); font-weight: 400; font-size: 24px;
+    line-height: 1.65; color: var(--ink); overflow-wrap: anywhere;
+  }
+  .steps-b { margin: 0; font-size: 15.5px; line-height: 1.65; color: var(--ink-soft); overflow-wrap: break-word; }
+  .steps-n + .steps-b { margin-top: 12px; }
+</style>

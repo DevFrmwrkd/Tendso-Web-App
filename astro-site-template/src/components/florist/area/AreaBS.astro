@@ -1,0 +1,96 @@
+---
+/**
+ * florist / AreaBS — "where we deliver": on the left a script eyebrow, a Gilda
+ * headline, a soft paragraph and the places as blush pills; on the right a
+ * white card of delivery rows, each a Gilda place name against a rose time.
+ *
+ * Editable hooks: area.tag · area.headline · area.body · area.places.${i} ·
+ * area.rows.${i}.place · area.rows.${i}.time (ORIGINAL index, blanks dropped).
+ *
+ * NEVER FABRICATED: no place and no time is written here — every row is a pair
+ * the owner typed, printed verbatim; a row with only one half prints only that
+ * half, and a lone time still holds the right edge.
+ *
+ * GATE (do not relax it): the derive layer sets the place list to the owner's
+ * own city and a "Serving <city>" headline on nearly every site, so a single
+ * place that merely repeats the business city is NOT content — it would ship a
+ * delivery section echoing the address. The section renders when there are
+ * delivery rows, a paragraph, two or more places, or one place that is not
+ * the city echo. Either card can be absent; the left column then takes the
+ * full measure, the card never renders empty.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => String(v ?? '').trim();
+const AR = (content as any).area || {};
+const tag = str(AR.tag);
+const headline = str(AR.headline);
+const body = str(AR.body ?? AR.sub);
+const places = (Array.isArray(AR.places) ? AR.places : [])
+  .map((p: any, i: number) => ({ v: str(p), i }))
+  .filter((p: { v: string }) => p.v !== '');
+const rows = (Array.isArray(AR.rows) ? AR.rows : [])
+  .map((r: any, i: number) => ({ place: str(r?.place), time: str(r?.time), i }))
+  .filter((r: { place: string; time: string }) => r.place || r.time);
+const city = str((content as any).business_city).toLowerCase();
+const placesAreContent = places.length >= 2 || (places.length === 1 && places[0].v.toLowerCase() !== city);
+const show = rows.length > 0 || Boolean(body) || placesAreContent;
+---
+{show && (
+  <section class="ar" id="area">
+    <div class="k-wrap ar-in">
+      <div class="ar-copy">
+        {tag && <p class="k-tag" data-field="area.tag">{tag}</p>}
+        {headline && <h2 class="ar-h2" data-field="area.headline" set:html={headline}></h2>}
+        {body && <p class="ar-body" data-field="area.body">{body}</p>}
+        {places.length > 0 && (
+          <div class="ar-places">
+            {places.map((p) => <span class="ar-pill" data-field={`area.places.${p.i}`}>{p.v}</span>)}
+          </div>
+        )}
+      </div>
+      {rows.length > 0 && (
+        <div class="ar-card">
+          {rows.map((r) => (
+            <div class="ar-row">
+              {r.place && <span class="ar-place" data-field={`area.rows.${r.i}.place`}>{r.place}</span>}
+              {r.time && <span class="ar-time" data-field={`area.rows.${r.i}.time`}>{r.time}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .ar { padding: clamp(56px, 7vw, 112px) 0; }
+  .ar-in { display: flex; flex-wrap: wrap; gap: 36px clamp(40px, 6vw, 96px); }
+  .ar-copy { flex: 1 1 340px; min-width: 0; }
+  .ar-h2 {
+    margin: 6px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px); line-height: 1.1; text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  .ar-body { margin: 16px 0 24px; max-width: 42ch; color: var(--ink-soft); }
+  .ar-copy > :first-child { margin-top: 0; }
+  .ar-h2 + .ar-places { margin-top: 24px; }
+  .ar-places { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ar-pill {
+    padding: 8px 18px; border-radius: 999px; background-color: var(--band);
+    font-size: 14px; max-width: 100%; overflow-wrap: break-word;
+  }
+
+  .ar-card {
+    flex: 1 1 420px; min-width: 0;
+    padding: 10px clamp(18px, 3vw, 32px); background-color: var(--sheet); border-radius: 22px;
+  }
+  .ar-row {
+    display: flex; justify-content: space-between; gap: 16px; padding: 16px 0;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .ar-row:last-child { border-bottom: 0; }
+  .ar-place { min-width: 0; font-family: var(--disp); font-size: 19px; overflow-wrap: break-word; }
+  /* margin-left:auto keeps a time on the right edge even in a row whose
+     place is blank. */
+  .ar-time { flex: none; margin-left: auto; font-size: 14px; color: var(--rose-ink); text-align: right; }
+</style>

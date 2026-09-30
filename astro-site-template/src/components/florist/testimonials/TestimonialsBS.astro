@@ -1,0 +1,115 @@
+---
+/**
+ * florist / TestimonialsBS — "kind words": a centred script eyebrow over one
+ * large pull-quote in Gilda Display and the owner's source line, then a row of
+ * white, softly shadowed cards: the owner's own star row in rose, the quote in
+ * Gilda, and a small attribution.
+ *
+ * Editable hooks: testimonials.tag · testimonials.bigQuote ·
+ * testimonials.source · testimonials.items.${i}.rating ·
+ * testimonials.items.${i}.quote · testimonials.items.${i}.who (ORIGINAL index).
+ *
+ * NEVER FABRICATED. The stars are the owner's rating FIELD, printed only when
+ * typed — never a default row of five. The accessible name "N out of M" is
+ * derived only when the field is nothing but star glyphs; any other rating is
+ * read as typed. The big quote's curly marks are drawn by the template,
+ * aria-hidden and OUTSIDE the field, so an inline edit can never write them
+ * into the quote (and a pair the owner typed is not doubled).
+ *
+ * A card needs its quote: a name with nothing said is an attribution to
+ * nothing, so quote-less rows are dropped (they stay in the sidebar).
+ * SECTION GATE: a quote card or the pull-quote. astro-builder already switches
+ * the block off when the list is empty.
+ *
+ * CLASS-NAME LAW: .tm, never .testi (the engine pins `.testi` to on-ink).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => String(v ?? '').trim();
+const T = (content as any).testimonials || {};
+const tag = str(T.tag);
+const source = str(T.source);
+// Strip a pair of wrapping quote marks the owner may have typed; the template
+// draws its own.
+const bigQuote = str(T.bigQuote).replace(/^[\s"“”]+/, '').replace(/[\s"“”]+$/, '');
+const items: any[] = Array.isArray(T.items) ? T.items : (Array.isArray(T) ? T : []);
+const rows = items
+  .map((it: any, i: number) => ({
+    quote: str(it?.quote),
+    who: str(it?.who ?? it?.author ?? it?.name),
+    rating: str(it?.rating),
+    i,
+  }))
+  .filter((r: { quote: string }) => r.quote !== '');
+// "★★★★☆" → "4 out of 5". Anything that is not purely star glyphs keeps no
+// label and is read out as typed.
+const starsLabel = (r: string): string | undefined => {
+  const s = r.replace(/\s+/g, '');
+  if (!/^[★☆]+$/.test(s)) return undefined;
+  const full = (s.match(/★/g) || []).length;
+  return `${full} out of ${s.length}`;
+};
+---
+{(rows.length > 0 || bigQuote) && (
+  <section class="tm" id="reviews">
+    <div class="k-wrap">
+      {(tag || bigQuote || source) && (
+        <div class="tm-head">
+          {tag && <p class="k-tag" data-field="testimonials.tag">{tag}</p>}
+          {bigQuote && (
+            <blockquote class="tm-big"><span aria-hidden="true">“</span><span data-field="testimonials.bigQuote">{bigQuote}</span><span aria-hidden="true">”</span></blockquote>
+          )}
+          {source && <p class="tm-src" data-field="testimonials.source">{source}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class="tm-grid" data-n={String(Math.min(rows.length, 3))}>
+          {rows.map((r) => (
+            <figure class="tm-card">
+              {r.rating && (
+                <span class="tm-stars" role={starsLabel(r.rating) ? 'img' : undefined} aria-label={starsLabel(r.rating)} data-field={`testimonials.items.${r.i}.rating`}>{r.rating}</span>
+              )}
+              <blockquote class="tm-q" data-field={`testimonials.items.${r.i}.quote`}>{r.quote}</blockquote>
+              {r.who && <figcaption class="tm-who" data-field={`testimonials.items.${r.i}.who`}>{r.who}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .tm { padding: clamp(56px, 7vw, 112px) 0; }
+  .tm-head { text-align: center; max-width: 920px; margin: 0 auto; }
+  .tm-big {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(26px, 3.4vw, 44px); line-height: 1.25; text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  .tm-src { margin: 20px 0 0; font-size: 14px; color: var(--ink-soft); }
+  .tm-head > :first-child { margin-top: 0; }
+
+  .tm-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: clamp(16px, 2.4vw, 28px); margin-top: clamp(40px, 5vw, 64px);
+  }
+  .tm-grid:first-child { margin-top: 0; }
+  /* One card keeps the width it has in the design's 3-up row, centred, rather
+     than one short quote stretched across the whole page. */
+  .tm-grid[data-n="1"] { max-width: 380px; margin-inline: auto; }
+  .tm-card {
+    margin: 0; min-width: 0; padding: 30px; background-color: var(--sheet); border-radius: 22px;
+    box-shadow: 0 14px 30px rgba(var(--shade-rgb), .06);
+  }
+  .tm-stars { color: var(--rose-ink); letter-spacing: 3px; }
+  .tm-q {
+    margin: 14px 0 18px; font-family: var(--disp); font-size: 19px; line-height: 1.5;
+    overflow-wrap: break-word;
+  }
+  .tm-card > .tm-q:first-child { margin-top: 0; }
+  .tm-card > .tm-q:last-child { margin-bottom: 0; }
+  .tm-who {
+    font-size: 13px; font-weight: 500; letter-spacing: .06em; color: var(--ink-soft);
+    overflow-wrap: break-word;
+  }
+</style>

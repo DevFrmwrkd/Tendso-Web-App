@@ -1,0 +1,89 @@
+---
+/**
+ * woodworks / HowBW — the process band: the workshop's black, an orange mono
+ * eyebrow, a giant condensed caps headline, a short lede, then the steps in a
+ * row of cells under one faint rule — each cell a small orange mono counter,
+ * a condensed caps title and a line of body copy.
+ *
+ * Editable hooks (all schema-owned):
+ *   how.tag · how.headline · how.sub
+ *   how.steps.${i}.title · how.steps.${i}.body (canonical key, spelled in the
+ *   hook even when the value arrived as desc / description)
+ *
+ * THE COUNTER IS DECORATIVE. The design labels its steps with a schedule
+ * (day and week ranges) that has no field behind it — a lead time nobody
+ * typed is a promise nobody made. So each cell is opened by a counter derived
+ * from the DISPLAY index (01, 02, 03 — never a gap after a dropped row),
+ * aria-hidden and unbound. The row's ORIGINAL index rides on every hook.
+ *
+ * No step is supplied by this file, and the band disappears when every row is
+ * blank: a headline over no steps is an empty shell.
+ *
+ * The band is the fixed --shop black (see PageBW's TOKEN PLAN); the orange is
+ * --accent-light, verified at 5.6:1 or better on it under every woodworks
+ * scheme.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const how = (content as any).how || {};
+const str = (v: any): string => String(v ?? '').trim();
+const tag = str(how.tag);
+const headline = str(how.headline);
+const sub = str(how.sub);
+const steps: any[] = Array.isArray(how.steps) ? how.steps : (Array.isArray(how.items) ? how.items : []);
+const rows = steps
+  .map((s: any, i: number) => ({ i, title: str(s?.title), body: str(s?.body ?? s?.desc ?? s?.description) }))
+  .filter((r) => Boolean(r.title || r.body));
+---
+{rows.length > 0 && (
+  <section id="how" class="pr">
+    <div class="wrap">
+      {tag && <p class="eyebrow pr-tag" data-field="how.tag">{tag}</p>}
+      {headline && <h2 class="h2 pr-h2" data-field="how.headline">{headline}</h2>}
+      {sub && <p class="pr-sub" data-field="how.sub">{sub}</p>}
+      <ol class="pr-steps">
+        {rows.map((s, k) => (
+          <li class="pr-step">
+            <span class="pr-n" aria-hidden="true">{String(k + 1).padStart(2, '0')}</span>
+            {s.title && <h3 class="pr-t" data-field={`how.steps.${s.i}.title`}>{s.title}</h3>}
+            {s.body && <p class="pr-b" data-field={`how.steps.${s.i}.body`}>{s.body}</p>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+)}
+<style>
+  .pr {
+    padding: clamp(56px,7vw,112px) 0;
+    background-color: var(--shop); color: var(--on-shop);
+  }
+  .pr .pr-tag { color: var(--accent-light); }
+  .pr-h2 { color: var(--on-shop); text-wrap: balance; }
+  .pr .pr-sub {
+    margin: 18px 0 0; max-width: 52ch; color: rgba(var(--on-shop-rgb),.75);
+    overflow-wrap: anywhere;
+  }
+  .pr .pr-sub:first-child { margin-top: 0; }
+
+  .pr-steps {
+    list-style: none; margin: clamp(36px,5vw,56px) 0 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,200px), 1fr));
+    border-top: 1px solid rgba(var(--on-shop-rgb),.3);
+  }
+  .pr-steps:first-child { margin-top: 0; }
+  .pr-step { min-width: 0; padding: 24px 20px 8px 0; }
+  /* Inline, as drawn: the counter sits on the cell's own 16.5px/1.6 strut, so
+     its line is as tall as a body line and the rhythm matches the design. */
+  .pr-n { font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--accent-light); }
+  .pr-step .pr-t {
+    margin: 10px 0 6px; font-family: var(--disp); font-size: 24px; font-weight: 800;
+    font-stretch: 85%; line-height: 1.6; text-transform: uppercase; color: var(--on-shop);
+    overflow-wrap: anywhere;
+  }
+  .pr-step .pr-b {
+    margin: 0; font-size: 15px; line-height: 1.6; color: rgba(var(--on-shop-rgb),.75);
+    overflow-wrap: anywhere;
+  }
+  .pr-n + .pr-b { margin-top: 10px; }
+</style>

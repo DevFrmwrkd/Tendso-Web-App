@@ -15,7 +15,7 @@ export type TemplateFamily =
     | "generic" | "barbershop" | "salonspa" | "autoshop" | "restaurant"
     | "shirtstore" | "retail" | "medical" | "fitness" | "education"
     | "trades" | "foodcraft" | "services" | "filipino" | "hospitality"
-    | "florist" | "layouts";
+    | "florist" | "woodworks" | "layouts";
 
 import { TEMPLATE_SECTION_ORDER } from "./templateSectionOrder.generated";
 import { TEMPLATE_SECTION_LABELS, DEFAULT_SECTION_LABELS } from "./templateSectionLabels";
@@ -136,10 +136,23 @@ const HOSPITALITY_TEMPLATES: TemplateDef[] = [
     { letter: "BK", code: "hospitality:BK", label: "Villa Marindu", tagline: "Night & brass · private villas and whole-property stays", preview: "/template-previews/bk.html" },
 ];
 
-// Florist family. A new family, but its body is the barbershop's *F sections
-// restyled by FloristSpine — only the wrapper, header and hero are its own.
+// Florist family. Bloom's body is the barbershop's *F sections restyled by
+// FloristSpine — only its wrapper, header and hero are its own. BS–BU are
+// fully self-contained, one section component per block, like hospitality BJ.
 const FLORIST_TEMPLATES: TemplateDef[] = [
     { letter: "BR", code: "florist:BR", label: "Bloom", tagline: "Dusty rose & cream · flower shops, studios & event florists", preview: "/template-previews/br.html" },
+    { letter: "BS", code: "florist:BS", label: "Kalachuchi", tagline: "Blush & rose script · neighbourhood flower studios", preview: "/template-previews/bs.html" },
+    { letter: "BT", code: "florist:BT", label: "Gumamela", tagline: "Loud red & marigold · everyday bouquets and events", preview: "/template-previews/bt.html" },
+    { letter: "BU", code: "florist:BU", label: "Sampaguita", tagline: "Deep green & champagne · wedding and event florals", preview: "/template-previews/bu.html" },
+];
+
+// Woodworks family — furniture makers, cabinetry shops and joiners. Four
+// self-contained designs, one section component per block.
+const WOODWORKS_TEMPLATES: TemplateDef[] = [
+    { letter: "BV", code: "woodworks:BV", label: "Narra & Co.", tagline: "Linen & rust · solid-wood furniture makers", preview: "/template-previews/bv.html" },
+    { letter: "BW", code: "woodworks:BW", label: "Molave", tagline: "Workshop grey & safety orange · custom cabinetry", preview: "/template-previews/bw.html" },
+    { letter: "BX", code: "woodworks:BX", label: "Acacia Studio", tagline: "Bone & olive · contemporary furniture studios", preview: "/template-previews/bx.html" },
+    { letter: "BY", code: "woodworks:BY", label: "Yakal Joinery", tagline: "Night & brass · heirloom joinery by commission", preview: "/template-previews/by.html" },
 ];
 
 /** Families in rail-display order, each with a human label. */
@@ -160,6 +173,7 @@ export const TEMPLATE_FAMILIES: Array<{ family: TemplateFamily; label: string; t
     { family: "filipino",    label: "Filipino",       templates: FILIPINO_TEMPLATES },
     { family: "hospitality", label: "Hotels & Stays", templates: HOSPITALITY_TEMPLATES },
     { family: "florist",     label: "Florist",        templates: FLORIST_TEMPLATES },
+    { family: "woodworks",   label: "Woodworks",      templates: WOODWORKS_TEMPLATES },
 ];
 
 export const ALL_TEMPLATES: TemplateDef[] = TEMPLATE_FAMILIES.flatMap((f) => f.templates);

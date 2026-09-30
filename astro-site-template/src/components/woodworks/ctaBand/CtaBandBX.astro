@@ -1,0 +1,125 @@
+---
+/**
+ * woodworks / CtaBandBX — "Acacia Studio"'s closing call (#book): one ink slab
+ * with rounded corners, inset a few pixels from the page edge, holding a large
+ * light Newsreader line, a sentence in soft bone, and two pills — a bone-filled
+ * one and a bone-rimmed one.
+ *
+ * Editable hooks:
+ *   ctaBand.headline · ctaBand.sub
+ *   ctaBand.cta.text + data-href-field ctaBand.cta.href   — the filled pill
+ *   ctaBand.cta2.text + data-href-field ctaBand.cta2.href — the rimmed pill
+ *
+ * The primary path is ctaBand.cta (what the sidebar writes); a legacy primary
+ * stored under another key is read for DISPLAY only. The second pill has no
+ * fallback of any kind: a button nobody labelled is not drawn.
+ *
+ * GATE: words AND a way to act — a headline or sentence plus at least one
+ * pill that has somewhere to go. A closing slab with nothing to press is an
+ * empty shell, and so is a pair of buttons with nothing said above them.
+ * PageBX's LIVE ANCHORS mirrors this gate (it decides whether #book exists
+ * for the other components' links), so change both together.
+ *
+ * THE PILLS resolve against the ids this build renders (`links`, see
+ * HeaderBX). The filled pill falls back to the showroom, then the owner's
+ * phone or email. The rimmed pill is dropped when it names a section this
+ * build does not render; an empty or unknown href falls back only to the
+ * showroom, and only when the filled one is not already going there. A pill
+ * never points at this slab itself. A pill with nowhere to go is not drawn.
+ *
+ * The headline renders with set:html: the AI copy step may put an <em>
+ * highlight into any headline (astro-builder balances the inline HTML).
+ *
+ * BUTTON SAFETY: the section is .closer, never the forbidden cta-band class
+ * (the engine pins `.cta-band .btn` to the on-ink colour). The pills carry no
+ * .btn class, declare their own fill, and restate fill + label on hover.
+ */
+interface Props { content: any; layout?: any; links?: { anchors?: string[]; contact?: string }; }
+const { content, links } = Astro.props;
+// Anchor guard — identical in every BX component that renders an in-page href
+// (the full explanation is in HeaderBX). #book is taken out of the set here: a
+// pill in the closing slab that points back at the slab goes nowhere.
+const ALL_ANCHORS = ['main', 'top', 'marquee', 'services', 'custom', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book'];
+const LIVE = new Set<string>(Array.isArray(links?.anchors) ? links.anchors : ALL_ANCHORS);
+LIVE.delete('book');
+const CONTACT = String(links?.contact ?? '').trim();
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: any): string => {
+  const h = String(href ?? '').trim();
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (LIVE.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && LIVE.has(alias) ? `#${alias}` : '';
+};
+const act = (href: any, ...fallbacks: string[]): string => [href, ...fallbacks].map(onPage).find(Boolean) || CONTACT;
+// A secondary names its destination, so when that is one of the design's
+// sections and this build does not render it, the pill goes; only an empty or
+// unknown href falls back.
+const act2 = (href: any, primary: string, ...fallbacks: string[]): string => {
+  const own = onPage(href);
+  if (own) return own;
+  const id = String(href ?? '').trim().replace(/^#/, '');
+  if (id && (ALL_ANCHORS.includes(id) || ANCHOR_ALIAS[id])) return '';
+  return fallbacks.map(onPage).find((x) => x && x !== primary) || '';
+};
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const cb = (content as any).ctaBand || {};
+const headline = str(cb.headline);
+const sub = str(cb.sub);
+const primary = [cb.cta, cb.cta1, cb.primary].find((x: any) => x && str(x.text)) || {};
+const ctaHref = primary.text ? act(primary.href, '#visit') : '';
+const ctaText = ctaHref ? str(primary.text) : '';
+const cta2Href = str(cb.cta2?.text) ? act2(cb.cta2?.href, ctaText ? ctaHref : '', '#visit') : '';
+const cta2Text = cta2Href ? str(cb.cta2?.text) : '';
+const show = Boolean(headline || sub) && Boolean(ctaText || cta2Text);
+---
+{show && (
+  <section id="book" class="closer">
+    <div class="closer-slab">
+      {headline && <h2 class="display closer-h" data-field="ctaBand.headline" set:html={headline}></h2>}
+      {sub && <p class="closer-sub" data-field="ctaBand.sub">{sub}</p>}
+      <div class="closer-acts">
+        {ctaText && <a class="closer-btn" href={ctaHref} data-field="ctaBand.cta.text" data-href-field="ctaBand.cta.href">{ctaText}</a>}
+        {cta2Text && <a class="closer-btn closer-btn--rim" href={cta2Href} data-field="ctaBand.cta2.text" data-href-field="ctaBand.cta2.href">{cta2Text}</a>}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .closer { padding: 0 clamp(12px,2vw,24px) clamp(12px,2vw,24px); }
+  .closer-slab {
+    max-width: var(--maxw); margin: 0 auto; text-align: center;
+    border-radius: clamp(14px,2vw,24px);
+    background-color: var(--ink); color: var(--paper);
+    padding: clamp(56px,7vw,104px) clamp(22px,5vw,80px);
+  }
+  .closer-h {
+    margin: 0 auto; max-width: 18ch; font-size: clamp(38px,5.6vw,80px);
+    line-height: 1; letter-spacing: -.03em; color: var(--paper);
+  }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .closer-h :global(i),
+  .closer-h :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+  .closer-sub {
+    margin: 20px auto 0; max-width: 46ch; line-height: 1.65;
+    color: rgba(var(--paper-rgb), .8); overflow-wrap: break-word;
+  }
+  .closer-sub:first-child { margin-top: 0; }
+  .closer-acts {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;
+    margin-top: 30px;
+  }
+  .closer-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 54px; padding: 10px 28px; border-radius: 999px;
+    border: 1px solid var(--paper); background-color: var(--paper); color: var(--ink);
+    font-family: var(--sans); font-size: 15px; font-weight: 600; line-height: 1.3;
+    text-align: center; overflow-wrap: anywhere;
+  }
+  .closer-btn:hover { background-color: var(--cta-hover); border-color: var(--cta-hover); color: var(--ink); }
+  .closer-btn--rim {
+    background-color: transparent; border-color: rgba(var(--paper-rgb), .5); color: var(--paper);
+  }
+  .closer-btn--rim:hover { background-color: transparent; border-color: var(--paper); color: var(--paper); }
+</style>

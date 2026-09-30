@@ -1,0 +1,85 @@
+---
+/**
+ * florist / FaqBS — "before you order": on the blush tint band, a narrow
+ * (860px) centred column — script eyebrow, Gilda headline, soft lede — over a
+ * stack of rounded blush-cream accordion rows: the question in Gilda with a
+ * small rose "+" pushed right, the answer in the soft ink beneath.
+ *
+ * Editable hooks: faq.tag · faq.headline · faq.sub · faq.items.${i}.q ·
+ * faq.items.${i}.a (ORIGINAL index).
+ *
+ * The first row opens by default, as the design's markup marks it (<details
+ * open>); the rest start closed. Native <details>, so it works with no script
+ * and every answer stays in the document for search and find-in-page. The
+ * "+" is aria-hidden chrome OUTSIDE the question's field.
+ *
+ * NOT ONE POLICY IS SHIPPED HERE: no cut-off, fee, sourcing time or booking
+ * lead time. A row needs its question (the question IS the label); an answer
+ * alone is dropped. With no question the section does not exist.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => String(v ?? '').trim();
+const Q = (content as any).faq || {};
+const tag = str(Q.tag);
+const headline = str(Q.headline);
+const sub = str(Q.sub);
+const items: any[] = Array.isArray(Q.items) ? Q.items : (Array.isArray(Q) ? Q : []);
+const rows = items
+  .map((it: any, i: number) => ({ q: str(it?.q ?? it?.question), a: str(it?.a ?? it?.answer), i }))
+  .filter((r: { q: string }) => r.q !== '');
+---
+{rows.length > 0 && (
+  <section class="fq" id="faq">
+    <div class="k-wrap fq-in">
+      {(tag || headline || sub) && (
+        <div class="fq-head">
+          {tag && <p class="k-tag" data-field="faq.tag">{tag}</p>}
+          {headline && <h2 class="fq-h2" data-field="faq.headline" set:html={headline}></h2>}
+          {sub && <p class="fq-sub" data-field="faq.sub">{sub}</p>}
+        </div>
+      )}
+      <div class="fq-list">
+        {/* A question with no answer yet is shown as a plain row: an
+            expander that opens onto nothing would be a dead control. */}
+        {rows.map((r, k) => (
+          r.a ? (
+            <details class="fq-item" open={k === 0}>
+              <summary class="fq-q"><span data-field={`faq.items.${r.i}.q`}>{r.q}</span><span class="fq-plus" aria-hidden="true">+</span></summary>
+              <p class="fq-a" data-field={`faq.items.${r.i}.a`}>{r.a}</p>
+            </details>
+          ) : (
+            <div class="fq-item">
+              <p class="fq-q fq-q--plain"><span data-field={`faq.items.${r.i}.q`}>{r.q}</span></p>
+            </div>
+          )
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .fq { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--band); }
+  .fq-in { max-width: 860px; }
+  .fq-head { text-align: center; }
+  .fq-h2 {
+    margin: 6px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px); line-height: 1.1; overflow-wrap: break-word;
+  }
+  .fq-sub { margin: 14px auto 0; max-width: 40ch; color: var(--ink-soft); }
+  .fq-head > :first-child { margin-top: 0; }
+
+  .fq-list { margin-top: clamp(28px, 4vw, 44px); display: flex; flex-direction: column; gap: 10px; }
+  .fq-list:first-child { margin-top: 0; }
+  .fq-item { border-radius: 18px; background-color: var(--paper); padding: 0 24px; }
+  .fq-q {
+    display: flex; justify-content: space-between; gap: 16px; padding: 20px 0;
+    font-family: var(--disp); font-size: clamp(18px, 1.8vw, 21px);
+    list-style: none; cursor: pointer; overflow-wrap: break-word;
+  }
+  .fq-q::-webkit-details-marker { display: none; }
+  .fq-q--plain { margin: 0; cursor: default; }
+  .fq-q > span:first-child { min-width: 0; }
+  .fq-plus { flex: none; color: var(--rose-ink); }
+  .fq-a { margin: 0 0 20px; color: var(--ink-soft); overflow-wrap: break-word; }
+</style>

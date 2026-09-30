@@ -1,0 +1,184 @@
+---
+/**
+ * florist / HeaderBT — Gumamela's sticky paper rail under a 2px ink rule: the
+ * flower mark (a red disc with a marigold heart) beside the lowercase
+ * wordmark, pill-shaped page links, the red contact pill, and — at 900px and
+ * below — a marigold burger that drops a marigold drawer of big display links.
+ *
+ * Editable hooks:
+ *   footer.brand                                     — the wordmark
+ *   navbar_links.${i}.label + navbar_links.${i}.href — each link, desktop AND
+ *                                                      drawer (it is ONE nav that
+ *                                                      becomes the drawer), with
+ *                                                      the ORIGINAL index
+ *   navCtaText + navCtaHref                          — the red pill
+ *
+ * The pill's DISPLAY falls back to the hero's primary action (HeaderBJ's rule),
+ * so it is never label-less on a first build; the hook stays navCtaText.
+ *
+ * Never visibility-gated. With no brand the wordmark AND the mark are omitted
+ * (a placeholder name has shipped as a customer's own wordmark before), and the
+ * links and pill stay pinned right.
+ *
+ * The flower mark is decorative chrome (aria-hidden), drawn from --accent and
+ * --accent-light so an admin colour pick recolours it.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+// Anchor guard. lib/derive-content-defaults.ts hands out '#visit', '#services',
+// '#about', '#why', '#work' and the builder's default nav adds '#contact'. Keep
+// an in-page href when PageBT renders that id, remap the derived aliases, and
+// DROP a nav link that would scroll nowhere. Off-page hrefs (http, tel:,
+// mailto:, viber:) pass through untouched. Keep PAGE_ANCHORS and ANCHOR_ALIAS
+// identical in HeroBT, ServicesBT, CtaBandBT and FooterBT (no shared import:
+// a section receives only content and layout).
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'events', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const c = (content as any) || {};
+const brand = String(c.footer?.brand || layout.businessName || '').trim();
+// ONE array for the desktop row and the drawer, so both carry the same
+// navbar_links.N hooks. A label-less or unreachable link is dropped; the
+// original index rides along as .i.
+const navLinks: Array<{ href: string; label: string; i: number }> =
+  (Array.isArray(layout.navLinks) ? layout.navLinks : [])
+    .map((l: any, i: number) => ({ label: String(l?.label ?? '').trim(), href: onPage(l?.href, ''), i }))
+    .filter((l: any) => l.href && l.label);
+const hero = c.hero || {};
+const ctaText = String(c.navCtaText || hero.cta1?.text || '').trim();
+const ctaHref = onPage(c.navCtaHref || hero.cta1?.href, '#book');
+---
+<header class="gm-bar">
+  <div class="wrap gm-bar-in">
+    {brand && (
+      <a class="gm-home" href="#main">
+        <span class="gm-mark" aria-hidden="true"></span>
+        <span class="gm-word" data-field="footer.brand">{brand}</span>
+      </a>
+    )}
+    {navLinks.length > 0 && (
+      <nav class="gm-nav" id="gm-nav-BT" aria-label="Primary">
+        {navLinks.map((link) => (
+          <a href={link.href} data-field={`navbar_links.${link.i}.label`} data-href-field={`navbar_links.${link.i}.href`}>{link.label}</a>
+        ))}
+      </nav>
+    )}
+    {ctaText && <a class="gm-pill" href={ctaHref} data-field="navCtaText" data-href-field="navCtaHref">{ctaText}</a>}
+    {navLinks.length > 0 && (
+      <button class="gm-burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="gm-nav-BT">
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+    )}
+  </div>
+</header>
+<script is:inline>
+  (function () {
+    var hdr = document.querySelector('header.gm-bar');
+    if (!hdr) return;
+    var btn = hdr.querySelector('.gm-burger');
+    if (!btn) return;
+    function setOpen(open) {
+      hdr.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function () { setOpen(!hdr.classList.contains('open')); });
+    // The pill sits outside the drawer; tapping it with the drawer open must
+    // still close the drawer.
+    hdr.querySelectorAll('.gm-nav a, .gm-pill').forEach(function (a) {
+      a.addEventListener('click', function () { setOpen(false); });
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
+  })();
+</script>
+<style>
+  .gm-bar {
+    position: sticky; top: 0; z-index: 50;
+    background-color: var(--paper); border-bottom: 2px solid var(--ink);
+  }
+  .gm-bar-in {
+    height: 72px; display: flex; align-items: center; justify-content: flex-end; gap: 18px;
+  }
+
+  /* Wordmark lock. Its auto margin pushes links, pill and burger to the right;
+     with no brand, justify-content keeps them there. */
+  .gm-home {
+    display: flex; align-items: center; gap: 10px;
+    margin-right: auto; min-width: 0;
+  }
+  /* The flower: a red ring (--accent-text: the red as drawn on paper, which a
+     dark admin scheme keeps visible) around a marigold heart. */
+  .gm-mark {
+    flex: none; width: 30px; height: 30px; border-radius: 50%;
+    background-color: var(--accent-text);
+    box-shadow: inset 0 0 0 9px var(--accent-text), inset 0 0 0 30px var(--accent-light);
+  }
+  .gm-word {
+    font-family: var(--disp); font-size: clamp(22px,2.4vw,28px); font-weight: 800;
+    line-height: 1.6; letter-spacing: -.03em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
+
+  .gm-nav { display: flex; gap: 6px; margin-right: 6px; }
+  .gm-nav a {
+    padding: 8px 14px; border-radius: 999px;
+    font-family: var(--sans); font-size: 15px; font-weight: 600; line-height: 1.6;
+    white-space: nowrap; background-color: transparent;
+  }
+  .gm-nav a:hover { background-color: var(--paper-2); color: var(--accent-text); }
+
+  .gm-pill {
+    flex: none; display: inline-flex; align-items: center;
+    min-height: 44px; padding: 0 18px; border-radius: 14px;
+    background-color: var(--accent); color: var(--on-primary);
+    font-family: var(--sans); font-size: 14.5px; font-weight: 700; line-height: 1.6;
+    white-space: nowrap;
+  }
+  .gm-pill:hover { background-color: var(--ink); color: var(--paper); }
+
+  .gm-burger {
+    display: none; flex: none; width: 46px; height: 44px;
+    flex-direction: column; justify-content: center; gap: 5px;
+    padding: 0 12px; margin: 0;
+    background-color: var(--accent-light); border: 2px solid var(--ink);
+    border-radius: 14px; cursor: pointer;
+  }
+  .gm-burger span { display: block; width: 100%; height: 2px; background-color: var(--ink); }
+
+  /* ONE collapse breakpoint, the design's own: the row leaves and the burger
+     arrives at the same width, so there is never a band with neither. */
+  @media (max-width: 900px) {
+    .gm-burger { display: flex; }
+    .gm-nav {
+      position: absolute; left: 0; right: 0; top: 100%;
+      display: none; flex-direction: column; gap: 0; margin: 0;
+      background-color: var(--accent-light); border-bottom: 2px solid var(--ink);
+      padding: 6px 0 12px; max-height: calc(100vh - 74px); overflow-y: auto;
+    }
+    .gm-bar.open .gm-nav { display: flex; }
+    .gm-nav a {
+      min-height: 54px; display: flex; align-items: center;
+      padding: 0 var(--gutter); border-radius: 0;
+      font-family: var(--disp); font-weight: 700; font-size: 24px; line-height: 1.6;
+      white-space: normal; overflow-wrap: anywhere;
+      border-bottom: 1px solid rgba(var(--ink-rgb),.18);
+    }
+    .gm-nav a:last-child { border-bottom: 0; }
+    /* The design's red label on the marigold drawer. Both through role tokens:
+       under an admin scheme the red on the light accent drops to 1.5-2.2:1, so
+       __schemeCss turns the hover into an ink label on a paper fill. */
+    .gm-nav a:hover { background-color: var(--drawer-hover-bg); color: var(--on-mari-accent); }
+  }
+  /* A long owner label must never push the burger off a 360px screen: the pill
+     keeps the design's exact box and only wraps when its label would not fit
+     in 44vw (the design's own label never does). */
+  @media (max-width: 520px) {
+    .gm-pill { max-width: 44vw; white-space: normal; text-align: center; overflow-wrap: anywhere; }
+  }
+</style>

@@ -1,0 +1,198 @@
+---
+/**
+ * woodworks / HeaderBW — "Molave"'s workshop rail. A sticky grey bar under one
+ * ink hairline: the WIDE-cut uppercase wordmark with its mono locality tag on a
+ * shared baseline, four mono caps links, and a safety-orange quote pill that
+ * never leaves the screen. At <=900px the links fold into a black drawer of big
+ * condensed caps under the bar, opened by a square hairline burger.
+ *
+ * Editable hooks:
+ *   footer.brand                                     — the wordmark
+ *   footer.locality                                  — the mono tag beside it
+ *   navbar_links.${i}.label + navbar_links.${i}.href — every nav link, desktop
+ *                                                      AND drawer (one list,
+ *                                                      ORIGINAL index)
+ *   navCtaText + navCtaHref                          — the quote pill
+ *
+ * ONE LIST FOR BOTH NAVS. The design draws the desktop row and the mobile drawer
+ * as two <nav>s carrying the same hooks; here they are one element restyled at
+ * the 900px collapse, so an edit can never reach one copy and miss the other.
+ *
+ * THE PILL hooks navCtaText / navCtaHref (the Header group), so toggling the
+ * Hero block off in the editor can never resolve to the header. Its DISPLAY
+ * falls back to the hero's primary action, so a first build is never
+ * label-less (lib/astro-builder.ts defaults navCtaText at build time anyway).
+ *
+ * Never visibility-gated. With no brand the wordmark is OMITTED — a placeholder
+ * name is a claim ('Your Business' once shipped as a customer's wordmark).
+ *
+ * Colour: tokens only. The pill is .pill — never .btn / .nav-cta / inside
+ * .nav-right, all three of which buildOverrideCss pins.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+// Anchor guard. lib/derive-content-defaults.ts hands out '#visit', '#services',
+// '#about', '#why', '#work' and layout.navLinks' '#contact'. Resolve each against
+// the ids this design renders: keep it, alias it (work -> the projects grid,
+// contact / location -> the shop section), or DROP a nav entry with no section
+// to reach. Off-page hrefs (tel:, mailto:, viber:, http) pass through untouched.
+// Keep PAGE_ANCHORS / ANCHOR_ALIAS identical in Header, Hero, Services, CtaBand
+// and Footer (there is no shared import by design).
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'how', 'gallery', 'about', 'why', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { contact: 'visit', location: 'visit', work: 'gallery' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const c = (content as any) || {};
+const brand = String(c.footer?.brand || layout.businessName || '').trim();
+// Nothing derives the locality, so on a first build it is simply absent.
+const locality = String(c.footer?.locality ?? '').trim();
+// A label-less link is dropped (an empty <a> is a zero-width tap target), and
+// so is one with nowhere to go. The ORIGINAL index rides along as .i so the
+// per-link hooks keep addressing the real array slot.
+const navLinks: Array<{ href: string; label: string; i: number }> =
+  ((Array.isArray(layout.navLinks) ? layout.navLinks : []) as any[])
+    .map((l: any, i: number) => ({ href: onPage(l?.href, ''), label: String(l?.label ?? '').trim(), i }))
+    .filter((l) => l.href && l.label);
+const hero = c.hero || {};
+const ctaText = String(c.navCtaText || hero.cta1?.text || '').trim();
+const ctaHref = onPage(c.navCtaHref || hero.cta1?.href, '#book');
+---
+<header class="hd">
+  <div class="wrap hd-in">
+    {(brand || locality) && (
+      <a class="lock" href="#main">
+        {brand && <span class="mark" data-field="footer.brand">{brand}</span>}
+        {locality && <span class="loc" data-field="footer.locality">{locality}</span>}
+      </a>
+    )}
+    {(navLinks.length > 0 || ctaText) && (
+      <div class="hd-r">
+        {navLinks.length > 0 && (
+          <nav class="nav" id="bw-nav" aria-label="Primary" data-anchor-list>
+            {navLinks.map((l) => (
+              <a href={l.href} data-field={`navbar_links.${l.i}.label`} data-href-field={`navbar_links.${l.i}.href`}>{l.label}</a>
+            ))}
+          </nav>
+        )}
+        {/* The pill sits OUTSIDE the nav: the nav becomes a closed drawer at
+            <=900px and the one action this rail exists for must stay on screen. */}
+        {ctaText && <a class="pill" href={ctaHref} data-field="navCtaText" data-href-field="navCtaHref">{ctaText}</a>}
+        {navLinks.length > 0 && (
+          <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="bw-nav">
+            <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+          </button>
+        )}
+      </div>
+    )}
+  </div>
+</header>
+<script is:inline>
+  (function () {
+    var hdr = document.querySelector('header.hd');
+    if (!hdr) return;
+    var btn = hdr.querySelector('.burger');
+    if (!btn) return;
+    function setOpen(open) {
+      hdr.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function () { setOpen(!hdr.classList.contains('open')); });
+    // '.pill' is here because it lives OUTSIDE the drawer: tapping it while the
+    // drawer is open must still close the drawer.
+    hdr.querySelectorAll('.nav a, .pill').forEach(function (a) {
+      a.addEventListener('click', function () { setOpen(false); });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && hdr.classList.contains('open')) { setOpen(false); btn.focus(); }
+    });
+  })();
+</script>
+<style>
+  .hd {
+    position: sticky; top: 0; z-index: 50;
+    background-color: var(--paper); border-bottom: 1px solid var(--ink);
+  }
+  .hd-in { height: 68px; display: flex; align-items: center; gap: 18px; }
+
+  /* Wordmark + locality on one baseline, on the left. */
+  .lock {
+    display: flex; align-items: baseline; gap: 12px;
+    min-width: 0; color: var(--ink);
+  }
+  /* Links, pill and burger as one right-hand group with the auto margin, so
+     they stay pinned right whether or not there is a wordmark to push them. */
+  .hd-r { flex: none; display: flex; align-items: center; gap: 18px; margin-left: auto; }
+  .lock:hover { color: var(--accent-deep); }
+  .mark {
+    font-family: var(--disp); font-size: clamp(20px,2.2vw,24px); font-weight: 800;
+    font-stretch: 115%; letter-spacing: -.01em; line-height: 1.6; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
+  .loc {
+    font-family: var(--mono); font-size: 11px; line-height: 1.6; color: var(--ink-soft);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
+
+  .nav { display: flex; gap: 26px; margin-right: 10px; font-family: var(--mono); }
+  /* Every link dropped by PageBW's anchor pass: nothing left to navigate. */
+  .nav[data-empty] { display: none; }
+  .nav a {
+    font-family: var(--mono); font-size: 13px; font-weight: 500; line-height: 1.6;
+    text-transform: uppercase; white-space: nowrap; color: var(--ink);
+  }
+  .nav a:hover { color: var(--accent-deep); }
+
+  /* The quote pill: orange fill, white label; hover goes ink with a paper
+     label — fill AND label restated, so neither state can strand the text. */
+  .pill {
+    flex: none; display: inline-flex; align-items: center; min-height: 44px;
+    padding: 0 18px; background-color: var(--accent); color: var(--on-fill);
+    font-family: var(--sans); font-size: 14px; font-weight: 700; line-height: 1.2;
+    letter-spacing: .02em; text-transform: uppercase; white-space: nowrap;
+  }
+  .pill:hover { background-color: var(--ink); color: var(--paper); }
+
+  .burger {
+    display: none; flex: none; flex-direction: column; justify-content: center; gap: 5px;
+    width: 46px; height: 44px; padding: 0 12px; margin: 0;
+    background-color: transparent; border: 1px solid var(--ink); border-radius: 0; cursor: pointer;
+  }
+  .burger span { display: block; height: 2px; background-color: var(--ink); }
+
+  /* ONE collapse breakpoint, the design's own: links out and burger in at the
+     same width, so there is never a band with neither on screen. */
+  @media (max-width: 900px) {
+    .burger { display: flex; }
+    .nav[data-empty] ~ .burger { display: none; }
+    .nav {
+      position: absolute; left: 0; right: 0; top: 100%;
+      display: none; flex-direction: column; gap: 0; margin: 0;
+      padding: 6px 0 12px; background-color: var(--shop); color: var(--on-shop);
+      max-height: calc(100vh - 69px); overflow-y: auto;
+    }
+    .hd.open .nav { display: flex; }
+    .nav a {
+      min-height: 56px; display: flex; align-items: center; padding: 0 var(--gutter);
+      font-family: var(--sans); font-size: 24px; font-weight: 800; font-stretch: 115%;
+      line-height: 1.2; color: var(--on-shop);
+      border-bottom: 1px solid rgba(var(--on-shop-rgb),.16);
+    }
+    .nav a:last-child { border-bottom: 0; }
+    /* On the black drawer the hover is the orange made for the black bands. */
+    .nav a:hover { color: var(--accent-light); }
+  }
+  /* The design keeps the locality at every width and truncates BOTH strings at
+     360px, which leaves the wordmark as a lone "M…". The tag is the flourish
+     and goes first, so the business name always reads whole. */
+  @media (max-width: 520px) {
+    .hd-in, .hd-r { gap: 12px; }
+    .loc { display: none; }
+    .pill { max-width: 46vw; display: block; line-height: 44px; padding: 0 14px; overflow: hidden; text-overflow: ellipsis; }
+  }
+</style>

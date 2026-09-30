@@ -1,0 +1,66 @@
+---
+/**
+ * woodworks / WhyBX — "Acacia Studio"'s reasons (#why), on the tinted bone
+ * band: a light Newsreader headline held to a short measure, then a row of
+ * bone cards, each a serif title over a line of grey copy.
+ *
+ * Editable hooks:
+ *   why.headline · why.items.${i}.title · why.items.${i}.body
+ *
+ * GATE: at least one filled reason. The derived headline ("Why choose …") is
+ * written for every named business, so on its own it would be a heading over
+ * nothing. Blank rows are dropped; every hook keeps the ORIGINAL index, and
+ * the body hook always spells the canonical key even when the value arrived
+ * under a legacy name.
+ *
+ * NEVER FABRICATED: no stock reason, no count of anything. The design has no
+ * eyebrow on this band, so none is drawn. (PageBX's LIVE ANCHORS mirrors the
+ * GATE above.)
+ *
+ * The headline renders with set:html: the AI copy step may put an <em>
+ * highlight into any headline (astro-builder balances the inline HTML).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const y = (content as any).why || {};
+const headline = str(y.headline);
+const items: any[] = Array.isArray(y.items) ? y.items : [];
+const rows = items
+  .map((it: any, i: number) => ({ title: str(it?.title), body: str(it?.body ?? it?.desc ?? it?.description), i }))
+  .filter((r) => Boolean(r.title || r.body));
+---
+{rows.length > 0 && (
+  <section id="why" class="why">
+    <div class="wrap">
+      {headline && <h2 class="display why-h" data-field="why.headline" set:html={headline}></h2>}
+      <div class="why-grid">
+        {rows.map((r) => (
+          <div class="why-card">
+            {r.title && <h3 class="why-t" data-field={`why.items.${r.i}.title`}>{r.title}</h3>}
+            {r.body && <p class="why-b" data-field={`why.items.${r.i}.body`}>{r.body}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .why { padding: clamp(56px,7vw,104px) 0; background-color: var(--card); }
+  .why-h { max-width: 18ch; font-size: clamp(34px,4.6vw,62px); color: var(--ink); }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .why-h :global(i),
+  .why-h :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+  .why-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,240px),1fr));
+    gap: clamp(16px,2vw,24px); margin-top: clamp(32px,4vw,52px);
+  }
+  .why-grid:first-child { margin-top: 0; }
+  .why-card { min-width: 0; padding: 26px; border-radius: 16px; background-color: var(--paper); }
+  .why-t {
+    margin: 0 0 8px; font-family: var(--disp); font-weight: 400; font-size: 24px;
+    line-height: 1.65; color: var(--ink); overflow-wrap: anywhere;
+  }
+  .why-t:last-child { margin-bottom: 0; }
+  .why-b { margin: 0; font-size: 15.5px; line-height: 1.65; color: var(--ink-soft); overflow-wrap: break-word; }
+</style>

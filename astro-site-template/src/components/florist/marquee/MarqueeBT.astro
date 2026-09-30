@@ -1,0 +1,35 @@
+---
+/**
+ * florist / MarqueeBT — Gumamela's red keyword band (#marquee): one centred
+ * line of Bricolage 700 in the red fill, ruled top and bottom in 2px ink. It
+ * does not scroll — the design sets it still and balanced, and this port adds
+ * no motion the design does not have.
+ *
+ * Editable hook: marquee.text (the owner's own string, separators included —
+ * no glyph is supplied by this file).
+ *
+ * The band is absent when there is no text. (On a first build the builder
+ * fills it with the owner's own name, city and trade.)
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const text = String(content.marquee?.text ?? '').trim();
+---
+{text && (
+  <div class="gm-marq" id="marquee">
+    <p data-field="marquee.text">{text}</p>
+  </div>
+)}
+<style>
+  .gm-marq {
+    background-color: var(--accent); color: var(--on-primary);
+    padding: 18px var(--gutter);
+    border-top: 2px solid var(--ink); border-bottom: 2px solid var(--ink);
+  }
+  .gm-marq p {
+    margin: 0; text-align: center;
+    font-family: var(--disp); font-weight: 700;
+    font-size: clamp(18px,2.2vw,28px); line-height: 1.35; letter-spacing: -.01em;
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+</style>

@@ -1,0 +1,106 @@
+---
+/**
+ * woodworks / CtaBandBV — the closing rust band (#book): a big Young Serif
+ * question and a soft line on the left, two actions bottom-right — a solid
+ * #FFF5EA button and an outlined one.
+ *
+ * Editable hooks:
+ *   ctaBand.headline (set:html) · ctaBand.sub
+ *   ctaBand.cta.text + data-href-field ctaBand.cta.href   — the solid button
+ *   ctaBand.cta2.text + data-href-field ctaBand.cta2.href — the outlined one
+ *   contact.phone (data-field ONLY, tel:) — see below
+ *
+ * THE SECOND BUTTON. The schema documents the second CTA as falling back to
+ * the owner's phone as a tel: link when it is left blank, so that is what
+ * this band does: with no cta2 label and a real phone number, the outlined
+ * button is the number itself, hooked to contact.phone (a tel: anchor carries
+ * data-field only; its href derives from the value). No "Call" prefix or any
+ * other label is invented, and with neither there is simply one button.
+ *
+ * The hook path is ctaBand.cta.text (the schema's), with the legacy cta1
+ * shape read for DISPLAY only, as CtaBandBJ does.
+ *
+ * NEVER FABRICATED: no headline, line, label or number is invented. The band
+ * renders only with a headline or a real action.
+ *
+ * BUTTON SAFETY: the class is .book, never the engine-pinned .cta-band. The
+ * band is the rust --accent under an --on-primary label; the solid button is
+ * --on-primary under an --ink label and both hovers restate fill, border and
+ * label, so no scheme can strand a label.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+// Anchor guard, identical in HeaderBV / HeroBV / ServicesBV / CtaBandBV /
+// FooterBV — see HeaderBV for the reasoning.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'how', 'gallery', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: unknown, fallback: string): string => {
+  const h = typeof href === 'string' ? href.trim() : '';
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+const c = content as any;
+const cb = c.ctaBand || c.closing || {};
+const headline = str(cb.headline);
+const sub = str(cb.sub);
+const ctaText = str(cb.cta?.text) || str(cb.cta1?.text);
+const ctaHref = onPage(str(cb.cta?.href) || cb.cta1?.href, '#visit');
+const cta2Text = str(cb.cta2?.text);
+const cta2Href = onPage(cb.cta2?.href, '#visit');
+const phone = str(layout?.contact?.phone) || str(c.contact?.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const showPhone = !cta2Text && Boolean(phone);
+const hasActions = Boolean(ctaText || cta2Text || showPhone);
+---
+{(headline || hasActions) && (
+  <section class="book" id="book">
+    <div class="wrap book-in">
+      {(headline || sub) && (
+        <div class="book-copy">
+          {headline && <h2 class="book-h2" data-field="ctaBand.headline" set:html={headline}></h2>}
+          {sub && <p class="book-sub" data-field="ctaBand.sub">{sub}</p>}
+        </div>
+      )}
+      {hasActions && (
+        <div class="book-acts">
+          {ctaText && <a class="btn book-cta" href={ctaHref} data-field="ctaBand.cta.text" data-href-field="ctaBand.cta.href">{ctaText}</a>}
+          {cta2Text && <a class="btn book-cta2" href={cta2Href} data-field="ctaBand.cta2.text" data-href-field="ctaBand.cta2.href">{cta2Text}</a>}
+          {showPhone && <a class="btn book-cta2" href={telHref} data-field="contact.phone">{phone}</a>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  /* Every value below is the design's inline style, verbatim. */
+  .book { padding: clamp(64px, 8vw, 112px) 0; background-color: var(--accent); color: var(--on-primary); }
+  .book-in { display: flex; flex-wrap: wrap; gap: 28px 56px; align-items: flex-end; }
+  .book-copy { flex: 1 1 480px; min-width: 0; }
+  .book-h2 {
+    max-width: 18ch; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(36px, 5.4vw, 76px); line-height: 1.02;
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+  /* Owner emphasis keeps the band's label colour: rust on rust would vanish. */
+  .book-h2 :global(em), .book-h2 :global(i) { font-style: normal; color: inherit; }
+  .book-sub { max-width: 46ch; color: var(--on-accent-2); overflow-wrap: anywhere; }
+  .book-h2 + .book-sub { margin-top: 18px; }
+
+  .book-acts { flex: 0 1 auto; min-width: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+  .book-cta {
+    min-height: 56px;
+    background-color: var(--on-primary); border-color: var(--on-primary); color: var(--ink);
+  }
+  .book-cta:hover { background-color: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .book-cta2 {
+    min-height: 56px;
+    background-color: transparent; border-color: var(--on-primary); color: var(--on-primary);
+  }
+  .book-cta2:hover { background-color: var(--on-primary); border-color: var(--on-primary); color: var(--ink); }
+</style>

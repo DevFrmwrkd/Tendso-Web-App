@@ -1,0 +1,199 @@
+---
+/**
+ * florist / HeaderBU — the sticky night rail: a Gloock wordmark on the left,
+ * four tracked-caps links, a champagne hairline enquiry button, and (at 900px
+ * and below) a hairline burger that drops the same links as a Gloock drawer.
+ *
+ * Editable hooks (design paths, kept exactly):
+ *   footer.brand                                     — the wordmark
+ *   navbar_links.${i}.label + navbar_links.${i}.href — every nav link, desktop
+ *                                                      AND drawer (ONE nav
+ *                                                      element, one array,
+ *                                                      ORIGINAL index)
+ *   navCtaText + navCtaHref                          — the enquiry button
+ *
+ * ONE NAV, TWO PRESENTATIONS. The design draws a desktop <nav> and a separate
+ * mobile <nav> carrying the same hooks. Here a single <nav> is the inline row
+ * above 900px and becomes the absolutely-positioned drawer at 900px and below
+ * (the design's own collapse point), so the drawer can never drift from the
+ * desktop links and the page never carries two copies of every hook.
+ *
+ * The enquiry button stays OUTSIDE the nav, exactly where the design puts it,
+ * so it never disappears into the drawer. Its hook is navCtaText (the Header
+ * group), and its DISPLAY falls back to hero.cta1 like HeaderBJ, so a first
+ * build is never label-less.
+ *
+ * The design draws no locality tag in this header, so none is rendered here.
+ * With no brand the wordmark is omitted (never a placeholder name) and the
+ * remaining controls pack right.
+ *
+ * Colour: fixed-world tokens plus the champagne (--accent-light). The button
+ * is not .btn / .nav-cta / .nav-right — buildOverrideCss pins labels on all
+ * three. No motion: the design's burger does not animate and its hovers swap
+ * instantly.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+// Anchor guard. The content layer hands out '#about', '#services', '#why',
+// '#work', '#visit', '#contact' — resolve every in-page href against the ids
+// PageBU really renders: keep it, remap it through ANCHOR_ALIAS, or (for a nav
+// link) drop it. Off-page hrefs pass through untouched. Keep PAGE_ANCHORS and
+// ANCHOR_ALIAS identical in HeroBU, ServicesBU, CtaBandBU and FooterBU.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const c = (content as any) || {};
+const brand = str(c.footer?.brand || layout.businessName);
+// layout.navLinks is where astro-builder puts content.navbar_links. Links with
+// no label or no reachable target are dropped; the ORIGINAL index rides along.
+const navLinks: Array<{ label: string; href: string; i: number }> =
+  (Array.isArray(layout.navLinks) ? layout.navLinks : [])
+    .map((l: any, i: number) => ({ label: str(l?.label), href: onPage(str(l?.href), ''), i }))
+    .filter((l: any) => l.label && l.href);
+const hero = c.hero || {};
+const ctaText = str(c.navCtaText || hero.cta1?.text);
+const ctaHref = onPage(str(c.navCtaHref || hero.cta1?.href), '#book');
+---
+<header class="bar">
+  <div class:list={['wrap', 'bar-in', !brand && 'no-brand']}>
+    {brand && (
+      <a class="wm-link" href="#main"><span class="wm" data-field="footer.brand">{brand}</span></a>
+    )}
+    {navLinks.length > 0 && (
+      <nav class="nav" id="bu-nav" aria-label="Primary">
+        {navLinks.map((l) => (
+          <a href={l.href} data-field={`navbar_links.${l.i}.label`} data-href-field={`navbar_links.${l.i}.href`}>{l.label}</a>
+        ))}
+      </nav>
+    )}
+    {ctaText && <a class="navc" href={ctaHref} data-field="navCtaText" data-href-field="navCtaHref">{ctaText}</a>}
+    {navLinks.length > 0 && (
+      <button class="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="bu-nav">
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+    )}
+  </div>
+</header>
+<script is:inline>
+  (function () {
+    var hdr = document.querySelector('header.bar');
+    if (!hdr) return;
+    var btn = hdr.querySelector('.burger');
+    if (!btn) return;
+    function setOpen(open) {
+      hdr.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function () { setOpen(!hdr.classList.contains('open')); });
+    // A tap on any link — in the drawer or the enquiry button beside it —
+    // closes the drawer, as does Escape.
+    hdr.querySelectorAll('.nav a, .navc').forEach(function (a) {
+      a.addEventListener('click', function () { setOpen(false); });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && hdr.classList.contains('open')) { setOpen(false); btn.focus(); }
+    });
+    // Widening past the collapse point returns the links to the inline row;
+    // the drawer must not reappear open if the window narrows again.
+    if (window.matchMedia) {
+      var wide = window.matchMedia('(min-width: 901px)');
+      var onWide = function (m) { if (m.matches) setOpen(false); };
+      if (wide.addEventListener) wide.addEventListener('change', onWide);
+      else if (wide.addListener) wide.addListener(onWide);
+    }
+  })();
+</script>
+<style>
+  .bar {
+    position: sticky; top: 0; z-index: 50;
+    background-color: rgba(var(--night-rgb),.92);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(var(--cream-rgb),.12);
+    color: var(--cream);
+  }
+  .bar-in { height: 78px; display: flex; align-items: center; gap: 18px; }
+  /* No wordmark: the remaining controls pack to the right, as they would
+     beside one. */
+  .bar-in.no-brand { justify-content: flex-end; }
+
+  .wm-link { margin-right: auto; min-width: 0; color: var(--cream); }
+  .wm-link:hover { color: var(--accent-light); }
+  .wm {
+    display: block;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(22px,2.4vw,28px); letter-spacing: .01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .nav { display: flex; gap: 32px; margin-right: 14px; }
+  .nav a {
+    font-family: var(--sans); font-size: 13px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; white-space: nowrap;
+    color: var(--cream);
+  }
+  .nav a:hover { color: var(--accent-light); }
+
+  .navc {
+    flex: none; display: inline-flex; align-items: center;
+    min-height: 44px; padding: 0 20px;
+    border: 1px solid var(--accent-light);
+    background-color: transparent; color: var(--accent-light);
+    font-family: var(--sans); font-size: 12.5px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase; white-space: nowrap;
+  }
+  .navc:hover { background-color: var(--accent-light); border-color: var(--accent-light); color: var(--night); }
+
+  .burger {
+    display: none; flex: none;
+    width: 46px; height: 44px;
+    flex-direction: column; justify-content: center; gap: 6px;
+    padding: 0 12px;
+    background-color: transparent;
+    border: 1px solid rgba(var(--cream-rgb),.3); border-radius: 0;
+    cursor: pointer;
+  }
+  .burger span { display: block; height: 1px; background-color: var(--cream); }
+
+  /* ONE collapse point, the design's own: the inline links leave and the
+     burger arrives at the same width, so there is never a band with neither. */
+  @media (max-width: 900px) {
+    .burger { display: flex; }
+    .nav {
+      display: none;
+      position: absolute; left: 0; right: 0; top: 100%;
+      margin: 0; flex-direction: column; gap: 0;
+      padding: 8px 0 14px;
+      background-color: var(--night-2);
+      border-bottom: 1px solid rgba(var(--cream-rgb),.14);
+      /* The drawer hangs from a STICKY rail, so page scrolling never moves
+         it: capped to the viewport below the 79px rail and scrollable on its
+         own, so the last links stay reachable on a short landscape phone.
+         dvh follows the browser chrome where supported; vh is the fallback. */
+      max-height: calc(100vh - 79px);
+      max-height: calc(100dvh - 79px);
+      overflow-y: auto; overscroll-behavior: contain;
+    }
+    .bar.open .nav { display: flex; }
+    .nav a {
+      min-height: 56px; display: flex; align-items: center;
+      padding: 0 var(--gutter);
+      font-family: var(--disp); font-size: 26px; font-weight: 400;
+      letter-spacing: 0; text-transform: none; white-space: normal;
+    }
+    /* display:block (not inline-flex) so a long owner label ellipsises
+       instead of pushing the burger off a 360px screen; line-height keeps
+       the design's 44px target. */
+    .navc {
+      display: block; line-height: 42px;
+      max-width: 42vw; overflow: hidden; text-overflow: ellipsis;
+    }
+  }
+</style>

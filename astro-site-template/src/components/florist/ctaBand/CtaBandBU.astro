@@ -1,0 +1,115 @@
+---
+/**
+ * florist / CtaBandBU — the closing band (#book): a full-bleed CHAMPAGNE
+ * ground with night type — a tracked eyebrow, the largest Gloock line on the
+ * page, a short sub — and two square buttons bottom-right: a night fill and a
+ * night hairline.
+ *
+ * Editable hooks (design paths, kept exactly):
+ *   ctaBand.tag · ctaBand.headline (set:html — the AI and the editor may mark
+ *     an <em>; Gloock has no italic cut and the band is the champagne itself,
+ *     so the highlight prints upright in the band's own night, never a
+ *     champagne that would vanish into the ground) · ctaBand.sub
+ *   ctaBand.cta.text + data-href-field ctaBand.cta.href   — the night fill
+ *   ctaBand.cta2.text + data-href-field ctaBand.cta2.href — the hairline
+ *   contact.phone (tel:, data-field ONLY) — shown in the hairline slot ONLY
+ *     when the second button is blank, which is the fallback the schema
+ *     promises for that field ("falls back to your phone number as a tel:
+ *     link"). The label is the owner's own number; nothing is invented.
+ *
+ * GROUND: this band is the champagne itself (--accent-light), so an admin
+ * colour pick recolours it with the rest of the accent. Its type and both
+ * buttons are the FIXED night, which reads on every light accent the florist
+ * family offers (5.08–9.84:1); maroon's dark accent is the exception (2.37:1,
+ * reported, not patched here).
+ *
+ * The class is .book, never .cta-band: buildOverrideCss pins `.cta-band .btn`
+ * to its on-ink colour with !important, which would strand these labels.
+ * Hovers from the design: the fill lifts to --night-3, the hairline fills with
+ * the night and turns its label cream. The focus ring turns night here, where
+ * the page's cream ring would vanish into the champagne.
+ *
+ * Rendered OUTSIDE <main>, after the location block, exactly as the design
+ * places it. SECTION GATE: a headline, or a real action.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+// Anchor guard — identical in HeaderBU, HeroBU, ServicesBU and FooterBU.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const band = content.ctaBand || {};
+const tag = str(band.tag);
+const headline = str(band.headline);
+const sub = str(band.sub);
+// Canonical path first; the legacy cta1 shape is read for DISPLAY only, the
+// hook stays ctaBand.cta.*.
+const c1Text = str(band.cta?.text || band.cta1?.text);
+const c1Href = onPage(str(band.cta?.href || band.cta1?.href), '#visit');
+const c2Text = str(band.cta2?.text);
+const c2Href = onPage(str(band.cta2?.href), '#visit');
+const phone = str(content.contact?.phone || layout?.contact?.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const showPhone = !c2Text && Boolean(phone);
+const hasActions = Boolean(c1Text || c2Text || showPhone);
+const hasCopy = Boolean(tag || headline || sub);
+---
+{(headline || hasActions) && (
+  <section id="book" class="book">
+    <div class="wrap b-grid">
+      {hasCopy && (
+        <div class="b-copy">
+          {tag && <p class="b-tag" data-field="ctaBand.tag">{tag}</p>}
+          {headline && <h2 class="b-h2" data-field="ctaBand.headline" set:html={headline}></h2>}
+          {sub && <p class="b-sub" data-field="ctaBand.sub">{sub}</p>}
+        </div>
+      )}
+      {hasActions && (
+        <div class="b-acts">
+          {c1Text && <a class="btn b-btn b-btn--ink" href={c1Href} data-field="ctaBand.cta.text" data-href-field="ctaBand.cta.href">{c1Text}</a>}
+          {c2Text && <a class="btn b-btn b-btn--line" href={c2Href} data-field="ctaBand.cta2.text" data-href-field="ctaBand.cta2.href">{c2Text}</a>}
+          {showPhone && <a class="btn b-btn b-btn--line" href={telHref} data-field="contact.phone">{phone}</a>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .book {
+    padding: clamp(64px,8vw,112px) 0;
+    background-color: var(--accent-light); color: var(--night);
+  }
+  .b-grid { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 28px 56px; }
+  .b-copy { flex: 1 1 480px; min-width: 0; }
+  .b-copy > :first-child { margin-top: 0; }
+  .b-tag {
+    margin: 0;
+    font-size: 12px; font-weight: 700; letter-spacing: .24em; text-transform: uppercase;
+    color: var(--night);
+  }
+  .b-h2 {
+    margin: 16px 0 0; max-width: 18ch;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(36px,5.4vw,76px); line-height: 1.02; color: var(--night);
+    text-wrap: balance;
+  }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .b-h2 :global(em), .b-h2 :global(i) { font-style: normal; color: var(--night); }
+  .b-sub { margin: 18px 0 0; max-width: 46ch; color: var(--night); }
+
+  .b-acts { flex: 0 1 auto; display: flex; flex-wrap: wrap; gap: 12px; }
+  .b-btn { min-height: 56px; }
+  .b-btn--ink { background-color: var(--night); border-color: var(--night); color: var(--cream); }
+  .b-btn--ink:hover { background-color: var(--night-3); border-color: var(--night-3); color: var(--cream); }
+  .b-btn--line { background-color: transparent; border-color: var(--night); color: var(--night); }
+  .b-btn--line:hover { background-color: var(--night); border-color: var(--night); color: var(--cream); }
+  .book a:focus-visible { outline-color: var(--night); }
+</style>

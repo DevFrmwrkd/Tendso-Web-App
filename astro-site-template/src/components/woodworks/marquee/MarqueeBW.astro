@@ -1,0 +1,32 @@
+---
+/**
+ * woodworks / MarqueeBW — the black keyword band under the hero: one centred
+ * line of mono caps on the workshop's black. The design draws it STATIC (no
+ * scroll animation) and so does this — no motion the design does not have.
+ *
+ * Editable hook: marquee.text
+ *
+ * The derived layer fills marquee.text from the owner's own name / city / trade
+ * on a first build; with nothing at all the band is omitted. The band is the
+ * fixed --shop black (see PageBW's TOKEN PLAN), so its paper-on-black text
+ * stays legible under every scheme. The gap above it is the hero's bottom
+ * padding, so the band sits flush when the hero is switched off.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const text = String((content as any).marquee?.text ?? '').trim();
+---
+{text && (
+  <section id="marquee" class="mq">
+    <p class="mq-t" data-field="marquee.text">{text}</p>
+  </section>
+)}
+<style>
+  .mq { background-color: var(--shop); color: var(--on-shop); padding: 16px var(--gutter); }
+  .mq .mq-t {
+    margin: 0; text-align: center;
+    font-family: var(--mono); font-size: clamp(13px,1.4vw,16px); line-height: 1.6;
+    letter-spacing: .04em; text-transform: uppercase; text-wrap: balance;
+    overflow-wrap: anywhere;
+  }
+</style>

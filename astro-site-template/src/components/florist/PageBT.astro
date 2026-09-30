@@ -1,0 +1,399 @@
+---
+/**
+ * florist / PageBT — "Gumamela" (a loud, colourful florist template; the
+ * handoff's sample shop is a Cebu florist).
+ *
+ * Light and loud: Bricolage Grotesque display at weight 800 over Instrument
+ * Sans on a warm paper ground, a hard 2px ink rule around every card, and two
+ * saturated fills doing all the shouting: the red and the marigold. Full-bleed
+ * bands alternate paper, red, marigold and ink down the page.
+ *
+ * ROLE OF THIS FILE: the wrapper emits the WHOLE document (doctype, head,
+ * tokens, fonts, Leaflet boot, skip link). It does NOT compose with
+ * BaseLayout. It is the only file in the variant that touches `siteData`; the
+ * section components receive only `layout` and `content`.
+ *
+ * EDITABLE HOOKS OWNED BY THIS FILE: none. It only READS layout.businessName
+ * and layout.tagline (the title element), content.description (the meta
+ * description), layout.favicon and layout.ogImage. Every data-field,
+ * data-image-field and data-href-field hook lives in a section component.
+ * Section visibility is the camelCase visibility keys below, each tested
+ * `!== false`, one section per line, in the design's order.
+ *
+ * THE ONE HARDCODED VISIBLE STRING is the skip link's "Skip to content", an
+ * a11y affordance visible on focus only (PageBJ precedent).
+ *
+ * DESIGN ISOLATION: every selector in the global block is prefixed
+ * html[data-page="BT"], including the reset, body, a, summary and the base
+ * primitives. index.astro bundles every wrapper's global CSS onto every page,
+ * so an unanchored rule here would repaint every other template.
+ *
+ * TOKEN PLAN. The design's colours map onto the theme engine's vocabulary by
+ * ROLE, so an explicit admin colour pick recolours the whole page coherently:
+ *   paper    #FBF1EC  -> --paper      (ground; the text colour on ink bands)
+ *   blush    #F4E1D8  -> --paper-2    (trust cells, review cards, FAQ band)
+ *   white    #FFFFFF  -> --card       (shop cards)
+ *   ink      #2B1015  -> --ink        (text, every 2px rule, the ink bands)
+ *   muted    #6A4A4E  -> --ink-soft and --muted (body copy)
+ *   red      #C21E3A  -> --accent     (eyebrows, headline emphasis, red fills)
+ *   marigold #F2B233  -> --accent-light (marigold fills, labels on ink)
+ *   on-red   #FFF4F0  -> --on-primary (the label on every red fill; the engine
+ *                       picks it from the scheme's primary, which is exactly
+ *                       what --accent becomes)
+ * Six ROLE tokens carry names the engine does not know, on purpose, so the
+ * wrapper can keep them legible when a pick moves the colours around them:
+ *   --accent-text   the red used as TEXT on a light ground (eyebrows, the
+ *                   hero's emphasised phrase, reason numerals, stars, the FAQ
+ *                   +, link hovers). Natively it IS --accent.
+ *   --on-red-soft   #FFE3DC, the design's body tint on the red How band.
+ *   --on-red-label  the marigold "Step N" labels on the red band (and an <em>
+ *                   in its headline). Natively it IS --accent-light.
+ *   --on-mari-accent the red as TEXT on a marigold fill (the drawer's link
+ *                   hover, an <em> in the Why and CTA headlines). Natively it
+ *                   IS --accent.
+ *   --drawer-hover-bg the drawer link's hover fill. Natively transparent.
+ *   --on-ink-hover  the red link hover on the ink location card (the phone).
+ *                   Natively it IS --accent.
+ * Only __schemeCss moves them, and only under an explicit admin scheme: on the
+ * red band both follow the engine's --on-primary pick (the design's tints are
+ * only legible on the design's red; a scheme's light accent on its primary
+ * measures 2.3-2.9:1 even mixed 40%). A scheme's primary on its own light
+ * accent measures 1.5-2.2:1, so --on-mari-accent becomes --ink and the drawer
+ * hover gains a --paper fill (a label change alone would be invisible). On the
+ * ink card the phone hover takes the light accent (4.2-6.4:1, against 2.1 for
+ * brown's primary). On a DARK-paper scheme (maroon, dark, black)
+ * --accent-text becomes the scheme's light accent mixed toward --ink —
+ * maroon's primary measures 1.7:1 on its own paper, which would erase the
+ * hero's red phrase and every eyebrow.
+ * The paper-alpha washes on the ink bands are built from --paper-rgb, so they
+ * follow a pick. Text sitting ON a marigold fill is --ink, never --on-accent:
+ * the engine picks --on-accent from the scheme's light accent and returns white
+ * for pink, which would strand a white label on a pale pink band.
+ *
+ * FONT-PAIRING SENTINEL (verbatim from PageBJ): lib/astro-builder.ts defaults
+ * layout.fontPairing to the literal 'modern', and resolveTheme's lockVariant
+ * only blanks ''/'auto'/'default', so without the sentinel buildOverrideCss
+ * force-swaps Space Grotesk and Inter onto nearly every real site. The
+ * builder's DEFAULT is treated as unset; a deliberate admin pick still applies.
+ *
+ * FORBIDDEN CLASS NAMES (lib/genericThemeOverrides.ts pins them):
+ *   .btn-primary .btn-ghost .btn-yellow .btn-light .nav-cta .nav-right
+ *   .testi .cta-band .trust, and `hero` as a class on any element.
+ * Buttons here are .btn with a double-dash variant (.btn--fill .btn--line
+ * .btn--mari .btn--ink .btn--paper). Every variant declares its own fill and
+ * restates fill AND label on hover. The footer carries no .btn at all.
+ *
+ * RENDER ORDER, exactly as the design draws it: Header, Hero (#top), Marquee
+ * (#marquee), Trust, Services (#services, plus the #events band it owns),
+ * About (#about), Why (#why), Gallery (#gallery), How (#how), Testimonials
+ * (#reviews), Credentials (#credentials), Area (#area), Faq (#faq), Location
+ * (#visit), then the CtaBand (#book) outside main, Footer, and the floating
+ * message pill.
+ *
+ * NO MOTION the design does not have: no scroll reveal, no hover transitions.
+ * Smooth anchor scrolling is the design's own and drops to auto under
+ * prefers-reduced-motion.
+ *
+ * Leaflet: this wrapper loads leaflet.css and leaflet.js and defines
+ * window.__floristBTInitMap (family-unique). LocationBT calls that exact
+ * name when Leaflet is already loaded, and otherwise leaves its args on
+ * window.__floristBTMapArgs, which the boot drains once leaflet.js has
+ * loaded (no retry timer to outlast). The boot empties the map element before
+ * mounting, which is what erases the drawn fallback face, and the element
+ * keeps the literal id "map".
+ */
+import HeaderBT from './header/HeaderBT.astro';
+import HeroBT from './hero/HeroBT.astro';
+import MarqueeBT from './marquee/MarqueeBT.astro';
+import TrustBT from './trust/TrustBT.astro';
+import ServicesBT from './services/ServicesBT.astro';
+import AboutBT from './about/AboutBT.astro';
+import WhyBT from './why/WhyBT.astro';
+import GalleryBT from './gallery/GalleryBT.astro';
+import HowBT from './how/HowBT.astro';
+import TestimonialsBT from './testimonials/TestimonialsBT.astro';
+import CredentialsBT from './credentials/CredentialsBT.astro';
+import AreaBT from './area/AreaBT.astro';
+import FaqBT from './faq/FaqBT.astro';
+import LocationBT from './location/LocationBT.astro';
+import CtaBandBT from './ctaBand/CtaBandBT.astro';
+import FooterBT from './footer/FooterBT.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __resolvedPairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+// 'modern' is astro-builder's DEFAULT, not a choice (lib/astro-builder.ts).
+// Treating it as unset keeps Bricolage Grotesque; a deliberate admin pick applies.
+const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+// Wrapper-side palette fix, gated on the SCHEME (never on __overrideCss, which a
+// font pick alone makes non-empty) — see the TOKEN PLAN above. Natively this is
+// empty and every role token equals the design's own colour.
+// html:root[data-page] outranks the token block's html[data-page], so this wins
+// wherever the bundler places the global stylesheet relative to this tag.
+const __darkScheme = ['maroon', 'dark', 'black'].includes(__themeScheme);
+const __schemeCss = __themeScheme
+  ? 'html:root[data-page="BT"]{'
+    + '--on-red-soft:var(--on-primary);'
+    + '--on-red-label:var(--on-primary);'
+    + '--on-mari-accent:var(--ink);'
+    + '--drawer-hover-bg:var(--paper);'
+    + '--on-ink-hover:var(--accent-light);'
+    + (__darkScheme ? '--accent-text:color-mix(in srgb,var(--accent-light) 55%,var(--ink));' : '')
+    + '}'
+  : '';
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="BT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <!-- Browser-chrome tint. A meta tag cannot read a CSS var, so this repeats the
+       paper ground token (--paper) the sticky header sits on. -->
+  <meta name="theme-color" content="#FBF1EC" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <!-- The design's native faces, exactly as its helmet loads them:
+       Bricolage Grotesque on its optical-size axis at 500-800, and Instrument
+       Sans at 400/500/600/700. -->
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+
+  <style is:global>
+    /* ═══════════════════════════════════════════════════════════════════════
+       PageBT · "Gumamela" — florist. Tokens + shared base primitives. EVERY
+       selector is prefixed html[data-page="BT"].
+
+       FOUR LOAD-BEARING FACTS. Do not "tidy" any of them:
+
+       1. SPECIFICITY. Every appearance-bearing base primitive is wrapped in
+          :where(), so an Astro-scoped section rule always wins over it.
+
+       2. BUTTONS. .btn plus one double-dash variant. Each variant states its
+          own fill, border and label, and its :hover restates all three, so a
+          label can never strand mid-hover. No transitions: the design's hover
+          states are instant.
+
+       3. FOCUS. One duo ring for everything: a 3px paper outline inside a
+          6px ink halo, legible on paper, on the red and marigold fills and on
+          the ink bands alike.
+
+       4. HEAD ORDER. This block is followed by the admin font link and then,
+          LAST in the head, the engine's override block. Its html:root rules
+          only beat these tokens because they come later in source order.
+          (Never write a literal closing style tag inside this block, comments
+          included: the parser would end the stylesheet right there.)
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    html[data-page="BT"] {
+      /* grounds */
+      --paper: #FBF1EC;
+      --paper-2: #F4E1D8;
+      --card: #FFFFFF;
+      /* ink: text, every 2px rule, and the ground of the ink bands */
+      --ink: #2B1015;
+      --ink-soft: #6A4A4E;
+      --muted: #6A4A4E;
+      --line: rgba(43,16,21,.18);
+      /* the two loud fills */
+      --accent: #C21E3A;
+      --accent-light: #F2B233;
+      /* rgb triplets for the alpha washes */
+      --paper-rgb: 251,241,236;
+      --ink-rgb: 43,16,21;
+      --accent-rgb: 194,30,58;
+      /* contrast aliases the override engine and inherited rules expect.
+         --on-primary is the label on a red (--accent) fill; --on-accent pairs
+         with --accent-light, exactly as the engine derives it. */
+      --on-primary: #FFF4F0;
+      --on-accent: #2B1015;
+      --on-ink: #FBF1EC;
+      --on-paper: #2B1015;
+      /* ROLE tokens the engine does not know, on purpose — see the TOKEN PLAN
+         in the frontmatter. Natively each is exactly the design's colour. */
+      --accent-text: var(--accent);
+      --on-red-soft: #FFE3DC;
+      --on-red-label: var(--accent-light);
+      --on-mari-accent: var(--accent);
+      --drawer-hover-bg: transparent;
+      --on-ink-hover: var(--accent);
+      /* type */
+      /* The design's own stacks, verbatim: the fallback matters, because the
+         marquee's separator glyph is not in Bricolage and is drawn by it. */
+      --disp: "Bricolage Grotesque", sans-serif;
+      --sans: "Instrument Sans", system-ui, sans-serif;
+      --serif: "Bricolage Grotesque", sans-serif;
+      --mono: "Instrument Sans", system-ui, sans-serif;
+      /* metrics */
+      --maxw: 1280px;
+      --gutter: clamp(18px,4vw,48px);
+    }
+
+    /* ── reset + document ─────────────────────────────────────────────── */
+    html[data-page="BT"] *,
+    html[data-page="BT"] *::before,
+    html[data-page="BT"] *::after { box-sizing: border-box; }
+    html[data-page="BT"] {
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+      /* The sticky header is 74px (72px bar + its 2px rule); every in-page
+         anchor lands 12px clear of it. */
+      scroll-padding-top: 86px;
+    }
+    @media (prefers-reduced-motion: reduce) { html[data-page="BT"] { scroll-behavior: auto; } }
+    html[data-page="BT"] body {
+      margin: 0; padding: 0;
+      background-color: var(--paper); color: var(--ink);
+      font-family: var(--sans); font-size: 17px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    html[data-page="BT"] :where(a) { color: inherit; text-decoration: none; }
+    /* The design's global link hover: every link without its own hover turns red. */
+    html[data-page="BT"] :where(a:hover) { color: var(--accent-text); }
+    /* text-transform is DECLARED, not defaulted: an unscoped uppercase heading
+       rule in another family's global block once capitalised every template. */
+    html[data-page="BT"] :where(h1,h2,h3,h4,p,figure,blockquote,dl,dd,ol,ul) { margin: 0; }
+    html[data-page="BT"] :where(h1,h2,h3,h4) { text-transform: none; }
+    html[data-page="BT"] :where(summary) { list-style: none; cursor: pointer; }
+    html[data-page="BT"] summary::-webkit-details-marker { display: none; }
+
+    /* ── layout scaffolding ───────────────────────────────────────────── */
+    html[data-page="BT"] :where(.wrap) {
+      max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter);
+    }
+
+    /* ── .eyebrow — 13px tracked caps in red; marigold on an ink band ─── */
+    html[data-page="BT"] :where(.eyebrow) {
+      margin: 0; font-family: var(--sans); font-size: 13px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text);
+      overflow-wrap: anywhere;
+    }
+
+    /* ── .ph — a photo. The frame IS the image: a cover-fitted background on
+          the element that carries data-image-field. Sections size it; the
+          blush ground only shows while a photo loads. A section OMITS the
+          element when the owner supplied no photo. */
+    html[data-page="BT"] :where(.ph) {
+      background-color: var(--paper-2);
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+      overflow: hidden;
+    }
+
+    /* ── BUTTONS (the design's inline styles, verbatim metrics) ──────── */
+    html[data-page="BT"] :where(.btn) {
+      background-color: transparent;
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 54px; padding: 0 26px; border-radius: 14px;
+      border: 2px solid transparent;
+      font-family: var(--sans); font-size: 15px; font-weight: 700; line-height: 1.6;
+      letter-spacing: normal; text-transform: none; text-decoration: none;
+      text-align: center; cursor: pointer;
+    }
+    /* red fill, the design's primary */
+    html[data-page="BT"] :where(.btn--fill) { background-color: var(--accent); border-color: var(--accent); color: var(--on-primary); }
+    html[data-page="BT"] :where(.btn--fill:hover) { background-color: var(--ink); border-color: var(--ink); color: var(--paper); }
+    /* outline on a light ground */
+    html[data-page="BT"] :where(.btn--line) { background-color: transparent; border-color: var(--ink); color: var(--ink); }
+    html[data-page="BT"] :where(.btn--line:hover) { background-color: var(--ink); border-color: var(--ink); color: var(--paper); }
+    /* marigold fill, the action on an ink band */
+    html[data-page="BT"] :where(.btn--mari) { background-color: var(--accent-light); border-color: var(--accent-light); color: var(--ink); }
+    html[data-page="BT"] :where(.btn--mari:hover) { background-color: var(--paper); border-color: var(--paper); color: var(--ink); }
+    /* ink fill, the action on a marigold band */
+    html[data-page="BT"] :where(.btn--ink) { background-color: var(--ink); border-color: var(--ink); color: var(--paper); }
+    html[data-page="BT"] :where(.btn--ink:hover) { background-color: var(--accent); border-color: var(--accent); color: var(--on-primary); }
+    /* paper fill, the action inside the ink location card */
+    html[data-page="BT"] :where(.btn--paper) { background-color: var(--paper); border-color: var(--paper); color: var(--ink); }
+    html[data-page="BT"] :where(.btn--paper:hover) { background-color: var(--accent-light); border-color: var(--accent-light); color: var(--ink); }
+
+    /* ── FOCUS · the duo ring (fact 3) ─────────────────────────────────── */
+    html[data-page="BT"] :where(a,button,summary,[tabindex]):focus-visible {
+      outline: 3px solid var(--paper); outline-offset: 0;
+      box-shadow: 0 0 0 6px var(--ink);
+    }
+
+    /* ── skip link ────────────────────────────────────────────────────── */
+    html[data-page="BT"] :where(.skip) {
+      position: absolute; left: -999px; top: 0; z-index: 100;
+      background-color: var(--ink); color: var(--paper);
+      padding: 12px 18px; border-radius: 0 0 14px 0;
+      font-family: var(--sans); font-weight: 700; font-size: 15px;
+    }
+    html[data-page="BT"] :where(.skip:focus) { left: 0; top: 0; }
+  </style>
+
+  <style is:global set:html={__schemeCss}></style>
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <HeaderBT layout={layout} content={content} />
+  <main id="main">
+    {visibility.heroSection !== false && <HeroBT content={content} layout={layout} />}
+    {visibility.marqueeBlock !== false && <MarqueeBT content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustBT content={content} layout={layout} />}
+    {visibility.servicesSection !== false && <ServicesBT content={content} layout={layout} />}
+    {visibility.aboutSection !== false && <AboutBT content={content} layout={layout} />}
+    {visibility.whyUsBlock !== false && <WhyBT content={content} layout={layout} />}
+    {visibility.gallerySection !== false && <GalleryBT content={content} layout={layout} />}
+    {visibility.howItWorksBlock !== false && <HowBT content={content} layout={layout} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsBT content={content} layout={layout} />}
+    {visibility.credentialsBlock !== false && <CredentialsBT content={content} layout={layout} />}
+    {visibility.serviceAreaBlock !== false && <AreaBT content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqBT content={content} layout={layout} />}
+    {visibility.locationBlock !== false && <LocationBT content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandBT content={content} layout={layout} />}
+  <FooterBT layout={layout} content={content} />
+
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      // BT Leaflet boot — (lat, lng, label) from LocationBT. The
+      // global name is family-unique on purpose: a preview harness can render
+      // two wrappers in one document, and a shared name cross-wires the maps.
+      window.__floristBTInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map'); if (!el) return;
+        if (el._leaflet_id) return;
+        // Erases LocationBT's drawn fallback face; without this the tiles
+        // stack on top of it.
+        el.innerHTML = '';
+        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 16);
+        // lib/carto.ts appends the CARTO key to this exact URL at publish time.
+        L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+        // The design's pin: a red dot, an ink rim and a marigold halo. The
+        // colours are READ from the live tokens, so an admin colour pick
+        // recolours the pin too (the engine sets them on this same element).
+        var cs = window.getComputedStyle(document.documentElement);
+        var red = (cs.getPropertyValue('--accent') || '').trim() || '#C21E3A';
+        var ink = (cs.getPropertyValue('--ink') || '').trim() || '#2B1015';
+        var sun = (cs.getPropertyValue('--accent-light') || '').trim() || '#F2B233';
+        var icon = L.divIcon({
+          className: '',
+          html: '<div style="width:22px;height:22px;border-radius:50%;background:' + red + ';border:3px solid ' + ink + ';box-shadow:0 0 0 3px ' + sun + '"></div>',
+          iconSize: [22, 22], iconAnchor: [11, 11]
+        });
+        L.marker([lat, lng], { icon: icon, keyboard: false }).addTo(map);
+      };
+      // Drain LocationBT's hand-off. This script runs only after leaflet.js
+      // above has loaded (or failed — then the init returns and the drawn face
+      // stays), so a slow download can never outlast the boot.
+      if (window.__floristBTMapArgs) window.__floristBTInitMap.apply(null, window.__floristBTMapArgs);
+    })();
+  </script>
+</body>
+</html>

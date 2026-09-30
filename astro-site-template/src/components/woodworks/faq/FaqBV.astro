@@ -1,0 +1,85 @@
+---
+/**
+ * woodworks / FaqBV — the questions section, on the oatmeal band: the eyebrow,
+ * a Young Serif headline and the owner's line on the left; on the right a
+ * hairline stack of disclosure rows — Young Serif question, rust plus, muted
+ * answer. The first row opens by default, as the design marks it.
+ *
+ * Editable hooks:
+ *   faq.tag · faq.headline (set:html) · faq.sub
+ *   faq.items.${i}.q · faq.items.${i}.a
+ *
+ * NOT ONE ANSWER IS SHIPPED BY THIS FILE — no lead time, wood list, visiting
+ * rule or payment term. A row with no question has no honest presentation
+ * (the question is the label), so it is dropped; blank rows keep their
+ * ORIGINAL index. The section exists only with at least one question.
+ *
+ * The plus is a decorative glyph: literal, aria-hidden and OUTSIDE the
+ * question's data-field span, so an inline edit can never write it into the
+ * owner's question.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim() : (typeof v === 'number' && Number.isFinite(v) ? String(v) : '');
+const c = content as any;
+const fq = (c.faq && typeof c.faq === 'object' && !Array.isArray(c.faq)) ? c.faq : {};
+const tag = str(fq.tag);
+const headline = str(fq.headline);
+const sub = str(fq.sub);
+const items: any[] = Array.isArray(fq.items) ? fq.items : (Array.isArray(c.faq) ? c.faq : []);
+const rows = items
+  .map((it: any, i: number) => ({ q: str(it?.q) || str(it?.question), a: str(it?.a) || str(it?.answer), i }))
+  .filter((r: { q: string }) => Boolean(r.q));
+---
+{rows.length > 0 && (
+  <section class="faq" id="faq">
+    <div class="wrap faq-in">
+      {(tag || headline || sub) && (
+        <div class="faq-l">
+          {tag && <p class="kick" data-field="faq.tag">{tag}</p>}
+          {headline && <h2 class="faq-h2" data-field="faq.headline" set:html={headline}></h2>}
+          {sub && <p class="faq-sub" data-field="faq.sub">{sub}</p>}
+        </div>
+      )}
+      <div class="faq-list">
+        {rows.map((r: { q: string; a: string; i: number }, k: number) => (
+          <details class="faq-it" open={k === 0}>
+            <summary class="faq-q">
+              <span data-field={`faq.items.${r.i}.q`}>{r.q}</span>
+              <span class="faq-plus" aria-hidden="true">+</span>
+            </summary>
+            {r.a && <p class="faq-a" data-field={`faq.items.${r.i}.a`}>{r.a}</p>}
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  /* Every value below is the design's inline style, verbatim. */
+  .faq { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--paper-2); }
+  .faq-in { display: flex; flex-wrap: wrap; gap: 36px clamp(40px, 6vw, 96px); }
+  .faq-l { flex: 1 1 300px; min-width: 0; }
+  .faq-h2 {
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px); line-height: 1.06; overflow-wrap: anywhere;
+  }
+  .kick + .faq-h2 { margin-top: 14px; }
+  .faq-sub { max-width: 36ch; color: var(--ink-soft); overflow-wrap: anywhere; }
+  .faq-l > * + .faq-sub { margin-top: 16px; }
+
+  .faq-list { flex: 1.6 1 440px; min-width: 0; }
+  .faq-it { border-top: 1px solid rgba(var(--ink-rgb), .2); }
+  .faq-it:last-child { border-bottom: 1px solid rgba(var(--ink-rgb), .2); }
+  .faq-q {
+    display: flex; justify-content: space-between; gap: 16px;
+    padding: 20px 0; list-style: none; cursor: pointer;
+    font-family: var(--disp); font-weight: 400; font-size: clamp(18px, 1.8vw, 21px);
+  }
+  .faq-q::-webkit-details-marker { display: none; }
+  .faq-q::marker { content: ''; }
+  .faq-q > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+  .faq-plus { flex: none; color: var(--accent-deep); }
+  .faq-a { padding-bottom: 20px; max-width: 60ch; color: var(--ink-soft); overflow-wrap: anywhere; }
+</style>

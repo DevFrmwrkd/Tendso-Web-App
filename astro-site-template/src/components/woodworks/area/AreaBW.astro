@@ -1,0 +1,74 @@
+---
+/**
+ * woodworks / AreaBW — coverage: eyebrow, condensed h2 and a short paragraph on
+ * the left; on the right the places the owner installs in, as square mono
+ * chips under ink hairlines, the LAST chip filled black — the design's
+ * catch-all at the end of the list.
+ *
+ * Editable hooks (all schema-owned):
+ *   area.tag · area.headline · area.body · area.places.${i}
+ *
+ * THE FILLED CHIP is positional, not a claim: whatever place the owner lists
+ * last closes the row in black, exactly as drawn. A single chip stays outline.
+ *
+ * GATE (do not relax it): lib/derive-content-defaults.ts sets area.places to
+ * the owner's own city and a derived headline on essentially every site, so a
+ * `places.length > 0` test would ship this band on every first build with one
+ * chip echoing the address. It renders only when the owner named a SECOND
+ * place or wrote the paragraph — either can only have come from a person.
+ * No distances, no travel times, no fee terms are supplied here. Blank chips
+ * are dropped with the ORIGINAL index kept.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const area = (content as any).area || {};
+const str = (v: any): string => String(v ?? '').trim();
+const tag = str(area.tag);
+const headline = str(area.headline);
+const body = str(area.body);
+const places: any[] = Array.isArray(area.places) ? area.places : [];
+const rows = places
+  .map((p: any, i: number) => ({ i, v: str(p) }))
+  .filter((r) => Boolean(r.v));
+const show = rows.length >= 2 || Boolean(body);
+---
+{show && (
+  <section id="area" class="ar">
+    <div class="wrap ar-in">
+      {(tag || headline || body) && (
+        <div class="ar-copy">
+          {tag && <p class="eyebrow" data-field="area.tag">{tag}</p>}
+          {headline && <h2 class="h2 h2--md ar-h2" data-field="area.headline">{headline}</h2>}
+          {body && <p class="ar-body" data-field="area.body">{body}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class="ar-chips">
+          {rows.map((r) => (
+            <span class="ar-chip" data-field={`area.places.${r.i}`}>{r.v}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .ar { padding: clamp(56px,7vw,112px) 0; }
+  .ar-in { display: flex; flex-wrap: wrap; gap: 28px clamp(40px,6vw,96px); align-items: flex-start; }
+  .ar-copy { flex: 1 1 340px; min-width: 0; }
+  .ar-h2 { text-wrap: balance; }
+  .ar-copy .ar-body {
+    margin: 16px 0 0; max-width: 42ch; color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+  .ar-copy .ar-body:first-child { margin-top: 0; }
+  .ar-chips { flex: 1 1 420px; min-width: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .ar-chip {
+    max-width: 100%; padding: 10px 16px; border: 1px solid var(--ink);
+    background-color: transparent; color: var(--ink);
+    font-family: var(--mono); font-size: 13px; line-height: 1.6; overflow-wrap: anywhere;
+  }
+  /* Filled and borderless, as drawn. */
+  .ar-chip:last-child:not(:first-child) {
+    background-color: var(--ink); border: 0; color: var(--paper);
+  }
+</style>

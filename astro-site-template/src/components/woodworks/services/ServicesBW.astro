@@ -1,0 +1,177 @@
+---
+/**
+ * woodworks / ServicesBW — "Molave"'s parts list. A head (mono eyebrow + big
+ * condensed h2 left, lede right), then a ledger of ink-ruled rows — part number,
+ * a 4:3 photo, the condensed caps title, the description, and a mono lead-time —
+ * and under it one tinted band: a bold sentence beside an ink button.
+ *
+ * Editable hooks (all schema-owned):
+ *   services.tag · services.headline · services.sub
+ *   services.items.${i}.tag     — the part number (a code in the design): the
+ *                                 OWNER's text, not a counter, so it is bound
+ *   services.items.${i}.image   (data-image-field)
+ *   services.items.${i}.title · services.items.${i}.desc
+ *   services.items.${i}.meta    — the lead-time column
+ *   services.whole.headline     — the band's sentence
+ *   services.ctaLabel + data-href-field services.ctaHref — the band's button
+ *
+ * LIST RULES. A row the owner added and never filled is dropped, and every hook
+ * carries the row's ORIGINAL index, so removing row 2 can never aim an edit at
+ * row 3. The part-number and photo columns are decided for the WHOLE ledger: if
+ * any row has a part number (or a photo), every row keeps that column — as an
+ * empty, unannounced spacer where a row has none — so the titles still line up
+ * down the page; with none anywhere the column is simply not there. A spacer is
+ * transparent: no plate, no border, no placeholder box.
+ *
+ * THE BAND belongs to this section (it binds services.*), sits inside it as
+ * drawn, and renders only with its sentence — a lone button in a tinted box is
+ * not a band. Its button renders only with a label; the href falls back to the
+ * page's primary action, then to the closing band, so it never points nowhere.
+ *
+ * Nothing is fabricated: no service, no lead time, no "from" price, no count.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+// Anchor guard — identical copies in Header, Hero, Services, CtaBand, Footer.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'how', 'gallery', 'about', 'why', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { contact: 'visit', location: 'visit', work: 'gallery' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const services = (content as any).services || {};
+const str = (v: any): string => String(v ?? '').trim();
+const tag = str(services.tag);
+const headline = str(services.headline);
+const sub = str(services.sub);
+const rawItems: any[] = Array.isArray(services.items) ? services.items : (Array.isArray(services) ? services : []);
+// Both vocabularies: a wrapped row can still carry the legacy name/description
+// keys (the editor's draft-normalisation window wrote them).
+const rows = rawItems
+  .map((it: any, i: number) => ({
+    i,
+    tag: str(it?.tag),
+    image: str(it?.image),
+    title: str(it?.title ?? it?.name),
+    desc: str(it?.desc ?? it?.description),
+    meta: str(it?.meta),
+  }))
+  .filter((r) => Boolean(r.tag || r.image || r.title || r.desc || r.meta));
+const anyTag = rows.some((r) => r.tag);
+const anyImage = rows.some((r) => r.image);
+const band = str(services.whole?.headline);
+const ctaLabel = str(services.ctaLabel);
+const ctaHref = onPage(services.ctaHref, onPage((content as any).hero?.cta1?.href, '#book'));
+const hasSection = rows.length > 0 || Boolean(band);
+---
+{hasSection && (
+  <section id="services" class="sv">
+    <div class="wrap">
+      {(tag || headline || sub) && (
+        <div class="sv-head">
+          {(tag || headline) && (
+            <div class="sv-head-l">
+              {tag && <p class="eyebrow" data-field="services.tag">{tag}</p>}
+              {headline && <h2 class="h2 sv-h2" data-field="services.headline">{headline}</h2>}
+            </div>
+          )}
+          {sub && <p class="sv-sub" data-field="services.sub">{sub}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class="sv-list">
+          {rows.map((r) => (
+            <article class="sv-row">
+              {r.tag
+                ? <span class="sv-tag" data-field={`services.items.${r.i}.tag`}>{r.tag}</span>
+                : anyTag && <span class="sv-tag" aria-hidden="true"></span>}
+              {r.image
+                ? (
+                  <div class="sv-img" data-image-field={`services.items.${r.i}.image`}>
+                    <img src={r.image} alt={r.title} loading="lazy" decoding="async" />
+                  </div>
+                )
+                : anyImage && <span class="sv-img sv-img--none" aria-hidden="true"></span>}
+              {r.title && <h3 class="sv-title" data-field={`services.items.${r.i}.title`}>{r.title}</h3>}
+              {r.desc && <p class="sv-desc" data-field={`services.items.${r.i}.desc`}>{r.desc}</p>}
+              {r.meta && <span class="sv-meta" data-field={`services.items.${r.i}.meta`}>{r.meta}</span>}
+            </article>
+          ))}
+        </div>
+      )}
+      {band && (
+        <div class:list={['sv-band', rows.length === 0 && 'sv-band--solo']}>
+          <p class="sv-band-t" data-field="services.whole.headline">{band}</p>
+          {ctaLabel && <a class="btn btn--ink sv-band-b" href={ctaHref} data-field="services.ctaLabel" data-href-field="services.ctaHref">{ctaLabel}</a>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .sv { padding: clamp(56px,7vw,112px) 0; }
+
+  /* Head: eyebrow + h2 on the left, the lede on the right, baseline-aligned,
+     wrapping to a stack the moment the two cannot share a line. */
+  .sv-head {
+    display: flex; flex-wrap: wrap; gap: 16px 64px; align-items: flex-end;
+    margin-bottom: clamp(32px,4vw,48px);
+  }
+  .sv-head-l { flex: 1 1 440px; min-width: 0; }
+  .sv-h2 { text-wrap: balance; }
+  .sv-head .sv-sub {
+    flex: 1 1 320px; min-width: 0; max-width: 44ch; margin: 0;
+    color: var(--ink-soft); text-wrap: pretty; overflow-wrap: anywhere;
+  }
+
+  .sv-list { border-top: 1px solid var(--ink); }
+  .sv-row {
+    display: flex; flex-wrap: wrap; gap: 16px clamp(16px,3vw,40px); align-items: center;
+    padding: 22px 0; border-bottom: 1px solid var(--ink);
+  }
+  .sv-tag {
+    flex: 0 0 56px; font-family: var(--mono); font-size: 13px; line-height: 1.6;
+    color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+  .sv-img {
+    position: relative; overflow: hidden; display: block;
+    flex: 0 0 clamp(96px,12vw,150px); aspect-ratio: 4 / 3; background-color: var(--card);
+  }
+  .sv-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  /* The column spacer for a row with no photo: holds the width, draws nothing. */
+  .sv-img--none { background-color: transparent; }
+  .sv-row .sv-title {
+    flex: 1 1 220px; min-width: 0; margin: 0;
+    font-family: var(--disp); font-size: clamp(24px,2.6vw,34px); font-weight: 800;
+    font-stretch: 85%; line-height: 1.05; text-transform: uppercase; color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .sv-row .sv-desc {
+    flex: 2 1 300px; min-width: 0; margin: 0;
+    color: var(--ink-soft); text-wrap: pretty; overflow-wrap: anywhere;
+  }
+  .sv-meta {
+    flex: 0 0 auto; max-width: 100%; font-family: var(--mono); font-size: 12.5px;
+    line-height: 1.6; color: var(--ink); overflow-wrap: anywhere;
+  }
+
+  /* The "not sure?" band: the tinted ground, a bold sentence, the ink button. */
+  .sv-band {
+    display: flex; flex-wrap: wrap; gap: 20px 40px; align-items: center;
+    justify-content: space-between; margin-top: clamp(28px,3vw,40px);
+    padding: clamp(22px,3vw,32px); background-color: var(--paper-2);
+  }
+  .sv-band--solo { margin-top: 0; }
+  .sv-band .sv-band-t {
+    margin: 0; max-width: 40ch; min-width: 0;
+    font-family: var(--sans); font-size: clamp(20px,2vw,26px); font-weight: 700;
+    line-height: 1.25; color: var(--ink); overflow-wrap: anywhere;
+  }
+  @media (max-width: 520px) {
+    .sv-band .sv-band-b { max-width: 100%; white-space: normal; }
+  }
+</style>

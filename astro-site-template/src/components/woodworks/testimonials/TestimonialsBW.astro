@@ -1,0 +1,111 @@
+---
+/**
+ * woodworks / TestimonialsBW — reviews under one ink rule: an eyebrow, a big
+ * condensed caps pull-quote, a mono source line, then a grid of review cells
+ * ruled like a table (the grid draws the top and left edges, every cell its
+ * right and bottom), each cell an orange star row, the quote and a mono name.
+ *
+ * Editable hooks (all schema-owned):
+ *   testimonials.tag · testimonials.bigQuote · testimonials.source
+ *   testimonials.items.${i}.rating — the star row (data-derived: see below)
+ *   testimonials.items.${i}.quote · testimonials.items.${i}.who
+ *
+ * THE STARS ARE DRAWN FROM THE OWNER'S NUMBER, never hardcoded. The design
+ * prints five stars on every card; five stars for a review nobody scored is a
+ * rating invented on the owner's behalf. So a row draws stars only from a
+ * finite rating: rounded, capped at 5, and nothing at all below 1 (a zero is
+ * never rounded up into a star). The hook stays on the row, as the design binds
+ * it, but carries data-derived: the row RENDERS the number, it is not the
+ * number, so the editor bridge must not overwrite the glyphs with the digit.
+ * Its accessible name states the same number the glyphs draw.
+ *
+ * THE PULL-QUOTE'S QUOTATION MARKS are template glyphs, aria-hidden and OUTSIDE
+ * the data-field span, so an inline edit can never write them into the quote;
+ * if the owner typed their own marks, none are added.
+ *
+ * NEVER FABRICATED: no review, no score, no count, no platform — the source
+ * line is the one place a platform claim can live, and it is the owner's text.
+ * A row with no quote is dropped (the card IS the quote), with the ORIGINAL
+ * index kept on every hook. The section renders only with a real quote.
+ *
+ * CLASS NAMES: .rv — never .testi, which buildOverrideCss paints on-ink.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const test = (content as any).testimonials || {};
+const str = (v: any): string => String(v ?? '').trim();
+const tag = str(test.tag);
+const bigQuote = str(test.bigQuote);
+const ownMarks = /^["“‘'«]/.test(bigQuote) && /["”’'»]$/.test(bigQuote);
+const source = str(test.source);
+const items: any[] = Array.isArray(test.items) ? test.items : (Array.isArray(test) ? test : []);
+const starsOf = (rating: any): number => {
+  if (rating === null || rating === undefined || String(rating).trim() === '') return 0;
+  const n = Math.round(Number(rating));
+  return Number.isFinite(n) && n >= 1 ? Math.min(n, 5) : 0;
+};
+const rows = items
+  .map((it: any, i: number) => ({ i, quote: str(it?.quote), who: str(it?.who ?? it?.author ?? it?.name), stars: starsOf(it?.rating) }))
+  .filter((r) => Boolean(r.quote));
+const hasSection = rows.length > 0 || Boolean(bigQuote);
+---
+{hasSection && (
+  <section id="reviews" class="rv">
+    <div class="wrap">
+      {tag && <p class="eyebrow" data-field="testimonials.tag">{tag}</p>}
+      {bigQuote && (
+        <blockquote class="rv-big">{!ownMarks && <span aria-hidden="true">“</span>}<span data-field="testimonials.bigQuote">{bigQuote}</span>{!ownMarks && <span aria-hidden="true">”</span>}</blockquote>
+      )}
+      {source && <p class="rv-src" data-field="testimonials.source">{source}</p>}
+      {rows.length > 0 && (
+        <div class="rv-grid">
+          {rows.map((r) => (
+            <figure class="rv-cell">
+              {r.stars > 0 && (
+                <span class="rv-stars" role="img" aria-label={`${r.stars} out of 5`} data-field={`testimonials.items.${r.i}.rating`} data-derived>{'★'.repeat(r.stars)}</span>
+              )}
+              <blockquote class="rv-q" data-field={`testimonials.items.${r.i}.quote`}>{r.quote}</blockquote>
+              {r.who && <figcaption class="rv-who" data-field={`testimonials.items.${r.i}.who`}>{r.who}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .rv { padding: clamp(56px,7vw,112px) 0; border-top: 1px solid var(--ink); }
+  .rv .rv-big {
+    margin: 16px 0 0; max-width: 24ch;
+    font-family: var(--disp); font-size: clamp(30px,4.2vw,58px); font-weight: 800;
+    font-stretch: 80%; line-height: 1; text-transform: uppercase; color: var(--ink);
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+  .rv .rv-big:first-child { margin-top: 0; }
+  .rv .rv-src {
+    margin: 18px 0 0; font-family: var(--mono); font-size: 12.5px; line-height: 1.6;
+    color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+  .rv .rv-src:first-child { margin-top: 0; }
+  .rv-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,280px), 1fr));
+    gap: 0; margin-top: clamp(36px,4vw,56px);
+    border-top: 1px solid var(--ink); border-left: 1px solid var(--ink);
+  }
+  .rv-grid:first-child { margin-top: 0; }
+  .rv-cell {
+    margin: 0; min-width: 0; padding: 26px;
+    border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+  }
+  .rv-stars { display: inline-block; color: var(--accent); letter-spacing: 3px; line-height: 1.6; }
+  .rv-cell .rv-q {
+    margin: 0 0 16px; font-size: 16.5px; line-height: 1.55; color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+  .rv-cell .rv-stars + .rv-q { margin-top: 12px; }
+  .rv-cell .rv-q:last-child { margin-bottom: 0; }
+  .rv-who {
+    font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--ink);
+    overflow-wrap: anywhere;
+  }
+</style>

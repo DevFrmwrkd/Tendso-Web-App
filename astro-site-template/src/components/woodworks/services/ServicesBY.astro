@@ -1,0 +1,161 @@
+---
+/**
+ * woodworks / ServicesBY — "what we make": a centred head, then one tall
+ * framed photograph beside a ledger of pieces. Each ledger row is a brass
+ * Roman numeral, a Caslon name and an indented grey line, ruled off in bone;
+ * a brass hairline button closes the ledger.
+ *
+ * Editable hooks (all schema-owned, `services` group):
+ *   services.tag · services.headline · services.sub
+ *   services.items.${i}.title · services.items.${i}.desc
+ *   services.items.${i}.image (data-image-field) — the ONE framed photograph
+ *   services.ctaLabel + data-href-field services.ctaHref — the ledger button
+ *
+ * THE NUMERALS ARE DERIVED. I., II., III. … are computed from the DISPLAY
+ * index, aria-hidden, and bound to nothing: a counter is chrome, not content,
+ * so removing a row renumbers the ledger and never misdirects an edit. (The
+ * design's sample stores them in each row's badge field; the house rule for
+ * step and reason numbers overrides that, so the badge is not drawn here.)
+ * Every hook carries the row's ORIGINAL index, so a blank row dropped above
+ * it can never redirect an edit.
+ *
+ * THE PHOTOGRAPH is the first row, in the owner's order, that has one. The
+ * design draws the first row's photo; taking the first photo PRESENT means an
+ * owner who fills rows out of order still sees their picture, and the hook is
+ * always that row's own image path. With no photo anywhere the frame is not
+ * drawn and the ledger takes a centred measure of its own.
+ *
+ * NEVER FABRICATED: no piece, price or description is supplied here, and the
+ * section needs at least one row with a name or a line. A head over nothing is
+ * an empty shell, so the eyebrow and headline alone never open it.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+// Anchor guard — identical in HeaderBY, HeroBY, ServicesBY, CtaBandBY and
+// FooterBY. The button falls back to the hero's primary action (and that to
+// the closing band) so it is never pointed at nothing before the owner fills
+// the Card-button field in. The HOOK stays services.ctaHref either way.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'how', 'gallery', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit', location: 'visit', testimonials: 'reviews' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  const h = String(href ?? '').trim();
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const c = content as any;
+const services = c.services && typeof c.services === 'object' && !Array.isArray(c.services) ? c.services : {};
+const tag = txt(services.tag);
+const headline = txt(services.headline);
+const sub = txt(services.sub);
+// Both shapes (the wrapped {items} and a legacy bare array) and both
+// vocabularies (title/desc and name/description).
+const raw: any[] = Array.isArray(services.items) ? services.items : (Array.isArray(c.services) ? c.services : []);
+const items = raw.map((it: any, i: number) => {
+  const o = it && typeof it === 'object' ? it : { title: it };
+  return { title: txt(o.title ?? o.name), desc: txt(o.desc ?? o.description), image: txt(o.image), i };
+});
+const rows = items.filter((r) => Boolean(r.title || r.desc));
+const lead = items.find((r) => Boolean(r.image));
+const roman = (n: number): string => {
+  const table: Array<[number, string]> = [[1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'], [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']];
+  let s = '';
+  for (const [v, r] of table) while (n >= v) { s += r; n -= v; }
+  return s;
+};
+const heroHref = onPage(c.hero?.cta1?.href, '#book');
+const ctaLabel = txt(services.ctaLabel);
+const ctaHref = onPage(services.ctaHref, heroHref);
+---
+{rows.length > 0 && (
+  <section id="services" class="works">
+    <div class="wrap">
+      {(tag || headline || sub) && (
+        <div class="works-head">
+          {tag && <p class="eyebrow" data-field="services.tag">{tag}</p>}
+          {headline && <h2 class="works-h" data-field="services.headline" set:html={headline}></h2>}
+          {sub && <p class="works-sub" data-field="services.sub">{sub}</p>}
+        </div>
+      )}
+      <div class:list={['works-body', !lead && 'works-body--solo']}>
+        {lead && (
+          <div class="frame">
+            <div class="well" data-image-field={`services.items.${lead.i}.image`}>
+              <img src={lead.image} alt={lead.title} decoding="async" />
+            </div>
+          </div>
+        )}
+        <div class="ledger">
+          {rows.map((r, k) => (
+            <article class="piece">
+              <div class="piece-top">
+                <span class="numeral" aria-hidden="true">{roman(k + 1)}.</span>
+                {r.title && <h3 class="piece-name" data-field={`services.items.${r.i}.title`}>{r.title}</h3>}
+              </div>
+              {r.desc && <p class="piece-desc" data-field={`services.items.${r.i}.desc`}>{r.desc}</p>}
+            </article>
+          ))}
+          {ctaLabel && (
+            <a class="btn btn--brass ledger-cta" href={ctaHref} data-field="services.ctaLabel" data-href-field="services.ctaHref">{ctaLabel}</a>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .works {
+    padding: clamp(56px, 7vw, 112px) 0;
+    background-color: var(--night); color: var(--bone);
+    border-top: 1px solid rgba(var(--accent-rgb), .2);
+  }
+  .works-head { text-align: center; max-width: 720px; margin: 0 auto clamp(40px, 5vw, 64px); }
+  .works-h {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(36px, 5vw, 68px); line-height: 1.02; color: var(--bone);
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  .works-head > :first-child { margin-top: 0; }
+  .works-sub { margin: 16px auto 0; max-width: 48ch; color: var(--grey); text-wrap: pretty; }
+
+  /* Photo and ledger share a wrapping row, exactly as drawn: side by side while
+     360px + 420px fit, the photo stacked above the ledger below that. */
+  .works-body { display: flex; flex-wrap: wrap; gap: 36px clamp(36px, 5vw, 72px); align-items: flex-start; }
+  .frame { flex: 1 1 360px; min-width: 0; padding: 10px; border: 1px solid rgba(var(--accent-rgb), .4); }
+  .well { position: relative; overflow: hidden; aspect-ratio: 4 / 5; background-color: var(--night-2); }
+  .well img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ledger { flex: 1.2 1 420px; min-width: 0; }
+  /* No photograph: the ledger alone, on a centred reading measure rather than
+     stretched across the full 1144px. */
+  .works-body--solo .ledger { max-width: 780px; margin: 0 auto; }
+
+  .piece { padding: 24px 0; border-bottom: 1px solid rgba(var(--bone-rgb), .14); }
+  .piece:first-child { padding-top: 0; }
+  .piece:last-of-type { padding-bottom: 0; border-bottom: 0; }
+  .piece-top { display: flex; gap: 18px; align-items: baseline; }
+  .numeral { flex: none; font-family: var(--disp); font-weight: 400; font-size: 22px; color: var(--accent-light); }
+  .piece-name {
+    margin: 0; min-width: 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(24px, 2.4vw, 32px); line-height: 1.15; color: var(--bone); overflow-wrap: break-word;
+  }
+  .piece-desc { margin: 8px 0 0 40px; font-size: 15.5px; color: var(--grey); text-wrap: pretty; overflow-wrap: break-word; }
+
+  /* The ledger button: a brass hairline that fills with brass on hover. */
+  .ledger .ledger-cta {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 52px; margin: 32px 0 0 40px; padding: 0 26px; max-width: calc(100% - 40px);
+    background-color: transparent; border: 1px solid var(--accent-light); border-radius: 0;
+    color: var(--accent-light);
+    font-family: var(--sans); font-size: 13px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; text-align: center;
+  }
+  .ledger .ledger-cta:hover { background-color: var(--accent-light); border-color: var(--accent-light); color: var(--night); }
+  /* An owner's (or the copy extraction's) <em> in the headline: upright (the
+     Caslon has no italic) and in the design's one metal. :global() because
+     set:html markup cannot be scoped. */
+  .works-h :global(em), .works-h :global(i) { font-style: normal; color: var(--accent-light); }
+</style>

@@ -1,0 +1,74 @@
+---
+/**
+ * florist / WhyBT — Gumamela's reasons (#why): the full-bleed MARIGOLD band.
+ * A big Bricolage headline, then paper cards ruled in 2px ink, each opened by
+ * a red two-digit numeral, a title and a short muted line.
+ *
+ * Editable hooks: why.headline (set:html) · why.items.${i}.title ·
+ * why.items.${i}.body (ORIGINAL index; the value may arrive as
+ * desc/description, the hook always spells body).
+ *
+ * An <em> in the headline prints upright in --on-mari-accent: the design's red
+ * on its own marigold, and plain ink under an admin scheme (whose red on whose
+ * light accent measures under 2.3:1).
+ *
+ * The numerals (01, 02 …) are DECORATIVE: computed from the display index,
+ * aria-hidden, never bound — dropping a blank row can neither leave a gap in
+ * the count nor misdirect an edit.
+ *
+ * GATE: at least one filled reason. The headline is derived on every named
+ * site, so it never opens the band on its own.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const why = content.why || {};
+const str = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
+const headline = str(why.headline).trim();
+const items: any[] = Array.isArray(why.items) ? why.items : (Array.isArray(content.why) ? content.why : []);
+const rows = items
+  .map((it: any, i: number) => ({ title: str(it?.title).trim(), body: str(it?.body ?? it?.desc ?? it?.description).trim(), i }))
+  .filter((r) => Boolean(r.title || r.body));
+---
+{rows.length > 0 && (
+  <section class="gm-why" id="why">
+    <div class="wrap">
+      {headline && <h2 class="wy-h" data-field="why.headline" set:html={headline}></h2>}
+      <div class:list={['wy-grid', !headline && 'wy-grid--top']}>
+        {rows.map((r, k) => (
+          <div class="wy-card">
+            <span class="wy-n" aria-hidden="true">{String(k + 1).padStart(2, '0')}</span>
+            {r.title && <h3 class="wy-t" data-field={`why.items.${r.i}.title`}>{r.title}</h3>}
+            {r.body && <p class:list={['wy-b', !r.title && 'wy-b--solo']} data-field={`why.items.${r.i}.body`}>{r.body}</p>}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .gm-why { padding: clamp(56px,7vw,104px) 0; background-color: var(--accent-light); color: var(--ink); }
+  .wy-h {
+    margin: 0; max-width: 16ch; font-family: var(--disp); font-weight: 800; color: var(--ink);
+    font-size: clamp(36px,5.4vw,76px); line-height: .96; letter-spacing: -.04em;
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  /* :global() because Astro cannot scope markup that arrived via set:html. */
+  .wy-h :global(em), .wy-h :global(i) { font-style: normal; color: var(--on-mari-accent); }
+  .wy-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,230px), 1fr));
+    gap: clamp(14px,2vw,24px); margin-top: clamp(32px,4vw,52px);
+  }
+  .wy-grid--top { margin-top: 0; }
+  .wy-card {
+    min-width: 0; padding: 26px; border-radius: 24px;
+    background-color: var(--paper); border: 2px solid var(--ink); color: var(--ink);
+  }
+  /* Inline, as drawn: the numeral sits on the card's own 1.6 line box. */
+  .wy-n { font-family: var(--disp); font-weight: 800; font-size: 44px; line-height: 1; color: var(--accent-text); }
+  .wy-t {
+    margin: 14px 0 6px; font-family: var(--disp); font-weight: 800; font-size: 23px;
+    line-height: 1.6; letter-spacing: -.02em; color: var(--ink); overflow-wrap: break-word;
+  }
+  .wy-b { margin: 0; font-size: 15.5px; line-height: 1.6; color: var(--ink-soft); }
+  .wy-b--solo { margin-top: 14px; }
+</style>

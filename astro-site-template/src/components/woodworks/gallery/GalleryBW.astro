@@ -1,0 +1,90 @@
+---
+/**
+ * woodworks / GalleryBW — "recent installs": the same head as the services
+ * ledger (eyebrow + condensed h2 left, lede right) over a grid of square
+ * photographs, each with a mono caption under it. The grid is the design's
+ * auto-fit (280px floor): four across on a desktop, two on a tablet, one on a
+ * phone, with a short last row left-aligned.
+ *
+ * Editable hooks (all schema-owned):
+ *   gallery.tag · gallery.headline · gallery.sub
+ *   data-image-field gallery.items.${i}.image · gallery.items.${i}.caption
+ *
+ * Rows are FILTERED to the ones that carry a photo, with the ORIGINAL index
+ * kept on every hook — a caption-only row would be a caption over nothing.
+ * With no photo at all the whole section is omitted (tag and headline are
+ * derived on every site, so they never keep it alive on their own). A lone
+ * photo is held to half the measure instead of blowing up to a 1224px square.
+ *
+ * An uncaptioned photo is marked decorative rather than given an invented
+ * accessible name; with a caption, the caption is its name.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const gallery = (content as any).gallery || {};
+const str = (v: any): string => String(v ?? '').trim();
+const tag = str(gallery.tag);
+const headline = str(gallery.headline);
+const sub = str(gallery.sub);
+const raw: any[] = Array.isArray(gallery.items) ? gallery.items : (Array.isArray(gallery) ? gallery : []);
+const tiles = raw
+  .map((t: any, i: number) => ({ i, image: str(t?.image), caption: str(t?.caption) }))
+  .filter((t) => Boolean(t.image));
+---
+{tiles.length > 0 && (
+  <section id="gallery" class="gl">
+    <div class="wrap">
+      {(tag || headline || sub) && (
+        <div class="gl-head">
+          {(tag || headline) && (
+            <div class="gl-head-l">
+              {tag && <p class="eyebrow" data-field="gallery.tag">{tag}</p>}
+              {headline && <h2 class="h2" data-field="gallery.headline">{headline}</h2>}
+            </div>
+          )}
+          {sub && <p class="gl-sub" data-field="gallery.sub">{sub}</p>}
+        </div>
+      )}
+      <div class="gl-grid" data-n={String(tiles.length)}>
+        {tiles.map((t) => (
+          <figure class="gl-fig">
+            <div class="gl-img" data-image-field={`gallery.items.${t.i}.image`}>
+              <img src={t.image} alt={t.caption} loading="lazy" decoding="async" />
+            </div>
+            {t.caption && (
+              <figcaption class="gl-cap"><span data-field={`gallery.items.${t.i}.caption`}>{t.caption}</span></figcaption>
+            )}
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .gl { padding: clamp(56px,7vw,112px) 0; }
+  .gl-head {
+    display: flex; flex-wrap: wrap; gap: 16px 64px; align-items: flex-end;
+    margin-bottom: clamp(32px,4vw,48px);
+  }
+  .gl-head-l { flex: 1 1 440px; min-width: 0; }
+  .gl-head .gl-sub {
+    flex: 1 1 320px; min-width: 0; max-width: 44ch; margin: 0;
+    color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+  .gl-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,280px), 1fr));
+    gap: clamp(14px,2vw,24px);
+  }
+  .gl-grid[data-n="1"] { max-width: 600px; }
+  .gl-fig { margin: 0; min-width: 0; }
+  .gl-img {
+    position: relative; overflow: hidden; aspect-ratio: 1 / 1;
+    background-color: var(--card);
+  }
+  .gl-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .gl-cap {
+    display: flex; justify-content: space-between; gap: 12px; margin-top: 10px;
+    font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--ink);
+  }
+  .gl-cap span { min-width: 0; overflow-wrap: anywhere; }
+</style>

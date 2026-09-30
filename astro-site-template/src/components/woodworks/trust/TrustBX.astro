@@ -1,0 +1,62 @@
+---
+/**
+ * woodworks / TrustBX — "Acacia Studio"'s at-a-glance band: a row of light
+ * Newsreader figures, each over a small grey line of what it counts. No card,
+ * no rules — the figures stand on the bone ground.
+ *
+ * Editable hooks (the trust.cells list):
+ *   trust.cells.${i}.num · trust.cells.${i}.label
+ *
+ * NEVER FABRICATED. Years, counts and ratings are claims only the owner may
+ * make, and nothing derives this block, so it exists only where an admin
+ * filled it in: no literal cell, no placeholder figure, no zero. Blank rows are
+ * dropped with the ORIGINAL index kept on every hook, and num / label are
+ * guarded separately so a half-filled row prints one line, not an empty div.
+ * A star or any other glyph in a figure is the owner's own character.
+ *
+ * CLASS-NAME LAW: .glance, never the forbidden trust class — the engine pins
+ * that one to the on-ink colour, which would be bone text on a bone band.
+ * The accessible name "At a glance" is the design's own region label: chrome,
+ * never shown, and it asserts nothing.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const t = (content as any).trust || {};
+const cells: any[] = Array.isArray(t.cells) ? t.cells : (Array.isArray(t) ? t : []);
+const rows = cells
+  .map((cell: any, i: number) => ({ num: str(cell?.num), label: str(cell?.label), i }))
+  .filter((r) => Boolean(r.num || r.label));
+---
+{rows.length > 0 && (
+  <section class="glance" aria-label="At a glance">
+    <div class="wrap glance-grid">
+      {rows.map((r) => (
+        <div class="glance-cell">
+          {r.num && <b class="glance-n" data-field={`trust.cells.${r.i}.num`}>{r.num}</b>}
+          {r.label && <span class="glance-l" data-field={`trust.cells.${r.i}.label`}>{r.label}</span>}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+<style>
+  .glance { padding: clamp(44px,5vw,72px) 0; }
+  /* auto-fit on a 150px floor: four across on a desktop, two across at 360px
+     (they fit, so they stay paired), and a short band never leaves holes. */
+  .glance-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,150px),1fr));
+    gap: 28px 16px;
+  }
+  .glance-cell { min-width: 0; }
+  .glance-n {
+    display: block; font-family: var(--disp); font-weight: 300;
+    font-size: clamp(40px,4.4vw,60px); line-height: 1; letter-spacing: -.02em;
+    color: var(--ink); overflow-wrap: anywhere;
+  }
+  .glance-l {
+    display: block; margin-top: 8px; font-size: 14px; line-height: 1.65;
+    color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+  .glance-l:first-child { margin-top: 0; }
+</style>

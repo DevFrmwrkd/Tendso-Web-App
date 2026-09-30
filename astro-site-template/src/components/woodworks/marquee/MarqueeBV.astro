@@ -1,0 +1,33 @@
+---
+/**
+ * woodworks / MarqueeBV — the walnut strip under the hero: one centred line of
+ * Young Serif in linen, balanced across as many lines as it needs. The design
+ * calls it the marquee but draws it STILL — no scroll, no duplication — so
+ * nothing here moves.
+ *
+ * Editable hook: marquee.text (one string, printed verbatim; the separators
+ * inside it are the owner's own characters, not template chrome).
+ *
+ * Gate: the band exists only with text. It sits in the fixed wood world, so
+ * its linen-on-walnut pairing survives every admin colour scheme.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const mq = (content as any).marquee || {};
+const text = typeof mq.text === 'string' ? mq.text.trim() : '';
+---
+{text && (
+  <div class="mq" id="marquee">
+    <p class="mq-t" data-field="marquee.text">{text}</p>
+  </div>
+)}
+<style>
+  /* The design's padding sits on the band itself (18px + the page gutter),
+     so the line centres across the full viewport, not the 1280px column. */
+  .mq { background-color: var(--wood); color: var(--on-wood); padding: 18px var(--gut); }
+  .mq-t {
+    text-align: center; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(17px, 2vw, 24px); line-height: 1.4;
+    text-wrap: balance; overflow-wrap: anywhere;
+  }
+</style>

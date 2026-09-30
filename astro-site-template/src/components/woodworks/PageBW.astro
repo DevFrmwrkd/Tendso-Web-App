@@ -1,0 +1,440 @@
+---
+/**
+ * woodworks / PageBW — "Molave" (custom cabinetry + furniture, one workshop).
+ *
+ * Workshop grey and safety orange: Archivo on its WIDTH axis (72-85% for the
+ * condensed display cuts, 115% for the wide wordmark) over Archivo body copy,
+ * with JetBrains Mono for every small label — eyebrows, part numbers, the
+ * address ledger, the footer index. Ink hairlines everywhere, no radii, no
+ * shadows except the floating pill's hard offset. Three full-width black
+ * bands (the marquee, the process band, the footer) and one orange one (the
+ * closing band).
+ *
+ * ROLE OF THIS FILE: the wrapper emits the WHOLE document (doctype, head,
+ * tokens, fonts, Leaflet, skip link, anchor pass, map boot). It does NOT
+ * compose with BaseLayout, and it is the only file in the variant that reads
+ * `siteData`; the sixteen section components receive `layout` + `content`.
+ *
+ * EDITABLE HOOKS OWNED BY THIS FILE: none. It only READS layout.businessName /
+ * layout.tagline (<title>), content.description (<meta name="description">),
+ * layout.favicon and layout.ogImage. Every data-field / data-image-field /
+ * data-href-field lives in a section component. Visibility is the camelCase
+ * `visibility` keys below, each tested `!== false` (undefined renders).
+ *
+ * THE ONE HARDCODED VISIBLE STRING here is the skip link's "Skip to content"
+ * (an a11y affordance, visible on focus only — PageBJ precedent).
+ *
+ * RENDER ORDER is the design's, which differs from the sister templates:
+ * Header, Hero (#top), Marquee, Trust, Services, How (#how), Gallery, About,
+ * Why, Testimonials (#reviews), Credentials, Area, Faq, Location (#visit),
+ * then the closing band (#book, outside <main> as drawn) and the Footer with
+ * its floating message pill.
+ *
+ * DESIGN ISOLATION: every selector in the global block below is prefixed
+ * html[data-page="BW"] — the reset, body, img, a, ::selection and every
+ * primitive — because index.astro bundles every wrapper's global CSS onto every
+ * customer page.
+ *
+ * TOKEN PLAN (what an admin colour pick moves, and what it deliberately does
+ * not). Mapped by ROLE onto the engine vocabulary:
+ *   --paper #F1F0EB workshop grey ground · --paper-2 #E6E4DD the tinted bands
+ *   (about, credentials, faq, the services band) · --card #DEDCD4 the photo and
+ *   map plate · --ink #141414 text, every hairline, the small ink fills ·
+ *   --ink-soft #55544F secondary copy · --accent #D9481A the safety-orange FILL
+ *   (buttons, the closing band, the pin, the stars) · --accent-deep #B83A12
+ *   orange TEXT on the light grounds (eyebrows, part numbers, hovers) ·
+ *   --accent-light #FF8A5B orange text on the black bands.
+ * FIXED, on purpose, under names the engine does not know:
+ *   --shop #141414 / --on-shop #F1F0EB — the three black bands and the mobile
+ *   drawer. They are the design's signature (a workshop's black paint), and
+ *   keeping them fixed is what keeps every string on them legible under all six
+ *   woodworks schemes: --accent-light on #141414 measures 5.6:1 (brown) or
+ *   better, where the same eyebrow on a scheme-remapped ink band would sit at
+ *   2.4:1 once "dark" or "black" turns ink white.
+ *   --on-fill / --on-fill-alt — the label on an --accent fill and its inverse.
+ *   Natively white / ink. Neither engine alias is right for all six schemes
+ *   (--on-accent is picked against the scheme's LIGHT accent, --on-primary
+ *   against its primary with a 0.5 luminance cut — both leave a white label on
+ *   the gold, orange or black fill), so under an explicit scheme pick this file
+ *   reads the scheme's --accent out of the override block and picks whichever
+ *   of white / ink contrasts more (see __onFill below). Gated on the SCHEME,
+ *   never on the override string alone: a font pick also makes that non-empty.
+ *
+ * ACCESSIBILITY NOTE, stated not silently fixed: the design's white label on
+ * its #D9481A fill measures 4.30:1 — under the 4.5:1 AA bar for 14-15px bold
+ * caps, above the 3:1 bar for UI. It is the design's brand pairing, so it
+ * ships; darkening --accent to #C03F16 clears AA and is a one-line change.
+ *
+ * FONT-PAIRING SENTINEL: lib/astro-builder.ts defaults layout.fontPairing to
+ * the literal 'modern', and resolveTheme's lockVariant does not blank it — so
+ * without the two sentinel lines below buildOverrideCss would force Space
+ * Grotesk + Inter over Archivo on nearly every real site.
+ *
+ * FORBIDDEN CLASS NAMES (lib/genericThemeOverrides.ts pins them): .btn-primary
+ * .btn-ghost .btn-yellow .btn-light .nav-cta .nav-right .testi .cta-band .trust,
+ * and `hero` as a class. Buttons here are .btn--fill / .btn--line / .btn--ink /
+ * .linkc; the header pill (.pill) and the floating pill (.fab) carry no .btn
+ * at all.
+ *
+ * Leaflet: this wrapper defines window.__woodworksBWInitMap (family-unique) and
+ * LocationBW calls that exact string. Keep `el.innerHTML = ''` in the boot (it
+ * erases the drawn fallback face) and keep id="map" literal. Tiles are the
+ * design's CARTO light_all; lib/carto.ts appends the key at publish time.
+ */
+import HeaderBW from './header/HeaderBW.astro';
+import HeroBW from './hero/HeroBW.astro';
+import MarqueeBW from './marquee/MarqueeBW.astro';
+import TrustBW from './trust/TrustBW.astro';
+import ServicesBW from './services/ServicesBW.astro';
+import HowBW from './how/HowBW.astro';
+import GalleryBW from './gallery/GalleryBW.astro';
+import AboutBW from './about/AboutBW.astro';
+import WhyBW from './why/WhyBW.astro';
+import TestimonialsBW from './testimonials/TestimonialsBW.astro';
+import CredentialsBW from './credentials/CredentialsBW.astro';
+import AreaBW from './area/AreaBW.astro';
+import FaqBW from './faq/FaqBW.astro';
+import LocationBW from './location/LocationBW.astro';
+import CtaBandBW from './ctaBand/CtaBandBW.astro';
+import FooterBW from './footer/FooterBW.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __resolvedPairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+// 'modern' is astro-builder's DEFAULT, not a choice (lib/astro-builder.ts).
+// Treating it as unset keeps Archivo; a deliberate admin pick still applies.
+const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+
+// The label on an --accent fill, recomputed for an explicit scheme pick (see
+// TOKEN PLAN above). Reads the scheme's own --accent value out of the override
+// block the engine just built, so it can never drift from the palette table.
+const __hex = /--accent:\s*(#[0-9a-fA-F]{6})/.exec(__overrideCss)?.[1] ?? '';
+const __lum = (hex: string): number => {
+  const v = hex.replace('#', '');
+  const ch = [0, 2, 4].map((k) => parseInt(v.slice(k, k + 2), 16) / 255)
+    .map((s) => (s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * ch[0] + 0.7152 * ch[1] + 0.0722 * ch[2];
+};
+const __ratio = (a: string, b: string): number => {
+  const x = __lum(a); const y = __lum(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+};
+const __onFill = __themeScheme && __hex
+  ? (__ratio(__hex, '#FFFFFF') >= __ratio(__hex, '#141414') ? '#FFFFFF' : '#141414')
+  : '';
+// An admin FONT pick swaps Archivo's 72%-width display cut for a normal-width
+// face, and the three giant sizes (hero h1, closing headline, footer wordmark)
+// were drawn for the condensed one — a long word would then break mid-word on
+// a phone. --disp-k scales those three by one constant (so no size can grow as
+// the viewport narrows) and --glyph widens the wordmark's per-letter estimate.
+// Gated on the pairing actually loading a font, never on the override string.
+const __fontFix = __fontHref ? '--disp-k:.76;--glyph:.8;' : '';
+// :root doubles the specificity so this wins over the static token block
+// wherever Astro chooses to hoist that block.
+const __schemeFix = __onFill
+  ? `--on-fill:${__onFill};--on-fill-alt:${__onFill === '#FFFFFF' ? '#141414' : '#FFFFFF'};`
+  : '';
+const __schemeFixCss = (__schemeFix || __fontFix)
+  ? `html[data-page="BW"]:root{${__schemeFix}${__fontFix}}`
+  : '';
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="BW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <!-- Browser-chrome tint. A <meta> cannot read a CSS var, so this duplicates
+       the workshop-grey ground token (--paper) the sticky header sits on. -->
+  <meta name="theme-color" content="#F1F0EB" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <!-- The design's own families, verbatim from its <helmet>: Archivo with the
+       WIDTH axis (62-125) as well as weight, because every headline is set by
+       font-stretch, plus JetBrains Mono for the labels. -->
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+
+  <style is:global>
+    /* ═══════════════════════════════════════════════════════════════════════
+       PageBW · "Molave" — woodworks. Tokens + shared base primitives. EVERY
+       selector is prefixed html[data-page="BW"].
+
+       1. SPECIFICITY. Appearance-bearing primitives are wrapped in :where(),
+          so an Astro-scoped section rule (0,2,0) always wins over them.
+       2. BUTTONS. .btn + .btn--fill / .btn--line / .btn--ink, each declaring
+          its own background, border and label, and each :hover restating fill
+          AND label so a label can never strand. Hovers are instant, as drawn.
+       3. FOCUS. One DUO ring: a 3px paper outline inside a 6px ink halo — the
+          ink halo shows on the grey ground, the paper outline on the black
+          bands and on the orange one.
+       4. HEAD ORDER. This block is followed by the scheme fix, the admin font
+          link and, LAST in the head, the engine's override block.
+          (Never write a literal closing style or script tag in here.)
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    html[data-page="BW"] {
+      /* grounds */
+      --paper: #F1F0EB;
+      --paper-2: #E6E4DD;
+      --card: #DEDCD4;
+      /* ink */
+      --ink: #141414;
+      --ink-soft: #55544F;
+      --muted: #55544F;
+      --line: #C5C4C0;
+      /* safety orange: fill / text on light / text on black */
+      --accent: #D9481A;
+      --accent-deep: #B83A12;
+      --accent-light: #FF8A5B;
+      --accent-soft: #FF8A5B;
+      /* rgb triplets for token-driven tints */
+      --paper-rgb: 241,240,235;
+      --ink-rgb: 20,20,20;
+      --accent-rgb: 217,72,26;
+      /* the engine's contrast aliases (declared for anything that reads them) */
+      --on-primary: #FFFFFF;
+      --on-accent: #FFFFFF;
+      --on-ink: #F1F0EB;
+      --on-paper: #141414;
+      /* FIXED on purpose — names the engine does not know (see the frontmatter) */
+      --shop: #141414;
+      --on-shop: #F1F0EB;
+      --on-shop-rgb: 241,240,235;
+      --on-fill: #FFFFFF;
+      --on-fill-alt: #141414;
+      /* display-size factor + wordmark glyph estimate (see __fontFix) */
+      --disp-k: 1;
+      --glyph: .62;
+      /* type + metrics */
+      --disp: "Archivo", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      --sans: "Archivo", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      --serif: "Archivo", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      --maxw: 1320px;
+      --gutter: clamp(18px,4vw,48px);
+    }
+
+    /* VERIFIED CONTRAST (sRGB relative luminance, the design's palette):
+       ink/paper 16.9 · ink/paper-2 15.2 · ink-soft/paper 7.0 · /paper-2 6.3
+       accent-deep/paper 5.05 · /paper-2 4.5 · accent-light/shop 7.9
+       on-shop/shop 16.9 · white/accent 4.30 (see the ACCESSIBILITY NOTE). */
+
+    /* ── reset + document ─────────────────────────────────────────────── */
+    html[data-page="BW"] *,
+    html[data-page="BW"] *::before,
+    html[data-page="BW"] *::after { box-sizing: border-box; }
+    html[data-page="BW"] {
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+      /* The sticky header is 69px; every in-page target lands 12px under it. */
+      scroll-padding-top: 81px;
+    }
+    @media (prefers-reduced-motion: reduce) { html[data-page="BW"] { scroll-behavior: auto; } }
+    html[data-page="BW"] body {
+      margin: 0; padding: 0;
+      background-color: var(--paper); color: var(--ink);
+      font-family: var(--sans); font-size: 16.5px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    /* Element resets sit in :where() too: a bare `html[data-page] a` is (0,1,2)
+       and would out-rank every (0,1,1) button primitive's label colour. */
+    html[data-page="BW"] :where(img) { max-width: 100%; display: block; }
+    html[data-page="BW"] :where(a) { color: inherit; text-decoration: none; }
+    /* The anchor pass at the end of <body> drops dead wayfinding links with the
+       `hidden` attribute; every section styles its links with a display value,
+       which would otherwise out-rank the UA's [hidden] rule. */
+    html[data-page="BW"] [hidden] { display: none !important; }
+    html[data-page="BW"] ::selection { background: var(--accent); color: var(--on-fill); }
+    /* text-transform is DECLARED, not defaulted: an unscoped uppercase rule in
+       another wrapper once capitalised every template's headings. */
+    html[data-page="BW"] :where(h1,h2,h3,h4) {
+      margin: 0; font-family: var(--disp); font-weight: 800; color: inherit;
+      letter-spacing: 0; line-height: inherit; text-transform: none;
+    }
+    html[data-page="BW"] :where(p, dl, dd, ol, ul, figure, blockquote) { margin: 0; }
+    html[data-page="BW"] :where(ol, ul) { padding: 0; }
+
+    /* ── layout scaffolding ───────────────────────────────────────────── */
+    html[data-page="BW"] :where(.wrap) {
+      max-width: var(--maxw); margin: 0 auto; padding: 0 var(--gutter);
+    }
+
+    /* ── .eyebrow — the numbered mono label over each section heading ── */
+    html[data-page="BW"] :where(.eyebrow) {
+      margin: 0; font-family: var(--mono); font-size: 12px; font-weight: 600;
+      line-height: 1.6; letter-spacing: 0; text-transform: none;
+      color: var(--accent-deep); overflow-wrap: anywhere;
+    }
+
+    /* ── .h2 — the condensed display heading. Two sizes, as drawn:
+          .h2 (services / process / projects) and .h2--md (the rest). */
+    html[data-page="BW"] :where(.h2) {
+      margin: 12px 0 0; font-family: var(--disp); font-weight: 900;
+      font-stretch: 75%; font-size: clamp(38px,5.6vw,80px); line-height: .92;
+      letter-spacing: 0; text-transform: uppercase; overflow-wrap: anywhere;
+    }
+    html[data-page="BW"] :where(.h2--md) { font-size: clamp(34px,4.8vw,66px); line-height: .94; }
+    /* With no eyebrow above it the heading opens the block. */
+    html[data-page="BW"] :where(.h2:first-child) { margin-top: 0; }
+
+    /* ── BUTTONS ─────────────────────────────────────────────────────────
+       .btn--fill  orange fill, white label   → hover: ink fill, paper label
+       .btn--line  ink outline, ink label     → hover: ink fill, paper label
+       .btn--ink   ink fill, paper label      → hover: orange fill, white label */
+    html[data-page="BW"] :where(.btn) {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+      min-height: 54px; padding: 0 26px;
+      border: 1px solid transparent; border-radius: 0;
+      background-color: transparent; color: inherit;
+      font-family: var(--sans); font-size: 15px; font-weight: 700; line-height: 1.2;
+      letter-spacing: .02em; text-transform: uppercase; text-align: center;
+      text-decoration: none; white-space: nowrap; cursor: pointer;
+    }
+    html[data-page="BW"] :where(.btn--fill) {
+      background-color: var(--accent); border-color: var(--accent); color: var(--on-fill);
+    }
+    html[data-page="BW"] :where(.btn--fill:hover) {
+      background-color: var(--ink); border-color: var(--ink); color: var(--paper);
+    }
+    html[data-page="BW"] :where(.btn--line) {
+      background-color: transparent; border-color: var(--ink); color: var(--ink);
+    }
+    html[data-page="BW"] :where(.btn--line:hover) {
+      background-color: var(--ink); border-color: var(--ink); color: var(--paper);
+    }
+    html[data-page="BW"] :where(.btn--ink) {
+      background-color: var(--ink); border-color: var(--ink); color: var(--paper);
+    }
+    html[data-page="BW"] :where(.btn--ink:hover) {
+      background-color: var(--accent); border-color: var(--accent); color: var(--on-fill);
+    }
+
+    /* ── .linkc — the underlined text action (Directions). Carries no .btn. */
+    html[data-page="BW"] :where(.linkc) {
+      display: inline-flex; align-items: center; min-height: 44px;
+      font-family: var(--sans); font-weight: 700; text-transform: uppercase;
+      color: var(--ink); border-bottom: 2px solid var(--accent);
+    }
+    html[data-page="BW"] :where(.linkc:hover) { color: var(--accent-deep); border-bottom-color: var(--accent); }
+
+    /* ── FOCUS · the DUO ring ─────────────────────────────────────────── */
+    html[data-page="BW"] :where(a, button, summary, [tabindex]):focus-visible {
+      outline: 3px solid var(--paper); outline-offset: 0;
+      box-shadow: 0 0 0 6px var(--ink);
+    }
+
+    /* ── skip link ────────────────────────────────────────────────────── */
+    html[data-page="BW"] :where(.skip) {
+      position: absolute; left: -999px; top: 0; z-index: 100;
+      background-color: var(--ink); color: var(--paper);
+      padding: 12px 18px;
+      font-family: var(--mono); font-size: 12px; font-weight: 600;
+    }
+    html[data-page="BW"] :where(.skip:focus) { left: 0; top: 0; }
+  </style>
+  {__schemeFixCss && <style is:global set:html={__schemeFixCss}></style>}
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <HeaderBW layout={layout} content={content} />
+  <main id="main">
+    {visibility.heroSection !== false && <HeroBW content={content} layout={layout} />}
+    {visibility.marqueeBlock !== false && <MarqueeBW content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustBW content={content} layout={layout} />}
+    {visibility.servicesSection !== false && <ServicesBW content={content} layout={layout} />}
+    {visibility.howItWorksBlock !== false && <HowBW content={content} layout={layout} />}
+    {visibility.gallerySection !== false && <GalleryBW content={content} layout={layout} />}
+    {visibility.aboutSection !== false && <AboutBW content={content} layout={layout} />}
+    {visibility.whyUsBlock !== false && <WhyBW content={content} layout={layout} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsBW content={content} layout={layout} />}
+    {visibility.credentialsBlock !== false && <CredentialsBW content={content} layout={layout} />}
+    {visibility.serviceAreaBlock !== false && <AreaBW content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqBW content={content} layout={layout} />}
+    {visibility.locationBlock !== false && <LocationBW content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandBW content={content} layout={layout} />}
+  <FooterBW layout={layout} content={content} />
+
+  <script is:inline>
+    // ANCHOR PASS. Each section component already resolves its in-page hrefs
+    // against the ids this design CAN render (onPage), but a section that is
+    // switched off, or has nothing to show, is not in the document — so a nav
+    // entry or a button aimed at it would scroll nowhere. Runs before Leaflet
+    // loads, so it lands before the first paint in practice. Wayfinding lists
+    // (marked data-anchor-list) DROP a dead entry; any other in-page action is
+    // re-aimed at the closing band, then the shop section, then the page top —
+    // never at the section the action itself sits in.
+    (function () {
+      var live = function (id) { return !!id && !!document.getElementById(id); };
+      document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+        var id = (a.getAttribute('href') || '').slice(1);
+        if (!id || live(id)) return;
+        if (a.closest('[data-anchor-list]')) { a.hidden = true; return; }
+        var own = a.closest('section[id]');
+        var to = ['book', 'visit', 'main'].filter(function (t) { return live(t) && !(own && own.id === t); })[0];
+        if (to) a.setAttribute('href', '#' + to);
+      });
+      // A wayfinding list with every entry dropped leaves nothing to show…
+      document.querySelectorAll('[data-anchor-list]').forEach(function (list) {
+        if (!list.querySelector('a:not([hidden])')) list.setAttribute('data-empty', '');
+      });
+      // …and a container (marked data-collapse) whose every child is now empty
+      // goes with it — innermost first, so the footer grid collapses before the
+      // footer asks whether anything is left inside it.
+      Array.prototype.slice.call(document.querySelectorAll('[data-collapse]')).reverse().forEach(function (box) {
+        var kids = Array.prototype.slice.call(box.children);
+        if (kids.every(function (k) { return k.hasAttribute('data-empty'); })) box.setAttribute('data-empty', '');
+      });
+    })();
+  </script>
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>
+    (function () {
+      // Molave / BW Leaflet boot — accepts (lat, lng, label) from LocationBW.
+      // The global name is family-unique on purpose: a preview harness can
+      // render two wrappers in one document, and a shared name cross-wires maps.
+      window.__woodworksBWInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map'); if (!el) return;
+        // Erases LocationBW's drawn fallback face; without this the tiles stack
+        // on top of the drawn grid.
+        el.innerHTML = '';
+        var map = L.map('map', { scrollWheelZoom: false }).setView([lat, lng], 16);
+        // The design's own CARTO style (light_all); lib/carto.ts appends the key
+        // to this form at publish time. The design's grey is LocationBW's filter.
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, attribution: '&copy; OpenStreetMap &copy; CARTO' }).addTo(map);
+        // The design's pin: an 18px orange square under a 2px ink keyline.
+        // Colours are READ from the live tokens, so an explicit admin colour
+        // pick recolours the pin too (the engine sets them on this element).
+        var cs = window.getComputedStyle(document.documentElement);
+        var accent = (cs.getPropertyValue('--accent') || '').trim() || '#D9481A';
+        var ink = (cs.getPropertyValue('--ink') || '').trim() || '#141414';
+        var icon = L.divIcon({
+          className: '',
+          html: '<div style="width:18px;height:18px;background:' + accent + ';border:2px solid ' + ink + ';"></div>',
+          iconSize: [18, 18], iconAnchor: [9, 9]
+        });
+        // No popup and no tooltip — the design draws neither. The map frame's
+        // aria-label already names the place; the pin itself is not a control.
+        L.marker([lat, lng], { icon: icon, keyboard: false, interactive: false }).addTo(map);
+      };
+    })();
+  </script>
+</body>
+</html>

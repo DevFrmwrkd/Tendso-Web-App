@@ -1,0 +1,80 @@
+---
+/**
+ * woodworks / TestimonialsBY — "in their words", on the lifted night band and
+ * a narrower 980px measure: one large Caslon pull-quote under a brass opening
+ * mark with its source beneath, then a row of hairline-framed cards, each a
+ * quote and a brass attribution.
+ *
+ * Editable hooks (schema-owned, `testimonials` group):
+ *   testimonials.bigQuote · testimonials.source ·
+ *   testimonials.items.${i}.quote · testimonials.items.${i}.who
+ * `who` tolerates the legacy name / author keys (astro-builder aliases them);
+ * the hook always spells the canonical key.
+ *
+ * NEVER FABRICATED: not one quote, name or place is supplied here. A card
+ * needs a quote (a name over no words attributes nothing); the section needs
+ * the pull-quote or at least one card. The source line is the owner's own
+ * string, printed verbatim: any dash in front of it is theirs.
+ *
+ * The “ is decoration: aria-hidden, bound to nothing, outside every
+ * data-field element, and drawn only above a real pull-quote.
+ *
+ * CLASS-NAME LAW: .voices / .card, never .testi (the engine pins its colour).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const t = (content as any).testimonials;
+const test = t && typeof t === 'object' && !Array.isArray(t) ? t : {};
+const items: any[] = Array.isArray(test.items) ? test.items : (Array.isArray(t) ? t : []);
+const rows = items
+  .map((it: any, i: number) => ({ quote: txt(it?.quote), who: txt(it?.who ?? it?.author ?? it?.name), i }))
+  .filter((r) => Boolean(r.quote));
+const bigQuote = txt(test.bigQuote);
+const source = txt(test.source);
+const show = Boolean(bigQuote || rows.length);
+---
+{show && (
+  <section id="reviews" class="voices">
+    <div class="voices-in">
+      {bigQuote && (
+        <Fragment>
+          <span class="mark" aria-hidden="true">“</span>
+          <blockquote class="pull" data-field="testimonials.bigQuote">{bigQuote}</blockquote>
+        </Fragment>
+      )}
+      {source && <p class:list={['source', !bigQuote && 'source--top']} data-field="testimonials.source">{source}</p>}
+      {rows.length > 0 && (
+        <div class:list={['cards', !(bigQuote || source) && 'cards--top']}>
+          {rows.map((r) => (
+            <figure class="card">
+              <blockquote class="card-q" data-field={`testimonials.items.${r.i}.quote`}>{r.quote}</blockquote>
+              {r.who && <figcaption class="card-who" data-field={`testimonials.items.${r.i}.who`}>{r.who}</figcaption>}
+            </figure>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .voices { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--night-2); color: var(--bone); }
+  .voices-in { max-width: 980px; margin: 0 auto; padding: 0 var(--gut); text-align: center; }
+  .mark { font-family: var(--disp); font-weight: 400; font-size: 72px; line-height: .6; color: var(--accent-light); }
+  .pull {
+    margin: 12px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(28px, 3.8vw, 50px); line-height: 1.18; color: var(--bone);
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  .source { margin: 22px 0 0; font-size: 14px; color: var(--grey); overflow-wrap: break-word; }
+  .source--top { margin-top: 0; }
+  .cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: clamp(16px, 2.4vw, 28px); margin-top: clamp(40px, 5vw, 64px); text-align: left;
+  }
+  .cards--top { margin-top: 0; }
+  .card { margin: 0; min-width: 0; padding: 26px; border: 1px solid rgba(var(--accent-rgb), .3); }
+  .card-q { margin: 0 0 14px; font-size: 16px; line-height: 1.6; color: var(--bone); overflow-wrap: break-word; }
+  .card-q:last-child { margin-bottom: 0; }
+  .card-who { font-size: 13px; font-weight: 600; color: var(--accent-light); overflow-wrap: break-word; }
+</style>

@@ -1,0 +1,52 @@
+---
+/**
+ * florist / TrustBT — Gumamela's at-a-glance strip: up to four blush cells,
+ * each a big Bricolage 800 figure over a small muted label, auto-fitting four
+ * across on desktop and two across on a phone.
+ *
+ * Editable hooks: trust.cells.${i}.num · trust.cells.${i}.label (ORIGINAL
+ * index, so removing a row never redirects an edit into its neighbour).
+ *
+ * NEVER FABRICATED. A rating, a cut-off time, an event count and an opening
+ * pattern are exactly the claims only an owner may make, and nothing derives
+ * them: with no filled cell the strip is simply absent. Figure and label are
+ * guarded independently. Any star or unit is part of the owner's own figure.
+ *
+ * CLASS-NAME LAW: never .trust / .num / .lbl — the engine pins
+ * `.trust, .trust .num, .trust .lbl` to the on-ink colour, which would print
+ * paper-coloured text on these blush cells.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const trust = content.trust || {};
+const cells: any[] = Array.isArray(trust.cells) ? trust.cells : (Array.isArray(trust) ? trust : []);
+const rows = cells
+  .map((cell: any, i: number) => ({ num: String(cell?.num ?? '').trim(), label: String(cell?.label ?? '').trim(), i }))
+  .filter((r) => Boolean(r.num || r.label));
+---
+{rows.length > 0 && (
+  <section class="gm-glance">
+    <div class="wrap gm-cells">
+      {rows.map((r) => (
+        <div class="gm-cell">
+          {r.num && <b class="g-num" data-field={`trust.cells.${r.i}.num`}>{r.num}</b>}
+          {r.label && <span class="g-lab" data-field={`trust.cells.${r.i}.label`}>{r.label}</span>}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+<style>
+  .gm-glance { padding: clamp(40px,5vw,64px) 0; }
+  .gm-cells {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,150px), 1fr)); gap: 12px;
+  }
+  .gm-cell { min-width: 0; padding: 22px; border-radius: 22px; background-color: var(--paper-2); }
+  .g-num {
+    display: block; font-family: var(--disp); font-weight: 800;
+    font-size: clamp(34px,4vw,52px); line-height: 1; letter-spacing: -.04em;
+    color: var(--ink); overflow-wrap: anywhere;
+  }
+  .g-lab { display: block; margin-top: 8px; font-size: 14px; line-height: 1.6; color: var(--ink-soft); overflow-wrap: anywhere; }
+  .g-lab:first-child { margin-top: 0; }
+</style>

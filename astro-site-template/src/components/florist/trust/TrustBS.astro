@@ -1,0 +1,59 @@
+---
+/**
+ * florist / TrustBS — "at a glance": up to four centred facts, each a big rose
+ * Gilda Display figure over a small soft-ink label, on the page ground with no
+ * card around them. auto-fit with a 150px floor lays them 4-up on a desk, 2x2
+ * on a phone — exactly the design's own grid, so no media query.
+ *
+ * Editable hooks: trust.cells.${i}.num · trust.cells.${i}.label (ORIGINAL
+ * index, blank rows dropped).
+ *
+ * R2 — the highest-risk band on the page: a rating, a cut-off, a count, a
+ * tenure. Only the owner may assert any of them, so not one literal figure
+ * lives here. Nothing derives trust; astro-builder also switches the block off
+ * when no cells exist. Each half of a cell is guarded on its own.
+ *
+ * CLASS-NAME LAW: .tr / .tr-num / .tr-lab, never .trust / .num / .lbl — the
+ * engine pins `.trust .num { color: <on-ink> !important }` for ink bands, which
+ * would paint paper-coloured figures on this light ground.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const T = (content as any).trust || {};
+const cells: any[] = Array.isArray(T.cells) ? T.cells : (Array.isArray(T) ? T : []);
+const rows = cells
+  .map((c: any, i: number) => ({ num: String(c?.num ?? '').trim(), label: String(c?.label ?? '').trim(), i }))
+  .filter((r: { num: string; label: string }) => r.num || r.label);
+---
+{rows.length > 0 && (
+  <section class="tr" aria-label="At a glance">
+    <div class="k-wrap tr-in">
+      {rows.map((r) => (
+        <div class="tr-cell">
+          {r.num && <b class="tr-num" data-field={`trust.cells.${r.i}.num`}>{r.num}</b>}
+          {r.label && <span class="tr-lab" data-field={`trust.cells.${r.i}.label`}>{r.label}</span>}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+<style>
+  .tr { padding: clamp(44px, 5vw, 72px) 0; }
+  .tr-in {
+    max-width: 1100px; display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 28px 12px; text-align: center;
+  }
+  .tr-cell { min-width: 0; }
+  .tr-num {
+    display: block; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(36px, 4vw, 52px); line-height: 1; color: var(--rose-ink);
+    overflow-wrap: break-word;
+  }
+  .tr-lab {
+    display: block; margin-top: 10px; font-size: 14px; color: var(--ink-soft);
+    overflow-wrap: break-word;
+  }
+  /* A label with no figure above it keeps no phantom gap. */
+  .tr-lab:first-child { margin-top: 0; }
+</style>

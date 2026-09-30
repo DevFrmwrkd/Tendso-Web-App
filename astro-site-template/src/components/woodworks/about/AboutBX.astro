@@ -1,0 +1,117 @@
+---
+/**
+ * woodworks / AboutBX — "Acacia Studio"'s studio story (#about), set on a
+ * narrower 1100px measure: an olive eyebrow, then the story itself as one
+ * large LIGHT Newsreader statement (the design sets it as a paragraph, not a
+ * heading), two short grey paragraphs side by side, one wide workshop photo,
+ * and an italic sign-off with a small role beside it.
+ *
+ * Editable hooks:
+ *   about.tag · about.headline (the statement) · about.paragraphs.${i} ·
+ *   about.image (img) · about.signatureName · about.role
+ *
+ * THE SIGN-OFF shows the owner's signature name. When that box is empty it
+ * displays the signature line the sidebar already shows in its place (the
+ * schema declares it as this field's fallback), so the page and the form never
+ * disagree; the hook is always about.signatureName, where an edit lands. The
+ * role prints only beside a name — a role attributed to nobody is a claim with
+ * no owner.
+ *
+ * GATE: body content — a paragraph, the photo, or a statement the owner wrote.
+ * The derived "About <business name>" label is NOT a statement: counted alone
+ * it would ship a heading over nothing on every first build, so when the
+ * statement is exactly that derived label the section needs a paragraph or
+ * the photo to appear.
+ *
+ * THE STATEMENT renders with set:html: the AI copy step writes it with an
+ * optional <em> highlight (astro-builder balances the inline HTML), which
+ * takes the design's italic, in the same ink.
+ *
+ * LISTS: blank paragraphs are dropped and every hook keeps its ORIGINAL index.
+ * NO PHOTO: the 16:10 frame is omitted; the sign-off moves up under the text.
+ * (PageBX's LIVE ANCHORS mirrors the GATE above.)
+ */
+interface Props { content: any; layout?: any; }
+const { content, layout } = Astro.props;
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const a = (content as any).about && typeof (content as any).about === 'object' ? (content as any).about : {};
+const tag = str(a.tag);
+const headline = str(a.headline);
+const paras = (Array.isArray(a.paragraphs) ? a.paragraphs : [])
+  .map((text: any, i: number) => ({ text: str(text), i }))
+  .filter((p: { text: string }) => p.text.length > 0);
+const image = str(a.image);
+const sigName = str(a.signatureName || a.signature);
+const role = str(a.role);
+const bizName = str(layout?.businessName || (content as any).business_name);
+const derivedLabel = bizName ? `About ${bizName}` : '';
+const ownStatement = Boolean(headline) && headline !== derivedLabel;
+const hasAbout = paras.length > 0 || Boolean(image) || ownStatement;
+---
+{hasAbout && (
+  <section id="about" class="studio">
+    <div class="studio-in">
+      {tag && <p class="eyebrow" data-field="about.tag">{tag}</p>}
+      {headline && <p class="studio-lead" data-field="about.headline" set:html={headline}></p>}
+      {paras.length > 0 && (
+        <div class="studio-cols">
+          {paras.map((p: { text: string; i: number }) => (
+            <p class="studio-p" data-field={`about.paragraphs.${p.i}`}>{p.text}</p>
+          ))}
+        </div>
+      )}
+      {image && (
+        <div class="studio-photos">
+          <div class="pic studio-ph" data-image-field="about.image">
+            <img src={image} alt="" loading="lazy" decoding="async" />
+          </div>
+        </div>
+      )}
+      {sigName && (
+        <p class:list={['studio-sig', !image && 'studio-sig--text']}>
+          <span class="studio-name" data-field="about.signatureName">{sigName}</span>
+          {role && <span class="studio-role" data-field="about.role">{role}</span>}
+        </p>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .studio { padding: clamp(56px,7vw,104px) 0; }
+  .studio-in { max-width: 1100px; margin: 0 auto; padding: 0 var(--gut); }
+  .studio-lead {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 300;
+    font-size: clamp(28px,3.6vw,48px); line-height: 1.2; letter-spacing: -.015em;
+    color: var(--ink); text-wrap: pretty; overflow-wrap: break-word;
+  }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .studio-lead :global(i),
+  .studio-lead :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+  .studio-cols {
+    display: flex; flex-wrap: wrap; gap: 24px clamp(32px,5vw,64px);
+    margin-top: clamp(32px,4vw,48px);
+  }
+  .studio-p {
+    flex: 1 1 300px; min-width: 0; margin: 0; line-height: 1.65;
+    color: var(--ink-soft); text-wrap: pretty; overflow-wrap: break-word;
+  }
+  .studio-photos {
+    display: flex; flex-wrap: wrap; gap: clamp(12px,1.6vw,20px);
+    margin-top: clamp(36px,5vw,56px);
+  }
+  .studio-ph { flex: 1.6 1 380px; aspect-ratio: 16 / 10; border-radius: 16px; }
+  .studio-sig {
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px;
+    margin: 18px 0 0;
+  }
+  /* Without the photo the sign-off sits under the paragraphs: a touch more air
+     so it still reads as a sign-off rather than a third paragraph. */
+  .studio-sig--text { margin-top: clamp(24px,3vw,36px); }
+  .studio-name {
+    font-family: var(--disp); font-style: italic; font-weight: 400;
+    font-size: 21px; line-height: 1.65; color: var(--ink); overflow-wrap: anywhere;
+  }
+  .studio-role { font-size: 14px; line-height: 1.65; color: var(--ink-soft); overflow-wrap: anywhere; }
+  /* Whatever renders first sits flush under the section padding. */
+  .studio-in > :first-child { margin-top: 0; }
+</style>

@@ -1,0 +1,103 @@
+---
+/**
+ * florist / TestimonialsBU — the reviews (#reviews), on the raised night-2
+ * band, centred in a narrower 1100px column: eyebrow, one big Gloock
+ * pull-quote, a sage source line, then a row of hairline-bordered quote cards
+ * (star row, quote, attribution).
+ *
+ * Editable hooks (design paths, kept exactly):
+ *   testimonials.tag · testimonials.bigQuote · testimonials.source
+ *   testimonials.items.${r.i}.rating — the star row (see below)
+ *   testimonials.items.${r.i}.quote · testimonials.items.${r.i}.who
+ *
+ * THE STARS ARE DRAWN FROM THE OWNER'S NUMBER, never assumed: rating is
+ * rounded and capped at 5; blank, non-numeric or below-one draws no star row
+ * at all (never clamped UP to one star). The row keeps the design's hook but
+ * carries data-derived, so the editor bridge does not replace the glyphs with
+ * the raw digit; the number itself is edited in the sidebar's "Rating out of
+ * 5" box. Its accessible name states the same number that is drawn.
+ *
+ * Quote marks and platform names are part of the OWNER's strings (the design
+ * types them inside the bound text), so the template adds none.
+ *
+ * SECTION GATE: a real quote — a card with a quote, or the pull-quote. A
+ * source line or an eyebrow alone never renders. (astro-builder also turns
+ * the block off when there are no quote rows at all.)
+ *
+ * Class names avoid .testi (the engine pins `.testi, .testi p` with
+ * !important); there are no buttons in this section.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const t = content.testimonials || {};
+const tag = str(t.tag);
+const bigQuote = str(t.bigQuote);
+const source = str(t.source);
+const items: any[] = Array.isArray(t.items) ? t.items : (Array.isArray(t) ? t : []);
+const rows = items
+  .map((it: any, i: number) => ({
+    quote: str(it?.quote),
+    who: str(it?.who ?? it?.author ?? it?.name),
+    rating: it?.rating,
+    i,
+  }))
+  .filter((r) => r.quote);
+const starsOf = (v: any): number => {
+  if (v === null || v === undefined || String(v).trim() === '') return 0;
+  const n = Math.round(Number(v));
+  if (!Number.isFinite(n) || n < 1) return 0;
+  return Math.min(n, 5);
+};
+const hasSection = rows.length > 0 || Boolean(bigQuote);
+---
+{hasSection && (
+  <section id="reviews" class="rev">
+    <div class="wrap r-wrap">
+      {tag && <p class="kick" data-field="testimonials.tag">{tag}</p>}
+      {bigQuote && <blockquote class="r-big" data-field="testimonials.bigQuote">{bigQuote}</blockquote>}
+      {source && <p class="r-src" data-field="testimonials.source">{source}</p>}
+      {rows.length > 0 && (
+        <div class="r-grid">
+          {rows.map((r) => {
+            const n = starsOf(r.rating);
+            return (
+              <figure class="r-card">
+                {n > 0 && (
+                  <span class="r-stars" role="img" aria-label={`${n} out of 5`} data-field={`testimonials.items.${r.i}.rating`} data-derived>{'★'.repeat(n)}</span>
+                )}
+                <blockquote class="r-q" data-field={`testimonials.items.${r.i}.quote`}>{r.quote}</blockquote>
+                {r.who && <figcaption class="r-who" data-field={`testimonials.items.${r.i}.who`}>{r.who}</figcaption>}
+              </figure>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .rev { padding: clamp(56px,7vw,112px) 0; background-color: var(--night-2); color: var(--cream); }
+  .r-wrap { max-width: 1100px; text-align: center; }
+  .r-wrap > :first-child { margin-top: 0; }
+  .r-big {
+    margin: 24px 0 0;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(26px,3.6vw,48px); line-height: 1.2; color: var(--cream);
+    text-wrap: balance;
+  }
+  .r-src { margin: 22px 0 0; font-size: 14px; color: var(--sage); }
+  .r-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%,280px),1fr));
+    gap: clamp(16px,2.4vw,28px);
+    margin-top: clamp(40px,5vw,64px);
+    text-align: left;
+  }
+  .r-card { min-width: 0; margin: 0; padding: 28px; border: 1px solid rgba(var(--cream-rgb),.16); }
+  .r-stars { color: var(--accent-light); letter-spacing: 3px; }
+  .r-q { margin: 14px 0 18px; font-size: 16.5px; line-height: 1.6; color: var(--cream); }
+  .r-q:first-child { margin-top: 0; }
+  .r-q:last-child { margin-bottom: 0; }
+  .r-who { font-size: 13px; font-weight: 700; color: var(--sage); }
+</style>

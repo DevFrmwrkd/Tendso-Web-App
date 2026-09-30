@@ -1,0 +1,104 @@
+---
+/**
+ * florist / GalleryBT — Gumamela's recent work (#gallery): red eyebrow and a
+ * big headline with the owner's sub-paragraph beside it, then a wrapping row of
+ * rounded photos — wide 16:10 prints and tall 4:5 prints — each with a small
+ * caption under it.
+ *
+ * Editable hooks: gallery.tag · gallery.headline (set:html; an <em> prints
+ * upright in the hero's red) · gallery.sub ·
+ * gallery.items.${i}.image (img) · gallery.items.${i}.caption (ORIGINAL index).
+ *
+ * THE RHYTHM. The design is a flex-wrap row of five: wide, tall, tall, tall,
+ * wide. Five photos reproduce it exactly, at every width. Other counts take a
+ * shape drawn for that count, so a lone tall print never swells to the full
+ * width of the page: 1 wide · 2 wide+tall · 3 wide+tall+tall · 4 four tall ·
+ * 6 wide+tall+tall / tall+tall+wide, and larger sets repeat those.
+ *
+ * Only rows with a photo render: a caption with no photo is a caption over
+ * nothing. An uncaptioned photo is decoration to a screen reader rather than
+ * getting an invented name. GATE: at least one photo.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const gallery = content.gallery || {};
+const str = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
+const bg = (u: string) => `background-image:url('${u.replace(/'/g, '%27').replace(/[\r\n]/g, '')}')`;
+const tag = str(gallery.tag).trim();
+const headline = str(gallery.headline).trim();
+const sub = str(gallery.sub).trim();
+const raw: any[] = Array.isArray(gallery.items) ? gallery.items : (Array.isArray(content.gallery) ? content.gallery : []);
+const tiles = raw
+  .map((t: any, i: number) => ({ image: str(t?.image).trim(), caption: str(t?.caption).trim(), i }))
+  .filter((t) => Boolean(t.image));
+const SHAPES: Record<number, string> = { 1: 'W', 2: 'WN', 3: 'WNN', 4: 'NNNN', 5: 'WNNNW', 6: 'WNNNNW' };
+const shapeFor = (n: number): string => {
+  if (n <= 6) return SHAPES[n] || '';
+  const full = Math.floor(n / 6);
+  const r = n % 6;
+  if (r === 1) return SHAPES[6].repeat(full - 1) + SHAPES[3] + SHAPES[4];
+  return SHAPES[6].repeat(full) + (r ? SHAPES[r] : '');
+};
+const shape = shapeFor(tiles.length);
+---
+{tiles.length > 0 && (
+  <section class="gm-gal" id="gallery">
+    <div class="wrap">
+      {(tag || headline || sub) && (
+        <div class="head">
+          {(tag || headline) && (
+            <div class="head-l">
+              {tag && <p class="eyebrow" data-field="gallery.tag">{tag}</p>}
+              {headline && <h2 class="h2" data-field="gallery.headline" set:html={headline}></h2>}
+            </div>
+          )}
+          {sub && <p class="head-sub" data-field="gallery.sub">{sub}</p>}
+        </div>
+      )}
+      <div class="tiles">
+        {tiles.map((t, k) => (
+          <figure class:list={['tile', shape[k] === 'W' ? 'tile--wide' : 'tile--tall']}>
+            <div
+              class="ph tile-ph"
+              data-image-field={`gallery.items.${t.i}.image`}
+              role={t.caption ? 'img' : undefined}
+              aria-label={t.caption || undefined}
+              aria-hidden={t.caption ? undefined : 'true'}
+              style={bg(t.image)}
+            ></div>
+            {t.caption && <figcaption class="cap" data-field={`gallery.items.${t.i}.caption`}>{t.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .gm-gal { padding: clamp(56px,7vw,104px) 0; }
+  .head {
+    display: flex; flex-wrap: wrap; gap: 16px 56px; align-items: flex-end;
+    margin-bottom: clamp(28px,4vw,48px);
+  }
+  .head-l { flex: 1 1 440px; min-width: 0; }
+  .h2 {
+    margin: 12px 0 0; font-family: var(--disp); font-weight: 800; color: var(--ink);
+    font-size: clamp(36px,5.4vw,76px); line-height: .96; letter-spacing: -.04em;
+    overflow-wrap: break-word;
+  }
+  .h2:first-child { margin-top: 0; }
+  /* :global() because Astro cannot scope markup that arrived via set:html. */
+  .h2 :global(em), .h2 :global(i) { font-style: normal; color: var(--accent-text); }
+  .head-sub { flex: 1 1 300px; min-width: 0; max-width: 42ch; margin: 0; line-height: 1.6; color: var(--ink-soft); }
+
+  .tiles { display: flex; flex-wrap: wrap; gap: clamp(12px,1.6vw,20px); }
+  .tile { min-width: 0; margin: 0; }
+  .tile--wide { flex: 2 1 440px; }
+  .tile--tall { flex: 1 1 260px; }
+  .tile-ph { border-radius: 28px; }
+  .tile--wide .tile-ph { aspect-ratio: 16/10; }
+  .tile--tall .tile-ph { aspect-ratio: 4/5; }
+  .cap {
+    margin-top: 10px; font-size: 14px; font-weight: 600; line-height: 1.6;
+    color: var(--ink-soft); overflow-wrap: anywhere;
+  }
+</style>

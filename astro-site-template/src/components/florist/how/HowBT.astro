@@ -1,0 +1,73 @@
+---
+/**
+ * florist / HowBT — Gumamela's ordering steps (#how): the full-bleed RED band.
+ * A big paper headline and a sub-line, then an ordered row of steps, each
+ * under a 2px paper rule: a marigold "Step N" label, a title and a line.
+ *
+ * Editable hooks: how.headline (set:html) · how.sub · how.steps.${i}.title ·
+ * how.steps.${i}.body (ORIGINAL index; body is the canonical key even when the
+ * value arrived as desc/description).
+ *
+ * An <em> in the headline takes --on-red-label, the marigold of the step
+ * labels: the red highlight would vanish into this red band.
+ *
+ * "Step N" is DECORATIVE chrome: computed from the display index, aria-hidden,
+ * never bound (the list itself is an ordered list, so the order is announced).
+ *
+ * GATE: at least one filled step. Nothing here is supplied by the template —
+ * no channel, payment method or delivery promise.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const how = content.how || {};
+const str = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
+const headline = str(how.headline).trim();
+const sub = str(how.sub).trim();
+const steps: any[] = Array.isArray(how.steps) ? how.steps : (Array.isArray(how.items) ? how.items : []);
+const rows = steps
+  .map((s: any, i: number) => ({ title: str(s?.title).trim(), body: str(s?.body ?? s?.desc ?? s?.description).trim(), i }))
+  .filter((r) => Boolean(r.title || r.body));
+---
+{rows.length > 0 && (
+  <section class="gm-how" id="how">
+    <div class="wrap">
+      {headline && <h2 class="hw-h" data-field="how.headline" set:html={headline}></h2>}
+      {sub && <p class="hw-sub" data-field="how.sub">{sub}</p>}
+      <ol class:list={['hw-steps', !(headline || sub) && 'hw-steps--top']}>
+        {rows.map((r, k) => (
+          <li class="hw-step">
+            <span class="hw-n" aria-hidden="true">Step {k + 1}</span>
+            {r.title && <h3 class="hw-t" data-field={`how.steps.${r.i}.title`}>{r.title}</h3>}
+            {r.body && <p class:list={['hw-b', !r.title && 'hw-b--solo']} data-field={`how.steps.${r.i}.body`}>{r.body}</p>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+)}
+<style>
+  .gm-how { padding: clamp(56px,7vw,104px) 0; background-color: var(--accent); color: var(--on-primary); }
+  .hw-h {
+    margin: 0; font-family: var(--disp); font-weight: 800; color: var(--on-primary);
+    font-size: clamp(36px,5.4vw,76px); line-height: .96; letter-spacing: -.04em;
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  /* :global() because Astro cannot scope markup that arrived via set:html. */
+  .hw-h :global(em), .hw-h :global(i) { font-style: normal; color: var(--on-red-label); }
+  .hw-sub { margin: 16px 0 0; max-width: 48ch; line-height: 1.6; color: var(--on-red-soft); }
+  .hw-sub:first-child { margin-top: 0; }
+  .hw-steps {
+    list-style: none; margin: clamp(32px,4vw,52px) 0 0; padding: 0;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,220px), 1fr));
+    gap: clamp(14px,2vw,24px);
+  }
+  .hw-steps--top { margin-top: 0; }
+  .hw-step { min-width: 0; padding-top: 18px; border-top: 2px solid var(--on-primary); }
+  .hw-n { font-family: var(--disp); font-weight: 800; font-size: 18px; line-height: 1.6; color: var(--on-red-label); }
+  .hw-t {
+    margin: 8px 0 6px; font-family: var(--disp); font-weight: 800; font-size: 24px;
+    line-height: 1.6; letter-spacing: -.02em; color: var(--on-primary); overflow-wrap: break-word;
+  }
+  .hw-b { margin: 0; font-size: 15.5px; line-height: 1.6; color: var(--on-red-soft); }
+  .hw-b--solo { margin-top: 8px; }
+</style>

@@ -1,0 +1,222 @@
+---
+/**
+ * florist / LocationBS — "visit the studio": on the left a script eyebrow, a
+ * Gilda headline, a soft lede and a hairline-ruled list — Address, Hours and
+ * Phone as small caps labels over their values, then the owner's own
+ * label/value rules — closed by a rose "Get directions" link; on the right a
+ * white-matted, softly shadowed map, desaturated a touch, with the rose pin.
+ *
+ * Editable hooks: location.tag · location.headline · location.sub ·
+ * location.address · location.hours · location.phone (a tel: anchor, so
+ * data-field ONLY — its href is derived from the value) ·
+ * location.rules.${i}.label / .value (ORIGINAL index) ·
+ * location.directions.text + data-href-field location.directions.href.
+ *
+ * THE LABELS "Address", "Hours" and "Phone" are fixed template chrome — the
+ * design's own structural words, like LocationBI's "Finding us" — and each is
+ * printed only above a value the owner gave. Address and phone fall back for
+ * DISPLAY to the contact block, exactly as the schema's own fallback paths for
+ * those two boxes do, so the page and the sidebar agree.
+ *
+ * MAP, three tiers (LocationBI's rule): location.lat / location.lng, then the
+ * contact block's coordinates (blank or out-of-range values rejected, so a
+ * cleared field never pins the studio at 0,0), then a client-side Nominatim
+ * lookup of the address, then the drawn fallback face. No coordinates AND no
+ * address → no map cell at all, and the copy takes the full width. The face
+ * lives INSIDE #map until PageBS's __floristBSInitMap boot clears it.
+ *
+ * The directions link is gated on its TARGET as well as its label: with no
+ * explicit link and no address there is nowhere to send anyone. Its arrow is
+ * generated content, so the glyph can never enter the stored label.
+ *
+ * SECTION GATE: a map, an address, hours, a phone or a rule. The eyebrow and
+ * headline are derived on every site and never count.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const str = (v: any): string => String(v ?? '').trim();
+const L = (content as any).location || {};
+const LC = layout?.contact || {};
+const tag = str(L.tag);
+const headline = str(L.headline);
+const sub = str(L.sub);
+const address = str(L.address) || str(LC.address);
+const addressLines: string[] = address ? address.split('\n').map((s) => s.trim()).filter(Boolean) : [];
+const hours = str(L.hours);
+const phone = str(L.phone) || str(LC.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const rules = (Array.isArray(L.rules) ? L.rules : [])
+  .map((r: any, i: number) => ({ label: str(r?.label), value: str(r?.value), i }))
+  .filter((r: { label: string; value: string }) => r.label || r.value);
+const dirText = str(L.directions?.text);
+const dirHref = str(L.directions?.href)
+  || (address ? `https://maps.google.com/?q=${encodeURIComponent(address.replace(/\n/g, ' '))}` : '');
+// A CLEARED coordinate field is '' — Number('') is 0, which would pin the
+// studio in the Gulf of Guinea. Reject blank and out-of-range values; `??` so
+// a genuine 0 survives.
+const num = (v: any, max: number): number | null => {
+  if (v === null || v === undefined || String(v).trim() === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) && Math.abs(n) <= max ? n : null;
+};
+const lat = num(L.lat, 90) ?? num(LC.lat, 90);
+const lng = num(L.lng, 180) ?? num(LC.lng, 180);
+const label = str(layout?.businessName);
+const hasCoords = lat !== null && lng !== null;
+const hasAddress = address !== '';
+const hasMap = hasCoords || hasAddress;
+const hasDl = Boolean(address || hours || phone) || rules.length > 0;
+const hasSection = hasMap || hasDl;
+---
+{hasSection && (
+  <section class="lc" id="visit">
+    <div class:list={['k-wrap', 'lc-in', !hasMap && 'lc-in--solo']}>
+      <div class="lc-copy">
+        {tag && <p class="k-tag" data-field="location.tag">{tag}</p>}
+        {headline && <h2 class="lc-h2" data-field="location.headline" set:html={headline}></h2>}
+        {sub && <p class="lc-sub" data-field="location.sub">{sub}</p>}
+        {hasDl && (
+          <dl class="lc-dl">
+            {address && (
+              <div class="lc-row">
+                <dt class="lc-k">Address</dt>
+                <dd class="lc-v" data-field="location.address">
+                  {addressLines.map((line: string, i: number) => (<Fragment>{i > 0 && <br />}{line}</Fragment>))}
+                </dd>
+              </div>
+            )}
+            {hours && (
+              <div class="lc-row">
+                <dt class="lc-k">Hours</dt>
+                <dd class="lc-v" data-field="location.hours">{hours}</dd>
+              </div>
+            )}
+            {phone && (
+              <div class="lc-row">
+                <dt class="lc-k">Phone</dt>
+                <dd class="lc-v"><a href={telHref} data-field="location.phone">{phone}</a></dd>
+              </div>
+            )}
+            {/* Each half is printed only when typed; the value keeps the right
+                edge through its own auto margin even when its label is blank. */}
+            {rules.map((r) => (
+              <div class="lc-row lc-rule">
+                {r.label && <dt class="lc-rk" data-field={`location.rules.${r.i}.label`}>{r.label}</dt>}
+                {r.value && <dd class="lc-rv" data-field={`location.rules.${r.i}.value`}>{r.value}</dd>}
+              </div>
+            ))}
+          </dl>
+        )}
+        {dirText && dirHref && (
+          <a class="linkc lc-dir" href={dirHref} target="_blank" rel="noopener noreferrer" data-field="location.directions.text" data-href-field="location.directions.href">{dirText}</a>
+        )}
+      </div>
+      {hasMap && (
+        <div class="lc-map">
+          <div id="map" role="img" aria-label={label ? `Map showing ${label}` : 'Map'}>
+            {/* Tier-3 fallback only — PageBS's boot empties #map before the
+                tiles draw. Pure decoration: a blush ground, a faint street
+                grid, two roads and the design's pin. */}
+            <div class="lc-face" aria-hidden="true">
+              <span class="lc-road lc-road--a"></span>
+              <span class="lc-road lc-road--b"></span>
+              <span class="lc-pin"></span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+)}
+{hasSection && hasCoords && (
+  <script is:inline define:vars={{ lat, lng, label }}>
+    // Leaflet loads last in the document; wait for it (up to 30s on a slow
+    // connection) rather than giving up while the library is still arriving.
+    (function init(n) {
+      if (window.__floristBSInitMap && window.L) window.__floristBSInitMap(lat, lng, label);
+      else if (n < 300) setTimeout(function () { init(n + 1); }, 100);
+    })(0);
+  </script>
+)}
+{hasSection && !hasCoords && hasAddress && (
+  <script is:inline define:vars={{ address, label }}>
+    (function geocodeThenInit() {
+      var attempt = 0;
+      function tryInit(la, ln) {
+        if (window.__floristBSInitMap && window.L) { window.__floristBSInitMap(la, ln, label); }
+        else if (attempt++ < 300) { setTimeout(function () { tryInit(la, ln); }, 100); }
+      }
+      try {
+        var query = encodeURIComponent(String(address).replace(/\n/g, ', '));
+        fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + query, { headers: { 'Accept-Language': 'en' } })
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (results) {
+            if (!Array.isArray(results) || results.length === 0) return;
+            var la = parseFloat(results[0].lat);
+            var ln = parseFloat(results[0].lon);
+            if (isNaN(la) || isNaN(ln)) return;
+            tryInit(la, ln);
+          })
+          .catch(function () { /* keep the drawn face */ });
+      } catch (e) { /* never block render */ }
+    })();
+  </script>
+)}
+<style>
+  .lc { padding: clamp(56px, 7vw, 112px) 0; }
+  .lc-in { display: flex; flex-wrap: wrap; gap: 40px clamp(40px, 6vw, 88px); align-items: center; }
+  .lc-copy { flex: 1 1 340px; min-width: 0; }
+  /* No map: the details keep a reading measure, centred, not a lone column
+     hugging the left edge. */
+  .lc-in--solo .lc-copy { max-width: 640px; margin-inline: auto; }
+  .lc-h2 {
+    margin: 6px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px); line-height: 1.1; text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  .lc-sub { margin: 16px 0 0; max-width: 40ch; color: var(--ink-soft); }
+  .lc-copy > :first-child { margin-top: 0; }
+
+  .lc-dl { margin: 28px 0 0; }
+  .lc-row { padding: 14px 0; border-top: 1px solid var(--line); }
+  .lc-row:last-child { border-bottom: 1px solid var(--line); }
+  .lc-k {
+    font-size: 11px; font-weight: 500; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+  .lc-v { margin: 4px 0 0; font-size: 16.5px; overflow-wrap: break-word; }
+  .lc-v a { overflow-wrap: anywhere; }
+  .lc-rule { display: flex; justify-content: space-between; gap: 16px; }
+  .lc-rk { min-width: 0; font-size: 15px; color: var(--ink-soft); overflow-wrap: break-word; }
+  .lc-rv { margin: 0 0 0 auto; font-size: 15px; font-weight: 500; text-align: right; overflow-wrap: break-word; }
+
+  .lc-dir { margin-top: 20px; }
+  .lc-dir::after { content: '→'; content: '→' / ''; margin-left: .35em; }
+
+  /* The map: a white mat, and the design's saturate/sepia wash. isolation
+     keeps Leaflet's high-z-index panes BELOW the sticky header and the chat
+     pill when the page scrolls past. */
+  .lc-map {
+    flex: 1.2 1 420px; min-width: 0; padding: 10px; background-color: var(--sheet);
+    border-radius: 26px; box-shadow: 0 20px 40px rgba(var(--shade-rgb), .08);
+    isolation: isolate;
+  }
+  #map {
+    position: relative; height: clamp(320px, 40vw, 480px); border-radius: 18px; overflow: hidden;
+    background-color: var(--band); filter: saturate(.6) sepia(.08);
+  }
+  .lc-face {
+    position: absolute; inset: 0; background-color: var(--band);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(var(--ink-rgb), .05) 0 1px, transparent 1px 40px),
+      repeating-linear-gradient(90deg, rgba(var(--ink-rgb), .05) 0 1px, transparent 1px 40px);
+  }
+  .lc-road { position: absolute; background-color: rgba(var(--paper-rgb), .95); }
+  .lc-road--a { left: -10%; right: -10%; top: 52%; height: 10px; transform: rotate(-8deg); }
+  .lc-road--b { top: -10%; bottom: -10%; left: 44%; width: 8px; transform: rotate(14deg); }
+  .lc-pin {
+    position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; margin: -10px 0 0 -10px;
+    border-radius: 50%; background-color: var(--accent);
+    box-shadow: 0 0 0 5px var(--sheet), 0 4px 14px rgba(var(--shade-rgb), .3);
+  }
+</style>

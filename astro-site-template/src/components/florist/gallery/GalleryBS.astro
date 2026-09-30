@@ -1,0 +1,110 @@
+---
+/**
+ * florist / GalleryBS — "recent plates": a centred head over three staggered
+ * columns of rounded photographs with small captions beneath — tall 4:5 and
+ * square plates alternating so the columns never line up, and one CIRCULAR
+ * plate in a white ring heading the middle column (its caption centred), the
+ * same circle the weddings band repeats.
+ *
+ * Editable hooks: gallery.tag · gallery.headline · gallery.sub ·
+ * gallery.items.${i}.image · gallery.items.${i}.caption (ORIGINAL index).
+ *
+ * THE LAYOUT IS THE DESIGN'S, GENERALISED. The design hangs six plates as
+ * three columns of two, top to bottom: [tall, square] [circle, tall]
+ * [square, tall]. Here the shown plates are dealt into at most three columns
+ * in reading order (ceil(n/3) per column) and each column keeps its own
+ * rhythm down the page — the first column opens tall, the middle one opens on
+ * the circle, the last opens square — so six photos reproduce the design
+ * exactly and any other count keeps its feel. The columns are flex:1 1 260px
+ * in a wrapping row, exactly as drawn, which is also what stacks them on a
+ * phone. With fewer than three columns each is held to 380px and centred, so
+ * one or two photos never swell to the full page width.
+ *
+ * Only rows with a photo are shown: a caption with no photograph has nothing
+ * to caption. The whole section is omitted when no row has one.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => String(v ?? '').trim();
+const G = (content as any).gallery || {};
+const tag = str(G.tag);
+const headline = str(G.headline);
+const sub = str(G.sub);
+const raw: any[] = Array.isArray(G.items) ? G.items : (Array.isArray((content as any).gallery) ? (content as any).gallery : []);
+type Tile = { image: string; caption: string; i: number };
+const tiles: Tile[] = raw
+  .map((t: any, i: number) => ({ image: str(t?.image), caption: str(t?.caption), i }))
+  .filter((t: Tile) => t.image !== '');
+const n = tiles.length;
+const colCount = Math.min(3, n);
+const per = colCount > 0 ? Math.ceil(n / colCount) : 0;
+const cols: Tile[][] = [];
+for (let c = 0; c < colCount; c++) {
+  const chunk = tiles.slice(c * per, (c + 1) * per);
+  if (chunk.length) cols.push(chunk);
+}
+// Each column's own rhythm (see the doc comment). Shapes are layout, not data.
+const shapeOf = (c: number, r: number): 'tall' | 'square' | 'circle' => {
+  if (c === 1) return r === 0 ? 'circle' : (r % 2 === 1 ? 'tall' : 'square');
+  if (c === 0) return r % 2 === 0 ? 'tall' : 'square';
+  return r % 2 === 0 ? 'square' : 'tall';
+};
+---
+{n > 0 && (
+  <section class="gl" id="gallery">
+    <div class="k-wrap">
+      {(tag || headline || sub) && (
+        <div class="gl-head">
+          {tag && <p class="k-tag" data-field="gallery.tag">{tag}</p>}
+          {headline && <h2 class="gl-h2" data-field="gallery.headline" set:html={headline}></h2>}
+          {sub && <p class="gl-sub" data-field="gallery.sub">{sub}</p>}
+        </div>
+      )}
+      <div class="gl-cols" data-cols={String(cols.length)}>
+        {cols.map((col, c) => (
+          <div class="gl-col">
+            {col.map((t, r) => {
+              const shape = shapeOf(c, r);
+              return (
+                <figure class:list={['gl-fig', `gl-fig--${shape}`]}>
+                  <img class="gl-img" src={t.image} alt="" decoding="async" data-image-field={`gallery.items.${t.i}.image`} />
+                  {t.caption && <figcaption class="gl-cap" data-field={`gallery.items.${t.i}.caption`}>{t.caption}</figcaption>}
+                </figure>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .gl { padding: clamp(56px, 7vw, 112px) 0; }
+  .gl-head { text-align: center; max-width: 720px; margin: 0 auto clamp(36px, 5vw, 56px); }
+  .gl-h2 {
+    margin: 6px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(34px, 4.6vw, 60px); line-height: 1.08; overflow-wrap: break-word;
+  }
+  .gl-sub { margin: 14px auto 0; max-width: 44ch; color: var(--ink-soft); }
+  .gl-head > :first-child { margin-top: 0; }
+
+  .gl-cols { display: flex; flex-wrap: wrap; gap: clamp(14px, 2vw, 24px); align-items: flex-start; }
+  .gl-cols[data-cols="1"], .gl-cols[data-cols="2"] { justify-content: center; }
+  .gl-col {
+    flex: 1 1 260px; min-width: 0;
+    display: flex; flex-direction: column; gap: clamp(14px, 2vw, 24px);
+  }
+  .gl-cols[data-cols="1"] .gl-col, .gl-cols[data-cols="2"] .gl-col { max-width: 380px; }
+  .gl-fig { margin: 0; min-width: 0; }
+  .gl-img {
+    width: 100%; object-fit: cover; border-radius: 18px; background-color: var(--band);
+  }
+  .gl-fig--tall .gl-img { aspect-ratio: 4 / 5; }
+  .gl-fig--square .gl-img { aspect-ratio: 1 / 1; }
+  .gl-fig--circle .gl-img {
+    aspect-ratio: 1 / 1; border-radius: 50%;
+    border: 8px solid var(--sheet); box-shadow: 0 14px 30px rgba(var(--shade-rgb), .08);
+  }
+  .gl-cap { margin-top: 10px; font-size: 14px; color: var(--ink-soft); overflow-wrap: break-word; }
+  .gl-fig--circle .gl-cap { text-align: center; }
+</style>

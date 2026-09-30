@@ -1,0 +1,92 @@
+---
+/**
+ * woodworks / FaqBX — "Acacia Studio"'s questions (#faq), on the tinted bone
+ * band and a narrow 900px measure: a light Newsreader headline over a stack of
+ * disclosure rows between hairlines — the question in serif with an olive "+"
+ * on the right, the answer in grey beneath. The first ANSWERED row starts
+ * open, as the design's markup marks its first row.
+ *
+ * A question with no answer yet is a plain ruled row — same type, no "+", not
+ * a disclosure — so nothing on the page offers to expand into nothing.
+ *
+ * Editable hooks:
+ *   faq.headline · faq.items.${i}.q · faq.items.${i}.a
+ *
+ * NEVER FABRICATED: not one policy, price, deposit, payment method or lead
+ * time is written by this file. A row needs a question (the question is the
+ * label); blank rows are dropped and every hook keeps the ORIGINAL index. With
+ * no question the section is not rendered.
+ *
+ * The "+" is a decorative glyph: literal, aria-hidden and OUTSIDE the question's
+ * field, so an inline edit can never write it into the content. The design has
+ * no eyebrow on this band, so none is drawn. (PageBX's LIVE ANCHORS mirrors
+ * the gate.)
+ *
+ * The headline renders with set:html: the AI copy step may put an <em>
+ * highlight into any headline (astro-builder balances the inline HTML).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v == null ? '' : String(v)).trim();
+const fq = (content as any).faq && !Array.isArray((content as any).faq) ? (content as any).faq : {};
+const headline = str(fq.headline);
+const items: any[] = Array.isArray(fq.items) ? fq.items : (Array.isArray((content as any).faq) ? (content as any).faq : []);
+const rows = items
+  .map((it: any, i: number) => ({ q: str(it?.q ?? it?.question), a: str(it?.a ?? it?.answer), i }))
+  .filter((r) => Boolean(r.q));
+const firstOpen = rows.findIndex((r) => Boolean(r.a));
+---
+{rows.length > 0 && (
+  <section id="faq" class="qa">
+    <div class="qa-in">
+      {headline && <h2 class="display qa-h" data-field="faq.headline" set:html={headline}></h2>}
+      <div class="qa-list">
+        {rows.map((r, k) => (
+          r.a ? (
+            <details class="qa-item" open={k === firstOpen}>
+              <summary class="qa-q">
+                <span class="qa-qt" data-field={`faq.items.${r.i}.q`}>{r.q}</span>
+                <span class="qa-plus" aria-hidden="true">+</span>
+              </summary>
+              <p class="qa-a" data-field={`faq.items.${r.i}.a`}>{r.a}</p>
+            </details>
+          ) : (
+            <div class="qa-item">
+              <p class="qa-q qa-q--still">
+                <span class="qa-qt" data-field={`faq.items.${r.i}.q`}>{r.q}</span>
+              </p>
+            </div>
+          )
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .qa { padding: clamp(56px,7vw,104px) 0; background-color: var(--card); }
+  .qa-in { max-width: 900px; margin: 0 auto; padding: 0 var(--gut); }
+  /* This h2 is not balanced in the design. */
+  .qa-h { font-size: clamp(34px,4.6vw,62px); text-wrap: wrap; color: var(--ink); }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .qa-h :global(i),
+  .qa-h :global(em) { font-style: italic; font-weight: inherit; color: inherit; }
+  .qa-list { margin-top: clamp(24px,3vw,40px); }
+  .qa-list:first-child { margin-top: 0; }
+  .qa-item { border-top: 1px solid var(--stone); }
+  .qa-item:last-child { border-bottom: 1px solid var(--stone); }
+  .qa-q {
+    display: flex; justify-content: space-between; gap: 16px;
+    padding: 20px 0; list-style: none; cursor: pointer;
+    font-family: var(--disp); font-weight: 400; font-size: clamp(19px,1.8vw,22px);
+    line-height: 1.65; color: var(--ink);
+  }
+  .qa-q::-webkit-details-marker { display: none; }
+  /* A question-only row: the same line, but nothing to press. */
+  .qa-q--still { margin: 0; cursor: default; }
+  .qa-qt { min-width: 0; overflow-wrap: anywhere; }
+  .qa-plus { flex: none; color: var(--accent-deep); }
+  .qa-a {
+    margin: 0 0 20px; max-width: 60ch; line-height: 1.65;
+    color: var(--ink-soft); overflow-wrap: break-word;
+  }
+</style>

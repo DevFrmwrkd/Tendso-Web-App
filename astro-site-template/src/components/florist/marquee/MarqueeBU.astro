@@ -1,0 +1,35 @@
+---
+/**
+ * florist / MarqueeBU — the hairline-ruled line of offerings under the hero
+ * (#marquee): one centred, balanced Gloock line in champagne. The design does
+ * not scroll it, so neither does this — no motion is added.
+ *
+ * Editable hook: marquee.text (the whole line, separators included, is the
+ * owner's own string — the template adds no glyphs of its own).
+ *
+ * Renders only when the owner (or the derived name/city/trade line) supplied
+ * text; an empty band is never drawn.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const text = String(content.marquee?.text ?? '').trim();
+---
+{text && (
+  <div id="marquee" class="mq">
+    <p class="mq-t" data-field="marquee.text">{text}</p>
+  </div>
+)}
+<style>
+  .mq {
+    padding: 22px var(--gutter);
+    border-top: 1px solid rgba(var(--cream-rgb),.12);
+    border-bottom: 1px solid rgba(var(--cream-rgb),.12);
+    background-color: var(--night);
+  }
+  .mq-t {
+    margin: 0; text-align: center;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(18px,2vw,26px); color: var(--accent-light);
+    text-wrap: balance;
+  }
+</style>

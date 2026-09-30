@@ -66,6 +66,14 @@
  *
  *   "trades:BQ"      → Bakal Fabrication Works · steel fabrication, welding & metal shops
  *   "florist:BR"     → Bloom · dusty rose + cream, full-bleed photo (new family)
+ *   "florist:BS"     → Kalachuchi · blush + rose, Gilda Display and a script flourish
+ *   "florist:BT"     → Gumamela · loud red + marigold, Bricolage Grotesque
+ *   "florist:BU"     → Sampaguita · deep green + champagne, Gloock (a dark atelier)
+ *
+ *   "woodworks:BV"   → Narra & Co. · linen + rust, Young Serif (new family)
+ *   "woodworks:BW"   → Molave · workshop grey + safety orange, Archivo + JetBrains Mono
+ *   "woodworks:BX"   → Acacia Studio · bone + olive, Newsreader
+ *   "woodworks:BY"   → Yakal Joinery · night + brass, Libre Caslon Display
  *
  * Each PageX wrapper produces the full document (its own doctype, theme,
  * fonts, leaflet boot) so they do not compose with BaseLayout.
@@ -141,6 +149,13 @@ import PageBI from '../components/hospitality/PageBI.astro';
 import PageBJ from '../components/hospitality/PageBJ.astro';
 import PageBK from '../components/hospitality/PageBK.astro';
 import PageBR from '../components/florist/PageBR.astro';
+import PageBS from '../components/florist/PageBS.astro';
+import PageBT from '../components/florist/PageBT.astro';
+import PageBU from '../components/florist/PageBU.astro';
+import PageBV from '../components/woodworks/PageBV.astro';
+import PageBW from '../components/woodworks/PageBW.astro';
+import PageBX from '../components/woodworks/PageBX.astro';
+import PageBY from '../components/woodworks/PageBY.astro';
 import siteData from '../data/site-data.json';
 
 // Live-editor support: template / colour / font / hidden-sections can be driven
@@ -195,13 +210,15 @@ const filipinoMatch = /^filipino:(B[B-H])$/.exec(heroStyle);
 const filipinoLetter = filipinoMatch ? filipinoMatch[1] : null;
 const hospitalityMatch = /^hospitality:(BI|BJ|BK)$/.exec(heroStyle);
 const hospitalityLetter = hospitalityMatch ? hospitalityMatch[1] : null;
-const floristMatch = /^florist:(BR)$/.exec(heroStyle);
+const floristMatch = /^florist:(BR|BS|BT|BU)$/.exec(heroStyle);
 const floristLetter = floristMatch ? floristMatch[1] : null;
+const woodworksMatch = /^woodworks:(BV|BW|BX|BY)$/.exec(heroStyle);
+const woodworksLetter = woodworksMatch ? woodworksMatch[1] : null;
 const anyLetter = genericLetter || barbershopLetter || salonspaLetter
   || autoshopLetter || restaurantLetter || shirtstoreLetter
   || retailLetter || medicalLetter || fitnessLetter || educationLetter || tradesLetter || foodcraftLetter
   || servicesLetter || layoutsLetter || filipinoLetter || hospitalityLetter
-  || floristLetter;
+  || floristLetter || woodworksLetter;
 ---
 
 {genericLetter === 'A' && <PageA siteData={data} />}
@@ -274,6 +291,13 @@ const anyLetter = genericLetter || barbershopLetter || salonspaLetter
 {hospitalityLetter === 'BJ' && <PageBJ siteData={data} />}
 {hospitalityLetter === 'BK' && <PageBK siteData={data} />}
 {floristLetter === 'BR' && <PageBR siteData={data} />}
+{floristLetter === 'BS' && <PageBS siteData={data} />}
+{floristLetter === 'BT' && <PageBT siteData={data} />}
+{floristLetter === 'BU' && <PageBU siteData={data} />}
+{woodworksLetter === 'BV' && <PageBV siteData={data} />}
+{woodworksLetter === 'BW' && <PageBW siteData={data} />}
+{woodworksLetter === 'BX' && <PageBX siteData={data} />}
+{woodworksLetter === 'BY' && <PageBY siteData={data} />}
 {!anyLetter && (
   <BaseLayout
     businessName={layout.businessName ?? ''}

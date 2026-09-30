@@ -1,0 +1,508 @@
+---
+/**
+ * florist / PageBS — "Kalachuchi" (a small flower studio: everyday bouquets
+ * delivered same-day, and weddings styled by the same hands).
+ *
+ * Blush & rose: Gilda Display over Jost on a blush-cream ground, with a Pinyon
+ * Script flourish opening almost every section. The signatures of the design
+ * are that script eyebrow, the three tilted photo frames in the hero, the
+ * circular photo in the weddings band and the gallery, and the ink footer with
+ * the wordmark set huge and tracked out.
+ *
+ * ROLE OF THIS FILE: the wrapper emits the WHOLE document (doctype, head,
+ * tokens, fonts, Leaflet css + js + boot, skip link). It does NOT compose with
+ * BaseLayout. It is the only file in the variant that touches `siteData`; the
+ * sixteen section components receive only `layout` + `content`.
+ *
+ * EDITABLE HOOKS OWNED BY THIS FILE: none. It only READS layout.businessName /
+ * layout.tagline (title), content.description (meta description),
+ * layout.favicon and layout.ogImage. Every data-field / data-image-field /
+ * data-href-field hook lives in a section component. The skip link's "Skip to
+ * content" is the one literal visible string here, an a11y affordance that is
+ * visible on focus only.
+ *
+ * DESIGN ISOLATION: every selector in the global block is anchored
+ * html[data-page="BS"], including the reset, body, img, a and ::selection, so
+ * nothing leaks into the other wrappers index.astro bundles beside this one.
+ *
+ * TOKEN PLAN (the design is the specification; every hex is lifted verbatim):
+ *   --paper    #FBF4F1  the blush-cream ground
+ *   --card     #F4E4E1  the blush TINT band (marquee, why, how, faq, the hero's
+ *                       lower half, the weddings slab, chips, the mobile menu).
+ *                       Mapped to --card, not --paper-2, on purpose: in every
+ *                       engine scheme `card` is the TINTED surface and
+ *                       `paper-2` is the white one, so a colour pick keeps the
+ *                       bands darker than the page and the sheets white, which
+ *                       is exactly the design's relationship.
+ *   --paper-2  #FFFFFF  the white sheets: photo mats, cards, the stamp
+ *   --ink      #3D2A2E  headlines, body, the footer ground, the ink buttons
+ *   --ink-soft #6E5A5D  every secondary line (also --muted)
+ *   --line     #EAD6D2  hairlines
+ *   --accent   #B4566A  the rose: script eyebrows, figures, the rose buttons
+ *   --accent-light #E8C9C6  the deeper blush: the closing band, the About
+ *                       backdrop, the footer's caps headings
+ *   --on-primary #FFF7F5 the label on a rose fill
+ * Section CSS reads them through five readable aliases, --band (--card),
+ * --sheet (--paper-2), --blush (--accent-light), --rose-ink (--accent used as
+ * TEXT) and --on-rose (--on-primary, the label on a rose fill), so an explicit
+ * admin colour pick recolours all of them coherently.
+ * Private, engine-unknown tokens: --line-2 (#D9BDB8, the outline pill's rule),
+ * --line-soft (#F0E2DF, the delivery-time rows), --shade-rgb (the warm shadow
+ * tint) and --script (Pinyon Script). The two rules follow --line whenever an
+ * admin colour scheme is picked (the scheme block below); the shadow tint and
+ * the script face are deliberately fixed — a shadow is not a colour anyone
+ * picks, and the flourish is the design's signature, like the Caveat hand in
+ * education/PageAJ. The same scheme block re-aims --rose-ink and --on-rose
+ * only when the picked scheme's own colours would fail on this layout.
+ *
+ * FONT-PAIRING SENTINEL (lib/astro-builder.ts defaults layout.fontPairing to
+ * the literal 'modern', and resolveTheme's lockVariant only blanks
+ * ''/'auto'/'default'): 'modern' is treated as unset so Gilda Display and Jost
+ * reach every visitor who never opened the font picker; a deliberate admin pick
+ * still applies. The override block stays the LAST node in head so an explicit
+ * pick wins the cascade.
+ *
+ * FORBIDDEN CLASS NAMES (buildOverrideCss pins them with !important):
+ *   .btn-primary .btn-ghost .btn-yellow .btn-light .nav-cta .nav-right .testi
+ *   .cta-band .trust, and `hero` as a class. Buttons here are .btn with the
+ *   double-dash variants --fill --line --ink --paper, and the text link is
+ *   .linkc. The footer carries no .btn at all (the engine pins footer .btn).
+ *
+ * RENDER ORDER, exactly as the design draws it: Header, Hero (#top), Marquee,
+ * Trust, Services (#services, with the weddings band inside it), About, Why,
+ * Gallery, How, Testimonials (#reviews), Credentials, Area, Faq, Location
+ * (#visit) — then, outside main as in the design, the closing band (#book) and
+ * the Footer, with the floating chat pill after it.
+ *
+ * Leaflet: this wrapper loads leaflet.css + leaflet.js and defines
+ * window.__floristBSInitMap (family-unique). LocationBS calls that exact name
+ * with the owner's location.lat / location.lng (or a geocoded address). Keep
+ * `el.innerHTML = ''` in the boot, it is what erases the drawn fallback face,
+ * and keep id="map" literal.
+ */
+import HeaderBS from './header/HeaderBS.astro';
+import HeroBS from './hero/HeroBS.astro';
+import MarqueeBS from './marquee/MarqueeBS.astro';
+import TrustBS from './trust/TrustBS.astro';
+import ServicesBS from './services/ServicesBS.astro';
+import AboutBS from './about/AboutBS.astro';
+import WhyBS from './why/WhyBS.astro';
+import GalleryBS from './gallery/GalleryBS.astro';
+import HowBS from './how/HowBS.astro';
+import TestimonialsBS from './testimonials/TestimonialsBS.astro';
+import CredentialsBS from './credentials/CredentialsBS.astro';
+import AreaBS from './area/AreaBS.astro';
+import FaqBS from './faq/FaqBS.astro';
+import LocationBS from './location/LocationBS.astro';
+import CtaBandBS from './ctaBand/CtaBandBS.astro';
+import FooterBS from './footer/FooterBS.astro';
+import { resolveTheme, buildFontHref, buildOverrideCss } from '../../lib/genericThemeOverrides';
+
+interface Props { siteData: any; }
+const { siteData } = Astro.props;
+const layout = siteData.layout ?? {};
+const content = siteData.content ?? {};
+const visibility = siteData.visibility ?? {};
+const title = layout.businessName
+  ? `${layout.businessName}${layout.tagline ? ' — ' + layout.tagline : ''}`
+  : 'Welcome';
+const { scheme: __themeScheme, pairing: __resolvedPairing } = resolveTheme(layout, (content as any).business_type, { lockVariant: true });
+// 'modern' is astro-builder's DEFAULT, not a choice (lib/astro-builder.ts).
+// Treating it as unset keeps Gilda Display + Jost; a deliberate pick applies.
+const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
+const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
+const __fontHref = buildFontHref(__themePairing);
+// ── ONLY on an explicit admin COLOUR pick (gated on the scheme, never on
+// __overrideCss, which a font pick alone makes non-empty):
+//   1. the two private hairline tokens stop being the design's blush hex and
+//      follow the scheme's own --line, so no pink rule survives on a blue page;
+//   2. the rose used as TEXT (--rose-ink: every script eyebrow, figure, time)
+//      must clear 3:1 on BOTH grounds it sits on (paper and the tint band). The
+//      engine hands this template its scheme's primary for --accent, and on
+//      maroon that is #800000 on a #2D0000 page — 1.7:1, the eyebrows vanish.
+//      When the primary cannot clear the bar, the text takes the scheme's deep
+//      accent if THAT clears it, else the scheme's soft ink;
+//   3. the label on a rose FILL (--on-rose) is whichever of the engine's
+//      --on-primary, the scheme's ink or its paper reads best on that fill —
+//      the engine's 0.5-luminance flip puts white on whitegold's light gold
+//      (2.9:1) where its ink reads 6:1.
+// All three read the hex values the engine itself emitted, so nothing here
+// names a scheme. With no colour pick __schemeCss is empty and the design's
+// own values stand untouched.
+const __hex = (name: string): string => (new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(__overrideCss) || [])[1] || '';
+const __lum = (hex: string): number => {
+  const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map((s) => (s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+};
+const __ratio = (a: string, b: string): number => {
+  const x = __lum(a), y = __lum(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+};
+let __schemeVars = '';
+if (__themeScheme) {
+  __schemeVars += '--line-2:var(--line);--line-soft:var(--line);';
+  const paper = __hex('paper'), card = __hex('card'), ink = __hex('ink');
+  const rose = __hex('accent'), deep = __hex('accent-deep'), onPrimary = __hex('on-primary');
+  const worst = (fg: string): number => Math.min(__ratio(fg, paper), card ? __ratio(fg, card) : 99);
+  if (paper && rose && worst(rose) < 3) {
+    __schemeVars += `--rose-ink:${deep && worst(deep) >= 3 ? 'var(--accent-deep)' : 'var(--ink-soft)'};`;
+  }
+  if (rose) {
+    const best = [['var(--on-primary)', onPrimary], ['var(--ink)', ink], ['var(--paper)', paper]]
+      .filter(([, hex]) => hex)
+      .sort((p, q) => __ratio(q[1], rose) - __ratio(p[1], rose))[0];
+    if (best && best[0] !== 'var(--on-primary)') __schemeVars += `--on-rose:${best[0]};`;
+  }
+}
+// :root raises this to (0,2,1). It MUST out-rank the base token block at
+// (0,1,1) on specificity, not on order: Astro bundles the is:global block
+// below into the END of head, after this inline one, so at equal strength the
+// design's own values would win and the fix would silently do nothing.
+const __schemeCss = __schemeVars ? `html[data-page="BS"]:root{${__schemeVars}}` : '';
+// The owner's own number, digits only — the last resort of the dead-link pass
+// at the end of the body for a primary action whose section is not on the page.
+const __tel = String(layout.contact?.phone ?? '').replace(/[^0-9+]/g, '');
+---
+
+<!DOCTYPE html>
+<html lang="en" data-page="BS">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{title}</title>
+  {content.description && <meta name="description" content={content.description} />}
+  <!-- Browser-chrome tint. A meta tag cannot read a CSS var, so this
+       duplicates the blush-cream ground (--paper) the sticky header sits on. -->
+  <meta name="theme-color" content="#FBF4F1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+  <!-- The design's own faces, verbatim from its helmet: Gilda Display (display),
+       Pinyon Script (the flourish) and Jost 400/500/600 (body and labels). -->
+  <link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Pinyon+Script&family=Jost:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  {layout.favicon && <link rel="icon" href={layout.favicon} />}
+  {(layout.ogImage || layout.favicon) && <meta property="og:image" content={layout.ogImage || layout.favicon} />}
+
+  <style is:global>
+    /* ═══════════════════════════════════════════════════════════════════════
+       PageBS · "Kalachuchi" — florist. Tokens + shared base primitives.
+       EVERY selector is anchored html[data-page="BS"].
+
+       SPECIFICITY. Layout-ish primitives (.k-wrap, the .btn metrics, the
+       heading and paragraph resets) sit inside :where() so a scoped section
+       rule always wins over them. The button COLOUR states do NOT: they are
+       written at full strength (0,2,1) / (0,3,1), because a leaked, unscoped
+       `.btn:hover` from another family scores (0,2,0) and would otherwise
+       repaint a fill and strand a label. Sections never restate a button
+       colour; they only pick a variant.
+
+       HEAD ORDER. This block is followed by the admin font link and then, as
+       the LAST node in head, the engine's override block; its html:root
+       !important tokens only beat these because they come later.
+       (Never write a literal closing style tag in here, comments included.)
+    ═══════════════════════════════════════════════════════════════════════ */
+
+    html[data-page="BS"] {
+      /* grounds */
+      --paper: #FBF4F1;
+      --card: #F4E4E1;
+      --paper-2: #FFFFFF;
+      /* ink */
+      --ink: #3D2A2E;
+      --ink-soft: #6E5A5D;
+      --muted: #6E5A5D;
+      --line: #EAD6D2;
+      --stone: #EAD6D2;
+      /* the rose, and the deeper blush */
+      --accent: #B4566A;
+      --accent-light: #E8C9C6;
+      --accent-soft: #E8C9C6;
+      /* rgb triplets for token-driven tints */
+      --paper-rgb: 251,244,241;
+      --ink-rgb: 61,42,46;
+      --accent-rgb: 180,86,106;
+      /* contrast aliases the engine and inherited rules expect */
+      --on-primary: #FFF7F5;
+      --on-accent: #3D2A2E;
+      --on-ink: #FBF4F1;
+      --on-paper: #3D2A2E;
+      /* readable aliases (all resolve through engine tokens, so a pick moves them) */
+      --band: var(--card);
+      --sheet: var(--paper-2);
+      --blush: var(--accent-light);
+      --rose-ink: var(--accent);
+      --on-rose: var(--on-primary);
+      /* private — the engine does not know these (see the frontmatter) */
+      --line-2: #D9BDB8;
+      --line-soft: #F0E2DF;
+      --shade-rgb: 61,42,46;
+      /* type */
+      --disp: "Gilda Display", Georgia, "Times New Roman", serif;
+      --serif: "Gilda Display", Georgia, "Times New Roman", serif;
+      --sans: "Jost", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      /* No monospace in this design; the token exists because the engine sets
+         it and shared rules read it. */
+      --mono: "Jost", system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+      --script: "Pinyon Script", "Snell Roundhand", "Apple Chancery", cursive;
+      /* metrics */
+      --maxw: 1240px;
+      --gut: clamp(18px, 4vw, 48px);
+    }
+
+    /* VERIFIED CONTRAST (WCAG relative luminance, the design's palette):
+       ink/paper 12.3 · ink/band 10.9 · ink/sheet 13.4 · ink/blush 8.7
+       ink-soft/paper 5.9 · ink-soft/band 5.2 · ink-soft/sheet 6.4
+       paper on ink 12.3 (footer wordmark) · blush on ink 8.7 (footer caps)
+       footer text at .78 on ink 8.2 · the colophon at .62 on ink 5.7
+       BELOW AA, the design's own choices, shipped as drawn:
+         rose/paper 4.3 and rose/band 3.8 (the 10.5px locality, the 14px
+         delivery times, the star rows; everything else the rose sets is large
+         script or display type, which clears the 3:1 large-text bar) and the
+         #FFF7F5 label on a rose fill 4.4. */
+
+    /* ── reset + document ─────────────────────────────────────────────── */
+    html[data-page="BS"] *,
+    html[data-page="BS"] *::before,
+    html[data-page="BS"] *::after { box-sizing: border-box; }
+    html[data-page="BS"] {
+      -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+      scroll-behavior: smooth;
+      /* The sticky header is 77px (76 + its hairline). One declaration on the
+         root keeps every in-page target — sections, FAQ rows, the map — clear
+         of it, and keeps keyboard focus out from under it too. */
+      scroll-padding-top: 88px;
+    }
+    @media (prefers-reduced-motion: reduce) { html[data-page="BS"] { scroll-behavior: auto; } }
+    html[data-page="BS"] body {
+      margin: 0; padding: 0;
+      background-color: var(--paper); color: var(--ink);
+      font-family: var(--sans); font-size: 17px; line-height: 1.7; font-weight: 400;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      /* The design clips its root horizontally (the tilted hero frames, the
+         About stamp that pokes past its column). clip, not hidden, where the
+         browser has it: clip never creates a scroll container, so the sticky
+         header keeps sticking whatever another stylesheet does to html. */
+      overflow-x: hidden; overflow-x: clip;
+    }
+    html[data-page="BS"] :where(img) { display: block; max-width: 100%; }
+    html[data-page="BS"] :where(a) { color: inherit; text-decoration: none; }
+    /* The design's one global hover: a link turns rose. Buttons restate their
+       own hover at higher strength, so this never reaches a fill. */
+    html[data-page="BS"] :where(a:hover) { color: var(--rose-ink); }
+    html[data-page="BS"] ::selection { background-color: var(--accent); color: var(--on-rose); }
+    /* text-transform and letter-spacing are DECLARED, not defaulted: every
+       wrapper's is:global CSS ships on this page, and two once capitalised
+       every heading in the catalogue. */
+    html[data-page="BS"] :where(h1, h2, h3, h4) {
+      margin: 0; font-family: var(--disp); font-weight: 400;
+      letter-spacing: 0; text-transform: none; color: inherit;
+    }
+    /* Owner emphasis inside a headline. The design draws none, but the copy
+       pipeline and the editor both invite an <em>, and the editor promises it
+       prints "in the accent colour". Gilda Display ships no italic, so it is
+       a colour change and never a synthesised oblique. */
+    html[data-page="BS"] :where(h1, h2, h3, h4) :where(em, i) { font-style: normal; color: var(--rose-ink); }
+    html[data-page="BS"] :where(p, blockquote, figure, dl, dd, ol, ul) { margin: 0; }
+    html[data-page="BS"] :where(ol, ul) { padding: 0; list-style: none; }
+    html[data-page="BS"] :where(summary) { list-style: none; cursor: pointer; }
+    html[data-page="BS"] :where(summary)::-webkit-details-marker { display: none; }
+    html[data-page="BS"] :where(button) { font: inherit; color: inherit; }
+
+    /* ── layout scaffolding: the design's one container ───────────────── */
+    html[data-page="BS"] :where(.k-wrap) {
+      max-width: var(--maxw); margin-inline: auto; padding-inline: var(--gut);
+    }
+
+    /* ── the Pinyon Script eyebrow. Size and colour are the section default
+          (clamp 32→44, rose); a section restates either where the design
+          draws it differently. */
+    html[data-page="BS"] :where(.k-tag) {
+      margin: 0; font-family: var(--script); font-weight: 400;
+      font-size: clamp(32px, 3.4vw, 44px); line-height: 1; color: var(--rose-ink);
+    }
+
+    /* ── BUTTONS. Metrics inside :where(); colour states at full strength.
+          Every variant declares fill, rule AND label, at rest and on hover, so
+          a label can never strand on a fill it was not written for. */
+    html[data-page="BS"] :where(.btn) {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5em;
+      min-height: 52px; padding: 0 30px; max-width: 100%;
+      border-radius: 999px; border: 1px solid transparent;
+      background-color: transparent; color: inherit;
+      font-family: var(--sans); font-size: 14.5px; font-weight: 500; letter-spacing: .06em;
+      text-align: center; text-decoration: none; cursor: pointer;
+    }
+    html[data-page="BS"] :where(.btn--lg) { min-height: 54px; padding: 0 32px; font-size: 15px; }
+    /* rose fill → ink on hover (hero primary) */
+    html[data-page="BS"] .btn--fill { background-color: var(--accent); border-color: var(--accent); color: var(--on-rose); }
+    html[data-page="BS"] .btn--fill:hover { background-color: var(--ink); border-color: var(--ink); color: var(--paper); }
+    /* white sheet inside a blush rule → the rule darkens (hero secondary) */
+    html[data-page="BS"] .btn--line { background-color: var(--sheet); border-color: var(--line-2); color: var(--ink); }
+    html[data-page="BS"] .btn--line:hover { background-color: var(--sheet); border-color: var(--ink); color: var(--ink); }
+    /* ink fill → rose on hover (weddings band, closing band primary) */
+    html[data-page="BS"] .btn--ink { background-color: var(--ink); border-color: var(--ink); color: var(--paper); }
+    html[data-page="BS"] .btn--ink:hover { background-color: var(--accent); border-color: var(--accent); color: var(--on-rose); }
+    /* paper fill → white on hover (closing band secondary) */
+    html[data-page="BS"] .btn--paper { background-color: var(--paper); border-color: var(--paper); color: var(--ink); }
+    html[data-page="BS"] .btn--paper:hover { background-color: var(--sheet); border-color: var(--paper); color: var(--ink); }
+
+    /* ── .linkc — the rose text link with its rose rule (Get directions).
+          Hover darkens the label to ink and leaves the rule, as drawn. */
+    html[data-page="BS"] :where(.linkc) {
+      display: inline-flex; align-items: center; min-height: 44px;
+      font-weight: 500; letter-spacing: .04em;
+      color: var(--rose-ink); border-bottom: 1px solid var(--accent);
+    }
+    html[data-page="BS"] .linkc:hover { color: var(--ink); }
+
+    /* ── FOCUS · one DUO ring: a paper outline inside an ink halo, so it
+          separates from the page on the blush grounds AND on the ink footer. */
+    html[data-page="BS"] :where(a, button, summary, [tabindex]):focus-visible {
+      outline: 3px solid var(--paper); outline-offset: 0;
+      box-shadow: 0 0 0 6px var(--ink); border-radius: 8px;
+    }
+    html[data-page="BS"] :where(.btn, .linkc):focus-visible { border-radius: 999px; }
+
+    /* ── skip link ─────────────────────────────────────────────────────── */
+    html[data-page="BS"] :where(.k-skip) {
+      position: absolute; left: -999px; top: 0; z-index: 100;
+      background-color: var(--ink); color: var(--paper);
+      padding: 12px 18px; border-radius: 0 0 12px 0;
+      font-family: var(--sans); font-size: 13px; font-weight: 500; letter-spacing: .06em;
+    }
+    html[data-page="BS"] :where(.k-skip:focus) { left: 0; top: 0; color: var(--paper); }
+  </style>
+  {__schemeCss && <style is:global set:html={__schemeCss}></style>}
+
+  {__fontHref && <link href={__fontHref} rel="stylesheet" />}
+  <style is:global set:html={__overrideCss}></style>
+</head>
+<body>
+  <a class="k-skip" href="#main">Skip to content</a>
+  <HeaderBS layout={layout} content={content} />
+  <main id="main">
+    {visibility.heroSection !== false && <HeroBS content={content} layout={layout} />}
+    {visibility.marqueeBlock !== false && <MarqueeBS content={content} layout={layout} />}
+    {visibility.trustBlock !== false && <TrustBS content={content} layout={layout} />}
+    {visibility.servicesSection !== false && <ServicesBS content={content} layout={layout} />}
+    {visibility.aboutSection !== false && <AboutBS content={content} layout={layout} />}
+    {visibility.whyUsBlock !== false && <WhyBS content={content} layout={layout} />}
+    {visibility.gallerySection !== false && <GalleryBS content={content} layout={layout} />}
+    {visibility.howItWorksBlock !== false && <HowBS content={content} layout={layout} />}
+    {visibility.testimonialsBlock !== false && <TestimonialsBS content={content} layout={layout} />}
+    {visibility.credentialsBlock !== false && <CredentialsBS content={content} layout={layout} />}
+    {visibility.serviceAreaBlock !== false && <AreaBS content={content} layout={layout} />}
+    {visibility.faqBlock !== false && <FaqBS content={content} layout={layout} />}
+    {visibility.locationBlock !== false && <LocationBS content={content} layout={layout} />}
+  </main>
+  {visibility.ctaBandBlock !== false && <CtaBandBS content={content} layout={layout} />}
+  <FooterBS layout={layout} content={content} />
+
+  <!-- The two inline passes run BEFORE the blocking Leaflet download, so a slow
+       network can never hold the link clean-up hostage. LocationBS waits for
+       both window.__floristBSInitMap and window.L before it mounts the map. -->
+  <script is:inline define:vars={{ __tel }}>
+    // DEAD IN-PAGE LINKS. Each component's onPage() guard drops ids this
+    // DESIGN never has; this pass catches the ids it CAN have but did not
+    // render in THIS build — the derived nav points at #services, #why and
+    // #gallery on every first build, and a copy-written site has no Why
+    // reasons until the owner types some. It only ever touches a link whose
+    // target is missing from the document:
+    //   · a primary action (rose / ink pill, the header pill) is re-aimed at
+    //     the closing band, else the visit section — never its own section —
+    //     else at the owner's own phone as a tel: link;
+    //   · anything else (nav, footer links, a secondary pill), or a primary
+    //     with nowhere to go, is removed.
+    // Then whatever the pass itself emptied goes too: a nav takes its burger,
+    // a links column its heading, a pill row its gap, the closing band its
+    // headline (unless it still has a sentence to say), the header and footer
+    // their empty bars. It repeats until nothing changes, because removing
+    // the band can strand a pill that was just re-aimed at it.
+    // #top is exempt (the HTML spec scrolls it to the top of the document),
+    // and so is #main.
+    (function () {
+      var byId = function (id) { return id ? document.getElementById(id) : null; };
+      var gone = function (el) { if (el && el.parentNode) el.parentNode.removeChild(el); };
+      var primary = function (a) {
+        return a.classList.contains('btn--fill') || a.classList.contains('btn--ink') || a.classList.contains('hd-cta');
+      };
+      var hit = [];
+      for (var round = 0; round < 4; round++) {
+        var changed = false;
+        var links = document.querySelectorAll('a[href^="#"]');
+        for (var i = 0; i < links.length; i++) {
+          var a = links[i];
+          var id = a.getAttribute('href').slice(1);
+          if (!id || id === 'top' || id === 'main' || byId(id)) continue;
+          changed = true;
+          var home = a.closest('section');
+          var to = null;
+          if (primary(a)) {
+            if (byId('book') && byId('book') !== home) to = '#book';
+            else if (byId('visit') && byId('visit') !== home) to = '#visit';
+            else if (__tel) to = 'tel:' + __tel;
+          }
+          if (to) { a.setAttribute('href', to); continue; }
+          var box = a.closest('header, footer, #book');
+          if (box && hit.indexOf(box) < 0) hit.push(box);
+          gone(a);
+        }
+        var nav = document.querySelector('.hd-nav');
+        if (nav && !nav.querySelector('a')) { gone(nav); gone(document.querySelector('.hd-burger')); }
+        var lists = document.querySelectorAll('.ft-links');
+        for (var j = 0; j < lists.length; j++) {
+          if (!lists[j].querySelector('a')) gone(lists[j].closest('.ft-col'));
+        }
+        var rows = document.querySelectorAll('.hr-ctas, .bk-ctas');
+        for (var k = 0; k < rows.length; k++) {
+          if (!rows[k].querySelector('a')) gone(rows[k]);
+        }
+        for (var h = 0; h < hit.length; h++) {
+          var el = hit[h];
+          if (!el.parentNode) continue;
+          var empty = el.id === 'book'
+            ? !el.querySelector('a') && !el.querySelector('.bk-sub')
+            : el.tagName === 'HEADER'
+              ? !el.querySelector('a, button')
+              : !(el.textContent || '').trim();
+          if (empty) { gone(el); changed = true; }
+        }
+        if (!changed) break;
+      }
+    })();
+    (function () {
+      // Kalachuchi / BS Leaflet boot — accepts (lat, lng, label) from LocationBS.
+      // Family-unique name: a preview harness can render two wrappers in one
+      // document, and a shared name would cross-wire the maps.
+      window.__floristBSInitMap = function (lat, lng, label) {
+        if (!window.L) return;
+        var el = document.getElementById('map');
+        if (!el || el.getAttribute('data-mounted') === '1') return;
+        el.setAttribute('data-mounted', '1');
+        // Erases LocationBS's drawn fallback face; without this the tiles
+        // stack on top of the drawn street grid.
+        el.innerHTML = '';
+        // Zoom 16 and no scroll-wheel zoom, as the design's own boot.
+        var map = L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 16);
+        L.tileLayer('https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19, subdomains: 'abcd' }).addTo(map);
+        // The design's pin — a 20px rose dot in a 5px white ring — with its
+        // colours READ from the live tokens, so an explicit admin colour pick
+        // recolours the pin too (the engine sets them on this same element).
+        var cs = window.getComputedStyle(document.documentElement);
+        var rose = (cs.getPropertyValue('--accent') || '').trim() || '#B4566A';
+        var ring = (cs.getPropertyValue('--paper-2') || '').trim() || '#FFFFFF';
+        var icon = L.divIcon({
+          className: '',
+          html: '<div style="width:20px;height:20px;border-radius:50%;background:' + rose + ';box-shadow:0 0 0 5px ' + ring + ',0 4px 14px rgba(61,42,46,.3)"></div>',
+          iconSize: [20, 20], iconAnchor: [10, 10]
+        });
+        // No popup (the design has none). The pin is not a tab stop: with
+        // nothing to open it would only be a dead stop for keyboard users.
+        L.marker([lat, lng], { icon: icon, keyboard: false, title: label || '' }).addTo(map);
+      };
+    })();
+  </script>
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</body>
+</html>

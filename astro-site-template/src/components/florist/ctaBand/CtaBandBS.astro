@@ -1,0 +1,80 @@
+---
+/**
+ * florist / CtaBandBS — the closing band: full-bleed deeper blush, centred —
+ * a script eyebrow in the ink (not the rose, as drawn), a large Gilda
+ * headline, one line of what to send, and two pills: an ink one that turns
+ * rose on hover, and a blush-cream one that turns white.
+ *
+ * Editable hooks: ctaBand.tag · ctaBand.headline · ctaBand.sub ·
+ * ctaBand.cta.text + data-href-field ctaBand.cta.href ·
+ * ctaBand.cta2.text + data-href-field ctaBand.cta2.href.
+ *
+ * The first pill binds the path the sidebar writes (ctaBand.cta) and reads the
+ * builder's legacy alias for DISPLAY only. The second pill renders only when
+ * the owner typed one: there is exactly one derived closing action, and
+ * inventing a second ("Call …") would put words in the owner's mouth.
+ *
+ * GROUND: --blush (the engine's accent-light) with --ink text — the pairing
+ * that stays legible across the family's six schemes (8.7:1 natively; 4.2:1
+ * on brown, the lowest, 5.2–9.2:1 on the rest, 6.4:1 on maroon). Never the
+ * engine's --on-accent, whose 0.5-luminance flip picks white on pink's
+ * mid-tone blush (2.3:1).
+ *
+ * CLASS-NAME LAW: .bk, never .cta-band — the engine pins `.cta-band .btn` to
+ * the on-ink colour, which would strand the ink pill's label.
+ *
+ * SECTION GATE: a headline or a first action.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+// Anchor guard — the same table as HeaderBS / HeroBS / ServicesBS / FooterBS.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit', location: 'visit', testimonials: 'reviews', home: 'top' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  const h = String(href ?? '').trim();
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: any): string => String(v ?? '').trim();
+const B = (content as any).ctaBand || {};
+const tag = str(B.tag);
+const headline = str(B.headline);
+const sub = str(B.sub);
+const ctaText = str(B.cta?.text) || str(B.cta1?.text);
+const ctaHref = onPage(B.cta?.href || B.cta1?.href, '#visit');
+const cta2Text = str(B.cta2?.text);
+const cta2Href = onPage(B.cta2?.href, '#visit');
+const hasSection = Boolean(headline || ctaText);
+---
+{hasSection && (
+  <section class="bk" id="book">
+    <div class="k-wrap bk-in">
+      {tag && <p class="k-tag bk-tag" data-field="ctaBand.tag">{tag}</p>}
+      {headline && <h2 class="bk-h2" data-field="ctaBand.headline" set:html={headline}></h2>}
+      {sub && <p class="bk-sub" data-field="ctaBand.sub">{sub}</p>}
+      {(ctaText || cta2Text) && (
+        <div class="bk-ctas">
+          {ctaText && <a class="btn btn--lg btn--ink" href={ctaHref} data-field="ctaBand.cta.text" data-href-field="ctaBand.cta.href">{ctaText}</a>}
+          {cta2Text && <a class="btn btn--lg btn--paper" href={cta2Href} data-field="ctaBand.cta2.text" data-href-field="ctaBand.cta2.href">{cta2Text}</a>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .bk { background-color: var(--blush); color: var(--ink); padding: clamp(64px, 8vw, 112px) 0; text-align: center; }
+  .bk-tag { font-size: clamp(36px, 4vw, 52px); color: var(--ink); }
+  .bk-h2 {
+    margin: 10px auto 0; max-width: 20ch; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(34px, 5vw, 66px); line-height: 1.08; text-wrap: balance;
+    overflow-wrap: break-word;
+  }
+  .bk-sub { margin: 18px auto 30px; max-width: 46ch; color: var(--ink); }
+  .bk-in > :first-child { margin-top: 0; }
+  .bk-h2 + .bk-ctas { margin-top: 30px; }
+  .bk-ctas { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+</style>

@@ -1,0 +1,32 @@
+---
+/**
+ * woodworks / MarqueeBX — "Acacia Studio"'s ruled strip (#marquee): one
+ * centred line of italic Newsreader between two hairlines, under the opening.
+ * In this design the "marquee" does not move — it is a still, balanced line —
+ * so no animation is added.
+ *
+ * Editable hook: marquee.text — one string, printed verbatim (any separators
+ * are the owner's own characters). No stock keywords: with no text the strip
+ * is not rendered at all.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const text = ((content as any).marquee?.text == null ? '' : String((content as any).marquee.text)).trim();
+---
+{text && (
+  <div id="marquee" class="strip">
+    <p class="strip-t" data-field="marquee.text">{text}</p>
+  </div>
+)}
+<style>
+  .strip {
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 20px var(--gut);
+  }
+  .strip-t {
+    margin: 0; text-align: center;
+    font-family: var(--disp); font-style: italic; font-weight: 400;
+    font-size: clamp(18px,2vw,25px); line-height: 1.65;
+    color: var(--ink-soft); text-wrap: balance; overflow-wrap: break-word;
+  }
+</style>

@@ -1,0 +1,89 @@
+---
+/**
+ * florist / CtaBandBT — Gumamela's closing call (#book): the full-bleed
+ * MARIGOLD band under a 2px ink rule. The page's biggest Bricolage headline and
+ * a sentence on the left; an ink button and an outlined one on the right.
+ *
+ * Editable hooks:
+ *   ctaBand.headline (set:html: an <em> prints upright in --on-mari-accent —
+ *                     the design's red on its marigold, plain ink under an
+ *                     admin scheme) · ctaBand.sub
+ *   ctaBand.cta.text + data-href-field ctaBand.cta.href   — the ink button
+ *   ctaBand.cta2.text + data-href-field ctaBand.cta2.href — the outlined one
+ *   contact.phone — ONLY when the second button is blank: the schema documents
+ *                   that it then falls back to the owner's phone as a tel: link.
+ *                   A tel: anchor carries data-field only (its href is derived).
+ *
+ * The primary label reads the canonical ctaBand.cta first and the legacy cta1
+ * for display only; the hook is always the canonical path.
+ *
+ * CLASS-NAME LAW: the band is .gm-book, never .cta-band — the engine pins
+ * `.cta-band .btn` to the on-ink colour, which would erase the outlined
+ * button's ink label on this marigold ground.
+ *
+ * NEVER FABRICATED: no headline, sentence, label or number is supplied here.
+ * GATE: a headline or an action.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'events', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const band = content.ctaBand || {};
+const str = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
+const headline = str(band.headline).trim();
+const sub = str(band.sub).trim();
+const ctaText = str(band.cta?.text || band.cta1?.text).trim();
+const ctaHref = onPage(band.cta?.href || band.cta1?.href, '#visit');
+const cta2Text = str(band.cta2?.text).trim();
+const cta2Href = onPage(band.cta2?.href, '#visit');
+const phone = str(layout.contact?.phone || content.contact?.phone).trim();
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const hasActions = Boolean(ctaText || cta2Text || phone);
+---
+{(headline || hasActions) && (
+  <section class="gm-book" id="book">
+    <div class="wrap bk-in">
+      {(headline || sub) && (
+        <div class="bk-copy">
+          {headline && <h2 class="bk-h" data-field="ctaBand.headline" set:html={headline}></h2>}
+          {sub && <p class="bk-sub" data-field="ctaBand.sub">{sub}</p>}
+        </div>
+      )}
+      {hasActions && (
+        <div class="bk-acts">
+          {ctaText && <a class="btn btn--ink bk-btn" href={ctaHref} data-field="ctaBand.cta.text" data-href-field="ctaBand.cta.href">{ctaText}</a>}
+          {cta2Text
+            ? <a class="btn btn--line bk-btn" href={cta2Href} data-field="ctaBand.cta2.text" data-href-field="ctaBand.cta2.href">{cta2Text}</a>
+            : (phone && <a class="btn btn--line bk-btn" href={telHref} data-field="contact.phone">{phone}</a>)}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .gm-book {
+    background-color: var(--accent-light); color: var(--ink);
+    padding: clamp(56px,7vw,104px) 0; border-top: 2px solid var(--ink);
+  }
+  .bk-in { display: flex; flex-wrap: wrap; gap: 24px 56px; align-items: flex-end; }
+  .bk-copy { flex: 1 1 480px; min-width: 0; }
+  .bk-h {
+    margin: 0; font-family: var(--disp); font-weight: 800; color: var(--ink);
+    font-size: clamp(40px,6.4vw,96px); line-height: .92; letter-spacing: -.045em;
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  /* :global() because Astro cannot scope markup that arrived via set:html. */
+  .bk-h :global(em), .bk-h :global(i) { font-style: normal; color: var(--on-mari-accent); }
+  .bk-sub { margin: 18px 0 0; max-width: 44ch; font-size: 17px; line-height: 1.6; color: var(--ink); }
+  .bk-sub:first-child { margin-top: 0; }
+  .bk-acts { flex: 0 1 auto; min-width: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+  .bk-btn { min-height: 56px; padding: 0 28px; font-size: 15.5px; max-width: 100%; }
+</style>

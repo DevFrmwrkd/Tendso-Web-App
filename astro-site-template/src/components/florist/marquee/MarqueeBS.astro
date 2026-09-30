@@ -1,0 +1,31 @@
+---
+/**
+ * florist / MarqueeBS — the ruled blush strip under the hero: one centred line
+ * of Gilda Display in the soft ink, the owner's own list of what they make with
+ * their own separators typed in (the design uses ❀). It does NOT scroll — the
+ * design draws a still, balanced line, so no motion is added.
+ *
+ * Editable hook: marquee.text. Nothing else is printed; with no text there is
+ * no strip.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const text = String((content as any).marquee?.text ?? '').trim();
+---
+{text && (
+  <div class="mq" id="marquee">
+    <p class="mq-text" data-field="marquee.text">{text}</p>
+  </div>
+)}
+<style>
+  .mq {
+    background-color: var(--band);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
+    padding: 18px var(--gut);
+  }
+  .mq-text {
+    margin: 0; text-align: center;
+    font-family: var(--disp); font-size: clamp(17px, 1.9vw, 23px); letter-spacing: .04em;
+    color: var(--ink-soft); text-wrap: balance; overflow-wrap: break-word;
+  }
+</style>

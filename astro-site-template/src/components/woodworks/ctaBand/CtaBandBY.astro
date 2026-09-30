@@ -1,0 +1,119 @@
+---
+/**
+ * woodworks / CtaBandBY — the closing call, and the one full-bleed brass band
+ * on the page: tracked caps, the largest Caslon line after the hero's, one
+ * sentence, and two square buttons in night — a filled one and a hairline one.
+ * Anchors #book, where the header CTA, the hero, the services ledger and every
+ * unknown in-page button resolve.
+ *
+ * Editable hooks (schema-owned, `ctaBand` group):
+ *   ctaBand.tag · ctaBand.headline · ctaBand.sub ·
+ *   ctaBand.cta.text + ctaBand.cta.href   — the filled night button
+ *   ctaBand.cta2.text + ctaBand.cta2.href — the night hairline button
+ *   contact.phone — the hairline button's label when the owner set no second
+ *   button but gave a phone: the schema's own promise for that field ("left
+ *   blank, this falls back to your phone number as a tel: link"). A tel:
+ *   anchor carries data-field ONLY (its href is derived from the value).
+ * The legacy cta1 / primary names are read for DISPLAY only, so a site edited
+ * under an older template still shows its button; the hook is the canonical
+ * path in every case.
+ *
+ * THE BAND'S GROUND IS THE BRASS (--accent-light) AND ITS INK IS THE FIXED
+ * --night. Under every curated scheme the night on palette.accent holds 5.39:1
+ * or better, where the engine's on-accent would put white on it at 2.26–3.31:1
+ * in four of the six (see PageBY's TOKEN PLAN). Both buttons are night on brass
+ * or bone on night, fixed pairs that no pick can strand.
+ *
+ * CLASS-NAME LAW: the section is .closing, never .cta-band (the engine pins
+ * `.cta-band .btn` to on-ink with !important, which would paint these labels
+ * white on brass).
+ *
+ * NEVER FABRICATED: no headline, sentence, label or number is invented.
+ *
+ * THE BAND IS ITS ACTIONS. derive-content-defaults gives every site the
+ * headline "Ready when you are." and a button to '#visit'; on a site with no
+ * contact details there is no #visit, the wrapper's boot removes the dead
+ * button, and what was left was a call to action with nothing to act on. So
+ * the band needs at least one action to render, and it carries
+ * data-link-group: when none of its actions reaches anything, the whole band
+ * goes with them.
+ */
+interface Props { content: any; layout: any; }
+const { content, layout } = Astro.props;
+// Anchor guard — identical in HeaderBY, HeroBY, ServicesBY, CtaBandBY and
+// FooterBY. derive-content-defaults sets ctaBand.cta.href '#visit', which this
+// design renders; off-page hrefs (viber:, wa.me, tel:) pass through.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'how', 'gallery', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit', location: 'visit', testimonials: 'reviews' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  const h = String(href ?? '').trim();
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const band = (content as any).ctaBand || {};
+const tag = txt(band.tag);
+const headline = txt(band.headline);
+const sub = txt(band.sub);
+const ctaText = txt(band.cta?.text) || txt(band.cta1?.text) || txt(band.primary?.text);
+const ctaHref = onPage(band.cta?.href || band.cta1?.href || band.primary?.href, '#visit');
+const cta2Text = txt(band.cta2?.text);
+const cta2Href = onPage(band.cta2?.href, '#visit');
+const phone = cta2Text ? '' : txt(layout?.contact?.phone);
+const telHref = phone ? `tel:${phone.replace(/[^0-9+]/g, '')}` : '';
+const hasActions = Boolean(ctaText || cta2Text || phone);
+---
+{hasActions && (
+  <section id="book" class="closing" data-link-group>
+    <div class="wrap closing-in">
+      {tag && <p class="closing-tag" data-field="ctaBand.tag">{tag}</p>}
+      {headline && <h2 class="closing-h" data-field="ctaBand.headline" set:html={headline}></h2>}
+      {sub && <p class="closing-sub" data-field="ctaBand.sub">{sub}</p>}
+      {hasActions && (
+        <div class="closing-acts">
+          {ctaText && <a class="btn btn--ink" href={ctaHref} data-field="ctaBand.cta.text" data-href-field="ctaBand.cta.href">{ctaText}</a>}
+          {cta2Text && <a class="btn btn--inkline" href={cta2Href} data-field="ctaBand.cta2.text" data-href-field="ctaBand.cta2.href">{cta2Text}</a>}
+          {phone && <a class="btn btn--inkline" href={telHref} data-field="contact.phone">{phone}</a>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .closing {
+    padding: clamp(64px, 8vw, 112px) 0; text-align: center;
+    background-color: var(--accent-light); color: var(--night);
+  }
+  .closing-in > :first-child { margin-top: 0; }
+  .closing-tag {
+    margin: 0; font-size: 12px; font-weight: 600; letter-spacing: .26em;
+    text-transform: uppercase; color: var(--night); overflow-wrap: break-word;
+  }
+  .closing-h {
+    margin: 16px auto 0; max-width: 18ch;
+    font-family: var(--disp); font-weight: 400; font-size: clamp(38px, 5.8vw, 82px);
+    line-height: 1; color: var(--night); text-wrap: balance; overflow-wrap: break-word;
+  }
+  .closing-sub { margin: 20px auto 30px; max-width: 46ch; color: var(--night); }
+  .closing-sub:last-child { margin-bottom: 0; }
+  .closing-h + .closing-acts { margin-top: 30px; }
+  .closing-acts { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+  .closing-acts .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 56px; padding: 0 30px; max-width: 100%; border-radius: 0;
+    font-family: var(--sans); font-size: 13px; font-weight: 600;
+    letter-spacing: .14em; text-transform: uppercase; text-align: center;
+  }
+  .closing-acts .btn--ink { background-color: var(--night); border: 1px solid var(--night); color: var(--bone); }
+  .closing-acts .btn--ink:hover { background-color: var(--night-2); border-color: var(--night-2); color: var(--bone); }
+  .closing-acts .btn--inkline { background-color: transparent; border: 1px solid var(--night); color: var(--night); }
+  .closing-acts .btn--inkline:hover { background-color: var(--night); border-color: var(--night); color: var(--bone); }
+  /* An owner's (or the copy extraction's) <em> in the headline: upright (the
+     Caslon has no italic) and in the band's own ink — brass on brass would
+     erase it. :global() because set:html markup cannot be scoped. */
+  .closing-h :global(em), .closing-h :global(i) { font-style: normal; color: inherit; }
+</style>

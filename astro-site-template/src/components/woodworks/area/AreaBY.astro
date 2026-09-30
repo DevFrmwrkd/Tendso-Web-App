@@ -1,0 +1,110 @@
+---
+/**
+ * woodworks / AreaBY — "from the mountain to your door": eyebrow, Caslon
+ * headline and a grey line on the left; on the right a ledger of places, each
+ * a Caslon place name against a small grey note (how it travels), ruled in
+ * bone. The two columns share a wrapping row and stack once 340px + 420px no
+ * longer fit, exactly as drawn.
+ *
+ * Editable hooks (schema-owned, `area` group):
+ *   area.tag · area.headline · area.body ·
+ *   area.rows.${i}.place · area.rows.${i}.time   — PRIMARY: place + note
+ *   area.places.${i}                              — FALLBACK: place only
+ *
+ * TWO LISTS, ONE LEDGER. The design draws place + note rows (area.rows). The
+ * AI copy extraction writes area.places (plain strings) and never area.rows,
+ * and derive-content-defaults fills area.places with the owner's city, so a
+ * ledger that read only rows would show its headline over nothing on every
+ * AI-written or first-build site, and the editor would hide the places list
+ * the owner actually has (the panel only offers paths a template binds). So
+ * rows win whenever any survive; otherwise the places are drawn in the SAME
+ * ledger rows, name only: no note cell and no dangling separator. Each hook
+ * carries its ORIGINAL index in whichever list it came from.
+ *
+ * NEVER FABRICATED: no place, route or delivery time is supplied here. A row
+ * needs a place (a note with no place is a journey to nowhere); the note is
+ * drawn only when the owner typed one. The section needs rows, places or the
+ * owner's line: derive-content-defaults always sets the eyebrow and, with a
+ * city, a "Serving <city>" headline, and a headline over nothing is an empty
+ * shell.
+ *
+ * The note is never allowed to push a long place off a 360px screen: it keeps
+ * the design's no-shrink behaviour up to 55% of the row and wraps beyond it.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const area = (content as any).area || {};
+const tag = txt(area.tag);
+const headline = txt(area.headline);
+const body = txt(area.body);
+type Row = { place: string; time: string; placeField: string; timeField: string };
+const timed: Row[] = (Array.isArray(area.rows) ? area.rows : [])
+  .map((r: any, i: number): Row => {
+    // A string row is tolerated and hooked at .place, so the first edit heals it.
+    const o = r && typeof r === 'object' ? r : { place: r };
+    return { place: txt(o.place), time: txt(o.time), placeField: `area.rows.${i}.place`, timeField: `area.rows.${i}.time` };
+  })
+  .filter((r) => r.place.length > 0);
+const named: Row[] = (Array.isArray(area.places) ? area.places : [])
+  .map((p: any, i: number): Row => ({
+    place: txt(p && typeof p === 'object' ? p.place ?? p.name : p),
+    time: '',
+    placeField: `area.places.${i}`,
+    timeField: '',
+  }))
+  .filter((r) => r.place.length > 0);
+const rows: Row[] = timed.length > 0 ? timed : named;
+const show = rows.length > 0 || Boolean(body);
+const hasHead = Boolean(tag || headline || body);
+---
+{show && (
+  <section id="area" class="reach">
+    <div class="wrap reach-grid">
+      {hasHead && (
+        <div class="reach-copy">
+          {tag && <p class="eyebrow" data-field="area.tag">{tag}</p>}
+          {headline && <h2 class="reach-h" data-field="area.headline" set:html={headline}></h2>}
+          {body && <p class="reach-p" data-field="area.body">{body}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class="routes">
+          {rows.map((r) => (
+            <div class="route">
+              <span class="route-place" data-field={r.placeField}>{r.place}</span>
+              {r.time && <span class="route-time" data-field={r.timeField}>{r.time}</span>}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .reach {
+    padding: clamp(56px, 7vw, 112px) 0; background-color: var(--night); color: var(--bone);
+    border-top: 1px solid rgba(var(--accent-rgb), .2);
+  }
+  .reach-grid { display: flex; flex-wrap: wrap; gap: 28px clamp(40px, 6vw, 96px); align-items: flex-start; }
+  .reach-copy { flex: 1 1 340px; min-width: 0; }
+  .reach-copy > :first-child { margin-top: 0; }
+  .reach-h {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px); line-height: 1.06; color: var(--bone);
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  .reach-p { margin: 16px 0 0; max-width: 42ch; color: var(--grey); overflow-wrap: break-word; }
+  .routes { flex: 1 1 420px; min-width: 0; }
+  .route {
+    display: flex; justify-content: space-between; gap: 16px; padding: 16px 0;
+    border-top: 1px solid rgba(var(--bone-rgb), .14);
+  }
+  .route:last-child { border-bottom: 1px solid rgba(var(--bone-rgb), .14); }
+  .route-place { min-width: 0; font-family: var(--disp); font-weight: 400; font-size: 20px; overflow-wrap: break-word; }
+  .route-time { flex: none; max-width: 55%; text-align: right; font-size: 14px; color: var(--grey); overflow-wrap: break-word; }
+  /* An owner's (or the copy extraction's) <em> in the headline: upright (the
+     Caslon has no italic) and in the design's one metal. :global() because
+     set:html markup cannot be scoped. */
+  .reach-h :global(em), .reach-h :global(i) { font-style: normal; color: var(--accent-light); }
+</style>

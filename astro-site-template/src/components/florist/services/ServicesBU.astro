@@ -1,0 +1,211 @@
+---
+/**
+ * florist / ServicesBU — the offerings (#services). A two-part head (eyebrow +
+ * Gloock h2 on the left, a sage paragraph bottom-right), then hairline-ruled
+ * ZIG-ZAG rows — a 3:2 photo beside a champagne tag, a Gloock title, a caps
+ * meta line and a description — and under them one closing row: a Gloock
+ * line about a standing programme beside a champagne hairline button.
+ *
+ * Editable hooks (design paths, kept exactly; ${it.i} is the ORIGINAL index):
+ *   services.tag · services.headline (set:html) · services.sub
+ *   services.items.${it.i}.image (data-image-field)
+ *   services.items.${it.i}.tag   — the champagne figure above each title. The
+ *                                  design binds it, so an owner's typed tag
+ *                                  prints bound. Nothing in the pipeline writes
+ *                                  it, though, and the design's figure is the
+ *                                  row number (01, 02, 03): when the tag is
+ *                                  blank the slot shows the DISPLAY number
+ *                                  instead — decoration, aria-hidden, unbound
+ *                                  (PORTING.md's rule for step numbers).
+ *   services.items.${it.i}.title · .desc
+ *   services.items.${it.i}.meta  — the caps line under the title; when it is
+ *                                  blank the AI's `note` ("1-3 word meta", the
+ *                                  schema's "Note / meta") shows there instead,
+ *                                  bound to services.items.${it.i}.note, so the
+ *                                  hook always names the field on screen (the
+ *                                  same rule HeroBU follows for headlineLines).
+ *   services.whole.headline (set:html) — the closing row's line
+ *   services.ctaLabel + data-href-field services.ctaHref — its button
+ *
+ * HEADLINES are set:html: the AI copy writer and the editor may mark an <em>
+ * (astro-builder balances the inline tags). Gloock has no italic cut, so the
+ * highlight prints upright in champagne, as in HeroBU.
+ *
+ * The closing row lives inside this one <section>, exactly as the design draws
+ * it (it is not a separate full-bleed band here), so the Services toggle hides
+ * all of it with the section.
+ *
+ * ROWS: blank rows are dropped with the ORIGINAL index kept on every hook. The
+ * zig-zag alternates over the rows that HAVE a photo (decoration, never a
+ * hook): the first photo sits left, the next right, and so on, so a photo-less
+ * row in between never puts two consecutive photos on the same side. The DOM
+ * keeps photo-then-copy in every row and a flipped row uses row-reverse, which
+ * is the same picture as the design's wrap-reverse at every width (photo on
+ * top once the row wraps). A row with no photo omits the frame entirely and
+ * its copy takes the row.
+ *
+ * SECTION GATE: at least one row, or the closing line. A head over nothing
+ * never renders (the content layer always derives a heading for this block).
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+// Anchor guard — identical in HeaderBU, HeroBU, CtaBandBU and FooterBU.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  if (!href) return fallback;
+  if (!href.startsWith('#')) return href;
+  const id = href.slice(1);
+  if (PAGE_ANCHORS.has(id)) return href;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const cssUrl = (u: string): string => u.replace(/[\r\n]/g, '').replace(/'/g, '%27');
+const services = content.services || {};
+const tag = str(services.tag);
+const headline = str(services.headline);
+const sub = str(services.sub);
+// Both shapes (the wrapped block and the legacy bare array) and both
+// vocabularies (name/description from older rows).
+const rawItems: any[] = Array.isArray(services.items) ? services.items : (Array.isArray(services) ? services : []);
+const rows = rawItems
+  .map((it: any, i: number) => {
+    const o = it && typeof it === 'object' ? it : {};
+    return {
+      i,
+      tag: str(o.tag),
+      title: str(o.title ?? o.name),
+      meta: str(o.meta),
+      note: str(o.note),
+      desc: str(o.desc ?? o.description),
+      image: str(o.image),
+    };
+  })
+  .filter((r) => r.tag || r.title || r.meta || r.note || r.desc || r.image)
+  .map((r, k, all) => ({
+    ...r,
+    // The decorative row number (DISPLAY index) for an untyped tag slot.
+    num: String(k + 1).padStart(2, '0'),
+    // Photo rows alternate among themselves: odd photo rows flip right.
+    flip: Boolean(r.image) && all.slice(0, k).filter((p) => p.image).length % 2 === 1,
+  }));
+const whole = services.whole || {};
+const wHeadline = str(whole.headline);
+const ctaLabel = str(services.ctaLabel);
+// Display falls back to the page's primary contact action so the button is
+// never pointed at nothing before the owner fills its link; the hook stays
+// services.ctaHref.
+const ctaHref = onPage(str(services.ctaHref), onPage(str(content.hero?.cta1?.href), '#book'));
+const hasSection = rows.length > 0 || Boolean(wHeadline);
+---
+{hasSection && (
+  <section id="services" class="svc">
+    <div class="wrap">
+      {(tag || headline || sub) && (
+        <div class="s-head">
+          {(tag || headline) && (
+            <div class="s-head-l">
+              {tag && <p class="kick" data-field="services.tag">{tag}</p>}
+              {headline && <h2 class="h2 h2--xl s-h2" data-field="services.headline" set:html={headline}></h2>}
+            </div>
+          )}
+          {sub && <p class="s-sub" data-field="services.sub">{sub}</p>}
+        </div>
+      )}
+      {rows.length > 0 && (
+        <div class="s-rows">
+          {rows.map((it) => (
+            <article class:list={['s-row', it.flip && 's-row--flip']}>
+              {it.image && (
+                <div
+                  class="s-ph"
+                  data-image-field={`services.items.${it.i}.image`}
+                  role={it.title ? 'img' : undefined}
+                  aria-label={it.title || undefined}
+                  aria-hidden={it.title ? undefined : 'true'}
+                  style={`background-image:url('${cssUrl(it.image)}');`}
+                ></div>
+              )}
+              {(it.tag || it.title || it.meta || it.note || it.desc) && (
+                <div class="s-copy">
+                  {it.tag
+                    ? <span class="s-tag" data-field={`services.items.${it.i}.tag`}>{it.tag}</span>
+                    : <span class="s-tag" aria-hidden="true">{it.num}</span>}
+                  {it.title && <h3 class="s-h3" data-field={`services.items.${it.i}.title`}>{it.title}</h3>}
+                  {it.meta
+                    ? <p class="s-meta" data-field={`services.items.${it.i}.meta`}>{it.meta}</p>
+                    : it.note && <p class="s-meta" data-field={`services.items.${it.i}.note`}>{it.note}</p>}
+                  {it.desc && <p class="s-desc" data-field={`services.items.${it.i}.desc`}>{it.desc}</p>}
+                </div>
+              )}
+            </article>
+          ))}
+        </div>
+      )}
+      {(wHeadline || ctaLabel) && (
+        <div class="s-whole">
+          {wHeadline && <p class="s-whole-h" data-field="services.whole.headline" set:html={wHeadline}></p>}
+          {ctaLabel && <a class="btn btn--line" href={ctaHref} data-field="services.ctaLabel" data-href-field="services.ctaHref">{ctaLabel}</a>}
+        </div>
+      )}
+    </div>
+  </section>
+)}
+<style>
+  .svc { padding: clamp(56px,7vw,112px) 0; background-color: var(--night); color: var(--cream); }
+
+  .s-head {
+    display: flex; flex-wrap: wrap; gap: 16px 64px; align-items: flex-end;
+    margin-bottom: clamp(40px,5vw,72px);
+  }
+  .s-head-l { flex: 1 1 440px; min-width: 0; }
+  .s-h2 { letter-spacing: -.015em; text-wrap: balance; }
+  /* :global() because Astro cannot scope markup that arrived through set:html. */
+  .s-h2 :global(em), .s-h2 :global(i),
+  .s-whole-h :global(em), .s-whole-h :global(i) { font-style: normal; color: var(--accent-light); }
+  .s-sub {
+    flex: 1 1 320px; min-width: 0; margin: 0; max-width: 44ch;
+    color: var(--sage); text-wrap: pretty;
+  }
+
+  .s-row {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 28px clamp(32px,5vw,80px);
+    padding: clamp(28px,3vw,40px) 0;
+    border-top: 1px solid rgba(var(--cream-rgb),.14);
+  }
+  .s-row:last-child { border-bottom: 1px solid rgba(var(--cream-rgb),.14); }
+  .s-row--flip { flex-direction: row-reverse; }
+
+  .s-ph {
+    flex: 1.2 1 380px; min-width: 0; aspect-ratio: 3/2;
+    background-color: var(--night-2);
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+  }
+  .s-copy { flex: 1 1 340px; min-width: 0; }
+  .s-tag { font-family: var(--disp); font-weight: 400; font-size: 20px; color: var(--accent-light); }
+  .s-h3 {
+    margin: 10px 0 8px;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(28px,3vw,42px); line-height: 1.08; color: var(--cream);
+  }
+  .s-h3:first-child { margin-top: 0; }
+  .s-meta {
+    margin: 0 0 14px;
+    font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--sage);
+  }
+  .s-desc { margin: 0; max-width: 46ch; color: var(--sage); text-wrap: pretty; }
+
+  .s-whole {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 20px 40px;
+  }
+  .s-rows + .s-whole { margin-top: clamp(32px,4vw,48px); }
+  .s-whole-h {
+    margin: 0; max-width: 34ch;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(22px,2.4vw,30px); line-height: 1.25; color: var(--cream);
+  }
+</style>

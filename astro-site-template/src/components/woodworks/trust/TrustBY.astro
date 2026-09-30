@@ -1,0 +1,61 @@
+---
+/**
+ * woodworks / TrustBY — "at a glance": up to four large brass Caslon figures,
+ * each over a small grey line, centred on the night with no rules and no
+ * cards. The grid is auto-fit at a 150px floor, so four cells sit in one row
+ * on a desktop and two-by-two on a 360px phone, as drawn.
+ *
+ * Editable hooks (the `trust.cells` list — add / remove / reorder):
+ *   trust.cells.${i}.num · trust.cells.${i}.label
+ *
+ * THE HIGHEST-RISK BAND ON THE PAGE. A founding year, a yearly capacity, a
+ * sourcing share and a guarantee are claims only the owner may make.
+ * derive-content-defaults carries no trust key and astro-builder turns the
+ * block off while the cells list is empty, so this band exists only where an
+ * admin filled it in; the gate below also catches rows that are PRESENT but
+ * blank (the editor's Add inserts { num: '', label: '' }). Each half of a cell
+ * is guarded on its own. There is no literal figure, zero or dash anywhere.
+ *
+ * CLASS-NAME LAW: the band is .glance and its parts .fig / .cap-line, NEVER
+ * .trust / .num / .lbl, which buildOverrideCss pins to the on-ink colour.
+ * No id: nothing links here, exactly as the design draws it.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const trust = (content as any).trust || {};
+const cells: any[] = Array.isArray(trust.cells) ? trust.cells : (Array.isArray(trust) ? trust : []);
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+// Drop blank rows but carry the ORIGINAL index, so removing cell 2 in the
+// sidebar can never redirect an edit of cell 3.
+const rows = cells
+  .map((c: any, i: number) => ({ num: txt(c?.num), label: txt(c?.label), i }))
+  .filter((r) => Boolean(r.num || r.label));
+---
+{rows.length > 0 && (
+  <section class="glance">
+    <div class="wrap glance-grid">
+      {rows.map((r) => (
+        <div class="cell">
+          {r.num && <b class="fig" data-field={`trust.cells.${r.i}.num`}>{r.num}</b>}
+          {r.label && <span class="cap-line" data-field={`trust.cells.${r.i}.label`}>{r.label}</span>}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+<style>
+  .glance { padding: clamp(44px, 5vw, 72px) 0; background-color: var(--night); color: var(--bone); }
+  .glance-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+    gap: 28px 12px; text-align: center;
+  }
+  .cell { min-width: 0; }
+  .fig {
+    display: block; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(40px, 4.4vw, 62px); line-height: 1; color: var(--accent-light);
+    overflow-wrap: anywhere;
+  }
+  .cap-line { display: block; margin-top: 10px; font-size: 13.5px; color: var(--grey); overflow-wrap: anywhere; }
+  /* A label with no figure above it starts the cell itself. */
+  .cap-line:first-child { margin-top: 0; }
+</style>

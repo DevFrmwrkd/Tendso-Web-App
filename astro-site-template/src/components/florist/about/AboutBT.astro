@@ -1,0 +1,104 @@
+---
+/**
+ * florist / AboutBT — Gumamela's story (#about): a big circular portrait
+ * ringed in 2px ink beside the copy — red eyebrow, Bricolage headline, a
+ * weighted lead, muted paragraphs, and the signature line (a display-face name
+ * with the role set small beside it).
+ *
+ * Editable hooks:
+ *   about.image (img) · about.tag · about.headline (set:html) · about.lead ·
+ *   about.paragraphs.${i} (ORIGINAL index) · about.signatureName · about.role
+ *
+ * The headline is set:html: the AI copy writer and the editor both mark its
+ * highlight with <em>, which prints upright in the hero's red.
+ *
+ * The signature DISPLAY falls back to about.signature, exactly as the sidebar
+ * shows it (the schema lists that as signatureName's fallback), so the page and
+ * the form never disagree; the hook is always about.signatureName. The role
+ * only prints beside a name — a role line with no name attributes a claim to
+ * nobody.
+ *
+ * GATE: real body content — a lead, a paragraph, a portrait or a name. The
+ * eyebrow and headline are derived on every named site and never open the
+ * section on their own. With no portrait the copy takes one readable column
+ * instead of stretching across a hole.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const about = content.about || {};
+const str = (v: any): string => (typeof v === 'string' ? v : v == null ? '' : String(v));
+const bg = (u: string) => `background-image:url('${u.replace(/'/g, '%27').replace(/[\r\n]/g, '')}')`;
+const image = str(about.image).trim();
+const tag = str(about.tag).trim();
+const headline = str(about.headline).trim();
+const lead = str(about.lead).trim();
+const paras = (Array.isArray(about.paragraphs) ? about.paragraphs : [])
+  .map((p: any, i: number) => ({ text: str(p).trim(), i }))
+  .filter((p: { text: string }) => p.text);
+const name = str(about.signatureName || about.signature).trim();
+const role = str(about.role).trim();
+const show = Boolean(lead || image || name || paras.length > 0);
+---
+{show && (
+  <section class="gm-about" id="about">
+    <div class:list={['wrap', 'ab-in', !image && 'ab-in--solo']}>
+      {image && (
+        <div
+          class="ph ab-ph"
+          data-image-field="about.image"
+          role={name ? 'img' : undefined}
+          aria-label={name || undefined}
+          aria-hidden={name ? undefined : 'true'}
+          style={bg(image)}
+        ></div>
+      )}
+      <div class="ab-copy">
+        {tag && <p class="eyebrow" data-field="about.tag">{tag}</p>}
+        {headline && <h2 class="ab-h" data-field="about.headline" set:html={headline}></h2>}
+        {lead && <p class="ab-lead" data-field="about.lead">{lead}</p>}
+        {paras.map((p: { text: string; i: number }, k: number) => (
+          <p class:list={['ab-p', k === 0 && 'ab-p--first']} data-field={`about.paragraphs.${p.i}`}>{p.text}</p>
+        ))}
+        {name && (
+          <div class="ab-sign">
+            <span class="ab-name" data-field="about.signatureName">{name}</span>
+            {role && <span class="ab-role" data-field="about.role">{role}</span>}
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .gm-about { padding: clamp(56px,7vw,104px) 0; }
+  .ab-in { display: flex; flex-wrap: wrap; gap: clamp(32px,5vw,80px); align-items: center; }
+  .ab-ph {
+    flex: 1 1 320px; min-width: 0; max-width: 520px; aspect-ratio: 1/1;
+    border-radius: 50%; border: 2px solid var(--ink);
+  }
+  .ab-copy { flex: 1 1 440px; min-width: 0; }
+  /* No portrait: one readable column rather than lines 1184px long. */
+  .ab-in--solo .ab-copy { flex: 0 1 780px; }
+  .ab-h {
+    margin: 12px 0 0; font-family: var(--disp); font-weight: 800; color: var(--ink);
+    font-size: clamp(34px,4.8vw,64px); line-height: .98; letter-spacing: -.04em;
+    text-wrap: balance; overflow-wrap: break-word;
+  }
+  /* :global() because Astro cannot scope markup that arrived via set:html. */
+  .ab-h :global(em), .ab-h :global(i) { font-style: normal; color: var(--accent-text); }
+  .ab-lead {
+    margin: 22px 0 0; font-size: clamp(18px,1.7vw,21px); line-height: 1.5; font-weight: 500;
+    color: var(--ink); text-wrap: pretty;
+  }
+  .ab-p { margin: 12px 0 0; line-height: 1.6; color: var(--ink-soft); text-wrap: pretty; }
+  .ab-p--first { margin-top: 16px; }
+  .ab-sign {
+    display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: baseline; margin-top: 26px;
+  }
+  .ab-name {
+    font-family: var(--disp); font-weight: 800; font-size: 22px; line-height: 1.6;
+    letter-spacing: -.02em; color: var(--ink); overflow-wrap: anywhere;
+  }
+  .ab-role { font-size: 14px; line-height: 1.6; color: var(--ink-soft); overflow-wrap: anywhere; }
+  .ab-copy > :first-child { margin-top: 0; }
+</style>

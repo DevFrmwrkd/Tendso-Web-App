@@ -1,0 +1,140 @@
+---
+/**
+ * woodworks / GalleryBY — "the archive": a centred head over the design's
+ * mosaic. Four photographs make one set: a tall 3:4 on the left; on the right
+ * a wide 16:9 over two squares. Every photo sits in a brass hairline, and each
+ * may carry a small Caslon caption under it. The set wraps exactly as drawn:
+ * side by side while 320px + 420px fit, stacked below that, with the two
+ * squares staying paired down to 424px.
+ *
+ * Editable hooks (schema-owned, `gallery` group):
+ *   gallery.tag · gallery.headline ·
+ *   gallery.items.${i}.image (data-image-field) · gallery.items.${i}.caption
+ *
+ * ANY NUMBER OF PHOTOS, EVERY ONE DELIBERATE. Photos are taken in the owner's
+ * order in sets of four, each drawn as the design's mosaic. A set left short
+ * at the end gets its own arrangement from the design's own shapes: three
+ * portraits in a row, two squares, or one wide panorama. So the four-photo
+ * archive is the design exactly, and five or six photos never leave a hole.
+ *
+ * NO PHOTO ⇒ NO TILE. A row with a caption and no image is dropped (a caption
+ * under an empty well is a placeholder box), and a gallery with no photograph
+ * is not rendered at all. Every hook keeps the row's ORIGINAL index. The
+ * images take alt="" because each tile's own caption, where there is one, is
+ * the owner's description of it; nothing else may name the picture.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const txt = (v: any): string => (v == null ? '' : String(v).trim());
+const g = (content as any).gallery;
+const gallery = g && typeof g === 'object' && !Array.isArray(g) ? g : {};
+const raw: any[] = Array.isArray(gallery.items) ? gallery.items : (Array.isArray(g) ? g : []);
+type Tile = { image: string; caption: string; i: number; ratio: string };
+const tiles: Tile[] = raw
+  .map((t: any, i: number) => ({ image: txt(t?.image), caption: txt(t?.caption), i, ratio: '1 / 1' }))
+  .filter((t) => Boolean(t.image));
+const SHORT_RATIO: Record<number, string> = { 1: '16 / 9', 2: '1 / 1', 3: '3 / 4' };
+const sets: Tile[][] = [];
+for (let k = 0; k < tiles.length; k += 4) {
+  const s = tiles.slice(k, k + 4);
+  if (s.length === 4) {
+    s[0].ratio = '3 / 4'; s[1].ratio = '16 / 9'; s[2].ratio = '1 / 1'; s[3].ratio = '1 / 1';
+  } else {
+    for (const t of s) t.ratio = SHORT_RATIO[s.length];
+  }
+  sets.push(s);
+}
+const tag = txt(gallery.tag);
+const headline = txt(gallery.headline);
+---
+{tiles.length > 0 && (
+  <section id="gallery" class="archive">
+    <div class="wrap">
+      {(tag || headline) && (
+        <div class="archive-head">
+          {tag && <p class="eyebrow" data-field="gallery.tag">{tag}</p>}
+          {headline && <h2 class="archive-h" data-field="gallery.headline" set:html={headline}></h2>}
+        </div>
+      )}
+      <div class="mosaic">
+        {sets.map((s) => s.length === 4 ? (
+          <div class="set">
+            {[s[0]].map((t) => (
+              <figure class="tile tile--tall">
+                <div class="well" data-image-field={`gallery.items.${t.i}.image`} style={`aspect-ratio:${t.ratio}`}>
+                  <img src={t.image} alt="" decoding="async" />
+                </div>
+                {t.caption && <figcaption class="cap" data-field={`gallery.items.${t.i}.caption`}>{t.caption}</figcaption>}
+              </figure>
+            ))}
+            <div class="set-col">
+              {[s[1]].map((t) => (
+                <figure class="tile">
+                  <div class="well" data-image-field={`gallery.items.${t.i}.image`} style={`aspect-ratio:${t.ratio}`}>
+                    <img src={t.image} alt="" decoding="async" />
+                  </div>
+                  {t.caption && <figcaption class="cap" data-field={`gallery.items.${t.i}.caption`}>{t.caption}</figcaption>}
+                </figure>
+              ))}
+              <div class="set-pair">
+                {[s[2], s[3]].map((t) => (
+                  <figure class="tile tile--sq">
+                    <div class="well" data-image-field={`gallery.items.${t.i}.image`} style={`aspect-ratio:${t.ratio}`}>
+                      <img src={t.image} alt="" decoding="async" />
+                    </div>
+                    {t.caption && <figcaption class="cap" data-field={`gallery.items.${t.i}.caption`}>{t.caption}</figcaption>}
+                  </figure>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div class:list={['run', `run--${s.length}`]}>
+            {s.map((t) => (
+              <figure class="tile">
+                <div class="well" data-image-field={`gallery.items.${t.i}.image`} style={`aspect-ratio:${t.ratio}`}>
+                  <img src={t.image} alt="" decoding="async" />
+                </div>
+                {t.caption && <figcaption class="cap" data-field={`gallery.items.${t.i}.caption`}>{t.caption}</figcaption>}
+              </figure>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  .archive { padding: clamp(56px, 7vw, 112px) 0; background-color: var(--night); color: var(--bone); }
+  .archive-head { text-align: center; max-width: 720px; margin: 0 auto clamp(36px, 5vw, 56px); }
+  .archive-h {
+    margin: 16px 0 0; font-family: var(--disp); font-weight: 400;
+    font-size: clamp(36px, 5vw, 68px); line-height: 1.02; color: var(--bone); overflow-wrap: break-word;
+  }
+  .archive-head > :first-child { margin-top: 0; }
+
+  .mosaic { display: flex; flex-direction: column; gap: clamp(14px, 2vw, 24px); }
+  .set { display: flex; flex-wrap: wrap; gap: clamp(14px, 2vw, 24px); align-items: flex-start; }
+  .tile { margin: 0; min-width: 0; }
+  .set > .tile--tall { flex: 1 1 320px; }
+  .set-col { flex: 1.4 1 420px; min-width: 0; display: flex; flex-direction: column; gap: clamp(14px, 2vw, 24px); }
+  .set-pair { display: flex; flex-wrap: wrap; gap: clamp(14px, 2vw, 24px); }
+  .set-pair > .tile { flex: 1 1 200px; }
+  .run { display: flex; flex-wrap: wrap; gap: clamp(14px, 2vw, 24px); align-items: flex-start; }
+  .run > .tile { flex: 1 1 200px; }
+  .run--1 > .tile { flex-basis: 100%; }
+
+  .well {
+    position: relative; overflow: hidden; width: 100%;
+    background-color: var(--night-2); border: 1px solid rgba(var(--accent-rgb), .3);
+  }
+  .well img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .cap {
+    margin-top: 12px; font-family: var(--disp); font-weight: 400; font-size: 17px;
+    color: var(--grey); overflow-wrap: break-word;
+  }
+  /* An owner's (or the copy extraction's) <em> in the headline: upright (the
+     Caslon has no italic) and in the design's one metal. :global() because
+     set:html markup cannot be scoped. */
+  .archive-h :global(em), .archive-h :global(i) { font-style: normal; color: var(--accent-light); }
+</style>

@@ -1,0 +1,188 @@
+---
+/**
+ * florist / HeaderBS — the sticky blush rail: the wordmark set in tracked
+ * Gilda Display caps with the rose locality under it, four uppercase links,
+ * the rose message pill, and (at <=900px) the round blush burger that opens a
+ * centred drawer of the same links in the display face.
+ *
+ * Editable hooks:
+ *   footer.brand / footer.locality                   — wordmark + locality
+ *   navbar_links.${i}.label + navbar_links.${i}.href — each link, desktop AND
+ *                                                      drawer (one element,
+ *                                                      ORIGINAL index)
+ *   navCtaText + navCtaHref                          — the pill
+ *
+ * The drawer is the SAME <nav>: at <=900px it leaves the row and becomes an
+ * absolutely positioned panel under the rail, so the mobile menu can never
+ * disagree with the desktop one. The burger shows at exactly the width the
+ * links hide (900), so there is no width with no navigation.
+ *
+ * The pill binds navCtaText (the Header group), so toggling the Hero block off
+ * can never take the header with it. Its DISPLAY falls back to the hero's
+ * primary action, as HeaderBJ does, so a first build is never label-less.
+ *
+ * Never visibility-gated. With no brand the wordmark is omitted — a stand-in
+ * name renders as the customer's own name.
+ */
+interface Props { layout: any; content: any; }
+const { layout, content } = Astro.props;
+// Anchor guard, kept in step with Hero / Services / CtaBand / Footer (this
+// family has no shared import). PAGE_ANCHORS = every id PageBS can render; the
+// derived layer hands out '#work' and '#contact', which this design calls
+// #gallery and #visit. Unknown in-page links are DROPPED from the nav (a nav
+// entry that scrolls nowhere is worse than none); off-page hrefs pass through.
+const PAGE_ANCHORS = new Set(['main', 'top', 'marquee', 'services', 'about', 'why', 'gallery', 'how', 'reviews', 'credentials', 'area', 'faq', 'visit', 'book']);
+const ANCHOR_ALIAS: Record<string, string> = { work: 'gallery', contact: 'visit', location: 'visit', testimonials: 'reviews', home: 'top' };
+const onPage = (href: string | undefined, fallback: string): string => {
+  const h = String(href ?? '').trim();
+  if (!h) return fallback;
+  if (!h.startsWith('#')) return h;
+  const id = h.slice(1);
+  if (PAGE_ANCHORS.has(id)) return h;
+  const alias = ANCHOR_ALIAS[id];
+  return alias && PAGE_ANCHORS.has(alias) ? `#${alias}` : fallback;
+};
+const C = (content as any) || {};
+const F = C.footer || {};
+const brand = String(F.brand || layout.businessName || '').trim();
+// No derivation: a locality nobody typed is absent, not guessed from the address.
+const locality = String(F.locality ?? '').trim();
+const navLinks: Array<{ label: string; href: string; i: number }> =
+  (Array.isArray(layout.navLinks) ? layout.navLinks : [])
+    .map((l: any, i: number) => ({ label: String(l?.label ?? '').trim(), href: onPage(l?.href, ''), i }))
+    .filter((l: { label: string; href: string }) => l.label && l.href);
+const H = C.hero || {};
+const ctaText = String(C.navCtaText || H.cta1?.text || '').trim();
+const ctaHref = onPage(C.navCtaHref || H.cta1?.href, '#book');
+---
+<header class="hd">
+  <div class="k-wrap hd-in">
+    {(brand || locality) && (
+      /* #top: the hero's id — and, when the hero is off, the HTML spec's own
+         "top of the document" fragment, so the mark always goes home. */
+      <a class="hd-id" href="#top">
+        {brand && <span class="hd-brand" data-field="footer.brand">{brand}</span>}
+        {locality && <span class="hd-loc" data-field="footer.locality">{locality}</span>}
+      </a>
+    )}
+    {navLinks.length > 0 && (
+      <nav class="hd-nav" id="hd-nav-BS" aria-label="Primary">
+        {navLinks.map((l) => (
+          <a href={l.href} data-field={`navbar_links.${l.i}.label`} data-href-field={`navbar_links.${l.i}.href`}>{l.label}</a>
+        ))}
+      </nav>
+    )}
+    {ctaText && <a class="hd-cta" href={ctaHref} data-field="navCtaText" data-href-field="navCtaHref">{ctaText}</a>}
+    {navLinks.length > 0 && (
+      <button class="hd-burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="hd-nav-BS">
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      </button>
+    )}
+  </div>
+</header>
+<script is:inline>
+  (function () {
+    var hdr = document.querySelector('header.hd');
+    if (!hdr) return;
+    var btn = hdr.querySelector('.hd-burger');
+    if (!btn) return;
+    function setOpen(open) {
+      hdr.classList.toggle('open', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function () { setOpen(!hdr.classList.contains('open')); });
+    // The pill is in this list because it sits OUTSIDE the drawer: tapping it
+    // with the drawer open must still close the drawer.
+    hdr.querySelectorAll('.hd-nav a, .hd-cta').forEach(function (a) {
+      a.addEventListener('click', function () { setOpen(false); });
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && hdr.classList.contains('open')) { setOpen(false); btn.focus(); }
+    });
+  })();
+</script>
+<style>
+  .hd {
+    position: sticky; top: 0; z-index: 50;
+    background-color: rgba(var(--paper-rgb), .94);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .hd-in { height: 76px; display: flex; align-items: center; gap: 18px; }
+  /* No wordmark (a nameless site): whatever leads the row takes the auto
+     margin instead, so the nav, pill and burger stay pinned right. */
+  .hd-in > :first-child:not(.hd-id) { margin-left: auto; }
+
+  /* Wordmark over locality, one link. The auto margin keeps the nav, the pill
+     and the burger pinned right whichever of the two the owner filled in. */
+  .hd-id {
+    display: flex; flex-direction: column; margin-right: auto;
+    min-width: 0; line-height: 1; color: var(--ink);
+  }
+  .hd-brand {
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(22px, 2.4vw, 27px); letter-spacing: .08em; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hd-loc {
+    margin-top: 4px; min-width: 0;
+    font-family: var(--sans); font-size: 10.5px; font-weight: 500;
+    letter-spacing: .3em; text-transform: uppercase; color: var(--rose-ink);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .hd-nav { display: flex; gap: 30px; margin-right: 12px; }
+  .hd-nav a {
+    font-family: var(--sans); font-size: 14px; font-weight: 500;
+    letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+  }
+
+  /* The rose pill → ink on hover, exactly as drawn. */
+  .hd-cta {
+    flex: none; display: inline-flex; align-items: center;
+    min-height: 44px; padding: 0 22px; border-radius: 999px;
+    background-color: var(--accent); color: var(--on-rose);
+    font-family: var(--sans); font-size: 13.5px; font-weight: 500;
+    letter-spacing: .06em; white-space: nowrap;
+  }
+  .hd-cta:hover { background-color: var(--ink); color: var(--paper); }
+  .hd-cta:focus-visible { border-radius: 999px; }
+
+  .hd-burger {
+    display: none; flex: none; width: 46px; height: 44px;
+    flex-direction: column; justify-content: center; gap: 5px; padding: 0 12px;
+    background-color: var(--band); border: 0; border-radius: 999px; cursor: pointer;
+  }
+  .hd-burger span { display: block; height: 1.5px; background-color: var(--ink); }
+  .hd-burger:focus-visible { border-radius: 999px; }
+
+  /* ONE collapse breakpoint: the links leave and the burger arrives at the same
+     900px, so there is never a width with no navigation. */
+  @media (max-width: 900px) {
+    .hd-burger { display: flex; }
+    .hd-nav {
+      display: none; position: absolute; left: 0; right: 0; top: 100%;
+      margin: 0; flex-direction: column; gap: 0; padding: 8px 0 14px;
+      text-align: center; background-color: var(--band);
+      box-shadow: 0 18px 30px rgba(var(--shade-rgb), .12);
+      max-height: calc(100vh - 77px); overflow-y: auto;
+    }
+    .hd.open .hd-nav { display: flex; }
+    /* The drawer's own typography — the design sets its links in the display
+       face at 24px. Scoped to the OPEN drawer: this is a different
+       presentation of the links, not the 14px row growing as the window
+       narrows (at the 900px boundary the drawer is shut). */
+    .hd.open .hd-nav a {
+      min-height: 54px; display: flex; align-items: center; justify-content: center;
+      padding: 0 var(--gut);
+      font-family: var(--disp); font-size: 24px; font-weight: 400;
+      letter-spacing: 0; text-transform: none; white-space: normal;
+    }
+  }
+  /* The design drops the locality under 420px; the house small-phone step is
+     520, so it goes there — the wordmark, pill and burger are load-bearing,
+     the locality is not. */
+  @media (max-width: 520px) {
+    .hd-loc { display: none; }
+  }
+</style>

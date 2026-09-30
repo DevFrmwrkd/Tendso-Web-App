@@ -117,6 +117,11 @@ export const CURATED: Record<TemplateFamily, string[]> = {
     // Florist (BR · Bloom): the rose it ships in, the deeper wine, lilac,
     // foliage green, kraft-paper brown and the bridal white-gold.
     florist:     ["pink", "maroon", "purple", "green", "brown", "whitegold"],
+    // Woodworks (BV–BY): timber brown, forest green, the workshop's safety
+    // orange, brass gold, and the two night grounds joinery shows well on.
+    // No maroon: its #800000 primary is 1.72:1 on its own #2D0000 paper, and
+    // every rule, numeral and eyebrow in these designs is the accent.
+    woodworks:   ["brown", "green", "orange", "gold", "dark", "black"],
     layouts:     ["blue", "green", "purple", "orange", "brown", "maroon", "professional", "dark"],
 };
 
@@ -141,6 +146,14 @@ export const CURATED_BY_TEMPLATE: Record<string, string[]> = {
     // dark/black leave the brass near-white, which is legible and still the
     // design's shape.
     "hospitality:BK": ["brown", "green", "dark", "red", "black", "pink"],
+    // Red and marigold fills carrying white labels. Dropped: whitegold — its
+    // #B89060 primary under a white label measures 2.92:1, below even the 3:1
+    // large-text bar, on every button and on the 13px eyebrows.
+    "florist:BT": ["pink", "maroon", "purple", "green", "brown"],
+    // A dark design: champagne on a fixed night-green world. Dropped: maroon —
+    // its #A52A2A accent is 2.37:1 on the night ground, and every eyebrow,
+    // numeral, star row and hairline button in the template is that token.
+    "florist:BU": ["pink", "purple", "green", "brown", "whitegold"],
 };
 
 /**

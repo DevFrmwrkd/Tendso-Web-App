@@ -1,0 +1,57 @@
+---
+/**
+ * florist / TrustBU — the at-a-glance band: up to four cells, each a big
+ * Gloock figure over a small sage label, divided by champagne hairlines.
+ *
+ * Editable hooks: trust.cells.${i}.num · trust.cells.${i}.label (ORIGINAL
+ * index, blank rows dropped).
+ *
+ * THE HIGHEST-RISK BAND FOR FABRICATION: its figures are claims (counts,
+ * ratings, cut-off times) only the owner may make. There is no literal cell,
+ * no placeholder figure and no default here; with nothing supplied the whole
+ * band is omitted (astro-builder also turns visibility.trustBlock off when the
+ * cells array is empty — this gate additionally catches present-but-blank
+ * rows). num and label are guarded independently.
+ *
+ * Class names are .glance / .t-*, never .trust / .num / .lbl: the engine pins
+ * `.trust, .trust .num, .trust .lbl` to its on-ink colour with !important.
+ * The grid is the design's own auto-fit (two up at 360px, four across above),
+ * so the column count follows the data with no media query.
+ */
+interface Props { content: any; layout?: any; }
+const { content } = Astro.props;
+const str = (v: any): string => (v === null || v === undefined ? '' : String(v).trim());
+const trust = content.trust || {};
+const cells: any[] = Array.isArray(trust.cells) ? trust.cells : (Array.isArray(trust) ? trust : []);
+const rows = cells
+  .map((c: any, i: number) => ({ num: str(c?.num), label: str(c?.label), i }))
+  .filter((r) => r.num || r.label);
+---
+{rows.length > 0 && (
+  <section class="glance" aria-label="At a glance">
+    <div class="wrap t-grid">
+      {rows.map((r) => (
+        <div class="t-cell">
+          {r.num && <b class="t-num" data-field={`trust.cells.${r.i}.num`}>{r.num}</b>}
+          {r.label && <span class="t-lab" data-field={`trust.cells.${r.i}.label`}>{r.label}</span>}
+        </div>
+      ))}
+    </div>
+  </section>
+)}
+<style>
+  .glance { padding: clamp(44px,5vw,72px) 0; background-color: var(--night); color: var(--cream); }
+  .t-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%,150px),1fr));
+    gap: 28px 0;
+  }
+  .t-cell { min-width: 0; padding: 0 20px; border-left: 1px solid rgba(var(--accent-rgb),.4); }
+  .t-num {
+    display: block;
+    font-family: var(--disp); font-weight: 400;
+    font-size: clamp(36px,4vw,54px); line-height: 1; color: var(--cream);
+  }
+  .t-lab { display: block; margin-top: 10px; font-size: 13.5px; color: var(--sage); }
+  .t-lab:first-child { margin-top: 0; }
+</style>
