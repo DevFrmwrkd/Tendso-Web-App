@@ -586,6 +586,11 @@ export default function SubmissionDetailPage() {
             setModalMessage(result.message || "Payment confirmed. Creator balance updated.");
             setShowModal(true);
         } catch (error: any) {
+            // Close the dialog first: the result modal is a sibling overlay at the
+            // same z-index that renders EARLIER in the page, so while this dialog
+            // stays open it covers the error and a failed action looks like nothing
+            // happened. Nothing typed is lost — reopening shows the same state.
+            setShowMarkPaidModal(false);
             setModalType("error");
             setModalMessage(error.message || "Failed to mark as paid. Please try again.");
             setShowModal(true);
@@ -624,6 +629,10 @@ export default function SubmissionDetailPage() {
             setModalMessage(result.message || "Website given free. Creator credited.");
             setShowModal(true);
         } catch (error: any) {
+            // Same overlay stacking as mark-paid above: close the dialog so the
+            // error is visible. The typed giver name and reason are kept, so
+            // reopening "Give free" picks up where the admin left off.
+            setShowGiveFreeModal(false);
             setModalType("error");
             setModalMessage(error.message || "Failed to give this website away. Please try again.");
             setShowModal(true);
