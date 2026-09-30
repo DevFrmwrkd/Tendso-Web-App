@@ -5,6 +5,9 @@ import { execSync } from 'child_process'
 import { defaultsFor, type WhyItem, type HowStep, type Testimonial, type FaqItem, type CredItem, type TrustData, type CtaBand } from './block-defaults'
 import { balanceInlineHtmlDeep } from './balance-inline-html'
 import { withCartoKey } from './carto'
+// formatPhoneDisplay used to live in this file. It is in lib/phone.ts now so the
+// hosted route can format the same number the same way; see the note there.
+import { formatPhoneDisplay } from './phone'
 
 interface ExtractedContent {
     business_name: string
@@ -266,28 +269,6 @@ function derivePhoneDigits(phone: string | undefined | null): string {
     if (digits.startsWith('0') && digits.length === 11) return '63' + digits.slice(1)
     if (digits.startsWith('9') && digits.length === 10) return '63' + digits
     return digits
-}
-
-/**
- * Format a phone for display: forces a `+63` PH country prefix when the
- * input is a local PH mobile number (10 digits starting `9`, or 11
- * digits starting `09`). Numbers already in international form are left
- * alone. Empty input returns empty string so callers can fall through.
- */
-function formatPhoneDisplay(phone: string | undefined | null): string {
-    if (!phone) return ''
-    const trimmed = String(phone).trim()
-    if (!trimmed) return ''
-    // Already international (+countrycode) — return as-is.
-    if (trimmed.startsWith('+')) return trimmed
-    const digits = trimmed.replace(/[^0-9]/g, '')
-    if (!digits) return trimmed
-    // PH local mobile patterns.
-    if (digits.startsWith('09') && digits.length === 11) return '+63' + digits.slice(1)
-    if (digits.startsWith('9') && digits.length === 10)  return '+63' + digits
-    if (digits.startsWith('63') && digits.length >= 12)  return '+' + digits
-    // Fallback — leave whatever the admin typed.
-    return trimmed
 }
 
 /**

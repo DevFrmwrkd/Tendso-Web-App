@@ -10,6 +10,7 @@ import {
     buildLocalBusinessJsonLd,
     injectSiteSeo,
     readHeadFacts,
+    readMapCoords,
     schemaTypeFor,
     serializeJsonLd,
     siteRobotsTxt,
@@ -88,6 +89,7 @@ describe('buildLocalBusinessJsonLd', () => {
         expect(ld['@id']).toBe(`${CANONICAL}#business`);
         expect(ld.url).toBe(CANONICAL);
         expect(ld.telephone).toBe('+63 962 285 8067');
+        expect(ld.geo).toEqual({ '@type': 'GeoCoordinates', latitude: 10.72, longitude: 122.56 });
         expect(ld.address).toEqual({
             '@type': 'PostalAddress',
             streetAddress: '12 Sampaguita St, Jaro',
@@ -134,6 +136,48 @@ describe('buildLocalBusinessJsonLd', () => {
         expect(Object.keys(ld).sort()).toEqual(['@context', '@id', '@type', 'name', 'url']);
     });
 
+    it('publishes a dialable number, not the bare local digits the draft stores', () => {
+        // The builder formats at BUILD time and never writes the result back, so
+        // the draft keeps what the owner typed. This shipped once as a bare
+        // `9622858067`, which names no country.
+        //
+        // `+639622858067` is the form the live page's own click-to-call uses
+        // (`tel:+639622858067`), so the schema and the link agree exactly.
+        const ld = buildLocalBusinessJsonLd({
+            canonicalUrl: CANONICAL,
+            businessName: 'Aurora Villa',
+            telephone: '9622858067',
+        })!;
+        expect(ld.telephone).toBe('+639622858067');
+    });
+
+    it('adds the country code to a number typed with a leading zero', () => {
+        const ld = buildLocalBusinessJsonLd({
+            canonicalUrl: CANONICAL,
+            businessName: 'Aurora Villa',
+            telephone: '0962 285 8067',
+        })!;
+        expect(ld.telephone).toBe('+639622858067');
+    });
+
+    it('leaves a phone that is already international alone', () => {
+        const ld = buildLocalBusinessJsonLd({
+            canonicalUrl: CANONICAL,
+            businessName: 'Aurora Villa',
+            telephone: '+63 33 320 1234',
+        })!;
+        expect(ld.telephone).toBe('+63 33 320 1234');
+    });
+
+    it('omits the phone rather than publishing an empty one', () => {
+        const ld = buildLocalBusinessJsonLd({
+            canonicalUrl: CANONICAL,
+            businessName: 'Aurora Villa',
+            telephone: '   ',
+        })!;
+        expect(ld.telephone).toBeUndefined();
+    });
+
     it('never claims opening hours — the only hours we hold are free text', () => {
         const ld = buildLocalBusinessJsonLd({ canonicalUrl: CANONICAL, businessName: 'Kel Meatshop' })!;
         expect(ld.openingHours).toBeUndefined();
@@ -151,6 +195,48 @@ describe('buildLocalBusinessJsonLd', () => {
             socialUrls: ['@kelmeatshop', 'https://facebook.com/kel'],
         })!;
         expect(ld.sameAs).toEqual(['https://facebook.com/kel']);
+    });
+});
+
+describe('readMapCoords', () => {
+    /** How Astro's `define:vars` actually serialises the pair. */
+    const boot = (lat: string, lng: string) =>
+        `<script>(function(){const lat = ${lat};\nconst lng = ${lng};\nconst brand = "Aurora villa";\n` +
+        `if (window.__initMap) window.__initMap(lat, lng, brand);})();</script>`;
+
+    it('reads the pair the page centres its map on', () => {
+        // The exact values measured on the live Aurora Villa page, whose Convex
+        // row holds no coordinates at all.
+        expect(readMapCoords(boot('10.74088', '122.563293')))
+            .toEqual({ latitude: 10.74088, longitude: 122.563293 });
+    });
+
+    it('handles a negative pair', () => {
+        expect(readMapCoords(boot('-33.8688', '-151.2093')))
+            .toEqual({ latitude: -33.8688, longitude: -151.2093 });
+    });
+
+    it('reads nothing from a template that has no coordinates', () => {
+        expect(readMapCoords(boot('null', 'null'))).toBeNull();
+        expect(readMapCoords('<script>var lat = parseFloat(results[0].lat);</script>')).toBeNull();
+        expect(readMapCoords('<h1>no map here</h1>')).toBeNull();
+    });
+
+    it('refuses a pair outside the range a coordinate can occupy', () => {
+        expect(readMapCoords(boot('91', '122.5'))).toBeNull();
+        expect(readMapCoords(boot('10.7', '181'))).toBeNull();
+    });
+
+    it('refuses Null Island, which is the shape a failed geocode takes', () => {
+        expect(readMapCoords(boot('0', '0'))).toBeNull();
+    });
+
+    it('requires the two declarations to be adjacent and in order', () => {
+        // A lone `lat` somewhere else in some other script must not be paired
+        // with an unrelated `lng`.
+        const apart = '<script>const lat = 10.7;</script><p>x</p><script>const lng = 122.5;</script>';
+        expect(readMapCoords(apart)).toBeNull();
+        expect(readMapCoords('<script>const lng = 122.5;\nconst lat = 10.7;</script>')).toBeNull();
     });
 });
 
