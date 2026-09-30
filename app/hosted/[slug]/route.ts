@@ -9,6 +9,7 @@ import {
     buildLocalBusinessJsonLd,
     injectSiteSeo,
     readHeadFacts,
+    readMapCoords,
     serializeJsonLd,
     siteRobotsTxt,
     siteSitemapXml,
@@ -185,6 +186,13 @@ export async function GET(request: NextRequest) {
     // already published gains both without being republished one at a time, and
     // every future template gets them for free. See lib/site-seo.ts.
     const headFacts = readHeadFacts(html)
+    // The row's coordinates when it has them, else the ones the page's own map is
+    // centred on. Aurora Villa needs the fallback: the build geocoded its address
+    // and never wrote the result back to Convex, so the live map is in the right
+    // place and the row is empty. See readMapCoords.
+    const coords = site.seo?.latitude != null && site.seo?.longitude != null
+        ? { latitude: site.seo.latitude, longitude: site.seo.longitude }
+        : readMapCoords(html)
     const jsonLd = buildLocalBusinessJsonLd({
         canonicalUrl,
         businessName: site.businessName ?? '',
@@ -197,8 +205,8 @@ export async function GET(request: NextRequest) {
         city: site.seo?.city,
         region: site.seo?.region,
         postalCode: site.seo?.postalCode,
-        latitude: site.seo?.latitude,
-        longitude: site.seo?.longitude,
+        latitude: coords?.latitude,
+        longitude: coords?.longitude,
         mapUrl: site.seo?.mapUrl,
         socialUrls: site.seo?.socialUrls,
     })

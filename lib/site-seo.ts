@@ -23,6 +23,7 @@
  * ends up duplicated.
  */
 import { normalizeBusinessType } from './derive-content-defaults';
+import { formatPhoneDisplay } from './phone';
 
 /**
  * schema.org type per canonical business type.
@@ -117,6 +118,42 @@ export function readHeadFacts(html: string): HtmlHeadFacts {
     };
 }
 
+/**
+ * The coordinates the page's own map is centred on, when it has one.
+ *
+ * WHY THIS IS SCRAPED OUT OF THE MARKUP rather than read from the row. The build
+ * resolves coordinates in `transformToAstroData()` — admin-typed, then
+ * `submission.coordinates`, then a Nominatim lookup of the typed address — and
+ * writes them into the site-data.json it builds from. It never writes them back
+ * to `extractedContent.location`. So a published page can show a correctly
+ * placed map while the Convex row holds no coordinates at all: measured on
+ * Aurora Villa, whose live page centres on 10.74088, 122.563293 and whose row
+ * returns null for both.
+ *
+ * The templates emit the pair through Astro's `define:vars`, which serialises
+ * them as two adjacent `const` declarations in the Leaflet boot script. Matching
+ * them as a PAIR, in that order, and only as bare numbers is what keeps this
+ * from picking up some other `lat` in some other script: a template with no
+ * coordinates emits `const lat = null;`, which does not match.
+ *
+ * The root cause is worth fixing separately — the build should persist what it
+ * resolved — but that would only help a site after somebody republished it,
+ * and this helps every site already live.
+ */
+export function readMapCoords(html: string): { latitude: number; longitude: number } | null {
+    const m = /\bconst\s+lat\s*=\s*(-?\d+(?:\.\d+)?)\s*;\s*\r?\n\s*const\s+lng\s*=\s*(-?\d+(?:\.\d+)?)\s*;/.exec(html);
+    if (!m) return null;
+    const latitude = Number(m[1]);
+    const longitude = Number(m[2]);
+    // A page can carry a nonsense pair as easily as a good one; refuse anything
+    // outside the only range a coordinate can occupy. `0, 0` is Null Island —
+    // the shape a failed geocode takes, and never a Philippine business.
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return null;
+    if (latitude === 0 && longitude === 0) return null;
+    return { latitude, longitude };
+}
+
 /** The five entities an HTML attribute can carry. Enough for meta content. */
 function decodeEntities(value: string): string {
     return value
@@ -136,7 +173,12 @@ export interface JsonLdInput {
     heroStyle?: string | null;
     description?: string;
     image?: string;
-    /** As displayed on the page — already +63-normalised by the builder. */
+    /**
+     * The phone as the draft holds it, raw. Normalised here with the SAME
+     * function the builder uses for the page, because the builder formats at
+     * build time and never writes the formatted value back — so the draft still
+     * holds what the owner typed. See lib/phone.ts.
+     */
     telephone?: string | null;
     /** The single free-text address line the owner typed. */
     address?: string | null;
@@ -193,6 +235,7 @@ export function buildLocalBusinessJsonLd(input: JsonLdInput): Record<string, unk
         }
         : undefined;
 
+    const telephone = formatPhoneDisplay(input.telephone);
     const hasCoords = typeof input.latitude === 'number' && typeof input.longitude === 'number';
     const socialUrls = (input.socialUrls ?? []).filter((u) => /^https?:\/\//i.test(u));
 
@@ -206,7 +249,10 @@ export function buildLocalBusinessJsonLd(input: JsonLdInput): Record<string, unk
         url: input.canonicalUrl,
         ...(input.description ? { description: input.description } : {}),
         ...(input.image ? { image: input.image } : {}),
-        ...(input.telephone?.trim() ? { telephone: input.telephone.trim() } : {}),
+        // formatPhoneDisplay, not the raw value: `9622858067` in structured data
+        // is a number Google cannot resolve to a country, and it contradicts the
+        // `+63 962 285 8067` the same page prints.
+        ...(telephone ? { telephone } : {}),
         ...(postalAddress ? { address: postalAddress } : {}),
         ...(hasCoords
             ? {
