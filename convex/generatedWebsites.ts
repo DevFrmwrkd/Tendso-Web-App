@@ -314,7 +314,17 @@ export const publish = mutation({
     args: {
         submissionId: v.id('submissions'),
         publishedUrl: v.string(),
-        cfPagesProjectName: v.string(),
+        // OPTIONAL as of the move to <slug>.sites.tendso.com. Publishing no
+        // longer deploys a Cloudflare Worker for the ordinary case, so most sites
+        // have no Worker and no script name to record. It is still passed for a
+        // site that has or has requested a custom domain, because
+        // convex/domains.ts attaches the purchased domain to a Worker by this
+        // name and refuses outright when it is missing.
+        //
+        // Never CLEARED here even when absent: an existing site keeps the name of
+        // the Worker it already has, so unpublish can still reach it and a live
+        // custom domain keeps working.
+        cfPagesProjectName: v.optional(v.string()),
         // Optional so an older caller (or a deploy still running the previous
         // frontend) keeps working; the row simply has no hosted address yet.
         slug: v.optional(v.string()),
@@ -332,13 +342,14 @@ export const publish = mutation({
         await ctx.db.patch(website._id, {
             status: 'published',
             publishedUrl: args.publishedUrl,
-            cfPagesProjectName: args.cfPagesProjectName,
+            ...(args.cfPagesProjectName ? { cfPagesProjectName: args.cfPagesProjectName } : {}),
             publishedAt: Date.now(),
             // Written once and then left alone: an address an owner has been
             // given must not move underneath them on a republish.
             ...(args.slug && !website.slug ? { slug: args.slug } : {}),
-            // A publish is also the restore path for an offline site: the same
-            // Worker gets the real HTML back, so it is live again by definition.
+            // A publish is also the restore path for an offline site: the hosted
+            // route serves the stored HTML again the moment this clears, so the
+            // site is live again by definition.
             offlineAt: undefined,
         });
 

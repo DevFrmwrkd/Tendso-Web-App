@@ -160,6 +160,23 @@ export function siteUrlForSlug(slug: string): string {
 }
 
 /**
+ * The https origin for a site's own domain, or null when it has none.
+ *
+ * `customDomain` is stored inconsistently — `setCustomDomainOnWebsite` writes a
+ * bare hostname, but the field is old enough that a row could hold a full URL or
+ * a trailing slash. Both the publish path and the hosted route's canonical need
+ * the same origin out of it, so the normalising happens once, here.
+ */
+export function customDomainOrigin(domain: string | undefined | null): string | null {
+    const host = (domain || '')
+        .trim()
+        .replace(/^https?:\/\//i, '')
+        .replace(/\/+$/, '')
+        .toLowerCase();
+    return host ? `https://${host}` : null;
+}
+
+/**
  * The request header proxy.ts uses to hand the requested path to the hosted
  * route.
  *

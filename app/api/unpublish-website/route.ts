@@ -4,6 +4,7 @@ import { fetchQuery, fetchMutation } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { deployHoldingPage, resolveHoldingTheme } from '@/lib/holding-page'
+import { revalidatePath } from 'next/cache'
 
 /**
  * Take a published website offline.
@@ -17,6 +18,17 @@ import { deployHoldingPage, resolveHoldingTheme } from '@/lib/holding-page'
  * It now redeploys the same Worker with a holding page: the content genuinely
  * stops being served, and the Worker, its URL and any attached custom domain
  * survive so that publishing again restores the exact site at the same address.
+ *
+ * SINCE THE MOVE TO <slug>.sites.tendso.com, most sites have no Worker at all —
+ * publishing stops at the row (see app/api/publish-website/route.ts). For those,
+ * `markOffline` IS the takedown: app/hosted/[slug]/route.ts reads `offlineAt` and
+ * serves the holding page instead of the site, so nothing has to be deployed
+ * anywhere. This route only talks to Cloudflare for the custom-domain sites that
+ * still have a script, where the Worker is what serves the paid domain.
+ *
+ * That is also what the non-payment cron already does (convex/unpublish.ts:
+ * no cfPagesProjectName → markSubmissionUnpublished directly, which sets
+ * offlineAt); this brings the manual admin path in line with it.
  */
 export async function POST(request: NextRequest) {
     try {
@@ -47,42 +59,61 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Website not found' }, { status: 404 })
         }
 
-        // cfPagesProjectName holds the Worker script name despite the field's
-        // name (see convex/domains.ts, which attaches custom domains to it).
-        const workerName = website.cfPagesProjectName
-        if (!workerName) {
+        if (website.status !== 'published') {
             return NextResponse.json({ error: 'Website is not published' }, { status: 400 })
         }
 
-        const cfApiToken = process.env.CLOUDFLARE_API_TOKEN
-        const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID
-
-        // Refuse rather than report a takedown that cannot have happened.
-        if (!cfApiToken || !cfAccountId) {
-            return NextResponse.json(
-                { error: 'Cloudflare credentials not configured — cannot take the site offline. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.' },
-                { status: 500 }
-            )
-        }
+        // cfPagesProjectName holds the Worker script name despite the field's
+        // name (see convex/domains.ts, which attaches custom domains to it).
+        // ABSENT IS NORMAL NOW — see the note above.
+        const workerName = website.cfPagesProjectName
 
         const submission = await fetchQuery(api.submissions.getById, {
             id: submissionId as Id<"submissions">
         })
 
-        // The holding page wears the site's own palette and the character of its
-        // font pairing, resolved from the same two fields the astro build reads.
-        const theme = resolveHoldingTheme(
-            (website as { customizations?: Record<string, unknown> })?.customizations,
-            submission?.businessType,
-        )
+        if (workerName) {
+            const cfApiToken = process.env.CLOUDFLARE_API_TOKEN
+            const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID
 
-        // Any failure here throws and is reported. The database is only touched
-        // once Cloudflare has confirmed the holding page is live.
-        await deployHoldingPage(cfApiToken, cfAccountId, workerName, submission?.businessName || '', theme)
+            // Refuse rather than report a takedown that cannot have happened.
+            // This site has a Worker serving it — very likely on a paid domain —
+            // and without credentials that Worker keeps serving the live site.
+            if (!cfApiToken || !cfAccountId) {
+                return NextResponse.json(
+                    { error: 'Cloudflare credentials not configured — this site has a Worker (and possibly a custom domain) that would keep serving it. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.' },
+                    { status: 500 }
+                )
+            }
+
+            // The holding page wears the site's own palette and the character of
+            // its font pairing, resolved from the same two fields the astro build
+            // reads.
+            const theme = resolveHoldingTheme(
+                (website as { customizations?: Record<string, unknown> })?.customizations,
+                submission?.businessType,
+            )
+
+            // Any failure here throws and is reported. The database is only
+            // touched once Cloudflare has confirmed the holding page is live.
+            await deployHoldingPage(cfApiToken, cfAccountId, workerName, submission?.businessName || '', theme)
+        }
 
         await fetchMutation(api.generatedWebsites.markOffline, {
             submissionId: submissionId as Id<"submissions">
         })
+
+        // The hosted route caches a live page effectively forever, so without
+        // this purge a site taken offline would keep being served from the edge
+        // until the TTL expired. Same reason publish revalidates; never let a
+        // purge failure fail a takedown the database has already recorded.
+        if (website.slug) {
+            try {
+                revalidatePath(`/hosted/${website.slug}`)
+            } catch (purgeError: unknown) {
+                console.warn('[unpublish] cache purge failed for', website.slug, purgeError)
+            }
+        }
 
         // 'unpublished', matching what the non-payment cron sets — so a site
         // taken down by hand and one pulled for non-payment land in the same

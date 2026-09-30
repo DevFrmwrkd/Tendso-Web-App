@@ -3,7 +3,7 @@ import { fetchQuery } from 'convex/nextjs'
 
 import { api } from '@/convex/_generated/api'
 import { resolveWebsiteHtml } from '@/lib/website-html'
-import { slugFromHost, SITES_SUFFIX, siteUrlForSlug, SITE_PATH_HEADER } from '@/lib/siteSlug'
+import { slugFromHost, SITES_SUFFIX, siteUrlForSlug, customDomainOrigin, SITE_PATH_HEADER } from '@/lib/siteSlug'
 import { holdingPageHtml, resolveHoldingTheme } from '@/lib/holding-page'
 import {
     buildLocalBusinessJsonLd,
@@ -120,9 +120,7 @@ export async function GET(request: NextRequest) {
     // Google picks one of them itself and splits the ranking signals of a page
     // that has very few to spare. A live custom domain wins, because that is the
     // address the owner paid for and the one on their signage.
-    const canonicalOrigin = site.customDomain
-        ? `https://${site.customDomain.replace(/^https?:\/\//i, '').replace(/\/+$/, '')}`
-        : siteUrlForSlug(slug)
+    const canonicalOrigin = customDomainOrigin(site.customDomain) ?? siteUrlForSlug(slug)
     const canonicalUrl = `${canonicalOrigin}/`
 
     if (requestedPath === '/robots.txt') {
