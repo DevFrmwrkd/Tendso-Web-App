@@ -5,12 +5,28 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { resolveWebsiteHtml } from '@/lib/website-html'
 import { resolveSiteSlug, siteUrlForSlug } from '@/lib/siteSlug'
+import { needsCloudflareWorker, publishAddressFor } from '@/lib/publish-target'
 import { revalidatePath } from 'next/cache'
 
 /**
- * Publish a generated website to Cloudflare Pages
- * Uses free .pages.dev subdomains (projectname.pages.dev)
+ * Publish a generated website at <slug>.sites.tendso.com.
  * POST /api/publish-website
+ *
+ * THIS NO LONGER DEPLOYS A CLOUDFLARE WORKER FOR THE ORDINARY CASE. Publishing
+ * used to embed the built HTML inside a generated JavaScript file and PUT it to
+ * Cloudflare as its own Worker script, one per business. Cloudflare caps scripts
+ * per account — 100 on the free plan, shared with another project that already
+ * held 18 — so the model could never reach the thousands of businesses this is
+ * aimed at. app/hosted/[slug]/route.ts serves any number of sites from the
+ * stored HTML instead, and publishing is now just: assign the slug, write the
+ * row, purge the edge cache.
+ *
+ * ONE EXCEPTION, and it is load-bearing. convex/domains.ts attaches a purchased
+ * custom domain to a WORKER (addCustomDomainToWorker, by cfPagesProjectName) and
+ * fails the whole domain setup when that name is missing. So a site that has, or
+ * has asked for, a real domain still gets a Worker — see needsWorker below.
+ * Without that carve-out, stopping the Worker deploy would silently break the
+ * paid custom-domain tier for every new customer.
  */
 export async function POST(request: NextRequest) {
     try {
@@ -63,29 +79,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
         }
 
-        // Get Cloudflare credentials
-        const cfApiToken = process.env.CLOUDFLARE_API_TOKEN
-        const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID
-
-        if (!cfApiToken || !cfAccountId) {
-            return NextResponse.json(
-                { error: 'Cloudflare credentials not configured. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.' },
-                { status: 500 }
-            )
-        }
-
-        // Generate project name from business name
-        const businessName = submission.businessName || 'business'
-        const projectName = generateProjectName(businessName)
-
-        // Deploy as a Cloudflare Worker (simple PUT request, no Pages Direct Upload hassles)
-        const workerName = website.cfPagesProjectName || projectName
-        await deployAsWorker(cfApiToken, cfAccountId, workerName, htmlToDeploy)
-
-        // Get the workers.dev subdomain for this account
-        const workerSubdomain = await getWorkersSubdomain(cfApiToken, cfAccountId)
-        const publishedUrl = `https://${workerName}.${workerSubdomain}.workers.dev`
-
         // ── The <slug>.sites.tendso.com address ───────────────────────────
         // Assigned ONCE and never recomputed: the address is emailed to the
         // owner and printed on their signage, so re-slugging a live site would
@@ -96,13 +89,46 @@ export async function POST(request: NextRequest) {
             const taken = await fetchQuery(api.generatedWebsites.listSlugs, {})
             siteSlug = resolveSiteSlug(submission.businessName, taken, String(submissionId))
         }
+        const hostedUrl = siteUrlForSlug(siteSlug)
+
+        // Only custom-domain sites still need a Worker; see lib/publish-target.ts
+        // for the three reasons and the one known gap.
+        const needsWorker = needsCloudflareWorker(website, submission)
+
+        let workerName: string | undefined
+        let workerUrl: string | undefined
+        if (needsWorker) {
+            const cfApiToken = process.env.CLOUDFLARE_API_TOKEN
+            const cfAccountId = process.env.CLOUDFLARE_ACCOUNT_ID
+            if (!cfApiToken || !cfAccountId) {
+                // Refused rather than published half-way: a site in this branch
+                // either serves a paid domain already or is about to, and both
+                // depend on the Worker being current.
+                return NextResponse.json(
+                    { error: 'This site needs a Cloudflare Worker (it has or has requested a custom domain) and Cloudflare credentials are not configured. Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.' },
+                    { status: 500 }
+                )
+            }
+
+            workerName = website.cfPagesProjectName || generateProjectName(submission.businessName || 'business')
+            await deployAsWorker(cfApiToken, cfAccountId, workerName, htmlToDeploy)
+            const workerSubdomain = await getWorkersSubdomain(cfApiToken, cfAccountId)
+            workerUrl = `https://${workerName}.${workerSubdomain}.workers.dev`
+        }
+
+        // The hosted address, NOT the workers.dev one — the whole point of this
+        // change. A live custom domain still wins. See lib/publish-target.ts.
+        const publishedUrl = publishAddressFor(website, siteSlug)
 
         // Update generated website in Convex with published info
         try {
             await fetchMutation(api.generatedWebsites.publish, {
                 submissionId: submissionId as Id<"submissions">,
                 publishedUrl,
-                cfPagesProjectName: workerName,
+                // Omitted when no Worker was deployed. The mutation does not
+                // clear the field on absence, so a site that already had one
+                // keeps it.
+                ...(workerName ? { cfPagesProjectName: workerName } : {}),
                 slug: siteSlug,
             })
         } catch (updateError: any) {
@@ -139,16 +165,19 @@ export async function POST(request: NextRequest) {
             console.warn('[publish] cache purge failed for', siteSlug, purgeError)
         }
 
-        const hostedUrl = siteUrlForSlug(siteSlug)
         return NextResponse.json({
             success: true,
-            // The workers.dev URL stays the reported one until the hosted route
-            // is verified in production. Both serve the same site; links already
-            // sent to owners keep working either way.
+            // `url` is what the admin UI shows and what the owner email links to.
+            // It is now the hosted address (or the custom domain), never the
+            // workers.dev one.
             url: publishedUrl,
             hostedUrl,
             slug: siteSlug,
+            // Present only for the custom-domain sites that still have a Worker.
             projectName: workerName,
+            // Reported so an admin can see a legacy Worker was refreshed too,
+            // rather than wondering which address is the real one.
+            workerUrl,
             message: `Website published successfully to ${publishedUrl}`
         })
 
