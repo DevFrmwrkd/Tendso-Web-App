@@ -9,6 +9,7 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Loader2, Palette, FileEdit, Check, X, AlertTriangle, Trash2, ExternalLink, PanelRightClose, PanelRightOpen, Globe, ChevronLeft } from "lucide-react";
 import { isComped } from "@/lib/pricing";
 import { GIFTED_BY_MAX, isHouseCreator } from "@/lib/houseCreator";
+import { buildMediaFileList, downloadMediaZip } from "@/lib/mediaZip";
 import { orderedEnhancedEntries } from "@/convex/lib/enhancedImages";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
 import WebsitePreview from "@/components/WebsitePreview";
@@ -173,6 +174,50 @@ export default function SubmissionDetailPage() {
 
     const hasEnhancedImages = (enhancedImagesByCategory?.allUrls?.length ?? 0) > 0;
 
+    /**
+     * Download every original photo and every AI-enhanced image as one zip,
+     * built in the browser (both image hosts allow it — see lib/mediaZip.ts).
+     * Originals keep their upload order; AI images keep page order, named by
+     * slot, earlier renders as archive_N.
+     */
+    const handleDownloadMedia = async () => {
+        if (!submissionData || mediaZipProgress) return;
+        // Storage-id photos resolve through photoViaResolve, in the same order.
+        let resolvedIndex = 0;
+        const originals = (submissionData.photos || []).map((p: string) =>
+            p.startsWith("http") ? p : ((photoViaResolve as (string | null)[] | undefined)?.[resolvedIndex++] ?? ""),
+        );
+        const enhanced = enhancedImageData
+            ? orderedEnhancedEntries(enhancedImageData as Record<string, unknown>).map(([key, img]) => {
+                const raw = typeof img === "string" ? img : ((img as any)?.storageId || (img as any)?.url || "");
+                return { key, url: resolveEnhancedUrl(raw) };
+            })
+            : [];
+        const files = buildMediaFileList({ originals, enhanced });
+        if (files.length === 0) return;
+        setMediaZipProgress(`Downloading 0/${files.length}…`);
+        try {
+            const result = await downloadMediaZip({
+                zipName: `${submissionData.businessName || "submission"} photos`,
+                files,
+                onProgress: (done, total) => setMediaZipProgress(`Downloading ${done}/${total}…`),
+            });
+            if (result.failed.length > 0) {
+                setModalType("error");
+                setModalMessage(
+                    `The zip downloaded with ${result.added} file${result.added === 1 ? "" : "s"}, but ${result.failed.length} could not be fetched. They are listed in missing-files.txt inside the zip.`,
+                );
+                setShowModal(true);
+            }
+        } catch (error: any) {
+            setModalType("error");
+            setModalMessage(error?.message || "Could not build the zip. Please try again.");
+            setShowModal(true);
+        } finally {
+            setMediaZipProgress(null);
+        }
+    };
+
     // Video/audio resolution
     const hasR2VideoUrl = !!submissionData?.videoUrl;
     const hasR2AudioUrl = !!submissionData?.audioUrl;
@@ -256,6 +301,8 @@ export default function SubmissionDetailPage() {
     const [giveFreeReason, setGiveFreeReason] = useState("");
     // Self-serve only: the name the owner's email credits with the gift.
     const [giveFreeGiftedBy, setGiveFreeGiftedBy] = useState("");
+    // "Downloading 3/16…" while the media zip is being built; null when idle.
+    const [mediaZipProgress, setMediaZipProgress] = useState<string | null>(null);
     const [markingComped, setMarkingComped] = useState(false);
 
     const [showRejectModal, setShowRejectModal] = useState(false);
@@ -1167,6 +1214,9 @@ export default function SubmissionDetailPage() {
                                 creator={creator}
                                 onEditBusinessInfo={handleEdit}
                                 onEditPhotos={handleEdit}
+                                onDownloadMedia={handleDownloadMedia}
+                                mediaZipProgress={mediaZipProgress}
+                                enhancedCount={enhancedImageData ? Object.keys(enhancedImageData).length : 0}
                                 onOpenLightbox={(index) => {
                                     setLightboxIndex(index);
                                     setLightboxOpen(true);
@@ -1324,6 +1374,9 @@ export default function SubmissionDetailPage() {
                             creator={creator}
                             onEditBusinessInfo={handleEdit}
                             onEditPhotos={handleEdit}
+                            onDownloadMedia={handleDownloadMedia}
+                            mediaZipProgress={mediaZipProgress}
+                            enhancedCount={enhancedImageData ? Object.keys(enhancedImageData).length : 0}
                             onOpenLightbox={(index) => {
                                 setLightboxIndex(index);
                                 setLightboxOpen(true);

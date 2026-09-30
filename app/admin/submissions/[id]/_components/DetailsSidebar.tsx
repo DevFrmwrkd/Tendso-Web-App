@@ -2,7 +2,7 @@
 
 import { useState, ReactNode } from "react";
 import Image from "next/image";
-import { Copy, Pencil, FileText, RefreshCw, Loader2, Check, ChevronDown } from "lucide-react";
+import { Copy, Pencil, FileText, RefreshCw, Loader2, Check, ChevronDown, Download } from "lucide-react";
 import { INTAKE_QUESTIONS, type IntakeQuestionKey } from "@/lib/narrativeFromQa";
 import StatusBadge from "./StatusBadge";
 
@@ -46,6 +46,12 @@ type DetailsSidebarProps = {
 
   transcribing: boolean;
   onRetriggerTranscription: () => void;
+  /** Zip every original photo + every AI-enhanced image and download it. */
+  onDownloadMedia?: () => void;
+  /** Progress text while the zip is being built ("Downloading 3/16…"); null when idle. */
+  mediaZipProgress?: string | null;
+  /** How many AI-enhanced images the submission has (earlier renders included). */
+  enhancedCount?: number;
 };
 
 type SectionKey = "status" | "business" | "quality" | "creator" | "photos" | "intake" | "interview";
@@ -197,6 +203,9 @@ export default function DetailsSidebar({
   onOpenLightbox,
   transcribing,
   onRetriggerTranscription,
+  onDownloadMedia,
+  mediaZipProgress = null,
+  enhancedCount = 0,
 }: DetailsSidebarProps) {
   // All sections expanded by default
   const [collapsed, setCollapsed] = useState<Set<SectionKey>>(new Set());
@@ -398,6 +407,24 @@ export default function DetailsSidebar({
               );
             })}
           </div>
+        )}
+        {onDownloadMedia && ((submission.photos?.length || 0) > 0 || enhancedCount > 0) && (
+          <button
+            type="button"
+            onClick={onDownloadMedia}
+            disabled={!!mediaZipProgress}
+            className="mt-3 w-full inline-flex items-center justify-center gap-2 min-h-[40px] px-3 rounded-xl border border-neutral-200 bg-white text-sm font-medium text-neutral-700 hover:bg-neutral-50 hover:border-amber-300 transition-colors disabled:opacity-60"
+          >
+            {mediaZipProgress ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {mediaZipProgress || (
+              <span>
+                Download all (.zip)
+                <span className="text-neutral-400 font-normal">
+                  {" "}· {submission.photos?.length || 0} photo{(submission.photos?.length || 0) === 1 ? "" : "s"} + {enhancedCount} AI
+                </span>
+              </span>
+            )}
+          </button>
         )}
       </CollapsibleCard>
 
