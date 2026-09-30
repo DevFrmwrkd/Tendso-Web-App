@@ -7,7 +7,7 @@ import { buildRoleColorCss } from '@/lib/roleColors'
 import { asServiceArray } from '@/lib/services-shape'
 import { GROQ_TEXT_MODEL } from '@/lib/services/groqModels'
 import { autoTemplateFor, resolveHeroStyle } from '@/lib/templatePicker'
-import { orderedEnhancedEntries } from '@/convex/lib/enhancedImages'
+import { isArchiveKey, orderedEnhancedEntries } from '@/convex/lib/enhancedImages'
 import {
     groqService,
     delimitTranscript,
@@ -476,9 +476,13 @@ ${isYmyl ? '- This is a YMYL business (medical/dental/aesthetic). Be precise; no
                 // position — photos[0] is the hero and the About lead, the auto
                 // gallery is the first six — and nothing else reads the keys, so
                 // without this the render's enhanced_hero landed wherever the object
-                // happened to list it (usually behind every gallery_N). Newest render
-                // first; images kept from earlier renders (archive_N) last.
+                // happened to list it (usually behind every gallery_N). Only the
+                // latest render is placed; earlier renders (archive_N) are skipped below.
                 for (const [key, img] of orderedEnhancedEntries(enhancedImages as Record<string, unknown>)) {
+                    // Images kept from EARLIER renders are for the editor's picker
+                    // only. Placing them here would top up a short new render's
+                    // gallery with old shots the admin rendered over.
+                    if (isArchiveKey(key)) continue
                     const imgData = img as any
                     if (imgData && (imgData.url || imgData.storageId)) {
                         enhancedEntries.push({ key, storageId: imgData.storageId, url: imgData.url })

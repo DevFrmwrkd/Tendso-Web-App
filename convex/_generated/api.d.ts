@@ -46,6 +46,7 @@ import type * as lib_availability from "../lib/availability.js";
 import type * as lib_calendarCalls from "../lib/calendarCalls.js";
 import type * as lib_cloudflare from "../lib/cloudflare.js";
 import type * as lib_encryption from "../lib/encryption.js";
+import type * as lib_enhancedImages from "../lib/enhancedImages.js";
 import type * as lib_fxRate from "../lib/fxRate.js";
 import type * as lib_h3 from "../lib/h3.js";
 import type * as lib_hostinger from "../lib/hostinger.js";
@@ -125,6 +126,7 @@ declare const fullApi: ApiFromModules<{
   "lib/calendarCalls": typeof lib_calendarCalls;
   "lib/cloudflare": typeof lib_cloudflare;
   "lib/encryption": typeof lib_encryption;
+  "lib/enhancedImages": typeof lib_enhancedImages;
   "lib/fxRate": typeof lib_fxRate;
   "lib/h3": typeof lib_h3;
   "lib/hostinger": typeof lib_hostinger;

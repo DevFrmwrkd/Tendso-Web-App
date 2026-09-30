@@ -1,9 +1,14 @@
 import {
     imageKeyBase,
+    isArchiveKey,
     mergeEnhancedImages,
     orderEnhancedImageKeys,
     orderedEnhancedEntries,
 } from '../../convex/lib/enhancedImages';
+
+/** Every ordering of a small list (n! of them), to prove a sort does not depend on input order. */
+const permutations = <T,>(xs: T[]): T[][] =>
+    xs.length <= 1 ? [xs] : xs.flatMap((x, i) => permutations([...xs.slice(0, i), ...xs.slice(i + 1)]).map((p) => [x, ...p]));
 
 /**
  * A Hyperagent render must ADD images. saveStudioContent used to replace the
@@ -104,6 +109,24 @@ describe('mergeEnhancedImages', () => {
         expect(merged.enhanced_hero).toEqual(img('b-hero'));
     });
 
+    it('never overwrites an incoming key that already looks like an archive', () => {
+        const stored = { enhanced_hero: img('a-hero') };
+        const incoming = { enhanced_hero: img('b-hero'), enhanced_archive_1: img('b-odd') };
+        const merged = mergeEnhancedImages(stored, incoming);
+        expect(merged.enhanced_archive_1).toEqual(img('b-odd'));
+        expect(Object.values(merged)).toContainEqual(img('a-hero'));
+        expect(Object.keys(merged)).toHaveLength(3);
+    });
+
+    it('marks only earlier renders as archives, so the builder can leave them off the page', () => {
+        const merged = mergeEnhancedImages(firstRender, { enhanced_hero: img('b-hero'), enhanced_gallery_1: img('b-g1') });
+        const placed = Object.keys(merged).filter((k) => !isArchiveKey(k));
+        expect(placed.sort()).toEqual(['enhanced_gallery_1', 'enhanced_hero']);
+        expect(isArchiveKey('enhanced_archive_12')).toBe(true);
+        expect(isArchiveKey('enhanced_archive_3_v2')).toBe(true);
+        expect(isArchiveKey('enhanced_gallery_1')).toBe(false);
+    });
+
     it('tolerates odd stored shapes without losing them', () => {
         const stored = { enhanced_hero: 'https://plain-string-url', weird: 42 };
         const merged = mergeEnhancedImages(stored, { enhanced_hero: img('b') });
@@ -140,6 +163,17 @@ describe('orderEnhancedImageKeys', () => {
     it('places archives after every current image, most recent first', () => {
         const keys = ['enhanced_archive_1', 'enhanced_archive_7', 'enhanced_hero', 'enhanced_whatever'];
         expect(orderEnhancedImageKeys(keys)).toEqual(['enhanced_hero', 'enhanced_whatever', 'enhanced_archive_7', 'enhanced_archive_1']);
+    });
+
+    it('is a total order: every input order gives the same result, odd keys included', () => {
+        // gallery_1a is off-contract but reachable: ingest stores an unmappable key
+        // under its raw name. It used to form a cycle with gallery_2 and gallery_10.
+        const keys = ['enhanced_gallery_2', 'enhanced_gallery_10', 'gallery_1a', 'enhanced_hero', 'enhanced_archive_2', 'archive_2a'];
+        const results = new Set(permutations(keys).map((p) => orderEnhancedImageKeys(p).join(',')));
+        expect(results.size).toBe(1);
+        expect(orderEnhancedImageKeys(keys)).toEqual([
+            'enhanced_hero', 'enhanced_gallery_2', 'enhanced_gallery_10', 'gallery_1a', 'enhanced_archive_2', 'archive_2a',
+        ]);
     });
 
     it('reads a key base the same way the builder always has', () => {

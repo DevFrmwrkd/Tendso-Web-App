@@ -32,6 +32,15 @@ const numberAfter = (base: string, prefix: string): number | null => {
     return m ? Number(m[1]) : null;
 };
 
+/** An image kept from an EARLIER render. Shown in the editor's picker, never auto-placed on the page. */
+export function isArchiveKey(key: string): boolean {
+    return imageKeyBase(key).startsWith('archive_');
+}
+
+/** The slot number of a gallery_<N> / archive_<N> base; null for anything else. */
+const slotNumber = (base: string): number | null =>
+    numberAfter(base, 'gallery') ?? numberAfter(base, 'archive');
+
 /**
  * Where a key sits in the page order. Templates place images BY POSITION
  * (photos[0] is the hero and the About lead, the auto gallery is the first
@@ -65,10 +74,15 @@ export function orderEnhancedImageKeys(keys: string[]): string[] {
             const ra = rank(a.key), rb = rank(b.key);
             if (ra !== rb) return ra - rb;
             const ba = imageKeyBase(a.key), bb = imageKeyBase(b.key);
-            const ga = numberAfter(ba, 'gallery'), gb = numberAfter(bb, 'gallery');
-            if (ga !== null && gb !== null && ga !== gb) return ga - gb;
-            const aa = numberAfter(ba, 'archive'), ab = numberAfter(bb, 'archive');
-            if (aa !== null && ab !== null && aa !== ab) return ab - aa;
+            // A TOTAL order, or Array.sort's result depends on input order. Mixing
+            // a numeric compare with a text compare in one rank made a cycle
+            // (gallery_2 < gallery_10 < gallery_1a < gallery_2) for an
+            // off-contract key the ingest stores under its raw name. So numbered
+            // slots come before anything unnumbered in the same rank, numbers
+            // compare as numbers (archives highest first), text only with text.
+            const na = slotNumber(ba), nb = slotNumber(bb);
+            if ((na === null) !== (nb === null)) return na === null ? 1 : -1;
+            if (na !== null && nb !== null && na !== nb) return ra === 8 ? nb - na : na - nb;
             if (ba !== bb) return ba < bb ? -1 : 1;
             const va = variantOf(a.key), vb = variantOf(b.key);
             if (va !== vb) return va - vb;
@@ -125,10 +139,12 @@ export function mergeEnhancedImages(existing: unknown, incoming: unknown): Enhan
         return true;
     };
 
-    // Archives already in the store keep their number.
+    // Archives already in the store keep their number. New numbers start above
+    // every archive number in use on EITHER side, so no incoming key is ever
+    // overwritten by an archived one.
     const prevKeys = orderEnhancedImageKeys(Object.keys(prev));
     let maxArchive = 0;
-    for (const key of prevKeys) {
+    for (const key of [...prevKeys, ...Object.keys(next)]) {
         const n = numberAfter(imageKeyBase(key), 'archive');
         if (n !== null) maxArchive = Math.max(maxArchive, n);
     }
