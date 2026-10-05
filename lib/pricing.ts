@@ -14,6 +14,13 @@
  *    • Referral bonus ................ ₱1,000 on a referred creator's first
  *                                      paid submission.
  *
+ *  Updated 2026-10-05 (Round 1 redesign):
+ *
+ *    • The website price is ₱4,999 (WEBSITE_PRICE). That is what an owner pays
+ *      on /start with no campaign, and the price the landing shows. A creator
+ *      can discount their own offer down to BASE_PRICE (₱999); the creator band
+ *      and its unlock rule below are unchanged.
+ *
  *  Change a number HERE and it propagates to the landing pages, the submit
  *  flow, the payout math, and the transactional emails. Do NOT re-hardcode
  *  any of these values anywhere else — import from this module instead.
@@ -28,6 +35,13 @@ export const BASE_PRICE = 999;
 
 /** Maximum a creator may charge once their price ceiling is unlocked. */
 export const PRICE_CEILING = 4999;
+
+/**
+ * The website's price: what a business owner pays on /start with no campaign
+ * and no creator, and the figure the landing quotes. Campaigns discount it
+ * (OTR is 30% off), and a creator may offer less, down to BASE_PRICE.
+ */
+export const WEBSITE_PRICE = PRICE_CEILING;
 
 /** Number of *approved* submissions that unlocks the full PRICE_CEILING. */
 export const UNLOCK_THRESHOLD = 5;
@@ -57,7 +71,7 @@ export const CAMPAIGN_DISCOUNTS: Record<string, number> = {
 };
 
 /**
- * The price a campaign's discount is taken from, when it is not BASE_PRICE.
+ * The price a campaign's discount is taken from, when it is not WEBSITE_PRICE.
  *
  * OTR is sold as the full ₱4,999 website at 30% off (₱3,499), not as the ₱999
  * starter at 30% off.
@@ -93,10 +107,14 @@ export function campaignDiscountRate(campaign?: string | null): number {
     return key ? CAMPAIGN_DISCOUNTS[key] : 0;
 }
 
-/** The undiscounted website price for a campaign — BASE_PRICE when it sets none. */
+/**
+ * The undiscounted website price for a campaign: WEBSITE_PRICE when it sets
+ * none, and with no campaign at all. This is the self-serve price: /start
+ * quotes it and convex/ownerIntake.ts charges it.
+ */
 export function campaignListPrice(campaign?: string | null): number {
     const key = normalizeCampaign(campaign);
-    return (key && CAMPAIGN_LIST_PRICES[key]) || BASE_PRICE;
+    return (key && CAMPAIGN_LIST_PRICES[key]) || WEBSITE_PRICE;
 }
 
 /**
@@ -153,7 +171,11 @@ export function ownerChargeFor(
     return row.amount ?? 0;
 }
 
-/** Owner total for the standard tier (no custom domain). */
+/**
+ * Owner total for a creator-led site at the base price (no custom domain): the
+ * default amount a creator's submission starts from. Not the self-serve price,
+ * which is WEBSITE_PRICE (see campaignListPrice).
+ */
 export const STANDARD_PRICE = BASE_PRICE; // ₱999
 
 /** Owner total for the base price + a custom domain. */

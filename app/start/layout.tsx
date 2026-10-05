@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { STANDARD_PRICE, formatPHP } from "@/lib/pricing";
+import { WEBSITE_PRICE, formatPHP } from "@/lib/pricing";
 
 /**
  * Exists only to give the funnel its own title and description — the pages
@@ -15,7 +15,7 @@ import { STANDARD_PRICE, formatPHP } from "@/lib/pricing";
  */
 export const metadata: Metadata = {
     title: "Get your website — Tendso",
-    description: `Tell us about your business, answer a few questions, and send us photos. We build your website and email it to you within 48–72 hours. ${formatPHP(STANDARD_PRICE)} one-time, paid only when it's live.`,
+    description: `Tell us about your business, answer a few questions, and send us photos. We build your website and email it to you within 48–72 hours. ${formatPHP(WEBSITE_PRICE)} one-time, paid only when it's live.`,
     alternates: { canonical: "/start" },
 };
 
