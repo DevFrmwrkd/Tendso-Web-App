@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/react";
 import { ConvexClerkProvider } from "@/components/providers/ConvexClerkProvider";
 import { JsonLd } from "@/components/JsonLd";
+import { Toaster } from "@/components/r1/Toaster";
 import { organizationGraph, SITE_URL } from "@/lib/seo";
 import "./globals.css";
 import "./self-hosted-fonts.css";
@@ -52,7 +52,7 @@ export default function RootLayout({
         <ConvexClerkProvider>
           {children}
         </ConvexClerkProvider>
-        <Toaster position="top-right" richColors />
+        <Toaster />
         <Analytics />
         <script dangerouslySetInnerHTML={{ __html: `if("serviceWorker" in navigator){navigator.serviceWorker.register("/sw.js")}` }} />
       </body>
