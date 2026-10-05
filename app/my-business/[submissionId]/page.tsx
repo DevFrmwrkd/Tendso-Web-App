@@ -1,7 +1,9 @@
 "use client";
 
 /**
- * Owner site detail — READ-ONLY, ownership-gated.
+ * Owner site detail — READ-ONLY, ownership-gated (Round 1, board OwnerHome:
+ * the same card /my-business shows for a single site; the owner sidebar's
+ * Payment item opens the site that is due here).
  *
  * This page used to be a content editor. It was removed, not hidden, because it
  * could not do what it said: updateMyWebsiteContent patches the `websiteContent`
@@ -21,12 +23,15 @@
  */
 
 import { useEffect } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
+
+import { PageHeader } from "@/components/r1";
+import { OwnerShell } from "@/components/shells/OwnerShell";
 import { api } from "@/convex/_generated/api";
 import { useOwnerAuth } from "@/hooks/useOwnerAuth";
-import { Loader2, ArrowLeft, Users, ExternalLink } from "lucide-react";
+
+import { SiteNotAvailable, SiteOverview, SiteOverviewLoading } from "../_components/OwnerHome";
 
 export default function OwnerWebsitePage() {
     const params = useParams();
@@ -40,82 +45,21 @@ export default function OwnerWebsitePage() {
         if (!loading && isSignedIn === false) router.replace("/login");
     }, [loading, isSignedIn, router]);
 
-    if (loading || (isOwner && websites === undefined)) {
-        return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: "#FBF3E0" }}>
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#E4B05E" }} />
-            </div>
-        );
-    }
-
+    // Signed out: the redirect above is on its way, so keep the loading shape.
+    const waiting = loading || !isSignedIn || (isOwner && websites === undefined);
     const site = websites?.find((w) => w.submissionId === submissionId);
 
-    // Not in the owner's list → not owned, or nothing built yet.
-    if (!site) {
-        return (
-            <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#FBF3E0", color: "#5C3A0F" }}>
-                <div className="max-w-md text-center space-y-3">
-                    <h1 className="text-2xl font-bold">Website not available</h1>
-                    <p style={{ color: "#C89548" }}>You don&apos;t have access to this website, or it isn&apos;t ready yet.</p>
-                    <Link href="/my-business" className="inline-block hover:underline" style={{ color: "#E4B05E" }}>← Back to my business</Link>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="min-h-screen px-6 py-10" style={{ background: "#FBF3E0", color: "#5C3A0F" }}>
-            <div className="max-w-xl mx-auto space-y-6">
-                <Link href="/my-business" className="inline-flex items-center gap-1 text-sm hover:underline" style={{ color: "#C89548" }}>
-                    <ArrowLeft className="w-4 h-4" /> My business
-                </Link>
-
-                <header>
-                    <h1 className="text-2xl font-bold">{site.businessName}</h1>
-                    <p className="mt-1 text-sm capitalize" style={{ color: "#C89548" }}>Status: {site.status}</p>
-                </header>
-
-                <div className="bg-white rounded-2xl p-6 space-y-4" style={{ border: "1px solid #F5E4C0" }}>
-                    <div>
-                        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#71717a" }}>Your website</p>
-                        {site.publishedUrl ? (
-                            <a
-                                href={site.publishedUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="mt-1 inline-flex items-center gap-1 text-sm hover:underline break-all"
-                                style={{ color: "#C89548" }}
-                            >
-                                {site.publishedUrl} <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                            </a>
-                        ) : (
-                            <p className="mt-1 text-sm" style={{ color: "#71717a" }}>Not live yet.</p>
-                        )}
-                    </div>
-
-                    <div className="pt-4 border-t" style={{ borderColor: "#F5E4C0" }}>
-                        <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: "#71717a" }}>Enquiries</p>
-                        <p className="mt-1 text-sm flex items-center gap-1">
-                            <Users className="w-3.5 h-3.5" style={{ color: "#71717a" }} /> {site.leadCount} lead{site.leadCount === 1 ? "" : "s"}
-                        </p>
-                    </div>
-                </div>
-
-                {/* The edits policy, stated the same way on every Tendso surface. */}
-                <div className="bg-white rounded-2xl p-6" style={{ border: "1px solid #F5E4C0" }}>
-                    <h2 className="text-lg font-semibold">Need a change?</h2>
-                    <p className="mt-1 text-sm">
-                        <strong>Free edits for your first year.</strong> Tell us what you want changed and we&apos;ll make it for you.
-                    </p>
-                    <Link
-                        href="/contact"
-                        className="mt-4 w-full h-12 rounded-xl text-white font-bold inline-flex items-center justify-center gap-2"
-                        style={{ background: "#E4B05E" }}
-                    >
-                        Request an edit
-                    </Link>
-                </div>
-            </div>
-        </div>
+        <OwnerShell>
+            <PageHeader title="My website" sub="Is my website live, and what do I owe?" />
+            {waiting ? (
+                <SiteOverviewLoading />
+            ) : site ? (
+                <SiteOverview site={site} />
+            ) : (
+                // Not in the owner's list → not owned, or nothing built yet.
+                <SiteNotAvailable />
+            )}
+        </OwnerShell>
     );
 }

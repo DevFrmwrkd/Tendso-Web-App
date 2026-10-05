@@ -18,15 +18,21 @@
  * claims. Centring on a guess is a convenience — asserting it as the answer
  * would be the same class of mistake as writing copy nobody said.
  *
- * Follows components/landing/LiveMap.tsx exactly on the mechanics: raw Leaflet
- * behind a dynamic import so it stays out of the SSR bundle, the stylesheet
- * imported as a side effect, tiles through withCartoKey, and a divIcon rather
- * than Leaflet's default marker — whose icon URLs break under bundlers.
+ * THE MECHANICS, and why each one: raw Leaflet behind a dynamic import, so it
+ * stays out of the SSR bundle (Leaflet touches `window` the moment it loads);
+ * its stylesheet imported as a side effect of that same import; tiles through
+ * withCartoKey, because CARTO watermarks every tile requested without the key
+ * (lib/carto.ts); and a divIcon rather than Leaflet's default marker, whose icon
+ * URLs break under bundlers. The tiles are CARTO's quiet light style
+ * (`light_all`): the Round 1 board draws this map as an almost colourless
+ * sketch, and the pin is the only thing on it that should catch the eye.
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, Marker, LeafletMouseEvent } from "leaflet";
+import { MapPin } from "lucide-react";
 
+import { Button, Icon, Status } from "@/components/r1";
 import { withCartoKey } from "@/lib/carto";
 
 export interface Coordinates {
@@ -51,24 +57,40 @@ const ADDRESS_ZOOM = 16;
  *  across all of us, so the debounce is doing real work, not smoothing. */
 const GEOCODE_DEBOUNCE_MS = 1200;
 
-/** The brand pin: --rust, with a white centre so it reads against the warm
- *  Voyager tiles. A teardrop anchored at its point, unlike LiveMap's circular
- *  markers which are anchored at their centre — this one has to say precisely
- *  WHERE, not just roughly what. */
+/** The map's height, as drawn on the board. */
+const MAP_HEIGHT = "h-[264px]";
+
+/**
+ * The brand pin: gold with a white centre and a soft ground shadow, and the
+ * "Drag to adjust" tip beside it (board Start). A teardrop anchored at its
+ * point, not a dot anchored at its centre: this one has to say precisely
+ * WHERE, not just roughly what.
+ *
+ * Leaflet renders this as raw HTML outside React, so the colours are the
+ * Round 1 tokens as CSS variables in style attributes (never hex), and the tip
+ * names its font because .leaflet-container sets its own. The tip ignores the
+ * pointer, so a drag that starts on it still grabs the pin.
+ */
 function makePinIcon(L: typeof import("leaflet")) {
     const html = `
-    <svg width="32" height="42" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg">
-      <path d="M16 41C16 41 30 24.5 30 15A14 14 0 1 0 2 15c0 9.5 14 26 14 26z"
-            fill="#C89548" stroke="#6B4F1F" stroke-width="2" stroke-linejoin="round"/>
-      <circle cx="16" cy="15" r="5" fill="white"/>
-    </svg>`;
+    <span style="position:relative;display:block;width:32px;height:52px">
+      <svg width="32" height="52" viewBox="0 0 32 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:block">
+        <ellipse cx="16" cy="47" rx="7" ry="2.5" style="fill:var(--r1-ink);opacity:.18"/>
+        <path d="M16 45C16 45 30 28.5 30 19A14 14 0 1 0 2 19c0 9.5 14 26 14 26z"
+              style="fill:var(--r1-gold);stroke:var(--r1-gold-ink);stroke-width:2;stroke-linejoin:round"/>
+        <circle cx="16" cy="19" r="5" style="fill:var(--r1-paper)"/>
+      </svg>
+      <span style="position:absolute;left:42px;top:6px;display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:6px;background:var(--r1-ink);color:var(--r1-paper);font:500 12px/1 var(--r1-sans);white-space:nowrap;pointer-events:none">Drag to adjust</span>
+    </span>`;
     return L.divIcon({
         html,
         className: "start-pin",
-        iconSize: [32, 42],
-        iconAnchor: [16, 41],
+        iconSize: [32, 52],
+        iconAnchor: [16, 45],
     });
 }
+
+type AddressStatus = "idle" | "looking" | "found" | "missed";
 
 export default function MapPicker({
     value,
@@ -86,7 +108,7 @@ export default function MapPicker({
     const mapRef = useRef<LeafletMap | null>(null);
     const markerRef = useRef<Marker | null>(null);
     const [ready, setReady] = useState(false);
-    const [addressStatus, setAddressStatus] = useState<"idle" | "looking" | "missed">("idle");
+    const [addressStatus, setAddressStatus] = useState<AddressStatus>("idle");
 
     /** The last query actually sent, so an unrelated re-render does not re-ask
      *  Nominatim the same question. */
@@ -130,7 +152,7 @@ export default function MapPicker({
                 doubleClickZoom: false,
                 attributionControl: false,
             });
-            L.tileLayer(withCartoKey("https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"), {
+            L.tileLayer(withCartoKey("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"), {
                 attribution: "",
                 maxZoom: 19,
             }).addTo(map);
@@ -222,7 +244,7 @@ export default function MapPicker({
                 if (!mapRef.current || hasPinRef.current) return;
                 if (body.result) {
                     mapRef.current.flyTo([body.result.lat, body.result.lng], ADDRESS_ZOOM, { duration: 0.8 });
-                    setAddressStatus("idle");
+                    setAddressStatus("found");
                 } else {
                     setAddressStatus("missed");
                 }
@@ -240,61 +262,63 @@ export default function MapPicker({
     const clearPin = useCallback(() => onChange(null), [onChange]);
 
     return (
-        <div>
-            <div className="relative overflow-hidden rounded-xl border border-ink/15">
+        <div className="flex flex-col gap-3">
+            <div className="relative overflow-hidden rounded-r1 border border-r1-line-2 bg-r1-fill">
                 <div
                     ref={elRef}
-                    className="h-[19rem] w-full bg-khaki-deep"
+                    className={`${MAP_HEIGHT} w-full bg-r1-fill`}
                     // Leaflet's own panes sit at z-index 400+; without a stacking
-                    // context here they would climb over the sticky phone header
-                    // at narrower desktop widths.
+                    // context here they would climb over the sticky action bar.
                     style={{ isolation: "isolate" }}
                 />
                 {!ready ? (
-                    <div className="absolute inset-0 flex items-center justify-center bg-khaki-deep">
-                        <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                            Loading map…
+                    <div className="absolute inset-0 flex items-center justify-center bg-r1-fill">
+                        <span className="t-meta">Loading map…</span>
+                    </div>
+                ) : null}
+                {/* The board's hint, held at the top rather than the middle: the
+                    middle is where the geocoded address lands, the one spot the
+                    owner is trying to see. It ignores the pointer, so a click
+                    through it still drops the pin. */}
+                {ready && !value && !disabled ? (
+                    <div className="pointer-events-none absolute inset-x-0 top-3 z-10 flex justify-center px-3">
+                        <span className="inline-flex h-9 items-center gap-2 rounded-full border border-r1-line bg-r1-paper px-3.5 text-[13px] font-medium text-r1-ink shadow-r1-menu">
+                            <Icon icon={MapPin} />
+                            Click the map where your shop is
                         </span>
                     </div>
                 ) : null}
-                {disabled ? <div className="absolute inset-0 cursor-not-allowed bg-khaki/40" /> : null}
+                {disabled ? <div className="absolute inset-0 z-10 cursor-not-allowed bg-r1-paper/40" /> : null}
             </div>
 
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-                <p className="text-[13px] leading-snug text-ink-soft">
-                    {value ? (
-                        <>
-                            <span aria-hidden style={{ color: "var(--rust)" }}>
-                                ✓
-                            </span>{" "}
-                            Pin placed. Drag it if it&apos;s not quite right.
-                        </>
-                    ) : addressStatus === "looking" ? (
-                        "Finding your address on the map…"
-                    ) : addressStatus === "missed" ? (
-                        "We couldn't find that address — pan to your area and click to drop the pin."
-                    ) : (
-                        "Click the map where your shop is."
-                    )}
-                </p>
+            <div className="flex min-h-8 flex-wrap items-center justify-between gap-x-4 gap-y-2">
                 {value ? (
-                    <button
-                        type="button"
-                        onClick={clearPin}
-                        disabled={disabled}
-                        className="text-[13px] font-semibold text-ink-soft underline underline-offset-2 transition-colors hover:text-ink disabled:opacity-40"
-                    >
-                        Remove pin
-                    </button>
-                ) : null}
+                    <>
+                        <Status tone="done" className="whitespace-normal">
+                            Pin placed. Drag it if it&apos;s not quite right.
+                        </Status>
+                        <Button variant="ghost" size="sm" onClick={clearPin} disabled={disabled}>
+                            Remove pin
+                        </Button>
+                    </>
+                ) : (
+                    <p className="t-meta" aria-live="polite">
+                        {addressStatus === "looking"
+                            ? "Finding your address on the map…"
+                            : addressStatus === "missed"
+                              ? "We couldn't find that address — pan to your area and click to drop the pin."
+                              : addressStatus === "found"
+                                ? "The map opened near the address you typed. It never places the pin for you."
+                                : "The map moves to the address you type above. It never places the pin for you."}
+                    </p>
+                )}
             </div>
 
-            {/* CARTO and OSM both require credit. LiveMap turns Leaflet's own
-                control off because it collides with that page's chrome; the
+            {/* CARTO and OSM both require credit. Leaflet's own attribution
+                control is off (attributionControl: false) so the corners of a
+                small map stay clear for the zoom buttons and the pin; the
                 credit is given here as plain text instead. */}
-            <p className="mt-2 text-[11px] leading-snug text-ink-soft/70">
-                Map data © OpenStreetMap contributors, tiles © CARTO
-            </p>
+            <p className="t-help">Map data © OpenStreetMap contributors, tiles © CARTO</p>
         </div>
     );
 }

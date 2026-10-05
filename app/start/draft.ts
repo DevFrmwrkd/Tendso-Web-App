@@ -62,8 +62,9 @@ export interface StartDraft {
     /** Photo slot index (which IS the role — see photoSlots.ts) → R2 public URL. */
     photos: Record<number, string>;
     coordinates: { lat: number; lng: number } | null;
-    /** The tier chosen on the confirm step. false = the ₱999 standard tier,
-     *  which is also what an owner who never touches the choice submits. */
+    /** The tier chosen on the confirm step. false = the standard tier (no
+     *  custom domain), which is also what an owner who never touches the
+     *  choice submits. */
     wantsCustomDomain: boolean;
     /** The address typed for the custom-domain tier. Kept even when the owner
      *  switches back to standard: toggling is one mis-tap, and re-typing a
@@ -208,34 +209,56 @@ export function clearDraft(): void {
     }
 }
 
-/** What the thanks page needs to repeat back: where we will write, and what we
- *  said it costs. The amount is the total the form quoted, discount and domain
- *  included, rather than anything the next page re-derives. */
+/** What the thanks page needs to repeat back: where we will write, what we said
+ *  it costs, and whose site it is. The amount is the total the form quoted,
+ *  discount and domain included, rather than anything the next page re-derives.
+ *
+ *  The last four fields arrived with the Round 1 thanks page, which repeats the
+ *  business and the price breakdown back. Every one is null on a receipt written
+ *  by an older build, and the page drops the line it would have filled. */
 export interface SubmittedReceipt {
     email: string;
     amount: number | null;
+    businessName: string | null;
+    city: string | null;
+    /** The campaign the form quoted under (a lib/pricing key, e.g. "otr"). Only
+     *  ever used to word the breakdown; the amount above is what was promised. */
+    campaign: string | null;
+    /** null = unknown (an older receipt), not "standard". */
+    customDomain: boolean | null;
 }
 
-export function rememberSubmitted(email: string, amount: number): void {
+export function rememberSubmitted(receipt: SubmittedReceipt): void {
     if (typeof window === "undefined") return;
     try {
-        window.sessionStorage.setItem(RECEIPT_KEY, JSON.stringify({ email, amount }));
+        window.sessionStorage.setItem(RECEIPT_KEY, JSON.stringify(receipt));
     } catch {
         /* the thanks page falls back to generic copy */
     }
 }
 
+function stringOrNull(value: unknown): string | null {
+    return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
 function parseReceipt(raw: string | null): SubmittedReceipt | null {
     if (!raw) return null;
-    // A receipt written by the previous build is a bare email string. Someone
-    // can be mid-submission across a deploy, so read that shape too.
-    if (!raw.startsWith("{")) return { email: raw, amount: null };
+    // The oldest receipt shape is a bare email string. Someone can be
+    // mid-submission across a deploy, so read that shape too — and the
+    // { email, amount } one that followed it, which simply lacks the rest.
+    if (!raw.startsWith("{")) {
+        return { email: raw, amount: null, businessName: null, city: null, campaign: null, customDomain: null };
+    }
     try {
-        const parsed = JSON.parse(raw) as Partial<SubmittedReceipt>;
+        const parsed = JSON.parse(raw) as Partial<Record<keyof SubmittedReceipt, unknown>>;
         if (typeof parsed?.email !== "string") return null;
         return {
             email: parsed.email,
             amount: typeof parsed.amount === "number" ? parsed.amount : null,
+            businessName: stringOrNull(parsed.businessName),
+            city: stringOrNull(parsed.city),
+            campaign: stringOrNull(parsed.campaign),
+            customDomain: typeof parsed.customDomain === "boolean" ? parsed.customDomain : null,
         };
     } catch {
         return null;

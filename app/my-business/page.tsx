@@ -1,25 +1,31 @@
 "use client";
 
 /**
- * Business Owner Portal — dashboard. Lists the websites the signed-in owner has
- * claimed. Owners are a separate audience from creators; this whole route group
- * is gated by Clerk + a businessOwners row.
+ * Business Owner Portal — My website (Round 1, board OwnerHome). Shows the
+ * websites the signed-in owner has claimed. Owners are a separate audience from
+ * creators; this whole route group is gated by Clerk + a businessOwners row.
  *
  * READ-ONLY BY DESIGN. Owners do not edit their own site here: edits are
  * REQUESTED via /contact and Tendso makes the change. There is no self-serve
  * owner editor, so this route must never imply one — see the note at the top of
  * app/my-business/[submissionId]/page.tsx for why the old editor was removed.
  *
+ * One site (the usual case) gets the board's full card here; an owner with
+ * several gets a row per site, each opening /my-business/[submissionId].
+ *
  * See docs/changes/OWNER-PORTAL-PRICING-PLAN.md Phase 1.
  */
 
 import { useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "convex/react";
+
+import { PageHeader } from "@/components/r1";
+import { OwnerShell } from "@/components/shells/OwnerShell";
 import { api } from "@/convex/_generated/api";
 import { useOwnerAuth } from "@/hooks/useOwnerAuth";
-import { Loader2, Globe, ArrowRight, Users, ExternalLink } from "lucide-react";
+
+import { NoSite, SiteList, SiteOverview, SiteOverviewLoading } from "./_components/OwnerHome";
 
 export default function MyBusinessDashboard() {
     const { isOwner, isSignedIn, loading } = useOwnerAuth();
@@ -30,100 +36,24 @@ export default function MyBusinessDashboard() {
         if (!loading && isSignedIn === false) router.replace("/login");
     }, [loading, isSignedIn, router]);
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: "#FBF3E0" }}>
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#E4B05E" }} />
-            </div>
-        );
-    }
-
-    // Signed in but no claimed sites yet → point at the one channel that works.
-    if (!isOwner) {
-        return (
-            <div className="min-h-screen flex items-center justify-center px-6" style={{ background: "#FBF3E0" }}>
-                <div className="max-w-md text-center space-y-4">
-                    <Globe className="w-12 h-12 mx-auto" style={{ color: "#E4B05E" }} />
-                    <h1 className="text-2xl font-bold" style={{ color: "#5C3A0F" }}>No website here yet</h1>
-                    <p style={{ color: "#C89548" }}>
-                        No website is linked to this account. If Tendso built one for your business, contact us and we&apos;ll help.
-                    </p>
-                    <Link
-                        href="/contact"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white font-medium text-sm"
-                        style={{ background: "#E4B05E" }}
-                    >
-                        Contact us
-                    </Link>
-                </div>
-            </div>
-        );
-    }
+    // Signed out means the redirect above is on its way (the proxy normally
+    // gets there first), so it keeps the loading shape instead of flashing
+    // "No website here yet".
+    const waiting = loading || !isSignedIn || (isOwner && websites === undefined);
 
     return (
-        <div className="min-h-screen px-6 py-12" style={{ background: "#FBF3E0", color: "#5C3A0F" }}>
-            <div className="max-w-2xl mx-auto space-y-6">
-                <header>
-                    <h1 className="text-3xl font-bold">My business</h1>
-                    <p className="mt-1" style={{ color: "#C89548" }}>See your website, its status, and the leads it brings in.</p>
-                </header>
-
-                {/* The edits policy, stated the same way on every Tendso surface. */}
-                <div className="bg-white rounded-2xl p-5" style={{ border: "1px solid #F5E4C0" }}>
-                    <p className="text-sm">
-                        <strong>Free edits for your first year.</strong> Tell us what you want changed and we&apos;ll make it for you.
-                    </p>
-                    <Link
-                        href="/contact"
-                        className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white font-medium text-sm"
-                        style={{ background: "#E4B05E" }}
-                    >
-                        Request an edit
-                    </Link>
-                </div>
-
-                {websites === undefined ? (
-                    <Loader2 className="h-6 w-6 animate-spin" style={{ color: "#E4B05E" }} />
-                ) : websites.length === 0 ? (
-                    <p style={{ color: "#C89548" }}>No websites yet.</p>
-                ) : (
-                    <div className="space-y-4">
-                        {websites.map((w) => (
-                            <div key={w.submissionId} className="bg-white rounded-2xl p-5" style={{ border: "1px solid #F5E4C0" }}>
-                                <div className="flex items-start justify-between gap-3">
-                                    <div>
-                                        <h2 className="text-lg font-semibold">{w.businessName}</h2>
-                                        <p className="text-xs mt-1 capitalize" style={{ color: "#71717a" }}>Status: {w.status}</p>
-                                        <p className="text-xs mt-1 flex items-center gap-1" style={{ color: "#71717a" }}>
-                                            <Users className="w-3.5 h-3.5" /> {w.leadCount} lead{w.leadCount === 1 ? "" : "s"}
-                                        </p>
-                                    </div>
-                                    {w.publishedUrl && (
-                                        <a
-                                            href={w.publishedUrl}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="text-sm inline-flex items-center gap-1 hover:underline"
-                                            style={{ color: "#C89548" }}
-                                        >
-                                            View <ExternalLink className="w-3.5 h-3.5" />
-                                        </a>
-                                    )}
-                                </div>
-                                <div className="mt-4">
-                                    <Link
-                                        href={`/my-business/${w.submissionId}`}
-                                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-white font-medium text-sm"
-                                        style={{ background: "#E4B05E" }}
-                                    >
-                                        View details <ArrowRight className="w-4 h-4" />
-                                    </Link>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </div>
-        </div>
+        <OwnerShell>
+            <PageHeader title="My website" sub="Is my website live, and what do I owe?" />
+            {waiting ? (
+                <SiteOverviewLoading />
+            ) : !isOwner || !websites || websites.length === 0 ? (
+                // Signed in but no claimed sites yet → point at the one channel that works.
+                <NoSite />
+            ) : websites.length === 1 ? (
+                <SiteOverview site={websites[0]} />
+            ) : (
+                <SiteList sites={websites} />
+            )}
+        </OwnerShell>
     );
 }
