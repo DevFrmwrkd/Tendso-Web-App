@@ -1,177 +1,231 @@
-"use client"
+"use client";
 
-import { useUser } from "@clerk/nextjs"
-import { useQuery } from "convex/react"
-import { api } from "@/convex/_generated/api"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
-import Link from "next/link"
-import { AlertCircle, Clock, CheckCircle, Banknote, Store, Plus, ArrowLeft, Loader2, Globe } from "lucide-react"
+/**
+ * /submissions: "Where is each business I submitted?" (Round 1, board
+ * Submissions).
+ *
+ * Every submission the creator has made, newest first, filtered by chips
+ * (All, In progress, Paid, Drafts, Rejected), with a details drawer over the
+ * list. The drawer replaces the old /submissions/[id] page; that route now
+ * redirects to /submissions?open=<id>, so every link to it (the dashboard,
+ * the notifications, a lead's page, and any in an old email or the mobile
+ * app) still lands on the same submission.
+ *
+ * THE URL IS THE STATE. `?open=<id>` is the open drawer and `?filter=` the
+ * chip, so a deep link, a refresh and Back all show what the URL says. They
+ * are written with history.replaceState rather than router.replace: Next keeps
+ * useSearchParams in step with the native History API, and it does not ask
+ * the server to render the page again, so a row opens its drawer at once
+ * instead of after a round trip on mobile data. Replace, not push: a drawer is
+ * not a page, and Back should leave Submissions, not step back through every
+ * row that was opened.
+ *
+ * THE FLOATING NEW-SUBMISSION BUTTON IS GONE: the sidebar's New submission
+ * (and the phone tab bar's centre button) replaces it. The empty state is the
+ * one place this page repeats it.
+ *
+ * Auth is unchanged: signed out goes to /login, and the page waits for Clerk,
+ * the creator row and the list before it shows anything.
+ */
+
+import { useUser } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
+import { Inbox, Plus } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+
+import { Button, ButtonLink, Chips, EmptyState, Icon, List, Loading, PageHeader, Skeleton, SkeletonRows } from "@/components/r1";
+import { CreatorShell } from "@/components/shells/CreatorShell";
+import { api } from "@/convex/_generated/api";
+
+import { SubmissionDrawer } from "./_components/SubmissionDrawer";
+import { SubmissionRow, SubmissionTableHead } from "./_components/SubmissionRow";
+import { FILTERS, SHARE_PERCENT, filterOf, parseFilter, stageOf, summaryOf, type Filter } from "./_lib/derive";
+
+/** A list page shows a table of about ten rows; Show all opens the rest in place. */
+const PAGE_ROWS = 10;
+
+/** A chip with nothing under it: say what would be there, and offer the way back to All. */
+const EMPTY_FILTER: Record<Exclude<Filter, "all">, { title: string; body: string }> = {
+    progress: {
+        title: "Nothing in progress",
+        body: "A submission shows up here from the moment you send it until the owner pays.",
+    },
+    paid: {
+        title: "Nothing paid yet",
+        body: "When an owner pays, the submission moves here and your share goes to your Wallet. Free promo sites show up here too.",
+    },
+    drafts: {
+        title: "No drafts",
+        body: "A submission you start but don't send waits here, so you can finish it later.",
+    },
+    rejected: {
+        title: "Nothing rejected",
+        body: "If a reviewer can't use a submission, it shows up here with what to fix, and you get a notification.",
+    },
+};
 
 export default function SubmissionsPage() {
-    const router = useRouter()
-    const { user, isLoaded, isSignedIn } = useUser()
+    return (
+        <CreatorShell>
+            <PageHeader title="Submissions" sub="Where is each business I submitted?" />
+            {/* useSearchParams needs a Suspense boundary, or the production build fails. */}
+            <Suspense fallback={<ListSkeleton />}>
+                <SubmissionsList />
+            </Suspense>
+        </CreatorShell>
+    );
+}
+
+function ListSkeleton() {
+    return (
+        <Loading label="Loading your submissions" className="flex flex-col gap-4">
+            <div className="flex flex-wrap gap-2">
+                {[56, 108, 68, 80, 92].map((width, i) => (
+                    <Skeleton key={i} width={width} height={32} round />
+                ))}
+            </div>
+            <SkeletonRows count={4} />
+        </Loading>
+    );
+}
+
+function SubmissionsList() {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+    const { user, isLoaded, isSignedIn } = useUser();
+    // One reading of the clock per visit: "Sep 27" against "Sep 27, 2025", and pay-link expiry.
+    const [now] = useState(() => Date.now());
+    const [showAll, setShowAll] = useState(false);
 
     const creator = useQuery(
         api.creators.getByClerkId,
-        isLoaded && isSignedIn && user?.id ? { clerkId: user.id } : "skip"
-    )
+        isLoaded && isSignedIn && user?.id ? { clerkId: user.id } : "skip",
+    );
 
     const submissions = useQuery(
         api.submissions.getByCreatorId,
-        creator?._id ? { creatorId: creator._id } : "skip"
-    )
+        creator?._id ? { creatorId: creator._id } : "skip",
+    );
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
-            router.push("/login")
+            router.push("/login");
         }
-    }, [isLoaded, isSignedIn, router])
+    }, [isLoaded, isSignedIn, router]);
 
-    if (!isLoaded || !isSignedIn || creator === undefined || submissions === undefined) {
-        return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
-                <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
-            </div>
-        )
-    }
+    const filter = parseFilter(searchParams.get("filter"));
+    const openId = searchParams.get("open") || null;
 
-    const totalEarned = creator?.totalEarnings || 0
-    const inReviewCount = submissions?.filter((s: any) =>
-        s.status === 'submitted' || s.status === 'in_review'
-    ).length || 0
-
-    const isIncomplete = (sub: any) => {
-        const hasPhotos = sub.photos && sub.photos.length > 0
-        const hasMedia = sub.videoStorageId || sub.audioStorageId || sub.videoUrl || sub.audioUrl
-        return !hasPhotos || !hasMedia
-    }
-
-    const getStatusBadge = (sub: any) => {
-        const s = sub.status?.toLowerCase()
-        const badges: Record<string, { bg: string; text: string }> = {
-            completed: { bg: 'bg-amber-100 text-amber-700', text: 'Completed' },
-            deployed: { bg: 'bg-amber-100 text-amber-700', text: 'Live' },
-            paid: { bg: 'bg-amber-100 text-amber-700', text: 'Paid' },
-            website_generated: { bg: 'bg-amber-100 text-amber-700', text: 'Website Ready' },
-            approved: { bg: 'bg-blue-100 text-blue-700', text: 'Approved' },
-            rejected: { bg: 'bg-red-100 text-red-700', text: 'Revision' },
-            revision: { bg: 'bg-red-100 text-red-700', text: 'Revision' },
-            submitted: { bg: 'bg-yellow-100 text-yellow-700', text: 'In Review' },
-            in_review: { bg: 'bg-yellow-100 text-yellow-700', text: 'In Review' },
+    /** Set or clear query parameters in place, keeping any others (see the comment at the top). */
+    const setParams = (changes: Record<string, string | null>) => {
+        const next = new URLSearchParams(searchParams.toString());
+        for (const [key, value] of Object.entries(changes)) {
+            if (value === null) next.delete(key);
+            else next.set(key, value);
         }
-        if (s === 'draft' || isIncomplete(sub)) {
-            return <span className="px-2 py-1 bg-zinc-100 text-zinc-600 text-[10px] font-bold rounded-md uppercase">Draft</span>
-        }
-        const badge = badges[s || ''] || { bg: 'bg-orange-100 text-orange-700', text: 'Pending' }
-        return <span className={`px-2 py-1 ${badge.bg} text-[10px] font-bold rounded-md uppercase`}>{badge.text}</span>
+        const query = next.toString();
+        window.history.replaceState(null, "", query ? `${pathname}?${query}` : pathname);
+    };
+
+    // Waiting for Clerk, the creator row and the list. A signed-in person with
+    // no creator row gets the empty list rather than a spinner that never
+    // ends; New submission sends them on to /onboarding.
+    if (!isLoaded || !isSignedIn || creator === undefined || (creator !== null && submissions === undefined)) {
+        return <ListSkeleton />;
     }
 
-    const getStatusIcon = (sub: any) => {
-        const s = sub.status?.toLowerCase()
-        if (s === 'completed' || s === 'deployed') return <Globe className="w-5 h-5 text-amber-500" />
-        if (s === 'approved' || s === 'paid' || s === 'website_generated') return <CheckCircle className="w-5 h-5 text-amber-500" />
-        if (s === 'rejected' || s === 'revision') return <AlertCircle className="w-5 h-5 text-red-500" />
-        if (s === 'draft' || isIncomplete(sub)) return <Clock className="w-5 h-5 text-zinc-400" />
-        return <Store className="w-5 h-5 text-orange-500" />
+    const all = submissions ?? [];
+    const counts: Record<Filter, number> = { all: all.length, progress: 0, paid: 0, drafts: 0, rejected: 0 };
+    for (const s of all) {
+        const group = filterOf(stageOf(s.status));
+        if (group) counts[group] += 1;
     }
+    const rows = filter === "all" ? all : all.filter((s) => filterOf(stageOf(s.status)) === filter);
+    const visible = showAll ? rows : rows.slice(0, PAGE_ROWS);
+    const summary = summaryOf(all);
+    // Looked up in the creator's own list: an id that is not theirs is "not found".
+    const opened = openId ? (all.find((s) => s._id === openId) ?? null) : null;
 
-    const getStatusBg = (sub: any) => {
-        const s = sub.status?.toLowerCase()
-        if (s === 'completed' || s === 'deployed') return 'bg-amber-50'
-        if (s === 'approved' || s === 'paid' || s === 'website_generated') return 'bg-amber-50'
-        if (s === 'rejected' || s === 'revision') return 'bg-red-50'
-        if (s === 'draft' || isIncomplete(sub)) return 'bg-zinc-50'
-        return 'bg-orange-50'
-    }
-
-    const formatDate = (timestamp: number) => {
-        return new Date(timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    }
+    const changeFilter = (value: Filter) => {
+        setShowAll(false);
+        setParams({ filter: value === "all" ? null : value });
+    };
 
     return (
-        <div
-            className="editorial min-h-screen pb-24 relative"
-            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
-        >
-            <main className="px-4 py-6">
-                <div className="flex items-center justify-between mb-2">
-                    <Link href="/dashboard" className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-200 text-zinc-600 hover:text-zinc-900 transition-colors">
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
+        <>
+            {all.length === 0 ? (
+                <div className="t-card">
+                    <EmptyState
+                        icon={<Icon icon={Inbox} size={18} />}
+                        title="No submissions yet"
+                        body={`Visit a shop, record the 30-minute interview and submit it here. You earn ${SHARE_PERCENT}% of the price when the owner pays.`}
+                        action={
+                            <ButtonLink variant="primary" href="/submit/info">
+                                <Icon icon={Plus} />
+                                New submission
+                            </ButtonLink>
+                        }
+                    />
                 </div>
-
-                <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-zinc-900 leading-tight">
-                        My <span className="text-amber-500">Submissions</span>
-                    </h1>
-                    <p className="text-zinc-500 text-sm mt-1">Track your business onboardings.</p>
-                </div>
-
-                {/* Stats Cards */}
-                <div className="grid grid-cols-2 gap-3 mb-6">
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">Total Earned</p>
-                        <p className="text-xl font-bold text-zinc-900">₱ {totalEarned.toLocaleString()}</p>
+            ) : (
+                <section className="flex flex-col gap-4" aria-label="Your submissions">
+                    <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
+                        <Chips
+                            label="Filter submissions"
+                            options={FILTERS.map((f) => ({ value: f.value, label: f.label, count: counts[f.value] }))}
+                            value={filter}
+                            onChange={changeFilter}
+                        />
+                        {summary && <p className="t-meta t-num">{summary}</p>}
                     </div>
-                    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                        <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">In Review</p>
-                        <p className="text-xl font-bold text-orange-500">{inReviewCount}</p>
-                    </div>
-                </div>
 
-                {/* Submissions List */}
-                <div className="space-y-3">
-                    {submissions && submissions.length > 0 ? (
-                        submissions.map((sub: any) => (
-                            <Link key={sub._id} href={`/submissions/${sub._id}`}>
-                                <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between hover:border-gray-200 hover:shadow-md transition-all cursor-pointer">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${getStatusBg(sub)}`}>
-                                            {getStatusIcon(sub)}
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-zinc-900 text-sm">{sub.businessName}</h3>
-                                            <p className="text-xs text-zinc-500 truncate max-w-[140px]">
-                                                {sub.city || 'Location N/A'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-col items-end gap-1">
-                                        {getStatusBadge(sub)}
-                                        <span className="text-[10px] text-zinc-400 font-medium">
-                                            {sub._creationTime ? formatDate(sub._creationTime) : ''}
-                                        </span>
-                                    </div>
-                                </div>
-                            </Link>
-                        ))
-                    ) : (
-                        <div className="text-center py-12">
-                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <Store className="w-8 h-8 text-gray-300" />
-                            </div>
-                            <h3 className="text-zinc-900 font-bold mb-1">No submissions yet</h3>
-                            <p className="text-zinc-500 text-sm">Start by adding a new business.</p>
-                        </div>
-                    )}
-                </div>
-            </main>
-
-            {/* Floating New Entry FAB */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-                <Link
-                    href="/submit/info"
-                    className="group flex items-center gap-0 bg-amber-500 rounded-full text-white shadow-lg shadow-amber-500/40 hover:shadow-xl hover:shadow-amber-500/50 transition-all duration-300 ease-out overflow-hidden"
-                >
-                    <div className="w-14 h-14 flex items-center justify-center shrink-0">
-                        <Plus className="w-8 h-8 group-hover:rotate-90 transition-transform duration-300" />
+                    <div className="t-card overflow-hidden">
+                        {rows.length > 0 ? (
+                            <>
+                                <SubmissionTableHead />
+                                <List>
+                                    {visible.map((s) => (
+                                        <SubmissionRow
+                                            key={s._id}
+                                            s={s}
+                                            now={now}
+                                            selected={s._id === openId}
+                                            onOpen={() => setParams({ open: s._id })}
+                                        />
+                                    ))}
+                                </List>
+                                {rows.length > PAGE_ROWS && (
+                                    <button type="button" className="t-showall" aria-expanded={showAll} onClick={() => setShowAll((v) => !v)}>
+                                        {showAll ? "Show less" : `Show all ${rows.length}`}
+                                    </button>
+                                )}
+                            </>
+                        ) : (
+                            filter !== "all" && (
+                                <EmptyState
+                                    icon={<Icon icon={Inbox} size={18} />}
+                                    title={EMPTY_FILTER[filter].title}
+                                    body={EMPTY_FILTER[filter].body}
+                                    action={<Button onClick={() => changeFilter("all")}>Show all submissions</Button>}
+                                />
+                            )
+                        )}
                     </div>
-                    <span className="max-w-0 overflow-hidden whitespace-nowrap font-bold text-sm group-hover:max-w-[120px] group-hover:pr-5 transition-all duration-300 ease-out">
-                        Add Submission
-                    </span>
-                </Link>
-            </div>
-        </div>
-    )
+
+                    <p className="t-meta">
+                        {`You earn ${SHARE_PERCENT}% of each website's price. It moves to your `}
+                        <Link className="t-link" href="/wallet">
+                            Wallet
+                        </Link>
+                        {" when the owner pays. Free promo sites still earn your share."}
+                    </p>
+                </section>
+            )}
+
+            <SubmissionDrawer open={openId !== null} submission={opened} onClose={() => setParams({ open: null })} now={now} />
+        </>
+    );
 }

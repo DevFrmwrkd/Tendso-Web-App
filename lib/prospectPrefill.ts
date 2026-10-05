@@ -4,7 +4,7 @@
  * Plain TS with no Convex imports so both the client form and (if ever needed)
  * server code can use it. See app/submit/info/page.tsx, which reads the
  * ?prospectLeadId=&businessName=&phone=&address=&city=&category= params that
- * app/leads/[leadId]/page.tsx and app/leads/page.tsx build.
+ * the lead drawer on /leads builds (app/leads/_components/leadUtils.ts).
  */
 
 /**
@@ -70,7 +70,7 @@ export function toLocalPhDigits(raw?: string | null): string {
  * Convex ids are 32-char base32. A Google place_id ("ChIJ…") or a hand-edited
  * string is not, and would blow up the v.id('leads') validator server-side —
  * crashing step 1 instead of degrading. Shape-check before sending.
- * Mirrors looksLikeConvexId in app/leads/[leadId]/page.tsx.
+ * The lead drawer on /leads imports it from here.
  */
 export function looksLikeConvexId(s: string | null | undefined): boolean {
     return !!s && /^[0-9a-z]{20,40}$/.test(s);

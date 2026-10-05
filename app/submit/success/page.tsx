@@ -1,23 +1,54 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { useUser } from "@clerk/nextjs"
 import { useQuery } from "convex/react"
+import { Check } from "lucide-react"
+
 import { api } from "@/convex/_generated/api"
-import { Id } from "@/convex/_generated/dataModel"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import type { Id } from "@/convex/_generated/dataModel"
+import { ButtonLink, Icon, Loading, PageHeader, Skeleton, Status, formatMoney, submissionStatus } from "@/components/r1"
+
+import { DRAFT_ID_KEY, errorText, firstNameOf } from "../_components/flow"
+import { useDraftId } from "../_components/useDraftId"
+
+type Transcription = { state: "idle" } | { state: "running" } | { state: "done" } | { state: "error"; message: string }
+
+const noSubscribe = () => () => {}
+
+function NextStep({ n, title, children }: { n: number; title: ReactNode; children: ReactNode }) {
+    return (
+        <li className="flex items-start gap-3.5">
+            <span className="inline-flex h-6 w-6 flex-none items-center justify-center rounded-full bg-r1-fill text-xs font-semibold text-r1-ink-2">{n}</span>
+            <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="text-sm font-medium text-r1-ink">{title}</span>
+                {children}
+            </div>
+        </li>
+    )
+}
 
 export default function SubmissionSuccessPage() {
     const router = useRouter()
     const { user, isLoaded, isSignedIn } = useUser()
+    // False on the server and while hydrating, when sessionStorage cannot be read yet.
+    const hydrated = useSyncExternalStore(noSubscribe, () => true, () => false)
 
+    // Load submission ID from session, once: keep it here, then clear it so
+    // the next New submission starts fresh.
+    const storedId = useDraftId()
     const [submissionId, setSubmissionId] = useState<string | null>(null)
-    const [transcribing, setTranscribing] = useState(false)
-    const [transcriptionComplete, setTranscriptionComplete] = useState(false)
-    const [transcriptionError, setTranscriptionError] = useState<string | null>(null)
+    if (storedId && submissionId !== storedId) {
+        setSubmissionId(storedId)
+    }
+    useEffect(() => {
+        // Clear session storage so user can start fresh next time
+        if (submissionId) sessionStorage.removeItem(DRAFT_ID_KEY)
+    }, [submissionId])
+
+    const [transcription, setTranscription] = useState<Transcription>({ state: "idle" })
+    const transcriptionRef = useRef<Transcription["state"]>("idle")
 
     // Get creator from Convex
     const creator = useQuery(
@@ -38,195 +69,134 @@ export default function SubmissionSuccessPage() {
         }
     }, [isLoaded, isSignedIn, router])
 
-    // Load submission ID from session
-    useEffect(() => {
-        const id = sessionStorage.getItem('current_submission_id')
-        if (id) {
-            setSubmissionId(id)
-            // Clear session storage so user can start fresh next time
-            sessionStorage.removeItem('current_submission_id')
-        }
-    }, [])
-
-    // Trigger transcription when submission is loaded
+    // Trigger transcription when submission is loaded. Not again while one is
+    // running or after it succeeded; after a failure, the next change to the
+    // submission tries again (as before).
     useEffect(() => {
         const hasMedia = submission?.videoStorageId || submission?.audioStorageId || submission?.videoUrl || submission?.audioUrl
-        if (submission && hasMedia && !transcribing && !transcriptionComplete) {
-            triggerTranscription()
-        }
-    }, [submission])
+        if (!submissionId || !submission || !hasMedia) return
+        if (transcriptionRef.current === "running" || transcriptionRef.current === "done") return
+        transcriptionRef.current = "running"
 
-    const triggerTranscription = async () => {
-        if (!submissionId || !submission) return
+        const triggerTranscription = async () => {
+            setTranscription({ state: "running" })
+            try {
+                // Call transcription API with storage info or R2 URLs
+                const res = await fetch("/api/transcribe", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        submissionId: submissionId,
+                        useConvexStorage: !!(submission.videoStorageId || submission.audioStorageId),
+                        videoStorageId: submission.videoStorageId,
+                        audioStorageId: submission.audioStorageId,
+                        videoUrl: submission.videoUrl,
+                        audioUrl: submission.audioUrl,
+                    }),
+                })
 
-        try {
-            setTranscribing(true)
-            setTranscriptionError(null)
+                const data = await res.json()
 
-            // For Convex storage, we need to get the actual URL
-            // The transcription API will need to handle Convex storage IDs
-            // For now, we'll skip transcription if using Convex storage
-            // This can be enhanced later with proper Convex file URL resolution
+                if (!res.ok) {
+                    throw new Error(data.error || "Transcription failed")
+                }
 
-            const hasMedia = submission.videoStorageId || submission.audioStorageId || submission.videoUrl || submission.audioUrl
-            if (!hasMedia) {
-                setTranscribing(false)
-                return
+                transcriptionRef.current = "done"
+                setTranscription({ state: "done" })
+            } catch (err) {
+                console.error("Transcription error:", err)
+                transcriptionRef.current = "error"
+                setTranscription({ state: "error", message: errorText(err, "Failed to transcribe audio") })
             }
-
-            // Call transcription API with storage info or R2 URLs
-            const res = await fetch('/api/transcribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    submissionId: submissionId,
-                    useConvexStorage: !!(submission.videoStorageId || submission.audioStorageId),
-                    videoStorageId: submission.videoStorageId,
-                    audioStorageId: submission.audioStorageId,
-                    videoUrl: submission.videoUrl,
-                    audioUrl: submission.audioUrl,
-                }),
-            })
-
-            const data = await res.json()
-
-            if (!res.ok) {
-                throw new Error(data.error || 'Transcription failed')
-            }
-
-            setTranscriptionComplete(true)
-        } catch (err: any) {
-            console.error('Transcription error:', err)
-            setTranscriptionError(err.message || 'Failed to transcribe audio')
-        } finally {
-            setTranscribing(false)
         }
-    }
-
-    // Determine payout based on interview type (check both R2 URLs and storage IDs)
-    const hasVideo = submission?.videoUrl || submission?.videoStorageId
-    const hasAudio = submission?.audioUrl || submission?.audioStorageId
-    const payout = hasVideo ? 500 : (hasAudio ? 300 : null)
+        void triggerTranscription()
+    }, [submission, submissionId])
 
     // Loading state - wait for submission to load too
-    if (!isLoaded || !isSignedIn || creator === undefined || (submissionId && submission === undefined)) {
+    if (!hydrated || !isLoaded || !isSignedIn || creator === undefined || (submissionId && submission === undefined)) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
-            </div>
+            <Loading label="Loading" className="flex max-w-[640px] flex-col gap-8">
+                <Skeleton width={48} height={48} round />
+                <div className="flex flex-col gap-3">
+                    <Skeleton width={260} height={36} />
+                    <Skeleton width="70%" height={14} />
+                </div>
+                <div className="t-card t-card-pad flex flex-col gap-4">
+                    <Skeleton width="50%" height={16} />
+                    <Skeleton height={120} />
+                </div>
+            </Loading>
         )
     }
 
+    const businessName = submission?.businessName
+    const firstName = firstNameOf(submission?.ownerName)
+    const who = firstName || "the owner"
+    const Who = firstName || "The owner"
+    const ownerPays = typeof submission?.amount === "number" ? formatMoney(submission.amount) : null
+    const payout = typeof submission?.creatorPayout === "number" ? formatMoney(submission.creatorPayout) : null
+
     return (
-        <div
-            className="editorial min-h-screen flex flex-col items-center justify-center p-6"
-            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
-        >
-            <div className="max-w-md w-full text-center space-y-8">
-                {/* Success Animation/Icon */}
-                <div className="relative">
-                    <div className="w-24 h-24 bg-amber-100 rounded-full mx-auto flex items-center justify-center animate-in zoom-in duration-500">
-                        <svg className="w-12 h-12 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                </div>
+        <div className="flex max-w-[640px] flex-col gap-8">
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-r1-ink text-r1-paper">
+                <Icon icon={Check} size={24} />
+            </span>
 
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Submission Received!</h1>
-                    <p className="text-gray-500 text-lg">
-                        Great job! We've received your submission and will start processing it right away.
-                    </p>
-                </div>
+            <PageHeader
+                title="Sent for review"
+                sub={businessName ? `Usually 48–72 hours. Nothing more is needed from ${businessName}.` : "Usually 48–72 hours."}
+            />
 
-                {/* Info Card */}
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-                    <div className="pb-4 border-b border-gray-100">
-                        <p className="text-sm text-gray-500 uppercase font-medium tracking-wide">Expected Payout</p>
-                        <p className="text-3xl font-bold text-amber-600 mt-1">
-                            ₱{payout || '---'}
-                        </p>
-                    </div>
-
-                    <div className="space-y-3 text-left">
-                        {/* Transcription Status */}
-                        {(transcribing || transcriptionComplete || transcriptionError) && (
-                            <div className={`flex items-start gap-3 p-3 rounded-lg ${transcribing ? 'bg-blue-50' :
-                                transcriptionComplete ? 'bg-amber-50' :
-                                    'bg-red-50'
-                                }`}>
-                                <div className="flex-shrink-0 mt-0.5">
-                                    {transcribing && (
-                                        <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
-                                    )}
-                                    {transcriptionComplete && (
-                                        <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    )}
-                                    {transcriptionError && (
-                                        <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    )}
-                                </div>
-                                <div className="flex-1">
-                                    <p className={`text-sm font-medium ${transcribing ? 'text-blue-900' :
-                                        transcriptionComplete ? 'text-amber-900' :
-                                            'text-red-900'
-                                        }`}>
-                                        {transcribing && 'AI is transcribing your interview...'}
-                                        {transcriptionComplete && 'Interview transcribed successfully!'}
-                                        {transcriptionError && 'Transcription failed'}
-                                    </p>
-                                    {transcriptionError && (
-                                        <p className="text-xs text-red-600 mt-1">{transcriptionError}</p>
-                                    )}
-                                </div>
+            <section className="t-card t-card-pad flex flex-col gap-5" aria-labelledby="ns-next-h">
+                {submission && (
+                    <>
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="flex min-w-0 flex-col gap-0.5">
+                                <span className="text-[15px] font-semibold text-r1-ink">{submission.businessName}</span>
+                                <span className="t-meta">{[submission.businessType, submission.city].filter(Boolean).join(" · ")}</span>
                             </div>
+                            <Status {...submissionStatus(submission.status, "creator")} />
+                        </div>
+                        <hr className="t-divider" />
+                    </>
+                )}
+                <h2 id="ns-next-h" className="t-h2">
+                    What happens next
+                </h2>
+                <ol className="m-0 flex list-none flex-col gap-4 p-0">
+                    <NextStep n={1} title="We build the site">
+                        <span className="t-meta">The interview is transcribed now. We write the site from it, pick a design, and check it.</span>
+                        {transcription.state === "running" && <Status tone="progress" word="Transcribing the interview" className="pt-1" />}
+                        {transcription.state === "done" && <Status tone="done" word="Interview transcribed" className="pt-1" />}
+                        {transcription.state === "error" && (
+                            <>
+                                <Status tone="bad" word="Transcription failed" className="pt-1" />
+                                <span className="t-error">{transcription.message}</span>
+                            </>
                         )}
+                    </NextStep>
+                    <NextStep n={2} title={`It goes live, and ${who} pays`}>
+                        <span className="t-meta t-num">
+                            {Who} gets the link and pays {ownerPays ? `${ownerPays} ` : ""}once, by bank transfer.
+                        </span>
+                    </NextStep>
+                    <NextStep n={3} title={payout ? `You get ${payout}` : "You get paid"}>
+                        <span className="t-meta">It lands in your Wallet the day the payment is confirmed. We notify you at each step.</span>
+                    </NextStep>
+                </ol>
+            </section>
 
-                        <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <span className="text-xs font-bold">1</span>
-                            </div>
-                            <p className="text-sm text-gray-600">
-                                We'll review the submission and generate the website within <span className="font-semibold text-gray-900">24–48 hours</span>.
-                            </p>
-                        </div>
-                        <div className="flex items-start gap-3">
-                            <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                <span className="text-xs font-bold">2</span>
-                            </div>
-                            <p className="text-sm text-gray-600">
-                                You'll receive your payout once the client pays the service fee.
-                            </p>
-                        </div>
-                    </div>
-
-                    {submissionId && (
-                        <div className="pt-4 border-t border-gray-100">
-                            <p className="text-xs text-gray-400">
-                                Submission ID: <span className="font-mono">{submissionId.slice(0, 8)}...</span>
-                            </p>
-                        </div>
-                    )}
+            <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap gap-2">
+                    <ButtonLink variant="primary" href="/submissions">
+                        Track it in Submissions
+                    </ButtonLink>
+                    <ButtonLink href="/dashboard">Go to Home</ButtonLink>
+                    <ButtonLink variant="ghost" href="/submit/info">
+                        Start another submission
+                    </ButtonLink>
                 </div>
-
-                {/* Action Buttons */}
-                <div className="space-y-3">
-                    <Link href="/dashboard">
-                        <Button className="w-full h-12 bg-gray-900 hover:bg-gray-800 text-white font-semibold rounded-xl text-md shadow-lg shadow-gray-900/20">
-                            Back to Dashboard
-                        </Button>
-                    </Link>
-
-                    <Link href="/submit/info">
-                        <Button variant="ghost" className="w-full text-gray-600 hover:text-gray-900">
-                            Submit Another Business
-                        </Button>
-                    </Link>
-                </div>
+                {submissionId && <p className="t-meta">Reference <span className="t-mono">{submissionId.slice(0, 8)}</span></p>}
             </div>
         </div>
     )

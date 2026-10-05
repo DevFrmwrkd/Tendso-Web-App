@@ -1,62 +1,51 @@
 "use client";
 
 /**
- * Find Local Business modal — opened from the /leads action door.
+ * Find a local business (board: Leads, "Find a local business" dialog), opened
+ * from the Leads header and its empty state, and by /leads?find=1 (the Leads
+ * map's "Find more businesses"). The page keeps `open` in the URL; `onClose`
+ * takes ?find= off it.
  *
- * Two-state UI per WEB-BUILD-CRM.md (Find Local Business modal section):
- *   Resting:  category input + radius pills + "Find Businesses" Door
- *   Active:   3-stage progress panel (locating → searching → saving)
- *             with a pulsing emerald halo + step list
+ * Two states, per WEB-BUILD-CRM.md (Find Local Business modal section):
+ *   Form:  what kind of business + how far around you + "Find businesses"
+ *   Run:   the 3-step progress (locating → searching → saving) and the
+ *          board's one way out, "Stop searching"
  *
  * On submit:
  *   1. phase = 'locating' → navigator.geolocation.getCurrentPosition
  *   2. phase = 'searching' → api.outscraper.scrapeNearby(...)
  *   3. phase = 'saving' (hold ~350ms so the user sees the final tick flip)
- *   4. sonner toast with `{total / inserted / skipped}` summary
- *   5. auto-close + reset to 'idle'
+ *   4. close, say how many were found, and open the discover map with them
+ *
+ * The search is always around the creator's own position: the discover map it
+ * lands on measures every pin from there too. (The board's "Where?" area chips
+ * were sample data for one city, so they are not built.)
  *
  * Error handling mirrors the spec's error-message matrix.
  */
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAction } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { Check, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useId, useRef, useState } from "react";
 import { toast } from "sonner";
-import {
-    X, Search, Compass, Loader2, MapPin, Globe, Check, AlertCircle,
-} from "lucide-react";
+
+import { Button, Dialog, Field, Icon, Input, Segmented } from "@/components/r1";
+import { api } from "@/convex/_generated/api";
 
 type Phase = "idle" | "locating" | "searching" | "saving";
+type ActivePhase = Exclude<Phase, "idle">;
 
 // Field-test fix #3 (2026-06-04): added 0.5km (rendered as "500 m") for
-// hyper-local searches. Mobile defaults to 1km so that's the new web
-// default too — see useState below.
+// hyper-local searches. Mobile defaults to 1km so that's the web default
+// too — see useState below.
 const RADIUS_OPTIONS = [0.5, 1, 3, 5, 10] as const;
 
-const PHASE_META: Record<Exclude<Phase, "idle">, { caption: string; doorLabel: string; hint: string }> = {
-    locating: {
-        caption: "Step 1 of 3",
-        doorLabel: "Finding where you are…",
-        hint: "Reading GPS so we search the right neighborhood.",
-    },
-    searching: {
-        caption: "Step 2 of 3",
-        doorLabel: "Looking for nearby businesses…",
-        hint: "Checking Google Maps for businesses around you.",
-    },
-    saving: {
-        caption: "Step 3 of 3",
-        doorLabel: "Almost ready — saving results…",
-        hint: "Saving the ones nobody on the team has met yet.",
-    },
-};
+const STEP_ORDER: ActivePhase[] = ["locating", "searching", "saving"];
 
-const STEP_ORDER: Array<Exclude<Phase, "idle">> = ["locating", "searching", "saving"];
-
-const STEP_LABELS: Record<Exclude<Phase, "idle">, { title: string; sub: string }> = {
-    locating: { title: "Pinning your spot", sub: "Reading GPS so we search the right neighborhood." },
-    searching: { title: "Scanning the map", sub: "Checking Google Maps for businesses around you." },
-    saving: { title: "Adding to your list", sub: "Saving the ones nobody on the team has met yet." },
+const STEPS: Record<ActivePhase, { title: string; sub: string }> = {
+    locating: { title: "Pinning your spot", sub: "Reading your location so we search the right neighborhood." },
+    searching: { title: "Scanning the map", sub: "Checking Google Maps for shops around you." },
+    saving: { title: "Adding to your list", sub: "Keeping only the ones nobody on the team has met yet." },
 };
 
 function classifyError(message: string): string {
@@ -73,45 +62,45 @@ function classifyError(message: string): string {
     return `Search failed — ${message}`;
 }
 
-export default function FindLocalBusinessModal({
-    open, onClose,
-}: {
-    open: boolean;
-    onClose: () => void;
-}) {
+/** Sub-1km options read "500 m" rather than "0.5 km", like mobile. */
+function radiusLabel(r: number): string {
+    return r < 1 ? `${Math.round(r * 1000)} m` : `${r} km`;
+}
+
+export default function FindLocalBusinessModal({ open, onClose }: { open: boolean; onClose: () => void }) {
     const router = useRouter();
     const scrapeNearby = useAction(api.outscraper.scrapeNearby);
+    const formId = useId();
 
+    // What to look for and how far stay as they were between openings; the
+    // phase and any location error start over each time (see close()).
     const [category, setCategory] = useState("");
     const [radius, setRadius] = useState<number>(1);
     const [phase, setPhase] = useState<Phase>("idle");
     const [permissionError, setPermissionError] = useState<string | null>(null);
-    const activeRef = useRef(false);
+    // One number per search. Stopping, or leaving the page, moves it on, and an
+    // answer for an older number is dropped: no late jump to the map.
+    const runRef = useRef(0);
+    const busyRef = useRef(false);
 
-    // Reset state every time the modal opens.
     useEffect(() => {
-        if (open) {
-            setPhase("idle");
-            setPermissionError(null);
-            activeRef.current = false;
-        }
-    }, [open]);
-
-    // ESC closes when idle.
-    useEffect(() => {
-        if (!open) return;
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && phase === "idle") onClose();
+        const runs = runRef;
+        return () => {
+            runs.current += 1;
         };
-        window.addEventListener("keydown", handler);
-        return () => window.removeEventListener("keydown", handler);
-    }, [open, phase, onClose]);
+    }, []);
 
-    if (!open) return null;
+    const close = () => {
+        setPhase("idle");
+        setPermissionError(null);
+        onClose();
+    };
 
     const handleSubmit = async () => {
-        if (activeRef.current) return;
-        activeRef.current = true;
+        if (busyRef.current) return;
+        busyRef.current = true;
+        const run = ++runRef.current;
+        const stale = () => runRef.current !== run;
         setPermissionError(null);
 
         // Phase 1 — locate
@@ -127,29 +116,30 @@ export default function FindLocalBusinessModal({
                 { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60_000 },
             );
         });
+        if (stale()) return;
         if (!coords) {
-            setPermissionError(
-                "Please grant location permission so we can search businesses near your current position.",
-            );
+            setPermissionError("Please grant location permission so we can search businesses near your current position.");
             setPhase("idle");
-            activeRef.current = false;
+            busyRef.current = false;
             return;
         }
 
         // Phase 2 — search via Outscraper
         setPhase("searching");
+        const queryStr = category.trim() || "businesses";
         try {
-            const queryStr = category.trim() || "businesses";
             const res = await scrapeNearby({
                 query: queryStr,
                 location: `${coords.lat.toFixed(6)},${coords.lng.toFixed(6)}`,
                 radiusKm: radius,
                 limit: 20,
             });
+            if (stale()) return;
 
             // Phase 3 — saving (hold so the user sees the final tick flip)
             setPhase("saving");
             await new Promise((r) => setTimeout(r, 350));
+            if (stale()) return;
 
             // Per the 2026-05-29 evening spec update: pass the raw
             // `businesses` array via URL `data` param so the discover map
@@ -157,387 +147,162 @@ export default function FindLocalBusinessModal({
             // the silently-failing DB write path — the map shows pins even
             // if `listScrapedLeads` returns empty. See WEB-BUILD-CRM.md
             // "Map B — Find Local Business" for the new data flow.
+            busyRef.current = false;
+            close();
+            const found = res.businesses ? res.businesses.length : res.total;
+            if (found > 0) toast.success(`Found ${found} ${found === 1 ? "business" : "businesses"} near you`);
+            const businessesParam = res.businesses ? `&data=${encodeURIComponent(JSON.stringify(res.businesses))}` : "";
+            router.push(`/leads/discover?category=${encodeURIComponent(queryStr)}&radiusKm=${radius}${businessesParam}`);
+        } catch (err) {
+            if (stale()) return;
+            toast.error(classifyError(err instanceof Error ? err.message : String(err)));
             setPhase("idle");
-            activeRef.current = false;
-            onClose();
-            const businessesParam = (res as any).businesses
-                ? `&data=${encodeURIComponent(JSON.stringify((res as any).businesses))}`
-                : "";
-            const discoverHref =
-                `/leads/discover?category=${encodeURIComponent(queryStr)}&radiusKm=${radius}${businessesParam}`;
-            router.push(discoverHref);
-        } catch (err: any) {
-            const message = err?.message ?? String(err);
-            toast.error(classifyError(message));
-            setPhase("idle");
-            activeRef.current = false;
+            busyRef.current = false;
         }
     };
 
+    // The search itself still finishes on the server; this only stops waiting
+    // for its answer and goes back to the form.
+    const stopSearching = () => {
+        runRef.current += 1;
+        busyRef.current = false;
+        setPhase("idle");
+    };
+
     const active = phase !== "idle";
-    const queryPreview = category.trim() || "businesses";
+    const stepIndex = active ? STEP_ORDER.indexOf(phase) : 0;
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            style={{ background: "rgba(27,28,36,0.55)" }}
-            onClick={() => {
-                if (phase === "idle") onClose();
+        <Dialog
+            open={open}
+            // Esc and a click outside close the form. A running search stays
+            // open until it finishes or "Stop searching" is pressed.
+            onClose={() => {
+                if (!active) close();
             }}
+            title={active ? `Looking for ${category.trim() || "businesses"} near you` : "Find a local business"}
+            footer={
+                active ? (
+                    <Button variant="ghost" onClick={stopSearching}>
+                        Stop searching
+                    </Button>
+                ) : (
+                    <>
+                        <Button onClick={close}>Cancel</Button>
+                        <Button variant="primary" type="submit" form={formId}>
+                            <Icon icon={Search} />
+                            Find businesses
+                        </Button>
+                    </>
+                )
+            }
         >
-            <div
-                className="w-full max-w-md rounded-3xl overflow-hidden"
-                style={{
-                    background: "var(--ed-paper-3, #FCFAF5)",
-                    border: "1px solid var(--ed-rule, #E0D8C9)",
-                    boxShadow: "0 12px 24px rgba(0,0,0,0.12)",
-                }}
-                onClick={(e) => e.stopPropagation()}
-                role="dialog"
-                aria-modal="true"
-            >
-                {/* Header */}
-                <div className="flex items-start justify-between px-5 pt-5 pb-3">
-                    <div>
-                        <div
-                            className="text-[10px] mb-1"
-                            style={{
-                                fontFamily: "var(--ed-mono)",
-                                letterSpacing: "0.14em",
-                                textTransform: "uppercase",
-                                color: "var(--ed-ink-3)",
-                            }}
-                        >
-                            {active ? "Hang tight" : "Discover"}
-                        </div>
-                        <h2
-                            style={{
-                                fontFamily: "var(--ed-serif)",
-                                fontSize: 26,
-                                lineHeight: 1.15,
-                                color: "var(--ed-ink)",
-                                margin: 0,
-                            }}
-                        >
-                            {active ? (
-                                <>
-                                    Looking for{" "}
-                                    <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>
-                                        {queryPreview}
-                                    </em>{" "}
-                                    near you.
-                                </>
-                            ) : (
-                                <>
-                                    Find your{" "}
-                                    <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>
-                                        next interview.
-                                    </em>
-                                </>
-                            )}
-                        </h2>
+            {active ? (
+                <RunPanel index={stepIndex} />
+            ) : (
+                <form
+                    id={formId}
+                    className="flex flex-col gap-4"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        void handleSubmit();
+                    }}
+                >
+                    <p>We search Google Maps around you and add up to 20 shops that nobody on the team has interviewed yet.</p>
+                    <Field label="What kind of business?" help="Leave it empty to find any kind of shop.">
+                        <Input
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            placeholder="restaurants, barbershops, sari-sari…"
+                            autoComplete="off"
+                            enterKeyHint="search"
+                        />
+                    </Field>
+                    <div className="t-field">
+                        {/* The caption on screen; the button group carries the same name for screen readers. */}
+                        <span className="t-field-label" aria-hidden="true">
+                            How far around you?
+                        </span>
+                        <Segmented
+                            label="How far around you?"
+                            options={RADIUS_OPTIONS.map((r) => ({ value: String(r), label: radiusLabel(r) }))}
+                            value={String(radius)}
+                            onChange={(v) => setRadius(Number(v))}
+                            className="w-full [&>button]:flex-1 [&>button]:px-2"
+                        />
+                        <p className="t-help">We use your phone&apos;s location, so search from where you are.</p>
                     </div>
-                    {phase === "idle" && (
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            aria-label="Close"
-                            className="w-8 h-8 rounded-full inline-flex items-center justify-center"
-                            style={{ background: "var(--ed-paper-2)", color: "var(--ed-ink-2)" }}
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                    {permissionError && (
+                        <p role="alert" className="t-error">
+                            {permissionError}
+                        </p>
                     )}
-                </div>
-
-                {/* Body */}
-                <div className="px-5 pb-5">
-                    {active ? (
-                        <ActivePanel phase={phase} />
-                    ) : (
-                        <>
-                            <p className="text-[13px] mb-4" style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}>
-                                Pick the kind of business you want to talk to. We&apos;ll use your GPS and pull up to 20 nearby spots that nobody on the team has interviewed yet — go knock on a door.
-                            </p>
-
-                            {/* Category */}
-                            <div className="mb-4">
-                                <div className="relative">
-                                    <Search
-                                        className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                                        style={{ color: "var(--ed-ink-3)" }}
-                                    />
-                                    <input
-                                        type="text"
-                                        value={category}
-                                        onChange={(e) => setCategory(e.target.value)}
-                                        placeholder="restaurants, barbershops, sari-sari…"
-                                        className="w-full pl-10 pr-4 py-3 text-[14px] focus:outline-none"
-                                        style={{
-                                            background: "var(--ed-paper)",
-                                            border: "1px solid var(--ed-rule)",
-                                            borderRadius: 12,
-                                            color: "var(--ed-ink)",
-                                            fontFamily: "var(--ed-sans)",
-                                        }}
-                                    />
-                                </div>
-                                <div
-                                    className="text-[10px] mt-1.5 px-1"
-                                    style={{
-                                        fontFamily: "var(--ed-mono)",
-                                        letterSpacing: "0.12em",
-                                        textTransform: "uppercase",
-                                        color: "var(--ed-ink-3)",
-                                    }}
-                                >
-                                    What kind of business?
-                                </div>
-                            </div>
-
-                            {/* Radius */}
-                            <div className="mb-4">
-                                <div className="grid grid-cols-5 gap-2">
-                                    {RADIUS_OPTIONS.map((r) => {
-                                        const isActive = radius === r;
-                                        // Sub-1km options render as "500 m" rather than "0.5 km"
-                                        // for readability — matches mobile's label.
-                                        const isSubKm = r < 1;
-                                        const label = isSubKm ? String(Math.round(r * 1000)) : String(r);
-                                        const unit = isSubKm ? 'm' : 'km';
-                                        return (
-                                            <button
-                                                key={r}
-                                                type="button"
-                                                onClick={() => setRadius(r)}
-                                                className="px-3 py-2.5 rounded-xl text-center transition-colors"
-                                                style={{
-                                                    background: isActive ? "var(--ed-ink)" : "var(--ed-paper-2)",
-                                                    color: isActive ? "var(--ed-paper-3)" : "var(--ed-ink)",
-                                                    border: `1px solid ${isActive ? "var(--ed-ink)" : "var(--ed-rule)"}`,
-                                                }}
-                                            >
-                                                <div style={{ fontFamily: "var(--ed-serif)", fontSize: 22, lineHeight: 1.05 }}>
-                                                    {label}
-                                                </div>
-                                                <div
-                                                    className="text-[9px] mt-0.5"
-                                                    style={{
-                                                        fontFamily: "var(--ed-mono)",
-                                                        letterSpacing: "0.12em",
-                                                        textTransform: "uppercase",
-                                                        opacity: 0.7,
-                                                    }}
-                                                >
-                                                    {unit}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <div
-                                    className="text-[10px] mt-1.5 px-1"
-                                    style={{
-                                        fontFamily: "var(--ed-mono)",
-                                        letterSpacing: "0.12em",
-                                        textTransform: "uppercase",
-                                        color: "var(--ed-ink-3)",
-                                    }}
-                                >
-                                    Radius
-                                </div>
-                            </div>
-
-                            {permissionError && (
-                                <div
-                                    className="rounded-xl px-3 py-2.5 mb-4 flex items-start gap-2 text-[12px]"
-                                    style={{
-                                        background: "var(--ed-status-lost-bg, #F3D7CF)",
-                                        color: "var(--ed-danger)",
-                                        border: "1px solid var(--ed-rule)",
-                                    }}
-                                >
-                                    <AlertCircle className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
-                                    <span>{permissionError}</span>
-                                </div>
-                            )}
-
-                            <button
-                                type="button"
-                                onClick={handleSubmit}
-                                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-[14px] font-semibold mb-2"
-                                style={{
-                                    background: "var(--ed-accent-solid, #E4B05E)",
-                                    color: "#fff",
-                                }}
-                            >
-                                <Compass className="w-4 h-4" />
-                                Find Businesses
-                            </button>
-                            <button
-                                type="button"
-                                onClick={onClose}
-                                className="w-full text-center text-[12px] py-2"
-                                style={{ color: "var(--ed-ink-3)" }}
-                            >
-                                Cancel
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-        </div>
+                </form>
+            )}
+        </Dialog>
     );
 }
 
-// ── Active panel — 3-stage progress UI ────────────────────────────────────
-function ActivePanel({ phase }: { phase: Exclude<Phase, "idle"> }) {
-    const meta = PHASE_META[phase];
+// ── Run state — the 3-step progress ────────────────────────────────────────
+function RunPanel({ index }: { index: number }) {
     return (
-        <>
-            <p className="text-[13px] mb-5" style={{ color: "var(--ed-ink-2)", lineHeight: 1.5 }}>
-                Hold on — this usually takes 5–15 seconds depending on your area. Please don&apos;t close the page.
-            </p>
-
-            {/* Pulsing halo */}
-            <div className="flex items-center justify-center mb-5">
-                <div className="relative">
-                    {/* Outer halo (pulsing) */}
-                    <div
-                        className="absolute inset-0 rounded-full leads-modal-halo"
-                        style={{
-                            background: "var(--ed-accent-solid, #E4B05E)",
-                            opacity: 0.25,
-                            transform: "scale(1)",
-                            animation: "leadsModalHalo 1800ms ease-in-out infinite",
-                            zIndex: 0,
-                        }}
-                    />
-                    {/* Inner solid disc with icon */}
-                    <div
-                        className="relative w-16 h-16 rounded-full inline-flex items-center justify-center"
-                        style={{
-                            background: "var(--ed-accent-solid, #E4B05E)",
-                            color: "#fff",
-                            zIndex: 1,
-                        }}
-                    >
-                        {phase === "locating" && <MapPin className="w-7 h-7" />}
-                        {phase === "searching" && <Search className="w-7 h-7" />}
-                        {phase === "saving" && <Globe className="w-7 h-7" />}
-                    </div>
-                </div>
+        <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5" aria-live="polite">
+                <span className="t-label">Step {index + 1} of 3</span>
+                <p>This usually takes 5 to 15 seconds. Keep this open.</p>
             </div>
-
-            {/* Step list */}
-            <ol className="space-y-2 mb-4" aria-live="polite">
-                {STEP_ORDER.map((step, idx) => {
-                    const currentIdx = STEP_ORDER.indexOf(phase);
-                    const isDone = idx < currentIdx;
-                    const isActive = idx === currentIdx;
-                    const labels = STEP_LABELS[step];
+            <div className="h-1 overflow-hidden rounded-full bg-r1-fill" aria-hidden="true">
+                <div
+                    className="h-1 rounded-full bg-r1-ink transition-[width] duration-300 motion-reduce:transition-none"
+                    style={{ width: `${Math.round(((index + 1) / STEP_ORDER.length) * 100)}%` }}
+                />
+            </div>
+            <ol className="m-0 flex list-none flex-col gap-1 p-0">
+                {STEP_ORDER.map((step, i) => {
+                    const state = i < index ? "done" : i === index ? "now" : "next";
                     return (
-                        <li
-                            key={step}
-                            aria-current={isActive ? "step" : undefined}
-                            className="rounded-xl px-3 py-2.5 flex items-start gap-3 text-[12px]"
-                            style={{
-                                background: isActive
-                                    ? "var(--ed-paper-3)"
-                                    : isDone
-                                        ? "var(--ed-accent-bg, #F5E4C0)"
-                                        : "var(--ed-paper-2)",
-                                border: isActive ? "1.5px solid var(--ed-accent-solid, #E4B05E)" : "1px solid var(--ed-rule)",
-                                color: isActive ? "var(--ed-ink)" : isDone ? "var(--ed-ink-2)" : "var(--ed-ink-3)",
-                            }}
-                        >
-                            <div
-                                className="w-5 h-5 rounded-full inline-flex items-center justify-center flex-shrink-0 mt-0.5"
-                                style={{
-                                    background: isDone
-                                        ? "var(--ed-accent-solid, #E4B05E)"
-                                        : isActive
-                                            ? "transparent"
-                                            : "transparent",
-                                    border: isActive
-                                        ? "1.5px solid var(--ed-accent-solid, #E4B05E)"
-                                        : isDone
-                                            ? "none"
-                                            : "1px solid var(--ed-rule-strong, #B7AC95)",
-                                    color: isDone ? "#fff" : "var(--ed-ink-3)",
-                                }}
-                            >
-                                {isDone && <Check className="w-3 h-3" />}
-                                {isActive && (
-                                    <Loader2
-                                        className="w-3 h-3 animate-spin"
-                                        style={{ color: "var(--ed-accent-solid, #E4B05E)" }}
-                                    />
-                                )}
-                                {!isDone && !isActive && (
-                                    <span style={{ fontSize: 10, fontWeight: 700 }}>{idx + 1}</span>
-                                )}
-                            </div>
-                            <div className="min-w-0">
-                                <div
-                                    style={{
-                                        fontWeight: isActive ? 600 : 500,
-                                        fontSize: 13,
-                                    }}
+                        <li key={step} className="flex items-start gap-3 py-2.5" aria-current={state === "now" ? "step" : undefined}>
+                            <StepIcon state={state} />
+                            <span className="flex flex-col gap-0.5">
+                                <span
+                                    className={
+                                        state === "now"
+                                            ? "text-[14px] font-medium text-r1-ink"
+                                            : state === "done"
+                                              ? "text-[14px] text-r1-ink-2"
+                                              : "text-[14px] text-r1-ink-3"
+                                    }
                                 >
-                                    {labels.title}
-                                </div>
-                                <div
-                                    className="text-[11px] mt-0.5"
-                                    style={{ color: "var(--ed-ink-3)", lineHeight: 1.4 }}
-                                >
-                                    {labels.sub}
-                                </div>
-                            </div>
+                                    {STEPS[step].title}
+                                    <span className="sr-only">{state === "done" ? " (done)" : state === "now" ? " (in progress)" : " (to do)"}</span>
+                                </span>
+                                <span className="t-meta">{STEPS[step].sub}</span>
+                            </span>
                         </li>
                     );
                 })}
             </ol>
-
-            {/* Disabled Door — shows the active step caption */}
-            <div
-                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl text-[14px] font-semibold mb-2"
-                style={{
-                    background: "var(--ed-ink)",
-                    color: "var(--ed-paper-3)",
-                    opacity: 0.7,
-                }}
-            >
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>
-                    <span
-                        className="opacity-70 mr-1"
-                        style={{
-                            fontFamily: "var(--ed-mono)",
-                            fontSize: 10,
-                            letterSpacing: "0.12em",
-                            textTransform: "uppercase",
-                        }}
-                    >
-                        {meta.caption}
-                    </span>
-                    {meta.doorLabel}
-                </span>
-            </div>
-            <p
-                className="text-center text-[11px]"
-                style={{ color: "var(--ed-ink-3)" }}
-            >
-                Please don&apos;t close the page — this takes a few seconds.
-            </p>
-
-            {/* Halo keyframes — scoped to this modal */}
-            <style jsx global>{`
-                @keyframes leadsModalHalo {
-                    0%, 100% { opacity: 0.20; transform: scale(0.95); }
-                    50%      { opacity: 0.55; transform: scale(1.15); }
-                }
-            `}</style>
-        </>
+        </div>
     );
+}
+
+function StepIcon({ state }: { state: "done" | "now" | "next" }) {
+    if (state === "done") {
+        return (
+            <span className="flex size-[22px] flex-none items-center justify-center rounded-full bg-r1-ink text-r1-paper" aria-hidden="true">
+                <Icon icon={Check} size={12} />
+            </span>
+        );
+    }
+    if (state === "now") {
+        return (
+            <span
+                className="flex size-[22px] flex-none items-center justify-center rounded-full shadow-[inset_0_0_0_1.5px_var(--r1-progress)]"
+                aria-hidden="true"
+            >
+                <span className="size-2 rounded-full bg-r1-gold motion-safe:animate-pulse" />
+            </span>
+        );
+    }
+    return <span className="size-[22px] flex-none rounded-full shadow-[inset_0_0_0_1.5px_var(--r1-line-2)]" aria-hidden="true" />;
 }

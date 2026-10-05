@@ -1,460 +1,346 @@
-"use client"
+"use client";
 
-import { useUser } from "@clerk/nextjs"
-import { useQuery } from "convex/react"
-import { api } from "@/convex/_generated/api"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import Link from "next/link"
+import { useUser } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
+import { Copy, UserPlus } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useId, useState } from "react";
+import { toast } from "sonner";
+
 import {
-    ArrowLeft,
-    Loader2,
-    Copy,
-    Check,
-    Users,
-    CheckCircle,
-    Gift,
-    Clock,
-    UserPlus,
-    Star,
-    Banknote,
-} from "lucide-react"
-import { BottomNav } from "@/components/BottomNav"
+    Avatar,
+    Button,
+    EmptyState,
+    Fold,
+    Highlight,
+    Icon,
+    Loading,
+    PageHeader,
+    Skeleton,
+    SkeletonCard,
+    SkeletonRows,
+    Status,
+    TableHead,
+    cx,
+    formatMoney,
+    type StatusWord,
+} from "@/components/r1";
+import { CreatorShell } from "@/components/shells/CreatorShell";
+import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
+import { REFERRAL_BONUS } from "@/lib/pricing";
+
+import { EnterCodeDialog } from "./_components/EnterCodeDialog";
+import { bonusNote, referralStatus, shortDate, shortName, type Referral } from "./_lib/referrals";
+
+/**
+ * Referrals (board: Referrals). One question: who have I brought in, and what
+ * did it earn?
+ *
+ * The code first, as the one highlighted card, with the rule it pays under.
+ * Then the total it has earned, the people who joined with it, how it works in
+ * a closed fold, and at the very bottom the way in for a creator who was
+ * invited themselves (moved here from Profile).
+ *
+ * THE BONUS IS STATED ONCE, FROM lib/pricing, as the old page stated it: on a
+ * referred creator's first PAID site (convex/payments.ts pays REFERRAL_BONUS
+ * exactly then, never on a free promo site). Per person the page shows only
+ * what the referrals row records; it adds no new peso promise.
+ *
+ * NO INVITE LINK. The board's primary action is "Copy invite link"
+ * (/for-creators?ref=CODE), but nothing on the web reads ?ref=, so that link
+ * would credit no one. Onboarding takes a code typed by hand (and passes it to
+ * creators.create), so the code is what credits a referrer: copying the code is
+ * the one action until the link is wired end to end.
+ */
+
+const TITLE = "Referrals";
+const SUB = "Who have I brought in, and what did it earn?";
+/** People shown before "Show all". */
+const CAP = 5;
 
 export default function ReferralsPage() {
-    const router = useRouter()
-    const { user, isLoaded, isSignedIn } = useUser()
-    const [copied, setCopied] = useState(false)
+    const router = useRouter();
+    const { user, isLoaded, isSignedIn } = useUser();
 
-    const creator = useQuery(
-        api.creators.getByClerkId,
-        user ? { clerkId: user.id } : "skip"
-    )
-
-    const referrals = useQuery(
-        api.referrals.getByReferrer,
-        creator?._id ? { referrerId: creator._id } : "skip"
-    )
-
-    const stats = useQuery(
-        api.referrals.getStats,
-        creator?._id ? { referrerId: creator._id } : "skip"
-    )
+    const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip");
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
-            router.push("/login")
+            router.push("/login");
         }
-    }, [isLoaded, isSignedIn, router])
+    }, [isLoaded, isSignedIn, router]);
 
     useEffect(() => {
         if (isLoaded && isSignedIn && creator === null) {
-            router.push("/onboarding")
+            router.push("/onboarding");
         }
-    }, [isLoaded, isSignedIn, creator, router])
+    }, [isLoaded, isSignedIn, creator, router]);
 
-    if (!isLoaded || !isSignedIn || creator === undefined) {
+    // Still loading, signed out, or on the way to onboarding: the page's own
+    // shape stays on screen until the redirect or the data arrives.
+    if (!isLoaded || !isSignedIn || creator === undefined || creator === null) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
-            </div>
-        )
+            <CreatorShell>
+                <PageHeader title={TITLE} sub={SUB} />
+                <ReferralsSkeleton />
+            </CreatorShell>
+        );
     }
 
-    if (!creator) {
-        return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
-            </div>
-        )
-    }
+    return <Referrals creator={creator} />;
+}
 
-    const handleCopy = async () => {
-        try {
-            await navigator.clipboard.writeText(creator.referralCode || '')
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
-        } catch {
-            // fallback
-        }
-    }
+function Referrals({ creator }: { creator: Doc<"creators"> }) {
+    const referrals = useQuery(api.referrals.getByReferrer, { referrerId: creator._id });
+    const stats = useQuery(api.referrals.getStats, { referrerId: creator._id });
+    const [codeOpen, setCodeOpen] = useState(false);
+    const listTitleId = useId();
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case "qualified":
-                return (
-                    <span className="px-2 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-md uppercase">
-                        Qualified
-                    </span>
-                )
-            case "paid":
-                return (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-md uppercase">
-                        Paid
-                    </span>
-                )
-            default:
-                return (
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded-md uppercase">
-                        Pending
-                    </span>
-                )
-        }
-    }
-
-    const formatDate = (timestamp: number) => {
-        return new Date(timestamp).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        })
-    }
+    const code = creator.referralCode || "";
+    // The earnings card is cut while nobody has joined with the code: it would
+    // only ever read ₱0 (ComponentKit, Cards).
+    const showEarned = stats === undefined || stats.total > 0;
 
     return (
-        <div
-            className="editorial min-h-screen pb-24 overflow-x-hidden"
-            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
-        >
-            <main className="px-4 py-6">
-                {/* Back Button */}
-                <div className="flex items-center justify-between mb-2">
-                    <Link
-                        href="/dashboard"
-                        className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
-                        style={{
-                            background: "var(--ed-paper-3)",
-                            border: "1px solid var(--ed-rule)",
-                            color: "var(--ed-ink-2)",
-                        }}
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                </div>
+        <CreatorShell>
+            <PageHeader title={TITLE} sub={SUB} />
 
-                {/* Editorial header */}
-                <div className="mb-6 mt-2">
-                    <p className="ed-label">Referral Program</p>
-                    <h1
-                        className="mt-2"
-                        style={{
-                            fontFamily: "var(--ed-serif)",
-                            fontSize: 40,
-                            lineHeight: 1.05,
-                            letterSpacing: "-0.02em",
-                            color: "var(--ed-ink)",
-                        }}
-                    >
-                        Bring a creator, <em style={{ color: "var(--ed-accent)" }}>earn for years.</em>
-                    </h1>
-                    <p
-                        className="mt-2"
-                        style={{
-                            fontFamily: "var(--ed-sans)",
-                            fontSize: 14,
-                            color: "var(--ed-ink-2)",
-                            lineHeight: 1.55,
-                            maxWidth: "48ch",
-                        }}
-                    >
-                        Share your code with a fellow creator. When their first submission lands, you both get paid.
-                    </p>
-                </div>
+            <section
+                aria-label="Your invite code and referral earnings"
+                className={cx("grid gap-6", showEarned && "md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]")}
+            >
+                <CodeCard code={code} />
+                {stats === undefined ? <SkeletonCard /> : stats.total > 0 ? <EarnedCard pending={stats.pending} earned={stats.totalEarned} /> : null}
+            </section>
 
-                {/* Referral Code Card — ink with mono code + copy door */}
-                <div
-                    className="rounded-3xl p-6 relative overflow-hidden mb-6"
-                    style={{
-                        background: "var(--ed-ink)",
-                        color: "var(--ed-paper-3)",
-                        boxShadow: "var(--ed-shadow-md)",
-                    }}
-                >
-                    <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: "rgba(16, 185, 129, 0.12)" }}></div>
-
-                    <div className="relative z-10">
-                        <p
-                            style={{
-                                fontFamily: "var(--ed-mono)",
-                                fontSize: 11,
-                                letterSpacing: "0.14em",
-                                textTransform: "uppercase",
-                                color: "rgba(252,250,245,0.55)",
-                            }}
-                        >
-                            Your Referral Code
-                        </p>
-                        <div className="flex items-center gap-3 mt-3 flex-wrap">
-                            <span
-                                style={{
-                                    fontFamily: "var(--ed-serif)",
-                                    fontSize: 40,
-                                    lineHeight: 1.0,
-                                    letterSpacing: "0.1em",
-                                }}
-                            >
-                                {creator.referralCode}
-                            </span>
-                            <button
-                                onClick={handleCopy}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg transition-colors"
-                                style={{
-                                    background: "rgba(255,255,255,0.06)",
-                                    fontFamily: "var(--ed-mono)",
-                                    fontSize: 10,
-                                    letterSpacing: "0.14em",
-                                    textTransform: "uppercase",
-                                }}
-                            >
-                                {copied ? (
-                                    <>
-                                        <Check className="w-3.5 h-3.5" style={{ color: "var(--ed-accent-solid)" }} />
-                                        <span style={{ color: "var(--ed-accent-solid)" }}>Copied!</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Copy className="w-3.5 h-3.5" style={{ color: "rgba(252,250,245,0.6)" }} />
-                                        <span style={{ color: "rgba(252,250,245,0.6)" }}>Copy</span>
-                                    </>
-                                )}
-                            </button>
-                        </div>
-                        <p
-                            className="mt-4"
-                            style={{
-                                fontFamily: "var(--ed-sans)",
-                                fontSize: 12,
-                                color: "rgba(252,250,245,0.55)",
-                                lineHeight: 1.5,
-                            }}
-                        >
-                            Share this with other creators. When they sign up + land their first paid submission, ₱1,000 lands in your wallet.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Stats Row — paper-3 cards with mono labels + serif numbers */}
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                    {[
-                        { Icon: Users, value: stats?.total ?? 0, label: "Referred", tone: "ink" as const },
-                        { Icon: CheckCircle, value: stats?.qualified ?? 0, label: "Qualified", tone: "accent" as const },
-                        { Icon: Gift, value: `₱${(stats?.totalEarned ?? 0).toLocaleString()}`, label: "Rewards", tone: "warn" as const },
-                    ].map((s, i) => (
-                        <div
-                            key={i}
-                            className="p-4 text-center"
-                            style={{
-                                background: "var(--ed-paper-3)",
-                                border: "1px solid var(--ed-rule)",
-                                borderRadius: "var(--ed-radius-md)",
-                            }}
-                        >
-                            <div
-                                className="w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2"
-                                style={{
-                                    background:
-                                        s.tone === "accent" ? "var(--ed-accent-bg)" :
-                                        s.tone === "warn" ? "var(--ed-warn-bg)" :
-                                        "var(--ed-paper-2)",
-                                }}
-                            >
-                                <s.Icon
-                                    className="w-4 h-4"
-                                    style={{
-                                        color:
-                                            s.tone === "accent" ? "var(--ed-accent)" :
-                                            s.tone === "warn" ? "var(--ed-warn)" :
-                                            "var(--ed-ink-2)",
-                                    }}
-                                />
-                            </div>
-                            <p
-                                style={{
-                                    fontFamily: "var(--ed-serif)",
-                                    fontSize: 22,
-                                    lineHeight: 1.0,
-                                    fontVariantNumeric: "tabular-nums",
-                                    color: "var(--ed-ink)",
-                                }}
-                            >
-                                {s.value}
-                            </p>
-                            <p className="ed-label mt-1">{s.label}</p>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Referred Creators */}
-                <div className="mb-6">
-                    <p className="ed-label">Your tree</p>
-                    <h2
-                        className="mt-1 mb-3"
-                        style={{
-                            fontFamily: "var(--ed-serif)",
-                            fontSize: 22,
-                            lineHeight: 1.15,
-                            letterSpacing: "-0.015em",
-                            color: "var(--ed-ink)",
-                        }}
-                    >
-                        Referred <em style={{ color: "var(--ed-accent)" }}>creators</em>
+            <section aria-labelledby={listTitleId} className="flex flex-col gap-3">
+                <div className="flex items-baseline gap-2">
+                    <h2 id={listTitleId} className="t-h2">
+                        People you invited
                     </h2>
-                    <div className="space-y-3">
-                        {referrals && referrals.length > 0 ? (
-                            referrals.map((referral: any) => (
-                                <div
-                                    key={referral._id}
-                                    className="p-3 flex items-center justify-between"
-                                    style={{
-                                        background: "var(--ed-paper-3)",
-                                        border: "1px solid var(--ed-rule)",
-                                        borderRadius: "var(--ed-radius-md)",
-                                    }}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                                            style={{ background: "var(--ed-paper-2)" }}
-                                        >
-                                            <UserPlus className="w-5 h-5" style={{ color: "var(--ed-ink-2)" }} />
-                                        </div>
-                                        <div>
-                                            <h3
-                                                style={{
-                                                    fontFamily: "var(--ed-serif)",
-                                                    fontSize: 16,
-                                                    lineHeight: 1.2,
-                                                    color: "var(--ed-ink)",
-                                                }}
-                                            >
-                                                {referral.referredName}
-                                            </h3>
-                                            <p
-                                                className="mt-0.5"
-                                                style={{
-                                                    fontFamily: "var(--ed-mono)",
-                                                    fontSize: 10,
-                                                    letterSpacing: "0.1em",
-                                                    textTransform: "uppercase",
-                                                    color: "var(--ed-ink-3)",
-                                                }}
-                                            >
-                                                Joined {formatDate(referral.createdAt)}
-                                                {referral.bonusAmount
-                                                    ? ` · ₱${referral.bonusAmount.toLocaleString()} bonus`
-                                                    : ""}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    {getStatusBadge(referral.status)}
-                                </div>
-                            ))
-                        ) : (
-                            <div
-                                className="text-center py-8"
-                                style={{
-                                    background: "var(--ed-paper-2)",
-                                    border: "1px dashed var(--ed-rule-strong)",
-                                    borderRadius: "var(--ed-radius-md)",
-                                }}
-                            >
-                                <p
-                                    style={{
-                                        fontFamily: "var(--ed-serif)",
-                                        fontSize: 16,
-                                        fontStyle: "italic",
-                                        color: "var(--ed-ink-2)",
-                                    }}
-                                >
-                                    No referrals yet.
-                                </p>
-                                <p
-                                    className="mt-1"
-                                    style={{
-                                        fontFamily: "var(--ed-mono)",
-                                        fontSize: 10,
-                                        letterSpacing: "0.14em",
-                                        textTransform: "uppercase",
-                                        color: "var(--ed-ink-3)",
-                                    }}
-                                >
-                                    Share your code to get started
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                    {referrals && referrals.length > 0 && <span className="t-count">{referrals.length}</span>}
                 </div>
+                <InvitedList referrals={referrals} />
+            </section>
 
-                {/* How it Works */}
-                <div>
-                    <p className="ed-label">How it works</p>
-                    <h2
-                        className="mt-1 mb-4"
-                        style={{
-                            fontFamily: "var(--ed-serif)",
-                            fontSize: 22,
-                            lineHeight: 1.15,
-                            letterSpacing: "-0.015em",
-                            color: "var(--ed-ink)",
-                        }}
+            <Fold title="How referrals work">
+                <ol className="m-0 grid list-none gap-6 p-0 pb-2 sm:grid-cols-3">
+                    <Step n={1} title="Share your code" body="Send it to someone who wants to earn by making websites for local shops." />
+                    <Step
+                        n={2}
+                        title="They join and get certified"
+                        body={`They sign up, add ${code || "your code"} on their Referrals page, and get certified.`}
+                    />
+                    <Step
+                        n={3}
+                        title="Their first site gets paid"
+                        body={`When the owner pays for their first website, ${formatMoney(REFERRAL_BONUS)} lands in your Wallet.`}
+                    />
+                </ol>
+            </Fold>
+
+            {/* Offered only while no code has been applied, exactly as Profile did. */}
+            {creator.referredByCode ? (
+                <p className="t-meta flex min-h-10 items-center">
+                    <span>
+                        You joined with code <span className="t-mono text-r1-ink">{creator.referredByCode}</span>.
+                    </span>
+                </p>
+            ) : (
+                <p className="t-meta flex flex-wrap items-center gap-1">
+                    Were you invited?
+                    <button
+                        type="button"
+                        className="t-link inline-flex h-10 cursor-pointer items-center border-0 bg-transparent px-1 text-[13px] font-medium"
+                        onClick={() => setCodeOpen(true)}
                     >
-                        Three <em style={{ color: "var(--ed-accent)" }}>steps</em>.
-                    </h2>
-                    <div className="space-y-4">
-                        {[
-                            { n: "01", title: "Share your code", body: "Give your code to fellow creators who want to join Tendso." },
-                            { n: "02", title: "They sign up & submit", body: "Your referral signs up using your code and submits their first business." },
-                            { n: "03", title: "Earn your bonus", body: "Once their first submission is paid, ₱1,000 lands in your wallet." },
-                        ].map((step) => (
-                            <div
-                                key={step.n}
-                                className="flex gap-4 p-4"
-                                style={{
-                                    background: "var(--ed-paper-3)",
-                                    border: "1px solid var(--ed-rule)",
-                                    borderRadius: "var(--ed-radius-md)",
-                                }}
-                            >
-                                <span
-                                    style={{
-                                        fontFamily: "var(--ed-serif)",
-                                        fontSize: 28,
-                                        lineHeight: 1.0,
-                                        color: "var(--ed-accent)",
-                                        flexShrink: 0,
-                                    }}
-                                >
-                                    {step.n}
-                                </span>
-                                <div>
-                                    <h3
-                                        style={{
-                                            fontFamily: "var(--ed-serif)",
-                                            fontSize: 17,
-                                            lineHeight: 1.2,
-                                            color: "var(--ed-ink)",
-                                        }}
-                                    >
-                                        {step.title}
-                                    </h3>
-                                    <p
-                                        className="mt-1"
-                                        style={{
-                                            fontFamily: "var(--ed-sans)",
-                                            fontSize: 13,
-                                            color: "var(--ed-ink-2)",
-                                            lineHeight: 1.55,
-                                        }}
-                                    >
-                                        {step.body}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </main>
+                        Enter a code
+                    </button>
+                </p>
+            )}
 
-            <BottomNav active="referral" />
+            <EnterCodeDialog open={codeOpen} onClose={() => setCodeOpen(false)} creatorId={creator._id} ownCode={code} />
+        </CreatorShell>
+    );
+}
+
+/** The one highlighted card: the code, the one action, and the rule it pays under. */
+function CodeCard({ code }: { code: string }) {
+    const copyCode = async () => {
+        try {
+            await navigator.clipboard.writeText(code);
+            toast.success("Code copied");
+        } catch {
+            // No clipboard here (an old browser, or a page not on https). The
+            // code itself is selectable, so it can still be copied by hand.
+            toast.error("Couldn't copy it. Select the code and copy it yourself.");
+        }
+    };
+
+    return (
+        <Highlight className="flex flex-col gap-5 p-5 sm:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+                <div className="flex min-w-0 flex-col gap-1.5">
+                    <span className="t-label">Your invite code</span>
+                    {code ? (
+                        <span className="select-all font-r1-mono text-[28px] font-medium leading-9 tracking-[0.04em] text-r1-ink wrap-anywhere">
+                            {code}
+                        </span>
+                    ) : (
+                        <span className="t-body">You don&apos;t have an invite code yet.</span>
+                    )}
+                </div>
+                {code && (
+                    <Button variant="primary" className="w-full flex-none sm:w-auto" onClick={copyCode}>
+                        <Icon icon={Copy} />
+                        Copy code
+                    </Button>
+                )}
+            </div>
+            <div className="flex flex-col gap-1 border-t border-r1-gold-line pt-4">
+                <p className="t-body max-w-[62ch] text-r1-ink">
+                    You get {formatMoney(REFERRAL_BONUS)} when a creator who joins with your code has their first website paid for by its owner.
+                </p>
+                <p className="t-meta">Once per creator. Free promo sites don&apos;t count.</p>
+            </div>
+        </Highlight>
+    );
+}
+
+/** One number (what referrals have paid) and one status (who is still on the way). */
+function EarnedCard({ pending, earned }: { pending: number; earned: number }) {
+    const status: StatusWord =
+        pending > 0 ? { tone: "progress", word: `${pending} creator${pending === 1 ? "" : "s"} on the way` } : { tone: "off", word: "Nothing waiting" };
+    return (
+        <div className="t-card flex flex-col gap-3 p-5 sm:p-6">
+            <span className="t-label">Earned from referrals</span>
+            <span className="t-figure">{formatMoney(earned)}</span>
+            <Status {...status} />
+            <p className="t-meta mt-auto">
+                Bonuses go straight to your{" "}
+                <Link href="/wallet" className="t-link">
+                    Wallet
+                </Link>
+                .
+            </p>
         </div>
-    )
+    );
+}
+
+/**
+ * The people who joined with the code, newest first. A table on a wide desk;
+ * below that each person stacks (name and bonus on top, the date, status and
+ * when the bonus comes underneath), so nothing scrolls sideways.
+ */
+function InvitedList({ referrals }: { referrals: Referral[] | undefined }) {
+    const [expanded, setExpanded] = useState(false);
+
+    if (referrals === undefined) {
+        return (
+            <Loading label="Loading the people you invited">
+                <SkeletonRows count={2} avatar />
+            </Loading>
+        );
+    }
+
+    if (referrals.length === 0) {
+        return (
+            <div className="t-card">
+                <EmptyState
+                    icon={<Icon icon={UserPlus} size={18} />}
+                    title="No one yet"
+                    body="Share your code with someone who wants to make websites for local shops. When they add it, they show up here."
+                />
+            </div>
+        );
+    }
+
+    const visible = expanded ? referrals : referrals.slice(0, CAP);
+
+    return (
+        <div className="t-card overflow-hidden">
+            <TableHead className="hidden xl:flex">
+                <span className="min-w-0 flex-1">Creator</span>
+                <span className="w-[140px] flex-none">Joined</span>
+                <span className="w-[180px] flex-none">Status</span>
+                <span className="w-[260px] flex-none text-right">Your bonus</span>
+            </TableHead>
+            <div className="t-list">
+                {visible.map((r) => (
+                    <InvitedRow key={r._id} referral={r} />
+                ))}
+            </div>
+            {referrals.length > CAP && (
+                <button type="button" className="t-showall" aria-expanded={expanded} onClick={() => setExpanded((e) => !e)}>
+                    {expanded ? "Show less" : `Show all ${referrals.length}`}
+                </button>
+            )}
+        </div>
+    );
+}
+
+function InvitedRow({ referral }: { referral: Referral }) {
+    const name = shortName(referral.referredName);
+    const joined = shortDate(referral.createdAt);
+    const status = referralStatus(referral.status);
+    const note = bonusNote(referral);
+
+    return (
+        <div className="t-row items-start xl:items-center">
+            <span className="flex min-w-0 flex-1 items-start gap-3 xl:items-center">
+                <Avatar name={name} />
+                <span className="flex min-w-0 flex-col">
+                    <span className="t-row-title">{name}</span>
+                    <span className="t-meta">
+                        <span className="xl:hidden">Joined {joined} · </span>Used your code
+                    </span>
+                    <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 xl:hidden">
+                        <Status {...status} />
+                        {note && <span className="t-meta">{note}</span>}
+                    </span>
+                </span>
+            </span>
+            <span className="t-body t-num hidden w-[140px] flex-none xl:block">{joined}</span>
+            <span className="hidden w-[180px] flex-none xl:block">
+                <Status {...status} />
+            </span>
+            <span className="flex flex-none flex-col items-end xl:w-[260px]">
+                <span className="t-body t-num text-r1-ink">{formatMoney(referral.bonusAmount ?? 0)}</span>
+                {note && <span className="t-meta hidden xl:block">{note}</span>}
+            </span>
+        </div>
+    );
+}
+
+function Step({ n, title, body }: { n: number; title: string; body: string }) {
+    return (
+        <li className="flex items-start gap-3">
+            <span className="t-num inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border border-r1-line-2 text-[13px] font-semibold text-r1-ink">
+                {n}
+            </span>
+            <div className="flex flex-col gap-1">
+                <h3 className="text-sm font-semibold leading-5 text-r1-ink">{title}</h3>
+                <p className="t-meta">{body}</p>
+            </div>
+        </li>
+    );
+}
+
+/** The page's shape while the creator row loads: the code card, the earnings card, two people. */
+function ReferralsSkeleton() {
+    return (
+        <Loading label="Loading your referrals" className="flex flex-col gap-6">
+            <div className="grid gap-6 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" aria-hidden="true">
+                <div className="t-card flex flex-col gap-4 p-5 sm:p-6">
+                    <Skeleton width={110} height={12} />
+                    <Skeleton width={200} height={32} />
+                    <Skeleton width="80%" height={14} />
+                </div>
+                <SkeletonCard />
+            </div>
+            <SkeletonRows count={2} avatar />
+        </Loading>
+    );
 }

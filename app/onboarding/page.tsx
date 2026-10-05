@@ -1,103 +1,47 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useUser } from "@clerk/nextjs"
-import { useMutation, useQuery } from "convex/react"
-import { api } from "@/convex/_generated/api"
-import { useRouter } from "next/navigation"
-import Image from "next/image"
-import Link from "next/link"
-import Logo from "@/public/tendso-logo.png"
-import { motion } from "framer-motion"
-import { Phone, Loader2, User, ArrowRight } from "lucide-react"
+import { useUser } from "@clerk/nextjs";
+import { useConvex, useMutation, useQuery } from "convex/react";
+import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
+import { FootActions, FunnelFrame, StepBody, StepCard } from "@/app/training/_funnel/FunnelFrame";
+import { Button, Field, Icon, Input, PhoneInput } from "@/components/r1";
+import { api } from "@/convex/_generated/api";
+
+/**
+ * Onboarding profile (board Certification, stage 1 "Your profile"): the
+ * creators row is made here, then training starts.
+ *
+ * The same mutation and fields as before (api.creators.create with first,
+ * middle and last name, the Clerk email, an optional phone and a generated
+ * referral code), plus the board's optional "Referral code" field, which
+ * create() already takes as referredByCode.
+ */
 
 function generateReferralCode(firstName: string, lastName: string): string {
-    const namePrefix = (firstName.substring(0, 2) + lastName.substring(0, 1)).toUpperCase()
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase()
-    return `${namePrefix}${random}`
+    const namePrefix = (firstName.substring(0, 2) + lastName.substring(0, 1)).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `${namePrefix}${random}`;
 }
 
 export default function OnboardingPage() {
-    const router = useRouter()
-    const { user, isLoaded, isSignedIn } = useUser()
-    const createCreator = useMutation(api.creators.create)
-    const existingCreator = useQuery(
-        api.creators.getByClerkId,
-        user ? { clerkId: user.id } : "skip"
-    )
-
-    const [firstName, setFirstName] = useState("")
-    const [middleName, setMiddleName] = useState("")
-    const [lastName, setLastName] = useState("")
-    const [phone, setPhone] = useState("")
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
-    const [initialized, setInitialized] = useState(false)
+    const router = useRouter();
+    const { user, isLoaded, isSignedIn } = useUser();
+    const existingCreator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip");
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
-            router.push("/login")
+            router.push("/login");
         }
-    }, [isLoaded, isSignedIn, router])
+    }, [isLoaded, isSignedIn, router]);
 
     useEffect(() => {
         if (isLoaded && isSignedIn && existingCreator) {
-            router.push("/dashboard")
+            router.push("/dashboard");
         }
-    }, [isLoaded, isSignedIn, existingCreator, router])
-
-    useEffect(() => {
-        if (isLoaded && user && !initialized) {
-            if (user.firstName) setFirstName(user.firstName)
-            if (user.lastName) setLastName(user.lastName)
-            setInitialized(true)
-        }
-    }, [isLoaded, user, initialized])
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setError(null)
-
-        if (!user) {
-            setError("Authentication module detached")
-            return
-        }
-
-        if (!firstName.trim() || !lastName.trim()) {
-            setError("Primary identity fields required")
-            return
-        }
-
-        const phoneRegex = /^(\+63|0)?9\d{9}$/
-        if (phone && !phoneRegex.test(phone.replace(/\s/g, ''))) {
-            setError("Invalid local communication format")
-            return
-        }
-
-        setLoading(true)
-
-        try {
-            const referralCode = generateReferralCode(firstName, lastName)
-
-            await createCreator({
-                clerkId: user.id,
-                firstName: firstName.trim(),
-                middleName: middleName.trim() || undefined,
-                lastName: lastName.trim(),
-                email: user.primaryEmailAddress?.emailAddress,
-                phone: phone.trim() || undefined,
-                referralCode,
-            })
-
-            router.push("/training")
-        } catch (err: any) {
-            console.error("Failed to create profile:", err)
-            setError(err.message || "Failed to initialize identity")
-        } finally {
-            setLoading(false)
-        }
-    }
+    }, [isLoaded, isSignedIn, existingCreator, router]);
 
     // Suppress the form UI while ANY of the following is true:
     //   - Clerk is still hydrating (isLoaded === false)
@@ -107,173 +51,221 @@ export default function OnboardingPage() {
     //
     // Without this guard, returning users coming through Google OAuth see the
     // onboarding form for ~200ms before the dashboard-redirect useEffect fires,
-    // which is the "flash of old onboarding page" we're fixing.
-    const isRedirecting =
-        !isLoaded ||
-        !isSignedIn ||
-        existingCreator === undefined ||
-        existingCreator !== null
+    // which is the "flash of old onboarding page" we're fixing. (Nor do they
+    // see the certification frame: the page stays blank until it knows.)
+    const isRedirecting = !isLoaded || !isSignedIn || existingCreator === undefined || existingCreator !== null;
 
-    if (isRedirecting) {
+    if (isRedirecting || !user) {
         return (
-            <div
-                className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
-                style={{ background: "var(--khaki)", color: "var(--ink)" }}
-            >
-                <div
-                    className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-multiply"
-                    style={{
-                        backgroundImage:
-                            "radial-gradient(circle at 25% 25%, var(--ink) 0.5px, transparent 1px), radial-gradient(circle at 75% 75%, var(--ink) 0.5px, transparent 1px)",
-                        backgroundSize: "4px 4px, 6px 6px",
-                    }}
-                />
-                <div className="absolute -top-32 -right-20 w-[480px] h-[480px] bg-[var(--rust)]/8 rounded-full filter blur-[120px] pointer-events-none" />
-                <Loader2 className="h-10 w-10 animate-spin text-[var(--rust)] relative z-10" />
+            <div className="r1 min-h-dvh" aria-busy="true">
+                <span className="sr-only" role="status">
+                    Loading
+                </span>
             </div>
-        )
+        );
     }
 
     return (
-        <div className={`min-h-screen w-full flex bg-black text-white selection:bg-[#E4B05E] selection:text-black overflow-x-hidden relative font-outfit`}>
-            {/* BACKGROUND EFFECTS */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-20 bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-            <div className="absolute top-0 right-0 w-[50%] h-[50%] bg-[#00F0FF] rounded-full mix-blend-screen filter blur-[200px] opacity-20 animate-pulse pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[40%] h-[60%] bg-[#E4B05E] rounded-full mix-blend-screen filter blur-[250px] opacity-10 pointer-events-none" />
+        <FunnelFrame view={1} creator={null}>
+            <ProfileStep
+                clerkId={user.id}
+                email={user.primaryEmailAddress?.emailAddress}
+                firstName={user.firstName ?? ""}
+                lastName={user.lastName ?? ""}
+            />
+        </FunnelFrame>
+    );
+}
 
-            <div className="relative z-10 w-full flex flex-col items-center justify-center p-6 min-h-screen py-20">
-                
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.95, y: 30 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-full max-w-md"
-                >
-                    <div className="flex flex-col items-center mb-10">
-                        <Image src={Logo} alt="Tendso" width={190} height={34} className="mb-6" />
-                        <h1 className={`text-4xl md:text-5xl font-black uppercase tracking-tighter text-center mb-3 font-bricolage`}>
-                            Initialize <span className="text-[#00F0FF]">Agent</span>
-                        </h1>
-                        <p className="text-white/50 text-center font-light text-lg">
-                            Provide your primary identity data to access the creator network.
+type Errors = { first?: string; last?: string; phone?: string; ref?: string };
+
+// The old check, unchanged: an 11-digit 09… number, the 10-digit 9… form the
+// old field took, or +63. The field only lets digits through.
+const PHONE_RE = /^(\+63|0)?9\d{9}$/;
+
+/** Mounted once the account is known, so the Clerk name fills the fields from the first paint. */
+function ProfileStep({ clerkId, email, firstName, lastName }: { clerkId: string; email?: string; firstName: string; lastName: string }) {
+    const router = useRouter();
+    const convex = useConvex();
+    const createCreator = useMutation(api.creators.create);
+
+    const [first, setFirst] = useState(firstName);
+    const [middle, setMiddle] = useState("");
+    const [last, setLast] = useState(lastName);
+    const [phone, setPhone] = useState("");
+    const [refCode, setRefCode] = useState("");
+    const [errors, setErrors] = useState<Errors>({});
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    const firstRef = useRef<HTMLInputElement>(null);
+    const lastRef = useRef<HTMLInputElement>(null);
+    const phoneRef = useRef<HTMLInputElement>(null);
+    const refRef = useRef<HTMLInputElement>(null);
+
+    const handleSubmit = async (e: FormEvent) => {
+        e.preventDefault();
+        if (loading) return;
+        setError(null);
+
+        const next: Errors = {};
+        if (!first.trim()) next.first = "Enter your first name.";
+        if (!last.trim()) next.last = "Enter your last name.";
+        if (phone && !PHONE_RE.test(phone.replace(/\s/g, ""))) next.phone = "Use 11 digits starting with 09, like 09171234567.";
+        setErrors(next);
+        if (next.first || next.last || next.phone) {
+            (next.first ? firstRef : next.last ? lastRef : phoneRef).current?.focus();
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // create() keeps whatever code it is given, even one that matches
+            // nobody, and a creator can apply a code only once. So a typo here
+            // would block the right code later: look it up first.
+            const code = refCode.trim().toUpperCase();
+            if (code) {
+                let referrer: unknown;
+                try {
+                    referrer = await convex.query(api.creators.getByReferralCode, { referralCode: code });
+                } catch {
+                    setErrors({ ref: "We could not check that code. Try again, or leave it empty." });
+                    refRef.current?.focus();
+                    return;
+                }
+                if (!referrer) {
+                    setErrors({ ref: "No creator has that code. Check it with the person who invited you, or leave it empty." });
+                    refRef.current?.focus();
+                    return;
+                }
+            }
+
+            const referralCode = generateReferralCode(first, last);
+            await createCreator({
+                clerkId,
+                firstName: first.trim(),
+                middleName: middle.trim() || undefined,
+                lastName: last.trim(),
+                email,
+                phone: phone.trim() || undefined,
+                referralCode,
+                referredByCode: code || undefined,
+            });
+
+            router.push("/training");
+        } catch (err) {
+            console.error("Failed to create profile:", err);
+            setError(err instanceof Error && err.message ? err.message : "Your profile was not saved. Try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const optional = <span className="font-normal text-r1-ink-3">(optional)</span>;
+
+    return (
+        <form onSubmit={handleSubmit} noValidate>
+            <StepCard
+                title="Your profile"
+                intro="Tell us who you are. This is the name that goes on your certificate."
+                foot={
+                    <>
+                        <span className="t-meta">Your own referral code is made for you when you save.</span>
+                        <FootActions>
+                            <Button variant="primary" type="submit" disabled={loading} aria-busy={loading}>
+                                {loading ? (
+                                    "Saving…"
+                                ) : (
+                                    <>
+                                        Save and continue
+                                        <Icon icon={ArrowRight} />
+                                    </>
+                                )}
+                            </Button>
+                        </FootActions>
+                    </>
+                }
+            >
+                <StepBody>
+                    <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
+                        <Field label="First name" required error={errors.first}>
+                            <Input
+                                ref={firstRef}
+                                placeholder="Juan"
+                                autoComplete="given-name"
+                                value={first}
+                                disabled={loading}
+                                onChange={(e) => {
+                                    setFirst(e.target.value);
+                                    setErrors((x) => ({ ...x, first: undefined }));
+                                }}
+                            />
+                        </Field>
+                        <Field label={<>Middle name {optional}</>}>
+                            <Input
+                                placeholder="Santos"
+                                autoComplete="additional-name"
+                                value={middle}
+                                disabled={loading}
+                                onChange={(e) => setMiddle(e.target.value)}
+                            />
+                        </Field>
+                        <Field label="Last name" required error={errors.last} className="sm:col-span-2">
+                            <Input
+                                ref={lastRef}
+                                placeholder="Dela Cruz"
+                                autoComplete="family-name"
+                                value={last}
+                                disabled={loading}
+                                onChange={(e) => {
+                                    setLast(e.target.value);
+                                    setErrors((x) => ({ ...x, last: undefined }));
+                                }}
+                            />
+                        </Field>
+                        <Field
+                            label={<>Mobile number {optional}</>}
+                            error={errors.phone}
+                            help={phone ? `Digits only, starting with 0. ${phone.length} of 11 digits.` : "Digits only, starting with 0. 11 digits."}
+                        >
+                            <PhoneInput
+                                ref={phoneRef}
+                                placeholder="09171234567"
+                                autoComplete="tel-national"
+                                value={phone}
+                                disabled={loading}
+                                onValueChange={(digits) => {
+                                    setPhone(digits);
+                                    setErrors((x) => ({ ...x, phone: undefined }));
+                                }}
+                            />
+                        </Field>
+                        <Field label={<>Referral code {optional}</>} error={errors.ref} help="From the creator who invited you.">
+                            <Input
+                                ref={refRef}
+                                placeholder="e.g. JUD8A3BK"
+                                autoComplete="off"
+                                autoCapitalize="characters"
+                                spellCheck={false}
+                                value={refCode}
+                                disabled={loading}
+                                onChange={(e) => {
+                                    // Upper case and no spaces, nothing more: codes are made from
+                                    // name letters (see generateReferralCode), so a "." or an "Ñ"
+                                    // can be part of a real one.
+                                    setRefCode(e.target.value.toUpperCase().replace(/\s+/g, "").slice(0, 16));
+                                    setErrors((x) => ({ ...x, ref: undefined }));
+                                }}
+                            />
+                        </Field>
+                    </div>
+                    {error && (
+                        <p className="t-error" role="alert">
+                            {error}
                         </p>
-                    </div>
-
-                    <div className="bg-white/5 backdrop-blur-2xl border border-white/10 p-8 rounded-[2rem] shadow-2xl relative overflow-hidden flex flex-col items-center">
-                        <div className="absolute top-0 inset-x-0 h-px w-full bg-gradient-to-r from-transparent via-[#00F0FF] to-transparent opacity-50" />
-                        <div className="w-full relative z-10">
-
-                            {error && (
-                                <motion.div 
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
-                                    className="mb-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium text-center shadow-[0_0_20px_rgba(239,68,68,0.2)]"
-                                >
-                                    {error}
-                                </motion.div>
-                            )}
-
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-white/60 pl-2">First Name</label>
-                                        <div className="relative group">
-                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                <User className="w-4 h-4 text-white/30 group-focus-within:text-[#00F0FF] transition-colors" />
-                                            </div>
-                                            <input
-                                                id="firstName"
-                                                type="text"
-                                                placeholder="Juan"
-                                                value={firstName}
-                                                onChange={(e) => setFirstName(e.target.value)}
-                                                required
-                                                disabled={loading}
-                                                className="w-full h-14 pl-10 pr-4 bg-black/40 border border-white/10 rounded-2xl text-white placeholder:text-white/20 focus:outline-none focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50 transition-all font-light"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-white/60 pl-2 flex justify-between">Middle <span className="text-white/30">Opt</span></label>
-                                        <input
-                                            id="middleName"
-                                            type="text"
-                                            placeholder="Santos"
-                                            value={middleName}
-                                            onChange={(e) => setMiddleName(e.target.value)}
-                                            disabled={loading}
-                                            className="w-full h-14 px-4 bg-black/40 border border-white/10 rounded-2xl text-white placeholder:text-white/20 focus:outline-none focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50 transition-all font-light"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold uppercase tracking-widest text-white/60 pl-2">Last Name</label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <User className="w-5 h-5 text-white/30 group-focus-within:text-[#00F0FF] transition-colors" />
-                                        </div>
-                                        <input
-                                            id="lastName"
-                                            type="text"
-                                            placeholder="Dela Cruz"
-                                            value={lastName}
-                                            onChange={(e) => setLastName(e.target.value)}
-                                            required
-                                            disabled={loading}
-                                            className="w-full h-14 pl-12 pr-4 bg-black/40 border border-white/10 rounded-2xl text-white placeholder:text-white/20 focus:outline-none focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50 transition-all font-light"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between pl-2">
-                                        <label className="text-xs font-bold uppercase tracking-widest text-white/60">Communication ID</label>
-                                        <span className="text-xs font-bold text-white/30 uppercase tracking-widest">Optional</span>
-                                    </div>
-                                    <div className="relative flex gap-3">
-                                        <div className="flex items-center gap-2 px-4 h-14 bg-black/60 border border-white/10 rounded-2xl shrink-0">
-                                            <span className="text-sm font-bold text-white/80 tracking-widest">+63</span>
-                                        </div>
-                                        <div className="relative flex-1 group">
-                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                                <Phone className="w-5 h-5 text-white/30 group-focus-within:text-[#00F0FF] transition-colors" />
-                                            </div>
-                                            <input
-                                                id="phone"
-                                                type="tel"
-                                                inputMode="numeric"
-                                                maxLength={10}
-                                                placeholder="912 345 4567"
-                                                value={phone}
-                                                onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                                                disabled={loading}
-                                                className="w-full h-14 pl-12 pr-4 bg-black/40 border border-white/10 rounded-2xl text-white placeholder:text-white/20 focus:outline-none focus:border-[#00F0FF]/50 focus:ring-1 focus:ring-[#00F0FF]/50 transition-all font-light"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className={`w-full h-14 bg-[#1D00FF] hover:bg-[#2B10FF] disabled:opacity-50 text-white rounded-2xl font-bold uppercase tracking-widest text-sm transition-all shadow-[0_0_20px_rgba(29,0,255,0.3)] hover:shadow-[0_0_30px_rgba(29,0,255,0.5)] active:scale-[0.98] mt-4 flex items-center justify-center gap-3 font-bricolage`}
-                                >
-                                    {loading ? (
-                                        <>
-                                            <Loader2 className="animate-spin h-5 w-5" /> GENERATING KEY...
-                                        </>
-                                    ) : (
-                                        <>
-                                            Establish Profile <ArrowRight className="w-4 h-4" />
-                                        </>
-                                    )}
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </motion.div>
-            </div>
-        </div>
-    )
+                    )}
+                </StepBody>
+            </StepCard>
+        </form>
+    );
 }

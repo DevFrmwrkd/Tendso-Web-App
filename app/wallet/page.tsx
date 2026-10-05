@@ -1,697 +1,343 @@
-"use client"
+"use client";
 
-import { useUser } from "@clerk/nextjs"
-import { useQuery, useMutation } from "convex/react"
-import { api } from "@/convex/_generated/api"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useUser } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useId, useState, type ReactNode } from "react";
+import { toast } from "sonner";
+
+import { Button, Dot, Fold, Loading, PageHeader, Skeleton, SkeletonCard, SkeletonRows, formatMoney } from "@/components/r1";
+import { CreatorShell } from "@/components/shells/CreatorShell";
+import { api } from "@/convex/_generated/api";
+import type { Doc } from "@/convex/_generated/dataModel";
+import { COMMISSION_RATE } from "@/lib/pricing";
+
+import { Ledger } from "./_components/Ledger";
+import { PayoutDialog, type PayoutStep } from "./_components/PayoutDialog";
 import {
-    ArrowLeft,
-    Wallet,
-    Loader2,
-    X,
-    TrendingUp,
-    TrendingDown,
-    ArrowDownRight,
-    Clock,
-    CheckCircle,
-    XCircle,
-    RefreshCw,
-    Mail,
-    ExternalLink,
-} from "lucide-react"
-import { BottomNav } from "@/components/BottomNav"
+    amountInput,
+    awaitingOwners,
+    balanceLine,
+    buildLedger,
+    inFlight,
+    joinNames,
+    shortDate,
+    type Retry,
+    type Withdrawal,
+} from "./_lib/ledger";
 
-const WISE_REFERRAL_URL =
-    "https://wise.com/invite/dic/theoimmorosalesv?utm_source=desktop-invite-tab-copylink&utm_medium=invite&utm_campaign=&utm_content=&referralCode=theoimmorosalesv"
+/**
+ * Wallet (board: Wallet). One question: how much can I take out, and when?
+ *
+ * The answer comes first: the balance, one line that explains it, and the one
+ * primary action. Then every peso in and out, newest first. Beside it on a
+ * desk (under it on a phone): where payouts go, the totals so far, and the
+ * rules in a fold that stays closed.
+ *
+ * THE MONEY BEHAVIOUR IS THE OLD WALLET'S. The same queries; the same two
+ * mutations (creators.update for the Wise email, withdrawals.create with
+ * payoutMethod "wise_email") and their arguments; the same amount rules as the
+ * server (more than zero, no more than the balance, and no minimum, see
+ * _lib/ledger.ts); the same order of steps (no Wise email on file → set it up,
+ * then continue to the amount). What is new is how it reads.
+ */
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const TITLE = "Wallet";
+const SUB = "How much can I take out, and when?";
 
 export default function WalletPage() {
-    const router = useRouter()
-    const { user, isLoaded, isSignedIn } = useUser()
-    const [showSetupModal, setShowSetupModal] = useState(false)
-    const [showWithdrawModal, setShowWithdrawModal] = useState(false)
-    const [amount, setAmount] = useState("")
-    const [wiseEmailInput, setWiseEmailInput] = useState("")
-    const [error, setError] = useState("")
-    const [isSubmitting, setIsSubmitting] = useState(false)
+    const router = useRouter();
+    const { user, isLoaded, isSignedIn } = useUser();
 
-    const creator = useQuery(
-        api.creators.getByClerkId,
-        user ? { clerkId: user.id } : "skip"
-    )
-
-    const earnings = useQuery(
-        api.earnings.getByCreator,
-        creator?._id ? { creatorId: creator._id } : "skip"
-    )
-
-    const earningsSummary = useQuery(
-        api.earnings.getSummary,
-        creator?._id ? { creatorId: creator._id } : "skip"
-    )
-
-    const withdrawals = useQuery(
-        api.withdrawals.getByCreator,
-        creator?._id ? { creatorId: creator._id } : "skip"
-    )
-
-    const createWithdrawal = useMutation(api.withdrawals.create)
-    const updateCreator = useMutation(api.creators.update)
+    const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip");
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) {
-            router.push("/login")
+            router.push("/login");
         }
-    }, [isLoaded, isSignedIn, router])
+    }, [isLoaded, isSignedIn, router]);
 
     useEffect(() => {
         if (isLoaded && isSignedIn && creator === null) {
-            router.push("/onboarding")
+            router.push("/onboarding");
         }
-    }, [isLoaded, isSignedIn, creator, router])
+    }, [isLoaded, isSignedIn, creator, router]);
 
-    // Pre-fill saved Wise email when modals open
-    useEffect(() => {
-        if (creator?.wiseEmail && !wiseEmailInput) {
-            setWiseEmailInput(creator.wiseEmail)
-        }
-    }, [creator?.wiseEmail]) // eslint-disable-line react-hooks/exhaustive-deps
-
-    if (!isLoaded || !isSignedIn || creator === undefined) {
+    // Still loading, signed out, or on the way to onboarding: the page's own
+    // shape stays on screen until the redirect or the data arrives.
+    if (!isLoaded || !isSignedIn || creator === undefined || creator === null) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
-            </div>
-        )
+            <CreatorShell>
+                <PageHeader title={TITLE} sub={SUB} />
+                <WalletSkeleton />
+            </CreatorShell>
+        );
     }
 
-    if (!creator) {
-        return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--ed-paper)" }}>
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--ed-accent)" }} />
-            </div>
-        )
-    }
+    return <Wallet creator={creator} />;
+}
 
-    const balance = creator.balance || 0
-    const totalEarned = earningsSummary?.total || creator.totalEarnings || 0
-    const totalWithdrawn = earningsSummary?.withdrawn || creator.totalWithdrawn || 0
+function Wallet({ creator }: { creator: Doc<"creators"> }) {
+    const earnings = useQuery(api.earnings.getByCreator, { creatorId: creator._id });
+    const earningsSummary = useQuery(api.earnings.getSummary, { creatorId: creator._id });
+    const withdrawals = useQuery(api.withdrawals.getByCreator, { creatorId: creator._id });
+    // What is live and waiting for its owner to pay. The creator frame holds
+    // this same subscription already, so Convex serves both from one.
+    const submissions = useQuery(api.submissions.getByCreatorId, { creatorId: creator._id });
 
-    const handleStartWithdraw = () => {
-        setError("")
-        if (creator.wiseEmail) {
-            setWiseEmailInput(creator.wiseEmail)
-            setShowWithdrawModal(true)
-        } else {
-            setShowSetupModal(true)
-        }
-    }
+    const [step, setStep] = useState<PayoutStep | null>(null);
+    const [amount, setAmount] = useState("");
+    const [retry, setRetry] = useState<Retry | null>(null);
+    // The email just saved, used until the creator row catches up with it.
+    const [savedEmail, setSavedEmail] = useState<string | null>(null);
 
-    const handleSaveWiseEmail = async () => {
-        setError("")
-        const normalized = wiseEmailInput.trim().toLowerCase()
-        if (!EMAIL_REGEX.test(normalized)) {
-            setError("Please enter a valid email address.")
-            return
-        }
-        try {
-            setIsSubmitting(true)
-            await updateCreator({ id: creator._id, wiseEmail: normalized })
-            setWiseEmailInput(normalized)
-            setShowSetupModal(false)
-            setShowWithdrawModal(true)
-        } catch (err: any) {
-            setError(err.message || "Failed to save Wise email. Please try again.")
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
+    const balance = creator.balance || 0;
+    const totalEarned = earningsSummary?.total || creator.totalEarnings || 0;
+    const totalWithdrawn = earningsSummary?.withdrawn || creator.totalWithdrawn || 0;
+    const payoutEmail = savedEmail ?? (creator.wiseEmail || null);
 
-    const handleWithdraw = async () => {
-        setError("")
+    const canWithdraw = balance > 0;
+    const moving = withdrawals ? inFlight(withdrawals) : null;
+    const waiting = submissions ? awaitingOwners(submissions) : null;
+    const line = moving && waiting ? balanceLine({ balance, moving, waiting }) : null;
+    const rows = earnings && withdrawals ? buildLedger(earnings, withdrawals, submissions) : undefined;
 
-        const withdrawAmount = parseFloat(amount)
-        if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
-            setError("Withdrawal amount must be greater than zero.")
-            return
-        }
-        if (withdrawAmount > balance) {
-            setError("Insufficient balance.")
-            return
-        }
-        const normalizedEmail = wiseEmailInput.trim().toLowerCase()
-        if (!EMAIL_REGEX.test(normalizedEmail)) {
-            setError("Please enter a valid Wise email address.")
-            return
-        }
+    const startWithdraw = (prefill: number, retryOf: Retry | null) => {
+        setAmount(amountInput(prefill));
+        setRetry(retryOf);
+        // As before: with a Wise email on file, straight to the amount; without
+        // one, set it up first and continue to the amount once it is saved.
+        setStep(payoutEmail ? { mode: "withdraw" } : { mode: "setup", afterSave: "withdraw", afterCancel: null });
+    };
 
-        try {
-            setIsSubmitting(true)
-            // Persist updated Wise email on the creator profile so it's remembered next time
-            if (normalizedEmail !== creator.wiseEmail) {
-                await updateCreator({ id: creator._id, wiseEmail: normalizedEmail })
-            }
-            await createWithdrawal({
-                creatorId: creator._id,
-                amount: withdrawAmount,
-                payoutMethod: "wise_email",
-                accountDetails: normalizedEmail,
-            })
-            setShowWithdrawModal(false)
-            setAmount("")
-        } catch (err: any) {
-            setError(err.message || "Withdrawal failed. Please try again.")
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
-
-    const getWithdrawalStatusBadge = (status: string) => {
-        switch (status) {
-            case "completed":
-                return (
-                    <span className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-md uppercase">
-                        <CheckCircle className="w-3 h-3" /> Completed
-                    </span>
-                )
-            case "processing":
-                return (
-                    <span className="flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-md uppercase">
-                        <RefreshCw className="w-3 h-3" /> Processing
-                    </span>
-                )
-            case "failed":
-                return (
-                    <span className="flex items-center gap-1 px-2 py-1 bg-red-100 text-red-700 text-[10px] font-bold rounded-md uppercase">
-                        <XCircle className="w-3 h-3" /> Failed
-                    </span>
-                )
-            default:
-                return (
-                    <span className="flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-bold rounded-md uppercase">
-                        <Clock className="w-3 h-3" /> Pending
-                    </span>
-                )
-        }
-    }
-
-    const formatDate = (timestamp: number) => {
-        return new Date(timestamp).toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            year: "numeric",
-        })
-    }
-
-    const formatCurrency = (value: number) => {
-        return value.toLocaleString("en-PH", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-        })
-    }
+    const availId = useId();
+    const reasonId = useId();
+    const destId = useId();
 
     return (
-        <div
-            className="editorial min-h-screen pb-24 overflow-x-hidden"
-            style={{ background: "var(--ed-paper)", color: "var(--ed-ink)", fontFamily: "var(--ed-sans)" }}
-        >
-            <main className="px-4 py-6">
-                {/* Back Button */}
-                <div className="flex items-center justify-between mb-2">
-                    <Link
-                        href="/dashboard"
-                        className="w-10 h-10 rounded-full flex items-center justify-center transition-colors"
-                        style={{
-                            background: "var(--ed-paper-3)",
-                            border: "1px solid var(--ed-rule)",
-                            color: "var(--ed-ink-2)",
-                        }}
-                    >
-                        <ArrowLeft className="w-5 h-5" />
-                    </Link>
-                </div>
+        <CreatorShell>
+            <PageHeader title={TITLE} sub={SUB} />
 
-                {/* Editorial header */}
-                <div className="mb-6 mt-2">
-                    <p className="ed-label">Wallet · Withdrawals</p>
-                    <h1
-                        className="mt-2"
-                        style={{
-                            fontFamily: "var(--ed-serif)",
-                            fontSize: 40,
-                            lineHeight: 1.05,
-                            letterSpacing: "-0.02em",
-                            color: "var(--ed-ink)",
-                        }}
-                    >
-                        Your <em style={{ color: "var(--ed-accent)" }}>earnings.</em>
-                    </h1>
-                    <p
-                        className="mt-2"
-                        style={{
-                            fontFamily: "var(--ed-sans)",
-                            fontSize: 14,
-                            color: "var(--ed-ink-2)",
-                            lineHeight: 1.55,
-                            maxWidth: "44ch",
-                        }}
-                    >
-                        Track what you&apos;ve made, request a payout to Wise, see every transaction.
-                    </p>
-                </div>
-
-                {/* Balance hero — ink with serif amount */}
-                <div
-                    className="rounded-3xl p-6 relative overflow-hidden mb-6"
-                    style={{
-                        background: "var(--ed-ink)",
-                        color: "var(--ed-paper-3)",
-                        boxShadow: "var(--ed-shadow-md)",
-                    }}
-                >
-                    <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" style={{ background: "rgba(16, 185, 129, 0.12)" }}></div>
-
-                    <div className="flex justify-between items-start mb-2 relative z-10">
-                        <span
-                            style={{
-                                fontFamily: "var(--ed-mono)",
-                                fontSize: 11,
-                                letterSpacing: "0.14em",
-                                textTransform: "uppercase",
-                                color: "rgba(252,250,245,0.55)",
-                            }}
-                        >
-                            Available Balance
-                        </span>
-                        <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center"
-                            style={{ background: "rgba(255,255,255,0.08)", color: "var(--ed-accent-solid)" }}
-                        >
-                            <Wallet className="w-3.5 h-3.5" />
+            <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
+                {/* The answer, then the ledger */}
+                <div className="flex min-w-0 flex-1 flex-col gap-6">
+                    <section className="t-card flex flex-col gap-5 p-5 sm:p-8" aria-labelledby={availId}>
+                        <div className="flex flex-col gap-3">
+                            <span id={availId} className="t-label">
+                                Available to withdraw
+                            </span>
+                            <span className="t-hero-fig">{formatMoney(balance)}</span>
+                            {line ? (
+                                <span className="t-status items-start whitespace-normal text-sm leading-5 wrap-anywhere">
+                                    <Dot tone={line.tone} className="mt-1.5" />
+                                    {line.text}
+                                </span>
+                            ) : (
+                                <Skeleton width="60%" height={14} />
+                            )}
                         </div>
-                    </div>
-
-                    <div className="mb-5 relative z-10 flex items-baseline gap-2">
-                        <span
-                            style={{
-                                fontFamily: "var(--ed-serif)",
-                                fontSize: 20,
-                                color: "rgba(252,250,245,0.55)",
-                            }}
-                        >
-                            ₱
-                        </span>
-                        <span
-                            style={{
-                                fontFamily: "var(--ed-serif)",
-                                fontSize: 56,
-                                lineHeight: 1.0,
-                                letterSpacing: "-0.025em",
-                                fontVariantNumeric: "tabular-nums",
-                            }}
-                        >
-                            {formatCurrency(balance)}
-                        </span>
-                    </div>
-
-                    <div
-                        className="flex gap-6 relative z-10 pt-4"
-                        style={{ borderTop: "1px solid rgba(255,255,255,0.08)" }}
-                    >
-                        <div className="flex items-center gap-2">
-                            <TrendingUp className="w-3.5 h-3.5" style={{ color: "var(--ed-accent-solid)" }} />
-                            <div>
-                                <p style={{ fontFamily: "var(--ed-mono)", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(252,250,245,0.55)" }}>
-                                    Earned
-                                </p>
-                                <p style={{ fontFamily: "var(--ed-serif)", fontSize: 16, fontVariantNumeric: "tabular-nums" }}>
-                                    ₱{formatCurrency(totalEarned)}
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <TrendingDown className="w-3.5 h-3.5" style={{ color: "#f4a261" }} />
-                            <div>
-                                <p style={{ fontFamily: "var(--ed-mono)", fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(252,250,245,0.55)" }}>
-                                    Withdrawn
-                                </p>
-                                <p style={{ fontFamily: "var(--ed-serif)", fontSize: 16, fontVariantNumeric: "tabular-nums" }}>
-                                    ₱{formatCurrency(totalWithdrawn)}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Withdraw door — accent variant */}
-                <Button
-                    onClick={handleStartWithdraw}
-                    disabled={balance <= 0}
-                    className="ed-door ed-door-accent w-full mb-2"
-                    style={{ minHeight: 52, justifyContent: "center", fontSize: 15 }}
-                >
-                    <ArrowDownRight className="w-5 h-5 mr-2" />
-                    Withdraw Funds
-                </Button>
-                <p
-                    className="text-center mb-6"
-                    style={{
-                        fontFamily: "var(--ed-sans)",
-                        fontSize: 11,
-                        color: "var(--ed-ink-3)",
-                    }}
-                >
-                    Paid via Wise to{" "}
-                    <span style={{ fontWeight: 600, color: "var(--ed-ink-2)" }}>
-                        {creator.wiseEmail || "your Wise email"}
-                    </span>
-                    . You receive the full amount — Wise transfer fees are on us.
-                </p>
-
-                {/* Recent Earnings */}
-                <div className="mb-6">
-                    <p className="ed-label">History</p>
-                    <h2
-                        className="mt-1 mb-3"
-                        style={{
-                            fontFamily: "var(--ed-serif)",
-                            fontSize: 22,
-                            lineHeight: 1.15,
-                            letterSpacing: "-0.015em",
-                            color: "var(--ed-ink)",
-                        }}
-                    >
-                        Recent <em style={{ color: "var(--ed-accent)" }}>earnings</em>
-                    </h2>
-                    <div className="space-y-3">
-                        {earnings && earnings.length > 0 ? (
-                            earnings.slice(0, 10).map((earning: any) => (
-                                <div
-                                    key={earning._id}
-                                    className="p-3 flex items-center justify-between"
-                                    style={{
-                                        background: "var(--ed-paper-3)",
-                                        border: "1px solid var(--ed-rule)",
-                                        borderRadius: "var(--ed-radius-md)",
-                                    }}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div
-                                            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                                            style={{ background: "var(--ed-accent-bg)" }}
-                                        >
-                                            <TrendingUp className="w-5 h-5" style={{ color: "var(--ed-accent)" }} />
-                                        </div>
-                                        <div>
-                                            <h3
-                                                style={{
-                                                    fontFamily: "var(--ed-serif)",
-                                                    fontSize: 16,
-                                                    lineHeight: 1.2,
-                                                    color: "var(--ed-ink)",
-                                                }}
-                                            >
-                                                {earning.businessName}
-                                            </h3>
-                                            <p
-                                                className="mt-0.5"
-                                                style={{
-                                                    fontFamily: "var(--ed-mono)",
-                                                    fontSize: 10,
-                                                    letterSpacing: "0.1em",
-                                                    textTransform: "uppercase",
-                                                    color: "var(--ed-ink-3)",
-                                                }}
-                                            >
-                                                {earning.type === "submission_approved"
-                                                    ? "Submission"
-                                                    : earning.type === "referral_bonus"
-                                                      ? "Referral"
-                                                      : "Lead"}{" "}
-                                                · {formatDate(earning.createdAt)}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <span
-                                        style={{
-                                            fontFamily: "var(--ed-serif)",
-                                            fontSize: 18,
-                                            fontVariantNumeric: "tabular-nums",
-                                            color: "var(--ed-accent)",
-                                        }}
-                                    >
-                                        +₱{formatCurrency(earning.amount)}
+                        <hr className="t-divider" />
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                            {canWithdraw ? (
+                                <>
+                                    <Button variant="primary" size="lg" className="w-full sm:w-auto" onClick={() => startWithdraw(balance, null)}>
+                                        Withdraw
+                                    </Button>
+                                    <span className="t-meta wrap-anywhere">
+                                        {payoutEmail
+                                            ? `To Wise · ${payoutEmail} · you get the full amount`
+                                            : "To Wise · add your Wise email first · you get the full amount"}
                                     </span>
-                                </div>
-                            ))
-                        ) : (
-                            <div
-                                className="text-center py-8"
-                                style={{
-                                    background: "var(--ed-paper-2)",
-                                    border: "1px dashed var(--ed-rule-strong)",
-                                    borderRadius: "var(--ed-radius-md)",
-                                }}
-                            >
-                                <p
-                                    style={{
-                                        fontFamily: "var(--ed-serif)",
-                                        fontSize: 16,
-                                        fontStyle: "italic",
-                                        color: "var(--ed-ink-2)",
-                                    }}
-                                >
-                                    No earnings yet.
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Withdrawal History */}
-                <div>
-                    <h2 className="text-base font-bold text-zinc-900 mb-3">Withdrawal History</h2>
-                    <div className="space-y-3">
-                        {withdrawals && withdrawals.length > 0 ? (
-                            withdrawals.map((withdrawal: any) => {
-                                // Prefer the persisted wiseEmail column; fall back to accountDetails
-                                // (which is the raw email for wise_email withdrawals).
-                                const wiseEmail =
-                                    withdrawal.wiseEmail ||
-                                    (withdrawal.payoutMethod === "wise_email"
-                                        ? withdrawal.accountDetails
-                                        : null)
-                                const label = wiseEmail
-                                    ? `Wise: ${wiseEmail}`
-                                    : "Wise Transfer"
-
-                                return (
-                                    <div
-                                        key={withdrawal._id}
-                                        className="bg-white rounded-xl p-3 border border-zinc-100 shadow-sm flex items-center justify-between"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-zinc-100 flex items-center justify-center shrink-0">
-                                                <ArrowDownRight className="w-5 h-5 text-zinc-500" />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <h3 className="font-bold text-sm text-zinc-900">
-                                                    PHP {formatCurrency(withdrawal.amount)}
-                                                </h3>
-                                                <p className="text-[10px] text-zinc-500 truncate">
-                                                    {label} · {formatDate(withdrawal.createdAt)}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        {getWithdrawalStatusBadge(withdrawal.status)}
-                                    </div>
-                                )
-                            })
-                        ) : (
-                            <div className="text-center py-6 bg-zinc-50 rounded-xl border border-dashed border-zinc-200">
-                                <p className="text-zinc-500 text-xs">No withdrawals yet.</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </main>
-
-            {/* Wise Setup Modal — first-time Wise email capture */}
-            {showSetupModal && (
-                <div className="fixed inset-0 bg-black/50 z-[60] flex items-end sm:items-center justify-center">
-                    <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 pb-10 animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
-                                    <Mail className="w-4 h-4 text-amber-600" />
-                                </div>
-                                <h2 className="text-lg font-bold text-zinc-900">Set up Wise payouts</h2>
-                            </div>
-                            <button
-                                onClick={() => {
-                                    setShowSetupModal(false)
-                                    setError("")
-                                }}
-                                className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-colors"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
-
-                        <p className="text-sm text-zinc-600 mb-5">
-                            We&apos;ll send your earnings to your Wise account by email. Enter the email
-                            you use (or plan to use) on Wise — we&apos;ll remember it for next time.
-                        </p>
-
-                        <div className="space-y-4">
-                            <div>
-                                <Label htmlFor="setupEmail" className="text-sm font-semibold text-zinc-700">
-                                    Wise account email
-                                </Label>
-                                <Input
-                                    id="setupEmail"
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    value={wiseEmailInput}
-                                    onChange={(e) => setWiseEmailInput(e.target.value)}
-                                    className="mt-1 rounded-xl border-zinc-200 focus:border-amber-500 focus:ring-amber-500"
-                                />
-                            </div>
-
-                            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 text-xs text-zinc-700 space-y-2">
-                                <p className="font-semibold text-amber-700">
-                                    Don&apos;t have a Wise account yet?
-                                </p>
-                                <p>
-                                    Wise is free. Sign up with our referral link — you and Tendso
-                                    both get a bonus when your first payout clears.
-                                </p>
-                                <a
-                                    href={WISE_REFERRAL_URL}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 font-semibold text-amber-700 hover:text-amber-800"
-                                >
-                                    Sign up on Wise <ExternalLink className="w-3 h-3" />
-                                </a>
-                                <p className="text-zinc-500">
-                                    Then come back and enter the same email here.
-                                </p>
-                            </div>
-
-                            {error && (
-                                <p className="text-sm text-red-600 font-medium bg-red-50 p-3 rounded-xl">{error}</p>
+                                </>
+                            ) : (
+                                <>
+                                    <Button variant="primary" size="lg" className="w-full sm:w-auto" disabled aria-describedby={reasonId}>
+                                        Withdraw
+                                    </Button>
+                                    <span id={reasonId} className="t-meta">
+                                        {moving && moving.total > 0 ? "Nothing left to take out right now." : "Nothing to take out yet."}
+                                    </span>
+                                </>
                             )}
+                        </div>
+                    </section>
 
-                            <Button
-                                onClick={handleSaveWiseEmail}
-                                disabled={isSubmitting}
-                                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl h-12 shadow-lg shadow-amber-500/20"
-                            >
-                                {isSubmitting ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    "Save & Continue"
-                                )}
+                    <Ledger
+                        rows={rows}
+                        canRetry={canWithdraw}
+                        onRetry={(row) => {
+                            if (row.retry) startWithdraw(Math.min(row.retry.amount, balance), row.retry);
+                        }}
+                    />
+                </div>
+
+                {/* Where it goes, the totals, the rules */}
+                <div className="flex flex-col gap-6 xl:w-[352px] xl:flex-none">
+                    <section className="t-card t-card-pad flex flex-col gap-4" aria-labelledby={destId}>
+                        <h2 id={destId} className="t-h2">
+                            Payouts go to
+                        </h2>
+                        <div className="flex items-center justify-between gap-3">
+                            <span className="flex min-w-0 flex-col gap-0.5">
+                                <span className="text-sm font-medium text-r1-ink wrap-anywhere">
+                                    {payoutEmail ? `Wise · ${payoutEmail}` : "No Wise email yet"}
+                                </span>
+                                <span className="t-meta">{payoutEmail ? "Your Wise email" : "Add the email you use on Wise"}</span>
+                            </span>
+                            <Button onClick={() => setStep({ mode: "setup", afterSave: null, afterCancel: null })}>
+                                {payoutEmail ? "Change" : "Set up"}
                             </Button>
                         </div>
-                    </div>
+                        <p className="t-meta">Wise emails you about each payout. Transfer fees are on us.</p>
+                    </section>
+
+                    <SoFar
+                        waiting={waiting}
+                        totalEarned={totalEarned}
+                        earnedFrom={rows ? joinNames(rows.filter((r) => r.kind === "earning").map((r) => r.title)) : ""}
+                        totalWithdrawn={totalWithdrawn}
+                        withdrawals={withdrawals}
+                    />
+
+                    <Fold title="How payouts work">
+                        <ul className="m-0 flex list-disc flex-col gap-2 pl-[18px] text-[13px] leading-[18px] text-r1-ink-2">
+                            <li>
+                                You keep {Math.round(COMMISSION_RATE * 100)}% of each website&apos;s price. It lands in your wallet when the owner
+                                pays, and free promo sites pay you too.
+                            </li>
+                            <li>Withdraw any amount up to what is available.</li>
+                            <li>
+                                Tendso approves each payout in Wise, then Wise emails you. If that email has no Wise account yet, use the claim
+                                link within 7 days.
+                            </li>
+                            <li>An unclaimed link expires and the money comes back to your wallet. Nothing is lost.</li>
+                            <li>Use the same email as your Wise account. No account yet? Wise is free to join.</li>
+                        </ul>
+                        <Link href="/knowledge" className="t-link mt-3 self-start text-[13px]">
+                            More in Learn
+                        </Link>
+                    </Fold>
                 </div>
-            )}
+            </div>
 
-            {/* Withdraw Modal */}
-            {showWithdrawModal && (
-                <div className="fixed inset-0 bg-black/50 z-[60] flex items-end sm:items-center justify-center">
-                    <div className="bg-white w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-6 pb-10 animate-in slide-in-from-bottom duration-300 max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-bold text-zinc-900">Withdraw Funds</h2>
-                            <button
-                                onClick={() => {
-                                    setShowWithdrawModal(false)
-                                    setError("")
-                                }}
-                                className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:text-zinc-900 transition-colors"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
+            <PayoutDialog
+                step={step}
+                onStep={setStep}
+                creator={creator}
+                payoutEmail={payoutEmail}
+                balance={balance}
+                amount={amount}
+                onAmount={setAmount}
+                retry={retry}
+                onWithdrawn={(value, email) => {
+                    setAmount("");
+                    setRetry(null);
+                    toast.success(`${formatMoney(value)} is on its way. Watch ${email} for an email from Wise.`);
+                }}
+                onEmailSaved={(email) => {
+                    setSavedEmail(email);
+                    toast.success(`Saved. Payouts now go to ${email} on Wise.`);
+                }}
+            />
+        </CreatorShell>
+    );
+}
 
-                        <div className="bg-zinc-50 rounded-xl p-3 mb-5 text-center">
-                            <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wider">Available Balance</p>
-                            <p className="text-xl font-bold text-zinc-900">PHP {formatCurrency(balance)}</p>
-                        </div>
+/**
+ * "So far": pending, earned, withdrawn. Pending is what lands when owners pay;
+ * the other two are the totals the old wallet showed, from the same sources.
+ * A card that would read ₱0 three times is cut (ComponentKit, Cards).
+ */
+function SoFar({
+    waiting,
+    totalEarned,
+    earnedFrom,
+    totalWithdrawn,
+    withdrawals,
+}: {
+    waiting: { total: number; names: string[] } | null;
+    totalEarned: number;
+    earnedFrom: string;
+    totalWithdrawn: number;
+    withdrawals: Withdrawal[] | undefined;
+}) {
+    const titleId = useId();
+    if ((waiting?.total ?? 0) === 0 && totalEarned === 0 && totalWithdrawn === 0) return null;
 
-                        <div className="space-y-4">
-                            <div>
-                                <Label htmlFor="amount" className="text-sm font-semibold text-zinc-700">
-                                    Amount (PHP)
-                                </Label>
-                                <Input
-                                    id="amount"
-                                    type="number"
-                                    min={1}
-                                    max={balance}
-                                    placeholder="Any positive amount"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                    className="mt-1 rounded-xl border-zinc-200 focus:border-amber-500 focus:ring-amber-500"
-                                />
-                            </div>
+    const lastPaid = withdrawals
+        ?.filter((w) => w.status === "completed")
+        .reduce<Withdrawal | null>((best, w) => (!best || (w.processedAt ?? w.createdAt) > (best.processedAt ?? best.createdAt) ? w : best), null);
+    const many = (waiting?.names.length ?? 0) > 1;
 
-                            <div>
-                                <Label htmlFor="wiseEmail" className="text-sm font-semibold text-zinc-700">
-                                    Wise account email
-                                </Label>
-                                <Input
-                                    id="wiseEmail"
-                                    type="email"
-                                    placeholder="you@example.com"
-                                    value={wiseEmailInput}
-                                    onChange={(e) => setWiseEmailInput(e.target.value)}
-                                    className="mt-1 rounded-xl border-zinc-200 focus:border-amber-500 focus:ring-amber-500"
-                                />
-                                <p className="text-[11px] text-zinc-500 mt-1">
-                                    Must match the email on your Wise account. If you don&apos;t have one,{" "}
-                                    <a
-                                        href={WISE_REFERRAL_URL}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="font-semibold text-amber-600 hover:text-amber-700 underline"
-                                    >
-                                        sign up with our referral link
-                                    </a>{" "}
-                                    first — otherwise you have 7 days to claim via email before the transfer
-                                    auto-refunds.
-                                </p>
-                            </div>
+    return (
+        <section className="t-card px-5 pb-2 pt-5 sm:px-6" aria-labelledby={titleId}>
+            <h2 id={titleId} className="t-h2 pb-1">
+                So far
+            </h2>
+            <SoFarRow
+                label="Pending"
+                value={waiting ? formatMoney(waiting.total) : <Skeleton width={56} height={16} />}
+                note={
+                    waiting === null ? null : waiting.total > 0 ? (
+                        <span className="t-status items-start whitespace-normal">
+                            <Dot tone="progress" className="mt-[5px]" />
+                            {joinNames(waiting.names)} · when the {many ? "owners pay" : "owner pays"}
+                        </span>
+                    ) : (
+                        <span className="t-status">
+                            <Dot tone="off" />
+                            Nothing waiting
+                        </span>
+                    )
+                }
+            />
+            <SoFarRow label="Earned" value={formatMoney(totalEarned)} note={earnedFrom ? <span className="t-meta">{earnedFrom}</span> : null} />
+            <SoFarRow
+                label="Withdrawn"
+                value={formatMoney(totalWithdrawn)}
+                note={
+                    withdrawals === undefined ? null : (
+                        <span className="t-meta">
+                            {lastPaid ? `Last paid out ${shortDate(lastPaid.processedAt ?? lastPaid.createdAt)}` : "Nothing paid out yet"}
+                        </span>
+                    )
+                }
+            />
+        </section>
+    );
+}
 
-                            {error && (
-                                <p className="text-sm text-red-600 font-medium bg-red-50 p-3 rounded-xl">{error}</p>
-                            )}
-
-                            <Button
-                                onClick={handleWithdraw}
-                                disabled={isSubmitting}
-                                className="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl h-12 shadow-lg shadow-amber-500/20"
-                            >
-                                {isSubmitting ? (
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                ) : (
-                                    "Submit Withdrawal"
-                                )}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            <BottomNav active="wallet" />
+function SoFarRow({ label, value, note }: { label: string; value: ReactNode; note: ReactNode }) {
+    return (
+        <div className="flex items-start justify-between gap-4 border-b border-r1-line-3 py-3.5 last:border-b-0">
+            <span className="flex min-w-0 flex-col gap-0.5">
+                <span className="t-body text-r1-ink">{label}</span>
+                {note}
+            </span>
+            <span className="t-num whitespace-nowrap text-base font-semibold leading-6 text-r1-ink">{value}</span>
         </div>
-    )
+    );
+}
+
+/** The page's shape while the creator row loads: balance card, three rows, two side cards. */
+function WalletSkeleton() {
+    return (
+        <Loading label="Loading your wallet" className="flex flex-col gap-6 xl:flex-row xl:items-start">
+            <div className="flex min-w-0 flex-1 flex-col gap-6" aria-hidden="true">
+                <div className="t-card flex flex-col gap-4 p-5 sm:p-8">
+                    <Skeleton width={140} height={12} />
+                    <Skeleton width={180} height={48} />
+                    <Skeleton width="60%" height={14} />
+                    <hr className="t-divider" />
+                    <Skeleton width={140} height={48} />
+                </div>
+                <SkeletonRows count={3} />
+            </div>
+            <div className="flex flex-col gap-6 xl:w-[352px] xl:flex-none">
+                <SkeletonCard />
+                <SkeletonCard />
+            </div>
+        </Loading>
+    );
 }
