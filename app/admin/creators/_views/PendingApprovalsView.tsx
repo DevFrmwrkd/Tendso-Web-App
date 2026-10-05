@@ -1,329 +1,130 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
-import RejectCreatorDialog from "../../components/RejectCreatorDialog";
-import { Search, CheckCircle2, Loader2, UserCheck, XCircle } from "lucide-react";
-import { toast } from "sonner";
 
-type PendingCreator = {
-    _id: Id<"creators">;
-    clerkId: string;
-    email: string;
-    firstName: string | null;
-    middleName: string | null;
-    lastName: string | null;
-    phone: string | null;
-    profileImage: string | null;
-    quizPassedAt: number;
-    createdAt: number | null;
-    referredByCode: string | null;
-    referredByName: string | null;
-};
+import { Avatar, Button, EmptyState, List, RowButton, RowChevron, SearchInput, Status, TableHead, creatorStatus } from "@/components/r1";
 
-function timeAgo(ts: number): string {
-    const diffMs = Date.now() - ts;
-    const min = Math.floor(diffMs / 60_000);
-    if (min < 1) return "just now";
-    if (min < 60) return `${min}m ago`;
-    const hr = Math.floor(min / 60);
-    if (hr < 24) return `${hr}h ago`;
-    const days = Math.floor(hr / 24);
-    if (days < 30) return `${days}d ago`;
-    const months = Math.floor(days / 30);
-    return `${months}mo ago`;
-}
+import { Lede, Pager, TableLoading } from "../_components/TableParts";
+import { PAGE_ROWS, avatarName, formatPhone, fullName, matchesSearch, pageOf, pageText, shortDate, type PendingRow } from "../_lib/creators";
 
-function fullName(c: PendingCreator): string {
-    const parts = [c.firstName, c.middleName, c.lastName].filter(Boolean) as string[];
-    return parts.length > 0 ? parts.join(" ") : "(name not set)";
-}
-
-export default function PendingApprovalsView({ isAdmin }: { isAdmin: boolean }) {
-    const pending = useQuery(api.creators.listPendingApproval, isAdmin ? {} : "skip") as
-        | PendingCreator[]
-        | undefined;
-    const approveCreator = useMutation(api.creators.approveCreator);
-
+/**
+ * The "Waiting for approval" tab (board Creators): everyone who passed the
+ * quiz and is waiting for an admin. Rows come from `listPendingApproval` in
+ * its own order, oldest first, so the top row has waited longest.
+ *
+ * Approve and Reject are no longer buttons on the row: a row opens the
+ * creator's drawer, which carries both (and shows what the admin is deciding
+ * on). The old queue's search stays for when the queue runs past one page.
+ */
+export default function PendingApprovalsView({
+    rows,
+    openId,
+    now,
+    onOpen,
+    onSeeAll,
+}: {
+    rows: PendingRow[] | undefined;
+    openId: string | null;
+    now: number;
+    onOpen: (id: string) => void;
+    onSeeAll: () => void;
+}) {
     const [search, setSearch] = useState("");
-    const [approvingId, setApprovingId] = useState<string | null>(null);
-    const [rejectTarget, setRejectTarget] = useState<PendingCreator | null>(null);
+    const [page, setPage] = useState(1);
 
-    const filtered = useMemo(() => {
-        if (!pending) return [];
-        const q = search.trim().toLowerCase();
-        if (!q) return pending;
-        return pending.filter(
-            (c) =>
-                fullName(c).toLowerCase().includes(q) ||
-                c.email.toLowerCase().includes(q) ||
-                (c.phone?.toLowerCase().includes(q) ?? false),
+    const filtered = useMemo(
+        () => (rows ?? []).filter((c) => matchesSearch(search, [fullName(c), c.email, c.phone])),
+        [rows, search],
+    );
+
+    if (rows === undefined) return <TableLoading label="Loading the creators waiting for approval" />;
+
+    if (rows.length === 0) {
+        return (
+            <div className="t-card">
+                <EmptyState
+                    title="Nobody is waiting"
+                    body="When someone passes the 5-question quiz, they show up here for you to approve."
+                    action={<Button onClick={onSeeAll}>See all creators</Button>}
+                />
+            </div>
         );
-    }, [pending, search]);
-
-    async function handleApprove(creator: PendingCreator) {
-        setApprovingId(String(creator._id));
-        try {
-            await approveCreator({ id: creator._id });
-            toast.success(`${fullName(creator)} approved — they're now a certified creator.`);
-        } catch (e: any) {
-            toast.error(e?.message ?? "Approval failed");
-        } finally {
-            setApprovingId(null);
-        }
     }
 
+    const shown = pageOf(filtered, page);
+
     return (
-        <div className="space-y-6">
-            {/* Editorial header — mono eyebrow + serif display + body lede */}
-            <div className="flex items-start justify-between gap-6 flex-wrap">
-                <div>
-                    <div className="flex items-center gap-3 mb-3">
-                        <span className="ed-eyebrow">
-                            Pending Approval · {String(pending?.length ?? 0).padStart(2, "0")} creators
-                        </span>
-                        <span className="ed-live-dot" />
-                    </div>
-                    <h2 className="ed-display-md" style={{ color: "var(--ed-ink)" }}>
-                        Awaiting your{" "}
-                        <em style={{ fontStyle: "italic", color: "var(--ed-accent)" }}>
-                            approval.
-                        </em>
-                    </h2>
-                    <p className="ed-body mt-3 flex items-start gap-2" style={{ maxWidth: "56ch" }}>
-                        <UserCheck
-                            className="w-4 h-4 mt-1 flex-shrink-0"
-                            style={{ color: "var(--ed-accent)" }}
-                        />
-                        <span>
-                            Creators who passed the onboarding quiz and are waiting for admin
-                            certification. Approving releases the mobile Pending Review gate.
-                        </span>
-                    </p>
-                </div>
-                <div className="text-right">
-                    <div
-                        className="ed-display-md"
-                        style={{ color: "var(--ed-ink)", fontVariantNumeric: "tabular-nums" }}
-                    >
-                        {pending?.length ?? "—"}
-                    </div>
-                    <div className="ed-label mt-1">waiting</div>
-                </div>
-            </div>
+        <div className="flex flex-col gap-3">
+            <Lede>They passed the quiz. Approve them to let them submit, or reject with a reason they will see.</Lede>
 
-            <hr className="ed-rule" />
-
-            {/* Search */}
-            <div className="relative">
-                <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: "var(--ed-ink-3)" }}
-                />
-                <input
-                    type="text"
+            {/* A short queue needs no search box; one that runs past a page does. */}
+            {rows.length > PAGE_ROWS || search ? (
+                <SearchInput
+                    label="Search the creators waiting, by name, email or phone"
+                    placeholder="Search by name, email or phone"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search by name, email, or phone…"
-                    className="w-full pl-10 pr-4 py-3 text-sm focus:outline-none transition-colors"
-                    style={{
-                        background: "var(--ed-paper-3)",
-                        border: "1px solid var(--ed-rule)",
-                        borderRadius: "var(--ed-radius-sm)",
-                        fontFamily: "var(--ed-sans)",
-                        color: "var(--ed-ink)",
+                    onChange={(e) => {
+                        setSearch(e.target.value);
+                        setPage(1);
                     }}
+                    className="w-full sm:w-[360px]"
                 />
+            ) : null}
+
+            <div className="t-card overflow-hidden">
+                <TableHead className="hidden lg:flex">
+                    <span className="flex-1">Creator</span>
+                    <span className="w-[200px] flex-none">Status</span>
+                    <span className="w-[110px] flex-none">Applied</span>
+                    <span className="w-4 flex-none" />
+                </TableHead>
+                {shown.rows.length > 0 ? (
+                    <List>
+                        {shown.rows.map((c) => {
+                            const name = fullName(c);
+                            const applied = shortDate(c.quizPassedAt, now);
+                            const contact = c.phone ? formatPhone(c.phone) : c.email;
+                            // Every row here has passed the quiz and has no decision yet: "Waiting for approval".
+                            const status = creatorStatus(c, "admin");
+                            return (
+                                <RowButton
+                                    key={c._id}
+                                    selected={openId === c._id}
+                                    aria-label={`Open ${name}, waiting for approval`}
+                                    onClick={() => onOpen(c._id)}
+                                >
+                                    <Avatar name={avatarName(c)} />
+                                    <span className="flex min-w-0 flex-1 flex-col">
+                                        <span className="t-row-title">{name}</span>
+                                        <span className="t-meta truncate">
+                                            <span className="lg:hidden">Applied {applied} · </span>
+                                            {contact}
+                                        </span>
+                                        <Status {...status} className="mt-1 lg:hidden" />
+                                    </span>
+                                    <span className="hidden w-[200px] flex-none lg:block">
+                                        <Status {...status} />
+                                    </span>
+                                    <span className="t-num hidden w-[110px] flex-none text-r1-ink-2 lg:block">{applied}</span>
+                                    <RowChevron />
+                                </RowButton>
+                            );
+                        })}
+                    </List>
+                ) : (
+                    <EmptyState
+                        title={`No one waiting matches “${search.trim()}”`}
+                        body="Check the spelling, or clear the search."
+                        action={<Button onClick={() => setSearch("")}>Clear search</Button>}
+                    />
+                )}
             </div>
 
-            {/* Queue list */}
-            {pending === undefined ? (
-                <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-6 h-6 animate-spin" style={{ color: "var(--ed-ink-3)" }} />
-                </div>
-            ) : filtered.length === 0 ? (
-                <div className="ed-card-xl text-center">
-                    <CheckCircle2
-                        className="w-10 h-10 mx-auto mb-3"
-                        style={{ color: "var(--ed-accent)" }}
-                    />
-                    <h3 className="ed-display-sm" style={{ color: "var(--ed-ink)" }}>
-                        {search ? (
-                            <>
-                                No <em style={{ color: "var(--ed-accent)" }}>matches</em>
-                            </>
-                        ) : (
-                            <>
-                                Inbox <em style={{ color: "var(--ed-accent)" }}>zero</em>.
-                            </>
-                        )}
-                    </h3>
-                    <p className="ed-body-sm mt-2" style={{ color: "var(--ed-ink-2)" }}>
-                        {search
-                            ? "Try a different search term."
-                            : "Every creator who passed the quiz has been approved. Nice."}
-                    </p>
-                </div>
-            ) : (
-                <div
-                    className="overflow-hidden"
-                    style={{
-                        background: "var(--ed-paper-3)",
-                        border: "1px solid var(--ed-rule)",
-                        borderRadius: "var(--ed-radius-lg)",
-                    }}
-                >
-                    <table className="w-full">
-                        <thead
-                            style={{
-                                background: "var(--ed-paper-2)",
-                                borderBottom: "1px solid var(--ed-rule)",
-                            }}
-                        >
-                            <tr>
-                                <th className="ed-label text-left px-6 py-3">Creator</th>
-                                <th className="ed-label text-left px-6 py-3">Email</th>
-                                <th className="ed-label text-left px-6 py-3">Phone</th>
-                                <th className="ed-label text-left px-6 py-3">Waiting</th>
-                                <th className="ed-label text-left px-6 py-3">Referrer</th>
-                                <th className="ed-label text-right px-6 py-3">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filtered.map((c, i) => {
-                                const isApproving = approvingId === String(c._id);
-                                return (
-                                    <tr
-                                        key={String(c._id)}
-                                        className="transition-colors hover:bg-[var(--ed-paper-2)]"
-                                        style={{
-                                            borderTop:
-                                                i === 0 ? "none" : "1px solid var(--ed-rule)",
-                                        }}
-                                    >
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div
-                                                    className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
-                                                    style={{
-                                                        background: "var(--ed-paper-2)",
-                                                        border: "1px solid var(--ed-rule)",
-                                                    }}
-                                                >
-                                                    {c.profileImage ? (
-                                                        // eslint-disable-next-line @next/next/no-img-element
-                                                        <img
-                                                            src={c.profileImage}
-                                                            alt={fullName(c)}
-                                                            className="w-full h-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <span
-                                                            style={{
-                                                                fontFamily: "var(--ed-serif)",
-                                                                fontSize: 16,
-                                                                color: "var(--ed-ink-2)",
-                                                            }}
-                                                        >
-                                                            {(
-                                                                c.firstName?.[0] ?? c.email[0]
-                                                            ).toUpperCase()}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <Link
-                                                        href={`/admin/creators/pending/${c._id}`}
-                                                        className="text-sm hover:underline"
-                                                        style={{
-                                                            fontFamily: "var(--ed-serif)",
-                                                            fontSize: 16,
-                                                            color: "var(--ed-ink)",
-                                                        }}
-                                                        title="View creator overview"
-                                                    >
-                                                        {fullName(c)}
-                                                    </Link>
-                                                    <div className="ed-label mt-1">
-                                                        quiz passed {timeAgo(c.quizPassedAt)}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm" style={{ color: "var(--ed-ink-2)" }}>
-                                            {c.email}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm" style={{ color: "var(--ed-ink-2)" }}>
-                                            {c.phone ?? "—"}
-                                        </td>
-                                        <td
-                                            className="px-6 py-4 text-sm whitespace-nowrap"
-                                            style={{
-                                                fontFamily: "var(--ed-mono)",
-                                                fontSize: 11,
-                                                letterSpacing: "0.08em",
-                                                color: "var(--ed-ink-2)",
-                                            }}
-                                        >
-                                            {timeAgo(c.quizPassedAt).toUpperCase()}
-                                        </td>
-                                        <td className="px-6 py-4 text-sm" style={{ color: "var(--ed-ink-2)" }}>
-                                            {c.referredByName ?? c.referredByCode ?? "—"}
-                                        </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="inline-flex items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setRejectTarget(c)}
-                                                    disabled={isApproving}
-                                                    className="ed-door ed-door-danger-ghost inline-flex items-center"
-                                                    style={{ minHeight: 38, padding: "8px 14px", fontSize: 13 }}
-                                                    title="Reject creator"
-                                                >
-                                                    <XCircle className="w-3.5 h-3.5" />
-                                                    <span style={{ marginLeft: 8 }}>Reject</span>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleApprove(c)}
-                                                    disabled={isApproving}
-                                                    className="ed-door ed-door-accent inline-flex items-center"
-                                                    style={{ minHeight: 38, padding: "8px 16px", fontSize: 13 }}
-                                                >
-                                                    {isApproving ? (
-                                                        <>
-                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                                            <span style={{ marginLeft: 8 }}>Approving…</span>
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <CheckCircle2 className="w-3.5 h-3.5" />
-                                                            <span style={{ marginLeft: 8 }}>Approve</span>
-                                                        </>
-                                                    )}
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                );
-                            })}
-                        </tbody>
-                    </table>
-                </div>
-            )}
-
-            <RejectCreatorDialog
-                creator={rejectTarget}
-                open={rejectTarget !== null}
-                onClose={() => setRejectTarget(null)}
-                onSuccess={({ displayName }) => {
-                    toast.success(
-                        `${displayName} rejected — they'll see the rejection screen on next app open.`,
-                    );
-                }}
+            <Pager
+                text={pageText("Oldest first", shown.rows.length, filtered.length, shown.page, shown.pages)}
+                page={shown.page}
+                pages={shown.pages}
+                onPage={setPage}
             />
         </div>
     );

@@ -36,8 +36,8 @@
  *     + click handlers automatically — no enable message is required.
  *
  * The whole script is a single string so it can be injected into the
- * iframe srcDoc via string concatenation at the VisualEditor / preview
- * srcDoc-render step.
+ * iframe srcDoc via string concatenation at the editor's (SandboxEditorV3)
+ * preview srcDoc-render step.
  */
 export const EDITOR_BRIDGE_SCRIPT = `
 <script>

@@ -12,9 +12,14 @@
  *   1. Sends `ed:image` to the iframe so the preview updates immediately.
  *   2. Calls onSelect(src) so the parent can persist the URL into the
  *      draft content (e.g. set draft.hero.image = src).
+ *
+ * Round 1: a kit Dialog (native <dialog>: focus trap, Esc, scrim) with kit
+ * tabs. Which tab opens first is unchanged: AI-enhanced only when there are
+ * no originals but there are enhanced images.
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { Button, Dialog, Tabs } from "@/components/r1";
 
 export interface ImagePickerModalProps {
     open: boolean;
@@ -23,21 +28,21 @@ export interface ImagePickerModalProps {
     /** Original-photo URLs from the submission. */
     originals: string[];
     /** Enhanced image map: { slot: { url } | url } */
-    enhanced: Record<string, any> | undefined;
+    enhanced: Record<string, unknown> | undefined;
     onClose: () => void;
     onSelect: (field: string, src: string) => void;
 }
 
 type Tab = 'originals' | 'enhanced';
 
-function enhancedToList(enhanced: Record<string, any> | undefined): Array<{ slot: string; url: string }> {
+function enhancedToList(enhanced: Record<string, unknown> | undefined): Array<{ slot: string; url: string }> {
     if (!enhanced || typeof enhanced !== 'object') return [];
     const out: Array<{ slot: string; url: string }> = [];
     for (const [slot, val] of Object.entries(enhanced)) {
         if (!val) continue;
-        let url: string | undefined;
+        let url: unknown;
         if (typeof val === 'string') url = val;
-        else if (typeof val === 'object') url = (val as any).url || (val as any).storageId;
+        else if (typeof val === 'object') url = (val as { url?: unknown }).url || (val as { storageId?: unknown }).storageId;
         if (url && typeof url === 'string' && /^https?:\/\//i.test(url)) {
             out.push({ slot, url });
         }
@@ -47,188 +52,82 @@ function enhancedToList(enhanced: Record<string, any> | undefined): Array<{ slot
 
 export default function ImagePickerModal({ open, field, originals, enhanced, onClose, onSelect }: ImagePickerModalProps) {
     const enhancedList = useMemo(() => enhancedToList(enhanced), [enhanced]);
-    const [tab, setTab] = useState<Tab>('originals');
+    // The admin's own tab choice for this opening; null = the default.
+    // Cleared on the way out (close or pick), so every opening starts on the
+    // default again.
+    const [chosenTab, setChosenTab] = useState<Tab | null>(null);
+    // Prefer the enhanced tab if there are no originals but there are enhanced.
+    const tab: Tab = chosenTab ?? (originals.length === 0 && enhancedList.length > 0 ? 'enhanced' : 'originals');
 
-    useEffect(() => {
-        if (open) {
-            // Prefer the enhanced tab if there are no originals but there are enhanced.
-            if (originals.length === 0 && enhancedList.length > 0) {
-                setTab('enhanced');
-            } else {
-                setTab('originals');
-            }
-        }
-    }, [open, originals.length, enhancedList.length]);
+    const close = () => {
+        setChosenTab(null);
+        onClose();
+    };
 
-    if (!open || !field) return null;
-
+    const isOpen = open && !!field;
     const gridTiles = tab === 'originals'
         ? originals.map((url) => ({ key: url, url, slot: undefined as string | undefined }))
         : enhancedList.map((e) => ({ key: e.slot, url: e.url, slot: e.slot }));
 
     return (
-        <div
-            role="dialog"
-            aria-label="Pick an image"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) onClose();
-            }}
-            style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 9999,
-                background: 'rgba(15,23,42,0.55)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 16,
-                fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-            }}
+        <Dialog
+            open={isOpen}
+            onClose={close}
+            title="Choose an image"
+            className="w-[min(760px,calc(100vw_-_32px))]"
+            footer={<Button onClick={close}>Cancel</Button>}
         >
-            <div
-                style={{
-                    width: '100%',
-                    maxWidth: 900,
-                    maxHeight: '88vh',
-                    background: '#fff',
-                    borderRadius: 16,
-                    boxShadow: '0 24px 60px rgba(0,0,0,0.3)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                }}
-            >
-                <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#64748b' }}>
-                            Pick an image
-                        </div>
-                        <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 4, fontFamily: 'ui-monospace, monospace' }}>
-                            {field}
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        aria-label="Close"
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#64748b',
-                            cursor: 'pointer',
-                            fontSize: 22,
-                            padding: 0,
-                            lineHeight: 1,
-                        }}
-                    >×</button>
-                </div>
-
-                <div style={{ display: 'flex', gap: 4, padding: '12px 24px 0', borderBottom: '1px solid #e2e8f0' }}>
-                    {(['originals', 'enhanced'] as Tab[]).map((t) => {
-                        const isActive = tab === t;
-                        const count = t === 'originals' ? originals.length : enhancedList.length;
-                        return (
-                            <button
-                                key={t}
-                                type="button"
-                                onClick={() => setTab(t)}
-                                style={{
-                                    padding: '10px 16px',
-                                    border: 'none',
-                                    background: 'transparent',
-                                    color: isActive ? '#0f172a' : '#64748b',
-                                    fontWeight: isActive ? 700 : 500,
-                                    fontSize: 13,
-                                    cursor: 'pointer',
-                                    borderBottom: isActive ? '2px solid #E4B05E' : '2px solid transparent',
-                                    marginBottom: -1,
-                                }}
-                            >
-                                {t === 'originals' ? 'Originals' : 'AI-enhanced'}
-                                <span style={{
-                                    marginLeft: 8,
-                                    fontSize: 11,
-                                    color: '#94a3b8',
-                                    background: '#f1f5f9',
-                                    padding: '2px 7px',
-                                    borderRadius: 999,
-                                    fontWeight: 600,
-                                }}>{count}</span>
-                            </button>
-                        );
-                    })}
-                </div>
-
-                <div style={{ flex: 1, overflowY: 'auto', padding: 20 }}>
-                    {gridTiles.length === 0 ? (
-                        <div style={{ textAlign: 'center', color: '#94a3b8', padding: '60px 20px', fontSize: 14 }}>
-                            {tab === 'originals'
-                                ? 'No original photos uploaded yet. Use the Images tab in the editor to upload some.'
-                                : 'No AI-enhanced images yet. Run the enhancement pipeline to produce optimized versions.'}
-                        </div>
-                    ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 14 }}>
-                            {gridTiles.map((tile) => (
-                                <button
-                                    key={tile.key}
-                                    type="button"
-                                    onClick={() => onSelect(field, tile.url)}
-                                    title={tile.slot ? `Slot: ${tile.slot}` : tile.url}
-                                    style={{
-                                        border: '1px solid #e2e8f0',
-                                        borderRadius: 12,
-                                        overflow: 'hidden',
-                                        cursor: 'pointer',
-                                        background: '#f8fafc',
-                                        padding: 0,
-                                        position: 'relative',
-                                        aspectRatio: '4 / 3',
-                                        transition: 'transform .15s, border-color .15s',
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#E4B05E';
-                                        (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.02)';
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        (e.currentTarget as HTMLButtonElement).style.borderColor = '#e2e8f0';
-                                        (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)';
-                                    }}
-                                >
-                                    <img
-                                        src={tile.url}
-                                        alt={tile.slot || 'photo'}
-                                        loading="lazy"
-                                        style={{
-                                            width: '100%',
-                                            height: '100%',
-                                            objectFit: 'cover',
-                                            display: 'block',
+            {field && (
+                <>
+                    <p className="t-mono text-r1-ink-3">{field}</p>
+                    <Tabs
+                        label="Image source"
+                        tabs={[
+                            { value: 'originals', label: 'Originals', count: originals.length },
+                            { value: 'enhanced', label: 'AI-enhanced', count: enhancedList.length },
+                        ]}
+                        value={tab}
+                        onChange={(t) => setChosenTab(t)}
+                    >
+                        {gridTiles.length === 0 ? (
+                            <p className="t-meta py-10 text-center">
+                                {tab === 'originals'
+                                    ? 'No original photos uploaded yet. Upload some in the Media tab of the editor.'
+                                    : 'No AI-enhanced images yet. Run Enhance photos to produce optimised versions.'}
+                            </p>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                                {gridTiles.map((tile, i) => (
+                                    <button
+                                        key={tile.key}
+                                        type="button"
+                                        onClick={() => {
+                                            setChosenTab(null);
+                                            onSelect(field, tile.url);
                                         }}
-                                    />
-                                    {tile.slot && (
-                                        <span
-                                            style={{
-                                                position: 'absolute',
-                                                bottom: 6,
-                                                left: 6,
-                                                background: 'rgba(15,23,42,0.78)',
-                                                color: '#fff',
-                                                fontSize: 10,
-                                                fontWeight: 700,
-                                                padding: '3px 7px',
-                                                borderRadius: 999,
-                                                letterSpacing: '0.04em',
-                                                textTransform: 'uppercase',
-                                                fontFamily: 'ui-monospace, monospace',
-                                            }}
-                                        >{tile.slot}</span>
-                                    )}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-        </div>
+                                        title={tile.slot ? `Slot: ${tile.slot}` : tile.url}
+                                        className="relative aspect-[4/3] cursor-pointer overflow-hidden rounded-r1 border border-r1-line bg-r1-fill-2 p-0 hover:border-r1-ink"
+                                    >
+                                        {/* Photos live on storage and R2 hosts that next/image is not set up for. */}
+                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <img
+                                            src={tile.url}
+                                            alt={tile.slot ? `AI-enhanced image, ${tile.slot}` : `Photo ${i + 1}`}
+                                            loading="lazy"
+                                            className="block h-full w-full object-cover"
+                                        />
+                                        {tile.slot && (
+                                            <span className="absolute bottom-1.5 left-1.5 rounded-full bg-r1-ink/80 px-2 py-0.5 font-r1-mono text-[10px] font-medium uppercase tracking-wide text-r1-paper">
+                                                {tile.slot}
+                                            </span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </Tabs>
+                </>
+            )}
+        </Dialog>
     );
 }

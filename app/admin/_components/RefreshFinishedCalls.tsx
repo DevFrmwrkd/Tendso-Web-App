@@ -2,8 +2,10 @@
 
 import { useState } from "react"
 import { useAction } from "convex/react"
-import { RefreshCw } from "lucide-react"
+import { RotateCw } from "lucide-react"
+import { toast } from "sonner"
 
+import { Button, Icon } from "@/components/r1"
 import { api } from "@/convex/_generated/api"
 
 /**
@@ -16,26 +18,23 @@ import { api } from "@/convex/_generated/api"
  * how long each of those rooms was open.
  *
  * Both run hourly on their own. This button exists for the minutes right after a
- * call, when the person who sat it is still looking at the screen.
+ * call, when the person who sat it is still looking at the screen. What it found
+ * is said in a toast (Round 1: results are toasts, not lines that linger).
  */
 export default function RefreshFinishedCalls() {
     const adopt = useAction(api.booking.adoptCalendarCalls)
     const durations = useAction(api.booking.syncConferenceDurations)
     const [busy, setBusy] = useState(false)
-    const [result, setResult] = useState<string | null>(null)
 
     async function run() {
         setBusy(true)
-        setResult(null)
         try {
             const added = await adopt({})
             const rooms = await durations({})
 
             const parts: string[] = []
             if (added.adopted > 0) {
-                parts.push(
-                    `Added ${added.adopted} finished call${added.adopted === 1 ? "" : "s"}.`,
-                )
+                parts.push(`Added ${added.adopted} finished call${added.adopted === 1 ? "" : "s"}.`)
             }
             if (rooms.checked === 0) {
                 if (!parts.length) parts.push("Nothing new to check.")
@@ -46,25 +45,18 @@ export default function RefreshFinishedCalls() {
             } else {
                 parts.push(`${rooms.matched} of ${rooms.checked} rooms were opened.`)
             }
-            setResult(parts.join(" "))
+            toast(parts.join(" "))
         } catch (err) {
-            setResult(err instanceof Error ? err.message : "Could not reach Google.")
+            toast.error(err instanceof Error ? err.message : "Could not reach Google.")
         } finally {
             setBusy(false)
         }
     }
 
     return (
-        <div className="flex items-center gap-3">
-            {result && <span className="text-xs text-zinc-500">{result}</span>}
-            <button
-                onClick={run}
-                disabled={busy}
-                className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 hover:border-zinc-400 disabled:opacity-60"
-            >
-                <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} />
-                {busy ? "Checking…" : "Refresh finished calls"}
-            </button>
-        </div>
+        <Button variant="ghost" size="sm" onClick={run} disabled={busy} aria-busy={busy}>
+            <Icon icon={RotateCw} />
+            {busy ? "Checking…" : "Refresh finished calls"}
+        </Button>
     )
 }

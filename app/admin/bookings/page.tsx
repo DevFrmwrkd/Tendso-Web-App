@@ -1,309 +1,135 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useAction, useMutation, useQuery } from "convex/react"
-import { api } from "@/convex/_generated/api"
+import { Suspense } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+
+import { ButtonLink, Loading, PageHeader, Skeleton, Tabs } from "@/components/r1"
 import { useAdminAuth } from "@/hooks/useAdmin"
-import AdminLayout from "../components/AdminLayout"
 import { useCallSchedule } from "@/hooks/useCallSchedule"
-import CallList from "../_components/CallList"
-import FinishedCallList from "../_components/FinishedCallList"
-import RefreshFinishedCalls from "../_components/RefreshFinishedCalls"
+
+import AdminLayout from "../components/AdminLayout"
+import PanelBoundary from "../_components/PanelBoundary"
+import CallsTab, { CallsTabShapes } from "./_components/CallsTab"
+import StatsTab from "./_components/StatsTab"
 
 /**
- * Field Agent call bookings — the admin side of /field-agent/book.
+ * Calls (board Calls): "Who is calling today, and did they show?" The admin
+ * and staff side of /field-agent/book, the 10-minute Field Agent call. Events
+ * live on the tendso.hr Google Calendar.
  *
- * TWO JOBS.
+ * TWO TABS. Calls is the day's work: today's calls with their Join and their
+ * outcome, the finished calls nobody has marked, what is booked later, the
+ * archive and the bookable hours. Stats is what used to be /admin/call-stats
+ * (that route now redirects here with ?tab=stats). The tab lives in the URL so
+ * the redirect, a bookmark or a shared link land on it; switching tabs
+ * replaces the URL rather than stacking history.
  *
- * 1. SYNC. Deleting a booking in Google Calendar frees the calendar but not the
- *    page: availability blocks a slot if EITHER the calendar or our own row says
- *    taken, and a confirmed row counts forever. Sync reconciles the two and
- *    releases anything cancelled there. An hourly cron runs the same job; this
- *    button is for when you have just cancelled something and want the slot back
- *    now rather than within the hour.
- *
- * 2. HOURS. The bookable schedule lives in `settings` and is read by both the
- *    grid and the server-side check in createBooking, so changing it here
- *    changes what the page offers AND what it will accept. Staff can edit these
- *    — they sit the calls, so the hours are their own availability — while Sync
- *    stays admin-only.
- *
- * NOT WIRED TO TIDYCAL. TidyCal is the fallback when our Google token dies and
- * it is configured in its own dashboard. Change the hours here and the two
- * drift — both still write to the one tendso.hr calendar, so they cannot
- * double-book, but the fallback will offer different times.
+ * WHO SEES WHAT. Admins and the internal staff role both reach this page, and
+ * the server enforces every check independently — this only hides controls.
+ * Staff see and answer the calls and may edit the bookable hours (they sit the
+ * calls, so the hours are their own availability); the calendar Sync stays
+ * admin-only.
  */
-
-const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-
-/** 615 -> "10:15". Minutes from midnight is what the config stores. */
-function toTimeInput(minutes: number): string {
-    const h = Math.floor(minutes / 60)
-    const m = minutes % 60
-    // 1440 is a valid END (midnight, exclusive) but not a valid <input type=time>.
-    const shown = h === 24 ? 23 : h
-    const shownM = h === 24 ? 59 : m
-    return `${String(shown).padStart(2, "0")}:${String(shownM).padStart(2, "0")}`
+export default function CallsPage() {
+    // useSearchParams needs a Suspense boundary above it, or the Next build
+    // fails on this route.
+    return (
+        <Suspense fallback={<CallsFallback />}>
+            <Calls />
+        </Suspense>
+    )
 }
 
-/** "10:15" -> 615, and 23:59 back to the 1440 it stands for. */
-function fromTimeInput(value: string): number {
-    const [h, m] = value.split(":").map(Number)
-    if (!Number.isFinite(h) || !Number.isFinite(m)) return 0
-    if (h === 23 && m === 59) return 1440
-    return h * 60 + m
-}
+type Tab = "calls" | "stats"
 
-export default function AdminBookingsPage() {
+function Calls() {
     const { isAdmin, loading: authLoading, creator } = useAdminAuth()
-    // Staff are read-only. Everything that changes something stays admin-only,
-    // and the server enforces that independently — this only hides the controls.
     const isStaff = creator?.role === "staff"
     const canView = isAdmin || isStaff
 
-    const savedConfig = useQuery(api.nativeBookings.getSlotConfig, canView ? {} : "skip")
-    const syncCancelled = useAction(api.booking.syncCancelledBookings)
-    const saveSlotConfig = useMutation(api.nativeBookings.saveSlotConfig)
+    const searchParams = useSearchParams()
+    const router = useRouter()
+    const pathname = usePathname()
+    const tab: Tab = searchParams.get("tab") === "stats" ? "stats" : "calls"
 
-    // Merged with the calendar by the same hook the staff dashboard uses, so
-    // the two views can never disagree about what is booked.
-    const { upcoming, past, calendarError, loading: scheduleLoading, refresh } =
-        useCallSchedule(canView)
-
-    const [syncing, setSyncing] = useState(false)
-    const [syncResult, setSyncResult] = useState<string | null>(null)
-
-    const [days, setDays] = useState<number[]>([])
-    const [windows, setWindows] = useState<Array<[number, number]>>([])
-    const [saving, setSaving] = useState(false)
-    const [saveError, setSaveError] = useState<string | null>(null)
-    const [saved, setSaved] = useState(false)
-
-    // Seed the editor once the saved config arrives, and never again — otherwise
-    // a re-render mid-edit would throw away what the admin is typing.
-    const [seeded, setSeeded] = useState(false)
-    useEffect(() => {
-        if (seeded || !savedConfig) return
-        setDays(savedConfig.days)
-        setWindows(savedConfig.windows.map((w) => [w[0], w[1]] as [number, number]))
-        setSeeded(true)
-    }, [savedConfig, seeded])
-
-    async function handleSync() {
-        setSyncing(true)
-        setSyncResult(null)
-        try {
-            const res = await syncCancelled({})
-            setSyncResult(
-                res.released === 0
-                    ? `Checked ${res.checked} booking${res.checked === 1 ? "" : "s"}. Nothing to release.`
-                    : `Released ${res.released} of ${res.checked} — those slots are open again.`,
-            )
-        } catch (err) {
-            setSyncResult(err instanceof Error ? err.message : "Sync failed.")
-        } finally {
-            setSyncing(false)
-        }
+    const setTab = (next: Tab) => {
+        const params = new URLSearchParams(searchParams.toString())
+        if (next === "stats") params.set("tab", "stats")
+        else params.delete("tab")
+        const query = params.toString()
+        router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false })
     }
 
-    async function handleSave() {
-        setSaving(true)
-        setSaveError(null)
-        try {
-            await saveSlotConfig({ days, windows: windows.map((w) => [w[0], w[1]]) })
-            setSaved(true)
-            setTimeout(() => setSaved(false), 2500)
-        } catch (err) {
-            setSaveError(err instanceof Error ? err.message : "Could not save.")
-        } finally {
-            setSaving(false)
-        }
-    }
-
-    if (authLoading) {
-        return (
-            <AdminLayout>
-                <p className="text-sm text-zinc-500">Loading…</p>
-            </AdminLayout>
-        )
-    }
+    if (authLoading) return <CallsFallback />
     if (!canView) return null
 
     return (
         <AdminLayout>
-            <div className="max-w-6xl space-y-8">
-                <header className="space-y-1">
-                    <h1 className="text-2xl font-bold text-zinc-900">Call bookings</h1>
-                    <p className="text-sm text-zinc-500">
-                        The 10-minute Field Agent call at /field-agent/book. Events live on the
-                        tendso.hr Google Calendar.
-                    </p>
-                </header>
+            <PageHeader
+                title="Calls"
+                sub="Who is calling today, and did they show?"
+                actions={<ButtonLink href="/field-agent/book">See the booking page</ButtonLink>}
+            />
+            {/* A failing query keeps the frame and the header; only the body says so. */}
+            <PanelBoundary what="Calls">
+                <CallsBody tab={tab} setTab={setTab} isAdmin={isAdmin} />
+            </PanelBoundary>
+        </AdminLayout>
+    )
+}
 
-                {/* ── Sync (admin only) ──────────────────────────────────── */}
-                {isAdmin && <section className="rounded-xl border border-zinc-200 bg-white p-6 space-y-4">
-                    <div className="space-y-1">
-                        <h2 className="font-semibold text-zinc-900">Sync with the calendar</h2>
-                        <p className="text-sm text-zinc-500">
-                            Cancel a call by deleting its event in Google Calendar, then sync. That
-                            frees the slot here — deleting the event alone does not, because the
-                            booking row still holds the time. This runs hourly on its own.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <button
-                            onClick={handleSync}
-                            disabled={syncing}
-                            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
-                        >
-                            {syncing ? "Syncing…" : "Sync now"}
-                        </button>
-                        {syncResult && <span className="text-sm text-zinc-600">{syncResult}</span>}
-                    </div>
-                </section>}
+/** The tabs and the open tab. Only ever mounted for an admin or staff account. */
+function CallsBody({ tab, setTab, isAdmin }: { tab: Tab; setTab: (next: Tab) => void; isAdmin: boolean }) {
+    // Merged with the calendar by the same hook the staff Today uses, so the
+    // two views can never disagree about what is booked. Read here, above the
+    // tabs, because the Calls tab's count is the number booked.
+    const schedule = useCallSchedule(true)
 
-                {/* ── Hours (admin + staff) ──────────────────────────────── */}
-                <section className="rounded-xl border border-zinc-200 bg-white p-6 space-y-5">
-                    <div className="space-y-1">
-                        <h2 className="font-semibold text-zinc-900">Bookable hours</h2>
-                        <p className="text-sm text-zinc-500">
-                            Philippine time. Calls are 10 minutes, offered every 15. Changing this
-                            changes both what the page offers and what it will accept.
-                        </p>
-                    </div>
-
-                    <div className="space-y-2">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                            Days
-                        </span>
-                        <div className="flex gap-2 flex-wrap">
-                            {DAY_NAMES.map((label, index) => {
-                                const on = days.includes(index)
-                                return (
-                                    <button
-                                        key={label}
-                                        onClick={() =>
-                                            setDays((cur) =>
-                                                on
-                                                    ? cur.filter((d) => d !== index)
-                                                    : [...cur, index].sort(),
-                                            )
-                                        }
-                                        className={`rounded-lg border px-3 py-2 text-sm font-medium ${
-                                            on
-                                                ? "border-zinc-900 bg-zinc-900 text-white"
-                                                : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
-                                        }`}
-                                    >
-                                        {label}
-                                    </button>
-                                )
-                            })}
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
-                            Time windows
-                        </span>
-                        <div className="space-y-2">
-                            {windows.map((w, i) => (
-                                <div key={i} className="flex items-center gap-2 flex-wrap">
-                                    <input
-                                        type="time"
-                                        value={toTimeInput(w[0])}
-                                        onChange={(e) =>
-                                            setWindows((cur) =>
-                                                cur.map((x, j) =>
-                                                    j === i
-                                                        ? [fromTimeInput(e.target.value), x[1]]
-                                                        : x,
-                                                ),
-                                            )
-                                        }
-                                        className="rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-                                    />
-                                    <span className="text-sm text-zinc-400">to</span>
-                                    <input
-                                        type="time"
-                                        value={toTimeInput(w[1])}
-                                        onChange={(e) =>
-                                            setWindows((cur) =>
-                                                cur.map((x, j) =>
-                                                    j === i
-                                                        ? [x[0], fromTimeInput(e.target.value)]
-                                                        : x,
-                                                ),
-                                            )
-                                        }
-                                        className="rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-                                    />
-                                    <button
-                                        onClick={() =>
-                                            setWindows((cur) => cur.filter((_, j) => j !== i))
-                                        }
-                                        className="text-sm text-zinc-400 hover:text-zinc-900"
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                        <button
-                            onClick={() => setWindows((cur) => [...cur, [9 * 60, 12 * 60]])}
-                            className="text-sm font-medium text-zinc-600 hover:text-zinc-900"
-                        >
-                            + Add a window
-                        </button>
-                        <p className="text-xs text-zinc-400">
-                            Set an end of 23:59 to mean midnight.
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white hover:bg-zinc-800 disabled:opacity-50"
-                        >
-                            {saving ? "Saving…" : "Save hours"}
-                        </button>
-                        {saved && <span className="text-sm text-green-700">Saved.</span>}
-                        {saveError && <span className="text-sm text-red-600">{saveError}</span>}
-                    </div>
-                </section>
-
-                {/* ── The bookings ───────────────────────────────────────── */}
-                {calendarError && (
-                    <p className="text-sm text-amber-700">
-                        Showing bookings from this app only — {calendarError}
-                    </p>
-                )}
-
-                <CallList
-                    title={`Upcoming${upcoming.length ? ` (${upcoming.length})` : ""}`}
-                    calls={upcoming}
-                    empty="No calls booked."
-                    loading={scheduleLoading}
-                    onChanged={refresh}
-                />
-
-                {/* The archive, collapsed: something to look a call up in rather
-                    than something to work through. The outcome is editable here
-                    too, because a mis-tap on the dashboard has to be fixable
-                    somewhere after the call has scrolled off it. */}
-                {past.length > 0 && (
-                    <FinishedCallList
-                        title={`Past and cancelled (${past.length})`}
-                        calls={past}
-                        empty="Nothing has finished yet."
-                        loading={scheduleLoading}
-                        intro="Google reports how long each Meet room was open, never who was in it — the attended / no-show tag is the one that counts."
-                        action={<RefreshFinishedCalls />}
-                        collapsible
-                    />
-                )}
+    return (
+        <Tabs
+            label="Calls views"
+            value={tab}
+            onChange={setTab}
+            tabs={[
+                {
+                    value: "calls",
+                    label: (
+                        <>
+                            Calls
+                            {!schedule.loading && <span className="t-count">{schedule.upcoming.length} booked</span>}
+                        </>
+                    ),
+                },
+                { value: "stats", label: "Stats" },
+            ]}
+        >
+            <div className="pt-2 lg:pt-4">
+                {/* Keyed by tab, so a failure in one tab clears when the other is opened. */}
+                <PanelBoundary key={tab} what={tab === "stats" ? "Call stats" : "Calls"}>
+                    {tab === "calls" ? (
+                        <CallsTab schedule={schedule} isAdmin={isAdmin} />
+                    ) : (
+                        // Mounted only while open, so the stats rows are never read for the Calls tab.
+                        <StatsTab onMarkCalls={() => setTab("calls")} />
+                    )}
+                </PanelBoundary>
             </div>
+        </Tabs>
+    )
+}
+
+/** The page in shape while the auth check (or the URL) is not ready yet. */
+function CallsFallback() {
+    return (
+        <AdminLayout>
+            <Loading label="Loading calls" className="flex flex-col gap-6 lg:gap-8">
+                <div className="flex flex-col gap-3" aria-hidden="true">
+                    <Skeleton width={120} height={36} />
+                    <Skeleton width={260} height={16} />
+                </div>
+                <Skeleton height={40} />
+                <CallsTabShapes />
+            </Loading>
         </AdminLayout>
     )
 }

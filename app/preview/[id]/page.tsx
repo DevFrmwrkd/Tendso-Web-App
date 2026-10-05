@@ -1,30 +1,41 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { useQuery } from "convex/react"
 import { useUser } from "@clerk/nextjs"
+import { ArrowLeft } from "lucide-react"
 import { api } from "@/convex/_generated/api"
-import { Button } from "@/components/ui/button"
+import type { Id } from "@/convex/_generated/dataModel"
+import { Button, EmptyState, Icon, Loading, Segmented, Skeleton } from "@/components/r1"
+import WebsitePreview, { PREVIEW_DEVICE_OPTIONS, type PreviewDevice } from "@/components/WebsitePreview"
+import { useMinWidth } from "@/components/editor/useMinWidth"
 
+/**
+ * The generated site, previewed (board Review: the preview frame with its
+ * Desktop / Tablet / Phone sizes). A creator opens it for their own
+ * submission, an admin for any.
+ *
+ * Same rules as before: signed-out visitors go to /login; a signed-in creator
+ * who does not own the submission (and is not an admin) is refused; a
+ * submission with no site yet says so.
+ */
 export default function WebsitePreviewPage() {
     const params = useParams()
     const router = useRouter()
     const submissionId = params.id as string
     const { user, isLoaded } = useUser()
 
-    const [error, setError] = useState<string | null>(null)
-
     // Get generated website from Convex
     const website = useQuery(
         api.generatedWebsites.getBySubmissionId,
-        submissionId ? { submissionId: submissionId as any } : "skip"
+        submissionId ? { submissionId: submissionId as Id<"submissions"> } : "skip"
     )
 
     // Get submission to check ownership
     const submission = useQuery(
         api.submissions.getById,
-        submissionId ? { id: submissionId as any } : "skip"
+        submissionId ? { id: submissionId as Id<"submissions"> } : "skip"
     )
 
     // Get current user's creator profile
@@ -34,89 +45,103 @@ export default function WebsitePreviewPage() {
     )
 
     useEffect(() => {
-        if (!isLoaded) return
+        if (isLoaded && !user) router.push('/login')
+    }, [isLoaded, user, router])
 
-        if (!user) {
-            router.push('/login')
-            return
-        }
-
-        if (submission && currentCreator) {
-            // Check if user owns this submission or is admin
-            if (submission.creatorId !== currentCreator._id && currentCreator.role !== 'admin') {
-                setError('You do not have permission to view this website')
-                return
-            }
-        }
-
-        if (website === null) {
-            setError('Website has not been generated yet')
-        }
-    }, [user, isLoaded, submission, currentCreator, website, router])
+    // The size the frame shows. Until someone picks one it follows the
+    // screen: a phone previews the phone layout, a desk the desktop one.
+    const [deviceChoice, setDeviceChoice] = useState<PreviewDevice | null>(null)
+    const small = !useMinWidth(640)
+    const device: PreviewDevice = deviceChoice ?? (small ? "phone" : "desktop")
 
     const loading = !isLoaded || website === undefined || submission === undefined
 
+    // Check if user owns this submission or is admin
+    const denied =
+        isLoaded && !!user && !!submission && !!currentCreator &&
+        submission.creatorId !== currentCreator._id && currentCreator.role !== 'admin'
+    const error = !isLoaded || !user
+        ? null
+        : denied
+            ? "You do not have permission to view this website"
+            : website === null
+                ? "This website has not been generated yet"
+                : null
+
     if (loading) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Loading website preview...</p>
-                </div>
+            <div className="r1 flex h-dvh flex-col bg-r1-paper">
+                <Loading label="Loading the website preview" className="flex min-h-0 flex-1 flex-col">
+                    <div className="flex h-16 flex-none items-center gap-3 border-b border-r1-line px-4">
+                        <Skeleton width={84} height={32} />
+                        <Skeleton width={220} height={22} />
+                    </div>
+                    <div className="flex flex-1 items-start justify-center bg-r1-fill-2 p-6">
+                        <Skeleton width="100%" height="70%" className="max-w-[900px] rounded-r1-card" />
+                    </div>
+                </Loading>
             </div>
         )
     }
 
     if (error) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-xl p-8 max-w-md w-full text-center">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2">Error</h2>
-                    <p className="text-gray-600 mb-6">{error}</p>
-                    <Button onClick={() => router.back()}>Go Back</Button>
-                </div>
+            <div className="r1 flex min-h-dvh items-center justify-center bg-r1-paper p-4">
+                <EmptyState
+                    title={error}
+                    body={website === null && !denied ? "It shows here once the site is generated." : undefined}
+                    action={<Button onClick={() => router.back()}>Go back</Button>}
+                />
             </div>
         )
     }
 
-    return (
-        <div className="min-h-screen bg-white">
-            {/* Preview Controls */}
-            <div className="fixed top-0 left-0 right-0 bg-gray-900 text-white px-4 py-3 z-50 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Button
-                        onClick={() => router.back()}
-                        variant="outline"
-                        size="sm"
-                        className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                    >
-                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Back
-                    </Button>
-                    <span className="text-sm">Website Preview</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400">Generated by Groq AI</span>
-                </div>
-            </div>
+    const htmlUrl = website?.htmlUrl || undefined
+    const label = website?.offlineAt
+        ? "Offline · visitors see a holding page"
+        : website?.publishedUrl
+            ? (
+                <>
+                    Live at{" "}
+                    <a href={website.publishedUrl} target="_blank" rel="noopener noreferrer" className="t-link">
+                        {website.publishedUrl.replace(/^https?:\/\//i, "").replace(/\/$/, "")}
+                    </a>
+                </>
+            )
+            : "Preview · not live yet"
 
-            {/* Website Content */}
-            <div className="pt-14">
-                <iframe
-                    src={(website as any)?.htmlUrl || undefined}
-                    srcDoc={(website as any)?.htmlUrl ? undefined : (website?.htmlContent || '')}
-                    className="w-full h-[calc(100vh-3.5rem)] border-0"
-                    title="Website Preview"
-                    sandbox="allow-scripts allow-same-origin"
+    return (
+        <div className="r1 flex h-dvh flex-col bg-r1-paper">
+            <header className="flex flex-none flex-wrap items-center gap-x-3 gap-y-2 border-b border-r1-line px-3 py-2.5 sm:h-16 sm:flex-nowrap sm:px-4 sm:py-0">
+                <Button variant="ghost" className="flex-none px-2.5" onClick={() => router.back()}>
+                    <Icon icon={ArrowLeft} />
+                    Back
+                </Button>
+                <span className="hidden h-7 w-px flex-none bg-r1-line sm:block" aria-hidden="true" />
+                {/* On a phone the title takes its own line under Back and the sizes. */}
+                <div className="order-last flex min-w-0 basis-full flex-col gap-0.5 sm:order-none sm:flex-1 sm:basis-0">
+                    <h1 className="truncate font-r1-serif text-[22px] font-normal leading-7 tracking-[-0.01em] text-r1-ink sm:text-2xl">
+                        {submission?.businessName || "Website preview"}
+                    </h1>
+                    <p className="truncate text-[13px] leading-4 text-r1-ink-3">Website preview</p>
+                </div>
+                <Segmented
+                    label="Preview size"
+                    options={PREVIEW_DEVICE_OPTIONS}
+                    value={device}
+                    onChange={setDeviceChoice}
+                    className="ml-auto flex-none sm:ml-0"
                 />
-            </div>
+            </header>
+            <WebsitePreview
+                className="flex-1"
+                device={device}
+                src={htmlUrl}
+                html={htmlUrl ? undefined : (website?.htmlContent || '')}
+                title="Website Preview"
+                sandbox="allow-scripts allow-same-origin"
+                label={label}
+            />
         </div>
     )
 }

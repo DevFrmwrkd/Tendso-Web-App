@@ -8,9 +8,14 @@
  * The popover posts `ed:link-update` to the iframe AND persists the new
  * text / href / platform into the draft content state via callbacks, so
  * the change survives Save.
+ *
+ * Round 1: a kit Dialog with kit fields. The form mounts fresh on every
+ * opening (the Dialog unmounts its content when closed), so it starts from
+ * the clicked link's own text, address and platform each time.
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Button, Dialog, Field, Input, Select } from "@/components/r1";
 
 export interface LinkPopoverData {
     field: string;
@@ -52,29 +57,31 @@ export interface LinkPopoverProps {
 }
 
 export default function LinkPopover({ open, initial, onClose, onSave }: LinkPopoverProps) {
-    const [text, setText] = useState('');
-    const [href, setHref] = useState('');
-    const [platform, setPlatform] = useState('');
+    const isPlatform = Boolean(initial?.platformField);
+    return (
+        <Dialog open={open && !!initial} onClose={onClose} title={isPlatform ? 'Edit social link' : 'Edit link'}>
+            {initial && <LinkForm initial={initial} onClose={onClose} onSave={onSave} />}
+        </Dialog>
+    );
+}
 
+function LinkForm({ initial, onClose, onSave }: { initial: LinkPopoverData; onClose: () => void; onSave: (next: LinkPopoverData) => void }) {
+    const [text, setText] = useState(initial.text || '');
+    const [href, setHref] = useState(initial.href || '');
+    const [platform, setPlatform] = useState(initial.platform || '');
+    const isPlatform = Boolean(initial.platformField);
+
+    // Select the first field's text so typing replaces it. Deferred one frame
+    // so the dialog has finished opening and taken focus.
+    const firstRef = useRef<HTMLInputElement | HTMLSelectElement | null>(null);
     useEffect(() => {
-        if (open && initial) {
-            setText(initial.text || '');
-            setHref(initial.href || '');
-            setPlatform(initial.platform || '');
-        }
-    }, [open, initial]);
-
-    const isPlatform = useMemo(() => Boolean(initial?.platformField), [initial?.platformField]);
-
-    const firstInputRef = useRef<HTMLInputElement | null>(null);
-    useEffect(() => {
-        if (open) {
-            // Defer one frame so the input is mounted.
-            requestAnimationFrame(() => firstInputRef.current?.select());
-        }
-    }, [open]);
-
-    if (!open || !initial) return null;
+        const raf = requestAnimationFrame(() => {
+            const el = firstRef.current;
+            if (el instanceof HTMLInputElement) el.select();
+            else el?.focus();
+        });
+        return () => cancelAnimationFrame(raf);
+    }, []);
 
     const handleSave = (e: React.FormEvent) => {
         e.preventDefault();
@@ -90,164 +97,44 @@ export default function LinkPopover({ open, initial, onClose, onSave }: LinkPopo
     };
 
     return (
-        <div
-            role="dialog"
-            aria-label="Edit link"
-            onClick={(e) => {
-                if (e.target === e.currentTarget) onClose();
-            }}
-            style={{
-                position: 'fixed',
-                inset: 0,
-                zIndex: 9999,
-                background: 'rgba(15,23,42,0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: 16,
-            }}
-        >
-            <form
-                onSubmit={handleSave}
-                style={{
-                    width: '100%',
-                    maxWidth: 420,
-                    background: '#fff',
-                    borderRadius: 14,
-                    boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
-                    padding: 22,
-                    fontFamily: 'ui-sans-serif, system-ui, sans-serif',
-                }}
-            >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-                    <div>
-                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#64748b' }}>
-                            {isPlatform ? 'Edit social link' : 'Edit link'}
-                        </div>
-                        <div style={{ fontSize: 13, color: '#94a3b8', marginTop: 4, fontFamily: 'ui-monospace, monospace' }}>
-                            {initial.hrefField || initial.field}
-                        </div>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        aria-label="Close"
-                        style={{
-                            background: 'transparent',
-                            border: 'none',
-                            color: '#64748b',
-                            cursor: 'pointer',
-                            fontSize: 18,
-                            padding: 4,
-                            lineHeight: 1,
-                        }}
-                    >×</button>
-                </div>
+        <form onSubmit={handleSave} className="flex flex-col gap-4">
+            <p className="t-mono text-r1-ink-3">{initial.hrefField || initial.field}</p>
 
-                {isPlatform ? (
-                    <div style={{ marginBottom: 14 }}>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
-                            Platform
-                        </label>
-                        <select
-                            ref={firstInputRef as unknown as React.RefObject<HTMLSelectElement>}
-                            value={platform}
-                            onChange={(e) => setPlatform(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: '1px solid #cbd5e1',
-                                borderRadius: 8,
-                                fontSize: 14,
-                                background: '#fff',
-                                color: '#0f172a',
-                            }}
-                        >
-                            <option value="">— Select a platform —</option>
-                            {PLATFORM_OPTIONS.map(p => (
-                                <option key={p} value={p}>{p}</option>
-                            ))}
-                        </select>
-                    </div>
-                ) : (
-                    <div style={{ marginBottom: 14 }}>
-                        <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
-                            Button / link text
-                        </label>
-                        <input
-                            ref={firstInputRef}
-                            type="text"
-                            value={text}
-                            onChange={(e) => setText(e.target.value)}
-                            placeholder="Click here"
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                border: '1px solid #cbd5e1',
-                                borderRadius: 8,
-                                fontSize: 14,
-                                color: '#0f172a',
-                                background: '#fff',
-                            }}
-                        />
-                    </div>
-                )}
-
-                <div style={{ marginBottom: 18 }}>
-                    <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: '#334155', marginBottom: 6 }}>
-                        URL / link target
-                    </label>
-                    <input
+            {isPlatform ? (
+                <Field label="Platform">
+                    <Select ref={(el) => { firstRef.current = el; }} value={platform} onChange={(e) => setPlatform(e.target.value)}>
+                        <option value="">Choose a platform</option>
+                        {PLATFORM_OPTIONS.map((p) => (
+                            <option key={p} value={p}>{p}</option>
+                        ))}
+                    </Select>
+                </Field>
+            ) : (
+                <Field label="Button or link text">
+                    <Input
+                        ref={(el) => { firstRef.current = el; }}
                         type="text"
-                        value={href}
-                        onChange={(e) => setHref(e.target.value)}
-                        placeholder="https://example.com or #section-id"
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            border: '1px solid #cbd5e1',
-                            borderRadius: 8,
-                            fontSize: 14,
-                            color: '#0f172a',
-                            background: '#fff',
-                            fontFamily: 'ui-monospace, monospace',
-                        }}
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        placeholder="Click here"
                     />
-                    <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 6 }}>
-                        Full URL (https://…) or a section anchor (#about).
-                    </div>
-                </div>
+                </Field>
+            )}
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        style={{
-                            padding: '9px 16px',
-                            border: '1px solid #cbd5e1',
-                            background: '#fff',
-                            color: '#475569',
-                            borderRadius: 8,
-                            fontSize: 13,
-                            fontWeight: 600,
-                            cursor: 'pointer',
-                        }}
-                    >Cancel</button>
-                    <button
-                        type="submit"
-                        style={{
-                            padding: '9px 16px',
-                            border: '1px solid #E4B05E',
-                            background: '#E4B05E',
-                            color: '#fff',
-                            borderRadius: 8,
-                            fontSize: 13,
-                            fontWeight: 700,
-                            cursor: 'pointer',
-                        }}
-                    >Save</button>
-                </div>
-            </form>
-        </div>
+            <Field label="Where it goes" help="A full address (https://…) or a section on the page (#about).">
+                <Input
+                    type="text"
+                    value={href}
+                    onChange={(e) => setHref(e.target.value)}
+                    placeholder="https://example.com or #section-id"
+                    className="font-r1-mono"
+                />
+            </Field>
+
+            <div className="t-dialog-foot">
+                <Button onClick={onClose}>Cancel</Button>
+                <Button type="submit" variant="primary">Save</Button>
+            </div>
+        </form>
     );
 }

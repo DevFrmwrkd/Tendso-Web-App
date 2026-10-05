@@ -1,34 +1,91 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { Suspense, useEffect, useState, type ReactNode } from "react";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import { useQuery, useMutation } from "convex/react";
+import { Check, Sparkles, X } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
-import { Loader2, Palette, FileEdit, Check, X, AlertTriangle, Trash2, ExternalLink, PanelRightClose, PanelRightOpen, Globe, ChevronLeft } from "lucide-react";
-import { isComped } from "@/lib/pricing";
-import { GIFTED_BY_MAX, isHouseCreator } from "@/lib/houseCreator";
+import type { Id } from "@/convex/_generated/dataModel";
+import { isComped, normalizeCampaign } from "@/lib/pricing";
+import { isHouseCreator } from "@/lib/houseCreator";
 import { buildMediaFileList, downloadMediaZip } from "@/lib/mediaZip";
 import { orderedEnhancedEntries } from "@/convex/lib/enhancedImages";
 import { PhotoLightbox } from "@/components/PhotoLightbox";
-import WebsitePreview from "@/components/WebsitePreview";
-import VisualEditor from "@/components/editor/VisualEditor";
-import ContentEditor, { EditorCustomizations } from "@/components/ContentEditor";
-import { type SandboxEditorProps } from "@/components/editor/editorProps";
 import SandboxEditorV3 from "@/components/editor/SandboxEditorV3";
-import TopActionBar from "./_components/TopActionBar";
-import DetailsSidebar from "./_components/DetailsSidebar";
-import DriveSection from "./_components/DriveSection";
+import type { EditorJson, EditorTools } from "@/components/editor/editorProps";
+import { useMinWidth } from "@/components/editor/useMinWidth";
+import { Button, ButtonLink, Dot, Drawer, EmptyState, Icon, Loading, Skeleton, SkeletonText, type MenuItem } from "@/components/r1";
+import { DeleteDialog, GiveFreeDialog, MarkPaidDialog, RejectDialog } from "./_components/ActionDialogs";
+import { DetailsContent, type FoldKey } from "./_components/DetailsPanel";
+import { PregenOverview } from "./_components/PregenOverview";
+import { ReviewHeader } from "./_components/ReviewHeader";
+import { ReviewRail } from "./_components/ReviewRail";
+import { buildIntakeRows, checklistFor, clientEmailsFor, formatDate } from "./_components/review";
 
-// The "preview" tab was redundant — VisualEditor already shows the live
-// iframe preview alongside the sandbox sidebar. We default to the sandbox
-// editor and surface design-system controls under "styles".
-type TabKey = "editor" | "styles";
+/**
+ * The review & editor workspace (board Review): one submission, from "is
+ * everything here?" to "the site is live and paid".
+ *
+ * Three states, as before: before a site exists the page is an overview of
+ * what was sent with Generate as its action; while generating it says so; once
+ * a site exists it is the editor (SandboxEditorV3), with the details docked
+ * beside the preview on a wide screen and in a drawer below that.
+ *
+ * Round 1 merged the old top action bar and the editor's toolbar into ONE
+ * header: one primary action chosen by the state, everything else in More. The
+ * result modal became toasts; the custom-domain and sent-emails pages became
+ * folds in the details (their routes redirect here with ?fold=domain|emails).
+ * Every handler below is the old page's, with the same routes, arguments and
+ * order; only where its outcome is reported changed.
+ */
+export default function SubmissionReviewPage() {
+    // useSearchParams (?fold=) needs a Suspense boundary for the Next build.
+    return (
+        <Suspense fallback={<WorkspaceSkeleton />}>
+            <SubmissionReview />
+        </Suspense>
+    );
+}
 
-export default function SubmissionDetailPage() {
+const FOLDS: FoldKey[] = ["answers", "transcript", "checklist", "emails", "domain"];
+function parseFold(value: string | null): FoldKey | null {
+    return value && (FOLDS as string[]).includes(value) ? (value as FoldKey) : null;
+}
+
+/** The skeleton of the workspace: header, panel, preview. Same shape as the page. */
+function WorkspaceSkeleton() {
+    return (
+        <div className="r1 flex h-dvh overflow-hidden bg-r1-paper">
+            <Loading label="Loading the submission" className="flex min-w-0 flex-1 flex-col">
+                <div className="flex h-16 flex-none items-center gap-3 border-b border-r1-line px-4">
+                    <Skeleton width={110} height={28} />
+                    <Skeleton width={240} height={22} />
+                    <span className="ml-auto flex gap-2">
+                        <Skeleton width={96} height={40} />
+                        <Skeleton width={40} height={40} />
+                    </span>
+                </div>
+                <div className="flex min-h-0 flex-1">
+                    <div className="hidden w-80 flex-none flex-col gap-4 border-r border-r1-line p-5 lg:flex">
+                        <Skeleton width="70%" height={16} />
+                        <SkeletonText lines={5} />
+                    </div>
+                    <div className="flex flex-1 items-start justify-center bg-r1-fill-2 p-6">
+                        <Skeleton width="100%" height="70%" className="max-w-[900px] rounded-r1-card" />
+                    </div>
+                </div>
+            </Loading>
+        </div>
+    );
+}
+
+function SubmissionReview() {
     const params = useParams();
     const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const submissionId = params.id as string;
     const { user, isLoaded } = useUser();
 
@@ -44,7 +101,7 @@ export default function SubmissionDetailPage() {
     );
 
     // Photo URL resolution (HTTP + Convex storage)
-    const photoStorageIdsForQuery = submissionData?.photos?.filter((p: any) => !p.startsWith("http")) || [];
+    const photoStorageIdsForQuery = submissionData?.photos?.filter((p) => !p.startsWith("http")) || [];
     const photoViaResolve = useQuery(
         api.files.getMultipleUrls,
         photoStorageIdsForQuery.length > 0 ? { storageIds: photoStorageIdsForQuery } : "skip"
@@ -74,8 +131,14 @@ export default function SubmissionDetailPage() {
     // from the row, while this has to track the row live so a restore lights
     // the buttons back up on its own.
     const websiteOffline = !!existingWebsite?.offlineAt;
+    // Stale-publish signal. A regenerate (every Save in the editor runs one)
+    // resets generatedWebsites.status to 'draft' while publishedUrl stays set —
+    // so `draft + publishedUrl` means the live Worker is still serving the OLD
+    // HTML. Read straight off the reactive row, so it clears by itself the
+    // moment the republish lands.
+    const publishStale = !!existingWebsite?.publishedUrl && existingWebsite?.status === "draft";
 
-    const websiteImages = existingWebsite?.extractedContent?.images as string[] | undefined;
+    const websiteImages = (existingWebsite?.extractedContent as EditorJson)?.images as string[] | undefined;
     const needsHeroResolution = websiteImages?.some((p) => !p.startsWith("http"));
     const heroImageUrls = useQuery(
         api.files.getMultipleUrls,
@@ -89,14 +152,35 @@ export default function SubmissionDetailPage() {
         submissionData ? { submissionId: submissionData._id } : "skip"
     );
 
+    // Approval history, read from the audit log: has this submission been
+    // approved since it was last rejected? The status cannot say — a rebuild
+    // puts an approved site back to website_generated — and approving twice is
+    // not harmless (approveSubmission re-notifies the creator and counts the
+    // approval again), so the primary action only approves when no approval
+    // stands.
+    const auditLogs = useQuery(
+        api.auditLogs.getByTarget,
+        isAdmin && submissionData ? { targetType: "submission", targetId: submissionData._id } : "skip"
+    );
+    const approvedBefore: boolean | undefined = (() => {
+        if (auditLogs === undefined) return undefined;
+        let lastApproved = 0;
+        let lastRejected = 0;
+        for (const log of auditLogs) {
+            if (log.action === "submission_approved") lastApproved = Math.max(lastApproved, log.timestamp);
+            if (log.action === "submission_rejected") lastRejected = Math.max(lastRejected, log.timestamp);
+        }
+        return lastApproved > 0 && lastApproved >= lastRejected;
+    })();
+
     // Enhanced image extraction
     const enhancedImageData = (() => {
-        let enhancedImages = (existingWebsite as any)?.enhancedImages || null;
+        let enhancedImages = (existingWebsite as EditorJson)?.enhancedImages || null;
         if (!enhancedImages) {
-            enhancedImages = (existingWebsite?.extractedContent as any)?.enhancedImages || null;
+            enhancedImages = (existingWebsite?.extractedContent as EditorJson)?.enhancedImages || null;
         }
         if (!enhancedImages) {
-            enhancedImages = (websiteContentRecord as any)?.enhancedImages || null;
+            enhancedImages = (websiteContentRecord as EditorJson)?.enhancedImages || null;
         }
         if (!enhancedImages || typeof enhancedImages !== "object") return null;
         return enhancedImages as Record<string, { url?: string; storageId?: string }>;
@@ -114,7 +198,7 @@ export default function SubmissionDetailPage() {
             if (typeof img === "string") {
                 imageUrl = img;
             } else if (img && typeof img === "object") {
-                imageUrl = (img as any).storageId || (img as any).url || "";
+                imageUrl = img.storageId || img.url || "";
             }
             if (!imageUrl) continue;
             if (imageUrl.includes("airtableusercontent.com")) continue;
@@ -172,52 +256,6 @@ export default function SubmissionDetailPage() {
         return enhancedUrlMap[url] || null;
     };
 
-    const hasEnhancedImages = (enhancedImagesByCategory?.allUrls?.length ?? 0) > 0;
-
-    /**
-     * Download every original photo and every AI-enhanced image as one zip,
-     * built in the browser (both image hosts allow it — see lib/mediaZip.ts).
-     * Originals keep their upload order; AI images keep page order, named by
-     * slot, earlier renders as archive_N.
-     */
-    const handleDownloadMedia = async () => {
-        if (!submissionData || mediaZipProgress) return;
-        // Storage-id photos resolve through photoViaResolve, in the same order.
-        let resolvedIndex = 0;
-        const originals = (submissionData.photos || []).map((p: string) =>
-            p.startsWith("http") ? p : ((photoViaResolve as (string | null)[] | undefined)?.[resolvedIndex++] ?? ""),
-        );
-        const enhanced = enhancedImageData
-            ? orderedEnhancedEntries(enhancedImageData as Record<string, unknown>).map(([key, img]) => {
-                const raw = typeof img === "string" ? img : ((img as any)?.storageId || (img as any)?.url || "");
-                return { key, url: resolveEnhancedUrl(raw) };
-            })
-            : [];
-        const files = buildMediaFileList({ originals, enhanced });
-        if (files.length === 0) return;
-        setMediaZipProgress(`Downloading 0/${files.length}…`);
-        try {
-            const result = await downloadMediaZip({
-                zipName: `${submissionData.businessName || "submission"} photos`,
-                files,
-                onProgress: (done, total) => setMediaZipProgress(`Downloading ${done}/${total}…`),
-            });
-            if (result.failed.length > 0) {
-                setModalType("error");
-                setModalMessage(
-                    `The zip downloaded with ${result.added} file${result.added === 1 ? "" : "s"}, but ${result.failed.length} could not be fetched. They are listed in missing-files.txt inside the zip.`,
-                );
-                setShowModal(true);
-            }
-        } catch (error: any) {
-            setModalType("error");
-            setModalMessage(error?.message || "Could not build the zip. Please try again.");
-            setShowModal(true);
-        } finally {
-            setMediaZipProgress(null);
-        }
-    };
-
     // Video/audio resolution
     const hasR2VideoUrl = !!submissionData?.videoUrl;
     const hasR2AudioUrl = !!submissionData?.audioUrl;
@@ -240,7 +278,6 @@ export default function SubmissionDetailPage() {
     const audioUrl = hasR2AudioUrl ? submissionData?.audioUrl : legacyAudioUrl;
 
     // Mutations
-    const updateSubmissionMutation = useMutation(api.submissions.update);
     const updateStatusMutation = useMutation(api.submissions.updateStatus);
     const approveSubmissionMutation = useMutation(api.admin.approveSubmission);
     const rejectSubmissionMutation = useMutation(api.admin.rejectSubmission);
@@ -253,20 +290,9 @@ export default function SubmissionDetailPage() {
     const authLoading = !isLoaded || (user && currentCreator === undefined);
     const dataLoading = isAdmin && submissionData === undefined;
 
-    // Tab + state — default to the sandbox-style editor so the admin lands
-    // directly on the click-to-edit experience that matches Landing Pages v01.
-    const [activeTab, setActiveTab] = useState<TabKey>("editor");
-    // v3 IS THE EDITOR NOW. v1 and v2 are retired: no longer reachable, and
-    // deleted in the commit after this one.
-    //
-    // The stored preference is MIGRATED, not just ignored. This key has been
-    // persisting "v1" per-browser since the toggle shipped, so flipping the
-    // default alone would leave every admin who ever used the toggle — which is
-    // everyone, because v1 was the default — still mounting v1. And once v1's
-    // file is gone, a stored "v1" would hit a branch with nothing to render.
-    // Rewriting the key here means the migration has already happened by the
-    // time the files go, which is why the flip and the delete are two commits.
-    const [editorVersion] = useState<"v3">("v3");
+    // v3 IS THE EDITOR. The stored preference from the retired version toggle
+    // is MIGRATED, not just ignored: the key persisted "v1" per-browser for as
+    // long as the toggle existed, so it is rewritten here once.
     useEffect(() => {
         try {
             if (window.localStorage.getItem("tendso.editorVersion") !== "v3") {
@@ -276,23 +302,19 @@ export default function SubmissionDetailPage() {
             /* localStorage unavailable — v3 is the default regardless */
         }
     }, []);
-    // Default the right details panel CLOSED so the page lands on the
-    // 2-column sandbox layout (editor sidebar + iframe) that matches
-    // Landing Pages v01 / sandbox.html. Admin can re-open with "Details".
-    // Auto-opens further down (useEffect) when there's no website yet,
-    // so the admin can read the submission info before generating.
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    // Tracks whether the user has manually toggled the sidebar this
-    // session — once they have, we stop auto-opening on their behalf.
-    const [sidebarManuallyToggled, setSidebarManuallyToggled] = useState(false);
+
+    // Details: closed by default so the editor lands on the panels + preview.
+    // ?fold=domain|emails (the old /domain and /emails routes) opens them at
+    // that fold.
+    const initialFold = parseFold(searchParams.get("fold"));
+    const [detailsOpen, setDetailsOpen] = useState(() => initialFold !== null);
+    const [detailsFold, setDetailsFold] = useState<FoldKey | null>(initialFold);
+    // Docked beside the preview on a wide screen; a drawer below that.
+    const isWide = useMinWidth(1280);
 
     const [updating, setUpdating] = useState(false);
     const [transcribing, setTranscribing] = useState(false);
     const [enhancing, setEnhancing] = useState(false);
-
-    const [showModal, setShowModal] = useState(false);
-    const [modalMessage, setModalMessage] = useState("");
-    const [modalType, setModalType] = useState<"success" | "error">("success");
 
     const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
     const [markingPaid, setMarkingPaid] = useState(false);
@@ -307,46 +329,30 @@ export default function SubmissionDetailPage() {
 
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
+    const [rejectionReasonMissing, setRejectionReasonMissing] = useState(false);
     const [rejecting, setRejecting] = useState(false);
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    // Deleted cleanly and on the way back to the list.
+    const [leaving, setLeaving] = useState(false);
     // Set when a delete succeeded in Convex but left external assets behind.
-    // It cannot live in the ordinary modal: the row this page renders is gone
-    // the moment the mutation commits, so the page unmounts itself and takes
-    // the modal with it. Rendered standalone, above the "no submission" guard.
-    const [orphanedAssetsNotice, setOrphanedAssetsNotice] = useState<string | null>(null);
+    // It cannot live in a dialog: the row this page renders is gone the moment
+    // the mutation commits, so the page would unmount it with everything else.
+    // Rendered standalone, above the "no submission" guard.
+    const [orphanedAssetsNotice, setOrphanedAssetsNotice] = useState<{
+        businessName: string;
+        failed: Array<{ asset: string; error: string }>;
+    } | null>(null);
 
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
 
-    const [qualityChecklist, setQualityChecklist] = useState({
-        hasPhotos: false,
-        hasAudioVideo: false,
-        hasTranscript: false,
-        businessInfoComplete: false,
-        contactInfoComplete: false,
-    });
-
-    const [isEditing, setIsEditing] = useState(false);
-    const [saving, setSaving] = useState(false);
-    const [editedData, setEditedData] = useState({
-        business_name: "",
-        business_type: "",
-        owner_name: "",
-        owner_phone: "",
-        owner_email: "",
-        address: "",
-        city: "",
-        transcript: "",
-        photos: [] as string[],
-    });
-
     const [generatingWebsite, setGeneratingWebsite] = useState(false);
     const [websiteGenerated, setWebsiteGenerated] = useState(false);
     const [websiteHtmlContent, setWebsiteHtmlContent] = useState<string | null>(null);
-    const [websiteContent, setWebsiteContent] = useState<any>(null);
-    const [websiteCustomizations, setWebsiteCustomizations] = useState<any>(null);
+    const [websiteContent, setWebsiteContent] = useState<EditorJson>(null);
+    const [websiteCustomizations, setWebsiteCustomizations] = useState<EditorJson>(null);
     const [websiteError, setWebsiteError] = useState<string | null>(null);
     const [websitePublishedUrl, setWebsitePublishedUrl] = useState<string | null>(null);
 
@@ -354,124 +360,95 @@ export default function SubmissionDetailPage() {
     const [republishingWebsite, setRepublishingWebsite] = useState(false);
     const [unpublishingWebsite, setUnpublishingWebsite] = useState(false);
     const [sendingEmail, setSendingEmail] = useState(false);
+    const [sendingFollowUp, setSendingFollowUp] = useState(false);
 
-    const submission = submissionData
-        ? {
-              id: submissionData._id,
-              business_name: submissionData.businessName,
-              business_type: submissionData.businessType,
-              owner_name: submissionData.ownerName,
-              owner_phone: submissionData.ownerPhone,
-              owner_email: submissionData.ownerEmail,
-              address: submissionData.address,
-              city: submissionData.city,
-              photos: submissionData.photos,
-              video_url: videoUrl || null,
-              audio_url: audioUrl || null,
-              transcript: submissionData.transcript,
-              // Owner-intake only. Carried alongside the transcript because the
-              // transcript is synthesized FROM these answers — the admin needs
-              // both to see what the owner actually typed.
-              interview_qa: submissionData.interviewQa,
-              status: submissionData.status,
-              creator_payout: submissionData.creatorPayout,
-              amount: submissionData.amount,
-              // Which campaign priced it and which placement sent them. Shown in
-              // the header so a test scan can be checked without opening Convex.
-              campaign: submissionData.campaign ?? null,
-              source: submissionData.source ?? null,
-              payout_requested_at: submissionData.payoutRequestedAt,
-              paid_at: submissionData.paidAt,
-              created_at: (submissionData as any)._creationTime,
-          }
-        : null;
+    // ── The website row, mirrored into local state ────────────────────────
+    // Re-seeded every time the reactive row changes; between changes, what
+    // generate / save / publish return overrides it (so the editor shows a
+    // fresh build at once). Done during render rather than in an effect: the
+    // row is the source, and copying it after paint only showed a frame of
+    // the old values.
+    const [syncedWebsite, setSyncedWebsite] = useState<typeof existingWebsite>(undefined);
+    if (existingWebsite !== syncedWebsite) {
+        setSyncedWebsite(existingWebsite);
+        if (existingWebsite) {
+            // HTML is inline (legacy) or in file storage (htmlUrl). Prefer
+            // inline; a stored file is fetched below, and until it lands the
+            // editor keeps the HTML it already had.
+            const inlineHtml = existingWebsite.htmlContent || "";
+            const htmlUrl = existingWebsite.htmlUrl;
+            if (inlineHtml) setWebsiteHtmlContent(inlineHtml);
+            else if (!htmlUrl) setWebsiteHtmlContent("");
+            setWebsiteContent(existingWebsite.extractedContent);
+            setWebsiteCustomizations(existingWebsite.customizations || {});
+            setWebsitePublishedUrl(existingWebsite.publishedUrl || null);
+            if (inlineHtml || htmlUrl) setWebsiteGenerated(true);
+        }
+    }
+    // The stored HTML file, fetched whenever it is a new file. Guard against
+    // out-of-order resolution: two quick saves produce two different htmlUrls,
+    // and an older fetch must not win and show a stale build in the editor.
+    const storedHtmlUrl = existingWebsite && !existingWebsite.htmlContent ? existingWebsite.htmlUrl ?? null : null;
+    useEffect(() => {
+        if (!storedHtmlUrl) return;
+        let ignore = false;
+        fetch(storedHtmlUrl)
+            .then((r) => (r.ok ? r.text() : ""))
+            .then((html) => { if (!ignore) setWebsiteHtmlContent(html); })
+            .catch(() => { if (!ignore) setWebsiteHtmlContent(""); });
+        return () => { ignore = true; };
+    }, [storedHtmlUrl]);
 
-    const creator = submissionData?.creator
-        ? {
-              first_name: submissionData.creator.firstName,
-              last_name: submissionData.creator.lastName,
-              email: submissionData.creator.email,
-              phone: submissionData.creator.phone,
-          }
-        : null;
+    const s = submissionData ?? null;
 
     // Owner-originated rows come in through the self-serve /start intake and are
-    // attributed to the house creator, so the Creator block looks normal. Flag
+    // attributed to the house creator, so the Creator fact looks normal. Flag
     // them explicitly: there was no field visit and no recorded interview, and
-    // the transcript below is synthesized from the owner's typed answers.
+    // the transcript is synthesized from the owner's typed answers.
     // `contentSource` is optional on the schema and only ever set on that path.
-    const isOwnerSubmitted = submissionData?.contentSource === "owner_intake";
+    const isOwnerSubmitted = s?.contentSource === "owner_intake";
 
-    useEffect(() => {
-        if (!existingWebsite) return;
-        // Guard against out-of-order async resolution: two quick saves produce two
-        // different htmlUrls; without this an older fetch could win and show a
-        // stale build in the editor.
-        let ignore = false;
-        // HTML is inline (legacy) or in file storage (htmlUrl). Prefer inline;
-        // otherwise fetch the stored HTML so the editor iframe still has it.
-        const inlineHtml = existingWebsite.htmlContent || "";
-        const htmlUrl = (existingWebsite as any).htmlUrl as string | null | undefined;
-        if (inlineHtml) {
-            setWebsiteHtmlContent(inlineHtml);
-        } else if (htmlUrl) {
-            fetch(htmlUrl)
-                .then((r) => (r.ok ? r.text() : ""))
-                .then((html) => { if (!ignore) setWebsiteHtmlContent(html); })
-                .catch(() => { if (!ignore) setWebsiteHtmlContent(""); });
-        } else {
-            setWebsiteHtmlContent("");
-        }
-        setWebsiteContent(existingWebsite.extractedContent);
-        setWebsiteCustomizations(existingWebsite.customizations || {});
-        setWebsitePublishedUrl(existingWebsite.publishedUrl || null);
-        if (inlineHtml || htmlUrl) setWebsiteGenerated(true);
-        return () => { ignore = true; };
-    }, [existingWebsite]);
+    // --- Handlers (the old page's, outcome reported by toasts) ---
 
-    // (Auto-open the Details sidebar on no-website submissions used to be
-    // here. The actual fix was rendering the DetailsSidebar inline in the
-    // main area when no website exists, which moots the auto-open. The
-    // sidebarManuallyToggled state is kept so the existing toggle keeps
-    // working for users who flip the sidebar open alongside the editor.)
-
-    useEffect(() => {
-        if (submissionData) {
-            setQualityChecklist({
-                hasPhotos: (submissionData.photos?.length || 0) > 0,
-                hasAudioVideo: !!(submissionData.audioStorageId || submissionData.videoStorageId || submissionData.audioUrl || submissionData.videoUrl),
-                hasTranscript: !!submissionData.transcript,
-                businessInfoComplete: !!(
-                    submissionData.businessName &&
-                    submissionData.businessType &&
-                    submissionData.ownerName &&
-                    submissionData.ownerPhone &&
-                    submissionData.address &&
-                    submissionData.city
-                ),
-                contactInfoComplete: !!(submissionData.ownerPhone && (submissionData.ownerEmail || submissionData.ownerPhone)),
+    /**
+     * Download every original photo and every AI-enhanced image as one zip,
+     * built in the browser (both image hosts allow it — see lib/mediaZip.ts).
+     * Originals keep their upload order; AI images keep page order, named by
+     * slot, earlier renders as archive_N.
+     */
+    const handleDownloadMedia = async () => {
+        if (!submissionData || mediaZipProgress) return;
+        // Storage-id photos resolve through photoViaResolve, in the same order.
+        let resolvedIndex = 0;
+        const originals = (submissionData.photos || []).map((p: string) =>
+            p.startsWith("http") ? p : ((photoViaResolve as (string | null)[] | undefined)?.[resolvedIndex++] ?? ""),
+        );
+        const enhanced = enhancedImageData
+            ? orderedEnhancedEntries(enhancedImageData as Record<string, unknown>).map(([key, img]) => {
+                const loose = img as EditorJson;
+                const raw = typeof img === "string" ? img : (loose?.storageId || loose?.url || "");
+                return { key, url: resolveEnhancedUrl(raw) };
+            })
+            : [];
+        const files = buildMediaFileList({ originals, enhanced });
+        if (files.length === 0) return;
+        setMediaZipProgress(`Downloading 0/${files.length}…`);
+        try {
+            const result = await downloadMediaZip({
+                zipName: `${submissionData.businessName || "submission"} photos`,
+                files,
+                onProgress: (done, total) => setMediaZipProgress(`Downloading ${done}/${total}…`),
             });
-        }
-    }, [submissionData?._id]);
-
-    // --- Handlers (preserved verbatim from previous version) ---
-
-    const refresh = () => {};
-
-    const handleEdit = () => {
-        if (submission) {
-            setEditedData({
-                business_name: submission.business_name,
-                business_type: submission.business_type,
-                owner_name: submission.owner_name,
-                owner_phone: submission.owner_phone,
-                owner_email: submission.owner_email || "",
-                address: submission.address,
-                city: submission.city,
-                transcript: submission.transcript || "",
-                photos: submission.photos || [],
-            });
-            setIsEditing(true);
+            if (result.failed.length > 0) {
+                toast.warning(
+                    `The zip downloaded with ${result.added} file${result.added === 1 ? "" : "s"}, but ${result.failed.length} could not be fetched.`,
+                    { description: "They are listed in missing-files.txt inside the zip.", duration: 10000 },
+                );
+            }
+        } catch (error: unknown) {
+            toast.error(error instanceof Error && error.message ? error.message : "Could not build the zip. Please try again.");
+        } finally {
+            setMediaZipProgress(null);
         }
     };
 
@@ -506,15 +483,10 @@ export default function SubmissionDetailPage() {
                     console.error("Audit log error (non-blocking):", auditErr);
                 }
             }
-            setModalType("success");
-            setModalMessage("Transcription generated successfully.");
-            setShowModal(true);
-        } catch (error: any) {
+            toast.success("Transcript generated");
+        } catch (error: unknown) {
             console.error("Transcription error:", error);
-            setModalType("error");
-            const msg = error.message || "Failed to generate transcription";
-            setModalMessage(msg);
-            setShowModal(true);
+            toast.error(error instanceof Error && error.message ? error.message : "Failed to generate transcription");
         } finally {
             setTranscribing(false);
         }
@@ -536,59 +508,56 @@ export default function SubmissionDetailPage() {
                     console.error("Audit log error (non-blocking):", auditErr);
                 }
             }
-            setModalType("success");
-            setModalMessage("Image enhancement triggered. Optimized images will be available shortly.");
-            setShowModal(true);
-        } catch (error: any) {
-            setModalType("error");
-            setModalMessage(error.message || "Failed to trigger image enhancement");
-            setShowModal(true);
+            toast.success("Enhancing the photos", { description: "The optimised images will be available shortly." });
+        } catch (error: unknown) {
+            toast.error(error instanceof Error && error.message ? error.message : "Failed to trigger image enhancement");
         } finally {
             setEnhancing(false);
         }
     };
 
-    const handleStatusUpdate = async (newStatus: string) => {
+    /** Approve: the mutation, then the creator's approval email. True when approved. */
+    const approveSubmission = async (): Promise<boolean> => {
+        if (!submissionData || !user) return false;
+        setUpdating(true);
+        try {
+            await approveSubmissionMutation({ submissionId: submissionData._id, adminId: user.id });
+            toast.success("Submission approved");
+            try {
+                await fetch("/api/send-approval-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ submissionId }),
+                });
+            } catch (error) {
+                console.error("Failed to send approval email:", error);
+            }
+            return true;
+        } catch {
+            toast.error("Failed to approve. Please try again.");
+            return false;
+        } finally {
+            setUpdating(false);
+        }
+    };
+
+    const handleStatusUpdate = async (newStatus: "approved" | "rejected" | "in_review") => {
         if (!submissionData || !user) return;
         if (newStatus === "approved") {
-            setUpdating(true);
-            try {
-                await approveSubmissionMutation({ submissionId: submissionData._id, adminId: user.id });
-                setModalType("success");
-                setModalMessage("Submission approved successfully.");
-                setShowModal(true);
-                try {
-                    await fetch("/api/send-approval-email", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ submissionId }),
-                    });
-                } catch (error) {
-                    console.error("Failed to send approval email:", error);
-                }
-            } catch (err: any) {
-                setModalType("error");
-                setModalMessage("Failed to approve. Please try again.");
-                setShowModal(true);
-            } finally {
-                setUpdating(false);
-            }
+            await approveSubmission();
             return;
         }
         if (newStatus === "rejected") {
+            setRejectionReasonMissing(false);
             setShowRejectModal(true);
             return;
         }
         setUpdating(true);
         try {
-            await updateStatusMutation({ id: submissionData._id, status: newStatus as any });
-            setModalType("success");
-            setModalMessage(`Submission ${newStatus} successfully.`);
-            setShowModal(true);
-        } catch (err: any) {
-            setModalType("error");
-            setModalMessage("Failed to update status. Please try again.");
-            setShowModal(true);
+            await updateStatusMutation({ id: submissionData._id, status: newStatus });
+            toast.success(submissionData.status === "rejected" ? "Back in review" : "Marked in review");
+        } catch {
+            toast.error("Failed to update status. Please try again.");
         } finally {
             setUpdating(false);
         }
@@ -596,22 +565,24 @@ export default function SubmissionDetailPage() {
 
     const handleRejectWithReason = async () => {
         if (!submissionData || !user) return;
+        // The reason is required (it is saved on the submission so the next
+        // admin knows why); the mutation still takes it as optional.
+        if (!rejectionReason.trim()) {
+            setRejectionReasonMissing(true);
+            return;
+        }
         setRejecting(true);
         try {
             await rejectSubmissionMutation({
                 submissionId: submissionData._id,
                 adminId: user.id,
-                reason: rejectionReason || undefined,
+                reason: rejectionReason.trim() || undefined,
             });
             setShowRejectModal(false);
             setRejectionReason("");
-            setModalType("success");
-            setModalMessage("Submission rejected successfully.");
-            setShowModal(true);
-        } catch (err: any) {
-            setModalType("error");
-            setModalMessage("Failed to reject. Please try again.");
-            setShowModal(true);
+            toast.success("Submission rejected", { description: "The reason is saved on it." });
+        } catch {
+            toast.error("Failed to reject. Please try again.");
         } finally {
             setRejecting(false);
         }
@@ -629,13 +600,9 @@ export default function SubmissionDetailPage() {
             const result = await response.json();
             if (!response.ok) throw new Error(result.error || "Failed to mark as paid");
             setShowMarkPaidModal(false);
-            setModalType("success");
-            setModalMessage(result.message || "Payment confirmed. Creator balance updated.");
-            setShowModal(true);
-        } catch (error: any) {
-            setModalType("error");
-            setModalMessage(error.message || "Failed to mark as paid. Please try again.");
-            setShowModal(true);
+            toast.success(result.message || "Payment confirmed. Creator balance updated.");
+        } catch (error: unknown) {
+            toast.error(error instanceof Error && error.message ? error.message : "Failed to mark as paid. Please try again.");
         } finally {
             setMarkingPaid(false);
         }
@@ -667,13 +634,9 @@ export default function SubmissionDetailPage() {
             setShowGiveFreeModal(false);
             setGiveFreeReason("");
             setGiveFreeGiftedBy("");
-            setModalType("success");
-            setModalMessage(result.message || "Website given free. Creator credited.");
-            setShowModal(true);
-        } catch (error: any) {
-            setModalType("error");
-            setModalMessage(error.message || "Failed to give this website away. Please try again.");
-            setShowModal(true);
+            toast.success(result.message || "Website given free. Creator credited.", { duration: 10000 });
+        } catch (error: unknown) {
+            toast.error(error instanceof Error && error.message ? error.message : "Failed to give this website away. Please try again.");
         } finally {
             setMarkingComped(false);
         }
@@ -681,6 +644,7 @@ export default function SubmissionDetailPage() {
 
     const handleDeleteSubmission = async () => {
         if (!submissionData || !user) return;
+        const businessName = submissionData.businessName;
         setDeleting(true);
         try {
             const response = await fetch("/api/delete-submission", {
@@ -688,30 +652,27 @@ export default function SubmissionDetailPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ submissionId: submissionData._id }),
             });
-            const data = await response.json().catch(() => ({} as any));
+            const data = await response.json().catch(() => ({} as EditorJson));
             if (!response.ok) throw new Error(data?.error || "Failed to delete submission");
             const failed: Array<{ asset: string; error: string }> = data?.failedAssets || [];
             if (failed.length > 0) {
                 setShowDeleteModal(false);
-                setOrphanedAssetsNotice(
-                    `Submission record deleted, but ${failed.length} external ${failed.length === 1 ? "asset" : "assets"} could not be cleaned up:\n\n` +
-                        failed.map((f) => `• ${f.asset}: ${f.error}`).join("\n") +
-                        `\n\nThese need manual cleanup — nothing else records them.`
-                );
+                setOrphanedAssetsNotice({ businessName, failed });
                 return;
             }
+            // The row vanishes over the subscription before the browser has
+            // left; without this the page would flash "doesn't exist" first.
+            setLeaving(true);
             window.location.href = "/admin/submissions";
-        } catch (error: any) {
+        } catch (error: unknown) {
             setShowDeleteModal(false);
-            setModalType("error");
-            setModalMessage(error.message || "Failed to delete submission. Please try again.");
-            setShowModal(true);
+            toast.error(error instanceof Error && error.message ? error.message : "Failed to delete submission. Please try again.");
         } finally {
             setDeleting(false);
         }
     };
 
-    const handleGenerateWebsite = async (customizationsOverride?: any) => {
+    const handleGenerateWebsite = async (customizationsOverride?: EditorJson) => {
         if (generatingWebsite) return;
         setGeneratingWebsite(true);
         setWebsiteError(null);
@@ -734,21 +695,30 @@ export default function SubmissionDetailPage() {
             // mode that matters: on the creator funnel EVERY generated
             // testimonial is stripped, so without this the admin sees a page
             // with no testimonials band and no reason to suspect the recording
-            // contained real praise they could type back in.
+            // contained real praise they could type back in. Kept on screen
+            // longer than an ordinary toast for that reason.
             if (data.testimonialGuard?.message) {
-                setModalType("success");
-                setModalMessage(data.testimonialGuard.message);
-                setShowModal(true);
+                toast.warning(data.testimonialGuard.message, { duration: 20000 });
+            } else {
+                toast.success("Site generated", { description: "Check it before you publish." });
             }
-        } catch (error: any) {
-            setWebsiteError(error.message || "Failed to generate website");
+        } catch (error: unknown) {
+            const message = error instanceof Error && error.message ? error.message : "Failed to generate website";
+            setWebsiteError(message);
+            toast.error("Generating the site failed", { description: message });
         } finally {
             setGeneratingWebsite(false);
         }
     };
 
-    const handlePublishWebsite = async () => {
-        if (publishingWebsite) return;
+    /**
+     * Publish (also the restore of an offline site: same Worker, same URL). True
+     * when live. `restore` only words the toast; the Undo on the unpublish toast
+     * passes it, because that closure predates the offline flag arriving.
+     */
+    const handlePublishWebsite = async (restore?: boolean): Promise<boolean> => {
+        if (publishingWebsite) return false;
+        const restoring = restore ?? websiteOffline;
         setPublishingWebsite(true);
         try {
             const response = await fetch("/api/publish-website", {
@@ -773,16 +743,20 @@ export default function SubmissionDetailPage() {
                     console.error("Audit log error (non-blocking):", auditErr);
                 }
             }
-            setModalType("success");
-            setModalMessage(`Website published successfully. View at: ${data.url}`);
-            setShowModal(true);
-        } catch (error: any) {
-            setModalType("error");
-            setModalMessage(error.message || "Failed to publish website");
-            setShowModal(true);
+            toast.success(restoring ? `Restored — live again at ${data.url}` : `Published — live at ${data.url}`);
+            return true;
+        } catch (error: unknown) {
+            toast.error(error instanceof Error && error.message ? error.message : "Failed to publish website");
+            return false;
         } finally {
             setPublishingWebsite(false);
         }
+    };
+
+    /** Approve & publish: approval first (the creator's email goes with it), then the site. */
+    const handleApproveAndPublish = async () => {
+        const approved = await approveSubmission();
+        if (approved) await handlePublishWebsite();
     };
 
     const handleRepublishWebsite = async () => {
@@ -800,13 +774,9 @@ export default function SubmissionDetailPage() {
             }
             const data = await response.json();
             setWebsitePublishedUrl(data.url);
-            setModalType("success");
-            setModalMessage(`Website republished successfully. Live at: ${data.url}`);
-            setShowModal(true);
-        } catch (error: any) {
-            setModalType("error");
-            setModalMessage(error.message || "Failed to republish website");
-            setShowModal(true);
+            toast.success("Republished — the live site matches the editor again", { description: data.url });
+        } catch (error: unknown) {
+            toast.error(error instanceof Error && error.message ? error.message : "Failed to republish website");
         } finally {
             setRepublishingWebsite(false);
         }
@@ -827,16 +797,13 @@ export default function SubmissionDetailPage() {
             }
             // The published URL deliberately stays — the site is offline, not
             // gone, and that URL is where it comes back. `existingWebsite.offlineAt`
-            // is what the buttons read, and it arrives over the subscription.
-            setModalType("success");
-            setModalMessage(
-                "Website taken offline. Visitors now see a temporarily-unavailable page; press Restore website to bring it back at the same address."
-            );
-            setShowModal(true);
-        } catch (error: any) {
-            setModalType("error");
-            setModalMessage(error.message || "Failed to unpublish website");
-            setShowModal(true);
+            // is what the actions read, and it arrives over the subscription.
+            // Undo is the restore: the same publish, landing on the same URL.
+            toast("Site taken offline — visitors see a holding page", {
+                action: { label: "Undo", onClick: () => void handlePublishWebsite(true) },
+            });
+        } catch (error: unknown) {
+            toast.error(error instanceof Error && error.message ? error.message : "Failed to unpublish website");
         } finally {
             setUnpublishingWebsite(false);
         }
@@ -855,13 +822,11 @@ export default function SubmissionDetailPage() {
                 const errorData = await response.json();
                 throw new Error(errorData.error || "Failed to send email");
             }
-            setModalType("success");
-            setModalMessage(`Email sent successfully to ${submission?.owner_email || "the business owner"}.`);
-            setShowModal(true);
-        } catch (error: any) {
-            setModalType("error");
-            setModalMessage(error.message || "Failed to send email");
-            setShowModal(true);
+            toast.success(`Sent to ${submissionData?.ownerEmail || "the business owner"}`, {
+                description: "The email has the site link and how to pay.",
+            });
+        } catch (error: unknown) {
+            toast.error(error instanceof Error && error.message ? error.message : "Failed to send email");
         } finally {
             setSendingEmail(false);
         }
@@ -875,21 +840,16 @@ export default function SubmissionDetailPage() {
                 body: JSON.stringify({ submissionId }),
             });
             if (res.ok) {
-                setModalType("success");
-                setModalMessage("Payment email re-sent to the business owner.");
-                setShowModal(true);
+                toast.success("Payment email re-sent to the business owner.");
             } else {
                 const data = await res.json();
                 throw new Error(data.error || "Failed to send email");
             }
-        } catch (err: any) {
-            setModalType("error");
-            setModalMessage(err.message || "Failed to re-send email");
-            setShowModal(true);
+        } catch (err: unknown) {
+            toast.error(err instanceof Error && err.message ? err.message : "Failed to re-send email");
         }
     };
 
-    const [sendingFollowUp, setSendingFollowUp] = useState(false);
     const handleSendFollowUp = async () => {
         if (sendingFollowUp) return;
         setSendingFollowUp(true);
@@ -900,29 +860,19 @@ export default function SubmissionDetailPage() {
                 body: JSON.stringify({ submissionId, isManual: true }),
             });
             if (res.ok) {
-                setModalType("success");
-                setModalMessage("Follow-up email sent to the business owner.");
-                setShowModal(true);
+                toast.success("Follow-up email sent to the business owner.");
             } else {
                 const data = await res.json();
                 throw new Error(data.error || "Failed to send follow-up email");
             }
-        } catch (err: any) {
-            setModalType("error");
-            setModalMessage(err.message || "Failed to send follow-up email");
-            setShowModal(true);
+        } catch (err: unknown) {
+            toast.error(err instanceof Error && err.message ? err.message : "Failed to send follow-up email");
         } finally {
             setSendingFollowUp(false);
         }
     };
 
-    const handleUpdateDesign = async (customizations: EditorCustomizations) => {
-        if (JSON.stringify(customizations) === JSON.stringify(websiteCustomizations)) return;
-        setWebsiteCustomizations(customizations);
-        await handleGenerateWebsite(customizations);
-    };
-
-    const handleSaveContent = async (content: any, customizationsOverride?: any) => {
+    const handleSaveContent = async (content: EditorJson, customizationsOverride?: EditorJson) => {
         // Optional customizations override lets the SandboxEditor commit a
         // batched template+theme change atomically alongside content edits,
         // so a single regen applies everything at once.
@@ -937,738 +887,532 @@ export default function SubmissionDetailPage() {
         if (data.htmlContent) setWebsiteHtmlContent(data.htmlContent);
         setWebsiteContent(content);
         if (customizationsOverride) setWebsiteCustomizations(customizationsOverride);
-        await refresh();
+    };
+
+    const openPhoto = (index: number) => {
+        setLightboxIndex(index);
+        setLightboxOpen(true);
+    };
+
+    const openDetails = (fold: FoldKey | null) => {
+        setDetailsFold(fold);
+        setDetailsOpen(true);
+    };
+    const closeDetails = () => {
+        setDetailsOpen(false);
+        setDetailsFold(null);
+        // Keep the URL honest: an old /domain or /emails link arrived with
+        // ?fold=; once the details are closed it no longer describes the page.
+        if (searchParams.get("fold")) router.replace(pathname, { scroll: false });
     };
 
     // --- Render ---
 
-    if (authLoading || dataLoading) {
-        return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-amber-600" />
-            </div>
-        );
-    }
+    if (authLoading || dataLoading) return <WorkspaceSkeleton />;
 
     // The delete removed the row this page is built on, so `submission` is
-    // already null and the guard below would render a blank screen — losing the
-    // only list of assets the cleanup could not reach. Show it on its own.
+    // already null and the guard below would render the not-found state —
+    // losing the only list of assets the cleanup could not reach. Show it on
+    // its own (board Review: "… was deleted").
     if (orphanedAssetsNotice) {
+        const n = orphanedAssetsNotice.failed.length;
         return (
-            <div className="min-h-screen bg-neutral-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl text-center">
-                    <div className="w-16 h-16 rounded-full bg-rose-50 border-2 border-rose-200 flex items-center justify-center mx-auto mb-4">
-                        <AlertTriangle className="w-8 h-8 text-rose-600" />
+            <div className="r1 flex h-dvh overflow-hidden bg-r1-paper">
+                <ReviewRail isAdmin={isAdmin} name={meName(currentCreator, user?.fullName)} />
+                <main className="flex min-w-0 flex-1 items-center justify-center overflow-y-auto p-4 sm:p-6">
+                    <div className="t-empty max-w-[560px]">
+                        <h2 className="t-h2">{orphanedAssetsNotice.businessName} was deleted.</h2>
+                        <p className="t-body">
+                            The submission record is gone, but {n} external {n === 1 ? "asset" : "assets"} could not be cleaned up. These need
+                            manual cleanup — nothing else records them.
+                        </p>
+                        <ul className="m-0 flex w-full list-none flex-col gap-1.5 p-0 text-left">
+                            {orphanedAssetsNotice.failed.map((f, i) => (
+                                <li key={`${f.asset}-${i}`} className="flex items-start gap-2 text-[13px] leading-[18px] text-r1-ink-2">
+                                    <Dot tone="bad" className="mt-[5px]" />
+                                    <span className="break-words">
+                                        <span className="font-medium text-r1-ink">{f.asset}</span>: {f.error}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                        <Button variant="primary" onClick={() => router.push("/admin/submissions")}>
+                            Back to submissions
+                        </Button>
                     </div>
-                    <h3
-                        style={{ fontFamily: "var(--font-fraunces)" }}
-                        className="text-2xl font-semibold mb-2 text-rose-900"
-                    >
-                        Deleted, with leftovers
-                    </h3>
-                    <p className="text-neutral-600 mb-6 text-sm whitespace-pre-wrap text-left">{orphanedAssetsNotice}</p>
-                    <button
-                        onClick={() => router.push("/admin/submissions")}
-                        className="block w-full py-3 px-4 rounded-xl font-semibold text-sm transition-colors bg-neutral-900 hover:bg-black text-white"
-                    >
-                        Back to submissions
-                    </button>
-                </div>
+                </main>
             </div>
         );
     }
 
-    if (!isAdmin || !submission) return null;
+    if (!isAdmin) return null;
 
-    const tabs: Array<{ key: TabKey; label: string; icon: any }> = [
-        { key: "editor", label: "Editor", icon: FileEdit },
-        { key: "styles", label: "Styles", icon: Palette },
-    ];
+    if (!s && leaving) return <WorkspaceSkeleton />;
+
+    if (!s) {
+        return (
+            <div className="r1 flex h-dvh overflow-hidden bg-r1-paper">
+                <ReviewRail isAdmin={isAdmin} name={meName(currentCreator, user?.fullName)} />
+                <main className="flex min-w-0 flex-1 items-center justify-center p-4 sm:p-6">
+                    <EmptyState
+                        title="This submission doesn’t exist"
+                        body="It may have been deleted, or the link is wrong."
+                        action={<ButtonLink variant="primary" href="/admin/submissions">Back to submissions</ButtonLink>}
+                    />
+                </main>
+            </div>
+        );
+    }
+
+    // ── What the header offers, by state ──────────────────────────────────
+    const status = s.status;
+    const comped = isComped(s);
+    const customDomainTier = s.submissionType === "with_custom_domain" || !!s.requestedDomain;
+    const hasTranscript = !!s.transcript;
+    const selfServe = isHouseCreator(s.creator);
+    const published = !!websitePublishedUrl;
+
+    // The eligibility rules the old action bar applied, unchanged.
+    const canApprove = status === "website_generated" || (status === "in_review" && websiteGenerated);
+    const canGenerate = ["in_review", "website_generated", "approved", "deployed"].includes(status);
+    const canEnhanceBeforeSite = ["submitted", "in_review", "website_generated", "approved", "deployed"].includes(status) && hasTranscript;
+    // Not once the site is out with the owner: rejecting then would strand a
+    // live, billed site.
+    const canReject = !["rejected", "deployed", "pending_payment", "paid", "unpublished"].includes(status);
+    const canMarkInReview = status === "submitted";
+    // Also offered once a site has been pulled: an owner who pays after the
+    // three-day deadline is the ordinary way this ends, and without it there is
+    // no way to settle the submission and restore the site. markPaid itself has
+    // no status guard (convex/admin.ts), so this only widens the UI.
+    const canMarkPaid = ["pending_payment", "unpublished"].includes(status);
+    // Promo: hand the site to the owner for free, the creator still earns.
+    // Offered from the moment a real website exists to give away, and still
+    // offered at pending_payment — an owner who was billed and went quiet is
+    // exactly the case a promo rescues. Hidden once the site is already comped
+    // or settled, and never on the custom-domain tier, where "free" would mean
+    // the platform paying a registrar out of pocket.
+    const canGiveFree =
+        !comped &&
+        !customDomainTier &&
+        websiteGenerated &&
+        ["approved", "website_generated", "deployed", "pending_payment", "unpublished"].includes(status);
+    const canPayments = status === "pending_payment";
+    // While the site is offline the actions must not offer Republish/Unpublish
+    // or link visitors at a holding page; the one way forward is Restore.
+    const canUnpublish = published && !websiteOffline;
+
+    const phase: "generated" | "generating" | "pregen" = generatingWebsite ? "generating" : websiteGenerated ? "generated" : "pregen";
+
+    const reopen = (
+        <Button onClick={() => void handleStatusUpdate("in_review")} disabled={updating} aria-busy={updating}>
+            {updating ? "Reopening…" : "Reopen review"}
+        </Button>
+    );
+    const markInReview = (
+        <Button variant="primary" onClick={() => void handleStatusUpdate("in_review")} disabled={updating} aria-busy={updating}>
+            {updating ? "Saving…" : "Mark in review"}
+        </Button>
+    );
+
+    /** The one primary action once a site exists (and the editor has no unsaved changes). */
+    const sitePrimary = (): ReactNode => {
+        if (status === "rejected") return reopen;
+        if (websiteOffline) {
+            return (
+                <Button variant="primary" onClick={() => void handlePublishWebsite()} disabled={publishingWebsite} aria-busy={publishingWebsite}>
+                    {publishingWebsite ? "Restoring…" : "Restore website"}
+                </Button>
+            );
+        }
+        if (published) {
+            return publishStale ? (
+                <Button variant="primary" onClick={() => void handleRepublishWebsite()} disabled={republishingWebsite} aria-busy={republishingWebsite}>
+                    {republishingWebsite ? "Republishing…" : "Republish"}
+                </Button>
+            ) : (
+                <Button variant="primary" disabled title="The live site already matches the editor">
+                    Republish
+                </Button>
+            );
+        }
+        if (canMarkInReview) return markInReview;
+        if (canApprove && approvedBefore !== true) {
+            const working = updating || publishingWebsite;
+            return (
+                <Button
+                    variant="primary"
+                    onClick={() => void handleApproveAndPublish()}
+                    // Until the approval history has loaded, it cannot be told
+                    // whether this would approve a second time.
+                    disabled={working || approvedBefore === undefined}
+                    aria-busy={working}
+                >
+                    <Icon icon={Check} />
+                    {updating ? "Approving…" : publishingWebsite ? "Publishing…" : "Approve & publish"}
+                </Button>
+            );
+        }
+        return (
+            <Button variant="primary" onClick={() => void handlePublishWebsite()} disabled={publishingWebsite} aria-busy={publishingWebsite}>
+                <Icon icon={Check} />
+                {publishingWebsite ? "Publishing…" : "Publish"}
+            </Button>
+        );
+    };
+
+    /** A disabled menu entry that says when it becomes available. */
+    const later = (label: string, note: string): MenuItem => ({
+        label: (
+            <span className="flex flex-1 items-center justify-between gap-3">
+                {label}
+                <span className="text-xs text-r1-ink-3">{note}</span>
+            </span>
+        ),
+        disabled: true,
+    });
+
+    /** Owner and money actions, shared by every state that has them. */
+    const clientItems = (): MenuItem[] => {
+        const items: MenuItem[] = [];
+        if (canPayments) {
+            items.push({ label: "Re-send the payment email", onSelect: () => void handleResendPaymentEmail() });
+            items.push({
+                label: sendingFollowUp
+                    ? "Sending the follow-up…"
+                    : s.followUpEmailSentAt
+                        ? `Follow up again (last sent ${formatDate(s.followUpEmailSentAt)})`
+                        : "Send a payment follow-up",
+                disabled: sendingFollowUp,
+                onSelect: () => void handleSendFollowUp(),
+            });
+        } else if (websiteGenerated) {
+            items.push(
+                canUnpublish
+                    ? { label: sendingEmail ? "Sending…" : "Send to client", disabled: sendingEmail, onSelect: () => void handleSendWebsiteEmail() }
+                    : later("Send to client", "after publishing"),
+            );
+        }
+        if (canGiveFree) items.push({ label: "Give free (comp)…", onSelect: () => setShowGiveFreeModal(true) });
+        if (canMarkPaid) items.push({ label: "Mark as paid…", onSelect: () => setShowMarkPaidModal(true) });
+        else if (websiteGenerated && !published && !comped && !["paid", "completed"].includes(status)) items.push(later("Mark as paid", "after publishing"));
+        return items;
+    };
+
+    const closingItems = (): MenuItem[] => {
+        const items: MenuItem[] = [];
+        if (canReject) items.push({ label: "Reject…", danger: true, onSelect: () => void handleStatusUpdate("rejected") });
+        items.push({ label: "Delete…", danger: true, onSelect: () => setShowDeleteModal(true) });
+        return items;
+    };
+
+    const siteMoreItems = (tools: EditorTools): MenuItem[] => {
+        const items: MenuItem[] = [];
+        if (tools.dirty) {
+            items.push({ label: tools.previewing ? "Building the preview…" : "Preview unsaved changes", disabled: tools.busy, onSelect: tools.previewUnsaved });
+            items.push({ label: "Discard unsaved changes", disabled: tools.busy, onSelect: tools.discard });
+            items.push("divider");
+        }
+        items.push({ label: "Regenerate", disabled: tools.busy, onSelect: () => void handleGenerateWebsite() });
+        items.push({ label: enhancing ? "Enhancing…" : "Enhance photos", disabled: enhancing, onSelect: () => void handleTriggerEnhancedImages() });
+        // The build on disk, published or not. After a Regenerate (which never
+        // publishes) it differs from the live page, which the address bar links.
+        items.push({ label: "Open this build in a new tab", href: `/api/preview/${submissionId}`, external: true });
+        // Approval on its own, for a submission never approved: before going
+        // live (approve now, publish later), or for a site that went live
+        // without one. Never offered twice — see approvedBefore.
+        if (approvedBefore === false && !["approved", "rejected"].includes(status)) {
+            items.push({
+                label: updating ? "Approving…" : published ? "Approve" : "Approve without publishing",
+                disabled: updating,
+                onSelect: () => void handleStatusUpdate("approved"),
+            });
+        }
+        const client = clientItems();
+        if (client.length) items.push("divider", ...client);
+        items.push("divider");
+        items.push(
+            canUnpublish
+                ? { label: unpublishingWebsite ? "Unpublishing…" : "Unpublish", disabled: unpublishingWebsite, onSelect: () => void handleUnpublishWebsite() }
+                : later("Unpublish", "not live"),
+        );
+        items.push(...closingItems());
+        return items;
+    };
+
+    const pregenMoreItems = (): MenuItem[] => {
+        const items: MenuItem[] = [];
+        if (canEnhanceBeforeSite) items.push({ label: enhancing ? "Enhancing…" : "Enhance photos", disabled: enhancing, onSelect: () => void handleTriggerEnhancedImages() });
+        const client = clientItems();
+        if (client.length) items.push(...client);
+        if (items.length) items.push("divider");
+        items.push(...closingItems());
+        return items;
+    };
+
+    /** Where the work stands, beside the actions. */
+    const saveState = (tools: EditorTools): ReactNode => {
+        if (tools.dirty) {
+            return (
+                <span className="inline-flex items-center gap-1.5 whitespace-nowrap pr-1 text-[13px] font-medium text-r1-gold-ink" aria-live="polite">
+                    <Dot tone="attn" />
+                    Unsaved changes
+                </span>
+            );
+        }
+        if (publishStale && !websiteOffline) {
+            return (
+                <span
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap pr-1 text-[13px] font-medium text-r1-gold-ink"
+                    aria-live="polite"
+                    title="The live site still has the previous version. Republish to update it."
+                >
+                    <Dot tone="attn" />
+                    Changes not live yet
+                </span>
+            );
+        }
+        return (
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap pr-1 text-[13px] text-r1-ink-3" aria-live="polite">
+                <Icon icon={Check} />
+                {canUnpublish ? "Saved · live is up to date" : "Saved"}
+            </span>
+        );
+    };
+
+    const details = { open: detailsOpen, onToggle: () => (detailsOpen ? closeDetails() : openDetails(null)) };
+
+    const intakeRows = (s.interviewQa ?? []).length > 0 ? buildIntakeRows(s.interviewQa ?? []) : null;
+    const checklist = checklistFor(s);
+    const emails = clientEmailsFor(s);
+    const enhancedCount = enhancedImageData ? Object.keys(enhancedImageData).length : 0;
+
+    const detailsContent = (
+        <DetailsContent
+            // Re-open at the requested fold each time the details open there.
+            key={detailsFold ?? "details"}
+            s={s}
+            isOwnerSubmitted={isOwnerSubmitted}
+            photoUrls={photoUrls}
+            checklist={checklist}
+            intakeRows={intakeRows}
+            emails={emails}
+            enhancedCount={enhancedCount}
+            onOpenPhoto={openPhoto}
+            onDownloadMedia={() => void handleDownloadMedia()}
+            mediaZipProgress={mediaZipProgress}
+            transcribing={transcribing}
+            onRetriggerTranscription={() => void handleRetriggerTranscription()}
+            initialFold={detailsFold}
+        />
+    );
+
+    // Docked: the board's 360px panel beside the preview, so editing goes on
+    // while it is open. Only in the editor, only on a wide screen.
+    const docked = phase === "generated" && isWide && detailsOpen;
+    const dockedAside = docked ? (
+        <aside aria-label="Submission details" className="flex w-[360px] flex-none flex-col border-l border-r1-line bg-r1-paper">
+            <div className="flex h-14 flex-none items-center justify-between border-b border-r1-line bg-r1-fill-2 pl-5 pr-2">
+                <h2 className="t-h2">Details</h2>
+                <Button variant="ghost" icon aria-label="Close details" onClick={closeDetails}>
+                    <Icon icon={X} />
+                </Button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-6 pt-1">{detailsContent}</div>
+        </aside>
+    ) : null;
+
+    // The one sentence the overview leads with, by state.
+    const pregenNotice: { title: string; body: ReactNode } | null =
+        status === "rejected"
+            ? { title: "This submission was rejected.", body: "Reopen review to work on it again." }
+            : canMarkInReview
+                ? { title: "New submission.", body: "Check what was sent below, then mark it in review to generate the website." }
+                : canGenerate
+                    ? {
+                        title: "Ready to generate this website.",
+                        body: "Check what was sent below, then press Generate site. It usually takes 30–60 seconds, and you can edit everything afterwards.",
+                    }
+                    : null;
+
+    const pregenPrimary: ReactNode =
+        status === "rejected" ? reopen : canMarkInReview ? markInReview : canGenerate ? (
+            <Button variant="primary" onClick={() => void handleGenerateWebsite()}>
+                <Icon icon={Sparkles} />
+                Generate site
+            </Button>
+        ) : null;
+
+    const campaignKey = normalizeCampaign(s.campaign);
 
     return (
-        <div className="min-h-screen bg-neutral-50 text-neutral-900">
-            {/* Minimal back+title strip — only when in editor tab AND a
-                website already exists. When there's no website yet, fall
-                back to the full TopActionBar (below) so the admin can see
-                the Generate button + submission status + payment actions.
-                Without this gate the page rendered just an empty "No
-                website generated yet" card with no controls at all. */}
-            {activeTab === "editor" && websiteGenerated && (
-                <div className="border-b border-neutral-200 bg-white px-4 sm:px-6 py-3 flex items-center gap-4">
-                    <button
-                        type="button"
-                        onClick={() => router.back()}
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-neutral-700 hover:text-amber-700 transition-colors"
-                    >
-                        <ChevronLeft className="w-4 h-4" /> Back
-                    </button>
-                    <div className="min-w-0">
-                        <h1 className="text-base sm:text-lg font-bold text-neutral-900 truncate">
-                            {submission.business_name}
-                        </h1>
-                        <p className="text-xs text-neutral-500 truncate">
-                            Submission details
-                            {submission.campaign && ` · ${String(submission.campaign).toUpperCase()} campaign`}
-                            {submission.source && ` · from ${submission.source}`}
-                        </p>
-                    </div>
-                    {/* The editor-version switch is gone: v3 is the only editor. */}
-                </div>
-            )}
+        <div className="r1 flex h-dvh overflow-hidden bg-r1-paper">
+            <ReviewRail isAdmin={isAdmin} name={meName(currentCreator, user?.fullName)} />
 
-            {/* TopActionBar is normally hidden in the editor tab — the
-                SandboxEditor preview-bar owns Enhance / Regen / Publish /
-                Republish / Unpublish / Send to client / Approve / Reject /
-                Delete. But when no website has been generated yet, we
-                ALWAYS show the TopActionBar so the Generate button + status
-                pills + payment actions are reachable. */}
-            {(activeTab !== "editor" || !websiteGenerated) && (
-                <TopActionBar
-                    businessName={submission.business_name}
-                    status={submission.status}
-                    websiteGenerated={websiteGenerated}
-                    websitePublishedUrl={websitePublishedUrl}
-                    hasTranscript={!!submission.transcript}
-                    followUpSentAt={(submission as any).followUpEmailSentAt}
-                    isCustomDomainTier={
-                        (submissionData as any)?.submissionType === "with_custom_domain" ||
-                        !!(submissionData as any)?.requestedDomain
-                    }
-                    isComped={isComped(submissionData as any)}
-                    updating={updating}
-                    generatingWebsite={generatingWebsite}
-                    publishingWebsite={publishingWebsite}
-                    republishingWebsite={republishingWebsite}
-                    unpublishingWebsite={unpublishingWebsite}
-                    enhancing={enhancing}
-                    sendingEmail={sendingEmail}
-                    markingPaid={markingPaid}
-                    markingComped={markingComped}
-                    deleting={deleting}
-                    sendingFollowUp={sendingFollowUp}
-                    onGenerateWebsite={() => handleGenerateWebsite()}
-                    onApprove={() => handleStatusUpdate("approved")}
-                    onMarkInReview={() => handleStatusUpdate("in_review")}
-                    onPublish={handlePublishWebsite}
-                    onRepublish={handleRepublishWebsite}
-                    onUnpublish={handleUnpublishWebsite}
-                    onSendToClient={handleSendWebsiteEmail}
-                    onEnhanceImages={handleTriggerEnhancedImages}
-                    onMarkAsPaid={() => setShowMarkPaidModal(true)}
-                    onGiveFree={() => setShowGiveFreeModal(true)}
-                    onResendPaymentEmail={handleResendPaymentEmail}
-                    onSendFollowUp={handleSendFollowUp}
-                    onReject={() => handleStatusUpdate("rejected")}
-                    onDelete={() => setShowDeleteModal(true)}
-                />
-            )}
-
-            {/* Sits outside the TopActionBar so it stays visible in the editor
-                tab too, where that bar is hidden. */}
-            {isOwnerSubmitted && (
-                <div className="max-w-[1600px] mx-auto px-4 sm:px-6 pt-4">
-                    <span className="inline-flex items-center gap-2 rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide bg-indigo-50 text-indigo-800">
-                        <span className="w-2 h-2 rounded-full bg-indigo-500" aria-hidden />
-                        Owner-submitted
-                    </span>
-                </div>
-            )}
-
-            <div
-                className={`max-w-[1600px] mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 gap-5 items-start ${
-                    sidebarOpen ? "xl:grid-cols-[1fr_360px]" : "xl:grid-cols-1"
-                }`}
-            >
-                {/* Main content (editor + preview) */}
-                <div className="min-w-0">
-                    {/* Sandbox-style slim toolbar — only shown when the admin is
-                        viewing the legacy Styles panel. In sandbox/editor mode
-                        the SandboxEditor's own preview-bar has all the actions,
-                        so this strip stays hidden to avoid double chrome. */}
-                    {websiteGenerated && activeTab !== "editor" && (
-                        <div className="bg-white rounded-2xl border border-neutral-200 px-3 py-2 mb-4 flex items-center gap-2 overflow-x-auto">
-                            <div className="inline-flex items-center bg-neutral-100 rounded-lg p-0.5">
-                                {tabs.map((tab) => {
-                                    const Icon = tab.icon;
-                                    const active = activeTab === tab.key;
-                                    return (
-                                        <button
-                                            key={tab.key}
-                                            type="button"
-                                            onClick={() => setActiveTab(tab.key)}
-                                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors whitespace-nowrap ${
-                                                active
-                                                    ? "bg-white text-amber-700 shadow-sm"
-                                                    : "text-neutral-500 hover:text-neutral-900"
-                                            }`}
-                                        >
-                                            <Icon className="w-3.5 h-3.5" />
-                                            {tab.label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="ml-auto flex items-center gap-2">
-                                {websitePublishedUrl && (
-                                    <a
-                                        href={websitePublishedUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        title={websitePublishedUrl}
-                                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 px-2.5 py-1.5 rounded-lg border border-amber-600 hover:border-amber-700 transition-colors whitespace-nowrap shadow-sm"
-                                    >
-                                        <Globe className="w-3.5 h-3.5" />
-                                        View Deployed
-                                    </a>
-                                )}
-                                <a
-                                    href={`/api/preview/${submissionId}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-amber-700 px-2.5 py-1.5 rounded-lg border border-neutral-200 hover:border-amber-300 hover:bg-amber-50 transition-colors whitespace-nowrap"
-                                >
-                                    <ExternalLink className="w-3.5 h-3.5" />
-                                    Open in New Tab
-                                </a>
-                                <button
-                                    onClick={() => {
-                                        setSidebarManuallyToggled(true);
-                                        setSidebarOpen(!sidebarOpen);
-                                    }}
-                                    className="hidden xl:inline-flex items-center gap-1.5 text-xs font-semibold text-neutral-700 hover:text-amber-700 px-2.5 py-1.5 rounded-lg border border-neutral-200 hover:border-amber-300 hover:bg-amber-50 transition-colors whitespace-nowrap"
-                                    title={sidebarOpen ? "Hide details panel" : "Show details panel"}
-                                    aria-label={sidebarOpen ? "Hide details panel" : "Show details panel"}
-                                    aria-pressed={sidebarOpen}
-                                >
-                                    {sidebarOpen ? (
-                                        <PanelRightClose className="w-3.5 h-3.5" />
+            <div className="flex min-w-0 flex-1 flex-col">
+                {phase === "generated" ? (
+                    <SandboxEditorV3
+                        submissionId={submissionId}
+                        businessName={s.businessName}
+                        businessType={s.businessType}
+                        htmlContent={websiteHtmlContent || ""}
+                        htmlLoading={websiteHtmlContent === null}
+                        content={websiteContent ?? {
+                            business_name: s.businessName || "",
+                            tagline: "",
+                            about: "",
+                            services: [],
+                            contact: {},
+                        }}
+                        customizations={websiteCustomizations}
+                        photos={[
+                            ...(photoUrls || []),
+                            ...((heroImageUrls || []).filter((u): u is string => u !== null)),
+                        ].filter((url, index, self) => self.indexOf(url) === index)}
+                        enhancedImageUrls={Object.values(enhancedUrlMap).filter(
+                            (u): u is string => typeof u === "string" && u.length > 0,
+                        )}
+                        onSaveContent={handleSaveContent}
+                        // While the site is offline the editor must not link
+                        // visitors at a holding page. Withholding the address is
+                        // what tells it so.
+                        websitePublishedUrl={websiteOffline ? undefined : (websitePublishedUrl ?? undefined)}
+                        websiteGenerated={websiteGenerated}
+                        generatingWebsite={generatingWebsite}
+                        aside={dockedAside}
+                        renderHeader={(tools) => (
+                            <ReviewHeader
+                                businessName={s.businessName}
+                                status={status}
+                                saveState={saveState(tools)}
+                                tools={tools}
+                                details={details}
+                                primary={
+                                    tools.dirty ? (
+                                        // Unsaved edits come first: publishing now would
+                                        // ship the last saved build without them. Saving
+                                        // a live site republishes it as well.
+                                        <Button variant="primary" onClick={tools.save} disabled={tools.busy} aria-busy={tools.saving}>
+                                            {tools.saving ? "Saving…" : "Save changes"}
+                                        </Button>
                                     ) : (
-                                        <PanelRightOpen className="w-3.5 h-3.5" />
-                                    )}
-                                    {sidebarOpen ? "Hide details" : "Details"}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {websiteError && (
-                        <div className="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3 rounded-xl text-sm mb-4">
-                            {websiteError}
-                        </div>
-                    )}
-
-                    {/* No website yet — show the FULL submission overview
-                        inline (business info / owner / address / media /
-                        transcript / quality checklist) so the admin can
-                        actually review what they're acting on. Before this
-                        the main area was just an empty placeholder card
-                        and all submission detail lived in an off-by-default
-                        sidebar — meaning a fresh submission detail page
-                        rendered no usable information at all. */}
-                    {!websiteGenerated && !generatingWebsite && (
-                        <div className="space-y-4">
-                            <div
-                                className="rounded-2xl px-5 py-4 flex items-start gap-3"
-                                style={{
-                                    background: "var(--ed-accent-bg, #F5E4C0)",
-                                    border: "1px solid var(--ed-accent)",
-                                    color: "var(--ed-accent-ink, #5C3A0F)",
-                                }}
-                            >
-                                <Palette className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                                <div className="min-w-0">
-                                    <h4
-                                        style={{ fontFamily: "var(--font-fraunces)" }}
-                                        className="text-base font-semibold mb-0.5"
-                                    >
-                                        Ready to generate this website.
-                                    </h4>
-                                    <p className="text-[13px]" style={{ color: "var(--ed-ink-2)" }}>
-                                        Review the submission below, then click{" "}
-                                        <span className="font-semibold">Generate</span>{" "}
-                                        in the top bar to create a real coded site.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <DetailsSidebar
-                                submission={{
-                                    business_name: submission.business_name,
-                                    business_type: submission.business_type,
-                                    owner_name: submission.owner_name,
-                                    owner_phone: submission.owner_phone,
-                                    owner_email: submission.owner_email,
-                                    address: submission.address,
-                                    city: submission.city,
-                                    photos: submission.photos || [],
-                                    transcript: submission.transcript,
-                                    interview_qa: submission.interview_qa,
-                                    status: submission.status,
-                                    creator_payout: submission.creator_payout,
-                                    created_at: submission.created_at,
-                                }}
-                                photoUrls={photoUrls}
-                                transcriptionUpdatedAt={submissionData?.transcriptionUpdatedAt}
-                                qualityChecklist={qualityChecklist}
-                                creator={creator}
-                                onEditBusinessInfo={handleEdit}
-                                onEditPhotos={handleEdit}
-                                onDownloadMedia={handleDownloadMedia}
-                                mediaZipProgress={mediaZipProgress}
-                                enhancedCount={enhancedImageData ? Object.keys(enhancedImageData).length : 0}
-                                onOpenLightbox={(index) => {
-                                    setLightboxIndex(index);
-                                    setLightboxOpen(true);
-                                }}
-                                transcribing={transcribing}
-                                onRetriggerTranscription={handleRetriggerTranscription}
-                            />
-                        </div>
-                    )}
-
-                    {/* Generating spinner */}
-                    {generatingWebsite && (
-                        <div className="bg-white rounded-2xl border border-neutral-200 p-12 text-center">
-                            <Loader2 className="w-12 h-12 animate-spin text-amber-600 mx-auto mb-4" />
-                            <h4
-                                style={{ fontFamily: "var(--font-fraunces)" }}
-                                className="text-xl font-semibold text-neutral-900 mb-1"
-                            >
-                                Generating website…
-                            </h4>
-                            <p className="text-sm text-neutral-600">This usually takes 30–60 seconds.</p>
-                        </div>
-                    )}
-
-                    {/* Tab content (only when website exists) */}
-                    {websiteGenerated && !generatingWebsite && (
-                        <>
-                            {activeTab === "styles" && (
-                                <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4">
-                                    <div className="h-[calc(100vh-220px)] sticky top-[88px] overflow-hidden">
-                                        <ContentEditor
-                                            initialCustomizations={websiteCustomizations}
-                                            onUpdate={handleUpdateDesign}
-                                            disabled={generatingWebsite}
-                                        />
-                                    </div>
-                                    <div className="bg-white rounded-2xl border border-neutral-200 overflow-hidden">
-                                        <WebsitePreview
-                                            htmlContent={websiteHtmlContent || ""}
-                                            isRegenerating={generatingWebsite}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === "editor" && (() => {
-                                // Shared prop contract for both editors — v1
-                                // (classic) and v2 (redesigned) render identically
-                                // wired behind the version toggle.
-                                const editorProps: SandboxEditorProps = {
-                                    submissionId,
-                                    businessName: submission.business_name,
-                                    businessType: submission.business_type,
-                                    htmlContent: websiteHtmlContent || "",
-                                    content: websiteContent ?? {
-                                        business_name: submission.business_name || "",
-                                        tagline: "",
-                                        about: "",
-                                        services: [],
-                                        contact: {},
-                                    },
-                                    customizations: websiteCustomizations,
-                                    photos: [
-                                        ...(photoUrls || []),
-                                        ...((heroImageUrls || []).filter((u): u is string => u !== null)),
-                                    ].filter((url, index, self) => self.indexOf(url) === index),
-                                    enhancedImageUrls: Object.values(enhancedUrlMap).filter(
-                                        (u): u is string => typeof u === "string" && u.length > 0,
-                                    ),
-                                    onSaveContent: handleSaveContent,
-                                    onUpdateDesign: handleUpdateDesign,
-                                    // While the site is offline the three editor
-                                    // bars must not offer "Republish"/"Unpublish"
-                                    // or link visitors at a holding page. They all
-                                    // gate on this one value, so withholding it
-                                    // turns the bar back into a single Publish —
-                                    // which is exactly the restore action, landing
-                                    // on the same Worker and the same URL.
-                                    websitePublishedUrl: websiteOffline ? undefined : (websitePublishedUrl ?? undefined),
-                                    websiteGenerated,
-                                    generatingWebsite,
-                                    publishingWebsite,
-                                    republishingWebsite,
-                                    unpublishingWebsite,
-                                    enhancing,
-                                    sendingEmail,
-                                    onSendToClient: handleSendWebsiteEmail,
-                                    onEnhanceImages: handleTriggerEnhancedImages,
-                                    onRegenerate: () => handleGenerateWebsite(),
-                                    onPublish: handlePublishWebsite,
-                                    onRepublish: handleRepublishWebsite,
-                                    onUnpublish: handleUnpublishWebsite,
-                                    onDelete: () => setShowDeleteModal(true),
-                                    onApprove: () => handleStatusUpdate("approved"),
-                                    onReject: () => handleStatusUpdate("rejected"),
-                                    submissionStatus: submission.status,
-                                    // Promo. Opens the same confirmation modal the
-                                    // TopActionBar button does, so the cost is stated
-                                    // once and identically wherever it is triggered.
-                                    // Only v3 renders a button for these; v1/v2 ignore
-                                    // them (see SandboxEditorProps).
-                                    onGiveFree: () => setShowGiveFreeModal(true),
-                                    markingComped,
-                                    isCustomDomainTier:
-                                        (submissionData as any)?.submissionType === "with_custom_domain" ||
-                                        !!(submissionData as any)?.requestedDomain,
-                                    isComped: isComped(submissionData as any),
-                                    onToggleDetails: () => {
-                                        setSidebarManuallyToggled(true);
-                                        setSidebarOpen(!sidebarOpen);
-                                    },
-                                    detailsOpen: sidebarOpen,
-                                };
-                                return <SandboxEditorV3 {...editorProps} />;
-                            })()}
-                        </>
-                    )}
-                </div>
-
-                {/* Right sidebar — sticky with its own scroll container, collapsible at xl+ */}
-                {sidebarOpen && (
-                    <div className="xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)] xl:overflow-y-auto xl:pr-1 sidebar-scroll space-y-4">
-                        {/* Drive folder sync status + actions — visible only
-                            when the submission is approved or has had a manual
-                            sync attempt, so the section doesn't clutter the
-                            sidebar for draft/pending rows. */}
-                        {(submission.status === "approved" || (submissionData as any)?.driveSyncStatus) && (
-                            <DriveSection
-                                submissionId={submissionData!._id}
-                                status={(submissionData as any)?.driveSyncStatus}
-                                folderUrl={(submissionData as any)?.driveFolderUrl}
-                                folderCreatedAt={(submissionData as any)?.driveFolderCreatedAt}
-                                error={(submissionData as any)?.driveSyncError}
+                                        sitePrimary()
+                                    )
+                                }
+                                moreItems={siteMoreItems(tools)}
                             />
                         )}
-                        <DetailsSidebar
-                            submission={{
-                                business_name: submission.business_name,
-                                business_type: submission.business_type,
-                                owner_name: submission.owner_name,
-                                owner_phone: submission.owner_phone,
-                                owner_email: submission.owner_email,
-                                address: submission.address,
-                                city: submission.city,
-                                photos: submission.photos || [],
-                                transcript: submission.transcript,
-                                interview_qa: submission.interview_qa,
-                                status: submission.status,
-                                creator_payout: submission.creator_payout,
-                                created_at: submission.created_at,
-                            }}
-                            photoUrls={photoUrls}
-                            transcriptionUpdatedAt={submissionData?.transcriptionUpdatedAt}
-                            qualityChecklist={qualityChecklist}
-                            creator={creator}
-                            onEditBusinessInfo={handleEdit}
-                            onEditPhotos={handleEdit}
-                            onDownloadMedia={handleDownloadMedia}
-                            mediaZipProgress={mediaZipProgress}
-                            enhancedCount={enhancedImageData ? Object.keys(enhancedImageData).length : 0}
-                            onOpenLightbox={(index) => {
-                                setLightboxIndex(index);
-                                setLightboxOpen(true);
-                            }}
-                            transcribing={transcribing}
-                            onRetriggerTranscription={handleRetriggerTranscription}
+                    />
+                ) : (
+                    <>
+                        <ReviewHeader
+                            businessName={s.businessName}
+                            status={status}
+                            primary={
+                                phase === "generating" ? (
+                                    <Button variant="primary" disabled aria-busy>
+                                        Generating…
+                                    </Button>
+                                ) : (
+                                    pregenPrimary
+                                )
+                            }
+                            moreItems={phase === "generating" ? undefined : pregenMoreItems()}
                         />
-                    </div>
+                        {phase === "generating" ? (
+                            <div className="flex min-h-0 flex-1 items-center justify-center bg-r1-paper p-6">
+                                <div className="t-empty" role="status">
+                                    <h2 className="t-h2">Generating website…</h2>
+                                    <p className="t-meta">This usually takes 30–60 seconds.</p>
+                                    <span className="relative block h-1.5 w-60 overflow-hidden rounded-full bg-r1-fill" aria-hidden="true">
+                                        <span className="absolute inset-y-0 left-0 w-2/5 animate-pulse rounded-full bg-r1-ink" />
+                                    </span>
+                                </div>
+                            </div>
+                        ) : (
+                            <PregenOverview
+                                s={s}
+                                isOwnerSubmitted={isOwnerSubmitted}
+                                notice={pregenNotice}
+                                websiteError={websiteError}
+                                photoUrls={photoUrls}
+                                checklist={checklist}
+                                intakeRows={intakeRows}
+                                emails={emails}
+                                enhancedCount={enhancedCount}
+                                onOpenPhoto={openPhoto}
+                                onDownloadMedia={() => void handleDownloadMedia()}
+                                mediaZipProgress={mediaZipProgress}
+                                transcribing={transcribing}
+                                onRetriggerTranscription={() => void handleRetriggerTranscription()}
+                                onOpenDetails={(fold) => openDetails(fold)}
+                            />
+                        )}
+                    </>
                 )}
             </div>
 
-            {/* Modals (same as before) */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
-                        <div className="text-center">
-                            <div
-                                className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                                    modalType === "success"
-                                        ? "bg-amber-50 border-2 border-amber-200"
-                                        : "bg-rose-50 border-2 border-rose-200"
-                                }`}
-                            >
-                                {modalType === "success" ? (
-                                    <Check className="w-8 h-8 text-amber-600" strokeWidth={3} />
-                                ) : (
-                                    <X className="w-8 h-8 text-rose-600" strokeWidth={3} />
-                                )}
-                            </div>
-                            <h3
-                                style={{ fontFamily: "var(--font-fraunces)" }}
-                                className={`text-2xl font-semibold mb-2 ${modalType === "success" ? "text-neutral-900" : "text-rose-900"}`}
-                            >
-                                {modalType === "success" ? "Success" : "Something went wrong"}
-                            </h3>
-                            <p className="text-neutral-600 mb-6 text-sm whitespace-pre-wrap">{modalMessage}</p>
-                            <button
-                                onClick={() => setShowModal(false)}
-                                className={`w-full py-3 px-4 rounded-xl font-semibold text-sm transition-colors min-h-[44px] ${
-                                    modalType === "success"
-                                        ? "bg-amber-600 hover:bg-amber-700 text-white"
-                                        : "bg-neutral-900 hover:bg-black text-white"
-                                }`}
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            {/* The details as a drawer: below a wide screen in the editor, and
+                in the overview when a fold is asked for (the old /domain and
+                /emails links, or "Manage the domain"). */}
+            <Drawer
+                open={detailsOpen && !docked}
+                onClose={closeDetails}
+                title="Details"
+                meta={[s.businessType, s.city].filter(Boolean).join(" · ")}
+            >
+                {detailsContent}
+            </Drawer>
 
-            {showMarkPaidModal && submission && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 sm:p-7">
-                        <h3
-                            style={{ fontFamily: "var(--font-fraunces)" }}
-                            className="text-2xl font-semibold text-neutral-900 mb-2"
-                        >
-                            Confirm payment received
-                        </h3>
-                        <p className="text-neutral-600 mb-4 text-sm">Are you sure you want to mark this submission as paid?</p>
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                            <p className="text-sm font-semibold text-amber-900 mb-2">This will:</p>
-                            <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
-                                <li>Update submission status to &quot;Paid&quot;</li>
-                                <li>Add ₱{(submission.creator_payout ?? 0).toLocaleString()} to creator&apos;s balance</li>
-                                <li>Update creator&apos;s total earnings</li>
-                            </ul>
-                        </div>
-                        <div className="bg-neutral-50 rounded-xl p-4 mb-4 space-y-1">
-                            <div className="flex justify-between text-sm">
-                                <span className="text-neutral-600">Business</span>
-                                <span className="font-medium text-neutral-900">{submission.business_name}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                                <span className="text-neutral-600">Creator payout</span>
-                                <span className="font-bold text-amber-700">₱{(submission.creator_payout ?? 0).toLocaleString()}</span>
-                            </div>
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setShowMarkPaidModal(false)}
-                                disabled={markingPaid}
-                                className="flex-1 py-3 px-4 rounded-xl font-semibold border border-neutral-200 hover:bg-neutral-50 transition-colors disabled:opacity-50 min-h-[44px] text-sm"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleMarkAsPaid}
-                                disabled={markingPaid}
-                                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-amber-600 hover:bg-amber-700 text-white transition-colors disabled:opacity-50 min-h-[44px] text-sm inline-flex items-center justify-center gap-2"
-                            >
-                                {markingPaid && <Loader2 className="w-4 h-4 animate-spin" />}
-                                {markingPaid ? "Processing…" : "Confirm payment"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <GiveFreeDialog
+                open={showGiveFreeModal}
+                onClose={() => setShowGiveFreeModal(false)}
+                onConfirm={() => void handleGiveFree()}
+                busy={markingComped}
+                businessName={s.businessName}
+                creatorPayout={s.creatorPayout ?? 0}
+                selfServe={selfServe}
+                published={published}
+                reason={giveFreeReason}
+                onReason={setGiveFreeReason}
+                giftedBy={giveFreeGiftedBy}
+                onGiftedBy={setGiveFreeGiftedBy}
+            />
+            <MarkPaidDialog
+                open={showMarkPaidModal}
+                onClose={() => setShowMarkPaidModal(false)}
+                onConfirm={() => void handleMarkAsPaid()}
+                busy={markingPaid}
+                businessName={s.businessName}
+                amount={s.amount}
+                amountNote={campaignKey ? campaignKey.toUpperCase() : s.campaign ? String(s.campaign).toUpperCase() : null}
+                creatorPayout={s.creatorPayout ?? 0}
+                selfServe={selfServe}
+            />
+            <RejectDialog
+                open={showRejectModal}
+                onClose={() => {
+                    setShowRejectModal(false);
+                    setRejectionReason("");
+                    setRejectionReasonMissing(false);
+                }}
+                onConfirm={() => void handleRejectWithReason()}
+                busy={rejecting}
+                reason={rejectionReason}
+                onReason={(v) => {
+                    setRejectionReason(v);
+                    if (v.trim()) setRejectionReasonMissing(false);
+                }}
+                showError={rejectionReasonMissing}
+            />
+            <DeleteDialog
+                open={showDeleteModal}
+                onCancel={() => setShowDeleteModal(false)}
+                onConfirm={() => void handleDeleteSubmission()}
+                busy={deleting}
+                businessName={s.businessName}
+            />
 
-            {showGiveFreeModal && submission && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl max-w-md w-full shadow-2xl p-6 sm:p-7">
-                        <h3
-                            style={{ fontFamily: "var(--font-fraunces)" }}
-                            className="text-2xl font-semibold text-neutral-900 mb-2"
-                        >
-                            Give this website free
-                        </h3>
-                        <p className="text-neutral-600 mb-4 text-sm">
-                            The business owner pays nothing. The creator is still paid in full.
-                        </p>
-
-                        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
-                            <p className="text-sm font-semibold text-amber-900 mb-2">This will:</p>
-                            <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
-                                <li>
-                                    Add ₱{(submission.creator_payout ?? 0).toLocaleString()} to the creator&apos;s
-                                    withdrawable balance
-                                </li>
-                                <li>Charge the owner ₱0 and send them a &quot;your site is live, free&quot; email</li>
-                                <li>Keep the website online permanently (no payment chase, no auto-unpublish)</li>
-                                <li>Record the submission as promo — kept out of revenue, not counted as a sale</li>
-                            </ul>
-                        </div>
-
-                        {/* The cost, stated plainly. A giveaway is real money out. */}
-                        <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 mb-4">
-                            <p className="text-sm text-rose-900">
-                                <span className="font-semibold">Cost to Tendso: </span>
-                                ₱{(submission.creator_payout ?? 0).toLocaleString()} paid out, ₱0 collected. This
-                                cannot be undone from the admin UI.
-                            </p>
-                        </div>
-
-                        {!websitePublishedUrl && (
-                            <div className="bg-neutral-100 border border-neutral-200 rounded-xl p-4 mb-4">
-                                <p className="text-sm text-neutral-700">
-                                    This site isn&apos;t published yet, so no email will go out. The creator is still
-                                    credited — publish it, then tell the owner yourself.
-                                </p>
-                            </div>
-                        )}
-
-                        {/* Self-serve sites belong to the house account, not a person, so
-                            the email would credit "Tendso Self-Serve". The admin names
-                            the giver instead — required, shown to the owner. */}
-                        {isHouseCreator(submissionData?.creator) && (
-                            <div className="mb-4">
-                                <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                                    Gift from <span className="text-rose-600">*</span>{" "}
-                                    <span className="text-neutral-400 font-normal">(shown to the owner)</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    value={giveFreeGiftedBy}
-                                    onChange={(e) => setGiveFreeGiftedBy(e.target.value)}
-                                    placeholder="e.g. Off the Record"
-                                    maxLength={GIFTED_BY_MAX}
-                                    disabled={markingComped}
-                                    autoFocus
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-50"
-                                />
-                                <p className="mt-1.5 text-xs text-neutral-500 leading-relaxed">
-                                    This is a self-serve site, so there&apos;s no creator to name. The email will say:{" "}
-                                    <span className="text-neutral-800">
-                                        &ldquo;<strong>{giveFreeGiftedBy.trim() || "…"}</strong> chose{" "}
-                                        <strong>{submission.business_name}</strong> for a free website&hellip;&rdquo;
-                                    </span>
-                                </p>
-                            </div>
-                        )}
-
-                        <label className="block text-sm font-medium text-neutral-700 mb-1.5">
-                            Reason <span className="text-neutral-400 font-normal">(optional, internal only)</span>
-                        </label>
-                        <input
-                            type="text"
-                            value={giveFreeReason}
-                            onChange={(e) => setGiveFreeReason(e.target.value)}
-                            placeholder="e.g. August promo"
-                            disabled={markingComped}
-                            className="w-full px-3.5 py-2.5 rounded-xl border border-neutral-200 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-amber-300 disabled:opacity-50"
-                        />
-
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setShowGiveFreeModal(false)}
-                                disabled={markingComped}
-                                className="flex-1 py-3 px-4 rounded-xl font-semibold border border-neutral-200 hover:bg-neutral-50 transition-colors disabled:opacity-50 min-h-[44px] text-sm"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleGiveFree}
-                                disabled={markingComped || (isHouseCreator(submissionData?.creator) && !giveFreeGiftedBy.trim())}
-                                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-amber-600 hover:bg-amber-700 text-white transition-colors disabled:opacity-50 min-h-[44px] text-sm inline-flex items-center justify-center gap-2"
-                            >
-                                {markingComped && <Loader2 className="w-4 h-4 animate-spin" />}
-                                {markingComped ? "Processing…" : "Give it free"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showRejectModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl">
-                        <h3
-                            style={{ fontFamily: "var(--font-fraunces)" }}
-                            className="text-2xl font-semibold text-neutral-900 mb-2"
-                        >
-                            Reject submission
-                        </h3>
-                        <p className="text-neutral-600 mb-4 text-sm">Provide a reason for rejecting this submission (optional).</p>
-                        <textarea
-                            value={rejectionReason}
-                            onChange={(e) => setRejectionReason(e.target.value)}
-                            placeholder="Reason for rejection…"
-                            className="w-full h-32 p-3 border border-neutral-200 rounded-xl text-sm resize-none focus:outline-none focus:border-rose-500 focus:ring-1 focus:ring-rose-500 mb-4"
-                        />
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => {
-                                    setShowRejectModal(false);
-                                    setRejectionReason("");
-                                }}
-                                disabled={rejecting}
-                                className="flex-1 py-3 px-4 rounded-xl font-semibold border border-neutral-200 hover:bg-neutral-50 transition-colors disabled:opacity-50 min-h-[44px] text-sm"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleRejectWithReason}
-                                disabled={rejecting}
-                                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-50 min-h-[44px] text-sm inline-flex items-center justify-center gap-2"
-                            >
-                                {rejecting && <Loader2 className="w-4 h-4 animate-spin" />}
-                                {rejecting ? "Rejecting…" : "Reject"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {showDeleteModal && submission && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-10 h-10 bg-rose-50 border-2 border-rose-200 rounded-full flex items-center justify-center">
-                                <AlertTriangle className="w-5 h-5 text-rose-600" />
-                            </div>
-                            <h3
-                                style={{ fontFamily: "var(--font-fraunces)" }}
-                                className="text-xl font-semibold text-neutral-900 truncate"
-                            >
-                                Delete &ldquo;{submission.business_name}&rdquo;
-                            </h3>
-                        </div>
-                        <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 mb-4">
-                            <p className="text-sm font-semibold text-rose-900 mb-2">This is permanent.</p>
-                            <ul className="text-sm text-rose-800 space-y-1 list-disc list-inside">
-                                <li>Business submission record</li>
-                                <li>Generated website &amp; content</li>
-                                <li>All media files from R2</li>
-                                <li>Cloudflare Pages deployment</li>
-                                <li>Airtable record</li>
-                            </ul>
-                        </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setShowDeleteModal(false)}
-                                disabled={deleting}
-                                className="flex-1 py-3 px-4 rounded-xl font-semibold border border-neutral-200 hover:bg-neutral-50 transition-colors disabled:opacity-50 min-h-[44px] text-sm"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleDeleteSubmission}
-                                disabled={deleting}
-                                className="flex-1 py-3 px-4 rounded-xl font-semibold bg-rose-600 hover:bg-rose-700 text-white transition-colors disabled:opacity-50 min-h-[44px] text-sm inline-flex items-center justify-center gap-2"
-                            >
-                                {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
-                                {deleting ? "Processing…" : "Delete"}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {lightboxOpen && photoUrls && photoUrls.length > 0 && (
+            {lightboxOpen && photoUrls.length > 0 && (
                 <PhotoLightbox
                     photos={photoUrls.filter((url): url is string => url !== null && url.startsWith("http"))}
                     initialIndex={lightboxIndex}
@@ -1677,4 +1421,10 @@ export default function SubmissionDetailPage() {
             )}
         </div>
     );
+}
+
+/** The admin's own name for the rail's foot, as AdminLayout builds it. */
+function meName(me: { firstName?: string; lastName?: string } | null | undefined, fallback: string | null | undefined): string | null {
+    const name = [me?.firstName, me?.lastName].filter(Boolean).join(" ") || fallback || "";
+    return name || null;
 }
