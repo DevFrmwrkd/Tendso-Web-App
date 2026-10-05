@@ -1,117 +1,95 @@
 "use client";
 
+import { ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
+
+import { ButtonLink, Icon, cx } from "@/components/r1";
+
+import { fillText } from "./copy";
+import { HERO_SITE } from "./featuredSites";
 import { useT } from "./i18n";
-import { CAROUSEL_SITES } from "./landingData";
-import LiveSitePreview from "./LiveSitePreview";
+import { LANDING_WRAP } from "./layout";
+import SiteFrame from "./SiteFrame";
 
-function Check() {
-    return (
-        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ color: "var(--rust)" }}>
-            <path d="M20 6 9 17l-5-5" />
-        </svg>
-    );
-}
-
-// The real client site shown in the hero preview (first curated site).
-const HERO_SITE = CAROUSEL_SITES[0];
-const HERO_HOST = (HERO_SITE?.url ?? "").replace(/^https?:\/\//, "").replace(/\/$/, "");
-
+/**
+ * The landing's first screen (board: Landing, #hero). Owner-first: the paying
+ * customer is the business owner, so the one primary action is "Get a
+ * website", straight into the /start intake funnel (the same destination as
+ * the header button and the price card). The reader who wants proof first has
+ * "See real sites" beside it, and creators get a single quiet line underneath.
+ *
+ * The lede states no price on purpose: the price card further down carries it,
+ * with what is included and how a creator changes it.
+ *
+ * Phone first: one column, the live preview under the pitch. Two columns from
+ * 1024; the board's 640px pitch column from 1280, where the preview still has
+ * room to read as a website.
+ */
 export default function HeroSection() {
     const { t } = useT();
+    const proof = [t("r1.landing.hero.proof1"), t("r1.landing.hero.proof2"), t("r1.landing.hero.proof3")];
 
     return (
-        <section className="flex min-h-[calc(100svh-3.75rem)] items-center bg-khaki">
-            <div className="mx-auto w-full max-w-6xl px-6 py-16">
-                <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-                    {/* Left: the pitch */}
-                    <div className="text-center lg:text-left">
-                        <span className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--rust)" }} />
-                            {t("hero.trustChip")}
-                        </span>
-
-                        <h1
-                            className="mx-auto mt-7 max-w-xl font-fraunces text-[clamp(2.25rem,5.2vw,3.75rem)] leading-[1.05] tracking-[-0.02em] text-ink lg:mx-0"
-                            style={{ fontWeight: 560, fontOpticalSizing: "auto" }}
-                        >
-                            {t("hero.h1a")}{" "}
-                            <span className="whitespace-nowrap">
-                                {t("hero.h1b")}
-                                <span className="italic" style={{ color: "var(--rust)", fontWeight: 560 }}>
-                                    {t("hero.h1c")}
-                                </span>
-                            </span>
-                        </h1>
-
-                        <p className="mx-auto mt-6 max-w-md text-[17px] leading-relaxed text-ink-soft lg:mx-0">
-                            {t("hero.lede")}
-                        </p>
-
-                        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-                            {/* Straight into the intake funnel. This used to point at
-                                /for-business, which was this same pitch at a second URL;
-                                now that `/` is the only owner page, the primary action is
-                                the thing itself — same destination as the navbar CTA and
-                                the pricing card, which carry the identical label. The
-                                reader who wants the pitch first has #proof beside it and
-                                the whole page below it. */}
-                            <Link
-                                href="/start"
-                                className="inline-flex items-center gap-2 rounded-xl bg-ink px-6 py-3.5 text-sm font-semibold text-white shadow-[0_12px_32px_-12px_rgba(27,28,36,0.45)] transition-transform hover:-translate-y-0.5"
-                            >
-                                {t("hero.ctaBusiness")}
-                                <span aria-hidden="true">→</span>
-                            </Link>
-                            <a
-                                href="#proof"
-                                className="inline-flex items-center gap-2 rounded-xl border border-ink/15 bg-white px-6 py-3.5 text-sm font-semibold text-ink transition-colors hover:border-ink/35"
-                            >
-                                {t("hero.ctaProof")}
-                            </a>
-                        </div>
-
-                        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-sm text-ink-soft lg:justify-start">
-                            {[t("hero.tag1"), t("hero.tag2"), t("hero.tag3")].map((tag) => (
-                                <span key={tag} className="inline-flex items-center gap-1.5">
-                                    <Check />
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
-
-                        <p className="mt-9 text-sm text-ink-soft">
-                            {t("hero.creatorLead")}{" "}
-                            <Link
-                                href="/for-creators"
-                                className="font-semibold text-ink underline decoration-2 underline-offset-4 transition-colors hover:opacity-70"
-                                style={{ textDecorationColor: "var(--rust)" }}
-                            >
-                                {t("hero.creatorLink")}
-                            </Link>
-                        </p>
-                    </div>
-
-                    {/* Right: a framed live preview of a real client site */}
-                    <div className="mx-auto w-full max-w-md lg:max-w-none">
-                        <div className="overflow-hidden rounded-xl border border-ink/10 bg-white shadow-[0_34px_70px_-34px_rgba(27,28,36,0.5)]">
-                            {/* Browser chrome */}
-                            <div className="flex items-center gap-1.5 border-b border-ink/10 bg-khaki-deep px-3.5 py-2.5">
-                                <span className="h-2.5 w-2.5 rounded-full bg-ink/15" />
-                                <span className="h-2.5 w-2.5 rounded-full bg-ink/15" />
-                                <span className="h-2.5 w-2.5 rounded-full bg-ink/15" />
-                                <span className="ml-2 truncate rounded-md bg-white px-2 py-0.5 font-mono text-[10px] text-ink-soft">
-                                    {HERO_HOST}
-                                </span>
-                            </div>
-                            {HERO_SITE?.url && <LiveSitePreview url={HERO_SITE.url} name={HERO_SITE.name} />}
-                        </div>
-                        <p className="mt-3 text-center font-mono text-[11px] uppercase tracking-[0.12em] text-ink-soft lg:text-left">
-                            {t("hero.previewCaption")}
-                        </p>
-                    </div>
+        <section
+            id="hero"
+            aria-labelledby="hero-title"
+            className={cx(
+                LANDING_WRAP,
+                "grid items-center gap-10 py-10 sm:py-14 lg:grid-cols-2 lg:gap-12 lg:py-[72px] xl:grid-cols-[minmax(0,640px)_minmax(0,1fr)] xl:gap-[72px]",
+            )}
+        >
+            <div className="flex min-w-0 flex-col gap-8">
+                <div className="flex flex-col gap-5">
+                    <h1
+                        id="hero-title"
+                        className="t-serif text-balance text-[2.25rem] leading-[2.5rem] tracking-[-0.015em] text-r1-ink sm:text-5xl sm:leading-[3.25rem] lg:text-[3.5rem] lg:leading-[3.75rem]"
+                    >
+                        <span className="block">{t("r1.landing.hero.title1")}</span>
+                        <span className="block">{t("r1.landing.hero.title2")}</span>
+                    </h1>
+                    <p className="max-w-[560px] text-[17px] leading-[26px] text-r1-ink-2">{t("r1.landing.hero.lede")}</p>
                 </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                    <ButtonLink variant="primary" size="lg" href="/start">
+                        {t("r1.landing.cta")}
+                        <Icon icon={ArrowRight} />
+                    </ButtonLink>
+                    <ButtonLink size="lg" href="#sites">
+                        {t("r1.landing.hero.seeSites")}
+                    </ButtonLink>
+                </div>
+
+                <ul className="flex flex-wrap gap-x-6 gap-y-2" aria-label={t("r1.landing.hero.proofLabel")}>
+                    {proof.map((item) => (
+                        <li key={item} className="inline-flex items-center gap-2 text-sm leading-5 text-r1-ink-2">
+                            <Icon icon={Check} className="flex-none text-r1-ink" />
+                            {item}
+                        </li>
+                    ))}
+                </ul>
+
+                {/* Creators keep one secondary path from the owner page (this line,
+                    the header link and the footer); their pitch is /for-creators. */}
+                <p className="t-meta text-sm leading-5">
+                    {t("r1.landing.earnLead")}{" "}
+                    <Link href="/for-creators" className="t-link inline-flex items-center gap-1.5 font-medium">
+                        {t("r1.landing.earnLink")}
+                        <Icon icon={ArrowRight} />
+                    </Link>
+                </p>
             </div>
+
+            {/* A real client site, live. Not a link: it is a picture of the
+                product, and the grid below is where the sites open. */}
+            {HERO_SITE && (
+                <figure className="m-0 flex min-w-0 flex-col gap-3">
+                    <SiteFrame url={HERO_SITE.url} name={HERO_SITE.name} />
+                    <figcaption className="t-meta">
+                        {fillText(t("r1.landing.hero.caption"), { name: HERO_SITE.name, city: HERO_SITE.city })}
+                    </figcaption>
+                </figure>
+            )}
         </section>
     );
 }

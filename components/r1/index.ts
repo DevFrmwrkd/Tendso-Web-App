@@ -41,5 +41,5 @@ export {
     type Viewer,
 } from "./statusWords";
 export { Stepper } from "./Stepper";
-export { Chips, LinkTabs, Segmented, Tabs, type ChipItem, type TabItem } from "./Tabs";
+export { Chips, LinkSegmented, LinkTabs, Segmented, Tabs, type ChipItem, type TabItem } from "./Tabs";
 export { Toaster } from "./Toaster";

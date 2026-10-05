@@ -132,6 +132,29 @@ export function Chips<V extends string>({
     );
 }
 
+/** A segmented control whose options are routes (Privacy | Terms). The current one carries aria-current. */
+export function LinkSegmented({
+    label,
+    options,
+    current,
+    className,
+}: {
+    label: string;
+    options: { href: string; label: ReactNode }[];
+    current: string;
+    className?: string;
+}) {
+    return (
+        <nav className={cx("t-seg", className)} aria-label={label}>
+            {options.map((o) => (
+                <Link key={o.href} href={o.href} aria-current={o.href === current ? "page" : undefined}>
+                    {o.label}
+                </Link>
+            ))}
+        </nav>
+    );
+}
+
 /** Segmented control: switches a mode (desktop / phone preview, a map layer, a document). */
 export function Segmented<V extends string>({
     label,

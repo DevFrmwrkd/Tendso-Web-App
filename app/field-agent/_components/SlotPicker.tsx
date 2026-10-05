@@ -14,40 +14,32 @@
  * times missing reads as "we don't open then", which is a different and wrong
  * message, and dropping them would shuffle every later time leftwards.
  *
- * The styles travel with the markup, including the breakpoints and the
- * `hover: hover` guard that stops a tapped slot staying inverted on a phone.
+ * ROUND 1 (board BookCall). A tap now SELECTS a time instead of acting on it:
+ * the page's own button (Continue, Move my call) does that, next to a summary
+ * of what was picked. The hours are split into the bookable windows ("Morning
+ * to afternoon", "Evening"), and a window that is already over today says so
+ * instead of silently not being there.
+ *
+ * THE WINDOWS COME FROM THE SLOTS, not from a second query. The availability
+ * action returns every candidate slot in the next two weeks, taken ones
+ * flagged rather than dropped, so any full day carries each window whole; the
+ * union of their times is the schedule an admin set at /admin/bookings. Only
+ * today (times inside the hour are not offered) and the far edge of the
+ * fortnight come back partial, and neither can hide a window from the others.
  */
 
-import type { CSSProperties } from "react";
+import { useId, useMemo } from "react";
+
+import { Loading, Skeleton, cx } from "@/components/r1";
 
 export type Slot = { startMs: number; label: string; taken: boolean };
 export type Day = { dateKey: string; label: string; slots: Slot[] };
-/** A slot placed in its hour row. `short` drops the meridiem the row carries. */
-type Cell = Slot & { short: string };
 
-const INK = "#1B1B22";
-const PAPER = "#F3F0EA";
-const GOLD = "#D4A146";
-const MUTED = "#8F8B83";
-const WHITE = "#FFFFFF";
-const RULE = "#E6E1D7";
+/** The availability action's cadence: one slot every 15 minutes, hence four columns. */
+const STEP_MIN = 15;
+const MANILA_OFFSET_MS = 8 * 60 * 60_000;
 
 const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-
-const EYEBROW: CSSProperties = {
-    fontSize: 13,
-    fontWeight: 700,
-    letterSpacing: ".08em",
-    textTransform: "uppercase",
-    color: MUTED,
-};
-
-const SECTION_HEAD: CSSProperties = {
-    display: "flex",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    gap: 16,
-};
 
 /** "2026-09-09" -> parts, without going through Date and picking up a tz. */
 export function parseKey(key: string) {
@@ -55,127 +47,177 @@ export function parseKey(key: string) {
     return { y, m: m - 1, d };
 }
 
-/** Today in Manila, as a dateKey. The action speaks Manila days; so must this. */
-export function manilaTodayKey(): string {
+/** The Manila day an instant falls on, as a dateKey. The action speaks Manila days; so must this. */
+export function manilaKeyOf(ms: number): string {
     return new Intl.DateTimeFormat("en-CA", {
         timeZone: "Asia/Manila",
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
-    }).format(new Date());
+    }).format(new Date(ms));
 }
 
-/** "Today", "Full", or how many times are actually still open that day. */
-function freeLabel(day: Day, todayKey: string): string {
-    if (day.dateKey === todayKey) return "Today";
-    const free = day.slots.filter((s) => !s.taken).length;
-    return free === 0 ? "Full" : `${free} slots`;
+/** Today in Manila, as a dateKey. */
+export function manilaTodayKey(): string {
+    return manilaKeyOf(Date.now());
 }
 
-/** The month the picker is currently showing, for the section heading. */
-export function monthLabelFor(days: Day[] | null, activeDay: string | null): string {
-    const key = days?.find((d) => d.dateKey === activeDay)?.dateKey ?? days?.[0]?.dateKey;
-    if (!key) return "";
+/** Minutes past Manila midnight. */
+function manilaMinute(ms: number): number {
+    const d = new Date(ms + MANILA_OFFSET_MS);
+    return d.getUTCHours() * 60 + d.getUTCMinutes();
+}
+
+function weekdayOf(key: string): number {
     const p = parseKey(key);
-    return new Date(Date.UTC(p.y, p.m, 1)).toLocaleDateString("en-US", {
-        month: "long",
-        year: "numeric",
-        timeZone: "UTC",
+    return new Date(Date.UTC(p.y, p.m, p.d)).getUTCDay();
+}
+
+/** "10:00 AM" from minutes past midnight. The end of the day reads 11:59 PM, as the kit writes it. */
+function clock(min: number): string {
+    if (min >= 1440) return "11:59 PM";
+    const h = Math.floor(min / 60);
+    const hour12 = h % 12 === 0 ? 12 : h % 12;
+    return `${hour12}:${String(min % 60).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+}
+
+/** "Weekdays, next two weeks · September – October 2026" */
+function spanLabel(days: Day[]): string {
+    const first = parseKey(days[0].dateKey);
+    const last = parseKey(days[days.length - 1].dateKey);
+    const month = (p: { y: number; m: number }) =>
+        new Date(Date.UTC(p.y, p.m, 1)).toLocaleDateString("en-US", { month: "long", timeZone: "UTC" });
+    const months =
+        first.y !== last.y
+            ? `${month(first)} ${first.y} – ${month(last)} ${last.y}`
+            : first.m !== last.m
+              ? `${month(first)} – ${month(last)} ${last.y}`
+              : `${month(first)} ${first.y}`;
+    // Only claimed when it is true of what is on offer: the schedule is
+    // editable, and a Saturday window would make "Weekdays" a wrong promise.
+    const weekdaysOnly = days.every((d) => {
+        const wd = weekdayOf(d.dateKey);
+        return wd >= 1 && wd <= 5;
     });
+    return `${weekdaysOnly ? "Weekdays, next two weeks" : "Next two weeks"} · ${months}`;
+}
+
+type Window = { start: number; end: number; title: string; range: string };
+
+/** The bookable windows: runs of slot times 15 minutes apart, across every day on offer. */
+function windowsOf(days: Day[]): Window[] {
+    const minutes = [...new Set(days.flatMap((d) => d.slots.map((s) => manilaMinute(s.startMs))))].sort((a, b) => a - b);
+    const runs: Array<[number, number]> = [];
+    for (const m of minutes) {
+        const last = runs[runs.length - 1];
+        if (last && m - last[1] <= STEP_MIN) last[1] = m;
+        else runs.push([m, m]);
+    }
+    const part = (m: number) => (m < 12 * 60 ? "Morning" : m < 17 * 60 ? "Afternoon" : "Evening");
+    return runs.map(([start, lastStart]) => {
+        const end = lastStart + STEP_MIN;
+        const a = part(start);
+        const b = part(end - 1);
+        return {
+            start,
+            end,
+            title: a === b ? a : `${a} to ${b.toLowerCase()}`,
+            range: `${clock(start)} – ${clock(end)}`,
+        };
+    });
+}
+
+type Cell = { slot: Slot; short: string } | null;
+type Group = Window & { passed: boolean; rows: Array<{ hour: string; cells: Cell[] }> };
+
+/** One day's slots, placed into the windows and then into hour rows of four fixed columns. */
+function groupsFor(day: Day, windows: Window[], isToday: boolean): Group[] {
+    const firstMinute = day.slots.length ? manilaMinute(day.slots[0].startMs) : 1440;
+    const groups: Group[] = [];
+    for (const w of windows) {
+        const rows = new Map<number, Cell[]>();
+        for (const slot of day.slots) {
+            const m = manilaMinute(slot.startMs);
+            if (m < w.start || m >= w.end) continue;
+            const h = Math.floor(m / 60);
+            if (!rows.has(h)) rows.set(h, [null, null, null, null]);
+            const hour12 = h % 12 === 0 ? 12 : h % 12;
+            rows.get(h)![Math.floor((m % 60) / STEP_MIN)] = { slot, short: `${hour12}:${String(m % 60).padStart(2, "0")}` };
+        }
+        if (rows.size) {
+            groups.push({
+                ...w,
+                passed: false,
+                rows: [...rows.entries()]
+                    .sort((a, b) => a[0] - b[0])
+                    .map(([h, cells]) => ({ hour: `${h % 12 === 0 ? 12 : h % 12} ${h < 12 ? "AM" : "PM"}`, cells })),
+            });
+        } else if (isToday && w.end <= firstMinute) {
+            // Over for today: say so, rather than let the window vanish.
+            groups.push({ ...w, passed: true, rows: [] });
+        }
+        // Anything else empty is the far edge of the fortnight, cut by the
+        // horizon rather than closed, so it is simply not shown.
+    }
+    return groups;
 }
 
 export default function SlotPicker({
     days,
     activeDay,
     onSelectDay,
-    onPickSlot,
+    selected,
+    onSelect,
+    mine = null,
     disabled = false,
 }: {
     days: Day[];
     activeDay: string | null;
     onSelectDay: (dateKey: string) => void;
-    onPickSlot: (slot: Slot) => void;
+    /** startMs of the time chosen so far, if any. */
+    selected: number | null;
+    onSelect: (slot: Slot) => void;
+    /** startMs of the call being moved: shown as "yours" instead of struck through. */
+    mine?: number | null;
     disabled?: boolean;
 }) {
+    const ids = useId();
     const todayKey = manilaTodayKey();
     const day = days.find((d) => d.dateKey === activeDay) ?? null;
-
-    // Grouped into one row per hour, each slot placed by minute into one of four
-    // fixed columns. Fixed columns are the point: a booked time leaves a gap
-    // exactly where it belongs instead of everything after it shifting left.
-    const hourRows: Array<{ hour: string; cells: Array<Cell | null> }> = [];
-    const rows = new Map<string, Array<Cell | null>>();
-    for (const slot of day?.slots ?? []) {
-        // Split on any whitespace: ICU puts U+202F before AM/PM, and JS \s covers it.
-        const [time, meridiem] = slot.label.split(/\s+/);
-        const [hour, minute] = time.split(":");
-        const key = `${hour} ${meridiem}`;
-        if (!rows.has(key)) rows.set(key, [null, null, null, null]);
-        rows.get(key)![Math.floor(Number(minute) / 15)] = { ...slot, short: time };
-    }
-    for (const [hour, cells] of rows) hourRows.push({ hour, cells });
+    const windows = useMemo(() => windowsOf(days), [days]);
+    const groups = day ? groupsFor(day, windows, day.dateKey === todayKey) : [];
 
     return (
-        <>
-            <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <div style={SECTION_HEAD}>
-                    <span style={EYEBROW}>Choose a day</span>
-                    <span style={{ fontSize: 13, color: MUTED }}>
-                        Next two weeks · {monthLabelFor(days, activeDay)}
-                    </span>
+        <div className="flex min-w-0 flex-col gap-8">
+            <section className="flex flex-col gap-3" aria-labelledby={`${ids}-day`}>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <h2 className="t-h2" id={`${ids}-day`}>
+                        Choose a day
+                    </h2>
+                    <span className="t-meta">{spanLabel(days)}</span>
                 </div>
-                <div
-                    className="fa-days"
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fill, minmax(72px, 1fr))",
-                        gap: 8,
-                    }}
-                >
+                <div className="grid grid-cols-5 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(60px,1fr))]">
                     {days.map((d) => {
-                        const sel = d.dateKey === activeDay;
-                        const p = parseKey(d.dateKey);
-                        const dow = DOW[new Date(Date.UTC(p.y, p.m, p.d)).getUTCDay()];
+                        const pressed = d.dateKey === activeDay;
+                        const free = d.slots.filter((s) => !s.taken).length;
                         return (
                             <button
                                 key={d.dateKey}
                                 type="button"
+                                aria-pressed={pressed}
+                                aria-label={`${d.label}, ${free === 0 ? "full" : `${free} ${free === 1 ? "time" : "times"} open`}`}
                                 onClick={() => onSelectDay(d.dateKey)}
-                                style={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    gap: 4,
-                                    padding: "14px 6px 12px",
-                                    borderRadius: 14,
-                                    border: `1px solid ${sel ? INK : RULE}`,
-                                    background: sel ? INK : WHITE,
-                                    color: sel ? PAPER : INK,
-                                    cursor: "pointer",
-                                    font: "inherit",
-                                }}
+                                className={cx(
+                                    "flex h-[76px] min-w-0 flex-col items-center justify-center gap-0.5 rounded-r1 border px-1",
+                                    pressed ? "border-r1-ink bg-r1-ink text-r1-paper" : "border-r1-line bg-r1-paper text-r1-ink hover:bg-r1-fill",
+                                )}
                             >
-                                <span style={{ fontSize: 12, fontWeight: 600, opacity: 0.7 }}>
-                                    {dow}
+                                <span className={cx("text-xs leading-4", pressed ? "text-r1-line-2" : "text-r1-ink-3")}>
+                                    {d.dateKey === todayKey ? "Today" : DOW[weekdayOf(d.dateKey)]}
                                 </span>
-                                <span
-                                    style={{
-                                        fontSize: 24,
-                                        fontWeight: 800,
-                                        letterSpacing: "-.02em",
-                                        lineHeight: 1,
-                                    }}
-                                >
-                                    {p.d}
-                                </span>
-                                <span
-                                    style={{
-                                        fontSize: 11,
-                                        fontWeight: 600,
-                                        color: sel ? GOLD : MUTED,
-                                    }}
-                                >
-                                    {freeLabel(d, todayKey)}
+                                <span className="text-xl font-semibold leading-6 tabular-nums">{parseKey(d.dateKey).d}</span>
+                                <span className={cx("text-xs leading-4 tabular-nums", pressed ? "text-r1-line-2" : "text-r1-ink-3")}>
+                                    {free === 0 ? "Full" : `${free} open`}
                                 </span>
                             </button>
                         );
@@ -183,99 +225,126 @@ export default function SlotPicker({
                 </div>
             </section>
 
-            <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                <div style={SECTION_HEAD}>
-                    <span style={EYEBROW}>Pick a time</span>
-                    <span style={{ fontSize: 13, color: MUTED }}>{day?.label}</span>
+            <section className="flex flex-col gap-3" aria-labelledby={`${ids}-time`}>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                    <h2 className="t-h2" id={`${ids}-time`}>
+                        Pick a time
+                    </h2>
+                    {day && <span className="t-meta">{day.label}</span>}
                 </div>
-                <div className="fa-hours">
-                    {hourRows.map((row) => (
-                        <div className="fa-hourrow" key={row.hour}>
-                            <span className="fa-hourlabel">{row.hour}</span>
-                            <div className="fa-hourslots">
-                                {row.cells.map((s, i) =>
-                                    s === null ? (
-                                        <span key={i} />
-                                    ) : s.taken ? (
-                                        <span
-                                            key={i}
-                                            className="fa-taken"
-                                            aria-disabled="true"
-                                            title="Already booked"
-                                        >
-                                            {s.short}
-                                        </span>
-                                    ) : (
-                                        <button
-                                            key={i}
-                                            type="button"
-                                            className="fa-slot"
-                                            disabled={disabled}
-                                            onClick={() => onPickSlot(s)}
-                                        >
-                                            {s.short}
-                                        </button>
-                                    ),
-                                )}
+                <div className="flex flex-col gap-6">
+                    {groups.map((g) => (
+                        <div key={g.start} className="flex flex-col gap-2">
+                            <div className="flex flex-wrap items-baseline gap-x-2">
+                                <h3 className="text-sm font-medium leading-5 text-r1-ink">{g.title}</h3>
+                                <span className="t-meta t-num">{g.range}</span>
                             </div>
+                            {g.passed ? (
+                                <div className="flex min-h-12 items-center rounded-r1 bg-r1-fill-2 px-4 py-3">
+                                    <p className="t-meta">These times have passed for today. Pick a later time, or another day.</p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col border-t border-r1-line">
+                                    {g.rows.map((row) => (
+                                        <div
+                                            key={row.hour}
+                                            className="grid grid-cols-[34px_minmax(0,1fr)] items-center gap-2 border-b border-r1-line-3 py-2 sm:grid-cols-[56px_minmax(0,1fr)] sm:gap-4"
+                                        >
+                                            <span className="text-[11px] leading-4 text-r1-ink-3 tabular-nums sm:text-[13px] sm:leading-[18px]">
+                                                {row.hour}
+                                            </span>
+                                            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                                                {row.cells.map((c, i) => {
+                                                    if (c === null) return <span key={i} aria-hidden="true" />;
+                                                    const { slot, short } = c;
+                                                    if (mine != null && slot.startMs === mine) {
+                                                        return (
+                                                            <span
+                                                                key={i}
+                                                                className="flex h-10 flex-col items-center justify-center rounded-r1 border border-dashed border-r1-ink-4 text-xs leading-[14px] text-r1-ink-2 tabular-nums sm:flex-row sm:gap-1.5 sm:text-[13px]"
+                                                            >
+                                                                <span>{short}</span>
+                                                                <span>
+                                                                    <span className="max-sm:hidden">· </span>yours
+                                                                </span>
+                                                            </span>
+                                                        );
+                                                    }
+                                                    if (slot.taken) {
+                                                        return (
+                                                            <span
+                                                                key={i}
+                                                                className="flex h-10 items-center justify-center text-[13px] text-r1-ink-3 line-through tabular-nums sm:text-sm"
+                                                            >
+                                                                {short}
+                                                                <span className="sr-only">, already booked</span>
+                                                            </span>
+                                                        );
+                                                    }
+                                                    const pressed = slot.startMs === selected;
+                                                    return (
+                                                        <button
+                                                            key={i}
+                                                            type="button"
+                                                            aria-pressed={pressed}
+                                                            aria-label={slot.label}
+                                                            disabled={disabled}
+                                                            onClick={() => onSelect(slot)}
+                                                            className={cx(
+                                                                "h-10 min-w-0 rounded-r1 border text-[13px] font-medium tabular-nums disabled:cursor-not-allowed disabled:opacity-45 sm:text-sm",
+                                                                pressed
+                                                                    ? "border-r1-ink bg-r1-ink text-r1-paper"
+                                                                    : "border-r1-line-2 bg-r1-paper text-r1-ink hover:border-[var(--r1-line-hover)] hover:bg-r1-fill",
+                                                            )}
+                                                        >
+                                                            {short}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     ))}
                 </div>
+                <p className="t-meta">All times are Philippine time (GMT+8). Book up to two weeks ahead, and at least an hour before the call.</p>
             </section>
+        </div>
+    );
+}
 
-            <style>{`
-                /* ── The time grid: one row per hour, four fixed columns ───────── */
-                .fa-hours { display: flex; flex-direction: column; }
-                .fa-hourrow {
-                    display: grid;
-                    grid-template-columns: 56px minmax(0, 1fr);
-                    align-items: center;
-                    gap: 16px;
-                    padding: 10px 0;
-                    border-bottom: 1px solid ${RULE};
-                }
-                .fa-hourrow:first-child { border-top: 1px solid ${RULE}; }
-                .fa-hourlabel { font-size: 13px; font-weight: 600; color: ${MUTED}; }
-                .fa-hourslots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-                .fa-slot {
-                    padding: 12px 8px;
-                    border-radius: 10px;
-                    border: 1px solid ${RULE};
-                    background: ${WHITE};
-                    color: ${INK};
-                    font: inherit;
-                    font-size: 14px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    box-shadow: 0 1px 2px rgba(27, 27, 34, .04);
-                    transition: background .12s, color .12s, border-color .12s;
-                }
-                .fa-slot:disabled { opacity: .5; cursor: default; }
-                .fa-taken {
-                    padding: 12px 8px;
-                    text-align: center;
-                    font-size: 14px;
-                    font-weight: 600;
-                    color: ${MUTED};
-                    text-decoration: line-through;
-                    cursor: default;
-                    user-select: none;
-                }
-                /* Guarded: on a touch screen :hover sticks after the tap, so a
-                   slot you already chose stays inverted while you read the form. */
-                @media (hover: hover) {
-                    .fa-slot:hover:not(:disabled) { background: ${INK}; color: ${PAPER}; border-color: ${INK}; }
-                }
-                @media (max-width: 420px) {
-                    .fa-days { grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)) !important; }
-                    /* Four columns stay four columns — that alignment is the whole
-                       point of the grid — so the gutter and gaps give the width up. */
-                    .fa-hourrow { grid-template-columns: 34px minmax(0, 1fr); gap: 8px; }
-                    .fa-hourslots { gap: 6px; }
-                    .fa-slot, .fa-taken { padding: 11px 2px; font-size: 13px; }
-                    .fa-hourlabel { font-size: 11px; }
-                }
-            `}</style>
-        </>
+/** The picker's shape while the times load: the day strip, then hour rows. */
+export function SlotPickerSkeleton() {
+    return (
+        <Loading label="Loading available times">
+            <div className="flex flex-col gap-8">
+                <div className="flex flex-col gap-3">
+                    <Skeleton width={120} height={16} />
+                    <div className="grid grid-cols-5 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(60px,1fr))]">
+                        {Array.from({ length: 10 }, (_, i) => (
+                            <Skeleton key={i} height={76} className="rounded-r1" />
+                        ))}
+                    </div>
+                </div>
+                <div className="flex flex-col gap-3">
+                    <Skeleton width={100} height={16} />
+                    <Skeleton width={180} height={12} />
+                    <div className="flex flex-col border-t border-r1-line">
+                        {Array.from({ length: 6 }, (_, i) => (
+                            <div key={i} className="grid grid-cols-[34px_minmax(0,1fr)] items-center gap-2 border-b border-r1-line-3 py-2 sm:grid-cols-[56px_minmax(0,1fr)] sm:gap-4">
+                                <Skeleton width={28} height={10} />
+                                <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                                    {Array.from({ length: 4 }, (_, j) => (
+                                        <Skeleton key={j} height={40} className="rounded-r1" />
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </Loading>
     );
 }

@@ -1,28 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState, type FormEvent } from "react";
 import { useSignIn } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Mail, Lock, Eye, EyeOff, Check, X } from "lucide-react";
-import Logo from "@/public/tendso-logo.png";
+import { ArrowLeft, Check } from "lucide-react";
 
-function getPasswordStrength(pw: string): { level: number; label: string; color: string } {
-    if (pw.length < 8) return { level: 1, label: "Weak", color: "bg-red-500" };
-    const hasUpper = /[A-Z]/.test(pw);
-    const hasLower = /[a-z]/.test(pw);
-    const hasNumber = /\d/.test(pw);
-    const hasSpecial = /[^A-Za-z0-9]/.test(pw);
-    const mixedCase = hasUpper && hasLower;
-    if (mixedCase && hasNumber && hasSpecial) return { level: 4, label: "Strong", color: "bg-[var(--rust)]" };
-    if ((mixedCase && hasNumber) || (mixedCase && hasSpecial)) return { level: 3, label: "Good", color: "bg-[var(--rust-soft)]" };
-    return { level: 2, label: "Fair", color: "bg-amber-500" };
-}
+import { Button, ButtonLink, Field, Icon, Input, PasswordInput, buttonClass } from "@/components/r1";
+import { AUTH_BODY, AuthFrame } from "@/app/auth/_components/AuthFrame";
+import { AuthAlert, ButtonSpinner, PasswordStrength } from "@/app/auth/_components/AuthParts";
+import { clerkField, clerkLongMessage, clerkMessage, emailProblem, maskEmail, passwordStrength } from "@/app/auth/_components/authLogic";
 
-const GRAIN_BG =
-    "radial-gradient(circle at 25% 25%, var(--ink) 0.5px, transparent 1px), radial-gradient(circle at 75% 75%, var(--ink) 0.5px, transparent 1px)";
-
+/**
+ * Forgot password (board: SignIn, "Forgot" steps 1 and 2, then "Password
+ * changed"). /reset-password redirects here.
+ *
+ * The same Clerk reset as before: signIn.create with reset_password_email_code
+ * sends the 6-digit code (and sends it again), attemptFirstFactor takes the
+ * code and the new password, setActive signs the person in, and two seconds
+ * later they are taken to /dashboard.
+ *
+ * One field fewer than the old page: no "confirm new password". The board
+ * gives the new-password field its own eye instead, so a typo can be seen
+ * rather than guarded against twice.
+ */
 export default function ForgotPasswordPage() {
     const router = useRouter();
     const { signIn, setActive, isLoaded } = useSignIn();
@@ -31,19 +31,44 @@ export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
     const [code, setCode] = useState("");
     const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    // A Clerk message about no one field (too many tries, a lost connection…).
     const [error, setError] = useState<string | null>(null);
+    // Messages under the fields: the board's own checks, or Clerk's message
+    // when Clerk names the field it is about.
+    const [emailError, setEmailError] = useState<string>();
+    const [codeError, setCodeError] = useState<string>();
+    const [passwordError, setPasswordError] = useState<string>();
+    const [resending, setResending] = useState(false);
+    const [resent, setResent] = useState(false);
     const [success, setSuccess] = useState(false);
 
-    const strength = getPasswordStrength(newPassword);
-    const passwordsMatch = newPassword.length > 0 && confirmPassword.length > 0 && newPassword === confirmPassword;
+    const passwordId = useId();
+    const strength = passwordStrength(newPassword);
 
-    const handleSendCode = async (e: React.FormEvent) => {
+    /** Put Clerk's message under the field it names, or in the box at the top. */
+    const showClerkError = (err: unknown, fallback: string) => {
+        const message = clerkMessage(err, fallback);
+        const field = clerkField(err);
+        if (step === "email" && (field === "identifier" || field === "email_address")) setEmailError(message);
+        else if (step === "code" && field === "code") setCodeError(message);
+        else if (step === "code" && field === "password") setPasswordError(message);
+        else setError(message);
+    };
+
+    const handleSendCode = async (e: FormEvent) => {
         e.preventDefault();
+        // The old button stayed disabled until something was typed; the board
+        // leaves it pressable and says what is wrong under the field.
+        const emailIssue = emailProblem(email);
+        if (emailIssue) {
+            setEmailError(emailIssue);
+            setError(null);
+            return;
+        }
         if (!isLoaded || !signIn) return;
         setError(null);
+        setEmailError(undefined);
         setLoading(true);
 
         try {
@@ -51,28 +76,36 @@ export default function ForgotPasswordPage() {
                 strategy: "reset_password_email_code",
                 identifier: email,
             });
+            setCode("");
+            setNewPassword("");
+            setCodeError(undefined);
+            setPasswordError(undefined);
+            setResent(false);
             setStep("code");
-        } catch (err: any) {
-            setError(err.errors?.[0]?.longMessage || err.message || "Failed to send reset code");
+        } catch (err) {
+            showClerkError(err, "Failed to send reset code");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleResetPassword = async (e: React.FormEvent) => {
+    const handleResetPassword = async (e: FormEvent) => {
         e.preventDefault();
+        // The old page kept the button disabled until the code had six digits
+        // and the password eight characters; the board leaves it pressable and
+        // says what is missing under the field instead.
+        const codeIssue = !code ? "Enter the code from the email." : !/^\d{6}$/.test(code) ? "The code has 6 digits." : "";
+        const passwordIssue = !newPassword ? "Choose a new password." : newPassword.length < 8 ? "Use at least 8 characters." : "";
+        if (codeIssue || passwordIssue) {
+            setCodeError(codeIssue || undefined);
+            setPasswordError(passwordIssue || undefined);
+            setError(null);
+            return;
+        }
         if (!isLoaded || !signIn) return;
         setError(null);
-
-        if (newPassword.length < 8) {
-            setError("Password must be at least 8 characters");
-            return;
-        }
-        if (newPassword !== confirmPassword) {
-            setError("Passwords do not match");
-            return;
-        }
-
+        setCodeError(undefined);
+        setPasswordError(undefined);
         setLoading(true);
 
         try {
@@ -87,8 +120,8 @@ export default function ForgotPasswordPage() {
                 setSuccess(true);
                 setTimeout(() => router.push("/dashboard"), 2000);
             }
-        } catch (err: any) {
-            setError(err.errors?.[0]?.longMessage || err.message || "Failed to reset password");
+        } catch (err) {
+            showClerkError(err, "Failed to reset password");
         } finally {
             setLoading(false);
         }
@@ -97,328 +130,175 @@ export default function ForgotPasswordPage() {
     const handleResendCode = async () => {
         if (!isLoaded || !signIn) return;
         setError(null);
+        setResent(false);
+        setResending(true);
         try {
             await signIn.create({
                 strategy: "reset_password_email_code",
                 identifier: email,
             });
-        } catch (err: any) {
-            setError(err.errors?.[0]?.longMessage || "Failed to resend code");
+            setCodeError(undefined);
+            setResent(true);
+        } catch (err) {
+            setError(clerkLongMessage(err) || "Failed to resend code");
+        } finally {
+            setResending(false);
         }
+    };
+
+    const changeEmail = () => {
+        setStep("email");
+        setError(null);
+        setEmailError(undefined);
+        setResent(false);
     };
 
     if (success) {
         return (
-            <div
-                className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative overflow-hidden"
-                style={{ background: "var(--khaki)", color: "var(--ink)" }}
-            >
-                <div
-                    className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-multiply"
-                    style={{ backgroundImage: GRAIN_BG, backgroundSize: "4px 4px, 6px 6px" }}
-                />
-                <div className="absolute -top-32 -right-20 w-[480px] h-[480px] bg-[var(--rust)]/10 rounded-full filter blur-[120px] pointer-events-none" />
-                <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                    className="relative z-10 w-20 h-20 bg-[var(--khaki-deep)] border-2 border-[var(--rust)] rounded-full flex items-center justify-center mb-6 shadow-lg shadow-[var(--rust)]/25"
-                >
-                    <Check className="w-10 h-10 text-[var(--rust)]" />
-                </motion.div>
-                <h1
-                    className="relative z-10 font-bold tracking-[-0.01em] text-[var(--ink)] mb-3 leading-[1.05]"
-                    style={{
-                        fontFamily: "var(--font-playfair)",
-                        fontSize: "clamp(2.5rem, 5vw, 3.5rem)",
-                    }}
-                >
-                    Password <span className="italic" style={{ color: "var(--rust)" }}>reset.</span>
-                </h1>
-                <p
-                    className="relative z-10 text-[var(--ink)]/60 max-w-sm leading-relaxed italic"
-                    style={{
-                        fontFamily: "var(--font-playfair)",
-                        fontSize: "1.1rem",
-                    }}
-                >
-                    You&apos;re signed in. Redirecting you to your dashboard…
-                </p>
-            </div>
+            <AuthFrame title="Password changed" sub="You are signed in with your new password.">
+                <div className="flex flex-col items-center gap-4 px-6 py-10 text-center sm:px-8">
+                    <span className="flex size-12 items-center justify-center rounded-full border-[1.5px] border-r1-ink text-r1-ink">
+                        <Icon icon={Check} size={20} />
+                    </span>
+                    <p className="t-body">Use it next time you sign in.</p>
+                    {/* A full load, not a client transition: the session was set a
+                        moment ago, and only a fresh page is sure to see it (see
+                        the note in app/login/page.tsx). The timer above still
+                        takes them there on its own. */}
+                    <a href="/dashboard" className={buttonClass({ variant: "primary", size: "lg", block: true })}>
+                        Go to Home
+                    </a>
+                </div>
+            </AuthFrame>
+        );
+    }
+
+    if (step === "email") {
+        return (
+            <AuthFrame title="Reset your password" sub="We will email you a 6-digit code.">
+                {/* Keyed per step, so step 2 mounts fresh fields (and its
+                    autoFocus runs) instead of reusing step 1's inputs. */}
+                <form key="email" onSubmit={handleSendCode} noValidate className={AUTH_BODY}>
+                    <ButtonLink href="/login" variant="ghost" size="sm" className="-ml-2 self-start">
+                        <Icon icon={ArrowLeft} />
+                        Back to sign in
+                    </ButtonLink>
+                    {error && <AuthAlert>{error}</AuthAlert>}
+
+                    <Field label="Email" error={emailError}>
+                        <Input
+                            type="email"
+                            autoComplete="email"
+                            placeholder="you@gmail.com"
+                            value={email}
+                            onChange={(e) => {
+                                setEmail(e.target.value);
+                                setEmailError(undefined);
+                            }}
+                            disabled={loading}
+                            required
+                        />
+                    </Field>
+
+                    <Button type="submit" variant="primary" size="lg" block disabled={loading}>
+                        {loading ? (
+                            <>
+                                <ButtonSpinner />
+                                Sending…
+                            </>
+                        ) : (
+                            "Send code"
+                        )}
+                    </Button>
+                </form>
+            </AuthFrame>
         );
     }
 
     return (
-        <div
-            className="min-h-screen w-full overflow-x-hidden relative flex items-start sm:items-center justify-center px-6 py-12"
-            style={{ background: "var(--khaki)", color: "var(--ink)" }}
-        >
-            <div
-                className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-multiply"
-                style={{ backgroundImage: GRAIN_BG, backgroundSize: "4px 4px, 6px 6px" }}
-            />
-            <div className="absolute -top-32 -right-20 w-[480px] h-[480px] bg-[var(--rust)]/8 rounded-full filter blur-[120px] pointer-events-none" />
-            <div className="absolute -bottom-40 -left-32 w-[520px] h-[520px] bg-[var(--rust-soft)]/12 rounded-full filter blur-[140px] pointer-events-none" />
+        <AuthFrame title="Check your email" sub={`We sent a 6-digit code to ${maskEmail(email)}.`}>
+            <form key="code" onSubmit={handleResetPassword} noValidate className={AUTH_BODY}>
+                <Button variant="ghost" size="sm" className="-ml-2 self-start" onClick={changeEmail}>
+                    <Icon icon={ArrowLeft} />
+                    Use a different email
+                </Button>
+                {error && <AuthAlert>{error}</AuthAlert>}
 
-            {/* BACK NAVIGATION */}
-            <button
-                onClick={() => (step === "code" ? setStep("email") : router.push("/login"))}
-                className="absolute top-6 left-6 md:top-10 md:left-10 flex items-center gap-2.5 text-[var(--ink)]/70 hover:text-[var(--rust)] transition-colors group z-20"
-            >
-                <span className="w-9 h-9 rounded-full border border-[var(--ink)]/15 bg-[var(--khaki-deep)] flex items-center justify-center shadow-sm group-hover:border-[var(--rust)]/50 transition-colors">
-                    <ArrowLeft className="w-4 h-4" />
-                </span>
-                <span className="font-semibold tracking-wide text-sm">
-                    {step === "code" ? "Use a different email" : "Back to login"}
-                </span>
-            </button>
+                <Field label="6-digit code" help="Numbers only, from the email we just sent." error={codeError}>
+                    <Input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        placeholder="000000"
+                        value={code}
+                        // Digits only, and at most six, kept here rather than with
+                        // maxLength: a pasted "123 456" would otherwise be cut to
+                        // "123 45" before the space could be dropped.
+                        onChange={(e) => {
+                            setCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                            setCodeError(undefined);
+                        }}
+                        disabled={loading}
+                        required
+                        // The code is the next thing to type, so the keyboard
+                        // comes up with this step.
+                        autoFocus
+                        className="h-12 pl-5 text-center font-r1-mono text-[22px] tracking-[0.5em]"
+                    />
+                </Field>
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md mt-16 sm:mt-0 relative z-10"
-            >
-                <div className="flex items-center gap-3 mb-8 justify-center">
-                    <span className="h-px w-10 bg-[var(--rust)]/40" />
-                    <p
-                        className="text-[10px] uppercase tracking-[0.4em] font-medium text-[var(--rust)]"
-                        style={{ fontFamily: "var(--font-mono)" }}
-                    >
-                        ACCESS — RECOVERY
-                    </p>
-                    <span className="h-px w-10 bg-[var(--rust)]/40" />
+                {/* Built by hand rather than with <Field>: the meter and an error
+                    can show together, where <Field> lets an error replace its
+                    help. */}
+                <div className="t-field">
+                    <label className="t-field-label" htmlFor={passwordId}>
+                        New password
+                    </label>
+                    <PasswordInput
+                        id={passwordId}
+                        aria-describedby={`${passwordId}-help`}
+                        aria-invalid={passwordError ? true : undefined}
+                        autoComplete="new-password"
+                        placeholder="At least 8 characters"
+                        value={newPassword}
+                        onChange={(e) => {
+                            setNewPassword(e.target.value);
+                            setPasswordError(undefined);
+                        }}
+                        disabled={loading}
+                        required
+                    />
+                    <div id={`${passwordId}-help`} className="flex flex-col gap-1.5">
+                        <PasswordStrength strength={strength} />
+                        {passwordError && <p className="t-error">{passwordError}</p>}
+                        {strength.level === 0 && !passwordError && <p className="t-help">At least 8 characters. Tap the eye to check what you typed.</p>}
+                    </div>
                 </div>
 
-                <div className="flex flex-col items-center mb-8">
-                    <Image src={Logo} alt="Tendso" width={170} height={31} className="mb-6 invert" />
-                    <h1
-                        style={{
-                            fontFamily: "var(--font-playfair)",
-                            fontSize: "clamp(2.25rem, 5vw, 3rem)",
-                        }}
-                        className="font-bold tracking-[-0.01em] text-center text-[var(--ink)] mb-2 leading-[1.05]"
-                    >
-                        Reset your <span className="italic" style={{ color: "var(--rust)" }}>password.</span>
-                    </h1>
-                    <p
-                        className="text-[var(--ink)]/60 text-center italic max-w-xs leading-relaxed"
-                        style={{
-                            fontFamily: "var(--font-playfair)",
-                            fontSize: "1.05rem",
-                        }}
-                    >
-                        {step === "email"
-                            ? "Enter your email and we'll send you a 6-digit code."
-                            : `We sent a code to ${email}. Enter it below.`}
-                    </p>
-                </div>
-
-                <div className="bg-[var(--khaki-deep)] border border-[var(--ink)]/15 p-7 sm:p-8 rounded-3xl shadow-xl shadow-[var(--ink)]/10">
-                    {error && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm text-center"
-                            role="alert"
-                        >
-                            {error}
-                        </motion.div>
-                    )}
-
-                    {step === "email" ? (
-                        <form onSubmit={handleSendCode} className="space-y-5">
-                            <div className="space-y-1.5">
-                                <label
-                                    htmlFor="email"
-                                    className="text-[10px] uppercase tracking-[0.3em] font-bold text-[var(--ink)]/70 px-1 block"
-                                    style={{ fontFamily: "var(--font-mono)" }}
-                                >
-                                    Email address
-                                </label>
-                                <div className="relative group">
-                                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                        <Mail className="w-4 h-4 text-[var(--ink)]/40 group-focus-within:text-[var(--rust)] transition-colors" />
-                                    </span>
-                                    <input
-                                        id="email"
-                                        type="email"
-                                        placeholder="you@example.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                        disabled={loading}
-                                        autoComplete="email"
-                                        className="w-full h-12 pl-10 pr-4 bg-[var(--khaki)] border border-[var(--ink)]/15 rounded-xl text-[var(--ink)] placeholder:text-[var(--ink)]/40 focus:outline-none focus:border-[var(--rust)] focus:ring-1 focus:ring-[var(--rust)] transition-colors text-[15px]"
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading || !email}
-                                className="w-full h-12 bg-[var(--ink)] hover:bg-[var(--rust)] disabled:opacity-60 text-[var(--khaki)] rounded-xl font-semibold text-base transition-colors flex items-center justify-center gap-2 mt-2 shadow-md shadow-[var(--ink)]/20"
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="animate-spin h-5 w-5" /> Sending…
-                                    </>
-                                ) : (
-                                    "Send reset code"
-                                )}
-                            </button>
-                        </form>
+                <Button type="submit" variant="primary" size="lg" block disabled={loading}>
+                    {loading ? (
+                        <>
+                            <ButtonSpinner />
+                            Saving…
+                        </>
                     ) : (
-                        <form onSubmit={handleResetPassword} className="space-y-5">
-                            <div className="space-y-1.5">
-                                <label
-                                    htmlFor="code"
-                                    className="text-[10px] uppercase tracking-[0.3em] font-bold text-[var(--ink)]/70 px-1 block"
-                                    style={{ fontFamily: "var(--font-mono)" }}
-                                >
-                                    Verification code
-                                </label>
-                                <input
-                                    id="code"
-                                    type="text"
-                                    inputMode="numeric"
-                                    maxLength={6}
-                                    placeholder="······"
-                                    value={code}
-                                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                                    required
-                                    disabled={loading}
-                                    autoComplete="one-time-code"
-                                    className="w-full h-14 bg-[var(--khaki)] border border-[var(--ink)]/15 rounded-xl text-[var(--ink)] placeholder:text-[var(--ink)]/30 focus:outline-none focus:border-[var(--rust)] focus:ring-1 focus:ring-[var(--rust)] transition-colors text-center text-2xl tracking-[0.6em] font-semibold"
-                                />
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label
-                                    htmlFor="newPassword"
-                                    className="text-[10px] uppercase tracking-[0.3em] font-bold text-[var(--ink)]/70 px-1 block"
-                                    style={{ fontFamily: "var(--font-mono)" }}
-                                >
-                                    New password
-                                </label>
-                                <div className="relative group">
-                                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                        <Lock className="w-4 h-4 text-[var(--ink)]/40 group-focus-within:text-[var(--rust)] transition-colors" />
-                                    </span>
-                                    <input
-                                        id="newPassword"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="At least 8 characters"
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        required
-                                        disabled={loading}
-                                        autoComplete="new-password"
-                                        className="w-full h-12 pl-10 pr-11 bg-[var(--khaki)] border border-[var(--ink)]/15 rounded-xl text-[var(--ink)] placeholder:text-[var(--ink)]/40 focus:outline-none focus:border-[var(--rust)] focus:ring-1 focus:ring-[var(--rust)] transition-colors text-[15px]"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-[var(--ink)]/40 hover:text-[var(--ink)] transition-colors"
-                                        aria-label={showPassword ? "Hide password" : "Show password"}
-                                    >
-                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                    </button>
-                                </div>
-                                {newPassword.length > 0 && (
-                                    <div className="mt-2 px-1 space-y-1.5">
-                                        <div className="flex gap-1.5">
-                                            {[1, 2, 3, 4].map((i) => (
-                                                <div
-                                                    key={i}
-                                                    className={`h-1.5 flex-1 rounded-full transition-colors ${i <= strength.level ? strength.color : "bg-[var(--ink)]/15"
-                                                        }`}
-                                                />
-                                            ))}
-                                        </div>
-                                        <p
-                                            className="text-[10px] uppercase tracking-[0.3em] font-semibold text-[var(--ink)]/65"
-                                            style={{ fontFamily: "var(--font-mono)" }}
-                                        >
-                                            {strength.label}
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="space-y-1.5">
-                                <label
-                                    htmlFor="confirmPassword"
-                                    className="text-[10px] uppercase tracking-[0.3em] font-bold text-[var(--ink)]/70 px-1 block"
-                                    style={{ fontFamily: "var(--font-mono)" }}
-                                >
-                                    Confirm new password
-                                </label>
-                                <div className="relative group">
-                                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                        <Lock className="w-4 h-4 text-[var(--ink)]/40 group-focus-within:text-[var(--rust)] transition-colors" />
-                                    </span>
-                                    <input
-                                        id="confirmPassword"
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="Re-enter your password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        required
-                                        disabled={loading}
-                                        autoComplete="new-password"
-                                        className="w-full h-12 pl-10 pr-4 bg-[var(--khaki)] border border-[var(--ink)]/15 rounded-xl text-[var(--ink)] placeholder:text-[var(--ink)]/40 focus:outline-none focus:border-[var(--rust)] focus:ring-1 focus:ring-[var(--rust)] transition-colors text-[15px]"
-                                    />
-                                </div>
-                                {confirmPassword.length > 0 && (
-                                    <div className="flex items-center gap-1.5 text-xs font-semibold mt-2 px-1">
-                                        {passwordsMatch ? (
-                                            <>
-                                                <Check className="w-3.5 h-3.5 text-[var(--rust)]" />
-                                                <span className="text-[var(--rust)]">Passwords match</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <X className="w-3.5 h-3.5 text-red-500" />
-                                                <span className="text-red-600">Passwords don&apos;t match</span>
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-
-                            <button
-                                type="submit"
-                                disabled={loading || code.length !== 6 || !passwordsMatch}
-                                className="w-full h-12 bg-[var(--ink)] hover:bg-[var(--rust)] disabled:opacity-50 text-[var(--khaki)] rounded-xl font-semibold text-base transition-colors flex items-center justify-center gap-2 mt-2 shadow-md shadow-[var(--ink)]/20"
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="animate-spin h-5 w-5" /> Updating…
-                                    </>
-                                ) : (
-                                    "Reset password"
-                                )}
-                            </button>
-                        </form>
+                        "Save new password"
                     )}
-                </div>
+                </Button>
 
-                {step === "code" && (
-                    <p
-                        className="text-center mt-7 text-sm text-[var(--ink)]/65"
-                        style={{ fontFamily: "var(--font-playfair)" }}
-                    >
-                        Didn&apos;t get the code?{" "}
-                        <button
-                            onClick={handleResendCode}
-                            className="font-semibold italic text-[var(--rust)] hover:text-[var(--ink)] transition-colors underline decoration-[var(--rust)]/40 underline-offset-4"
-                        >
-                            Resend
-                        </button>
+                <div className="flex flex-col items-center gap-1">
+                    <div className="flex flex-wrap items-center justify-center gap-1">
+                        <span className="t-meta">No email?</span>
+                        <Button variant="ghost" size="sm" onClick={handleResendCode} disabled={resending || loading}>
+                            Send a new code
+                        </Button>
+                    </div>
+                    {/* Always in the page, so the line is announced when it fills. */}
+                    <p className="t-meta text-center" role="status">
+                        {resent ? "New code sent. Check spam if it is not there in a minute." : ""}
                     </p>
-                )}
-            </motion.div>
-        </div>
+                </div>
+            </form>
+        </AuthFrame>
     );
 }

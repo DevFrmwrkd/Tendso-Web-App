@@ -290,6 +290,13 @@
     font-family: inherit; font-size: 13px; cursor: pointer; white-space: nowrap;
   }
   .t-seg > button[aria-pressed="true"] { background: var(--r1-paper); color: var(--r1-ink); font-weight: 500; box-shadow: 0 1px 2px rgba(17, 17, 17, .08); }
+  /* The same control when each option is its own URL (Privacy | Terms). */
+  .t-seg > a {
+    display: inline-flex; align-items: center; height: 30px; padding: 0 12px; border-radius: 7px;
+    color: var(--r1-ink-2); font-size: 13px; text-decoration: none; white-space: nowrap;
+  }
+  .t-seg > a:hover { color: var(--r1-ink); }
+  .t-seg > a[aria-current="page"] { background: var(--r1-paper); color: var(--r1-ink); font-weight: 500; box-shadow: 0 1px 2px rgba(17, 17, 17, .08); }
 
   /* ── Lists and rows ───────────────────────────────────────────────── */
   .t-list { display: flex; flex-direction: column; }
@@ -346,7 +353,7 @@
   .t-folds { border-bottom: 1px solid var(--r1-line); }
   .t-fold-btn {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    width: 100%; height: 52px; padding: 0; border: 0; background: none; color: var(--r1-ink);
+    width: 100%; min-height: 52px; padding: 14px 0; border: 0; background: none; color: var(--r1-ink);
     font-family: inherit; font-size: 14px; font-weight: 500; cursor: pointer; text-align: left;
   }
   .t-fold-chev { display: inline-flex; color: var(--r1-ink-3); transition: transform .15s ease; }
@@ -429,6 +436,10 @@
   .t-toast-desc { color: #BDBDBD; font-size: 13px; line-height: 18px; }
   .t-toast-icon { display: flex; flex: none; }
   .t-toast-icon:empty { display: none; }
+  /* While a modal is open its own toaster shows the toasts (Toaster.tsx). */
+  html:has(dialog[open]:is(.t-drawer, .t-dialog, .t-pal)) .t-toaster-page { visibility: hidden; }
+  /* A dialog over a drawer: only the topmost overlay shows them. */
+  html:has(dialog.t-dialog[open]) dialog.t-drawer .t-toaster-overlay:not(dialog.t-dialog .t-toaster-overlay) { visibility: hidden; }
   .t-toast-action,
   .t-toast-cancel {
     border: 0; background: none; padding: 0; flex: none;

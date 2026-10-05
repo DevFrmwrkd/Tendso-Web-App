@@ -4,6 +4,7 @@ import { ConvexClerkProvider } from "@/components/providers/ConvexClerkProvider"
 import { JsonLd } from "@/components/JsonLd";
 import { Toaster } from "@/components/r1/Toaster";
 import { organizationGraph, SITE_URL } from "@/lib/seo";
+import { BASE_PRICE, formatPHP } from "@/lib/pricing";
 import "./globals.css";
 import "./self-hosted-fonts.css";
 
@@ -15,7 +16,7 @@ import "./self-hosted-fonts.css";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: "Tendso — The Thinking Ends Here. So the work doesn't.",
-  description: "A business page built around the work, not the other way around. A creator visits, asks a few questions, photographs your shop, and your page goes live in 48 hours. No template, no blank screen. ₱999 one-time. For Filipino local businesses whose hands are full.",
+  description: `A business page built around the work, not the other way around. A creator visits, asks a few questions, photographs your shop, and your page goes live in 48–72 hours. No template, no blank screen. ${formatPHP(BASE_PRICE)} one-time. For Filipino local businesses whose hands are full.`,
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
@@ -23,9 +24,9 @@ export const metadata: Metadata = {
     locale: "en_PH",
     url: SITE_URL,
     title: "Tendso — The Thinking Ends Here. So the work doesn't.",
-    description: "Filipino local businesses get online in 48 hours. ₱999 one-time. Built around the work, not the other way around.",
+    description: `Filipino local businesses get online in 48–72 hours. ${formatPHP(BASE_PRICE)} one-time. Built around the work, not the other way around.`,
   },
-  twitter: { card: "summary_large_image", title: "Tendso", description: "Filipino local businesses get online in 48 hours." },
+  twitter: { card: "summary_large_image", title: "Tendso", description: "Filipino local businesses get online in 48–72 hours." },
 };
 
 export default function RootLayout({

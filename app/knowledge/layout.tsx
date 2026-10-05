@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import "./knowledge.css";
 
+import { HelpCenterShell } from "./_components/HelpCenterShell";
 
 export const metadata: Metadata = {
-    title: "Tendso — Knowledge Base",
-    description:
-        "Guides, answers, and field-agent playbooks — search or ask Tendso AI in plain words.",
+    title: "Help Center — Tendso",
+    description: "Guides, answers, and creator playbooks. Search, or ask Tendso AI in plain words.",
 };
 
 export default function KnowledgeLayout({ children }: { children: ReactNode }) {
-    // Fonts come from app/self-hosted-fonts.css (--font-kb-*), imported by the
-    // root layout. knowledge.css maps them to --serif / --sans / --mono.
-    return <div className="tkb">{children}</div>;
+    // The Round 1 frame (app/round1.css via PublicPage): the public header,
+    // the footer and the ⌘K palette, shared by /knowledge and every article.
+    return <HelpCenterShell>{children}</HelpCenterShell>;
 }

@@ -3,60 +3,65 @@
 /**
  * /field-agent/book — the native booking page for the 10-minute Field Agent call.
  *
- * THE DESIGN IS THE SPEC. Built from "Booking Page v2", handed over as a design
- * file: dark header over a paper sheet that overlaps it, a three-step chip rail,
- * a day strip rather than a month calendar, and a ticket-shaped confirmation.
- * Every colour, radius and size below is the one the design specifies, which is
- * why they are literals here instead of the app's editorial tokens — the design
- * carries its own palette and this page is that design, not a variation on it.
+ * THE DESIGN IS THE SPEC: Round 1, board BookCall. Three steps (Time, Details,
+ * Done) under a funnel header; the calendar on the left with "Your call" beside
+ * it, a two-field form, and a ticket-shaped confirmation. Colours, type and
+ * controls are the shared Round 1 ones (app/round1.css, components/r1).
  *
  * The flow behind it is ported from vonas-hr-pipeline. Both apps write to the
  * ONE tendso.hr Google Calendar, and that shared calendar — not this page — is
  * what stops the two handing out the same ten minutes.
  *
- * WHAT THE DESIGN DOES NOT COVER, and therefore had to be added:
- *   • Loading, empty, error, and calendar-unavailable states. Real states the
- *     design has no frame for, drawn in its own palette.
+ * WHAT THE BOARD DOES NOT COVER, and therefore had to be added:
+ *   • The calendar-unavailable state (a backup booking link), no times open,
+ *     and the times failing to load. Real states with no frame on the board.
  *   • The honeypot. Invisible, so it costs the design nothing.
  * WHAT CAME OUT: the design's mobile-number field. Dropped at the owner's call,
  * along with the phone plumbing it had needed in createBooking — the calendar
  * event and the booking row carry a name and an email, nothing else.
  *
+ * NO RESCHEDULE LINK ON THE CONFIRMATION. The board links to it, but the
+ * manage token is minted on the server and only ever leaves in the
+ * confirmation email (createBooking does not return it), so the ticket points
+ * at the links in that email instead.
+ *
  * Unlinked by design: nothing on the site points here yet.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, Calendar, CalendarX } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useAction } from "convex/react";
 
+import { Button, ButtonLink, EmptyState, ErrorState, Field, Icon, Input, bookingStatus } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import BookingShell from "../_components/BookingShell";
-import SlotPicker, { type Day, type Slot } from "../_components/SlotPicker";
+import { ActionBar, CallFacts, CallTicket, Notice, PickedTime } from "../_components/CallCard";
+import { addToCalendarUrl } from "../_components/callTime";
+import SlotPicker, { SlotPickerSkeleton, type Day, type Slot } from "../_components/SlotPicker";
 
-/* The design's palette, named. */
-const INK = "#1B1B22";
-const PAPER = "#F3F0EA";
-const GOLD = "#D4A146";
-const MUTED = "#8F8B83";
-const MUTED_ON_INK = "#B9B5AD";
-const WHITE = "#FFFFFF";
-const RULE = "#E6E1D7";
-const FIELD_BG = "#FBFAF7";
-const RULE_ON_INK = "#3A3A44";
-const DISABLED = "#D8D4CC";
+const STEPS = ["Time", "Details", "Done"];
 
-const EYEBROW: React.CSSProperties = {
-    fontSize: 13,
-    fontWeight: 700,
-    letterSpacing: ".08em",
-    textTransform: "uppercase",
-    color: MUTED,
-};
+/** The same test createBooking applies, so the form never accepts what the server would refuse. */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function fieldErrors(name: string, email: string) {
+    const cleanEmail = email.trim();
+    return {
+        name: name.trim().length < 2 ? "Enter your full name." : null,
+        email: !cleanEmail
+            ? "Enter your email so we can send the Meet link."
+            : !EMAIL_RE.test(cleanEmail)
+              ? "That email does not look right. Check for a typo."
+              : null,
+    };
+}
 
 export default function BookFieldAgentCallPage() {
     const getAvailability = useAction(api.booking.getAvailability);
     const createBooking = useAction(api.booking.createBooking);
 
     const [days, setDays] = useState<Day[] | null>(null);
+    const [loadFailed, setLoadFailed] = useState(false);
     const [activeDay, setActiveDay] = useState<string | null>(null);
     const [picked, setPicked] = useState<Slot | null>(null);
     const [step, setStep] = useState<"pick" | "details" | "done">("pick");
@@ -64,6 +69,10 @@ export default function BookFieldAgentCallPage() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [website, setWebsite] = useState(""); // honeypot — humans leave it empty
+    // Errors show from the first Confirm on, then follow the typing.
+    const [tried, setTried] = useState(false);
+    const nameRef = useRef<HTMLInputElement>(null);
+    const emailRef = useRef<HTMLInputElement>(null);
 
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -72,17 +81,20 @@ export default function BookFieldAgentCallPage() {
     const [fallbackUrl, setFallbackUrl] = useState<string | null>(null);
     const [meetUrl, setMeetUrl] = useState<string | null>(null);
 
+    // Reloading the grid leaves `error` alone on purpose: after "Someone just
+    // took that slot" the grid reloads at once, and clearing the message in
+    // the same breath would hide the only explanation of why they are back here.
     const loadSlots = useCallback(async () => {
-        setError(null);
         try {
             const res = await getAvailability({});
+            setLoadFailed(false);
             setFallbackUrl(res.calendarUnavailable ? (res.fallbackUrl ?? null) : null);
             setDays(res.days);
             setActiveDay((cur) =>
                 cur && res.days.some((d) => d.dateKey === cur) ? cur : (res.days[0]?.dateKey ?? null),
             );
         } catch {
-            setError("Couldn't load available times. Please refresh.");
+            setLoadFailed(true);
             setDays([]);
         }
     }, [getAvailability]);
@@ -91,15 +103,25 @@ export default function BookFieldAgentCallPage() {
         void loadSlots();
     }, [loadSlots]);
 
-    // The chosen day, for the summary and confirmation cards. The picker owns
-    // the grid itself; this is only the label those two steps read back.
-    const day = days?.find((d) => d.dateKey === activeDay) ?? null;
+    // Each step starts at the top. Continue sits at the foot of a long
+    // calendar on a phone, and the form after it is much shorter, so without
+    // this the new step opens scrolled past its own fields.
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [step]);
 
+    // The day the chosen time is on, for the summary and the ticket.
+    const pickedDay = picked ? (days?.find((d) => d.slots.some((s) => s.startMs === picked.startMs))?.label ?? null) : null;
+    const errors = fieldErrors(name, email);
 
-    const canConfirm = name.trim().length >= 2 && email.includes("@");
-
-    async function confirm() {
-        if (!picked || !canConfirm || website.trim()) return;
+    async function confirm(e?: FormEvent) {
+        e?.preventDefault();
+        if (!picked || submitting || website.trim()) return;
+        if (errors.name || errors.email) {
+            setTried(true);
+            (errors.name ? nameRef : emailRef).current?.focus();
+            return;
+        }
         setSubmitting(true);
         setError(null);
         try {
@@ -130,514 +152,212 @@ export default function BookFieldAgentCallPage() {
         setMeetUrl(null);
         setName("");
         setEmail("");
+        setTried(false);
         setError(null);
         void loadSlots();
     }
 
-    /** Google's own "add to calendar" URL, so the design's button is a real one. */
-    const addToCalendarUrl = useMemo(() => {
-        if (!picked) return "#";
-        const stamp = (ms: number) =>
-            new Date(ms).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-        const params = new URLSearchParams({
-            action: "TEMPLATE",
-            text: "10-Minute-Meeting with Tendso",
-            dates: `${stamp(picked.startMs)}/${stamp(picked.startMs + 10 * 60_000)}`,
-            details: meetUrl ? `Google Meet: ${meetUrl}` : "Your Google Meet link is in your email.",
-            ctz: "Asia/Manila",
-        });
-        return `https://calendar.google.com/calendar/render?${params.toString()}`;
-    }, [picked, meetUrl]);
+    function retryLoad() {
+        setDays(null);
+        setLoadFailed(false);
+        void loadSlots();
+    }
 
+    const title = step === "done" ? "You’re booked" : "Book your 10-minute call";
+    const current = step === "pick" ? 0 : step === "details" ? 1 : STEPS.length;
+    const showPicker = step === "pick" && !loadFailed && (days === null || days.length > 0);
+
+    const continueButton = (
+        <Button
+            variant="primary"
+            size="lg"
+            className="flex-none lg:w-full"
+            disabled={!picked}
+            aria-describedby={picked ? undefined : "book-need-time"}
+            onClick={() => {
+                if (!picked) return;
+                setTried(false);
+                setStep("details");
+            }}
+        >
+            Continue
+            {picked && <Icon icon={ArrowRight} />}
+        </Button>
+    );
 
     return (
-        <BookingShell
-            steps={["Time", "Details", "Done"]}
-            activeStep={step === "pick" ? 0 : step === "details" ? 1 : 2}
-            title={
-                <>
-                    Book your <span style={{ color: GOLD }}>10-minute</span> call
-                </>
-            }
-            subtitle="Pick a time that works for you. It's a short video call to get you started as a field agent."
-        >
-                    {error && step !== "details" && (
-                        <p
-                            style={{
-                                margin: 0,
-                                background: WHITE,
-                                border: `1px solid ${RULE}`,
-                                borderLeft: `3px solid ${GOLD}`,
-                                borderRadius: 12,
-                                padding: "14px 16px",
-                                fontSize: 14,
-                                color: INK,
+        <BookingShell title={title} steps={STEPS} current={current} phoneBar={showPicker}>
+            {error && step === "pick" && <Notice>{error}</Notice>}
+
+            {step === "pick" && loadFailed && <ErrorState what="Available times" onRetry={retryLoad} className="t-card" />}
+
+            {step === "pick" && !loadFailed && days?.length === 0 && fallbackUrl && (
+                <div className="t-card t-card-pad flex max-w-[560px] flex-col items-start gap-4">
+                    <span className="t-label">Calendar unavailable</span>
+                    <p className="t-body">
+                        We can&apos;t show times here right now. You can still book the same ten minutes on our backup page.
+                    </p>
+                    <ButtonLink variant="primary" href={fallbackUrl}>
+                        Book your 10-minute call
+                    </ButtonLink>
+                </div>
+            )}
+
+            {step === "pick" && !loadFailed && days?.length === 0 && !fallbackUrl && (
+                <EmptyState
+                    className="t-card"
+                    icon={<Icon icon={CalendarX} size={18} />}
+                    title="No times are open right now"
+                    body="Please check back tomorrow."
+                />
+            )}
+
+            {showPicker && (
+                <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-12">
+                    {days === null ? (
+                        <SlotPickerSkeleton />
+                    ) : (
+                        <SlotPicker
+                            days={days}
+                            activeDay={activeDay}
+                            onSelectDay={(key) => {
+                                setActiveDay(key);
+                                setPicked(null);
                             }}
-                        >
-                            {error}
-                        </p>
+                            selected={picked?.startMs ?? null}
+                            onSelect={(slot) => {
+                                setPicked(slot);
+                                setError(null);
+                            }}
+                        />
                     )}
 
-                    {step === "pick" && (
-                        <>
-                            {days === null && (
-                                <p style={{ margin: 0, fontSize: 14, color: MUTED }}>
-                                    Loading available times…
-                                </p>
-                            )}
-
-                            {days?.length === 0 && fallbackUrl && (
-                                <div
-                                    style={{
-                                        background: WHITE,
-                                        border: `1px solid ${RULE}`,
-                                        borderRadius: 20,
-                                        padding: 28,
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: 16,
-                                        alignItems: "flex-start",
-                                    }}
-                                >
-                                    <span style={EYEBROW}>Calendar unavailable</span>
-                                    <p
-                                        style={{
-                                            margin: 0,
-                                            fontSize: 15,
-                                            lineHeight: 1.5,
-                                            color: INK,
-                                        }}
-                                    >
-                                        We can&apos;t show times here right now. You can still book
-                                        the same ten minutes on our backup page.
+                    <aside className="t-card flex flex-col gap-5 p-5 sm:p-6 lg:sticky lg:top-6" aria-label="Your call">
+                        <div className="flex flex-col gap-1">
+                            <h2 className="t-h2">Your call</h2>
+                            <p className="t-body">A short video call to get you started as a Tendso creator.</p>
+                        </div>
+                        <CallFacts />
+                        <div className="flex flex-col gap-5 max-lg:hidden">
+                            <hr className="t-divider" />
+                            <PickedTime label="Your time" time={picked?.label} day={pickedDay} />
+                            <div className="flex flex-col gap-2">
+                                {continueButton}
+                                {!picked && (
+                                    <p className="t-help" id="book-need-time">
+                                        Pick a time to continue.
                                     </p>
-                                    <a
-                                        href={fallbackUrl}
-                                        style={{
-                                            padding: "13px 22px",
-                                            borderRadius: 999,
-                                            background: INK,
-                                            color: PAPER,
-                                            fontSize: 14,
-                                            fontWeight: 700,
-                                            textDecoration: "none",
-                                        }}
-                                    >
-                                        Book your 10-minute call
-                                    </a>
-                                </div>
-                            )}
-
-                            {days?.length === 0 && !fallbackUrl && (
-                                <p style={{ margin: 0, fontSize: 15, color: MUTED }}>
-                                    No times are open right now. Please check back tomorrow.
-                                </p>
-                            )}
-
-                            {days && days.length > 0 && (
-                                <>
-                                    <SlotPicker
-                                        days={days}
-                                        activeDay={activeDay}
-                                        onSelectDay={(key) => {
-                                            setActiveDay(key)
-                                            setPicked(null)
-                                        }}
-                                        onPickSlot={(slot) => {
-                                            setPicked(slot)
-                                            setStep("details")
-                                        }}
-                                    />
-                                </>
-                            )}
-                        </>
-                    )}
-
-                    {step === "details" && picked && (
-                        <section
-                            className="fa-details"
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "minmax(0, 1fr) minmax(220px, 280px)",
-                                gap: 20,
-                                alignItems: "start",
-                            }}
-                        >
-                            <div
-                                style={{
-                                    background: WHITE,
-                                    border: `1px solid ${RULE}`,
-                                    borderRadius: 20,
-                                    padding: 28,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 20,
-                                }}
-                            >
-                                <span style={EYEBROW}>Who&apos;s joining</span>
-
-                                <div
-                                    style={{
-                                        display: "grid",
-                                        gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                                        gap: 14,
-                                    }}
-                                >
-                                    <Field label="Full name">
-                                        <input
-                                            value={name}
-                                            onChange={(e) => setName(e.target.value)}
-                                            placeholder="Juan dela Cruz"
-                                            autoComplete="name"
-                                            style={INPUT}
-                                        />
-                                    </Field>
-                                    <Field label="Email">
-                                        <input
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            placeholder="you@email.com"
-                                            type="email"
-                                            autoComplete="email"
-                                            style={INPUT}
-                                        />
-                                    </Field>
-                                    <input
-                                        type="text"
-                                        tabIndex={-1}
-                                        autoComplete="off"
-                                        aria-hidden="true"
-                                        value={website}
-                                        onChange={(e) => setWebsite(e.target.value)}
-                                        style={{ display: "none" }}
-                                    />
-                                </div>
-
-                                {error && (
-                                    <p style={{ margin: 0, fontSize: 14, color: INK }}>{error}</p>
                                 )}
-
-                                <div
-                                    className="fa-actions"
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "space-between",
-                                        gap: 16,
-                                        flexWrap: "wrap",
-                                    }}
-                                >
-                                    {/* The design draws this as bare muted text. That reads as a
-                                        caption rather than a control, and #8F8B83 on white is
-                                        3.4:1 — under the 4.5:1 minimum — on the ONLY way back
-                                        from this step. Promoted to the secondary outline pill the
-                                        design already uses for "Book another", so it stays in the
-                                        design's own vocabulary and stays clearly below Confirm. */}
-                                    <button
-                                        type="button"
-                                        onClick={() => setStep("pick")}
-                                        style={{
-                                            padding: "13px 22px",
-                                            borderRadius: 999,
-                                            border: `1px solid ${DISABLED}`,
-                                            background: "transparent",
-                                            fontSize: 14,
-                                            fontWeight: 600,
-                                            color: INK,
-                                            cursor: "pointer",
-                                            font: "inherit",
-                                        }}
-                                    >
-                                        ‹ Change time
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={confirm}
-                                        disabled={!canConfirm || submitting}
-                                        style={{
-                                            padding: "14px 24px",
-                                            borderRadius: 999,
-                                            border: "none",
-                                            background: canConfirm && !submitting ? INK : DISABLED,
-                                            color: canConfirm && !submitting ? PAPER : MUTED,
-                                            fontSize: 15,
-                                            fontWeight: 700,
-                                            cursor: canConfirm && !submitting ? "pointer" : "default",
-                                            font: "inherit",
-                                        }}
-                                    >
-                                        {submitting ? "Booking…" : "Confirm booking"}
-                                    </button>
-                                </div>
                             </div>
+                        </div>
+                    </aside>
 
-                            <div
-                                className="fa-slotcard"
-                                style={{
-                                    background: INK,
-                                    color: PAPER,
-                                    borderRadius: 20,
-                                    padding: 24,
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: 18,
-                                    position: "relative",
-                                    overflow: "hidden",
-                                }}
-                            >
-                                <span
-                                    style={{
-                                        position: "absolute",
-                                        right: -20,
-                                        top: -20,
-                                        width: 110,
-                                        height: 110,
-                                        borderRadius: "50%",
-                                        background: GOLD,
-                                        opacity: 0.18,
-                                    }}
+                    <ActionBar>
+                        <PickedTime label="Your time" time={picked?.label} day={pickedDay} compact />
+                        {continueButton}
+                    </ActionBar>
+                </div>
+            )}
+
+            {step === "details" && picked && (
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-12">
+                    <form className="t-card" onSubmit={confirm} noValidate aria-labelledby="book-who">
+                        <div className="flex flex-col gap-1 border-b border-r1-line p-5 sm:p-6">
+                            <h2 className="t-h2" id="book-who">
+                                Who is joining?
+                            </h2>
+                            <p className="t-meta">We use this to send you the invite. Nothing else.</p>
+                        </div>
+                        <div className="grid gap-5 p-5 sm:grid-cols-2 sm:gap-x-4 sm:p-6">
+                            <Field label="Full name" required error={tried ? errors.name : null}>
+                                <Input
+                                    ref={nameRef}
+                                    type="text"
+                                    autoComplete="name"
+                                    placeholder="Juan dela Cruz"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                 />
-                                <span style={{ ...EYEBROW, fontSize: 12 }}>Your slot</span>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                                    <span
-                                        style={{
-                                            fontSize: 40,
-                                            fontWeight: 800,
-                                            letterSpacing: "-.03em",
-                                            lineHeight: 1,
-                                            color: GOLD,
-                                        }}
-                                    >
-                                        {picked.label}
-                                    </span>
-                                    <span style={{ fontSize: 15, fontWeight: 600 }}>
-                                        {day?.label}
-                                    </span>
-                                </div>
-                                <div
-                                    style={{
-                                        borderTop: `1px dashed ${RULE_ON_INK}`,
-                                        paddingTop: 14,
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: 6,
-                                        fontSize: 13,
-                                        color: MUTED_ON_INK,
-                                    }}
-                                >
-                                    <span>10 minutes · Google Meet</span>
-                                    <span>Philippine time (GMT+8)</span>
-                                </div>
-                            </div>
-                        </section>
-                    )}
-
-                    {step === "done" && picked && (
-                        <section
-                            style={{
-                                maxWidth: 520,
-                                margin: "0 auto",
-                                width: "100%",
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: 20,
-                            }}
-                        >
-                            <div
-                                style={{
-                                    background: INK,
-                                    color: PAPER,
-                                    borderRadius: 20,
-                                    overflow: "hidden",
-                                }}
+                            </Field>
+                            <Field
+                                label="Email"
+                                required
+                                help="We email your Google Meet link here, with links to reschedule or cancel."
+                                error={tried ? errors.email : null}
                             >
-                                <div
-                                    style={{
-                                        padding: "28px 28px 24px",
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        gap: 16,
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "space-between",
-                                        }}
-                                    >
-                                        <span style={{ ...EYEBROW, fontSize: 12 }}>Confirmed</span>
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img
-                                            src="/tendso-logo.png"
-                                            alt="Tendso"
-                                            style={{
-                                                height: 12,
-                                                width: "auto",
-                                                display: "block",
-                                                opacity: 0.8,
-                                            }}
-                                        />
-                                    </div>
-                                    <div
-                                        style={{ display: "flex", flexDirection: "column", gap: 6 }}
-                                    >
-                                        <span
-                                            style={{
-                                                fontSize: 44,
-                                                fontWeight: 800,
-                                                letterSpacing: "-.03em",
-                                                lineHeight: 1,
-                                                color: GOLD,
-                                            }}
-                                        >
-                                            {picked.label}
-                                        </span>
-                                        <span style={{ fontSize: 17, fontWeight: 600 }}>
-                                            {day?.label}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div
-                                    style={{
-                                        borderTop: `1px dashed ${RULE_ON_INK}`,
-                                        padding: "20px 28px 26px",
-                                        display: "grid",
-                                        gridTemplateColumns: "1fr 1fr",
-                                        gap: 14,
-                                        fontSize: 13,
-                                    }}
-                                >
-                                    <Cell label="Attendee">{name}</Cell>
-                                    <Cell label="Where">
-                                        {meetUrl ? (
-                                            <a
-                                                href={meetUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                style={{ color: GOLD, textDecoration: "none" }}
-                                            >
-                                                Google Meet
-                                            </a>
-                                        ) : (
-                                            "Google Meet"
-                                        )}
-                                    </Cell>
-                                    <Cell label="Invite sent to" span>
-                                        {email}
-                                    </Cell>
-                                </div>
-                            </div>
+                                <Input
+                                    ref={emailRef}
+                                    type="email"
+                                    autoComplete="email"
+                                    placeholder="you@email.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </Field>
+                            <input
+                                type="text"
+                                tabIndex={-1}
+                                autoComplete="off"
+                                aria-hidden="true"
+                                value={website}
+                                onChange={(e) => setWebsite(e.target.value)}
+                                className="hidden"
+                            />
+                        </div>
+                        {error && (
+                            <p className="t-error px-5 pb-5 sm:px-6 sm:pb-6" role="alert">
+                                {error}
+                            </p>
+                        )}
+                        <div className="flex flex-col-reverse gap-3 border-t border-r1-line px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                            <Button onClick={() => setStep("pick")}>
+                                <Icon icon={ArrowLeft} />
+                                Change time
+                            </Button>
+                            <Button type="submit" variant="primary" size="lg" disabled={submitting} aria-busy={submitting}>
+                                {submitting ? "Booking…" : "Confirm booking"}
+                            </Button>
+                        </div>
+                    </form>
 
-                            <div
-                                style={{
-                                    display: "flex",
-                                    gap: 10,
-                                    justifyContent: "center",
-                                    flexWrap: "wrap",
-                                }}
+                    {/* First on a phone: what is being confirmed, then who for. */}
+                    <aside className="t-card flex flex-col gap-5 p-5 max-lg:order-first sm:p-6" aria-label="Your call">
+                        <h2 className="t-h2">Your call</h2>
+                        <PickedTime label="Your time" time={picked.label} day={pickedDay} />
+                        <hr className="t-divider" />
+                        <CallFacts />
+                    </aside>
+                </div>
+            )}
+
+            {step === "done" && picked && (
+                <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4">
+                    <CallTicket
+                        status={bookingStatus({ status: "confirmed", startMs: picked.startMs })}
+                        time={picked.label}
+                        day={pickedDay ?? ""}
+                        meetUrl={meetUrl}
+                        name={name.trim()}
+                        email={email.trim()}
+                    >
+                        <div className="flex flex-wrap items-center gap-2">
+                            <ButtonLink
+                                variant="primary"
+                                href={addToCalendarUrl(picked.startMs, meetUrl)}
+                                target="_blank"
+                                rel="noopener noreferrer"
                             >
-                                <a
-                                    href={addToCalendarUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    style={{
-                                        padding: "13px 22px",
-                                        borderRadius: 999,
-                                        background: INK,
-                                        color: PAPER,
-                                        fontSize: 14,
-                                        fontWeight: 700,
-                                        textDecoration: "none",
-                                    }}
-                                >
-                                    Add to calendar
-                                </a>
-                                <button
-                                    type="button"
-                                    onClick={reset}
-                                    style={{
-                                        padding: "13px 22px",
-                                        borderRadius: 999,
-                                        border: `1px solid ${DISABLED}`,
-                                        background: "transparent",
-                                        color: INK,
-                                        fontSize: 14,
-                                        fontWeight: 600,
-                                        cursor: "pointer",
-                                        font: "inherit",
-                                    }}
-                                >
-                                    Book another
-                                </button>
-                            </div>
-                        </section>
-                    )}
+                                <Icon icon={Calendar} />
+                                Add to calendar
+                            </ButtonLink>
+                            <Button variant="ghost" onClick={reset}>
+                                Book another call
+                            </Button>
+                        </div>
+                        <p className="t-meta">Need a different time? Use the Reschedule or Cancel link in your confirmation email.</p>
+                    </CallTicket>
+                </div>
+            )}
         </BookingShell>
-    );
-}
-
-const INPUT: React.CSSProperties = {
-    padding: "13px 14px",
-    borderRadius: 12,
-    border: `1px solid ${RULE}`,
-    fontSize: 15,
-    background: FIELD_BG,
-    color: INK,
-    font: "inherit",
-    fontWeight: 400,
-    width: "100%",
-    boxSizing: "border-box",
-};
-
-function Field({
-    label,
-    span,
-    children,
-}: {
-    label: string;
-    span?: boolean;
-    children: React.ReactNode;
-}) {
-    return (
-        <label
-            className="fa-field"
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 6,
-                fontSize: 13,
-                fontWeight: 600,
-                color: INK,
-                ...(span ? { gridColumn: "1 / -1" } : null),
-            }}
-        >
-            <span>{label}</span>
-            {children}
-        </label>
-    );
-}
-
-function Cell({
-    label,
-    span,
-    children,
-}: {
-    label: string;
-    span?: boolean;
-    children: React.ReactNode;
-}) {
-    return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 3,
-                ...(span ? { gridColumn: "1 / -1" } : null),
-            }}
-        >
-            <span style={{ color: MUTED }}>{label}</span>
-            <span style={{ fontWeight: 600 }}>{children}</span>
-        </div>
     );
 }

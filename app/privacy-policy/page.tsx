@@ -1,46 +1,58 @@
-"use client";
+import type { Metadata } from "next";
 
-import { motion } from "framer-motion";
-import {
-    ShieldAlert,
-    Fingerprint,
-    Lock,
-    Database,
-    FileText,
-    Bell,
-    Clock,
-    Scale,
-    BookOpen,
-    AlertTriangle,
-    MessageSquare,
-} from "lucide-react";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
-import Navbar from "@/components/landing/Navbar";
-import Footer from "@/components/landing/Footer";
-import ScrollToTop from "@/components/landing/ScrollToTop";
+import { LegalDoc, type LegalSection } from "./_components/LegalDoc";
 
-const policySections = [
+const TITLE = "Privacy policy — Tendso";
+const INTRO = "Your privacy matters to us. How Tendso collects, uses, and protects your personal information.";
+
+/**
+ * Its own title, description and canonical. The card a shared link shows is
+ * built from openGraph, so that is set too: inherited from the root it would
+ * describe the homepage and give the homepage as og:url.
+ */
+export const metadata: Metadata = {
+    title: TITLE,
+    description: INTRO,
+    alternates: { canonical: "/privacy-policy" },
+    openGraph: {
+        type: "website",
+        siteName: "Tendso",
+        locale: "en_PH",
+        url: "/privacy-policy",
+        title: TITLE,
+        description: INTRO,
+    },
+};
+
+/*
+ * THE TEXT BELOW IS LEGAL COPY. Round 1 (board Legal) changed how it is laid
+ * out: numbered sections, "On this page", the contact banner folded in as the
+ * last section. Not one word of it. Change the words only on purpose, and then
+ * change the "Last updated" date with them (section 10 promises that date).
+ */
+const policySections: LegalSection[] = [
     {
-        marker: "§ 01",
-        icon: Database,
+        id: "information-we-collect",
         title: "Information We Collect",
-        content: (
+        body: (
             <>
-                <p className="mb-4">
+                <p>
                     We collect information that you provide directly to us when using the Tendso app.
                 </p>
-                <ul className="list-disc pl-5 space-y-2">
+                <ul className="list-disc space-y-2 pl-5">
                     <li>
-                        <strong className="text-[var(--ink)]">Account Information:</strong> Name, email address, phone number,
+                        <strong className="font-semibold text-r1-ink">Account Information:</strong> Name, email address, phone number,
                         password, profile photo, and referral codes provided during registration.
                     </li>
                     <li>
-                        <strong className="text-[var(--ink)]">Submission Content:</strong> Business photos, video/audio
+                        <strong className="font-semibold text-r1-ink">Submission Content:</strong> Business photos, video/audio
                         recordings, interview transcriptions, business owner details (name, phone, email), and business
                         information (name, type, address, city).
                     </li>
                     <li>
-                        <strong className="text-[var(--ink)]">Device &amp; Usage Data:</strong> Device type, operating system,
+                        <strong className="font-semibold text-r1-ink">Device &amp; Usage Data:</strong> Device type, operating system,
                         push notification tokens, network connectivity status, and app usage patterns.
                     </li>
                 </ul>
@@ -48,16 +60,15 @@ const policySections = [
         ),
     },
     {
-        marker: "§ 02",
-        icon: Fingerprint,
+        id: "how-we-use-your-data",
         title: "How We Use Your Data",
-        content: (
+        body: (
             <>
-                <p className="mb-4">
+                <p>
                     We use the information we collect to provide, maintain, and improve our services. Specifically, we use
                     your data to:
                 </p>
-                <ul className="list-disc pl-5 space-y-2">
+                <ul className="list-disc space-y-2 pl-5">
                     <li>Process and manage business submissions</li>
                     <li>Generate AI-enhanced websites for digitized businesses</li>
                     <li>Process creator payouts via Wise bank transfers</li>
@@ -71,15 +82,14 @@ const policySections = [
         ),
     },
     {
-        marker: "§ 03",
-        icon: Lock,
+        id: "data-storage-and-security",
         title: "Data Storage & Security",
-        content: (
+        body: (
             <>
-                <p className="mb-4">
+                <p>
                     We implement industry-standard security measures to protect your personal information:
                 </p>
-                <ul className="list-disc pl-5 space-y-2">
+                <ul className="list-disc space-y-2 pl-5">
                     <li>Authentication tokens stored securely via Expo SecureStore</li>
                     <li>Encrypted data transmission for all API communications</li>
                     <li>Secure file uploads via presigned URLs</li>
@@ -91,10 +101,9 @@ const policySections = [
         ),
     },
     {
-        marker: "§ 04",
-        icon: FileText,
+        id: "business-owner-data",
         title: "Business Owner Data",
-        content: (
+        body: (
             <p>
                 When creators submit business information, they collect data about business owners including name, phone
                 number, optional email, business name, type, address, and city. This data is used to generate a
@@ -105,12 +114,11 @@ const policySections = [
         ),
     },
     {
-        marker: "§ 05",
-        icon: Bell,
+        id: "push-notifications",
         title: "Push Notifications",
-        content: (
+        body: (
             <>
-                <p className="mb-4">
+                <p>
                     We use Expo Push Notifications to keep you informed about important updates. You may receive
                     notifications for: submission status changes (approved, rejected, deployed), payout confirmations and
                     withdrawal updates, new lead alerts from generated websites, and system announcements.
@@ -123,13 +131,12 @@ const policySections = [
         ),
     },
     {
-        marker: "§ 06",
-        icon: Clock,
+        id: "data-retention",
         title: "Data Retention",
-        content: (
+        body: (
             <>
-                <p className="mb-4">We retain your data according to the following policies:</p>
-                <ul className="list-disc pl-5 space-y-2">
+                <p>We retain your data according to the following policies:</p>
+                <ul className="list-disc space-y-2 pl-5">
                     <li>Active account data is retained for the lifetime of your account</li>
                     <li>Submission content is retained indefinitely to maintain generated websites</li>
                     <li>Local form draft caches expire after 7 days automatically</li>
@@ -140,15 +147,14 @@ const policySections = [
         ),
     },
     {
-        marker: "§ 07",
-        icon: Scale,
+        id: "your-rights",
         title: "Your Rights",
-        content: (
+        body: (
             <>
-                <p className="mb-4">
+                <p>
                     Under the Philippine Data Privacy Act of 2012 (RA 10173), you have the following rights:
                 </p>
-                <ul className="list-disc pl-5 space-y-2">
+                <ul className="list-disc space-y-2 pl-5">
                     <li>Right to be informed about how your data is collected and processed</li>
                     <li>Right to access your personal data held by us</li>
                     <li>Right to object to data processing activities</li>
@@ -160,10 +166,9 @@ const policySections = [
         ),
     },
     {
-        marker: "§ 08",
-        icon: BookOpen,
+        id: "philippine-dpa-compliance",
         title: "Philippine DPA Compliance",
-        content: (
+        body: (
             <p>
                 Tendso is committed to complying with Republic Act No. 10173 (Data Privacy Act of 2012) and its
                 Implementing Rules and Regulations. We process personal data based on legitimate interest and consent,
@@ -175,10 +180,9 @@ const policySections = [
         ),
     },
     {
-        marker: "§ 09",
-        icon: AlertTriangle,
+        id: "open-platform-for-all-ages",
         title: "Open Platform for All Ages",
-        content: (
+        body: (
             <p>
                 Tendso is open to users of all ages — including students, young entrepreneurs, and anyone who
                 wants to help digitize local businesses and earn from it. There are no age restrictions to use the
@@ -188,10 +192,9 @@ const policySections = [
         ),
     },
     {
-        marker: "§ 10",
-        icon: MessageSquare,
+        id: "policy-updates",
         title: "Policy Updates",
-        content: (
+        body: (
             <p>
                 We may update this Privacy Policy from time to time to reflect changes in our practices, technology, or
                 legal requirements. When we make significant changes, we will notify you through the app via push
@@ -201,167 +204,37 @@ const policySections = [
             </p>
         ),
     },
+    // Was the dark contact banner under the sections ("§ 11 — CONTACT US",
+    // "Questions about your data?"). Its question now heads the address in
+    // the rail; its sentence and its link are this section.
+    {
+        id: "contact-us",
+        title: "Contact Us",
+        body: (
+            <>
+                <p>
+                    If you have any questions about this Privacy Policy or our data practices, reach out directly.
+                </p>
+                <p>
+                    <a href={`mailto:${SUPPORT_EMAIL}`} className="t-link font-medium">
+                        {SUPPORT_EMAIL}
+                    </a>
+                </p>
+            </>
+        ),
+    },
 ];
 
-export default function PrivacyPolicy() {
+export default function PrivacyPolicyPage() {
     return (
-        <div
-            className="min-h-screen overflow-x-hidden"
-            style={{ background: "var(--khaki)", color: "var(--ink)" }}
-        >
-            <Navbar />
-
-            {/* Paper grain texture */}
-            <div
-                className="fixed inset-0 z-0 pointer-events-none opacity-[0.04] mix-blend-multiply"
-                style={{
-                    backgroundImage:
-                        "radial-gradient(circle at 25% 25%, var(--ink) 0.5px, transparent 1px), radial-gradient(circle at 75% 75%, var(--ink) 0.5px, transparent 1px)",
-                    backgroundSize: "4px 4px, 6px 6px",
-                }}
-            />
-            <div className="fixed top-0 right-[10%] w-[40%] h-[40%] bg-[var(--rust)]/8 rounded-full filter blur-[180px] pointer-events-none" />
-
-            <main className="relative z-10 w-full pt-40 sm:pt-48 pb-24 sm:pb-32 px-6 max-w-5xl mx-auto flex flex-col items-center">
-                {/* HEADER */}
-                <motion.div
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="text-center w-full mb-14 sm:mb-20"
-                >
-                    {/* Section marker */}
-                    <div className="flex items-center gap-3 justify-center mb-8">
-                        <span className="h-px w-12 bg-[var(--rust)]/40" />
-                        <p
-                            className="text-[10px] sm:text-[11px] uppercase tracking-[0.45em] font-medium text-[var(--rust)]"
-                            style={{ fontFamily: "var(--font-mono)" }}
-                        >
-                            DOC — PRIVACY · UPDATED FEB 2026
-                        </p>
-                        <span className="h-px w-12 bg-[var(--rust)]/40" />
-                    </div>
-
-                    <div className="mb-7 inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[var(--khaki-deep)] border border-[var(--ink)]/15 shadow-md shadow-[var(--rust)]/10">
-                        <ShieldAlert className="w-8 h-8 text-[var(--rust)]" />
-                    </div>
-
-                    <h1
-                        className="font-bold leading-[0.92] tracking-[-0.02em] text-[var(--ink)] mb-6"
-                        style={{
-                            fontFamily: "var(--font-playfair)",
-                            fontSize: "clamp(3rem, 9vw, 7rem)",
-                        }}
-                    >
-                        Privacy <br />
-                        <span className="italic" style={{ color: "var(--rust)" }}>policy.</span>
-                    </h1>
-                    <p
-                        className="italic text-[var(--ink)]/65 max-w-2xl mx-auto leading-relaxed"
-                        style={{
-                            fontFamily: "var(--font-playfair)",
-                            fontSize: "clamp(1.1rem, 1.6vw, 1.4rem)",
-                        }}
-                    >
-                        Your privacy matters to us. How Tendso collects, uses, and protects your personal information.
-                    </p>
-
-                    <div className="w-px h-16 bg-gradient-to-b from-[var(--rust)] to-transparent mx-auto mt-12" aria-hidden />
-                </motion.div>
-
-                {/* CONTENT SECTIONS */}
-                <div className="w-full space-y-5">
-                    {policySections.map((section, idx) => {
-                        const Icon = section.icon;
-                        return (
-                            <motion.section
-                                key={idx}
-                                initial={{ opacity: 0, y: 24 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true, margin: "-50px" }}
-                                transition={{ delay: idx * 0.04, duration: 0.5 }}
-                                className="group p-7 sm:p-10 rounded-[1.75rem] bg-[var(--khaki-deep)] border border-[var(--ink)]/15 hover:border-[var(--rust)]/50 transition-all hover:shadow-xl hover:shadow-[var(--ink)]/10"
-                            >
-                                <div className="flex flex-col sm:flex-row gap-5 sm:gap-7 items-start">
-                                    <div className="p-3.5 bg-[var(--khaki)] border border-[var(--ink)]/15 rounded-2xl shrink-0">
-                                        <Icon className="w-6 h-6 text-[var(--rust)]" />
-                                    </div>
-                                    <div className="w-full min-w-0">
-                                        <p
-                                            className="text-[10px] uppercase tracking-[0.4em] font-medium text-[var(--rust)] mb-2"
-                                            style={{ fontFamily: "var(--font-mono)" }}
-                                        >
-                                            {section.marker}
-                                        </p>
-                                        <h3
-                                            className="text-2xl sm:text-3xl font-bold text-[var(--ink)] tracking-[-0.01em] mb-4 leading-tight"
-                                            style={{ fontFamily: "var(--font-playfair)" }}
-                                        >
-                                            {section.title}
-                                        </h3>
-                                        <div className="text-[var(--ink)]/75 text-[15px] sm:text-base leading-relaxed">
-                                            {section.content}
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.section>
-                        );
-                    })}
-                </div>
-
-                {/* CONTACT BANNER */}
-                <motion.div
-                    initial={{ opacity: 0, y: 24 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="w-full mt-20 p-10 sm:p-14 rounded-[2rem] bg-[var(--ink)] text-[var(--khaki)] text-center relative overflow-hidden"
-                >
-                    <div className="absolute -top-20 -right-20 w-[400px] h-[400px] bg-[var(--rust)]/20 rounded-full blur-[140px] pointer-events-none" aria-hidden />
-                    <div className="absolute -bottom-32 -left-20 w-[400px] h-[400px] bg-[var(--rust-soft)]/15 rounded-full blur-[140px] pointer-events-none" aria-hidden />
-
-                    <div className="relative z-10 flex flex-col items-center">
-                        <div className="flex items-center gap-3 justify-center mb-6">
-                            <span className="h-px w-10 bg-[var(--rust-soft)]/50" />
-                            <p
-                                className="text-[10px] uppercase tracking-[0.45em] font-medium text-[var(--rust-soft)]"
-                                style={{ fontFamily: "var(--font-mono)" }}
-                            >
-                                § 11 — CONTACT US
-                            </p>
-                            <span className="h-px w-10 bg-[var(--rust-soft)]/50" />
-                        </div>
-
-                        <h3
-                            className="font-bold tracking-[-0.01em] mb-5"
-                            style={{
-                                fontFamily: "var(--font-playfair)",
-                                fontSize: "clamp(2rem, 4vw, 3rem)",
-                            }}
-                        >
-                            Questions about <span className="italic" style={{ color: "var(--rust-soft)" }}>your data?</span>
-                        </h3>
-                        <p
-                            className="italic text-[var(--khaki)]/70 mb-8 max-w-xl mx-auto leading-relaxed"
-                            style={{
-                                fontFamily: "var(--font-playfair)",
-                                fontSize: "clamp(1.05rem, 1.5vw, 1.25rem)",
-                            }}
-                        >
-                            If you have any questions about this Privacy Policy or our data practices, reach out directly.
-                        </p>
-                        <a
-                            href="mailto:frmwrkd.media@gmail.com"
-                            className="inline-flex items-center gap-2 bg-[var(--rust)] hover:bg-[var(--rust-soft)] text-[var(--khaki)] px-8 py-4 rounded-full font-semibold text-base transition-colors"
-                        >
-                            frmwrkd.media@gmail.com
-                        </a>
-                    </div>
-                </motion.div>
-            </main>
-
-            <Footer />
-            <ScrollToTop />
-        </div>
+        <LegalDoc
+            doc="privacy"
+            title="Privacy policy"
+            intro={INTRO}
+            // The page has said "UPDATED FEB 2026" since this text was written.
+            updated="February 2026"
+            sections={policySections}
+            ask="Questions about your data?"
+        />
     );
 }

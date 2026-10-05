@@ -115,7 +115,7 @@ export function knowledgeArticleGraph(a: ArticleSchemaInput) {
             '@type': 'BreadcrumbList',
             itemListElement: [
                 { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
-                { '@type': 'ListItem', position: 2, name: 'Knowledge Base', item: abs('/knowledge') },
+                { '@type': 'ListItem', position: 2, name: 'Help Center', item: abs('/knowledge') },
                 { '@type': 'ListItem', position: 3, name: a.title, item: articleUrl },
             ],
         },
