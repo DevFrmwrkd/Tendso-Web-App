@@ -7,24 +7,28 @@
  * or contacting support. Auto-routes away if the admin later re-approves/clears.
  *
  * See docs/changes/CREATOR-PENDING-APPROVAL-PAGE.md.
+ *
+ * Round 1: the rejected state of the certification frame (board
+ * Certification, stage 4 "Not approved"). Same guards, same reason.
  */
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useUser, useClerk } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
+import { ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import { FootActions, FunnelFallback, FunnelFrame, NoteBlock, StepBody, StepCard, useSignOutToLogin } from "@/app/training/_funnel/FunnelFrame";
+import { Button, ButtonLink, Icon, Status, creatorStatus } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
-import { Loader2, XCircle, LogOut } from "lucide-react";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 export default function VerificationRejectedPage() {
     const { user, isLoaded, isSignedIn } = useUser();
-    const { signOut } = useClerk();
     const router = useRouter();
+    const signOut = useSignOutToLogin();
 
-    const creator = useQuery(
-        api.creators.getByClerkId,
-        user ? { clerkId: user.id } : "skip",
-    );
+    const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip");
 
     useEffect(() => {
         if (isLoaded && !isSignedIn) router.replace("/login");
@@ -41,67 +45,48 @@ export default function VerificationRejectedPage() {
         }
     }, [creator, router]);
 
-    const rejected = creator && creator.role !== "admin" && creator.rejectedAt;
+    const rejected = !!creator && creator.role !== "admin" && !!creator.rejectedAt;
 
-    if (!isLoaded || !isSignedIn || creator === undefined || !rejected) {
-        return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: "#FBF3E0" }}>
-                <Loader2 className="h-8 w-8 animate-spin" style={{ color: "#E4B05E" }} />
-            </div>
-        );
-    }
+    if (!isLoaded || !isSignedIn || !creator || !rejected) return <FunnelFallback view="rejected" creator={creator} />;
 
     const firstName = creator.firstName?.trim();
-    const reason = (creator as { rejectionReason?: string }).rejectionReason;
+    const reason = creator.rejectionReason;
 
     return (
-        <div
-            className="min-h-screen flex flex-col"
-            style={{ background: "#FBF3E0", color: "#5C3A0F", fontFamily: "var(--font-onest, sans-serif)" }}
-        >
-            <header className="flex justify-end p-4">
-                <button
-                    onClick={() => signOut(() => router.replace("/login"))}
-                    className="inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-full hover:bg-white/60 transition-colors"
-                    style={{ color: "#C89548" }}
-                >
-                    <LogOut className="w-4 h-4" />
-                    Sign out
-                </button>
-            </header>
-
-            <main className="flex-1 flex items-center justify-center px-6 pb-12">
-                <div className="w-full max-w-md text-center space-y-6">
-                    <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center" style={{ background: "#fde2e2" }}>
-                        <XCircle className="w-10 h-10" style={{ color: "#dc2626" }} />
-                    </div>
-
-                    <div>
-                        <h1 className="text-3xl font-bold" style={{ fontFamily: "var(--font-instrument-serif, serif)", color: "#5C3A0F" }}>
-                            Application not approved
-                        </h1>
-                        <p className="mt-3 text-base" style={{ color: "#C89548" }}>
-                            {firstName ? `${firstName}, ` : ""}we weren&apos;t able to approve your creator account this time.
-                        </p>
-                    </div>
-
+        <FunnelFrame view="rejected" creator={creator}>
+            <StepCard
+                status={<Status {...creatorStatus(creator, "creator")} />}
+                title="Application not approved"
+                intro={`${firstName ? `${firstName}, we` : "We"} weren't able to approve your creator account this time.`}
+                foot={
+                    <>
+                        <Button variant="ghost" onClick={signOut} className="self-start">
+                            Sign out
+                        </Button>
+                        <FootActions>
+                            <ButtonLink variant="primary" href="/contact">
+                                Contact support
+                                <Icon icon={ArrowRight} />
+                            </ButtonLink>
+                        </FootActions>
+                    </>
+                }
+            >
+                <StepBody>
                     {reason && (
-                        <div className="bg-white rounded-2xl p-5 text-left" style={{ border: "1px solid #F5E4C0" }}>
-                            <p className="text-[11px] font-medium tracking-wide uppercase mb-1" style={{ color: "#71717a", fontFamily: "var(--font-mono, monospace)" }}>
-                                Reason
-                            </p>
-                            <p className="text-sm" style={{ color: "#5C3A0F" }}>{reason}</p>
-                        </div>
+                        <NoteBlock label="Reason from the Tendso team">
+                            <p className="t-body">{reason}</p>
+                        </NoteBlock>
                     )}
-
-                    <div className="flex gap-3 text-left rounded-xl p-3.5" style={{ background: "#FBF3E0", borderLeft: "3px solid #E4B05E" }}>
-                        <span style={{ fontSize: 18 }}>✉️</span>
-                        <p className="text-xs leading-relaxed" style={{ color: "#C89548" }}>
-                            Think this is a mistake? Reach out to the Tendso team and we&apos;ll take another look.
-                        </p>
-                    </div>
-                </div>
-            </main>
-        </div>
+                    <p className="t-body">
+                        Think this is a mistake? Contact us and we&apos;ll take another look. You can also email{" "}
+                        <a className="t-link font-medium" href={`mailto:${SUPPORT_EMAIL}`}>
+                            {SUPPORT_EMAIL}
+                        </a>
+                        .
+                    </p>
+                </StepBody>
+            </StepCard>
+        </FunnelFrame>
     );
 }
