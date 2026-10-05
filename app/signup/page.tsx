@@ -1,142 +1,163 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { SignUp } from "@clerk/nextjs";
-import Image from "next/image";
 import Link from "next/link";
-import Logo from "@/public/tendso-logo.png";
-import { ArrowLeft } from "lucide-react";
-import { motion } from "framer-motion";
+
+import { Loading, Skeleton } from "@/components/r1";
+import { AUTH_BODY, AuthFrame, AuthTabs } from "@/app/auth/_components/AuthFrame";
+import { COMMISSION_RATE } from "@/lib/pricing";
+
+/**
+ * Create a creator account (board: SignIn, "Create account" tab).
+ *
+ * The form itself is still Clerk's <SignUp>, with the props it always had:
+ * hash routing, /onboarding after sign-up (where the creator record is made in
+ * Convex), /login as the way to sign in. Clerk keeps owning what the board
+ * does not draw: the email code, its own password rules, bot protection and
+ * the Google hand-off. Its look is the Round 1 one, set for every Clerk screen
+ * in components/providers/ConvexClerkProvider.tsx; the appearance below only
+ * seats it inside the board's card.
+ *
+ * Two things the board shows that Clerk words its own way: the button says
+ * "Continue", and the password hint is Clerk's rather than the four-bar meter.
+ */
+
+/**
+ * The earnings line, from lib/pricing. No peso figure on purpose: what a
+ * creator's half comes to depends on the price they sell at, and a number
+ * here would read as a promise (the same rule /for-creators follows).
+ */
+const SUB = `For creators who visit shops and turn them into websites. You keep ${Math.round(COMMISSION_RATE * 100)}% of every sale.`;
+
+/*
+ * Which step Clerk's form is on. With routing="hash" it keeps its own route
+ * after the "#" (#/verify-email-address for the email code, #/sso-callback on
+ * the way back from Google), so the page can give each step the board's
+ * heading. Only the first step has the tabs and the lines under the form. A
+ * step this page does not recognise (#/continue, or a name Clerk changes one
+ * day) keeps the first heading without them; the form itself is unaffected.
+ */
+type Step = "start" | "verify" | "finishing" | "more";
+
+function subscribeToHash(onChange: () => void) {
+    window.addEventListener("hashchange", onChange);
+    window.addEventListener("popstate", onChange);
+    return () => {
+        window.removeEventListener("hashchange", onChange);
+        window.removeEventListener("popstate", onChange);
+    };
+}
+
+function useSignUpStep(): Step {
+    const hash = useSyncExternalStore(subscribeToHash, () => window.location.hash, () => "");
+    const path = hash.replace(/^#\/?/, "").split("?")[0];
+    if (!path) return "start";
+    // "includes": the code step can also sit under #/continue/verify-…
+    if (path.includes("verify")) return "verify";
+    if (path.startsWith("sso-callback")) return "finishing";
+    return "more";
+}
+
+const HEADINGS: Record<Step, { title: string; sub: string }> = {
+    start: { title: "Create a creator account", sub: SUB },
+    // Clerk may send a code or a link, so the line names neither.
+    verify: { title: "Check your email", sub: "We sent you an email to confirm the address." },
+    // Back from Google. "5-question": the quiz in app/certification-quiz has five.
+    finishing: { title: "Setting up your account", sub: "Next comes a short training and a 5-question quiz." },
+    more: { title: "Create a creator account", sub: SUB },
+};
+
+/** The shape of Clerk's form while it loads: two names, email, password, the button, Google. */
+function FormSkeleton() {
+    const field = (label: string) => (
+        <div className="flex flex-col gap-1.5">
+            <Skeleton width={label} height={12} />
+            <Skeleton height={40} />
+        </div>
+    );
+    return (
+        <Loading label="Loading the sign-up form">
+            <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-3">
+                    {field("60%")}
+                    {field("60%")}
+                </div>
+                {field("25%")}
+                {field("35%")}
+                <Skeleton height={48} />
+                <Skeleton height={48} />
+            </div>
+        </Loading>
+    );
+}
 
 export default function SignupPage() {
+    const step = useSignUpStep();
+    const { title, sub } = HEADINGS[step];
+    const start = step === "start";
+
     return (
-        <div
-            className="min-h-screen w-full overflow-x-hidden relative flex items-start sm:items-center justify-center px-6 py-12 sm:py-16"
-            style={{ background: "var(--khaki)", color: "var(--ink)" }}
+        <AuthFrame
+            title={title}
+            sub={sub}
+            tabs={start ? <AuthTabs current="create" /> : undefined}
+            foot={
+                start ? (
+                    <p className="t-meta">
+                        Own a business? You don&apos;t need an account.{" "}
+                        <Link href="/start" className="t-link">
+                            Get a website
+                        </Link>
+                    </p>
+                ) : undefined
+            }
         >
-            {/* Paper grain */}
-            <div
-                className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-multiply"
-                style={{
-                    backgroundImage:
-                        "radial-gradient(circle at 25% 25%, var(--ink) 0.5px, transparent 1px), radial-gradient(circle at 75% 75%, var(--ink) 0.5px, transparent 1px)",
-                    backgroundSize: "4px 4px, 6px 6px",
-                }}
-            />
-            {/* Soft green halos */}
-            <div className="absolute -top-32 -right-20 w-[480px] h-[480px] bg-[var(--rust)]/8 rounded-full filter blur-[120px] pointer-events-none" />
-            <div className="absolute -bottom-40 -left-32 w-[520px] h-[520px] bg-[var(--rust-soft)]/12 rounded-full filter blur-[140px] pointer-events-none" />
-
-            {/* BACK TO HOME */}
-            <Link
-                href="/"
-                className="absolute top-6 left-6 md:top-10 md:left-10 flex items-center gap-2.5 text-[var(--ink)]/70 hover:text-[var(--rust)] transition-colors group z-20"
-            >
-                <span className="w-9 h-9 rounded-full border border-[var(--ink)]/15 bg-[var(--khaki-deep)] flex items-center justify-center shadow-sm group-hover:border-[var(--rust)]/50 transition-colors">
-                    <ArrowLeft className="w-4 h-4" />
-                </span>
-                <span className="font-semibold tracking-wide text-sm">Back home</span>
-            </Link>
-
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="w-full max-w-md mt-12 sm:mt-0 relative z-10"
-            >
-                {/* Section marker */}
-                <div className="flex items-center gap-3 mb-8 justify-center">
-                    <span className="h-px w-10 bg-[var(--rust)]/40" />
-                    <p
-                        className="text-[10px] uppercase tracking-[0.4em] font-medium text-[var(--rust)]"
-                        style={{ fontFamily: "var(--font-mono)" }}
-                    >
-                        ACCESS — NEW CREATOR
+            <div className={AUTH_BODY}>
+                <SignUp
+                    appearance={{
+                        // No logo (the header has it) and no second card or
+                        // heading (the page has them): Clerk's form sits in the
+                        // board's card as its body. Only the title and subtitle
+                        // are hidden, as before, not Clerk's whole header: on the
+                        // email-code step it can carry the address and its edit
+                        // button, the way back to fix a mistyped email.
+                        layout: { logoPlacement: "none" },
+                        elements: {
+                            rootBox: { width: "100%" },
+                            cardBox: { width: "100%", maxWidth: "none", border: "none", borderRadius: "0", boxShadow: "none" },
+                            card: { width: "100%", padding: "0", gap: "16px", border: "none", borderRadius: "0", boxShadow: "none", backgroundColor: "transparent" },
+                            headerTitle: { display: "none" },
+                            headerSubtitle: { display: "none" },
+                            main: { gap: "16px" },
+                            form: { gap: "16px" },
+                            // The board draws Google's G in ink, like the button on /login.
+                            socialButtonsProviderIcon__google: { filter: "grayscale(1) brightness(0)" },
+                            // Hide TikTok specifically — keep Google + others
+                            socialButtonsBlockButton__tiktok: { display: "none" },
+                            socialButtonsIconButton__tiktok: { display: "none" },
+                            socialButtonsProviderIcon__tiktok: { display: "none" },
+                        },
+                    }}
+                    routing="hash"
+                    forceRedirectUrl="/onboarding"
+                    signInUrl="/login"
+                    fallback={<FormSkeleton />}
+                />
+                {start && (
+                    <p className="t-meta text-center">
+                        By creating an account you agree to the{" "}
+                        <Link href="/terms-of-service" className="t-link">
+                            Terms
+                        </Link>{" "}
+                        and{" "}
+                        <Link href="/privacy-policy" className="t-link">
+                            Privacy Policy
+                        </Link>
+                        .
                     </p>
-                    <span className="h-px w-10 bg-[var(--rust)]/40" />
-                </div>
-
-                <div className="flex flex-col items-center mb-8">
-                    <Image src={Logo} alt="Tendso" width={170} height={31} className="mb-6 invert" />
-                    <h1
-                        style={{
-                            fontFamily: "var(--font-playfair)",
-                            fontSize: "clamp(2.25rem, 5vw, 3rem)",
-                        }}
-                        className="font-bold tracking-[-0.01em] text-center text-[var(--ink)] mb-2 leading-[1.05]"
-                    >
-                        Join as a <span className="italic" style={{ color: "var(--rust)" }}>creator.</span>
-                    </h1>
-                    <p
-                        className="text-[var(--ink)]/60 text-center italic max-w-xs leading-relaxed"
-                        style={{
-                            fontFamily: "var(--font-playfair)",
-                            fontSize: "1.05rem",
-                        }}
-                    >
-                        Earn ₱500 per submission (50% of every sale). Direct payouts via Wise.
-                    </p>
-                </div>
-
-                <div className="bg-[var(--khaki-deep)] border border-[var(--ink)]/15 p-6 sm:p-7 rounded-3xl shadow-xl shadow-[var(--ink)]/10">
-                    <div className="w-full flex justify-center custom-clerk-wrapper">
-                        <SignUp
-                            appearance={{
-                                elements: {
-                                    rootBox: "w-full",
-                                    card: "bg-transparent shadow-none p-0",
-                                    headerTitle: "hidden",
-                                    headerSubtitle: "hidden",
-                                    socialButtons: "w-full",
-                                    socialButtonsBlockButton:
-                                        "w-full border border-[#0f0e14]/15 bg-[#f4ede1] text-[#0f0e14] hover:bg-[#ebe2cf] hover:border-[#2d5a3f]/50 transition-colors rounded-xl",
-                                    // Hide TikTok specifically — keep Google + others
-                                    socialButtonsBlockButton__tiktok: "!hidden",
-                                    socialButtonsProviderIcon__tiktok: "!hidden",
-                                    socialButtonsBlockButtonText: "font-semibold text-sm text-[#0f0e14]",
-                                    formButtonPrimary:
-                                        "bg-[#0f0e14] hover:bg-[#2d5a3f] text-[#f4ede1] shadow-md shadow-[#0f0e14]/20 transition-colors font-semibold text-sm rounded-xl h-12 normal-case",
-                                    formFieldInput:
-                                        "bg-[#f4ede1] border border-[#0f0e14]/15 text-[#0f0e14] placeholder:text-[#0f0e14]/40 focus:border-[#2d5a3f] focus:ring-1 focus:ring-[#2d5a3f] rounded-xl h-12 text-[15px]",
-                                    formFieldLabel: "text-[10px] uppercase tracking-[0.3em] font-bold text-[#0f0e14]/70",
-                                    dividerLine: "bg-[#0f0e14]/15",
-                                    dividerText: "text-[#0f0e14]/50 font-medium text-[10px] uppercase tracking-[0.3em]",
-                                    footerActionText: "text-[#0f0e14]/65",
-                                    footerActionLink: "text-[#2d5a3f] hover:text-[#0f0e14] font-semibold underline decoration-[#2d5a3f]/40 underline-offset-4 italic",
-                                    identityPreviewText: "text-[#0f0e14]",
-                                    identityPreviewEditButtonIcon: "text-[#2d5a3f]",
-                                    formFieldInputShowPasswordButton: "text-[#0f0e14]/50 hover:text-[#0f0e14]",
-                                    formResendCodeLink: "text-[#2d5a3f] hover:text-[#0f0e14]",
-                                },
-                                variables: {
-                                    colorBackground: "#ebe2cf",
-                                    colorText: "#0f0e14",
-                                    colorPrimary: "#0f0e14",
-                                    colorInputText: "#0f0e14",
-                                    colorInputBackground: "#f4ede1",
-                                    fontFamily: "var(--font-plus-jakarta), system-ui, sans-serif",
-                                    borderRadius: "0.75rem",
-                                },
-                            }}
-                            routing="hash"
-                            forceRedirectUrl="/onboarding"
-                            signInUrl="/login"
-                        />
-                    </div>
-                </div>
-
-                <p
-                    className="text-center mt-7 text-sm text-[var(--ink)]/65"
-                    style={{ fontFamily: "var(--font-playfair)" }}
-                >
-                    Already have an account?{" "}
-                    <Link
-                        href="/login"
-                        className="font-semibold italic text-[var(--rust)] hover:text-[var(--ink)] transition-colors underline decoration-[var(--rust)]/40 underline-offset-4"
-                    >
-                        Log in
-                    </Link>
-                </p>
-            </motion.div>
-        </div>
+                )}
+            </div>
+        </AuthFrame>
     );
 }

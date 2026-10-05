@@ -23,12 +23,14 @@ const STATIC_PATHS: Array<{ path: string; priority: number; freq: MetadataRoute.
     // with nothing to index, it is linked from the navbar of every page so
     // crawlers cannot miss it, and ranking it would land cold search traffic in
     // a form instead of on the page that explains the offer.
+    //
+    // The Round 1 redesign merged /about into "/", /for-field-agents (and the
+    // old /creators) into /for-creators, and /help-faq and /contact into the
+    // Help Center. Those routes now 308 to their new home, so they are not
+    // listed either: their content is reachable at the URLs below.
     { path: "/", priority: 1, freq: "weekly" },
     { path: "/for-creators", priority: 0.8, freq: "monthly" },
-    { path: "/for-field-agents", priority: 0.8, freq: "monthly" },
-    { path: "/about", priority: 0.7, freq: "monthly" },
     { path: "/knowledge", priority: 0.9, freq: "daily" },
-    { path: "/help-faq", priority: 0.6, freq: "monthly" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

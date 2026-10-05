@@ -37,10 +37,13 @@ export type NavLinkEntry = {
     exact?: boolean;
     /** Extra paths that light this item (a merged screen's old routes). */
     alsoCurrent?: string[];
+    /** Overrides both rules above when the href alone cannot say it (a link that varies with data). */
+    isCurrent?: (pathname: string) => boolean;
 };
 export type NavEntry = NavLinkEntry | "separator";
 
 function isCurrent(pathname: string, e: NavLinkEntry): boolean {
+    if (e.isCurrent) return e.isCurrent(pathname);
     const paths = [e.href, ...(e.alsoCurrent ?? [])];
     return paths.some((p) => (e.exact ? pathname === p : pathname === p || pathname.startsWith(p + "/")));
 }
@@ -72,8 +75,12 @@ export type SidebarProps = {
     homeHref: string;
     /** "Admin" or "Staff", shown beside the wordmark. Creators and owners have none. */
     roleLabel?: string;
-    /** The creator's single primary action, under the logo. Owners and admins have none. */
-    primary?: { href: string; label: string; icon: LucideIcon };
+    /**
+     * The creator's single primary action, under the logo. Owners and admins
+     * have none. `currentPrefix` marks it as the current page inside its flow
+     * (New submission is current anywhere under /submit).
+     */
+    primary?: { href: string; label: string; icon: LucideIcon; currentPrefix?: string };
     items: NavEntry[];
     /** Items pinned to the foot, above the person (the creator's Notifications). */
     footItems?: NavLinkEntry[];
@@ -90,7 +97,12 @@ export function Sidebar({ homeHref, roleLabel, primary, items, footItems, me }: 
                 {roleLabel && <span className="t-brand-role">{roleLabel}</span>}
             </Link>
             {primary && (
-                <ButtonLink variant="primary" block href={primary.href}>
+                <ButtonLink
+                    variant="primary"
+                    block
+                    href={primary.href}
+                    aria-current={primary.currentPrefix && (pathname === primary.currentPrefix || pathname.startsWith(primary.currentPrefix + "/")) ? "page" : undefined}
+                >
                     <Icon icon={primary.icon} />
                     {primary.label}
                 </ButtonLink>

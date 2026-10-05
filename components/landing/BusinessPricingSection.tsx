@@ -1,96 +1,78 @@
 "use client";
 
-import Link from "next/link";
+import { ArrowRight, Check } from "lucide-react";
+
+import { ButtonLink, Icon, formatMoney } from "@/components/r1";
+import { BASE_PRICE } from "@/lib/pricing";
+
 import { useT } from "./i18n";
-import { Eyebrow, SectionHeading, Lead } from "./ui";
-import { BASE_PRICE, formatPHP } from "@/lib/pricing";
+import { LANDING_BAND, LANDING_WRAP, SectionHead } from "./layout";
 
 /**
- * Business pricing — a single ₱999+ tier. TRUE to lib/pricing.ts: ₱999 gets a
- * real website, live forever. The custom domain (lib/pricing CUSTOM_DOMAIN_PRICE)
- * is an OPTIONAL add-on, so per Theo's feedback it's demoted to a note under the
- * one tier rather than shown as a co-equal pricing card — the "+" signals the
- * optional upgrade honestly without headlining it. One-time, no monthly, pay only
- * when live. The CTA points at /start, the owner-intake funnel — so this section
- * is the price and the entrance in the same card. Owners still never "sign up":
+ * The price (board: Landing, #price). One price, one card, paid once and only
+ * when the site is live. The CTA points at /start, the owner-intake funnel, so
+ * this card is the price and the entrance in one. Owners never "sign up":
  * /start is anonymous end to end and no account exists at any point.
+ *
+ * WHAT THE CARD SAYS is what /start actually charges: BASE_PRICE (a self-serve
+ * owner with no campaign pays campaignSellPrice(null), which is BASE_PRICE).
+ * The Landing board draws a different story, the website at PRICE_CEILING and
+ * BASE_PRICE "when a Tendso creator signs you up", but /start would then quote
+ * less than this card. That story waits on the pricing rule, which is an open
+ * question in the Round 1 handoff, so the card keeps today's honest price.
+ *
+ * The custom domain is an optional add-on, so it stays a quiet note under the
+ * card rather than a second price (Theo's earlier feedback, kept).
+ *
+ * Phone first: the heading, then the card (the number the heading promises),
+ * then what is included. From 1024 the card moves into the right column beside
+ * both, as the board draws it.
  */
-
-function Check() {
-    return (
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="mt-0.5 flex-shrink-0" style={{ color: "var(--rust)" }}>
-            <path d="M20 6 9 17l-5-5" />
-        </svg>
-    );
-}
-
 export default function BusinessPricingSection() {
     const { t } = useT();
-
-    const features = [
-        t("price.stdF1"), t("price.stdF2"), t("price.stdF3"),
-        t("price.stdF4"), t("price.stdF5"), t("price.stdF6"),
-    ];
+    const included = [1, 2, 3, 4, 5, 6].map((n) => t(`r1.landing.price.inc${n}`));
 
     return (
-        <section id="pricing" className="bg-khaki">
-            <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
-                <div className="mx-auto max-w-2xl text-center">
-                    <Eyebrow>{t("price.eyebrow")}</Eyebrow>
-                    <SectionHeading className="mt-4">
-                        {formatPHP(BASE_PRICE)}
-                        <span style={{ color: "var(--rust)", fontWeight: 560 }}>+</span> {t("price.once")}{" "}
-                        <span className="italic" style={{ color: "var(--rust)", fontWeight: 560 }}>
-                            {t("price.liveForever")}
-                        </span>
-                    </SectionHeading>
-                    <Lead className="mx-auto mt-5 max-w-xl">{t("price.lede")}</Lead>
-                </div>
+        <section id="price" aria-labelledby="price-title" className={LANDING_BAND}>
+            <div className={`${LANDING_WRAP} py-12 sm:py-16 lg:py-20`}>
+                <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_400px] lg:grid-rows-[auto_1fr] lg:gap-x-16 xl:grid-cols-[minmax(0,1fr)_480px] xl:gap-x-24">
+                    <SectionHead
+                        id="price-title"
+                        title={t("r1.landing.price.title")}
+                        sub={t("r1.landing.price.sub")}
+                        className="lg:col-start-1 lg:row-start-1"
+                    />
 
-                <div className="mx-auto mt-12 max-w-md">
-                    <div className="relative flex flex-col rounded-2xl border-2 border-rust bg-khaki p-7 sm:p-8">
-                        <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-soft">
-                            {t("price.tierStandard")}
+                    <div className="t-card flex flex-col gap-6 p-6 sm:p-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
+                        <div className="flex flex-col gap-3">
+                            <span className="t-label">{t("r1.landing.price.tier")}</span>
+                            <span className="t-hero-fig">{formatMoney(BASE_PRICE)}</span>
+                            <p className="t-meta">{t("r1.landing.price.once")}</p>
                         </div>
-                        <p className="mt-3 max-w-[22ch] text-[15px] leading-snug text-ink-soft">{t("price.taglineStandard")}</p>
-
-                        <div className="mt-6 font-fraunces text-5xl text-ink" style={{ fontWeight: 560, fontOpticalSizing: "auto" }}>
-                            {formatPHP(BASE_PRICE)}
-                            <span style={{ color: "var(--rust)" }}>+</span>
-                        </div>
-                        <div className="mt-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-soft">
-                            {t("price.oneTime")}
-                        </div>
-
-                        <ul className="mt-6 flex flex-col gap-3">
-                            {features.map((f, i) => (
-                                <li key={i} className="flex items-start gap-2.5 text-sm leading-snug text-ink">
-                                    <Check />
-                                    <span>{f}</span>
-                                </li>
-                            ))}
-                        </ul>
-
-                        <Link
-                            href="/start"
-                            className="mt-8 inline-flex items-center justify-center gap-2 rounded-lg bg-ink px-5 py-3 text-sm font-semibold text-white transition-all hover:-translate-y-0.5"
-                        >
-                            {t("hero.ctaBusiness")}
-                            <span aria-hidden>→</span>
-                        </Link>
+                        <ButtonLink variant="primary" size="lg" block href="/start">
+                            {t("r1.landing.cta")}
+                            <Icon icon={ArrowRight} />
+                        </ButtonLink>
+                        <hr className="t-divider" />
+                        <p className="t-meta">{t("r1.landing.price.domain")}</p>
+                        <p className="t-meta">{t("r1.landing.price.domainAddon")}</p>
                     </div>
 
-                    {/* Custom domain — optional add-on, deliberately a quiet note under the
-                        single tier (not a co-equal card) per Theo's feedback that the domain
-                        is optional and shouldn't headline the pricing. */}
-                    <p className="mt-5 rounded-xl border border-dashed border-ink/20 px-5 py-4 text-center text-[13px] leading-relaxed text-ink-soft">
-                        {t("price.domainAddon")}
-                    </p>
+                    <div className="flex flex-col gap-8 lg:col-start-1 lg:row-start-2">
+                        <div className="flex flex-col gap-4">
+                            <h3 className="t-label">{t("r1.landing.price.included")}</h3>
+                            <ul className="flex flex-col gap-3">
+                                {included.map((item) => (
+                                    <li key={item} className="flex items-start gap-2.5 text-sm leading-5 text-r1-ink-2">
+                                        <Icon icon={Check} className="mt-0.5 flex-none text-r1-ink" />
+                                        <span>{item}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <p className="t-meta">{t("r1.landing.price.footnote")}</p>
+                    </div>
                 </div>
-
-                <p className="mx-auto mt-8 max-w-2xl text-center text-xs leading-relaxed text-ink-soft">
-                    {t("price.footnote")}
-                </p>
             </div>
         </section>
     );

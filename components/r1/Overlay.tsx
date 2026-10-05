@@ -6,6 +6,7 @@ import { useEffect, useId, useLayoutEffect, useRef, type MouseEvent, type ReactN
 import { Button } from "./Button";
 import { cx } from "./cx";
 import { Icon } from "./Icon";
+import { Toaster } from "./Toaster";
 
 /*
  * Overlays are native <dialog> elements opened with showModal(): the platform
@@ -39,6 +40,9 @@ function useModal(open: boolean, onClose: () => void) {
     }, []);
 
     const onCancel = (e: SyntheticEvent<HTMLDialogElement>) => {
+        // React hands a nested dialog's cancel (Esc) to its parents' handlers
+        // too: a Dialog opened from inside a Drawer must close itself only.
+        if (e.target !== e.currentTarget) return;
         e.preventDefault();
         onClose();
     };
@@ -107,6 +111,8 @@ export function Drawer({
                     </div>
                     <div className={cx("t-drawer-body", bodyClassName)}>{children}</div>
                     {footer && <div className="t-drawer-foot">{footer}</div>}
+                    {/* Toasts must paint above the drawer: see Toaster.tsx. */}
+                    <Toaster inOverlay />
                 </>
             )}
         </dialog>
@@ -155,6 +161,7 @@ export function Dialog({
                         </div>
                     )}
                     {footer && <div className="t-dialog-foot">{footer}</div>}
+                    <Toaster inOverlay />
                 </>
             )}
         </dialog>

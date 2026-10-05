@@ -14,101 +14,40 @@
  * instead of cancel-then-rebook.
  *
  * Wears the same frame and the same calendar as /field-agent/book, from the
- * same two components. It is the same flow at a later moment, so it should not
- * look like a different product.
+ * same components (Round 1, board BookCall: "Your call", "New time", "Done").
+ * It is the same flow at a later moment, so it should not look like a
+ * different product.
  */
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Calendar } from "lucide-react";
+import { Suspense, useCallback, useEffect, useState, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAction, useQuery } from "convex/react";
-import { CalendarPlus, Video } from "lucide-react";
 
+import { Button, ButtonLink, ConfirmDialog, EmptyState, ErrorState, Icon, Loading, Skeleton, Status, bookingStatus } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import BookingShell from "../_components/BookingShell";
-import SlotPicker, { type Day, type Slot } from "../_components/SlotPicker";
-
-const INK = "#1B1B22";
-const PAPER = "#F3F0EA";
-const GOLD = "#D4A146";
-const MUTED = "#8F8B83";
-const WHITE = "#FFFFFF";
-const RULE = "#E6E1D7";
-const DISABLED = "#D8D4CC";
+import { ActionBar, CallTicket, Notice, PickedTime } from "../_components/CallCard";
+import { addToCalendarUrl, formatDay, formatDayShort, formatTime, maskEmail } from "../_components/callTime";
+import SlotPicker, { SlotPickerSkeleton, manilaKeyOf, type Day, type Slot } from "../_components/SlotPicker";
 
 const STEPS = ["Your call", "New time", "Done"];
 
-function formatDay(ms: number): string {
-    return new Date(ms).toLocaleDateString("en-US", {
-        timeZone: "Asia/Manila",
-        weekday: "long",
-        month: "long",
-        day: "numeric",
-    });
+/** A screen that is not a step: a link that does not work, or a call that can no longer change. */
+function MessageCard({ children, action }: { children: ReactNode; action?: boolean }) {
+    return (
+        <div className="mx-auto w-full max-w-[560px]">
+            <div className="t-card flex flex-col items-start gap-4 px-5 py-8 sm:px-6">
+                {children}
+                {action && (
+                    <ButtonLink variant="primary" href="/field-agent/book">
+                        Book a time
+                    </ButtonLink>
+                )}
+            </div>
+        </div>
+    );
 }
-
-function formatTime(ms: number): string {
-    return new Date(ms).toLocaleTimeString("en-US", {
-        timeZone: "Asia/Manila",
-        hour: "numeric",
-        minute: "2-digit",
-    });
-}
-
-/**
- * Google's own add-to-calendar URL. Worth offering after a move in particular:
- * if they saved the call to their calendar when they booked, that copy still
- * points at the old time and nothing we do to our calendar fixes theirs.
- */
-function addToCalendarUrl(startMs: number, meetUrl: string | null): string {
-    const stamp = (ms: number) =>
-        new Date(ms).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
-    const params = new URLSearchParams({
-        action: "TEMPLATE",
-        text: "10-Minute-Meeting with Tendso",
-        dates: `${stamp(startMs)}/${stamp(startMs + 10 * 60_000)}`,
-        details: meetUrl ? `Google Meet: ${meetUrl}` : "Your Google Meet link is in your email.",
-        ctz: "Asia/Manila",
-    });
-    return `https://calendar.google.com/calendar/render?${params.toString()}`;
-}
-
-const PRIMARY: React.CSSProperties = {
-    padding: "13px 22px",
-    borderRadius: 999,
-    border: "none",
-    background: INK,
-    color: PAPER,
-    fontSize: 14,
-    fontWeight: 700,
-    cursor: "pointer",
-    font: "inherit",
-    textDecoration: "none",
-    display: "inline-block",
-};
-
-const QUIET: React.CSSProperties = {
-    border: "none",
-    background: "none",
-    padding: 0,
-    color: MUTED,
-    fontSize: 14,
-    fontWeight: 600,
-    cursor: "pointer",
-    font: "inherit",
-    textDecoration: "underline",
-};
-
-const SECONDARY: React.CSSProperties = {
-    padding: "13px 22px",
-    borderRadius: 999,
-    border: `1px solid ${DISABLED}`,
-    background: "transparent",
-    color: INK,
-    fontSize: 14,
-    fontWeight: 600,
-    cursor: "pointer",
-    font: "inherit",
-};
 
 function ManageFlow() {
     const params = useSearchParams();
@@ -128,20 +67,27 @@ function ManageFlow() {
         wantsCancel ? "confirmCancel" : "view",
     );
     const [days, setDays] = useState<Day[] | null>(null);
+    const [loadFailed, setLoadFailed] = useState(false);
     const [activeDay, setActiveDay] = useState<string | null>(null);
+    const [picked, setPicked] = useState<Slot | null>(null);
     const [busy, setBusy] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [done, setDone] = useState<"moved" | "cancelled" | null>(null);
+    // Where the call was and where it went. The ticket reads the new time from
+    // here rather than from the booking query, which can land a beat after the
+    // action returns and would flash the old time first.
+    const [moved, setMoved] = useState<{ fromMs: number; toMs: number } | null>(null);
 
     const loadSlots = useCallback(async () => {
         try {
             const res = await getAvailability({});
+            setLoadFailed(false);
             setDays(res.days);
             setActiveDay((cur) =>
                 cur && res.days.some((d) => d.dateKey === cur) ? cur : (res.days[0]?.dateKey ?? null),
             );
         } catch {
-            setError("Couldn't load available times. Please refresh.");
+            setLoadFailed(true);
             setDays([]);
         }
     }, [getAvailability]);
@@ -150,14 +96,29 @@ function ManageFlow() {
         if (mode === "pick" && days === null) void loadSlots();
     }, [mode, days, loadSlots]);
 
-    async function pick(slot: Slot) {
+    // Each screen starts at the top: Reschedule and Move my call sit low on a
+    // phone, and the screen after them would otherwise open part-way down.
+    // (Opening the cancel dialog is not a new screen, so it does not count.)
+    const screen = done ?? (mode === "pick" ? "pick" : "view");
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [screen]);
+
+    async function move() {
+        if (!picked || !booking) return;
+        const fromMs = booking.startMs;
+        const toMs = picked.startMs;
         setBusy(true);
         setError(null);
         try {
-            const res = await reschedule({ token, newStartMs: slot.startMs });
-            if (res.ok) setDone("moved");
-            else {
+            const res = await reschedule({ token, newStartMs: toMs });
+            if (res.ok) {
+                setMoved({ fromMs, toMs });
+                setPicked(null);
+                setDone("moved");
+            } else {
                 setError(res.error);
+                setPicked(null);
                 setDays(null); // the grid is stale if someone beat us to it
                 void loadSlots();
             }
@@ -182,223 +143,287 @@ function ManageFlow() {
         }
     }
 
-    const step = done ? 2 : mode === "pick" ? 1 : 0;
-
-    const frame = (
-        title: React.ReactNode,
-        subtitle: string,
-        body: React.ReactNode,
-        centered = false,
-        lede?: React.ReactNode,
-    ) => (
-        <BookingShell
-            steps={STEPS}
-            activeStep={step}
-            title={title}
-            lede={lede}
-            subtitle={subtitle}
-            centered={centered}
-        >
-            {body}
-        </BookingShell>
-    );
-
-    const notice = (text: string, cta = true) =>
-        frame(
-            <>
-                Your <span style={{ color: GOLD }}>10-minute</span> call
-            </>,
-            text,
-            cta ? (
-                <a href="/field-agent/book" style={PRIMARY}>
-                    Book a time
-                </a>
-            ) : null,
-            true,
-        );
-
-    if (!token) return notice("This link is missing its code. Open the link from your confirmation email.", false);
-    if (booking === undefined) return notice("Loading your booking…", false);
-    if (booking === null) return notice("That link is no longer valid. If you still need a call, book a new one.");
-
-    if (done === "cancelled") {
-        return frame(
-            <>
-                Your call is <span style={{ color: GOLD }}>cancelled</span>
-            </>,
-            "That time is open again, and we've emailed you a confirmation.",
-            <a href="/field-agent/book" style={PRIMARY}>
-                Book another time
-            </a>,
-            true,
+    if (!token) {
+        return (
+            <BookingShell title="Your 10-minute call">
+                <MessageCard>
+                    <p className="t-body">This link is missing its code. Open the link from your confirmation email.</p>
+                </MessageCard>
+            </BookingShell>
         );
     }
 
-    if (done === "moved") {
-        // The new time IS the headline. "Your call has moved" was the largest
-        // thing on this screen and it answers a question nobody asked — they
-        // pressed the button, they know it moved. What they came to find out is
-        // when, so that goes in the 52px type and the day goes right under it.
-        return frame(
-            <>
-                Moved to <span style={{ color: GOLD }}>{formatTime(booking.startMs)}</span>
-            </>,
-            "Your Google Meet link is unchanged, so the one you already have still works. We've emailed you the new details.",
-            <>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-                    {booking.meetUrl && (
-                        <a
-                            href={booking.meetUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ ...PRIMARY, display: "inline-flex", alignItems: "center", gap: 8 }}
-                        >
-                            <Video className="h-4 w-4" /> Join with Google Meet
-                        </a>
-                    )}
-                    <a
-                        href={addToCalendarUrl(booking.startMs, booking.meetUrl)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ ...SECONDARY, display: "inline-flex", alignItems: "center", gap: 8 }}
-                    >
-                        <CalendarPlus className="h-4 w-4" /> Update your calendar
-                    </a>
+    if (booking === undefined) {
+        return (
+            <BookingShell title="Your 10-minute call">
+                <Loading label="Loading your booking" className="mx-auto w-full max-w-[560px]">
+                    <div className="t-card flex flex-col gap-4 p-5 sm:p-6" aria-hidden="true">
+                        <div className="flex items-center justify-between gap-4">
+                            <Skeleton width={150} height={12} />
+                            <Skeleton width={64} height={12} />
+                        </div>
+                        <Skeleton width={140} height={32} />
+                        <Skeleton width={200} height={16} />
+                        <hr className="t-divider" />
+                        <div className="grid grid-cols-2 gap-4">
+                            {Array.from({ length: 4 }, (_, i) => (
+                                <div key={i} className="flex flex-col gap-2">
+                                    <Skeleton width={60} height={10} />
+                                    <Skeleton width="80%" height={12} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </Loading>
+            </BookingShell>
+        );
+    }
+
+    if (booking === null) {
+        return (
+            <BookingShell title="Your 10-minute call">
+                <MessageCard action>
+                    <p className="t-body">That link is no longer valid. If you still need a call, book a new one.</p>
+                </MessageCard>
+            </BookingShell>
+        );
+    }
+
+    const when = `${formatDay(booking.startMs)} · ${formatTime(booking.startMs)}`;
+
+    if (done === "cancelled") {
+        return (
+            <BookingShell title="Your call is cancelled" steps={STEPS} current={STEPS.length}>
+                <div className="mx-auto w-full max-w-[560px]">
+                    <article className="t-card flex flex-col items-start gap-4 px-5 py-8 sm:px-6" aria-label="Cancelled booking">
+                        <Status {...bookingStatus({ status: "cancelled" })} />
+                        <div className="flex flex-col gap-1">
+                            <span className="t-h2 t-num line-through decoration-r1-ink-4">{when}</span>
+                            <p className="t-body">
+                                That time is open again, and we emailed you a confirmation. Your Meet link no longer works.
+                            </p>
+                        </div>
+                        <ButtonLink variant="primary" href="/field-agent/book">
+                            Book another time
+                        </ButtonLink>
+                    </article>
                 </div>
+            </BookingShell>
+        );
+    }
 
-                <p style={{ margin: 0, fontSize: 14, color: MUTED, maxWidth: 420 }}>
-                    We&apos;ll send a reminder before the call. If your own calendar still shows the
-                    old time, the button above replaces it.
-                </p>
-
-                <button
-                    type="button"
-                    onClick={() => {
-                        setDone(null);
-                        setMode("view");
-                    }}
-                    style={QUIET}
-                >
-                    Change or cancel again
-                </button>
-            </>,
-            true,
-            formatDay(booking.startMs),
+    if (done === "moved" && moved) {
+        // The new time is the big figure on the ticket: they pressed the
+        // button, they know it moved; what they came to find out is when.
+        return (
+            <BookingShell title="Your call has moved" steps={STEPS} current={STEPS.length}>
+                <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4">
+                    <p className="t-meta t-num">
+                        Moved from {formatDayShort(moved.fromMs)} · {formatTime(moved.fromMs)}.
+                    </p>
+                    <CallTicket
+                        status={bookingStatus({ status: booking.status, startMs: moved.toMs })}
+                        time={formatTime(moved.toMs)}
+                        day={formatDay(moved.toMs)}
+                        meetUrl={booking.meetUrl}
+                        name={booking.name}
+                        email={maskEmail(booking.email)}
+                    >
+                        <p className="t-body">
+                            Your Google Meet link is unchanged, so the one you already have still works. We emailed you the new time.
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <ButtonLink
+                                variant="primary"
+                                href={addToCalendarUrl(moved.toMs, booking.meetUrl)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                <Icon icon={Calendar} />
+                                Update your calendar
+                            </ButtonLink>
+                            <Button
+                                variant="ghost"
+                                onClick={() => {
+                                    setDone(null);
+                                    setMoved(null);
+                                    // The grid from before the move still shows the old
+                                    // time taken and the new one free; load it fresh.
+                                    setDays(null);
+                                    setMode("view");
+                                }}
+                            >
+                                Change or cancel again
+                            </Button>
+                        </div>
+                    </CallTicket>
+                </div>
+            </BookingShell>
         );
     }
 
     if (!booking.manageable) {
-        return notice(
-            booking.status === "cancelled"
-                ? "This call was cancelled, and that time is already open again."
-                : "This call has passed. Bookings can only be changed before they start.",
+        const wasCancelled = booking.status === "cancelled";
+        return (
+            <BookingShell title="Your 10-minute call">
+                <MessageCard action>
+                    {wasCancelled && <Status {...bookingStatus({ status: "cancelled" })} />}
+                    <div className="flex flex-col gap-1">
+                        <span className={wasCancelled ? "t-h2 t-num line-through decoration-r1-ink-4" : "t-h2 t-num"}>{when}</span>
+                        <p className="t-body">
+                            {wasCancelled
+                                ? "This call was cancelled, and that time is already open again."
+                                : "This call has passed. Bookings can only be changed before they start."}
+                        </p>
+                    </div>
+                </MessageCard>
+            </BookingShell>
         );
     }
-
-    const errorNote = error && (
-        <p
-            style={{
-                margin: 0,
-                background: WHITE,
-                border: `1px solid ${RULE}`,
-                borderLeft: `3px solid ${GOLD}`,
-                borderRadius: 12,
-                padding: "14px 16px",
-                fontSize: 14,
-            }}
-        >
-            {error}
-        </p>
-    );
 
     if (mode === "pick") {
-        return frame(
-            <>
-                Pick a <span style={{ color: GOLD }}>new time</span>
-            </>,
-            "Your Google Meet link stays the same, so anything you've already saved keeps working.",
-            <>
-                {errorNote}
-                {days === null && <p style={{ margin: 0, fontSize: 14, color: MUTED }}>Loading available times…</p>}
-                {days?.length === 0 && (
-                    <p style={{ margin: 0, fontSize: 15, color: MUTED }}>No times are open right now.</p>
-                )}
-                {days && days.length > 0 && (
-                    <SlotPicker
-                        days={days}
-                        activeDay={activeDay}
-                        onSelectDay={setActiveDay}
-                        onPickSlot={pick}
-                        disabled={busy}
+        const pickedDay = picked ? (days?.find((d) => d.slots.some((s) => s.startMs === picked.startMs))?.label ?? null) : null;
+        const moveButton = (
+            <Button variant="primary" size="lg" className="flex-none lg:w-full" disabled={!picked || busy} aria-busy={busy} onClick={move}>
+                {busy ? "Moving…" : "Move my call"}
+            </Button>
+        );
+        return (
+            <BookingShell title="Pick a new time" steps={STEPS} current={1} phoneBar={!loadFailed && days?.length !== 0}>
+                {error && <Notice>{error}</Notice>}
+                {loadFailed ? (
+                    <ErrorState
+                        what="Available times"
+                        onRetry={() => {
+                            setLoadFailed(false);
+                            setDays(null); // the effect above loads them again
+                        }}
+                        className="t-card"
                     />
+                ) : days?.length === 0 ? (
+                    <EmptyState className="t-card" title="No times are open right now." />
+                ) : (
+                    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start lg:gap-12">
+                        {days === null ? (
+                            <SlotPickerSkeleton />
+                        ) : (
+                            <SlotPicker
+                                days={days}
+                                activeDay={activeDay}
+                                onSelectDay={(key) => {
+                                    setActiveDay(key);
+                                    setPicked(null);
+                                }}
+                                selected={picked?.startMs ?? null}
+                                onSelect={(slot) => {
+                                    setPicked(slot);
+                                    setError(null);
+                                }}
+                                mine={booking.startMs}
+                                disabled={busy}
+                            />
+                        )}
+
+                        <aside className="t-card flex flex-col gap-5 p-5 sm:p-6 lg:sticky lg:top-6" aria-label="Moving your call">
+                            <h2 className="t-h2">Moving your call</h2>
+                            <div className="flex flex-col gap-1">
+                                <span className="t-label">Now</span>
+                                <span className="t-body t-num">
+                                    {formatDayShort(booking.startMs)} · {formatTime(booking.startMs)}
+                                </span>
+                            </div>
+                            <div className="max-lg:hidden">
+                                <PickedTime label="New time" time={picked?.label} day={pickedDay} />
+                            </div>
+                            <p className="t-meta">Your Google Meet link stays the same, so anything you already saved keeps working.</p>
+                            <div className="flex flex-col gap-2">
+                                <div className="flex flex-col max-lg:hidden">{moveButton}</div>
+                                <Button
+                                    variant="ghost"
+                                    block
+                                    onClick={() => {
+                                        setPicked(null);
+                                        setError(null);
+                                        setMode("view");
+                                    }}
+                                >
+                                    Keep my current time
+                                </Button>
+                            </div>
+                        </aside>
+
+                        <ActionBar>
+                            <PickedTime label="New time" time={picked?.label} day={pickedDay} compact />
+                            {moveButton}
+                        </ActionBar>
+                    </div>
                 )}
-                <button type="button" onClick={() => setMode("view")} style={{ ...SECONDARY, alignSelf: "flex-start" }}>
-                    ‹ Keep my current time
-                </button>
-            </>,
+            </BookingShell>
         );
     }
 
-    return frame(
-        <>
-            Your call is at <span style={{ color: GOLD }}>{formatTime(booking.startMs)}</span>
-        </>,
-        "Move it to another time, or cancel it and free the slot for someone else.",
-        <>
-            {errorNote}
-
-            {mode === "confirmCancel" ? (
-                <div
-                    style={{
-                        background: WHITE,
-                        border: `1px solid ${RULE}`,
-                        borderRadius: 20,
-                        padding: 24,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 16,
-                        maxWidth: 520,
-                        textAlign: "center",
-                    }}
+    return (
+        <BookingShell title="Your 10-minute call" steps={STEPS} current={0}>
+            <div className="mx-auto flex w-full max-w-[560px] flex-col gap-4">
+                {error && mode !== "confirmCancel" && <Notice>{error}</Notice>}
+                <CallTicket
+                    status={bookingStatus({ status: booking.status, startMs: booking.startMs })}
+                    time={formatTime(booking.startMs)}
+                    day={formatDay(booking.startMs)}
+                    meetUrl={booking.meetUrl}
+                    name={booking.name}
+                    email={maskEmail(booking.email)}
                 >
-                    <p style={{ margin: 0, fontSize: 15 }}>
-                        Cancel this call? The time goes back on offer, and your Meet link stops
-                        working.
-                    </p>
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-                        <button type="button" onClick={doCancel} disabled={busy} style={PRIMARY}>
-                            {busy ? "Cancelling…" : "Yes, cancel it"}
-                        </button>
-                        <button type="button" onClick={() => setMode("view")} style={SECONDARY}>
-                            Keep it
-                        </button>
-                    </div>
-                </div>
-            ) : (
-                <>
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center" }}>
-                        <button type="button" onClick={() => setMode("pick")} style={PRIMARY}>
-                            Reschedule
-                        </button>
-                        <button type="button" onClick={() => setMode("confirmCancel")} style={SECONDARY}>
-                            Cancel this call
-                        </button>
-                    </div>
-                    {booking.meetUrl && (
-                        <a
-                            href={booking.meetUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ ...QUIET, display: "inline-flex", alignItems: "center", gap: 8 }}
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                            variant="primary"
+                            onClick={() => {
+                                setError(null);
+                                setPicked(null);
+                                // Open the calendar on the day the call is on now, when
+                                // that day is on offer (loadSlots checks it once loaded).
+                                const key = manilaKeyOf(booking.startMs);
+                                setActiveDay((cur) => (days === null || days.some((d) => d.dateKey === key) ? key : cur));
+                                setMode("pick");
+                            }}
                         >
-                            <Video className="h-4 w-4" /> Join with Google Meet
-                        </a>
-                    )}
-                </>
-            )}
-        </>,
-        true,
-        formatDay(booking.startMs),
+                            Reschedule
+                        </Button>
+                        <Button
+                            variant="danger"
+                            onClick={() => {
+                                setError(null);
+                                setMode("confirmCancel");
+                            }}
+                        >
+                            Cancel this call
+                        </Button>
+                    </div>
+                    <p className="t-meta">Moving the call keeps the same Google Meet link.</p>
+                </CallTicket>
+            </div>
+
+            <ConfirmDialog
+                open={mode === "confirmCancel"}
+                onCancel={() => {
+                    setError(null);
+                    setMode("view");
+                }}
+                onConfirm={doCancel}
+                busy={busy}
+                title="Cancel this call?"
+                confirmLabel={busy ? "Cancelling…" : "Yes, cancel it"}
+            >
+                <p className="t-num">
+                    {formatDay(booking.startMs)} at {formatTime(booking.startMs)}. The time goes back on offer and your Google Meet link stops working.
+                </p>
+                {error && (
+                    <p className="t-error" role="alert">
+                        {error}
+                    </p>
+                )}
+            </ConfirmDialog>
+        </BookingShell>
     );
 }
 

@@ -1,8 +1,9 @@
-import type { Article, Category, Faq } from "./types";
+import type { ArticleCard, Category } from "./types";
 
-/* Client-side instant search (palette + results page). Mirrors the design
-   prototype's search.jsx scorer. The grounded *AI* answer is a separate path
-   (AnswerCard → convex knowledgeAI.ask). */
+/* Client-side instant search for the command palette. The grounded *AI*
+   answer is a separate path (CommandPalette → convex knowledgeAI.ask). The
+   scorer is the one the Help Center has always used: title, then keywords,
+   then summary, then body. */
 
 const STOP = new Set(
     "the a an to my of for is in on at it as how do i can what where when why with your you our we".split(" "),
@@ -15,14 +16,14 @@ export function terms(q: string): string[] {
         .filter((t) => t.length >= 2 && !STOP.has(t));
 }
 
-function bodyText(a: Article): string {
-    return a.body
+function bodyText(a: ArticleCard): string {
+    return (a.body ?? [])
         .map((b) => ("text" in b ? b.text : "items" in b ? b.items.join(" ") : ""))
         .join(" ")
         .toLowerCase();
 }
 
-function scoreArticle(a: Article, ts: string[]): number {
+function scoreArticle(a: ArticleCard, ts: string[]): number {
     const title = a.title.toLowerCase();
     const sum = a.summary.toLowerCase();
     const kw = (a.keywords || []).join(" ").toLowerCase();
@@ -39,7 +40,8 @@ function scoreArticle(a: Article, ts: string[]): number {
     return s;
 }
 
-export function searchArticles(q: string, articles: Article[], limit = 8): Article[] {
+/** Articles that match, best first. */
+export function searchArticles<T extends ArticleCard>(q: string, articles: T[], limit = 8): T[] {
     const ts = terms(q);
     if (!ts.length) return [];
     return articles
@@ -50,55 +52,44 @@ export function searchArticles(q: string, articles: Article[], limit = 8): Artic
         .map((r) => r.item);
 }
 
-export function searchAll(
-    q: string,
-    data: { articles: Article[]; categories: Category[]; faqs: Faq[] },
-): { articles: Article[]; categories: Category[]; faqs: Faq[] } {
+/** Categories (topics) that match, best first. */
+export function searchCategories(q: string, categories: Category[], limit = 3): Category[] {
     const ts = terms(q);
-    if (!ts.length) return { articles: [], categories: [], faqs: [] };
-
-    const articles = searchArticles(q, data.articles, 6);
-
-    const categories = data.categories
+    if (!ts.length) return [];
+    return categories
         .map((c) => {
-            const txt = (c.title + " " + c.description).toLowerCase();
+            const title = c.title.toLowerCase();
+            const txt = `${title} ${c.description.toLowerCase()}`;
             let s = 0;
             for (const t of ts) {
-                if (c.title.toLowerCase().includes(t)) s += 5;
+                if (title.includes(t)) s += 5;
                 if (txt.includes(t)) s += 2;
             }
             return { item: c, score: s };
         })
         .filter((r) => r.score > 0)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 4)
+        .slice(0, limit)
         .map((r) => r.item);
+}
 
-    const faqs = data.faqs
+/** Questions (the FAQs, and the creator questions that came from /help-faq) that match, best first. */
+export function searchQuestions<T extends { question: string; answer: string }>(q: string, items: T[], limit = 3): T[] {
+    const ts = terms(q);
+    if (!ts.length) return [];
+    return items
         .map((f) => {
-            const txt = (f.question + " " + f.answer).toLowerCase();
+            const question = f.question.toLowerCase();
+            const txt = `${question} ${f.answer.toLowerCase()}`;
             let s = 0;
             for (const t of ts) {
-                if (f.question.toLowerCase().includes(t)) s += 4;
+                if (question.includes(t)) s += 4;
                 if (txt.includes(t)) s += 2;
             }
             return { item: f, score: s };
         })
         .filter((r) => r.score > 0)
         .sort((a, b) => b.score - a.score)
-        .slice(0, 3)
+        .slice(0, limit)
         .map((r) => r.item);
-
-    return { articles, categories, faqs };
-}
-
-/** Split text into matched/unmatched parts for <mark> highlighting. */
-export function highlightParts(text: string, q: string): { m: boolean; text: string }[] {
-    const ts = terms(q);
-    if (!ts.length) return [{ m: false, text }];
-    const re = new RegExp("(" + ts.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")", "ig");
-    const parts = text.split(re);
-    return parts
-        .filter((p) => p !== "")
-        .map((p) => ({ m: ts.includes(p.toLowerCase()), text: p }));
 }

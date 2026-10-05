@@ -1,64 +1,54 @@
-"use client";
-
-import { LanguageProvider } from "@/components/landing/i18n";
-import Navbar from "@/components/landing/Navbar";
-import Footer from "@/components/landing/Footer";
-import ScrollToTop from "@/components/landing/ScrollToTop";
-
-import HeroSection from "@/components/landing/HeroSection";
-import RealSitesSection from "@/components/landing/RealSitesSection";
-import ProcessSection from "@/components/landing/ProcessSection";
 import BusinessPricingSection from "@/components/landing/BusinessPricingSection";
-import ManifestoSection from "@/components/landing/ManifestoSection";
-import FaqSection from "@/components/landing/FaqSection";
-import CtaSection from "@/components/landing/CtaSection";
-
-import StickyCTA from "@/components/landing/StickyCTA";
 import ChatBot from "@/components/landing/ChatBot";
-import ScrollReveal from "@/components/landing/ScrollReveal";
+import CtaSection from "@/components/landing/CtaSection";
+import FaqSection from "@/components/landing/FaqSection";
+import HeroSection from "@/components/landing/HeroSection";
+import HowItWorks from "@/components/landing/HowItWorks";
+import { LanguageProvider } from "@/components/landing/i18n";
+import RealSitesSection from "@/components/landing/RealSitesSection";
+import { PublicFooter, PublicHeader, PublicPage } from "@/components/r1";
 
 /**
- * Tendso landing — WordPress-informed, modern-SaaS system on the brand palette
- * (warm paper + one gold accent, Fraunces display + Plus Jakarta body). Every
- * section is data-true (no fabricated counters/creators/testimonials) and
- * bilingual (EN/TL). Owners are customers only — no owner signup anywhere.
+ * Tendso landing (/), in the Round 1 look (board: Landing). White ground,
+ * Instrument Serif titles, Onest for everything else, all from the shared
+ * Round 1 tokens and components.
  *
- * Owner-first narrative: hero → real-sites proof → pricing → how it works
- * (process) → FAQ → manifesto → final CTA → footer. Creator content lives on
- * /for-creators; the homepage keeps only a secondary creator pointer.
+ * OWNER-FIRST. The paying customer is the business owner, so every primary
+ * action is "Get a website" into /start, and creators keep a secondary path
+ * (the hero line, the closing line, the header link and the footer) to
+ * /for-creators, where their pitch lives.
  *
- * ChatBot still uses the legacy `.neo` tokens, so it keeps a minimal wrapper
- * until it's converted; everything else runs on brand tokens.
+ * THE ORDER IS THE BOARD'S: hero → real sites (#sites) → how it works (#how)
+ * → price (#price) → questions (#faq) → closing band → footer. The shared
+ * header links to those three anchors from every public page.
+ *
+ * DATA-TRUE, as before: no invented counters, creators or testimonials. The
+ * only live data is the curated list of real client sites.
+ *
+ * BILINGUAL (EN/TL), through LanguageProvider and the header's EN/TL switch.
+ * Copy lives in components/landing/strings/landing.ts.
+ *
+ * What the old page had and this one does not, on purpose: the sticky CTA pill
+ * (it overlapped the price button; the header CTA stays), the scroll-to-top
+ * button and the scroll-reveal animation (not needed on a page this short),
+ * the manifesto band (not in the design). The metadata for "/" is the root
+ * layout's.
  */
 export default function Home() {
+    // pb-24: room under the footer's last line for the chat button, which stays
+    // pinned to the bottom-right corner and would otherwise cover it.
+    const footer = <PublicFooter variant="full" className="pb-24" />;
     return (
         <LanguageProvider>
-            <div className="reveal-scope min-h-screen overflow-x-clip bg-khaki text-ink">
-                <Navbar />
-
-                {/* Owner-first homepage: the paying customer (business owner) is the
-                    single primary audience. Creators keep a secondary path (the hero
-                    pointer, the "For creators" nav link, the footer, and /for-creators)
-                    — the creator earnings + creator-app bands live on /for-creators. */}
-                {/* Bands alternate paper (khaki) / wash (khaki-deep) so no two
-                    adjacent sections share a tone: p,w,p,w,p,w,ink. */}
-                <main>
-                    <HeroSection />
-                    <RealSitesSection />
-                    <BusinessPricingSection />
-                    <ProcessSection />
-                    <FaqSection businessOnly />
-                    <ManifestoSection />
-                    <CtaSection focus="business" />
-                </main>
-
-                <Footer />
-
-                <StickyCTA />
-                <ScrollToTop />
-                <ChatBot />
-                <ScrollReveal />
-            </div>
+            <PublicPage header={<PublicHeader showLang />} footer={footer}>
+                <HeroSection />
+                <RealSitesSection />
+                <HowItWorks />
+                <BusinessPricingSection />
+                <FaqSection />
+                <CtaSection />
+            </PublicPage>
+            <ChatBot />
         </LanguageProvider>
     );
 }

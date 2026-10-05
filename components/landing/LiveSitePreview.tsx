@@ -2,16 +2,22 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { cx } from "@/components/r1";
+
 /**
  * A live, scaled, non-interactive preview of a real site — it renders the actual
  * page in an iframe at desktop width and scales it to fill its container (16:9).
  * Because it's the live site (not a stored screenshot), the preview can never
  * drift "a version behind" the real page. The iframe is inert (pointer-events
  * off, not focusable, hidden from the a11y tree) so a wrapping link owns clicks.
+ *
+ * The Round 1 boards draw a screenshot here because the canvas cannot load a
+ * live page; the Site settings board confirms the landing card is "a live
+ * preview of the site's page", so the iframe stays.
  */
 const DESIGN_WIDTH = 1280; // render each site at desktop width, then scale down
 
-export default function LiveSitePreview({ url, name }: { url: string; name: string }) {
+export default function LiveSitePreview({ url, name, className }: { url: string; name: string; className?: string }) {
     const boxRef = useRef<HTMLDivElement | null>(null);
     const [scale, setScale] = useState(0);
     const [loaded, setLoaded] = useState(false);
@@ -32,9 +38,9 @@ export default function LiveSitePreview({ url, name }: { url: string; name: stri
     const iframeHeight = (DESIGN_WIDTH * 9) / 16;
 
     return (
-        <div ref={boxRef} className="relative aspect-video w-full overflow-hidden bg-khaki-deep">
-            {/* Loading shimmer until the live page paints */}
-            {!loaded && <div aria-hidden className="absolute inset-0 animate-pulse bg-khaki-deep" />}
+        <div ref={boxRef} className={cx("relative aspect-video w-full overflow-hidden bg-r1-fill-2", className)}>
+            {/* The kit's skeleton pulse until the live page paints (it stops under reduced motion). */}
+            {!loaded && <span aria-hidden="true" className="t-sk absolute inset-0 rounded-none" />}
             {scale > 0 && (
                 <iframe
                     src={url}
