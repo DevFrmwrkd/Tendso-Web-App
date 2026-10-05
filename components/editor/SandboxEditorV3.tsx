@@ -10,22 +10,36 @@
  * sidebar editors — so everything v2 defers is recovered with zero new data-loss
  * surface (arrays/links/images are still written whole by v1's logic).
  *
- * Same SandboxEditorProps + onSaveContent + astro build + ed:* bridge as v1/v2;
- * a drop-in behind the editorVersion toggle. Draft model + undo/redo + local
- * draft recovery live in useEditorDraft.
+ * Same SandboxEditorProps + onSaveContent + astro build + ed:* bridge as v1/v2.
+ * Draft model + undo/redo + local draft recovery live in useEditorDraft.
+ *
+ * ROUND 1 LAYOUT (board Review). The left panel (Design · Content · Media tabs),
+ * the preview frame in the middle, and a slot on the right for the page's
+ * details panel. The editor's own toolbar is gone: its controls (save, undo,
+ * redo, preview size) are handed to the page through `renderHeader`, which
+ * draws the one workspace header the board asks for, with the page's actions
+ * beside them. On a phone the panels and the preview take turns behind one
+ * tab row (Preview · Design · Content · Media).
+ *
+ * Everything below the layout — how the draft is read, written, saved, drafted
+ * and previewed, and every message sent to or received from the iframe — is
+ * exactly what it was.
  *
  * NOT runtime-tested locally (Next build won't finish on the dev box) — verify on
  * a throwaway submission per the PR's checklist.
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "convex/react";
+import { Check, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { Button, Dot, Field, Icon, Segmented, Select, Tabs, cx, type TabItem } from "@/components/r1";
+import WebsitePreview, { PREVIEW_DEVICE_OPTIONS, type PreviewDevice } from "@/components/WebsitePreview";
 import { injectEditorBridge } from "./editorBridge";
-import type { SandboxEditorProps } from "./editorProps";
-import { TEMPLATE_FAMILIES, templateByCode, sectionsForTemplate, BLOCK_TIER, TIER_META, BLOCK_CONTENT_PATHS } from "./templateCatalog";
+import type { EditorJson, EditorTools, SandboxEditorProps } from "./editorProps";
+import { ALL_TEMPLATES, TEMPLATE_FAMILIES, familyOf, templateByCode, sectionsForTemplate, BLOCK_TIER, BLOCK_CONTENT_PATHS } from "./templateCatalog";
 import { COLOR_SCHEMES, FONT_PAIRINGS, ALL_BLOCKS, schemesForTemplate, VIS_KEY_BY_BLOCK } from "./editorConstants";
 import { buildOverrideCss, buildFontHref, resolveAutoScheme } from "./themeOverride";
 import { buildRoleColorCss, roleForField, COLOR_ROLES, roleColorKey, sectionForField, scopeSelector, COLOR_STATES, COLOR_STATE_LABELS, type ColorRole, type ColorProp, type ColorState } from "@/lib/roleColors";
@@ -37,9 +51,12 @@ import { rowWriteFromSchema } from "./listRowWrites";
 import { deriveContentDefaults, getDerivedAt } from "@/lib/derive-content-defaults";
 import ImagePickerModal from "./ImagePickerModal";
 import LinkPopover, { type LinkPopoverData } from "./LinkPopover";
+import { useMinWidth } from "./useMinWidth";
 
-const TB = "inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-neutral-600 transition-colors hover:border-neutral-300 disabled:opacity-40 disabled:cursor-not-allowed";
-
+/**
+ * The colour each scheme swatch shows. These are the CUSTOMER SITE's scheme
+ * colours (data, not Round 1 chrome), so they stay literal.
+ */
 const SCHEME_SWATCH: Record<string, string> = {
     auto: "#94a3b8", blue: "#2563eb", green: "#16a34a", purple: "#7c3aed",
     orange: "#ea580c", dark: "#1f2937", pink: "#db2777", brown: "#92400e",
@@ -47,7 +64,8 @@ const SCHEME_SWATCH: Record<string, string> = {
     gold: "#b8860b", whitegold: "#d4af37", professional: "#334155",
 };
 
-const VIEWPORTS: Record<string, number | null> = { desktop: null, tablet: 834, mobile: 390 };
+/** Rows the Sections list and the template shortlist show before "Show all". */
+const SHORTLIST = 6;
 
 // Which roles are offered the hover / pressed axis.
 //
@@ -156,27 +174,21 @@ function countRoleMatches(doc: Document | null | undefined, role: ColorRole, sec
     return n;
 }
 
+/** "https://x.sites.tendso.com/" → "x.sites.tendso.com", for the address bar. */
+function hostOf(url: string): string {
+    return url.replace(/^https?:\/\//i, "").replace(/\/$/, "");
+}
+
 type Panel = "design" | "content" | "media";
+/** The phone's extra tab: the preview cannot sit beside the panels there. */
+type Pane = Panel | "preview";
 
 export default function SandboxEditorV3(props: SandboxEditorProps) {
     const {
-        businessName, businessType, htmlContent, submissionId, photos, enhancedImageUrls,
-        onSaveContent, websitePublishedUrl,
-        websiteGenerated, generatingWebsite, publishingWebsite, republishingWebsite,
-        unpublishingWebsite, enhancing, sendingEmail,
-        onSendToClient, onEnhanceImages, onRegenerate, onPublish, onRepublish,
-        onUnpublish, onDelete, onApprove, onReject, onToggleDetails, submissionStatus,
-        onGiveFree, markingComped, isCustomDomainTier, isComped,
+        businessName, businessType, htmlContent, htmlLoading, submissionId, photos, enhancedImageUrls,
+        onSaveContent, websitePublishedUrl, websiteGenerated, generatingWebsite,
+        renderHeader, aside,
     } = props;
-
-    // Promo eligibility — same rule TopActionBar applies, so the button appears
-    // and disappears identically whichever surface the admin is looking at.
-    const canGiveFree =
-        !!onGiveFree &&
-        !isComped &&
-        !isCustomDomainTier &&
-        websiteGenerated &&
-        ["approved", "website_generated", "deployed", "pending_payment"].includes(submissionStatus ?? "");
 
     const m = useEditorDraft(props);
     // The LATEST hook object, readable from anything that runs after a commit
@@ -188,10 +200,21 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     const mRef = useRef(m);
     mRef.current = m;
 
-    const [panel, setPanel] = useState<Panel>("design");
-    const panelRef = useRef<Panel>(panel);
-    panelRef.current = panel;
-    const [viewport, setViewport] = useState<keyof typeof VIEWPORTS>("desktop");
+    // Desk: the panels (Design · Content · Media) sit beside the preview, which
+    // is always in view. Phone: one pane at a time, the preview first.
+    const isDesk = useMinWidth(1024);
+    const [pane, setPane] = useState<Pane>("preview");
+    const activePane: Pane = isDesk && pane === "preview" ? "design" : pane;
+    const panelRef = useRef<Pane>(activePane);
+    panelRef.current = activePane;
+    // The preview size. Until the admin picks one it follows the screen: a
+    // phone shows the phone layout (a 1440px desktop at a quarter scale is
+    // unreadable there), anything wider the desktop one.
+    const [deviceChoice, setDevice] = useState<PreviewDevice | null>(null);
+    const small = !useMinWidth(640);
+    const device: PreviewDevice = deviceChoice ?? (small ? "phone" : "desktop");
+    // "Full width" hides the panels so the preview gets the whole column.
+    const [fullWidth, setFullWidth] = useState(false);
     const [saving, setSaving] = useState(false);
     // Real-content preview: `previewBuildHtml` is the built HTML of the UNSAVED
     // draft in the picked template/theme (from /api/generate-website?preview) —
@@ -203,6 +226,10 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     const [pendingImageField, setPendingImageField] = useState<string | null>(null);
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [uploadingPhoto, setUploadingPhoto] = useState(false);
+    // Show-all toggles for the Design panel's three lists.
+    const [templatesAll, setTemplatesAll] = useState(false);
+    const [schemesAll, setSchemesAll] = useState(false);
+    const [sectionsAll, setSectionsAll] = useState(false);
     // Click-to-recolour (per-role): colorMode routes canvas clicks to a colour
     // popover instead of the text/link/image editors.
     //
@@ -233,11 +260,11 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     } | null>(null);
 
     const iframeRef = useRef<HTMLIFrameElement | null>(null);
-    const railRef = useRef<HTMLDivElement | null>(null);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const busy = generatingWebsite || saving;
     const previewHtml = useMemo(() => injectEditorBridge(htmlContent || ""), [htmlContent]);
+    const unsavedPreviewHtml = useMemo(() => (previewBuildHtml ? injectEditorBridge(previewBuildHtml) : ""), [previewBuildHtml]);
 
     // ── Stale-publish signal ──────────────────────────────────────────────
     // Every rebuild (Save, Regenerate) resets generatedWebsites.status to
@@ -246,12 +273,15 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     // (app/api/save-content), so this normally clears itself within seconds —
     // when it does NOT (republish failed, or the admin used Regenerate, which
     // doesn't publish), the admin has to see that the customer's site is behind.
-    // Read off the reactive row so it lights and clears on its own.
+    // Read off the reactive row so it lights and clears on its own. The page's
+    // header shows it ("Changes not live yet"); here it only labels the frame.
     const websiteRow = useQuery(
         api.generatedWebsites.getBySubmissionId,
         submissionId ? { submissionId: submissionId as Id<"submissions"> } : "skip"
     );
-    const publishStale = !!websiteRow?.publishedUrl && websiteRow?.status === "draft";
+    // Offline = the Worker serves the holding page. The page withholds
+    // websitePublishedUrl then, so the address bar says so instead.
+    const websiteOffline = !!websiteRow?.offlineAt;
     // ── Tier-3 read: the defaults the BUILD pipeline applies ──────────────
     // The sidebar's read chain must match what the iframe renders, or the form
     // lies about the page. ContentFieldsAuto already does (1) draft and (2) the
@@ -271,7 +301,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     // touches submissions.photos, and the prop is rebuilt from the submission.
     // The admin watched the spinner stop, saw nothing, and re-uploaded.
     const effectivePhotos: string[] = useMemo(() => {
-        const own = (m.draft as any)?.images;
+        const own = (m.draft as EditorJson)?.images;
         return Array.isArray(own) && own.length > 0 ? own : (photos ?? []);
     }, [m.draft, photos]);
 
@@ -353,18 +383,19 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     }, [m]);
 
     const derived = useMemo(() => deriveContentDefaults({
-        business_name: (m.draft as any)?.business_name || businessName,
-        business_city: (m.draft as any)?.business_city || (m.draft as any)?.contact?.city,
-        business_type: (m.draft as any)?.business_type || businessType,
-        tagline: (m.draft as any)?.tagline,
-        about: (m.draft as any)?.about,
-        contact: (m.draft as any)?.contact,
+        business_name: (m.draft as EditorJson)?.business_name || businessName,
+        business_city: (m.draft as EditorJson)?.business_city || (m.draft as EditorJson)?.contact?.city,
+        business_type: (m.draft as EditorJson)?.business_type || businessType,
+        tagline: (m.draft as EditorJson)?.tagline,
+        about: (m.draft as EditorJson)?.about,
+        contact: (m.draft as EditorJson)?.contact,
     }, photos), [m.draft, businessName, businessType, photos]);
 
     const contentGetValue = useCallback((path: string) => {
         const v = m.getValue(path);
         if (v !== undefined && v !== null && v !== '') return v;
         return getDerivedAt(derived, path);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [m.getValue, derived]);
     // The read chain, reachable from callbacks that must not re-bind on every
     // keystroke (the picker, the popover, the upload handler). Same value, read
@@ -398,7 +429,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
      * On WRITE only. Opening a submission still materialises nothing, so the
      * derived defaults stay derived and an untouched draft stays clean.
      */
-    const setContentValue = useCallback((path: string, value: any) => {
+    const setContentValue = useCallback((path: string, value: EditorJson) => {
         const write = rowWriteFromSchema(contentGetValueRef.current, path, value);
         // One setValue call either way: read-then-write in two steps would race
         // a second write on stale draft state.
@@ -425,7 +456,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
         else mRef.current.replaceDraft(applyImageSlot(mRef.current.draftRef.current, slot, url));
     }, []);
 
-    const curatedSchemes = schemesForTemplate(m.activeFamily, String((m.effectiveCustomizations as any)?.heroStyle ?? ""));
+    const curatedSchemes = schemesForTemplate(m.activeFamily, String((m.effectiveCustomizations as EditorJson)?.heroStyle ?? ""));
 
     // ── Live theme apply ──────────────────────────────────────────────────
     // Branded (non-generic) families are lockVariant — their hand-tuned palette
@@ -450,7 +481,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     };
 
     // ── Live text push to the iframe (sidebar edit → preview) ─────────────
-    const pushLiveText = useCallback((path: string, value: any) => {
+    const pushLiveText = useCallback((path: string, value: EditorJson) => {
         try { iframeRef.current?.contentWindow?.postMessage({ type: "ed:update", field: path, value }, "*"); } catch { /* ignore */ }
     }, []);
 
@@ -496,7 +527,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
             const orig = readVal(target);
             target.setAttribute("contenteditable", "true");
             target.setAttribute("spellcheck", "false");
-            target.addEventListener("keydown", (ev: any) => {
+            target.addEventListener("keydown", (ev: KeyboardEvent) => {
                 if (ev.key === "Enter" && !ev.shiftKey) { ev.preventDefault(); target.blur(); }
             });
             target.addEventListener("blur", () => {
@@ -507,13 +538,14 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
         };
         doc.querySelectorAll<HTMLElement>("[data-field]").forEach((el) => {
             const field = el.getAttribute("data-field") || "";
-            if (!field || (el as any).__v3wired) return;
+            const wiredEl = el as HTMLElement & { __v3wired?: boolean };
+            if (!field || wiredEl.__v3wired) return;
             if (el.hasAttribute("data-href-field") || el.hasAttribute("data-image-field")) return;
             if (el.tagName.toLowerCase() === "a" && /^(tel:|mailto:)/i.test(el.getAttribute("href") || "")) return;
             if (SKIP(field)) return;
             const childEls = Array.from(el.children);
             const looseText = Array.from(el.childNodes).filter((n) => n.nodeType === 3 && !!n.nodeValue && !!n.nodeValue.trim());
-            (el as any).__v3wired = true;
+            wiredEl.__v3wired = true;
             if (childEls.length === 0) {
                 wire(el, field);
             } else if (looseText.length === 1 && childEls.every((c) => !(c.textContent || "").trim())) {
@@ -526,8 +558,14 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     }, [m]);
 
     // ── Focus a sidebar input by data-field path (v1:566-630) ─────────────
-    const focusSidebarField = useCallback((field: string, opts?: { pulse?: boolean }) => {
-        if (panelRef.current !== "content") setPanel("content");
+    const focusSidebarField = useCallback((field: string) => {
+        // On a phone the preview and the panels take turns. While the admin is
+        // looking at the preview, a click there is an inline edit in progress:
+        // switching to the Content pane would hide the very text being typed
+        // into, so the preview stays. On a desk both are in view and the
+        // sidebar follows the click, as it always has.
+        if (panelRef.current === "preview") return;
+        if (panelRef.current !== "content") setPane("content");
         requestAnimationFrame(() => requestAnimationFrame(() => {
             const el = document.querySelector(`[data-field-input="${field}"]`) as HTMLElement | null;
             if (!el) return;
@@ -551,7 +589,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     // after the discard, so it has to read the map that survived the discard —
     // not the one the render before it was holding.
     const applyRoleColors = useCallback(() => {
-        applyRoleColorsToIframe(iframeRef.current, (mRef.current.effectiveCustomizations as any)?.roleColors);
+        applyRoleColorsToIframe(iframeRef.current, (mRef.current.effectiveCustomizations as EditorJson)?.roleColors);
     }, []);
 
     const toggleColorMode = useCallback(() => {
@@ -575,7 +613,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     const applyRoleColor = useCallback((role: ColorRole, prop: ColorProp, color: string | null, section: string | null, state: ColorState) => {
         const key = roleColorKey(role, prop, section, state);
         m.setRoleColor(key, color);
-        const base = (((m.effectiveCustomizations as any)?.roleColors) ?? {}) as Record<string, string>;
+        const base = (((m.effectiveCustomizations as EditorJson)?.roleColors) ?? {}) as Record<string, string>;
         const nextMap = { ...base };
         if (color) nextMap[key] = color; else delete nextMap[key];
         applyRoleColorsToIframe(iframeRef.current, nextMap);
@@ -615,7 +653,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
     // ── ed:* click routing (from v1, adapted to the 3-panel rail) ─────────
     useEffect(() => {
         function onMessage(e: MessageEvent) {
-            const data: any = e?.data;
+            const data: EditorJson = e?.data;
             if (!data || typeof data !== "object" || !data.type) return;
             if (data.type === "ed:link-click") {
                 setLinkData({
@@ -664,7 +702,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
                 return;
             }
             if (data.type === "ed:select" && typeof data.field === "string") {
-                focusSidebarField(data.field, { pulse: true });
+                focusSidebarField(data.field);
                 return;
             }
             if (data.type === "ed:click" && typeof data.field === "string") {
@@ -715,8 +753,8 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
                 try { iframeRef.current?.contentWindow?.postMessage({ type: "ed:image", field: slot, src: url }, "*"); } catch { /* ignore */ }
             }
             setPendingImageField(null);
-        } catch (err: any) {
-            setUploadError(err?.message ?? "Image upload failed");
+        } catch (err: unknown) {
+            setUploadError(err instanceof Error ? err.message : "Image upload failed");
         } finally {
             setUploadingPhoto(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
@@ -750,8 +788,8 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
             setPreviewBuildHtml(null);
             m.clearCache();
             toast.success("Changes saved", { id: toastId, description: now.customizationsDirty ? "Theme + content applied. Refreshing preview." : "Content updated." });
-        } catch (err: any) {
-            toast.error("Save failed", { id: toastId, description: err?.message ?? "Please try again." });
+        } catch (err: unknown) {
+            toast.error("Save failed", { id: toastId, description: err instanceof Error ? err.message : "Please try again." });
         } finally {
             setSaving(false);
         }
@@ -785,8 +823,8 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
             if (!data?.html) throw new Error("Preview returned no HTML");
             setPreviewBuildHtml(data.html as string);
             toast.success("Preview ready", { id: toastId, description: "Your content in the picked template. Save to keep it." });
-        } catch (err: any) {
-            toast.error("Preview failed", { id: toastId, description: err?.message ?? "Please try again." });
+        } catch (err: unknown) {
+            toast.error("Preview failed", { id: toastId, description: err instanceof Error ? err.message : "Please try again." });
         } finally {
             setPreviewing(false);
         }
@@ -806,436 +844,480 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
         return () => window.removeEventListener("keydown", onKey);
     }, [handleSave, m]);
 
-    // ── Template thumbnail lazy-mount (v2:268-299) ────────────────────────
-    useEffect(() => {
-        const root = railRef.current;
-        if (!root) return;
-        const W = 1280;
-        const fill = (thumb: HTMLElement) => {
-            if (thumb.dataset.done) return;
-            const src = thumb.dataset.src;
-            if (!src) return;
-            thumb.dataset.done = "1";
-            const scale = (thumb.clientWidth || 150) / W;
-            const ifr = document.createElement("iframe");
-            // Every one of the 55 preview documents contains a <script>, and 30 of
-            // them pull leaflet from a CDN. v1 mounted them with sandbox="" so all of
-            // that was inert; without it they execute same-origin with /admin, where
-            // they can reach the admin session's storage. Expect the map previews to
-            // stop painting - that is exactly v1's behaviour, not a regression.
-            ifr.setAttribute("sandbox", "");
-            ifr.setAttribute("scrolling", "no");
-            ifr.setAttribute("tabindex", "-1");
-            ifr.setAttribute("aria-hidden", "true");
-            ifr.style.transform = `scale(${scale.toFixed(4)})`;
-            ifr.addEventListener("load", () => { thumb.querySelector(".v3-ph")?.remove(); });
-            ifr.src = src;
-            thumb.appendChild(ifr);
-        };
-        const thumbs = Array.from(root.querySelectorAll<HTMLElement>(".v3-thumb"));
-        if (!("IntersectionObserver" in window)) { thumbs.forEach(fill); return; }
-        const io = new IntersectionObserver((entries) => {
-            entries.forEach((e) => { if (e.isIntersecting) { io.unobserve(e.target); fill(e.target as HTMLElement); } });
-        }, { root, rootMargin: "260px 0px" });
-        thumbs.forEach((t) => io.observe(t));
-        return () => io.disconnect();
-        // panel switches re-mount the grid; re-observe when Design opens
-    }, [panel]);
+    // ── What the page's header gets ───────────────────────────────────────
+    const tools: EditorTools = {
+        dirty: m.dirty,
+        saving,
+        save: () => { void handleSave(); },
+        discard: handleReset,
+        previewUnsaved: () => { void handlePreviewBuild(); },
+        previewing,
+        undo: m.undo,
+        redo: m.redo,
+        canUndo: m.canUndo,
+        canRedo: m.canRedo,
+        device,
+        setDevice,
+        busy: busy || previewing,
+    };
 
-    const vw = VIEWPORTS[viewport];
+    // ── Design panel data ─────────────────────────────────────────────────
+    const savedHero = m.savedHero;
+    const pickedHero = m.currentHeroStyle;
+    const savedTemplate = templateByCode(savedHero);
+    const pickedTemplate = templateByCode(pickedHero);
+    // The shortlist leads with the saved template's own family (the likeliest
+    // alternatives), then the catalogue in its usual order. A pending pick from
+    // "Show all" is pulled in so the highlighted card is always on screen.
+    const tryAnother = (() => {
+        const fam = familyOf(savedHero);
+        const pool = [
+            ...ALL_TEMPLATES.filter((t) => fam && familyOf(t.code) === fam),
+            ...ALL_TEMPLATES,
+        ].filter((t, i, a) => t.code !== savedHero && a.findIndex((x) => x.code === t.code) === i);
+        let six = pool.slice(0, SHORTLIST);
+        if (pickedTemplate && pickedHero !== savedHero && !six.some((t) => t.code === pickedHero)) {
+            six = [pickedTemplate, ...six.slice(0, SHORTLIST - 1)];
+        }
+        return six;
+    })();
+    const templatePending = m.customizationsDirty && pickedHero !== savedHero;
+
+    // m.currentScheme is spliced in so a scheme saved OUTSIDE this family's
+    // curated set still shows as selected. v1 let any scheme be set on any
+    // template, so those rows exist - and they used to open here with every
+    // swatch unlit, reading as "nothing set".
+    const schemeShortlist = ["auto", ...curatedSchemes, m.currentScheme].filter((v, i, a) => Boolean(v) && a.indexOf(v) === i);
+    // The curated set is a shortlist, never a hard limit - the stated intent in
+    // editorConstants was that any scheme stays selectable. Without "Show all"
+    // an admin simply could not make a clinic site black and gold: medical
+    // hides 10 of the 15.
+    const schemeRest = COLOR_SCHEMES.map((c) => c.id as string).filter((id) => !schemeShortlist.includes(id));
+    const schemesShown = schemesAll ? [...schemeShortlist, ...schemeRest] : schemeShortlist;
+    const schemeLabelOf = (id: string) => COLOR_SCHEMES.find((c) => c.id === id)?.label ?? id;
+    const fontKnown = FONT_PAIRINGS.some((f) => f.id === m.currentFont);
+
+    // THE SELECTED TEMPLATE'S OWN SECTIONS, in the order that template renders
+    // them and under the names it prints on the page — "The rooms", not
+    // "SERVICES". sectionsForTemplate() reads membership and order from
+    // templateSectionOrder.generated.ts, which is generated from the wrappers,
+    // so this list cannot offer a switch the template has no section for.
+    const templateSections = sectionsForTemplate(String((m.effectiveCustomizations as EditorJson)?.heroStyle ?? ""))
+        .filter((sec) => !!VIS_KEY_BY_BLOCK[sec.block]);
+    const sectionsOnCount = templateSections.filter((sec) => m.isBlockEnabled(VIS_KEY_BY_BLOCK[sec.block])).length;
+    const sectionsShown = sectionsAll ? templateSections : templateSections.slice(0, SHORTLIST);
+
+    const linkBtn = "inline-flex h-8 items-center self-start border-0 bg-transparent p-0 text-[13px] font-medium text-r1-ink underline decoration-r1-ink-4 underline-offset-[3px] hover:decoration-r1-ink disabled:cursor-not-allowed disabled:opacity-45";
+
+    const templateCard = (code: string, name: string, tag: string) => (
+        <button
+            key={code || "auto"}
+            type="button"
+            aria-pressed={pickedHero === code}
+            onClick={() => m.onPickTemplate(code)}
+            className="flex min-h-14 min-w-0 flex-col items-start gap-1 rounded-r1 border border-r1-line bg-r1-paper p-2.5 text-left hover:bg-r1-fill-row aria-pressed:border-r1-ink aria-pressed:shadow-[inset_0_0_0_1px_var(--r1-ink)]"
+        >
+            <span className="w-full truncate text-[13px] font-medium leading-[18px] text-r1-ink">{name}</span>
+            <span className="line-clamp-2 text-xs leading-4 text-r1-ink-3">{tag}</span>
+        </button>
+    );
+
+    const designPanel = (
+        <div className="flex flex-col gap-6">
+            <section className="flex flex-col gap-2.5" aria-label="Template">
+                <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-sm font-semibold leading-5 text-r1-ink">Template</h2>
+                    <span className="t-count">{ALL_TEMPLATES.length} in {TEMPLATE_FAMILIES.length} families</span>
+                </div>
+                {templatePending && (
+                    <div className="flex items-start gap-2 text-[13px] leading-[18px] text-r1-ink-2" role="status">
+                        <Dot tone="attn" className="mt-[5px]" />
+                        <span>
+                            {pickedTemplate ? pickedTemplate.label : "No template"} is picked but not built yet. Save changes to apply it,
+                            or{" "}
+                            <button type="button" className="t-link font-medium" disabled={busy || previewing} onClick={() => void handlePreviewBuild()}>
+                                {previewing ? "building a preview…" : "preview it with your content first"}
+                            </button>
+                            .
+                        </span>
+                    </div>
+                )}
+                <span className="t-label">Generated with</span>
+                {/* "No template" is a real routed state (index.astro falls
+                    through to a bare stub). The card says so rather than
+                    showing nothing, and the Auto option below stays pickable,
+                    so a mis-clicked template on a legacy submission can still
+                    be undone. */}
+                <button
+                    type="button"
+                    aria-pressed={pickedHero === savedHero}
+                    onClick={() => m.onPickTemplate(savedHero)}
+                    className="flex min-h-14 w-full items-center gap-3 rounded-r1 border border-r1-line bg-r1-paper px-3 py-2.5 text-left hover:bg-r1-fill-row aria-pressed:border-r1-ink aria-pressed:shadow-[inset_0_0_0_1px_var(--r1-ink)]"
+                >
+                    <span className="flex min-w-0 flex-col">
+                        <span className="truncate text-[13px] font-medium leading-[18px] text-r1-ink">{savedTemplate ? savedTemplate.label : "Auto / placeholder"}</span>
+                        <span className="text-xs leading-4 text-r1-ink-3">{savedTemplate ? savedTemplate.tagline : "No template set: the page falls back to a stub"}</span>
+                    </span>
+                </button>
+                <span className="t-label">Try another</span>
+                <div className="grid grid-cols-2 gap-2">
+                    {tryAnother.map((t) => templateCard(t.code, t.label, t.tagline))}
+                </div>
+                {templatesAll && (
+                    <>
+                        {savedHero !== "" && (
+                            <>
+                                <span className="t-label">No template</span>
+                                <div className="grid grid-cols-2 gap-2">{templateCard("", "Auto / placeholder", "Use when no template is set")}</div>
+                            </>
+                        )}
+                        {TEMPLATE_FAMILIES.map((fam) => (
+                            <div key={fam.family} className="flex flex-col gap-2.5">
+                                <span className="t-label">{fam.label}</span>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {fam.templates.map((t) => templateCard(t.code, t.label, t.tagline))}
+                                </div>
+                            </div>
+                        ))}
+                    </>
+                )}
+                <button type="button" className={linkBtn} aria-expanded={templatesAll} onClick={() => setTemplatesAll((v) => !v)}>
+                    {templatesAll ? "Show fewer" : `Show all ${ALL_TEMPLATES.length}`}
+                </button>
+            </section>
+
+            <section className="flex flex-col gap-2.5" aria-label="Colour scheme">
+                <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-sm font-semibold leading-5 text-r1-ink">Colour scheme</h2>
+                    <span className="t-meta truncate">{schemeLabelOf(m.currentScheme)}</span>
+                </div>
+                {m.activeFamily && <p className="t-help">Suggested for {m.activeFamily} first.</p>}
+                <div role="group" aria-label="Colour scheme" className="grid grid-cols-[repeat(6,40px)] gap-2">
+                    {schemesShown.map((id) => {
+                        const label = schemeLabelOf(id);
+                        return (
+                            <button
+                                key={id}
+                                type="button"
+                                aria-label={label}
+                                title={label}
+                                aria-pressed={m.currentScheme === id}
+                                onClick={() => setThemeField("colorScheme", id)}
+                                className="h-10 w-10 cursor-pointer rounded-r1 border border-r1-line-2 p-0 aria-pressed:ring-2 aria-pressed:ring-r1-ink aria-pressed:ring-offset-2 aria-pressed:ring-offset-r1-paper"
+                                style={{ background: SCHEME_SWATCH[id] ?? SCHEME_SWATCH.auto }}
+                            />
+                        );
+                    })}
+                </div>
+                {schemeRest.length > 0 && (
+                    <button type="button" className={linkBtn} aria-expanded={schemesAll} onClick={() => setSchemesAll((v) => !v)}>
+                        {schemesAll ? "Show fewer" : `Show all ${COLOR_SCHEMES.length}`}
+                    </button>
+                )}
+            </section>
+
+            <Field label="Font pairing">
+                <Select value={m.currentFont} onChange={(e) => setThemeField("fontPairing", e.target.value)}>
+                    {/* A branded family's pick stamps "auto" (its own fonts).
+                        Offered only while it is the value, so the list never
+                        claims a pairing the page is not using. */}
+                    {!fontKnown && <option value={m.currentFont}>Template default</option>}
+                    {FONT_PAIRINGS.map((f) => (
+                        <option key={f.id} value={f.id}>{f.label}</option>
+                    ))}
+                </Select>
+            </Field>
+
+            <section className="flex flex-col gap-1" aria-label="Sections">
+                <div className="flex items-center justify-between gap-2">
+                    <h2 className="text-sm font-semibold leading-5 text-r1-ink">Sections</h2>
+                    <span className="t-count">{sectionsOnCount} of {templateSections.length} shown</span>
+                </div>
+                <div className="flex flex-col">
+                    {sectionsShown.map((sec) => {
+                        const visKey = VIS_KEY_BY_BLOCK[sec.block];
+                        const on = m.isBlockEnabled(visKey);
+                        // Essentials are not switchable (useEditorDraft refuses too).
+                        const required = (BLOCK_TIER[sec.block] ?? "extra") === "essential";
+                        const empty = blockHasContent(sec.block) === false;
+                        return (
+                            <div key={visKey} className="flex min-h-10 items-center justify-between gap-3 border-b border-r1-line-3" title={sec.blurb || undefined}>
+                                <span className={cx("min-w-0 truncate text-sm", on ? "text-r1-ink" : "text-r1-ink-3")}>
+                                    {sec.label}
+                                    {empty && <span className="t-meta" title="Nothing to show here yet - the section will render empty or auto-hide."> · nothing yet</span>}
+                                </span>
+                                {required ? (
+                                    <span className="flex-none text-xs text-r1-ink-3">Always on</span>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={on}
+                                        aria-label={`Show the ${sec.label} section`}
+                                        onClick={() => handleToggleBlock(visKey)}
+                                        className="flex h-10 w-11 flex-none cursor-pointer items-center justify-end border-0 bg-transparent p-0"
+                                    >
+                                        <span className={cx("relative block h-5 w-[34px] rounded-full transition-colors", on ? "bg-r1-ink" : "bg-r1-line-2")}>
+                                            <span className={cx("absolute top-0.5 h-4 w-4 rounded-full bg-r1-paper transition-[left]", on ? "left-4" : "left-0.5")} />
+                                        </span>
+                                    </button>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+                {templateSections.length > SHORTLIST && (
+                    <button type="button" className={cx(linkBtn, "mt-1.5")} aria-expanded={sectionsAll} onClick={() => setSectionsAll((v) => !v)}>
+                        {sectionsAll ? "Show fewer" : `Show all ${templateSections.length}`}
+                    </button>
+                )}
+            </section>
+        </div>
+    );
+
+    const contentPanel = (
+        <div className="flex flex-col gap-3">
+            <p className="t-meta">
+                The words on the site, section by section. Click any text in the preview to jump to it here; lists, links and images add, remove and reorder safely.
+            </p>
+            <ContentFieldsAuto getValue={contentGetValue} setValue={setContentValue} openImagePicker={(path) => setImagePickerField(path)} pushLiveText={pushLiveText} templateCode={String((m.effectiveCustomizations as EditorJson)?.heroStyle ?? "")} />
+        </div>
+    );
+
+    const mediaPanel = (
+        <div className="flex flex-col gap-4">
+            <p className="t-meta">
+                {effectivePhotos.length === 1 ? "1 photo." : `${effectivePhotos.length} photos.`} Click any image in the preview to choose which photo goes there.
+            </p>
+            <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleUpload(f, pendingImageField); }} />
+            <Button block disabled={uploadingPhoto} onClick={() => { setPendingImageField(null); fileInputRef.current?.click(); }}>
+                <Icon icon={Upload} />
+                {uploadingPhoto ? "Uploading…" : "Upload a photo"}
+            </Button>
+            {uploadError && <p className="t-error" role="alert">{uploadError}</p>}
+
+            {effectivePhotos.length > 0 && (
+                <div className="flex flex-col gap-2">
+                    {/* Click-to-assign: with a slot pending, the grid becomes a
+                        picker so an EXISTING photo can fill it with no re-upload.
+                        v3 had no path to that at all. */}
+                    {pendingImageField && (
+                        <p className="flex items-center justify-between gap-2 text-[13px] leading-[18px] text-r1-ink-2" role="status">
+                            <span>Pick a photo for <span className="t-mono">{pendingImageField}</span>.</span>
+                            <button type="button" className={linkBtn} onClick={() => setPendingImageField(null)}>Cancel</button>
+                        </p>
+                    )}
+                    <div className="grid grid-cols-3 gap-1.5">
+                        {effectivePhotos.map((url, i) => {
+                            const uploaded = !(photos ?? []).includes(url);
+                            const thumb = (
+                                // Photos come from storage and R2 on several hosts.
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={url} alt={pendingImageField ? "" : `Photo ${i + 1}`} loading="lazy" className="block h-full w-full object-cover" />
+                            );
+                            return (
+                                <div key={`${url}-${i}`} className="relative">
+                                    {pendingImageField ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => { assignImageSlot(pendingImageField, url); setPendingImageField(null); }}
+                                            aria-label={`Use photo ${i + 1} for ${pendingImageField}`}
+                                            className="block h-[72px] w-full cursor-pointer overflow-hidden rounded-r1 border-0 bg-r1-fill p-0 outline-offset-1 hover:outline-2 hover:outline-r1-ink"
+                                        >
+                                            {thumb}
+                                        </button>
+                                    ) : (
+                                        <span className="block h-[72px] overflow-hidden rounded-r1 bg-r1-fill">{thumb}</span>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={() => removePhoto(i)}
+                                        title="Remove this photo"
+                                        aria-label={`Remove photo ${i + 1}`}
+                                        className="absolute right-1 top-1 inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-0 bg-r1-paper/90 p-0 text-r1-red shadow-r1-menu"
+                                    >
+                                        <Icon icon={X} size={14} />
+                                    </button>
+                                    {/* `uploaded` only means "this url is not one of the
+                                        submission's ORIGINAL photos" — and saving persists
+                                        the draft, not submissions.photos, so it stays true
+                                        after a successful save. The upload half is a fact
+                                        about the photo; the unsaved half is a fact about
+                                        the DRAFT, so it tracks the real dirty state. */}
+                                    {uploaded && (
+                                        <span className="pointer-events-none absolute bottom-1 left-1 rounded-r1-sm bg-r1-ink/75 px-1 py-0.5 text-[10px] font-medium leading-3 text-r1-paper">
+                                            {m.dirty ? "uploaded · unsaved" : "uploaded"}
+                                        </span>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* Favicon: a wrong one ships to the customer's browser tab and to
+                link unfurls, where astro-builder also uses it as the og:image
+                fallback, so it shows what is set and can be cleared. */}
+            <div className="flex items-center gap-3 rounded-r1 border border-r1-line p-2.5">
+                {faviconUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={faviconUrl} alt="" className="h-10 w-10 flex-none rounded-r1-sm border border-r1-line object-cover" />
+                ) : (
+                    <span className="flex h-10 w-10 flex-none items-center justify-center rounded-r1-sm border border-dashed border-r1-line-2 text-[11px] text-r1-ink-3">none</span>
+                )}
+                <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="text-sm font-medium text-r1-ink">Favicon</span>
+                    <span className="t-meta truncate">{faviconUrl || "Using the template default"}</span>
+                </span>
+                {faviconUrl && <Button variant="ghost" size="sm" onClick={clearFavicon}>Remove</Button>}
+                <Button size="sm" disabled={uploadingPhoto} onClick={() => { setPendingImageField("favicon"); fileInputRef.current?.click(); }}>
+                    {faviconUrl ? "Replace" : "Set"}
+                </Button>
+            </div>
+        </div>
+    );
+
+    const paneTabs: TabItem<Pane>[] = [
+        ...(isDesk ? [] : [{ value: "preview" as const, label: "Preview" }]),
+        { value: "design", label: "Design" },
+        { value: "content", label: "Content" },
+        { value: "media", label: "Media" },
+    ];
+    const panelBody = activePane === "design" ? designPanel : activePane === "content" ? contentPanel : activePane === "media" ? mediaPanel : undefined;
+
+    // ── The preview's address bar ─────────────────────────────────────────
+    // Two addresses, never collapsed into one: after a Regenerate (which
+    // rebuilds but never publishes) the published URL still serves the OLD
+    // page, so the bar says where the public goes while the frame shows the
+    // build on disk. The build itself opens from the page's More menu.
+    let frameLabel: ReactNode;
+    if (previewBuildHtml) frameLabel = `Unsaved preview · ${pickedTemplate ? pickedTemplate.label : "no template"}`;
+    else if (websiteOffline) frameLabel = "Offline · visitors see a holding page";
+    else if (websitePublishedUrl) {
+        frameLabel = (
+            <>
+                Live at{" "}
+                <a href={websitePublishedUrl} target="_blank" rel="noopener noreferrer" className="t-link" title="The page the public sees right now">
+                    {hostOf(websitePublishedUrl)}
+                </a>
+            </>
+        );
+    } else frameLabel = `Preview · ${savedTemplate ? savedTemplate.label : "no template"} · not live yet`;
+
+    const busyText = saving
+        ? "Saving and rebuilding…"
+        : previewing
+            ? "Building a preview with your content…"
+            : generatingWebsite
+                ? "Rebuilding website…"
+                : htmlLoading
+                    ? "Loading the site…"
+                    : null;
 
     return (
-        <div className="flex h-[calc(100vh-8rem)] min-h-[560px] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white">
-            {/* Draft-recovery banner */}
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+            {renderHeader?.(tools)}
+
+            {/* Draft recovery: offered, never adopted on its own (see useEditorDraft). */}
             {m.hasCachedDraft && (
-                <div className="flex items-center justify-between gap-2 border-b border-amber-200 bg-amber-50 px-4 py-2 text-[12px] text-amber-800">
-                    <span>You have unsaved edits from a previous session.</span>
+                <div className="flex flex-none flex-wrap items-center justify-between gap-2 border-b border-r1-gold-line bg-r1-gold-bg px-4 py-2" role="status">
+                    <span className="text-[13px] leading-[18px] text-r1-ink-2">There are unsaved edits from an earlier session in this browser.</span>
                     <span className="flex gap-2">
-                        <button type="button" onClick={m.restoreCachedDraft} className="rounded bg-amber-500 px-2.5 py-1 font-semibold text-white hover:bg-amber-600">Restore</button>
-                        <button type="button" onClick={m.dismissCachedDraft} className="rounded border border-amber-300 px-2.5 py-1 font-medium hover:bg-amber-100">Dismiss</button>
+                        <Button size="sm" onClick={m.restoreCachedDraft}>Restore them</Button>
+                        <Button size="sm" variant="ghost" onClick={m.dismissCachedDraft}>Dismiss</Button>
                     </span>
                 </div>
             )}
 
-            <div className="flex min-h-0 flex-1">
-                {/* ── Left rail ─────────────────────────────────────────── */}
-                <aside ref={railRef} className="flex w-[320px] flex-shrink-0 flex-col overflow-hidden border-r border-neutral-200 bg-neutral-50">
-                    <div className="border-b border-neutral-200 px-4 py-3">
-                        <div className="text-[11px] font-bold uppercase tracking-[0.15em] text-amber-600">Editor v3</div>
-                        <h2 className="truncate text-sm font-bold text-neutral-900">{businessName}</h2>
-                    </div>
-                    {/* Panel switch */}
-                    <div className="flex gap-1 border-b border-neutral-200 p-2">
-                        {(["design", "content", "media"] as Panel[]).map((p) => (
-                            <button
-                                key={p}
-                                type="button"
-                                onClick={() => setPanel(p)}
-                                className={`flex-1 rounded-md px-2 py-1.5 text-[11px] font-semibold capitalize transition-colors ${panel === p ? "bg-neutral-900 text-white" : "text-neutral-500 hover:bg-neutral-100"}`}
-                            >{p}</button>
-                        ))}
-                    </div>
+            <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+                <section
+                    aria-label="Edit the site"
+                    className={cx(
+                        "flex min-h-0 flex-col bg-r1-paper",
+                        activePane === "preview" ? "flex-none" : "flex-1",
+                        "lg:w-80 lg:flex-none lg:border-r lg:border-r1-line",
+                        fullWidth && "lg:hidden",
+                    )}
+                >
+                    <Tabs
+                        label="Editor panels"
+                        tabs={paneTabs}
+                        value={activePane}
+                        onChange={setPane}
+                        className={cx(
+                            // The tab row's hairline stops short of the edges, as on the board.
+                            "min-h-0 [&>[role=tablist]]:mx-4 [&>[role=tablist]]:flex-none lg:[&>[role=tablist]]:mx-5",
+                            "[&>[role=tabpanel]]:min-h-0 [&>[role=tabpanel]]:flex-1 [&>[role=tabpanel]]:overflow-y-auto [&>[role=tabpanel]]:px-4 [&>[role=tabpanel]]:pb-6 [&>[role=tabpanel]]:pt-1 lg:[&>[role=tabpanel]]:px-5",
+                            activePane === "preview" ? "flex-none" : "flex-1",
+                        )}
+                    >
+                        {panelBody}
+                    </Tabs>
+                </section>
 
-                    <div className="min-h-0 flex-1 overflow-y-auto">
-                        {panel === "design" && (
+                <div className={cx("min-h-0 min-w-0 flex-1 flex-col", activePane === "preview" ? "flex" : "hidden lg:flex")}>
+                    {/* The size switch sits in the page's header on a wide desk;
+                        below that the header has no room for it, so it sits here. */}
+                    <div className="flex flex-none justify-center bg-r1-fill-2 px-4 pt-3 xl:hidden">
+                        <Segmented label="Preview size" options={PREVIEW_DEVICE_OPTIONS} value={device} onChange={setDevice} />
+                    </div>
+                    <WebsitePreview
+                        className="flex-1"
+                        device={device}
+                        html={previewBuildHtml ? unsavedPreviewHtml : previewHtml}
+                        iframeKey={previewBuildHtml ? "v3-preview" : "v3-saved"}
+                        iframeRef={iframeRef}
+                        onLoad={handleIframeLoad}
+                        title={previewBuildHtml ? "Unsaved preview" : "Website preview"}
+                        sandbox="allow-same-origin allow-scripts allow-popups"
+                        label={frameLabel}
+                        empty={websiteGenerated ? "This site has no page to show yet." : "No website generated yet."}
+                        busy={busyText}
+                        banner={previewBuildHtml ? (
+                            <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 bg-r1-ink px-3 py-1.5 text-[13px] leading-[18px] text-r1-paper">
+                                <span className="truncate">Previewing your unsaved changes with real content. Save to keep them.</span>
+                                <button type="button" onClick={() => setPreviewBuildHtml(null)} className="flex-none cursor-pointer border-0 bg-transparent p-0 font-medium text-r1-gold-light">
+                                    Back to saved
+                                </button>
+                            </div>
+                        ) : undefined}
+                        barActions={(
                             <>
-                                <section className="border-b border-neutral-200 p-4">
-                                    <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">Template</h3>
-                                    {m.customizationsDirty && (
-                                        <div className="mb-2 rounded-lg bg-amber-50 px-2 py-1.5 text-[10px] font-semibold text-amber-800 ring-1 ring-amber-200">
-                                            Pending · click Save changes to apply
-                                            {m.savedHero && m.savedHero !== m.currentHeroStyle && (
-                                                <span className="ml-1 font-normal">(saved: {m.savedHero})</span>
-                                            )}
-                                        </div>
-                                    )}
-                                    {/* S6 — "no template" is a real routed state (index.astro falls
-                                        through to a bare stub), and without this card a mis-clicked
-                                        template on a legacy submission could not be undone, nor could
-                                        an admin see that no template was set. */}
-                                    <button
-                                        type="button"
-                                        aria-pressed={m.currentHeroStyle === ""}
-                                        onClick={() => m.onPickTemplate("")}
-                                        className={`mb-3 flex w-full items-center gap-2 rounded-lg border border-dashed p-2 text-left text-[11px] transition-colors ${m.currentHeroStyle === "" ? "border-amber-500 bg-amber-50 text-amber-800" : "border-neutral-300 text-neutral-500 hover:border-neutral-400"}`}
-                                    >
-                                        <span className="font-semibold">Auto / placeholder</span>
-                                        <span className="text-neutral-400">use when no template is set</span>
-                                    </button>
-                                    {TEMPLATE_FAMILIES.map((fam) => (
-                                        <div key={fam.family} className="mb-3 last:mb-0">
-                                            <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">{fam.label}</div>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {fam.templates.map((t) => {
-                                                    const active = t.code === m.currentHeroStyle;
-                                                    return (
-                                                        <button
-                                                            key={t.code}
-                                                            type="button"
-                                                            title={t.tagline}
-                                                            aria-pressed={active}
-                                                            onClick={() => m.onPickTemplate(t.code)}
-                                                            className={`flex flex-col gap-1.5 overflow-hidden rounded-lg border p-1.5 text-left transition-all ${active ? "border-amber-500 bg-amber-50 ring-1 ring-amber-500" : "border-neutral-200 bg-white hover:border-neutral-300 hover:-translate-y-px"}`}
-                                                        >
-                                                            <div className="v3-thumb relative aspect-[16/10] w-full overflow-hidden rounded-md border border-neutral-200 bg-white [&>iframe]:pointer-events-none [&>iframe]:absolute [&>iframe]:left-0 [&>iframe]:top-0 [&>iframe]:h-[800px] [&>iframe]:w-[1280px] [&>iframe]:origin-top-left [&>iframe]:border-0" data-src={t.preview}>
-                                                                <span className="v3-ph absolute inset-0 flex items-center justify-center text-[9px] uppercase tracking-wide text-neutral-300">preview</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-1">
-                                                                <span className="min-w-0 flex-1 truncate text-[11px] font-semibold text-neutral-800">{t.label}</span>
-                                                                <span className="flex-shrink-0 font-mono text-[8px] uppercase text-neutral-400">{t.letter}</span>
-                                                            </div>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </section>
-                                <section className="border-b border-neutral-200 p-4">
-                                    <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">
-                                        Colors {m.activeFamily && <span className="font-normal normal-case tracking-normal text-neutral-400">· suggested for {m.activeFamily}</span>}
-                                    </h3>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {/* m.currentScheme is spliced in so a scheme saved OUTSIDE this
-                                            family's curated set still shows as selected. v1 is the default
-                                            today and lets any scheme be set on any template, so those rows
-                                            exist - and they used to open here with every swatch unlit,
-                                            reading as "nothing set". */}
-                                        {["auto", ...curatedSchemes, m.currentScheme].filter((v, i, a) => Boolean(v) && a.indexOf(v) === i).map((id) => {
-                                            const active = m.currentScheme === id;
-                                            return (
-                                                <button key={id} type="button" title={COLOR_SCHEMES.find((c) => c.id === id)?.label ?? id} aria-pressed={active}
-                                                    onClick={() => setThemeField("colorScheme", id)}
-                                                    className={`flex flex-col items-center gap-1 rounded-lg border p-1.5 transition-colors ${active ? "border-amber-500 ring-1 ring-amber-500" : "border-neutral-200 hover:border-neutral-300"}`}>
-                                                    <span className="h-5 w-full rounded" style={{ background: SCHEME_SWATCH[id] ?? "#999" }} />
-                                                    <span className="w-full truncate text-center text-[8.5px] capitalize text-neutral-500">{id}</span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    {/* The curated set is a shortlist, never a hard limit - the
-                                        stated intent in editorConstants was that any scheme stays
-                                        selectable. Without this an admin simply could not make a
-                                        clinic site black and gold: medical hides 10 of the 15. */}
-                                    {COLOR_SCHEMES.filter((c) => c.id !== "auto" && !curatedSchemes.includes(c.id) && c.id !== m.currentScheme).length > 0 && (
-                                        <details className="mt-2">
-                                            <summary className="cursor-pointer text-[10px] font-semibold text-neutral-500 hover:text-neutral-700">More colours</summary>
-                                            <div className="mt-2 grid grid-cols-4 gap-2">
-                                                {COLOR_SCHEMES.filter((c) => c.id !== "auto" && !curatedSchemes.includes(c.id) && c.id !== m.currentScheme).map((c) => (
-                                                    <button key={c.id} type="button" title={c.label} aria-pressed={false}
-                                                        onClick={() => setThemeField("colorScheme", c.id)}
-                                                        className="flex flex-col items-center gap-1 rounded-lg border border-neutral-200 p-1.5 transition-colors hover:border-neutral-300">
-                                                        <span className="h-5 w-full rounded" style={{ background: SCHEME_SWATCH[c.id] ?? "#999" }} />
-                                                        <span className="w-full truncate text-center text-[8.5px] capitalize text-neutral-500">{c.id}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </details>
-                                    )}
-                                </section>
-                                <section className="border-b border-neutral-200 p-4">
-                                    <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">Font</h3>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {FONT_PAIRINGS.map((f) => {
-                                            const active = m.currentFont === f.id;
-                                            return (
-                                                <button key={f.id} type="button" aria-pressed={active} onClick={() => setThemeField("fontPairing", f.id)}
-                                                    className={`rounded-full border px-2.5 py-1 text-[11px] transition-colors ${active ? "border-amber-500 bg-amber-50 font-semibold text-amber-700" : "border-neutral-200 text-neutral-600 hover:border-neutral-300"}`}>
-                                                    {f.label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </section>
-                                <section className="p-4">
-                                    <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">Sections</h3>
-                                    <div className="space-y-0.5">
-                                        {/* THE SELECTED TEMPLATE'S OWN SECTIONS, in the order that
-                                            template renders them and under the names it prints on
-                                            the page — "The rooms", not "SERVICES". Grouped by tier
-                                            so an admin can still see what is structural and what is
-                                            enrichment. sectionsForTemplate() reads membership and
-                                            order from templateSectionOrder.generated.ts, which is
-                                            generated from the wrappers, so this list cannot offer a
-                                            switch the template has no section for. */}
-                                        {(() => {
-                                            const sections = sectionsForTemplate(String((m.effectiveCustomizations as any)?.heroStyle ?? ""));
-                                            return TIER_META.map((tier) => {
-                                                const inTier = sections.filter((sec) => (BLOCK_TIER[sec.block] ?? "extra") === tier.id);
-                                                if (!inTier.length) return null;
-                                                return (
-                                                    <div key={tier.id} className="mb-3 last:mb-0">
-                                                        <div className="mb-0.5 text-[9px] font-bold uppercase tracking-[0.14em] text-neutral-400">
-                                                            {tier.label}<span className="ml-1 font-normal text-neutral-300">{inTier.length}</span>
-                                                        </div>
-                                                        <p className="mb-1.5 text-[10px] leading-snug text-neutral-400">{tier.blurb}</p>
-                                                        {inTier.map((sec) => {
-                                                            const visKey = VIS_KEY_BY_BLOCK[sec.block];
-                                                            if (!visKey) return null;
-                                                            const on = m.isBlockEnabled(visKey);
-                                                            const required = tier.id === "essential";
-                                                            const empty = blockHasContent(sec.block) === false;
-                                                            return (
-                                                                <button key={visKey} type="button" disabled={required} onClick={() => handleToggleBlock(visKey)} aria-checked={on} role="switch"
-                                                                    title={sec.blurb}
-                                                                    className={`flex w-full items-start gap-2 rounded-md px-2 py-1.5 text-left transition-colors ${required ? "cursor-not-allowed opacity-60" : "hover:bg-neutral-100"}`}>
-                                                                    <span className={`relative mt-0.5 h-4 w-7 flex-shrink-0 rounded-full transition-colors ${on ? "bg-emerald-500" : "bg-neutral-300"}`}>
-                                                                        <span className={`absolute top-0.5 h-3 w-3 rounded-full bg-white shadow transition-transform ${on ? "translate-x-3.5" : "translate-x-0.5"}`} />
-                                                                    </span>
-                                                                    <span className="min-w-0 flex-1">
-                                                                        <span className={`flex items-center gap-1 text-[11px] font-medium ${on ? "text-neutral-700" : "text-neutral-400"}`}>
-                                                                            <span className="truncate">{sec.label}</span>
-                                                                            {empty && <span className="flex-shrink-0 rounded bg-neutral-100 px-1 py-0.5 text-[8px] font-semibold uppercase tracking-wide text-neutral-400" title="Nothing to show here yet - the section will render empty or auto-hide.">empty</span>}
-                                                                            {required && <span className="flex-shrink-0 font-mono text-[8px] uppercase text-neutral-400">locked</span>}
-                                                                        </span>
-                                                                        {sec.blurb && <span className="mt-0.5 block text-[10px] leading-snug text-neutral-400">{sec.blurb}</span>}
-                                                                    </span>
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                );
-                                            });
-                                        })()}
-                                    </div>
-                                </section>
+                                {/* The tooltip says what a click does: recolour that
+                                    kind of element in that section; the picker can
+                                    widen it to every section and give buttons and
+                                    links their own hover and pressed colours. */}
+                                <Button
+                                    variant="ghost"
+                                    aria-pressed={colorMode}
+                                    onClick={toggleColorMode}
+                                    title="Click any button, heading or text to recolour its kind in that section"
+                                    className="aria-pressed:bg-r1-fill-nav"
+                                >
+                                    {colorMode && <Icon icon={Check} />}
+                                    Recolour
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    aria-pressed={fullWidth}
+                                    onClick={() => setFullWidth((v) => !v)}
+                                    className="hidden lg:inline-flex"
+                                >
+                                    {fullWidth ? "Show panels" : "Full width"}
+                                </Button>
                             </>
                         )}
-
-                        {panel === "content" && (
-                            <div className="p-3">
-                                <p className="mb-2 px-1 text-[10px] leading-snug text-neutral-400">Edit any field here, or click text in the preview to jump to it. Lists, links &amp; images add/remove/reorder safely.</p>
-                                <ContentFieldsAuto getValue={contentGetValue} setValue={setContentValue} openImagePicker={(path) => setImagePickerField(path)} pushLiveText={pushLiveText} templateCode={String((m.effectiveCustomizations as any)?.heroStyle ?? "")} />
-                            </div>
-                        )}
-
-                        {panel === "media" && (
-                            <section className="p-4">
-                                <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">Media</h3>
-                                <input ref={fileInputRef} type="file" accept="image/*" className="hidden"
-                                    onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleUpload(f, pendingImageField); }} />
-                                <div className="flex flex-col gap-2">
-                                    <button type="button" disabled={uploadingPhoto} onClick={() => { setPendingImageField(null); fileInputRef.current?.click(); }} className={TB}>
-                                        {uploadingPhoto ? "Uploading…" : "Upload photo"}
-                                    </button>
-                                    <button type="button" disabled={uploadingPhoto} onClick={() => { setPendingImageField("favicon"); fileInputRef.current?.click(); }} className={TB}>
-                                        Set favicon
-                                    </button>
-                                    {uploadError && <p className="text-[11px] text-red-600">{uploadError}</p>}
-                                    <p className="text-[10px] leading-snug text-neutral-400">Tip: click any image in the preview to swap it from your photos.</p>
-                                </div>
-                                {/* Favicon card: v3 had a bare "Set favicon" button with no
-                                    thumbnail, no current-state and no way to clear one — and a
-                                    wrong favicon ships to the customer's browser tab and to link
-                                    unfurls, where astro-builder also uses it as the og:image
-                                    fallback. */}
-                                <div className="mt-3 flex items-center gap-3 rounded-lg border border-neutral-200 p-2">
-                                    {faviconUrl
-                                        ? <img src={faviconUrl} alt="" className="h-10 w-10 shrink-0 rounded border border-neutral-200 object-cover" />
-                                        : <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded border border-dashed border-neutral-300 text-[9px] text-neutral-400">none</div>}
-                                    <div className="min-w-0 flex-1">
-                                        <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-neutral-400">Favicon</p>
-                                        <p className="truncate text-[10px] text-neutral-500">{faviconUrl || "Using the template default"}</p>
-                                    </div>
-                                    {faviconUrl && (
-                                        <button type="button" onClick={clearFavicon} className="shrink-0 text-[10px] font-semibold text-red-600 hover:underline">Remove</button>
-                                    )}
-                                </div>
-
-                                {effectivePhotos.length > 0 && (
-                                    <>
-                                        <div className="mt-3 flex items-baseline justify-between">
-                                            <h4 className="text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-400">
-                                                Photos <span className="text-neutral-300">· {effectivePhotos.length}</span>
-                                            </h4>
-                                            {pendingImageField && (
-                                                <button type="button" onClick={() => setPendingImageField(null)} className="text-[10px] font-semibold text-neutral-500 hover:underline">Cancel</button>
-                                            )}
-                                        </div>
-                                        {/* Click-to-assign: with a slot pending, the grid becomes a
-                                            picker so an EXISTING photo can fill it with no re-upload.
-                                            v3 had no path to that at all. */}
-                                        {pendingImageField && (
-                                            <p className="mt-1 text-[10px] text-amber-700">Pick a photo for <b>{pendingImageField}</b>.</p>
-                                        )}
-                                        <div className="mt-2 grid grid-cols-3 gap-2">
-                                            {effectivePhotos.map((url, i) => {
-                                                const uploaded = !(photos ?? []).includes(url);
-                                                return (
-                                                    <div key={`${url}-${i}`} className="group relative">
-                                                        <img
-                                                            src={url} alt="" loading="lazy"
-                                                            onClick={() => { if (pendingImageField) { assignImageSlot(pendingImageField, url); setPendingImageField(null); } }}
-                                                            className={`aspect-square w-full rounded-md border object-cover ${pendingImageField ? "cursor-pointer border-amber-400 hover:ring-2 hover:ring-amber-400" : "border-neutral-200"}`}
-                                                        />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removePhoto(i)}
-                                                            title="Remove this photo"
-                                                            aria-label="Remove this photo"
-                                                            className="absolute right-1 top-1 hidden h-5 w-5 items-center justify-center rounded-full bg-red-600 text-[11px] font-bold text-white group-hover:flex"
-                                                        >×</button>
-                                                        {/* The badge used to read "uploaded · unsaved" for as long as the
-                                                            photo existed. `uploaded` only means "this url is not one of
-                                                            the submission's ORIGINAL photos" — and saving persists the draft,
-                                                            not submissions.photos, so that stayed true after a successful
-                                                            save and the label went on calling a saved photo unsaved. An
-                                                            admin uploads, saves, still reads "unsaved", and re-uploads.
-                                                            The upload half is a fact about the photo; the unsaved half is a
-                                                            fact about the DRAFT, so it now tracks the real dirty state. */}
-                                                        {uploaded && (
-                                                            <span className="absolute bottom-1 left-1 rounded bg-black/70 px-1 py-0.5 text-[8px] font-semibold text-white">
-                                                                {m.dirty ? "uploaded · unsaved" : "uploaded"}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </>
-                                )}
-                            </section>
-                        )}
-                    </div>
-                </aside>
-
-                {/* ── Preview + toolbar ─────────────────────────────────── */}
-                <div className="flex min-w-0 flex-1 flex-col">
-                    <div className="flex flex-wrap items-center gap-2 border-b border-neutral-200 bg-white px-3 py-2">
-                        {/* Dirty-gated, so the button IS the unsaved indicator. v3 injects
-                            theme and colour live into the iframe, so without this the page
-                            looks changed while nothing is persisted — an admin could pick a
-                            scheme, watch it apply, and leave believing it had saved. */}
-                        <button type="button" onClick={handleSave} disabled={busy || previewing || !m.dirty} className="inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3.5 py-1.5 text-xs font-bold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40">
-                            {saving ? "Saving…" : m.dirty ? "Save changes" : "Saved"}
-                        </button>
-                        <button type="button" onClick={handleReset} disabled={busy || previewing || !m.dirty} className={TB} title="Discard every unsaved change and go back to the last saved version">Reset</button>
-                        <button type="button" onClick={handlePreviewBuild} disabled={busy || previewing || !m.dirty} className={TB} title="Build your real content into the current picks (~30–60s) without saving">
-                            {previewing ? "Building…" : "Preview my site"}
-                        </button>
-                        <button type="button" onClick={m.undo} disabled={!m.canUndo} className={TB} title="Undo (Ctrl/Cmd+Z)">Undo</button>
-                        <button type="button" onClick={m.redo} disabled={!m.canRedo} className={TB} title="Redo (Ctrl/Cmd+Shift+Z)">Redo</button>
-                        {/* The tooltip has to say the same thing the picker does. It
-                            used to promise "its whole kind", which is now the OPT-IN
-                            ("Every section") rather than what a click does. */}
-                        <button type="button" onClick={toggleColorMode} aria-pressed={colorMode} className={`${TB}${colorMode ? " ring-2 ring-neutral-900" : ""}`} title="Colour mode — click any button, heading, or text to recolour its kind in that section; the picker can widen it to every section, and give buttons and links their own hover and pressed colours">
-                            {colorMode ? "🎨 Colors ✓" : "🎨 Colors"}
-                        </button>
-                        <div className="ml-1 flex overflow-hidden rounded-lg border border-neutral-200">
-                            {(Object.keys(VIEWPORTS) as Array<keyof typeof VIEWPORTS>).map((vp) => (
-                                <button key={vp} type="button" onClick={() => setViewport(vp)} className={`px-2.5 py-1.5 text-[11px] font-semibold capitalize transition-colors ${viewport === vp ? "bg-neutral-900 text-white" : "bg-white text-neutral-500 hover:bg-neutral-100"}`}>{vp}</button>
-                            ))}
-                        </div>
-                        <button type="button" onClick={onRegenerate} disabled={busy || previewing} className={TB}>Regenerate</button>
-                        {/* Two anchors, both present. They are not interchangeable: after a
-                            Regenerate (which rebuilds but never publishes) the published URL
-                            still serves the OLD page, so collapsing them with `||` broke
-                            exactly the comparison the "out of date" badge asks for. */}
-                        {websiteGenerated && (
-                            <a href={`/api/preview/${submissionId}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:border-neutral-300" title="The build currently on disk, published or not">View build</a>
-                        )}
-                        {websitePublishedUrl && (
-                            <a href={websitePublishedUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:border-neutral-300" title="The page the public sees right now">Live</a>
-                        )}
-                        <button type="button" onClick={onEnhanceImages} disabled={enhancing} className={TB}>{enhancing ? "Enhancing…" : "Enhance"}</button>
-                        <div className="ml-auto flex flex-wrap items-center gap-2">
-                            {/* Hidden once the submission is settled. Re-approving is not a
-                                no-op: it re-sends the creator an approval notification and
-                                re-increments the approvedCount that drives their price-ceiling
-                                unlock, and nothing server-side guards against it. */}
-                            {onApprove && submissionStatus !== "approved" && submissionStatus !== "rejected" && <button type="button" onClick={onApprove} className={TB}>Approve</button>}
-                            {onReject && submissionStatus !== "rejected" && <button type="button" onClick={onReject} className={`${TB} !text-red-600`}>Reject</button>}
-                            {publishStale && (
-                                <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-100 px-2.5 py-1.5 text-[11px] font-bold text-amber-900" title="The live site still has the previous version. Click Republish to update it.">
-                                    ⚠ Live site is out of date
-                                </span>
-                            )}
-                            {websitePublishedUrl ? (
-                                <>
-                                    <button type="button" onClick={onRepublish} disabled={republishingWebsite} className={publishStale ? "inline-flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-40" : TB}>{republishingWebsite ? "Republishing…" : publishStale ? "Republish · changes not live" : "Republish"}</button>
-                                    <button type="button" onClick={onUnpublish} disabled={unpublishingWebsite} className={TB}>{unpublishingWebsite ? "Unpublishing…" : "Unpublish"}</button>
-                                </>
-                            ) : (
-                                <button type="button" onClick={onPublish} disabled={publishingWebsite || !websiteGenerated} className="inline-flex items-center gap-1.5 rounded-lg bg-neutral-900 px-3 py-1.5 text-xs font-bold text-white hover:bg-neutral-700 disabled:opacity-40">{publishingWebsite ? "Publishing…" : "Publish"}</button>
-                            )}
-                            <button type="button" onClick={onSendToClient} disabled={sendingEmail} className={TB}>{sendingEmail ? "Sending…" : "Send to client"}</button>
-                            {canGiveFree && <button type="button" onClick={onGiveFree} disabled={markingComped} className={TB} title="Give this website to the owner for free — the creator is still paid.">{markingComped ? "Giving…" : "Give free"}</button>}
-                            {onToggleDetails && <button type="button" onClick={onToggleDetails} className={TB}>Details</button>}
-                            <button type="button" onClick={onDelete} className={`${TB} !text-red-600`}>Delete</button>
-                        </div>
-                    </div>
-
-                    <div className="relative flex-1 overflow-auto bg-neutral-100">
-                        {(busy || previewing) && (
-                            <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm">
-                                <div className="flex items-center gap-3 text-sm font-medium text-neutral-600">
-                                    <span className="h-5 w-5 animate-spin rounded-full border-b-2 border-amber-500" />
-                                    {saving ? "Saving + rebuilding…" : previewing ? "Building a preview with your content…" : "Rebuilding website…"}
-                                </div>
-                            </div>
-                        )}
-                        {previewBuildHtml && (
-                            <div className="absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-2 bg-amber-500/95 px-3 py-1.5 text-[11px] font-semibold text-white">
-                                <span className="truncate">Previewing your unsaved changes (real content) — click “Save changes” to keep them.</span>
-                                <button type="button" onClick={() => setPreviewBuildHtml(null)} className="flex-shrink-0 rounded bg-white/20 px-2 py-0.5 hover:bg-white/30">Back to saved</button>
-                            </div>
-                        )}
-                        <div className="mx-auto h-full bg-white" style={vw ? { width: vw, maxWidth: "100%", boxShadow: "0 0 0 1px rgba(0,0,0,0.06)" } : { width: "100%" }}>
-                            {previewBuildHtml ? (
-                                <iframe key="v3-preview" ref={iframeRef} srcDoc={injectEditorBridge(previewBuildHtml)} title="Unsaved preview (v3)" className="h-full w-full border-0 bg-white" sandbox="allow-same-origin allow-scripts allow-popups" onLoad={handleIframeLoad} />
-                            ) : htmlContent ? (
-                                <iframe key="v3-saved" ref={iframeRef} srcDoc={previewHtml} title="Website preview (v3)" className="h-full w-full border-0 bg-white" sandbox="allow-same-origin allow-scripts allow-popups" onLoad={handleIframeLoad} />
-                            ) : (
-                                <div className="flex h-full items-center justify-center text-sm text-neutral-400">No website generated yet.</div>
-                            )}
-                        </div>
-                    </div>
+                    />
                 </div>
+
+                {aside}
             </div>
 
             {colorMode && !colorPopover && (
-                <div style={{ position: "fixed", left: "50%", bottom: 24, transform: "translateX(-50%)", zIndex: 9998, background: "#0f172a", color: "#fff", borderRadius: 999, padding: "8px 16px", fontSize: 12, fontWeight: 600, fontFamily: "ui-sans-serif, system-ui, sans-serif", boxShadow: "0 8px 24px rgba(0,0,0,0.25)" }}>
-                    🎨 Colour mode — click a button, heading, or text to recolour its kind in that section
+                <div className="fixed bottom-6 left-1/2 z-40 w-max max-w-[calc(100vw_-_32px)] -translate-x-1/2 rounded-full bg-r1-ink px-4 py-2 text-center text-[13px] font-medium leading-[18px] text-r1-paper shadow-r1-menu" role="status">
+                    Recolour: click a button, heading or text to recolour its kind in that section
                 </div>
             )}
             {colorPopover && (() => {
@@ -1254,7 +1336,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
                 // so it goes on writing exactly the key it always wrote.
                 const hasStates = ROLE_HAS_STATES[colorPopover.role];
                 const state: ColorState = hasStates ? colorPopover.state : "base";
-                const storedMap = (((m.effectiveCustomizations as any)?.roleColors) ?? {}) as Record<string, string>;
+                const storedMap = (((m.effectiveCustomizations as EditorJson)?.roleColors) ?? {}) as Record<string, string>;
                 // What a given state has STORED at the prop + scope on screen.
                 // The dots report this and only this — never the fallback below,
                 // or every state would look as though it had been picked.
@@ -1283,42 +1365,39 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
                     : colorPopover.scopeAll
                         ? "Nothing on this page uses this colour."
                         : `Nothing in ${sectionName(colorPopover.section)} uses this colour — pick “Every section”.`;
-                const segBtn = (active: boolean) => ({
-                    padding: "6px 10px", fontSize: 11, fontWeight: 700, border: "none", cursor: "pointer",
-                    whiteSpace: "nowrap" as const,
-                    background: active ? "#0f172a" : "#fff", color: active ? "#fff" : "#64748b",
-                });
-                const caption = {
-                    fontSize: 10, fontWeight: 700, letterSpacing: "0.14em",
-                    textTransform: "uppercase" as const, color: "#64748b",
-                };
                 return (
-                    <div style={{ position: "fixed", left: "50%", bottom: 24, transform: "translateX(-50%)", zIndex: 9998, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, boxShadow: "0 16px 40px rgba(0,0,0,0.22)", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10, fontFamily: "ui-sans-serif, system-ui, sans-serif", minWidth: 300, maxWidth: "min(420px, calc(100vw - 32px))" }}>
+                    // Not modal on purpose: with the popover open the admin can
+                    // keep clicking elements in the preview, and each click
+                    // re-targets it.
+                    <div
+                        role="dialog"
+                        aria-label={`Recolour ${def.label}`}
+                        className="r1 fixed bottom-6 left-1/2 z-40 flex w-[min(420px,calc(100vw_-_32px))] -translate-x-1/2 flex-col gap-3 rounded-[10px] border border-r1-line bg-r1-paper p-4 shadow-r1-dialog"
+                    >
                         {/* Three segmented controls side by side is one row nobody
                             reads, so the popover is a COLUMN: what is changing, then
                             the two "which pixels" axes, then the state axis on a row
                             of its own (it is three segments wide and each carries a
                             swatch), then the colour itself. */}
-                        <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
-                                <span style={caption}>Recolour</span>
-                                <span style={{ fontSize: 14, fontWeight: 700, color: "#0f172a", whiteSpace: "nowrap" }}>{def.label}</span>
+                        <div className="flex items-start gap-3">
+                            <div className="flex min-w-0 flex-col gap-0.5">
+                                <span className="t-label">Recolour</span>
+                                <span className="t-h2 truncate">{def.label}</span>
                                 {/* Never just "Primary buttons": the same role lives in
                                     the hero and the closing band, so the name of the
                                     role alone cannot say which one is about to change. */}
-                                <span style={{ fontSize: 11, color: "#64748b" }}>in {where}</span>
+                                <span className="t-meta">in {where}</span>
                             </div>
-                            <button type="button" onClick={() => setColorPopover(null)} aria-label="Close"
-                                style={{ marginLeft: "auto", background: "transparent", border: "none", color: "#64748b", cursor: "pointer", fontSize: 20, lineHeight: 1, padding: "0 0 0 6px" }}>&times;</button>
+                            <Button variant="ghost" size="sm" icon aria-label="Close" className="ml-auto" onClick={() => setColorPopover(null)}>
+                                <Icon icon={X} />
+                            </Button>
                         </div>
                         {(def.props.length > 1 || !!colorPopover.section) && (
-                            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+                            <div className="flex flex-wrap items-center gap-2">
                                 {def.props.length > 1 && (
-                                    <div role="group" aria-label="Which part of the element this colour applies to"
-                                        style={{ display: "flex", border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+                                    <div role="group" aria-label="Which part of the element this colour applies to" className="t-seg">
                                         {def.props.map((p) => (
-                                            <button key={p} type="button" aria-pressed={prop === p} onClick={() => setColorPopover((c) => (c ? { ...c, prop: p } : c))}
-                                                style={segBtn(prop === p)}>
+                                            <button key={p} type="button" aria-pressed={prop === p} onClick={() => setColorPopover((c) => (c ? { ...c, prop: p } : c))}>
                                                 {p === "bg" ? "Fill" : "Text"}
                                             </button>
                                         ))}
@@ -1328,18 +1407,19 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
                                     — with none, every-section is not a choice, it is the
                                     only key there is. */}
                                 {colorPopover.section && (
-                                    <div role="group" aria-label="Which sections this colour applies to"
-                                        style={{ display: "flex", border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+                                    <div role="group" aria-label="Which sections this colour applies to" className="t-seg">
                                         <button type="button" aria-pressed={!colorPopover.scopeAll}
                                             onClick={() => setColorPopover((c) => (c ? { ...c, scopeAll: false } : c))}
                                             title={colorPopover.sectionMatches === 0
                                                 ? `Nothing in ${sectionName(colorPopover.section)} uses this colour`
-                                                : `Only in ${sectionName(colorPopover.section)}`}
-                                            style={segBtn(!colorPopover.scopeAll)}>This section</button>
+                                                : `Only in ${sectionName(colorPopover.section)}`}>
+                                            This section
+                                        </button>
                                         <button type="button" aria-pressed={colorPopover.scopeAll}
                                             onClick={() => setColorPopover((c) => (c ? { ...c, scopeAll: true } : c))}
-                                            title={`${def.label} everywhere on the page`}
-                                            style={segBtn(colorPopover.scopeAll)}>Every section</button>
+                                            title={`${def.label} everywhere on the page`}>
+                                            Every section
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -1351,10 +1431,9 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
                             thing that separates "Hover is deliberately the same" from
                             "Hover was never touched". */}
                         {hasStates && (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                                <span style={caption}>State</span>
-                                <div role="group" aria-label="Which pointer state this colour applies to"
-                                    style={{ display: "flex", alignSelf: "flex-start", border: "1px solid #e2e8f0", borderRadius: 8, overflow: "hidden" }}>
+                            <div className="flex flex-col gap-1.5">
+                                <span className="t-label">State</span>
+                                <div role="group" aria-label="Which pointer state this colour applies to" className="t-seg self-start">
                                     {COLOR_STATES.map((st) => {
                                         const on = state === st;
                                         const stColor = storedFor(st);
@@ -1371,14 +1450,12 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
                                                     : st === "hover"
                                                         ? "Hover: follows Normal"
                                                         : `${COLOR_STATE_LABELS[st]}: unchanged from the template`}
-                                                style={{ ...segBtn(on), display: "inline-flex", alignItems: "center", gap: 6 }}>
-                                                <span aria-hidden="true" style={{
-                                                    width: 10, height: 10, borderRadius: "50%", flex: "0 0 auto",
-                                                    background: stColor || "transparent",
-                                                    border: stColor
-                                                        ? `1px solid ${on ? "rgba(255,255,255,0.8)" : "rgba(15,23,42,0.28)"}`
-                                                        : `1px dashed ${on ? "rgba(255,255,255,0.6)" : "#cbd5e1"}`,
-                                                }} />
+                                                className="inline-flex items-center gap-1.5">
+                                                <span
+                                                    aria-hidden="true"
+                                                    className={cx("inline-block h-2.5 w-2.5 flex-none rounded-full", stColor ? "border border-r1-line-2" : "border border-dashed border-r1-ink-4")}
+                                                    style={stColor ? { background: stColor } : undefined}
+                                                />
                                                 {COLOR_STATE_LABELS[st]}
                                             </button>
                                         );
@@ -1386,21 +1463,26 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
                                 </div>
                             </div>
                         )}
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <div className="flex items-center gap-2.5">
                             <input type="color" value={value} onChange={(e) => applyRoleColor(colorPopover.role, prop, e.target.value, scoped, state)}
-                                style={{ width: 44, height: 36, border: "1px solid #e2e8f0", borderRadius: 8, background: "#fff", cursor: "pointer", padding: 2, flex: "0 0 auto" }}
+                                className="h-9 w-11 flex-none cursor-pointer rounded-r1 border border-r1-line bg-r1-paper p-0.5"
                                 aria-label={`${def.label} ${propLabel} colour${hasStates ? `, ${COLOR_STATE_LABELS[state].toLowerCase()} state` : ""}, in ${where}`} />
-                            <span style={{ fontSize: 11, fontWeight: 600, color: existing ? "#0f172a" : "#94a3b8" }}>
+                            <span className={cx("t-mono", existing ? "text-r1-ink" : "text-r1-ink-3")}>
                                 {existing ? existing.toUpperCase() : "Not set"}
                             </span>
                             {existing && (
                                 <button type="button" onClick={() => applyRoleColor(colorPopover.role, prop, null, scoped, state)}
                                     title={`Remove the ${hasStates ? `${COLOR_STATE_LABELS[state].toLowerCase()} ` : ""}${propLabel} colour for ${def.label} in ${where}`}
-                                    style={{ marginLeft: "auto", fontSize: 12, color: "#64748b", background: "transparent", border: "none", cursor: "pointer", textDecoration: "underline" }}>Reset</button>
+                                    className={cx(linkBtn, "ml-auto self-center")}>
+                                    Reset
+                                </button>
                             )}
                         </div>
                         {note && (
-                            <span role="status" style={{ fontSize: 11, fontWeight: 600, color: "#b45309" }}>{note}</span>
+                            <p role="status" className="flex items-start gap-2 text-[13px] leading-[18px] text-r1-gold-ink">
+                                <Dot tone="attn" className="mt-[5px]" />
+                                {note}
+                            </p>
                         )}
                     </div>
                 );
@@ -1415,7 +1497,7 @@ export default function SandboxEditorV3(props: SandboxEditorProps) {
                 open={!!imagePickerField}
                 field={imagePickerField}
                 originals={effectivePhotos}
-                enhanced={(enhancedImageUrls ?? []) as unknown as Record<string, any>}
+                enhanced={(enhancedImageUrls ?? []) as unknown as Record<string, EditorJson>}
                 onClose={() => setImagePickerField(null)}
                 onSelect={handleImagePick}
             />

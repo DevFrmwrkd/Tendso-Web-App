@@ -1,216 +1,153 @@
 "use client"
 
-import Link from "next/link"
-import { useMemo } from "react"
-import { CalendarClock, RefreshCw, Video } from "lucide-react"
+import { useId, useMemo } from "react"
+import { RotateCw } from "lucide-react"
 
-import {
-    formatCallTime,
-    isInProgress,
-    manilaDayKey,
-    timeSince,
-    timeUntil,
-    useCallSchedule,
-    useNow,
-} from "@/hooks/useCallSchedule"
-import CallList from "./CallList"
-import FinishedCallList from "./FinishedCallList"
-import RefreshFinishedCalls from "./RefreshFinishedCalls"
+import { Button, Dot, Icon, Loading, PageHeader, Skeleton, SkeletonRows } from "@/components/r1"
+import { formatCallTime, manilaDayKey, timeSince, useCallSchedule, useNow } from "@/hooks/useCallSchedule"
+
+import { CalendarNote, CallRow, OutOfHoursNote } from "./CallList"
+import { callsLeftLine, dayPart, focusKey, fromScheduled, longDay, plural } from "./calls"
+import PriorityRow from "./PriorityRow"
 
 /**
- * What an internal staff account sees when they open Tendso.
+ * What an internal staff account sees when they open Tendso (board AdminHome,
+ * the staff view): "What needs me today?"
  *
  * They run the 10-minute Field Agent calls and nothing else, so this answers
- * the only three questions that job has: is one starting soon, what is on today,
- * and what is coming. Every call carries its Join link, which is the point —
- * the whole role exists so nobody needs the tendso.hr mailbox to get on a call.
+ * the questions that job has: what is on today and whether one is starting
+ * soon, each call with its Join. The Join is the point — the whole role exists
+ * so nobody needs the tendso.hr mailbox to get on a call.
  *
  * It also asks one question back: of the calls that have finished, which ones
  * did anybody turn up to. Only the person who sat the call knows — Google will
  * say how long the Meet room was open and nothing more — so that answer has to
- * be typed by a human, and this is where the human is.
+ * be typed by a human. The count is here; the answering happens on Calls.
  */
-export default function StaffDashboard({ firstName }: { firstName?: string }) {
-    const { upcoming, needsAttendance, calendarError, loading, refresh, refreshing, lastRefreshed } =
-        useCallSchedule(true)
+export default function StaffDashboard() {
+    const { upcoming, needsAttendance, calendarError, loading, refresh, refreshing, lastRefreshed } = useCallSchedule(true)
     const now = useNow()
+    const listId = useId()
+    const owedId = useId()
+    const outId = useId()
 
-    const next = upcoming[0] ?? null
-
+    // Today's calls still to come, the one on now included: the schedule keeps
+    // a call until it ends.
     const today = useMemo(() => {
         const key = manilaDayKey(now)
-        return upcoming.filter((c) => manilaDayKey(c.startMs) === key)
+        return upcoming.filter((c) => manilaDayKey(c.startMs) === key).map(fromScheduled)
     }, [upcoming, now])
+    const focus = focusKey(today, now)
+    const next = upcoming[0] ?? null
 
-    // Surfaced here as well as in the list: it is the one number that means
-    // somebody has to do something.
+    // Surfaced as well as marked in the list: it is the one number that means
+    // somebody has to do something before the call, not after it.
     const outOfHours = useMemo(() => upcoming.filter((c) => c.outsideHours).length, [upcoming])
-
-    const thisWeek = useMemo(
-        () => upcoming.filter((c) => c.startMs < now + 7 * 24 * 60 * 60 * 1000).length,
-        [upcoming, now],
-    )
+    const owed = needsAttendance.length
 
     return (
-        <div className="space-y-6">
-            <header className="flex flex-wrap items-start justify-between gap-4">
-                <div className="space-y-1">
-                    <h1 className="text-2xl font-bold text-zinc-900">
-                        {firstName ? `Hi ${firstName}` : "Your calls"}
-                    </h1>
-                    <p className="text-sm text-zinc-500">
-                        The 10-minute Field Agent calls. Philippine time.
-                    </p>
-                </div>
-
-                {/* Bookings made HERE arrive on their own — that side is reactive.
-                    A call booked through TidyCal or added to the calendar by hand
-                    only shows up when the calendar is read again, which is what
-                    this does. */}
-                <div className="flex items-center gap-3">
-                    {lastRefreshed && !refreshing && (
-                        <span className="text-xs text-zinc-400">
-                            Updated {timeSince(lastRefreshed, now)}
-                        </span>
-                    )}
-                    <button
-                        onClick={refresh}
-                        disabled={refreshing}
-                        className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:border-zinc-400 disabled:opacity-60"
-                    >
-                        <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-                        {refreshing ? "Refreshing…" : "Refresh"}
-                    </button>
-                </div>
-            </header>
-
-            {calendarError && (
-                <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-                    Showing calls booked through the site only — {calendarError}
-                </p>
-            )}
-
-            {/* The next call, given its own weight: it is the thing you act on. */}
-            <section className="rounded-xl bg-zinc-900 p-6 text-white">
+        <>
+            <div className="flex flex-col gap-4">
+                <PageHeader title="Today" sub="What needs me today?" />
                 {loading ? (
-                    <p className="text-sm text-zinc-400">Loading your schedule…</p>
-                ) : next ? (
-                    <div className="flex flex-wrap items-end justify-between gap-4">
-                        <div className="min-w-0 space-y-1">
-                            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-400">
-                                {isInProgress(next, now)
-                                    ? "Happening now"
-                                    : `Next call · ${timeUntil(next.startMs, now)}`}
-                            </span>
-                            <p className="text-2xl font-bold truncate">{next.name}</p>
-                            <p className="text-sm text-zinc-300">{formatCallTime(next.startMs)}</p>
-                            {next.email && (
-                                <p className="text-sm text-zinc-400 truncate">{next.email}</p>
-                            )}
-                        </div>
-                        {next.meetUrl ? (
-                            <a
-                                href={next.meetUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-3 text-sm font-semibold text-zinc-900 hover:bg-zinc-100"
-                            >
-                                <Video className="h-4 w-4" /> Join the call
-                            </a>
-                        ) : (
-                            <span className="text-sm text-zinc-400">No Meet link on this one</span>
-                        )}
-                    </div>
+                    <Loading label="Loading your calls">
+                        <Skeleton width="60%" height={14} />
+                    </Loading>
                 ) : (
-                    <div className="flex items-center gap-3 text-zinc-300">
-                        <CalendarClock className="h-5 w-5" />
-                        <p className="text-sm">Nothing booked. Enjoy the quiet.</p>
-                    </div>
+                    <p className="t-body flex items-start gap-2.5">
+                        <Dot tone="progress" className="mt-1.5" />
+                        <span>
+                            <strong className="font-medium text-r1-ink">{longDay(now)}</strong> · {callsLeftLine(upcoming, now)} · Philippine time
+                        </span>
+                    </p>
                 )}
-            </section>
-
-            {/* An inbox, not a report: it is only here while there is something
-                in it, and every answer given makes it shorter. Above the counts
-                because it is the one thing on the page that is owed. */}
-            {needsAttendance.length > 0 && (
-                <FinishedCallList
-                    title={`Did they turn up? (${needsAttendance.length})`}
-                    calls={needsAttendance}
-                    empty="Every call is accounted for."
-                    loading={false}
-                    intro="These calls are over. Say what happened so the numbers mean something."
-                    action={<RefreshFinishedCalls />}
-                />
-            )}
-
-            {/* One strip, not three floating cards. Three small boxes capped at
-                768px left the right half of a wide screen empty and read as an
-                unfinished row; divided cells fill the width and say "these
-                belong together" at the same time. */}
-            <div className="grid grid-cols-2 divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200 bg-white sm:grid-cols-4 sm:divide-x">
-                <Stat label="Today" value={today.length} />
-                <Stat label="Next 7 days" value={thisWeek} />
-                <Stat label="Booked ahead" value={upcoming.length} />
-                <Stat
-                    label="Outside hours"
-                    value={outOfHours}
-                    tone={outOfHours > 0 ? "warn" : "plain"}
-                />
             </div>
 
-            <div className="grid items-start gap-6 xl:grid-cols-2">
-                <CallList
-                    title={`Today${today.length ? ` (${today.length})` : ""}`}
-                    calls={today}
-                    empty="No calls left today."
-                    loading={loading}
-                    onChanged={refresh}
-                />
+            <div className="flex w-full max-w-[880px] flex-col gap-6 lg:gap-8">
+                {calendarError && <CalendarNote error={calendarError} />}
 
-                <CallList
-                    title="Coming up"
-                    calls={upcoming.filter((c) => !today.includes(c))}
-                    empty="Nothing further booked yet."
-                    loading={loading}
-                    onChanged={refresh}
-                />
+                <section className="flex flex-col gap-3" aria-labelledby={listId}>
+                    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                            <h2 className="t-h2" id={listId}>
+                                {today.length > 0
+                                    ? `${today.length} ${plural(today.length, "call", "calls")} ${dayPart(today)}`
+                                    : "No more calls today"}
+                            </h2>
+                            <span className="t-meta">10-minute Field Agent calls</span>
+                        </div>
+                        {/* Bookings made HERE arrive on their own — that side is
+                            reactive. A call booked through TidyCal or added to the
+                            calendar by hand only shows up when the calendar is
+                            read again, which is what this does. */}
+                        <div className="flex items-center gap-2">
+                            {lastRefreshed && !refreshing && <span className="t-meta">Updated {timeSince(lastRefreshed, now)}</span>}
+                            <Button variant="ghost" size="sm" onClick={refresh} disabled={refreshing} aria-busy={refreshing}>
+                                <Icon icon={RotateCw} />
+                                {refreshing ? "Refreshing…" : "Refresh"}
+                            </Button>
+                        </div>
+                    </div>
+
+                    {loading ? (
+                        <Loading label="Loading today's calls">
+                            <SkeletonRows count={3} />
+                        </Loading>
+                    ) : today.length > 0 ? (
+                        <div className="t-card @container overflow-hidden">
+                            <OutOfHoursNote count={today.filter((c) => c.outsideHours).length} />
+                            <div className="t-list">
+                                {today.map((call) => (
+                                    <CallRow
+                                        key={call.key}
+                                        call={call}
+                                        now={now}
+                                        focus={call.key === focus}
+                                        highlight="label"
+                                        // The page's one primary is "Mark who came"; Join stays quiet.
+                                        join="ghost"
+                                        onChanged={refresh}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="t-card px-4 py-5 sm:px-6">
+                            <p className="t-body">
+                                {next ? `The next call is ${formatCallTime(next.startMs)}, with ${next.name}.` : "Nothing booked. Enjoy the quiet."}
+                            </p>
+                        </div>
+                    )}
+                </section>
+
+                {/* The one thing on this page that is owed. Cut when there is
+                    nothing owed: every answer given makes the number smaller. */}
+                {!loading && owed > 0 && (
+                    <section className="t-card overflow-hidden" aria-labelledby={owedId}>
+                        <PriorityRow
+                            headingId={owedId}
+                            figure={owed}
+                            tone="attn"
+                            reason={`finished ${plural(owed, "call has", "calls have")} no outcome yet`}
+                            meta="Only the person on the call knows who came. Google only records how long the room was open."
+                            action={{ label: "Mark who came", href: "/admin/bookings", primary: true }}
+                        />
+                    </section>
+                )}
+
+                {!loading && outOfHours > 0 && (
+                    <section className="t-card overflow-hidden" aria-labelledby={outId}>
+                        <PriorityRow
+                            headingId={outId}
+                            figure={outOfHours}
+                            tone="attn"
+                            reason={`booked ${plural(outOfHours, "call falls", "calls fall")} outside your hours`}
+                            meta="Nobody is working then. Cancel each one and the person gets the current booking link."
+                            action={{ label: "See the calls", href: "/admin/bookings", primary: owed === 0 }}
+                        />
+                    </section>
+                )}
             </div>
-
-            <p className="text-sm text-zinc-500">
-                Every booking, including past and cancelled ones, is on the{" "}
-                <Link href="/admin/bookings" className="underline">
-                    bookings page
-                </Link>
-                .
-            </p>
-        </div>
-    )
-}
-
-function Stat({
-    label,
-    value,
-    tone = "plain",
-}: {
-    label: string
-    value: number
-    /** 'warn' only when the number is something to act on, so colour stays
-     *  meaningful rather than decorative. */
-    tone?: "plain" | "warn"
-}) {
-    const warn = tone === "warn"
-    return (
-        <div className={`p-5 ${warn ? "bg-amber-50" : ""}`}>
-            <p className={`text-3xl font-bold tabular-nums ${warn ? "text-amber-800" : "text-zinc-900"}`}>
-                {value}
-            </p>
-            <p
-                className={`text-xs font-medium uppercase tracking-wide ${
-                    warn ? "text-amber-700" : "text-zinc-500"
-                }`}
-            >
-                {label}
-            </p>
-        </div>
+        </>
     )
 }

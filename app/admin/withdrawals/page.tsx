@@ -1,31 +1,25 @@
-"use client"
+import { redirect } from "next/navigation"
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
-import AdminLayout from "../components/AdminLayout"
-
-/**
- * Legacy admin route — withdrawal transactions now live on /admin/payouts.
- * This file is kept so old bookmarks/links don't 404, and to give a one-stop
- * landing for anyone navigating directly. Redirects immediately.
- */
-export default function WithdrawalsRedirect() {
-    const router = useRouter()
-
-    useEffect(() => {
-        router.replace("/admin/payouts")
-    }, [router])
-
-    return (
-        <AdminLayout>
-            <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center px-6">
-                <Loader2 className="h-8 w-8 animate-spin text-amber-500" />
-                <p className="text-sm font-medium text-gray-700">Redirecting to Payout Management…</p>
-                <p className="text-xs text-gray-500 max-w-sm">
-                    Creator withdrawal transactions are now displayed under <span className="font-semibold">Payouts</span>.
-                </p>
-            </div>
-        </AdminLayout>
-    )
+// /admin/withdrawals was the first list of creator withdrawals. Its contents
+// have lived on /admin/payouts since withdrawals went instant, and in Round 1
+// the Payouts screen holds them all: the list (filter chips), each
+// withdrawal's details (the right drawer) and the money summary. The route is
+// kept as a redirect because links to it are out there (bookmarks, notes,
+// AdminLayout still lights Payouts for it), and any query parameters ride
+// along, so a ?open=<id> still opens that withdrawal.
+//
+// It lands on the All filter, not on Payouts' own default (Failed when
+// anything has failed): this page listed every withdrawal, settled or not.
+export default async function WithdrawalsRedirect({
+    searchParams,
+}: {
+    searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
+    const query = new URLSearchParams()
+    for (const [key, value] of Object.entries(await searchParams)) {
+        if (value === undefined) continue
+        for (const v of Array.isArray(value) ? value : [value]) query.append(key, v)
+    }
+    if (!query.has("status")) query.set("status", "all")
+    redirect(`/admin/payouts?${query.toString()}`)
 }

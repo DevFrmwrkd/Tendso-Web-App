@@ -1,294 +1,122 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
-import { Search, Loader2, XCircle, MessageSquare } from "lucide-react";
 
-type RejectedCreator = {
-    _id: Id<"creators">;
-    clerkId: string;
-    email: string;
-    firstName: string | null;
-    middleName: string | null;
-    lastName: string | null;
-    phone: string | null;
-    profileImage: string | null;
-    quizPassedAt: number | null;
-    rejectedAt: number;
-    rejectionReason: string | null;
-    rejectedBy: string | null;
-    createdAt: number | null;
-};
+import { Avatar, Button, EmptyState, List, RowButton, RowChevron, SearchInput, Status, TableHead } from "@/components/r1";
 
-function timeAgo(ts: number): string {
-    const diffMs = Date.now() - ts;
-    const min = Math.floor(diffMs / 60_000);
-    if (min < 1) return "just now";
-    if (min < 60) return `${min}m ago`;
-    const hr = Math.floor(min / 60);
-    if (hr < 24) return `${hr}h ago`;
-    const days = Math.floor(hr / 24);
-    if (days < 30) return `${days}d ago`;
-    const months = Math.floor(days / 30);
-    return `${months}mo ago`;
-}
+import { Lede, Pager, TableLoading } from "../_components/TableParts";
+import { PAGE_ROWS, avatarName, fullName, matchesSearch, pageOf, pageText, shortDate, type RejectedRow } from "../_lib/creators";
 
-function fullName(c: RejectedCreator): string {
-    const parts = [c.firstName, c.middleName, c.lastName].filter(Boolean) as string[];
-    return parts.length > 0 ? parts.join(" ") : "(name not set)";
-}
-
-export default function RejectedCreatorsView({ isAdmin }: { isAdmin: boolean }) {
-    const rejected = useQuery(api.creators.listRejected, isAdmin ? {} : "skip") as
-        | RejectedCreator[]
-        | undefined;
-
+/**
+ * The "Rejected" tab (board Creators): creators an admin rejected who have
+ * not retaken the quiz yet, newest first (`listRejected`'s order). Retaking
+ * the quiz clears the rejection, so they leave this list on their own and,
+ * if they pass again, come back to Waiting for approval.
+ *
+ * A row opens the drawer with the reason they see. Search (name, email,
+ * phone or reason, as the old view had) shows once the list runs past a page.
+ */
+export default function RejectedCreatorsView({
+    rows,
+    openId,
+    now,
+    onOpen,
+}: {
+    rows: RejectedRow[] | undefined;
+    openId: string | null;
+    now: number;
+    onOpen: (id: string) => void;
+}) {
     const [search, setSearch] = useState("");
+    const [page, setPage] = useState(1);
 
-    const filtered = useMemo(() => {
-        if (!rejected) return [];
-        const q = search.trim().toLowerCase();
-        if (!q) return rejected;
-        return rejected.filter(
-            (c) =>
-                fullName(c).toLowerCase().includes(q) ||
-                c.email.toLowerCase().includes(q) ||
-                (c.phone?.toLowerCase().includes(q) ?? false) ||
-                (c.rejectionReason?.toLowerCase().includes(q) ?? false),
+    const filtered = useMemo(
+        () => (rows ?? []).filter((c) => matchesSearch(search, [fullName(c), c.email, c.phone, c.rejectionReason])),
+        [rows, search],
+    );
+
+    if (rows === undefined) return <TableLoading label="Loading the rejected creators" />;
+
+    if (rows.length === 0) {
+        return (
+            <div className="t-card">
+                <EmptyState
+                    title="Nobody is rejected"
+                    body="Creators you reject show up here with the reason they see. Anyone who retakes the quiz leaves this list."
+                />
+            </div>
         );
-    }, [rejected, search]);
+    }
+
+    const shown = pageOf(filtered, page);
 
     return (
-        <div className="space-y-6">
-            {/* Editorial header */}
-            <div className="flex items-start justify-between gap-6 flex-wrap">
-                <div>
-                    <div className="flex items-center gap-3 mb-3">
-                        <span className="ed-eyebrow" style={{ color: "var(--ed-danger)" }}>
-                            Rejected · {String(rejected?.length ?? 0).padStart(2, "0")} creators
-                        </span>
-                    </div>
-                    <h2 className="ed-display-md" style={{ color: "var(--ed-ink)" }}>
-                        Not approved{" "}
-                        <em style={{ fontStyle: "italic", color: "var(--ed-danger)" }}>
-                            this time.
-                        </em>
-                    </h2>
-                    <p className="ed-body mt-3 flex items-start gap-2" style={{ maxWidth: "60ch" }}>
-                        <XCircle
-                            className="w-4 h-4 mt-1 flex-shrink-0"
-                            style={{ color: "var(--ed-danger)" }}
-                        />
-                        <span>
-                            Creators rejected after their onboarding quiz. They see a locked
-                            rejection screen on mobile and can retake the quiz at any time —
-                            doing so removes them from this list automatically.
-                        </span>
-                    </p>
-                </div>
-                <div className="text-right">
-                    <div
-                        className="ed-display-md"
-                        style={{ color: "var(--ed-ink)", fontVariantNumeric: "tabular-nums" }}
-                    >
-                        {rejected?.length ?? "—"}
-                    </div>
-                    <div className="ed-label mt-1">on the bench</div>
-                </div>
-            </div>
+        <div className="flex flex-col gap-3">
+            <Lede>They see the reason on their rejection screen and can retake the quiz or contact support.</Lede>
 
-            <hr className="ed-rule" />
-
-            {/* Search */}
-            <div className="relative">
-                <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
-                    style={{ color: "var(--ed-ink-3)" }}
-                />
-                <input
-                    type="text"
+            {/* A short list needs no search box; one that runs past a page does. */}
+            {rows.length > PAGE_ROWS || search ? (
+                <SearchInput
+                    label="Search the rejected creators, by name, email, phone or reason"
+                    placeholder="Search by name, email, phone or reason"
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search by name, email, phone, or reason…"
-                    className="w-full pl-10 pr-4 py-3 text-sm focus:outline-none transition-colors"
-                    style={{
-                        background: "var(--ed-paper-3)",
-                        border: "1px solid var(--ed-rule)",
-                        borderRadius: "var(--ed-radius-sm)",
-                        fontFamily: "var(--ed-sans)",
-                        color: "var(--ed-ink)",
+                    onChange={(e) => {
+                        setSearch(e.target.value);
+                        setPage(1);
                     }}
+                    className="w-full sm:w-[360px]"
                 />
+            ) : null}
+
+            <div className="t-card overflow-hidden">
+                <TableHead className="hidden lg:flex">
+                    <span className="flex-1">Creator</span>
+                    <span className="w-[110px] flex-none">Rejected</span>
+                    <span className="w-[260px] flex-none xl:w-[420px]">Reason</span>
+                    <span className="w-4 flex-none" />
+                </TableHead>
+                {shown.rows.length > 0 ? (
+                    <List>
+                        {shown.rows.map((c) => {
+                            const name = fullName(c);
+                            const date = shortDate(c.rejectedAt, now);
+                            return (
+                                <RowButton key={c._id} selected={openId === c._id} aria-label={`Open ${name}, rejected`} onClick={() => onOpen(c._id)}>
+                                    <Avatar name={avatarName(c)} />
+                                    <span className="flex min-w-0 flex-1 flex-col">
+                                        <span className="t-row-title">{name}</span>
+                                        <Status tone="bad" word="Rejected" />
+                                        {/* On a phone the date and the reason fold under the name. */}
+                                        <span className="t-meta mt-1 line-clamp-2 lg:hidden">
+                                            {date} · {c.rejectionReason ?? "No reason given"}
+                                        </span>
+                                    </span>
+                                    <span className="t-num hidden w-[110px] flex-none text-r1-ink-2 lg:block">{date}</span>
+                                    <span className="hidden w-[260px] flex-none lg:block xl:w-[420px]">
+                                        <span className={c.rejectionReason ? "line-clamp-2 text-r1-ink-2" : "text-r1-ink-3"}>
+                                            {c.rejectionReason ?? "No reason given"}
+                                        </span>
+                                    </span>
+                                    <RowChevron />
+                                </RowButton>
+                            );
+                        })}
+                    </List>
+                ) : (
+                    <EmptyState
+                        title={`No rejected creator matches “${search.trim()}”`}
+                        body="Check the spelling, or clear the search."
+                        action={<Button onClick={() => setSearch("")}>Clear search</Button>}
+                    />
+                )}
             </div>
 
-            {rejected === undefined ? (
-                <div className="flex items-center justify-center py-16">
-                    <Loader2
-                        className="w-6 h-6 animate-spin"
-                        style={{ color: "var(--ed-ink-3)" }}
-                    />
-                </div>
-            ) : filtered.length === 0 ? (
-                <div className="ed-card-xl text-center">
-                    <h3 className="ed-display-sm" style={{ color: "var(--ed-ink)" }}>
-                        {search ? (
-                            <>
-                                No <em style={{ color: "var(--ed-accent)" }}>matches</em>
-                            </>
-                        ) : (
-                            <>
-                                No <em style={{ color: "var(--ed-accent)" }}>rejections</em> on the
-                                bench.
-                            </>
-                        )}
-                    </h3>
-                    <p className="ed-body-sm mt-2" style={{ color: "var(--ed-ink-2)" }}>
-                        {search
-                            ? "Try a different search term."
-                            : "Nobody has been rejected — or everyone retook the quiz."}
-                    </p>
-                </div>
-            ) : (
-                <div
-                    className="overflow-hidden"
-                    style={{
-                        background: "var(--ed-paper-3)",
-                        border: "1px solid var(--ed-rule)",
-                        borderRadius: "var(--ed-radius-lg)",
-                    }}
-                >
-                    <table className="w-full">
-                        <thead
-                            style={{
-                                background: "var(--ed-paper-2)",
-                                borderBottom: "1px solid var(--ed-rule)",
-                            }}
-                        >
-                            <tr>
-                                <th className="ed-label text-left px-6 py-3">Creator</th>
-                                <th className="ed-label text-left px-6 py-3">Email</th>
-                                <th className="ed-label text-left px-6 py-3">Phone</th>
-                                <th className="ed-label text-left px-6 py-3">Rejected</th>
-                                <th className="ed-label text-left px-6 py-3">Reason</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filtered.map((c, i) => (
-                                <tr
-                                    key={String(c._id)}
-                                    className="transition-colors hover:bg-[var(--ed-paper-2)]"
-                                    style={{
-                                        borderTop:
-                                            i === 0 ? "none" : "1px solid var(--ed-rule)",
-                                    }}
-                                >
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div
-                                                className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center flex-shrink-0"
-                                                style={{
-                                                    background: "var(--ed-paper-2)",
-                                                    border: "1px solid var(--ed-rule)",
-                                                }}
-                                            >
-                                                {c.profileImage ? (
-                                                    // eslint-disable-next-line @next/next/no-img-element
-                                                    <img
-                                                        src={c.profileImage}
-                                                        alt={fullName(c)}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <span
-                                                        style={{
-                                                            fontFamily: "var(--ed-serif)",
-                                                            fontSize: 16,
-                                                            color: "var(--ed-ink-2)",
-                                                        }}
-                                                    >
-                                                        {(
-                                                            c.firstName?.[0] ?? c.email[0]
-                                                        ).toUpperCase()}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <div
-                                                    className="text-sm"
-                                                    style={{
-                                                        fontFamily: "var(--ed-serif)",
-                                                        fontSize: 16,
-                                                        color: "var(--ed-ink)",
-                                                    }}
-                                                >
-                                                    {fullName(c)}
-                                                </div>
-                                                {c.quizPassedAt && (
-                                                    <div className="ed-label mt-1">
-                                                        quiz passed {timeAgo(c.quizPassedAt)}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td
-                                        className="px-6 py-4 text-sm"
-                                        style={{ color: "var(--ed-ink-2)" }}
-                                    >
-                                        {c.email}
-                                    </td>
-                                    <td
-                                        className="px-6 py-4 text-sm"
-                                        style={{ color: "var(--ed-ink-2)" }}
-                                    >
-                                        {c.phone ?? "—"}
-                                    </td>
-                                    <td
-                                        className="px-6 py-4 text-sm whitespace-nowrap"
-                                        style={{
-                                            fontFamily: "var(--ed-mono)",
-                                            fontSize: 11,
-                                            letterSpacing: "0.08em",
-                                            color: "var(--ed-danger)",
-                                        }}
-                                        title={new Date(c.rejectedAt).toLocaleString()}
-                                    >
-                                        {timeAgo(c.rejectedAt).toUpperCase()}
-                                    </td>
-                                    <td
-                                        className="px-6 py-4 text-sm"
-                                        style={{ color: "var(--ed-ink-2)", maxWidth: 360 }}
-                                    >
-                                        {c.rejectionReason ? (
-                                            <div className="flex items-start gap-2">
-                                                <MessageSquare
-                                                    className="w-3.5 h-3.5 mt-0.5 flex-shrink-0"
-                                                    style={{ color: "var(--ed-ink-3)" }}
-                                                />
-                                                <span
-                                                    className="line-clamp-2"
-                                                    title={c.rejectionReason}
-                                                >
-                                                    {c.rejectionReason}
-                                                </span>
-                                            </div>
-                                        ) : (
-                                            <span
-                                                className="ed-label"
-                                                style={{ color: "var(--ed-ink-3)" }}
-                                            >
-                                                No reason given
-                                            </span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+            <Pager
+                text={pageText("Newest first", shown.rows.length, filtered.length, shown.page, shown.pages)}
+                page={shown.page}
+                pages={shown.pages}
+                onPage={setPage}
+            />
         </div>
     );
 }

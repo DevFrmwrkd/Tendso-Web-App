@@ -1,7 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useLayoutEffect, useRef, useState } from "react"
 import Image from "next/image"
+import { ChevronLeft, ChevronRight, Download, X } from "lucide-react"
+
+import { Icon } from "@/components/r1"
 import { extensionFor, fetchUncached } from "@/lib/mediaZip"
 
 interface PhotoLightboxProps {
@@ -10,8 +13,25 @@ interface PhotoLightboxProps {
     onClose: () => void
 }
 
+/**
+ * The full-screen photo viewer (board Review: the owner's photos open here).
+ *
+ * A native modal <dialog>, like the kit overlays: it takes focus when it opens
+ * (so the arrow keys work straight away), Esc closes it, the page behind is
+ * inert, and focus goes back to the photo that opened it. Mounted only while
+ * open; the parent unmounts it to close.
+ */
 export function PhotoLightbox({ photos, initialIndex = 0, onClose }: PhotoLightboxProps) {
     const [currentIndex, setCurrentIndex] = useState(initialIndex)
+    const ref = useRef<HTMLDialogElement>(null)
+
+    useLayoutEffect(() => {
+        const el = ref.current
+        if (el && !el.open) el.showModal()
+        return () => {
+            if (el?.open) el.close()
+        }
+    }, [])
 
     const goToPrevious = () => {
         setCurrentIndex((prev) => (prev === 0 ? photos.length - 1 : prev - 1))
@@ -22,107 +42,97 @@ export function PhotoLightbox({ photos, initialIndex = 0, onClose }: PhotoLightb
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Escape') onClose()
         if (e.key === 'ArrowLeft') goToPrevious()
         if (e.key === 'ArrowRight') goToNext()
     }
 
+    const handleDownload = async () => {
+        try {
+            // Uncached: the site preview has usually shown this photo already,
+            // and that cached copy has no CORS headers (see fetchUncached).
+            const res = await fetchUncached(fetch, photos[currentIndex])
+            if (!res.ok) throw new Error(`HTTP ${res.status}`)
+            const blob = await res.blob()
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `photo-${currentIndex + 1}.${extensionFor(res.headers.get('content-type'), photos[currentIndex])}`
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+            URL.revokeObjectURL(url)
+        } catch {
+            window.open(photos[currentIndex], '_blank')
+        }
+    }
+
+    const round = "inline-flex h-10 w-10 flex-none cursor-pointer items-center justify-center rounded-full border-0 bg-r1-paper/10 p-0 text-r1-paper hover:bg-r1-paper/20"
+
     return (
-        <div
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
-            onClick={onClose}
+        <dialog
+            ref={ref}
+            aria-label="Photo viewer"
+            className="r1 fixed inset-0 m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-r1-ink/95 p-0 text-r1-paper backdrop:bg-transparent"
+            // Esc: the platform's cancel. Let the parent unmount us instead of
+            // closing behind React's back.
+            onCancel={(e) => {
+                e.preventDefault()
+                onClose()
+            }}
             onKeyDown={handleKeyDown}
-            tabIndex={0}
+            // A click on the dark ground (not the photo or a button) closes.
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onClose()
+            }}
         >
             {/* Top-right controls: Download + Close */}
-            <div className="absolute top-4 right-4 z-10 flex items-center gap-3">
-                <button
-                    onClick={async (e) => {
-                        e.stopPropagation()
-                        try {
-                            // Uncached: the site preview has usually shown this photo already,
-                            // and that cached copy has no CORS headers (see fetchUncached).
-                            const res = await fetchUncached(fetch, photos[currentIndex])
-                            if (!res.ok) throw new Error(`HTTP ${res.status}`)
-                            const blob = await res.blob()
-                            const url = URL.createObjectURL(blob)
-                            const a = document.createElement('a')
-                            a.href = url
-                            a.download = `photo-${currentIndex + 1}.${extensionFor(res.headers.get('content-type'), photos[currentIndex])}`
-                            document.body.appendChild(a)
-                            a.click()
-                            document.body.removeChild(a)
-                            URL.revokeObjectURL(url)
-                        } catch {
-                            window.open(photos[currentIndex], '_blank')
-                        }
-                    }}
-                    className="text-white hover:text-gray-300 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
-                    title="Download photo"
-                >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
+            <div className="absolute right-4 top-4 z-10 flex items-center gap-3">
+                <button type="button" onClick={handleDownload} className={round} title="Download photo" aria-label="Download photo">
+                    <Icon icon={Download} size={18} />
                 </button>
-                <button
-                    onClick={onClose}
-                    className="text-white hover:text-gray-300 bg-white/10 hover:bg-white/20 rounded-full p-2 transition-colors"
-                >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                <button type="button" onClick={onClose} className={round} title="Close" aria-label="Close photo viewer">
+                    <Icon icon={X} size={18} />
                 </button>
             </div>
 
-            {/* Previous Button */}
             {photos.length > 1 && (
                 <button
-                    onClick={(e) => {
-                        e.stopPropagation()
-                        goToPrevious()
-                    }}
-                    className="absolute left-4 text-white hover:text-gray-300 z-10"
+                    type="button"
+                    onClick={goToPrevious}
+                    className={`${round} absolute left-4 top-1/2 z-10 -translate-y-1/2`}
+                    aria-label="Previous photo"
                 >
-                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
+                    <Icon icon={ChevronLeft} size={20} />
                 </button>
             )}
 
-            {/* Image */}
-            <div
-                className="relative max-w-7xl max-h-[90vh] w-full h-full flex items-center justify-center p-4"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <div className="relative w-full h-full">
-                    <Image
-                        src={photos[currentIndex]}
-                        alt={`Photo ${currentIndex + 1}`}
-                        fill
-                        className="object-contain"
-                    />
-                </div>
+            {/* The photo. Clicks on it never reach the ground's close handler:
+                its target is the image, not the dialog. */}
+            <div className="absolute inset-x-16 bottom-16 top-16 sm:inset-x-20">
+                <Image
+                    src={photos[currentIndex]}
+                    alt={`Photo ${currentIndex + 1} of ${photos.length}`}
+                    fill
+                    sizes="100vw"
+                    className="object-contain"
+                />
             </div>
 
-            {/* Next Button */}
             {photos.length > 1 && (
                 <button
-                    onClick={(e) => {
-                        e.stopPropagation()
-                        goToNext()
-                    }}
-                    className="absolute right-4 text-white hover:text-gray-300 z-10"
+                    type="button"
+                    onClick={goToNext}
+                    className={`${round} absolute right-4 top-1/2 z-10 -translate-y-1/2`}
+                    aria-label="Next photo"
                 >
-                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
+                    <Icon icon={ChevronRight} size={20} />
                 </button>
             )}
 
             {/* Counter */}
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-sm bg-black/50 px-4 py-2 rounded-full">
-                {currentIndex + 1} / {photos.length}
+            <div className="t-num absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-r1-ink/60 px-4 py-2 text-[13px] leading-[18px] text-r1-paper" aria-live="polite">
+                {currentIndex + 1} of {photos.length}
             </div>
-        </div>
+        </dialog>
     )
 }
