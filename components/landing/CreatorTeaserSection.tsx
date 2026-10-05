@@ -13,14 +13,24 @@ import { BASE_PRICE, REFERRAL_BONUS, commissionFor, formatPHP } from "@/lib/pric
  * The landing advertises the ₱999 base price, so the teaser stays anchored to
  * it; the price-ceiling progression (up to ₱2,500) lives on /for-creators.
  * No projections, no testimonials.
+ *
+ * /for-creators passes its own `facts`: that page states the website price, the
+ * lowest a creator may discount it to, and their half, and quotes no peso
+ * earnings. The homepage keeps the three below.
  */
+export type CreatorFact = { big: string; label: string; sub: string };
+
 export default function CreatorTeaserSection({
     ctaHref = "/for-creators",
-    ceilingNote,
+    note,
+    facts: factsOverride,
     id,
 }: {
     ctaHref?: string;
-    ceilingNote?: string;
+    /** A line under the cards. Omitted on the homepage. */
+    note?: string;
+    /** Replaces the three default cards. */
+    facts?: CreatorFact[];
     id?: string;
 } = {}) {
     const { t } = useT();
@@ -30,7 +40,7 @@ export default function CreatorTeaserSection({
         .replace("{a}", formatPHP(commissionFor(BASE_PRICE)))
         .replace("{b}", formatPHP(BASE_PRICE));
 
-    const facts = [
+    const facts: CreatorFact[] = factsOverride ?? [
         { big: "50%", label: t("earn.f1label"), sub: f1sub },
         { big: formatPHP(REFERRAL_BONUS), label: t("earn.f2label"), sub: t("earn.f2sub") },
         { big: "Wise", label: t("earn.f3label"), sub: t("earn.f3sub") },
@@ -64,9 +74,9 @@ export default function CreatorTeaserSection({
                     ))}
                 </div>
 
-                {ceilingNote && (
+                {note && (
                     <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-relaxed text-ink-soft">
-                        {ceilingNote}
+                        {note}
                     </p>
                 )}
 

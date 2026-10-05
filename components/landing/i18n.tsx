@@ -130,7 +130,7 @@ const EN: Dict = {
     // Process — creator variant (/for-creators). Same shell as `process.*`
     // above, but every "you" here is the CREATOR doing the visit, not the shop
     // owner receiving the site. Never let these two blocks borrow each other's
-    // strings. {b} = base price, {r} = referral bonus (interpolated from
+    // strings. {b} = lowest price, {c} = website price (interpolated from
     // lib/pricing.ts by ProcessSection — do not hardcode the numbers here).
     "process.creator.eyebrow": "Your part",
     "process.creator.titleA": "You do the visit.",
@@ -152,15 +152,15 @@ const EN: Dict = {
     "process.creator.s4h": "Owner approves, you get paid",
     "process.creator.s4cost": "50% of the sale",
     "process.creator.s4sub":
-        "You set the sell price before you submit — it starts at {b}. When the owner approves their site, your half reaches your Wise account within 48 hours.",
+        "The website is {c}, and you can discount your offer to as low as {b}. When the owner approves their site, your half reaches your Wise account within 48 hours.",
     "process.creator.kitLabel": "What you keep",
     "process.creator.kit1": "50% of every sale",
-    "process.creator.kit2": "{r} per referral",
-    "process.creator.kit3": "You set the price",
+    "process.creator.kit2": "Discount as low as {b}",
+    "process.creator.kit3": "You set the discount",
     "process.creator.kit4": "Paid through Wise",
     "process.creator.kit5": "Guided in the app",
     "process.creator.kit6": "No quota, no shift",
-    "process.creator.statLabel": "your half of a {b} site",
+    "process.creator.statLabel": "of every sale you make",
 
     // Business pricing
     "price.eyebrow": "The price",
@@ -276,8 +276,17 @@ const EN: Dict = {
     "creator.lede":
         "Bring a phone and follow the in-app checklist. You visit a local shop, photograph the work, and submit — we do the building, the writing, the deploying. You keep 50% of every site, paid to your Wise wallet.",
     "creator.ctaStart": "Start free certification",
-    "creator.ceilingNote":
-        "You start at 50% of every ₱999 site. After {n} approved sites your price ceiling unlocks — your 50% can reach {c} on a higher-priced site. No projections, just your share of what you actually sell.",
+    // /for-creators says three things about money and no more: the website
+    // price ({c}), how low a creator may discount it ({b}), and their half.
+    // No peso earnings are quoted, on purpose.
+    "creator.earn.f1sub": "Your half of every website you sell.",
+    "creator.earn.f2label": "the website price",
+    "creator.earn.f2sub": "Paid once by the owner, and only after their site is live.",
+    "creator.earn.f3label": "the lowest you can offer",
+    "creator.earn.f3sub": "You can put a discount on your offer to a shop. You decide how much.",
+    "creator.earn.note":
+        "Your half goes to your Wise wallet within 48 hours of the owner approving their site. No projections, just your share of what you actually sell.",
+    "creator.apply.step4": "Keep 50% of every sale you make.",
     "creator.apply.eyebrow": "How to start",
     "creator.apply.title": "From this page",
     "creator.apply.titleEm": "to your first payout.",
@@ -416,15 +425,15 @@ const TL: Dict = {
     "process.creator.s4h": "Kapag na-approve, bayad ka na",
     "process.creator.s4cost": "50% ng benta",
     "process.creator.s4sub":
-        "Ikaw ang magtatakda ng presyo bago mo i-submit — nagsisimula sa {b}. Kapag inaprubahan ng may-ari ang site nila, mapupunta ang kalahati mo sa Wise account mo sa loob ng 48 oras.",
+        "{c} ang website, at pwede mong i-discount ang alok mo hanggang {b}. Kapag inaprubahan ng may-ari ang site nila, mapupunta ang kalahati mo sa Wise account mo sa loob ng 48 oras.",
     "process.creator.kitLabel": "Ang mapupunta sa’yo",
     "process.creator.kit1": "50% ng bawat benta",
-    "process.creator.kit2": "{r} kada referral",
-    "process.creator.kit3": "Ikaw ang nagtatakda ng presyo",
+    "process.creator.kit2": "Discount hanggang {b}",
+    "process.creator.kit3": "Ikaw ang nagtatakda ng discount",
     "process.creator.kit4": "Bayad sa pamamagitan ng Wise",
     "process.creator.kit5": "May gabay sa app",
     "process.creator.kit6": "Walang quota, walang shift",
-    "process.creator.statLabel": "ang kalahati mo sa {b} na site",
+    "process.creator.statLabel": "ng bawat benta mo",
 
     // Business pricing
     "price.eyebrow": "Ang presyo",
@@ -541,8 +550,14 @@ const TL: Dict = {
     "creator.lede":
         "Magdala ng phone at sundin ang checklist sa app. Bibisita ka sa lokal na tindahan, kukunan ng litrato ang trabaho, at isu-submit — kami na ang bahala sa build, sulat, at deploy. Panatilihin mo ang 50% ng bawat site, bayad sa Wise wallet mo.",
     "creator.ctaStart": "Simulan ang libreng certification",
-    "creator.ceilingNote":
-        "Magsisimula ka sa 50% ng bawat ₱999 na site. Pagkatapos ng {n} aprubadong site, mag-a-unlock ang price ceiling mo — pwedeng umabot sa {c} ang 50% mo sa mas mataas na presyo. Walang projection, kita mo lang sa aktwal na naibenta mo.",
+    "creator.earn.f1sub": "Ang kalahati mo sa bawat website na maibenta mo.",
+    "creator.earn.f2label": "presyo ng website",
+    "creator.earn.f2sub": "Isang beses lang babayaran ng may-ari, at kapag live na ang site nila.",
+    "creator.earn.f3label": "pinakamababang pwede mong ialok",
+    "creator.earn.f3sub": "Pwede kang magbigay ng discount sa alok mo sa tindahan. Ikaw ang magpapasya kung magkano.",
+    "creator.earn.note":
+        "Mapupunta ang kalahati mo sa Wise wallet mo sa loob ng 48 oras mula nang aprubahan ng may-ari ang site nila. Walang projection, kita mo lang sa aktwal na naibenta mo.",
+    "creator.apply.step4": "Sa'yo ang 50% ng bawat benta mo.",
     "creator.apply.eyebrow": "Paano magsimula",
     "creator.apply.title": "Mula sa page na ito",
     "creator.apply.titleEm": "hanggang sa unang bayad mo.",
