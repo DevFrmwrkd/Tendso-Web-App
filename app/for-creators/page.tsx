@@ -15,7 +15,7 @@ import ProcessSection from "@/components/landing/ProcessSection";
 import FaqSection from "@/components/landing/FaqSection";
 import CtaSection from "@/components/landing/CtaSection";
 import { Eyebrow, SectionHeading, Lead } from "@/components/landing/ui";
-import { PRICE_CEILING, UNLOCK_THRESHOLD, commissionFor, formatPHP } from "@/lib/pricing";
+import { BASE_PRICE, PRICE_CEILING, formatPHP } from "@/lib/pricing";
 
 /** Creator hero — WP style, the one <h1>. Keeps the real Clerk signup CTA. */
 function CreatorHero() {
@@ -50,7 +50,7 @@ function CreatorHero() {
 /** How to apply — 4 honest steps (no "pin yourself on the map", no invented cert specifics). */
 function ApplySection() {
     const { t } = useT();
-    const steps = [t("how.creator1"), t("how.creator2"), t("how.creator3"), t("how.creator4")];
+    const steps = [t("how.creator1"), t("how.creator2"), t("how.creator3"), t("creator.apply.step4")];
     const tags = [t("creator.apply.tag1"), t("creator.apply.tag2"), t("creator.apply.tag3")];
     return (
         <section id="apply" className="bg-khaki-deep">
@@ -86,13 +86,27 @@ function ApplySection() {
     );
 }
 
-/** Earnings — the honest CreatorTeaser, with the creator-only price-ceiling note. */
+/**
+ * Earnings — three facts and no peso earnings.
+ *
+ * This page used to quote what a creator makes per site (₱500, up to ₱2,500)
+ * and the referral bonus. It now says only what is fixed: the website price,
+ * how low a creator may discount it, and that half of the sale is theirs. What
+ * that half comes to depends on the price they sell at, and a figure on a
+ * recruiting page reads as a promise of it.
+ *
+ * COPY ONLY. lib/pricing still starts a creator at BASE_PRICE and unlocks
+ * PRICE_CEILING after UNLOCK_THRESHOLD approved sites; this page no longer
+ * describes that rule, and changing the rule is a separate piece of work.
+ */
 function CreatorEarnings() {
     const { t } = useT();
-    const note = t("creator.ceilingNote")
-        .replace("{c}", formatPHP(commissionFor(PRICE_CEILING)))
-        .replace("{n}", String(UNLOCK_THRESHOLD));
-    return <CreatorTeaserSection id="earn" ctaHref="#app" ceilingNote={note} />;
+    const facts = [
+        { big: "50%", label: t("earn.f1label"), sub: t("creator.earn.f1sub") },
+        { big: formatPHP(PRICE_CEILING), label: t("creator.earn.f2label"), sub: t("creator.earn.f2sub") },
+        { big: formatPHP(BASE_PRICE), label: t("creator.earn.f3label"), sub: t("creator.earn.f3sub") },
+    ];
+    return <CreatorTeaserSection id="earn" ctaHref="#app" facts={facts} note={t("creator.earn.note")} />;
 }
 
 export default function ForCreatorsPage() {

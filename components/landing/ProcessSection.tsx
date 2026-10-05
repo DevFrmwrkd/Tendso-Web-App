@@ -2,7 +2,7 @@
 
 import { useT } from "./i18n";
 import { Eyebrow, SectionHeading, Lead } from "./ui";
-import { BASE_PRICE, REFERRAL_BONUS, commissionFor, formatPHP } from "@/lib/pricing";
+import { BASE_PRICE, PRICE_CEILING, formatPHP } from "@/lib/pricing";
 
 /* Plain, literal marks: a camera means photos, a speech bubble means questions.
    They sit small beside the step number to support it, not take over the card. */
@@ -84,7 +84,7 @@ export default function ProcessSection({ variant = "business" }: { variant?: Pro
     /* Money in the copy is a placeholder, never a literal — same rule as
        CreatorTeaserSection. Change lib/pricing.ts and this follows. */
     const money = (s: string) =>
-        s.replace("{b}", formatPHP(BASE_PRICE)).replace("{r}", formatPHP(REFERRAL_BONUS));
+        s.replace("{b}", formatPHP(BASE_PRICE)).replace("{c}", formatPHP(PRICE_CEILING));
 
     const icons = ICON_ORDER[variant];
     const steps = [1, 2, 3, 4].map((n, i) => ({
@@ -99,10 +99,12 @@ export default function ProcessSection({ variant = "business" }: { variant?: Pro
         money(t(`${prefix}kit${i + 1}`)),
     );
 
-    /* The owner's headline number is turnaround; the creator's is the payout. */
+    /* The owner's headline number is turnaround; the creator's is their share.
+       A share, not a peso amount: what a creator earns depends on the price
+       they sell at, and quoting one figure reads as a promise of it. */
     const stat =
         variant === "creator"
-            ? { big: formatPHP(commissionFor(BASE_PRICE)), label: money(t("process.creator.statLabel")) }
+            ? { big: "50%", label: t("process.creator.statLabel") }
             : { big: "48–72h", label: t("process.turnaroundLabel") };
 
     return (
