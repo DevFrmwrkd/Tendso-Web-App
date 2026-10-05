@@ -7,9 +7,13 @@
  * is overkill. This is a React context + a `useT()` hook returning `t(key)`.
  * The chosen language persists in localStorage and is read on mount.
  *
- * Adding copy: add the key to BOTH `en` and `tl` below, then call `t("key")`
- * in the component. A missing `tl` value falls back to `en`, so partial
- * translation never shows a blank — it shows English until the Tagalog lands.
+ * Adding copy: add the key to BOTH `en` and `tl`, then call `t("key")` in the
+ * component. A missing `tl` value falls back to `en`, so partial translation
+ * never shows a blank — it shows English until the Tagalog lands.
+ *
+ * Round 1 copy lives in ./strings, one module per surface (shared header and
+ * footer, landing, for-creators, help, legal, booking, sign-in), merged over
+ * the tables below. Put new strings there, in the module for their page.
  *
  * Tagalog copy here is natural Taglish (how the audience actually speaks);
  * brand terms (Tendso, ₱, Wise, Gemini) stay verbatim. Have a native speaker
@@ -18,11 +22,20 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
+import { strings as bookCallStrings } from "./strings/bookCall";
+import { strings as forCreatorsStrings } from "./strings/forCreators";
+import { strings as helpStrings } from "./strings/help";
+import { strings as landingStrings } from "./strings/landing";
+import { strings as legalStrings } from "./strings/legal";
+import { strings as sharedStrings } from "./strings/shared";
+import { strings as signInStrings } from "./strings/signIn";
+import type { Dict } from "./strings/types";
+
 export type Lang = "en" | "tl";
 
-type Dict = Record<string, string>;
+const ROUND1 = [sharedStrings, landingStrings, forCreatorsStrings, helpStrings, legalStrings, bookCallStrings, signInStrings];
 
-const EN: Dict = {
+const BASE_EN: Dict = {
     // Navbar
     "nav.live": "Live in Philippines · expanding",
     "nav.getApp": "Get the app",
@@ -298,7 +311,7 @@ const EN: Dict = {
     "creator.apply.cta": "Start free certification",
 };
 
-const TL: Dict = {
+const BASE_TL: Dict = {
     // Navbar
     "nav.live": "Live sa Pilipinas · palawak pa",
     "nav.getApp": "Kunin ang app",
@@ -568,6 +581,9 @@ const TL: Dict = {
     "creator.apply.tag3": "Panatilihin ang trabaho mo",
     "creator.apply.cta": "Simulan ang libreng certification",
 };
+
+const EN: Dict = Object.assign({}, BASE_EN, ...ROUND1.map((s) => s.en));
+const TL: Dict = Object.assign({}, BASE_TL, ...ROUND1.map((s) => s.tl));
 
 const DICTS: Record<Lang, Dict> = { en: EN, tl: TL };
 

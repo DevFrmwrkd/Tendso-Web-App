@@ -1,11 +1,13 @@
 "use client";
 
+import { ArrowRight, Check, Clock, Copy } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useQuery } from "convex/react";
 import { toast } from "sonner";
 
+import { Button, ButtonLink, Icon, PublicFooter, PublicPage } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import { campaignFromLocation, rememberCampaign } from "@/lib/campaign";
 import { campaignListPrice, campaignSellPrice, formatPHP } from "@/lib/pricing";
@@ -50,13 +52,12 @@ import { campaignListPrice, campaignSellPrice, formatPHP } from "@/lib/pricing";
  * campaign name alone — see convex/ownerIntake.ts. Nothing a visitor can edit
  * reaches the bill.
  *
- * THE LOOK IS THE ROUND 1 REDESIGN, and this is the first public page to wear
+ * THE LOOK IS THE ROUND 1 REDESIGN, and this was the first public page to wear
  * it: white ground, Instrument Serif for the headline and the price, Onest for
- * everything else. The colours are written out here rather than added to
- * globals.css because no other page shares them yet; when a second one does,
- * that is the moment to name them. The lockup in the header is the one this
- * page already had, unchanged, because it is what tells a viewer the offer
- * comes from the show.
+ * everything else. Its colours and buttons now come from the shared Round 1
+ * tokens and components (app/round1.css, components/r1). The lockup in the
+ * header is the one this page already had, unchanged, because it is what tells
+ * a viewer the offer comes from the show.
  *
  * THERE IS NO "SHOPS ALREADY ON TENDSO" SECTION, on purpose. It was designed,
  * and then cut: this page has one job, and a gallery under the offer is a
@@ -122,34 +123,6 @@ const WHAT_YOU_GET = [
     "Free edits for the first year — ask us, we make the change",
 ];
 
-const SERIF = { fontFamily: "var(--font-instrument-serif)" } as const;
-const SANS = { fontFamily: "var(--font-onest)" } as const;
-
-const BTN =
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg border font-medium leading-none transition-colors";
-const BTN_PRIMARY = `${BTN} border-[#111111] bg-[#111111] text-white hover:bg-[#2B2B2B]`;
-const BTN_PLAIN = `${BTN} border-[#D4D4D0] bg-white text-[#111111] hover:bg-[#F4F4F2]`;
-const H2 = "text-base font-semibold leading-6 text-[#111111]";
-
-function Check() {
-    return (
-        <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.75"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-            className="mt-0.5 flex-none text-[#111111]"
-        >
-            <path d="M20 6 9 17l-5-5" />
-        </svg>
-    );
-}
-
 export default function OtrPage() {
     const [source, setSource] = useState<string>(DEFAULT_SOURCE);
     const [platform, setPlatform] = useState<Platform>("other");
@@ -203,66 +176,73 @@ export default function OtrPage() {
         }
     };
 
-    const earnClass = `${BTN_PLAIN} h-12 px-5 text-[15px]`;
-
     return (
-        <main className="flex min-h-dvh flex-col bg-white text-[#111111]" style={SANS}>
-            <header className="flex h-[72px] flex-none items-center justify-between gap-4 border-b border-[#E7E7E4] px-5 lg:px-16">
-                <Link href="/" className="flex items-center gap-3" aria-label="Tendso x Off The Record. Tendso home">
-                    {/* The file is white lettering with alpha, drawn for the dark
-                        footer. brightness(0) keeps the lettering's shape and
-                        drops its colour to black, the same treatment the booking
-                        page uses. */}
-                    <Image
-                        src="/tendso-logo.png"
-                        alt="Tendso"
-                        width={104}
-                        height={28}
-                        priority
-                        className="h-7 w-auto translate-y-[1px] lg:h-8"
-                        style={{ filter: "brightness(0)" }}
-                    />
-                    {/* A collaboration lockup, not two logos sharing a line.
-                        The x is what tells a viewer this offer comes from the
-                        show they were just watching, which is the only reason
-                        they trust the discount at all. */}
-                    <span
-                        aria-hidden
-                        className="-translate-y-[0.09em] px-0.5 text-lg font-semibold leading-none text-ink-soft lg:text-xl"
-                    >
-                        x
-                    </span>
-                    {/* The mark plus its name. The mark is abstract enough that
-                        somebody who has not watched the show would not read it
-                        as OTR on its own, and this is the one line telling them
-                        they are in the right place. The settings key stays as an
-                        override, so the logo can be changed without a deploy. */}
-                    <span className="flex items-center gap-2">
-                        {logoUrl ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={logoUrl} alt="" className="h-5 w-auto lg:h-6" />
-                        ) : (
-                            <Image
-                                src="/otr-mark.png"
-                                alt=""
-                                width={459}
-                                height={504}
-                                priority
-                                className="h-5 w-auto lg:h-6"
-                            />
-                        )}
-                        <span className="whitespace-nowrap font-mono text-[11px] font-semibold uppercase leading-none tracking-[0.18em] text-ink-soft">
-                            Off The Record
+        <PublicPage
+            header={
+                <header className="t-pub-head">
+                    <Link href="/" className="flex items-center gap-3" aria-label="Tendso x Off The Record. Tendso home">
+                        {/* The file is white lettering with alpha, drawn for the dark
+                            footer. .t-logo inverts it to ink, keeping the lettering's
+                            shape, the same treatment every Round 1 header uses. */}
+                        <Image
+                            src="/tendso-logo.png"
+                            alt="Tendso"
+                            width={104}
+                            height={28}
+                            priority
+                            className="t-logo h-7 w-auto translate-y-[1px] lg:h-8"
+                        />
+                        {/* A collaboration lockup, not two logos sharing a line.
+                            The x is what tells a viewer this offer comes from the
+                            show they were just watching, which is the only reason
+                            they trust the discount at all. */}
+                        <span
+                            aria-hidden
+                            className="-translate-y-[0.09em] px-0.5 text-lg font-semibold leading-none text-r1-ink-2 lg:text-xl"
+                        >
+                            x
                         </span>
-                    </span>
-                </Link>
-                {/* Hidden on a phone: the lockup needs the whole width there,
-                    and the same button is the first thing under the price. */}
-                <Link href={buyHref} className={`${BTN_PLAIN} h-10 px-4 text-sm max-sm:hidden`}>
-                    Get a website
-                </Link>
-            </header>
-
+                        {/* The mark plus its name. The mark is abstract enough that
+                            somebody who has not watched the show would not read it
+                            as OTR on its own, and this is the one line telling them
+                            they are in the right place. The settings key stays as an
+                            override, so the logo can be changed without a deploy. */}
+                        <span className="flex items-center gap-2">
+                            {logoUrl ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={logoUrl} alt="" className="h-5 w-auto lg:h-6" />
+                            ) : (
+                                <Image
+                                    src="/otr-mark.png"
+                                    alt=""
+                                    width={459}
+                                    height={504}
+                                    priority
+                                    className="h-5 w-auto lg:h-6"
+                                />
+                            )}
+                            <span className="whitespace-nowrap font-r1-mono text-[11px] font-semibold uppercase leading-none tracking-[0.18em] text-r1-ink-2">
+                                Off The Record
+                            </span>
+                        </span>
+                    </Link>
+                    {/* Hidden on a phone: the lockup needs the whole width there,
+                        and the same button is the first thing under the price. */}
+                    <ButtonLink href={buyHref} className="max-sm:hidden">
+                        Get a website
+                    </ButtonLink>
+                </header>
+            }
+            footer={
+                <PublicFooter
+                    links={[
+                        { href: "/privacy-policy", label: "Privacy policy" },
+                        { href: "/terms-of-service", label: "Terms of service" },
+                        { href: "/knowledge", label: "Help" },
+                    ]}
+                />
+            }
+        >
             {/* One column on a phone, two on a desk. The offer keeps the left
                 where reading starts; the money detail sits beside it rather
                 than a scroll below. */}
@@ -270,140 +250,79 @@ export default function OtrPage() {
                 <div className="flex min-w-0 flex-col gap-12 lg:w-[560px] lg:flex-none">
                     <section className="flex flex-col gap-7">
                         <div className="flex flex-col gap-2">
-                            <h1
-                                className="text-[2.25rem] leading-[1.1] tracking-[-0.01em] text-balance lg:text-[2.5rem] lg:leading-[2.75rem]"
-                                style={SERIF}
-                            >
+                            <h1 className="font-r1-serif text-[2.25rem] leading-[1.1] tracking-[-0.01em] text-balance lg:text-[2.5rem] lg:leading-[2.75rem]">
                                 Your business gets a real website for 30% off.
                             </h1>
-                            <p className="text-[15px] leading-[22px] text-[#6B6B72]">For Off The Record viewers.</p>
+                            <p className="t-sub">For Off The Record viewers.</p>
                         </div>
 
                         {/* The number they came for, and the number it used to
                             be. Said once, where the eye lands. */}
                         <div className="flex flex-col gap-2">
                             <p className="flex items-baseline gap-4">
-                                <span className="text-[3.5rem] leading-none tracking-[-0.01em] tabular-nums lg:text-[4rem]" style={SERIF}>
+                                <span className="font-r1-serif text-[3.5rem] leading-none tracking-[-0.01em] tabular-nums lg:text-[4rem]">
                                     {formatPHP(websitePrice)}
                                 </span>
-                                <span className="text-xl leading-6 text-[#6B6B72] line-through tabular-nums">
-                                    {formatPHP(listPrice)}
-                                </span>
+                                <span className="text-xl leading-6 text-r1-ink-3 line-through tabular-nums">{formatPHP(listPrice)}</span>
                             </p>
-                            <p className="text-sm leading-5 text-[#3F3F46]">
+                            <p className="t-body">
                                 Paid once, after your website is live. No monthly fees. Your discount is
                                 already applied — nothing to type.
                             </p>
                         </div>
 
                         <div className="flex flex-col gap-3 sm:flex-row">
-                            <Link href={buyHref} className={`${BTN_PRIMARY} h-12 px-5 text-[15px]`}>
+                            <ButtonLink variant="primary" size="lg" href={buyHref}>
                                 Get my website — {formatPHP(websitePrice)}
-                                <svg
-                                    width="16"
-                                    height="16"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="1.75"
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    aria-hidden
-                                >
-                                    <path d="M5 12h14M12 5l7 7-7 7" />
-                                </svg>
-                            </Link>
-                            {/* An external store link is a plain anchor: Link is
-                                for routes inside the app, and prefetching a URL
-                                that leaves it does nothing but noise. */}
-                            {earnIsStore ? (
-                                <a href={earnHref} rel="noopener" className={earnClass}>
-                                    Earn with Tendso
-                                </a>
-                            ) : (
-                                <Link href={earnHref} className={earnClass}>
-                                    Earn with Tendso
-                                </Link>
-                            )}
+                                <Icon icon={ArrowRight} />
+                            </ButtonLink>
+                            {/* An external store link is a plain anchor (ButtonLink
+                                only routes in-app paths through next/link): prefetching
+                                a URL that leaves the app does nothing but noise. */}
+                            <ButtonLink size="lg" href={earnHref} rel={earnIsStore ? "noopener" : undefined}>
+                                Earn with Tendso
+                            </ButtonLink>
                         </div>
 
                         <div className="flex flex-col gap-3">
-                            <div className="flex items-center justify-between gap-4 rounded-xl border border-[#E7E7E4] bg-white py-3 pl-4 pr-3">
+                            <div className="t-card flex items-center justify-between gap-4 py-3 pl-4 pr-3">
                                 <div className="flex min-w-0 flex-col gap-1">
-                                    <span className="text-xs font-medium leading-4 text-[#6B6B72]">
-                                        Discount code, if you ever need to enter it by hand
-                                    </span>
-                                    <span className="font-mono text-base font-medium leading-5 tracking-[0.04em] text-[#111111]">
+                                    <span className="t-label">Discount code, if you ever need to enter it by hand</span>
+                                    <span className="font-r1-mono text-base font-medium leading-5 tracking-[0.04em] text-r1-ink">
                                         {FALLBACK_CODE}
                                     </span>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={copyCode}
-                                    className={`${BTN_PLAIN} h-10 flex-none cursor-pointer px-3 text-[13px]`}
-                                >
-                                    <svg
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.75"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        aria-hidden
-                                    >
-                                        <rect x="9" y="9" width="13" height="13" rx="2" />
-                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                                    </svg>
+                                <Button className="flex-none px-3 text-[13px]" onClick={copyCode}>
+                                    <Icon icon={Copy} />
                                     Copy code
-                                </button>
+                                </Button>
                             </div>
-                            <p className="text-[13px] leading-[18px] text-[#6B6B72]">
+                            <p className="t-meta">
                                 The code applies to the website. Earning is free to join and happens in
                                 the Tendso app.
                             </p>
                             {offerEnds && (
-                                <p className="flex items-center gap-2 text-[13px] leading-[18px] text-[#6B6B72]">
-                                    <svg
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="1.75"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                        aria-hidden
-                                        className="flex-none"
-                                    >
-                                        <circle cx="12" cy="12" r="10" />
-                                        <path d="M12 6v6l4 2" />
-                                    </svg>
+                                <p className="t-meta flex items-center gap-2">
+                                    <Icon icon={Clock} className="flex-none" />
                                     <span>Offer ends {offerEnds}</span>
                                 </p>
                             )}
                             {chatUrl && (
-                                <a
-                                    href={chatUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={`${BTN_PLAIN} h-11 self-start px-4 text-sm`}
-                                >
+                                <ButtonLink href={chatUrl} target="_blank" rel="noopener noreferrer" className="h-11 self-start px-4">
                                     Message us — we answer in Tagalog
-                                </a>
+                                </ButtonLink>
                             )}
                         </div>
                     </section>
 
                     <section className="flex flex-col gap-4" aria-labelledby="otr-get">
-                        <h2 id="otr-get" className={H2}>
+                        <h2 id="otr-get" className="t-h2">
                             What you get
                         </h2>
                         <ul className="flex flex-col gap-2.5">
                             {WHAT_YOU_GET.map((item) => (
-                                <li key={item} className="flex items-start gap-2.5 text-sm leading-5 text-[#3F3F46]">
-                                    <Check />
+                                <li key={item} className="t-body flex items-start gap-2.5">
+                                    <Icon icon={Check} className="mt-0.5 flex-none text-r1-ink" />
                                     <span>{item}</span>
                                 </li>
                             ))}
@@ -411,34 +330,34 @@ export default function OtrPage() {
                     </section>
 
                     <section className="flex flex-col gap-4" aria-labelledby="otr-how">
-                        <h2 id="otr-how" className={H2}>
+                        <h2 id="otr-how" className="t-h2">
                             How it works
                         </h2>
                         <ol className="flex flex-col gap-4">
                             {STEPS.map((step, index) => (
                                 <li key={step} className="flex items-start gap-3.5">
-                                    <span className="inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border border-[#D4D4D0] text-[13px] font-semibold tabular-nums text-[#111111]">
+                                    <span className="inline-flex h-7 w-7 flex-none items-center justify-center rounded-full border border-r1-line-2 text-[13px] font-semibold tabular-nums text-r1-ink">
                                         {index + 1}
                                     </span>
-                                    <span className="pt-1 text-sm leading-5 text-[#3F3F46]">{step}</span>
+                                    <span className="t-body pt-1">{step}</span>
                                 </li>
                             ))}
                         </ol>
                     </section>
                 </div>
 
-                <aside className="flex flex-col gap-3 lg:sticky lg:top-6 lg:w-[360px] lg:flex-none" aria-label="What you pay">
-                    <section className="flex flex-col gap-4 rounded-xl border border-[#EAD9B8] bg-[#F7EEDC] p-6">
-                        <h2 className={H2}>What you pay</h2>
-                        <dl className="flex flex-col gap-3 text-sm leading-5 text-[#111111]">
+                <aside className="flex flex-col gap-3 lg:sticky lg:top-24 lg:w-[360px] lg:flex-none" aria-label="What you pay">
+                    <section className="t-hl flex flex-col gap-4 p-6">
+                        <h2 className="t-h2">What you pay</h2>
+                        <dl className="flex flex-col gap-3 text-sm leading-5 text-r1-ink">
                             <div className="flex items-baseline justify-between gap-4">
                                 <dt className="font-medium">Your website</dt>
                                 <dd className="whitespace-nowrap tabular-nums">
                                     <span className="font-semibold">{formatPHP(websitePrice)}</span>{" "}
-                                    <span className="text-[#6B6B72] line-through">{formatPHP(listPrice)}</span>
+                                    <span className="text-r1-ink-3 line-through">{formatPHP(listPrice)}</span>
                                 </dd>
                             </div>
-                            <div className="h-px bg-[#EAD9B8]" aria-hidden />
+                            <div className="h-px bg-r1-gold-line" aria-hidden />
                             <div className="flex items-baseline justify-between gap-4">
                                 <dt>To pay today</dt>
                                 <dd className="whitespace-nowrap font-semibold tabular-nums">{formatPHP(0)}</dd>
@@ -451,31 +370,14 @@ export default function OtrPage() {
                             price into two prices and a caveat. The choice,
                             and the renewal it carries, are on the form where
                             it is actually made. */}
-                        <p className="text-[13px] leading-[18px] text-[#3F3F46]">
+                        <p className="text-[13px] leading-[18px] text-r1-ink-2">
                             Paid once, after your website is live. Nothing to pay today, and no monthly
                             fees ever.
                         </p>
                     </section>
-                    <p className="px-1 text-[13px] leading-[18px] text-[#6B6B72]">
-                        Price for OTR viewers: 30% off the {formatPHP(listPrice)} website.
-                    </p>
+                    <p className="t-meta px-1">Price for OTR viewers: 30% off the {formatPHP(listPrice)} website.</p>
                 </aside>
             </div>
-
-            <footer className="flex flex-none flex-col gap-4 border-t border-[#E7E7E4] px-5 py-8 text-[13px] text-[#6B6B72] sm:flex-row sm:items-center sm:justify-between lg:px-16 lg:py-10">
-                <span>Tendso · operated by VONAS, OPC</span>
-                <nav className="flex flex-wrap gap-x-5 gap-y-2" aria-label="Legal">
-                    <Link href="/privacy-policy" className="underline underline-offset-[3px] hover:text-[#111111]">
-                        Privacy policy
-                    </Link>
-                    <Link href="/terms-of-service" className="underline underline-offset-[3px] hover:text-[#111111]">
-                        Terms of service
-                    </Link>
-                    <Link href="/help-faq" className="underline underline-offset-[3px] hover:text-[#111111]">
-                        Help
-                    </Link>
-                </nav>
-            </footer>
-        </main>
+        </PublicPage>
     );
 }

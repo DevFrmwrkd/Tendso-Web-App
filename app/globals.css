@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Round 1 design system: tokens and the shared t- classes. */
+@import "./round1.css";
 
 :root {
   --background: #ffffff;
@@ -31,6 +33,41 @@
   --color-ink-soft: var(--ink-soft);
   --color-rust: var(--rust);
   --color-rust-soft: var(--rust-soft);
+
+  /* Round 1 tokens as utilities (bg-r1-fill, text-r1-ink-3, border-r1-line,
+     font-r1-serif, rounded-r1-card, shadow-r1-menu…). The values live once,
+     in app/round1.css. */
+  --color-r1-ink: var(--r1-ink);
+  --color-r1-ink-2: var(--r1-ink-2);
+  --color-r1-ink-3: var(--r1-ink-3);
+  --color-r1-ink-4: var(--r1-ink-4);
+  --color-r1-ink-hover: var(--r1-ink-hover);
+  --color-r1-line: var(--r1-line);
+  --color-r1-line-2: var(--r1-line-2);
+  --color-r1-line-3: var(--r1-line-3);
+  --color-r1-paper: var(--r1-paper);
+  --color-r1-fill: var(--r1-fill);
+  --color-r1-fill-2: var(--r1-fill-2);
+  --color-r1-fill-row: var(--r1-fill-row);
+  --color-r1-fill-nav: var(--r1-fill-nav);
+  --color-r1-gold: var(--r1-gold);
+  --color-r1-gold-light: var(--r1-gold-light);
+  --color-r1-gold-ink: var(--r1-gold-ink);
+  --color-r1-gold-bg: var(--r1-gold-bg);
+  --color-r1-gold-line: var(--r1-gold-line);
+  --color-r1-red: var(--r1-red);
+  --color-r1-red-dot: var(--r1-red-dot);
+  --color-r1-red-line: var(--r1-red-line);
+  --color-r1-red-bg: var(--r1-red-bg);
+  --font-r1-sans: var(--r1-sans);
+  --font-r1-serif: var(--r1-serif);
+  --font-r1-mono: var(--r1-mono);
+  --radius-r1-sm: var(--r1-radius-sm);
+  --radius-r1: var(--r1-radius);
+  --radius-r1-card: var(--r1-radius-card);
+  --radius-r1-dialog: var(--r1-radius-dialog);
+  --shadow-r1-menu: var(--r1-shadow-menu);
+  --shadow-r1-dialog: var(--r1-shadow-dialog);
 }
 
 body {
