@@ -6,14 +6,14 @@
  * desktop layout starts.
  *
  * WHY A HOOK AND NOT CSS. Nearly all of the desktop layout is `lg:` classes —
- * see ui.tsx. Exactly one difference cannot be: step 2 asks one question per
+ * see ./_components. Exactly one difference cannot be: step 2 asks one question per
  * screen on a phone and all eight at once on a desk. Rendering both trees and
  * hiding one with CSS would ship duplicate `id`s and duplicate textareas bound
  * to the same draft keys — invalid markup, and a label that jumps to whichever
  * copy the browser found first. So that one branch is made in JS.
  *
- * STARTS FALSE ON PURPOSE. This is a `"use client"` page that renders "Loading…"
- * until loadDraft() lands in an effect, so the form itself never renders during
+ * STARTS FALSE ON PURPOSE. This is a `"use client"` page that renders a loading
+ * skeleton until loadDraft() lands in an effect, so the form itself never renders during
  * hydration — by the time there is a draft to draw, this effect has already run
  * and React has batched both updates into the same commit. No mismatch, and no
  * flash of the phone layout on a monitor.

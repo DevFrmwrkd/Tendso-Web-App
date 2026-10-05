@@ -3,15 +3,18 @@
 import { useParams } from 'next/navigation'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
+import { ErrorState } from '@/components/r1/ErrorState'
 
 export default function WebsitePage() {
     const params = useParams()
     const submissionId = params.id as string
 
-    // Get generated website from Convex
+    // Get generated website from Convex. The id comes straight from the URL;
+    // Convex validates it, and a malformed one throws to app/error.tsx.
     const website = useQuery(
         api.generatedWebsites.getBySubmissionId,
-        submissionId ? { submissionId: submissionId as any } : "skip"
+        submissionId ? { submissionId: submissionId as Id<'submissions'> } : "skip"
     )
 
     const loading = website === undefined
@@ -19,7 +22,7 @@ export default function WebsitePage() {
     // HTML is either inline (legacy) or in file storage (htmlUrl). Load the URL
     // directly into the iframe when present; fall back to inline srcDoc.
     const htmlContent = website?.htmlContent || ''
-    const htmlUrl = (website as any)?.htmlUrl as string | null | undefined
+    const htmlUrl = website?.htmlUrl
 
 
     if (loading) {
@@ -52,21 +55,15 @@ export default function WebsitePage() {
         )
     }
 
+    // Round 1 leaves this bare iframe page as it is; only its not-found state
+    // takes the Kit's error state (scope: "its not-found state is covered by
+    // the Kit's error state"). `r1` opts this one block into the Round 1 look.
+    // A query that throws (a malformed id) lands on app/error.tsx, the same
+    // error state.
     if (error) {
         return (
-            <div style={{
-                minHeight: '100vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#f9fafb'
-            }}>
-                <div style={{ textAlign: 'center' }}>
-                    <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', marginBottom: '8px' }}>
-                        Website Not Found
-                    </h1>
-                    <p style={{ color: '#6b7280' }}>{error}</p>
-                </div>
+            <div className="r1 flex min-h-dvh items-center justify-center px-4">
+                <ErrorState what="This website" />
             </div>
         )
     }
