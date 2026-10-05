@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { Button, Icon, cx } from "@/components/r1";
-import { DISCORD_INVITE_URL, PHONE_DISPLAY, PHONE_TEL, SUPPORT_EMAIL } from "@/lib/contact";
+import { DISCORD_INVITE_URL, SUPPORT_EMAIL } from "@/lib/contact";
 
 import { HASH_EVENT } from "./nav";
 
@@ -34,11 +34,10 @@ export function copyEmail(): void {
 
 const CHANNELS = [
     { key: "email", label: "Email", value: SUPPORT_EMAIL, href: `mailto:${SUPPORT_EMAIL}`, copy: SUPPORT_EMAIL, copied: "Email address copied", copyLabel: "Copy email address" },
-    { key: "phone", label: "Phone", value: PHONE_DISPLAY, href: PHONE_TEL, copy: PHONE_DISPLAY, copied: "Phone number copied", copyLabel: "Copy phone number" },
     { key: "discord", label: "Discord", value: DISCORD_DISPLAY, href: DISCORD_INVITE_URL, copy: DISCORD_INVITE_URL, copied: "Discord invite copied", copyLabel: "Copy Discord invite" },
 ] as const;
 
-/** Email, phone and Discord, each with Copy. Also the AI answer's way out when it cannot answer. */
+/** Email and Discord, each with Copy. Also the AI answer's way out when it cannot answer. */
 export function ContactRows({ className }: { className?: string }) {
     return (
         <div className={cx("flex flex-col", className)}>
@@ -47,7 +46,7 @@ export function ContactRows({ className }: { className?: string }) {
                     <span className="t-label w-16 shrink-0">{c.label}</span>
                     <a
                         href={c.href}
-                        className={cx("min-w-0 flex-1 truncate text-sm leading-5 text-r1-ink hover:underline", c.key === "phone" && "t-num")}
+                        className="min-w-0 flex-1 truncate text-sm leading-5 text-r1-ink hover:underline"
                         {...(c.key === "discord" ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                     >
                         {c.value}

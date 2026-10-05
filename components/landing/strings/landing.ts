@@ -75,7 +75,7 @@ export const strings: Strings = {
 
         // FAQ
         "r1.landing.faq.title": "Questions, answered.",
-        "r1.landing.faq.sub": "Still unsure? Ask in the chat, or call us on {phone}.",
+        "r1.landing.faq.sub": "Still unsure? Ask in the chat, or email us at {email}.",
         "r1.landing.faq.helpCenter": "Help Center",
         "r1.landing.faq.q1": "Will I need to learn design?",
         "r1.landing.faq.a1":
@@ -181,7 +181,7 @@ export const strings: Strings = {
 
         // FAQ
         "r1.landing.faq.title": "Mga tanong, nasagot na.",
-        "r1.landing.faq.sub": "Hindi pa rin sigurado? Magtanong sa chat, o tawagan kami sa {phone}.",
+        "r1.landing.faq.sub": "Hindi pa rin sigurado? Magtanong sa chat, o mag-email sa amin sa {email}.",
         "r1.landing.faq.helpCenter": "Help Center",
         "r1.landing.faq.q1": "Kailangan ko bang matuto ng design?",
         "r1.landing.faq.a1":

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState, type MouseEvent, type ReactNode } from "react";
 
 import { useT, type Lang } from "@/components/landing/i18n";
-import { PHONE_DISPLAY, PHONE_TEL, SUPPORT_EMAIL } from "@/lib/contact";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 import { Button, ButtonLink } from "./Button";
 import { cx } from "./cx";
@@ -146,7 +146,7 @@ export type FooterLink = { href: string; label: string };
  *  - "full" (Landing): the wordmark, the blurb and the operator line, then
  *    three columns (Talk to us, Tendso, Help).
  *  - "simple" (everywhere else): the copyright and operator line, a few
- *    links, and optionally the email and phone.
+ *    links, and optionally the support email.
  */
 export function PublicFooter({
     variant = "simple",
@@ -157,7 +157,7 @@ export function PublicFooter({
     variant?: "full" | "simple";
     /** "simple" only. Defaults to Privacy, Terms, Help. */
     links?: FooterLink[];
-    /** "simple" only: show the support email and phone on the right. */
+    /** "simple" only: show the support email on the right. */
     contact?: boolean;
     className?: string;
 }) {
@@ -174,8 +174,8 @@ export function PublicFooter({
                 <nav className="t-foot-cols" aria-label={t("r1.foot.label")}>
                     <div className="t-foot-col">
                         <span className="t-label">{t("r1.foot.talk")}</span>
-                        <a href={PHONE_TEL} className="t-num text-sm font-medium text-r1-ink">
-                            {PHONE_DISPLAY}
+                        <a href={`mailto:${SUPPORT_EMAIL}`} className="text-sm font-medium text-r1-ink">
+                            {t("r1.foot.email")}
                         </a>
                         <Link href="/contact">{t("r1.foot.contact")}</Link>
                     </div>
@@ -217,9 +217,6 @@ export function PublicFooter({
             {contact && (
                 <div className="flex flex-col gap-1.5 lg:text-right">
                     <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
-                    <a href={PHONE_TEL} className="t-num">
-                        {PHONE_DISPLAY}
-                    </a>
                 </div>
             )}
         </footer>

@@ -3,8 +3,8 @@ import { permanentRedirect } from "next/navigation";
 // /contact is now the "Ask a person" card on the Help Center home
 // (app/knowledge/_components/ContactCard.tsx): Round 1 keeps every way to
 // reach a person in one place. The card carries what this page offered: the
-// support inbox as a mailto link, the phone, and the note that press and
-// partnerships use the same inbox.
+// support inbox as a mailto link and the note that press and partnerships use
+// the same inbox. (The phone number is no longer published anywhere.)
 //
 // The route stays as a permanent redirect because links to it are out there:
 // customer emails (lib/email/templates.ts), the owner portal, the start flow's

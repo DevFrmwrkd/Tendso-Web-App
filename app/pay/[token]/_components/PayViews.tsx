@@ -29,7 +29,7 @@ import {
     type StatusWord,
 } from "@/components/r1";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { OPERATOR, PHONE_DISPLAY, PHONE_TEL, SUPPORT_EMAIL } from "@/lib/contact";
+import { OPERATOR, SUPPORT_EMAIL } from "@/lib/contact";
 import { domainAddOnFor } from "@/lib/pricing";
 
 import {
@@ -198,7 +198,7 @@ function AfterItem({ icon, title, children }: { icon: LucideIcon; title: ReactNo
     );
 }
 
-/** Email and phone, each with Copy. */
+/** The support email, with Copy. */
 function ReachUs({ id, title, note }: { id: string; title: string; note: ReactNode }) {
     return (
         <section className="flex flex-col gap-3" aria-labelledby={id}>
@@ -206,7 +206,6 @@ function ReachUs({ id, title, note }: { id: string; title: string; note: ReactNo
                 {title}
             </h2>
             <CopyRow label="Email" copy={SUPPORT_EMAIL} copyLabel="Copy support email" done="Support email copied" />
-            <CopyRow label="Phone" copy={PHONE_DISPLAY} shown={<span className="t-num">{PHONE_DISPLAY}</span>} copyLabel="Copy phone number" done="Phone number copied" />
             <p className="t-meta">{note}</p>
         </section>
     );
@@ -376,10 +375,6 @@ export function PendingView({ token, submission, now, wiseEmail }: ViewProps & {
                             No Wise account and no way to open one? Email{" "}
                             <a className="t-link font-medium" href={`mailto:${SUPPORT_EMAIL}`}>
                                 {SUPPORT_EMAIL}
-                            </a>{" "}
-                            or call{" "}
-                            <a className="t-link t-num font-medium" href={PHONE_TEL}>
-                                {PHONE_DISPLAY}
                             </a>{" "}
                             with your code, and we will sort out another way to pay.
                         </p>
