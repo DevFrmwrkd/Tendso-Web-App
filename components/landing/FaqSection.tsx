@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Fold, Folds, cx } from "@/components/r1";
-import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/contact";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 import { fill } from "./copy";
 import { useT } from "./i18n";
@@ -65,9 +65,9 @@ export default function FaqSection() {
                     id="faq-title"
                     title={t("r1.landing.faq.title")}
                     sub={fill(t("r1.landing.faq.sub"), {
-                        phone: (
-                            <a href={PHONE_TEL} className="t-link t-num whitespace-nowrap">
-                                {PHONE_DISPLAY}
+                        email: (
+                            <a href={`mailto:${SUPPORT_EMAIL}`} className="t-link [overflow-wrap:anywhere]">
+                                {SUPPORT_EMAIL}
                             </a>
                         ),
                     })}

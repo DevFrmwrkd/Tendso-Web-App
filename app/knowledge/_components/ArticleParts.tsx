@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button, Icon, Status, cx } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
-import { PHONE_DISPLAY, SUPPORT_EMAIL } from "@/lib/contact";
+import { SUPPORT_EMAIL } from "@/lib/contact";
 
 import { copyEmail } from "./ContactCard";
 import type { Heading } from "./model";
@@ -123,7 +123,7 @@ export function ArticleFeedback({ slug, className }: { slug: string; className?:
                     <span className="flex flex-col gap-0.5">
                         <span className="text-sm font-medium text-r1-ink">Sorry it didn&apos;t help. A person will answer.</span>
                         <span className="t-meta">
-                            Email {SUPPORT_EMAIL} or call <span className="t-num">{PHONE_DISPLAY}</span>.
+                            Email {SUPPORT_EMAIL}.
                         </span>
                     </span>
                     <Button className="shrink-0" onClick={copyEmail}>
