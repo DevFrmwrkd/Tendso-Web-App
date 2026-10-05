@@ -5,9 +5,10 @@ import type { Strings } from "./types";
  * the landing and /for-creators both carry. English and Tagalog; the Tagalog
  * needs a native read.
  *
- * Money is never a literal here: the price card puts the figure in from
- * lib/pricing.ts (see BusinessPricingSection), so changing the price there is
- * all it takes.
+ * Money is never a literal here: {b} is the lowest a creator may offer the
+ * website at (BASE_PRICE), and the price card puts the website price itself in
+ * from lib/pricing.ts (see BusinessPricingSection), so changing a price there
+ * is all it takes.
  */
 export const strings: Strings = {
     en: {
@@ -66,6 +67,7 @@ export const strings: Strings = {
         "r1.landing.price.footnote": "No card on file. No fine print. No charges later.",
         "r1.landing.price.tier": "Standard website",
         "r1.landing.price.once": "One-time · pay only when it's live",
+        "r1.landing.price.viaCreator": "As low as {b} when a Tendso creator signs you up",
         "r1.landing.price.domainAddon":
             "Optional add-on: prefer your own custom .com? We can register and set one up when your site goes live — just ask.",
         "r1.landing.price.domain":
@@ -171,6 +173,7 @@ export const strings: Strings = {
         "r1.landing.price.footnote": "Walang card na nakatago. Walang maliit na letra. Walang sorpresang singil.",
         "r1.landing.price.tier": "Standard na website",
         "r1.landing.price.once": "Isang beses · bayad lang kapag live na",
+        "r1.landing.price.viaCreator": "Pwedeng kasing-baba ng {b} kapag isang Tendso creator ang nag-sign up sa'yo",
         "r1.landing.price.domainAddon":
             "Optional add-on: gusto ng sariling custom na .com? Pwede naming i-register at i-set up kapag live na ang site — sabihin mo lang.",
         "r1.landing.price.domain":

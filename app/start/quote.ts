@@ -9,8 +9,8 @@
  * the screens from quoting the same sale four slightly different ways.
  *
  * QUOTE WHAT IS CHARGED, NOT WHAT A PAGE ELSEWHERE SAYS. An owner with no
- * campaign is charged BASE_PRICE and is shown exactly that, with nothing struck
- * through. A list price is only ever shown struck, and only when lib/pricing
+ * campaign is charged WEBSITE_PRICE and is shown exactly that, with nothing
+ * struck through. A list price is only ever shown struck, and only when lib/pricing
  * gives the campaign one of its own (CAMPAIGN_LIST_PRICES) — the figure the OTR
  * page strikes too.
  */

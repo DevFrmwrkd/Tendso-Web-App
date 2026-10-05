@@ -2,9 +2,10 @@
 
 import { ArrowRight, Check } from "lucide-react";
 
-import { ButtonLink, Icon, formatMoney } from "@/components/r1";
-import { BASE_PRICE } from "@/lib/pricing";
+import { ButtonLink, Highlight, Icon, formatMoney } from "@/components/r1";
+import { BASE_PRICE, WEBSITE_PRICE } from "@/lib/pricing";
 
+import { fill } from "./copy";
 import { useT } from "./i18n";
 import { LANDING_BAND, LANDING_WRAP, SectionHead } from "./layout";
 
@@ -14,12 +15,11 @@ import { LANDING_BAND, LANDING_WRAP, SectionHead } from "./layout";
  * this card is the price and the entrance in one. Owners never "sign up":
  * /start is anonymous end to end and no account exists at any point.
  *
- * WHAT THE CARD SAYS is what /start actually charges: BASE_PRICE (a self-serve
- * owner with no campaign pays campaignSellPrice(null), which is BASE_PRICE).
- * The Landing board draws a different story, the website at PRICE_CEILING and
- * BASE_PRICE "when a Tendso creator signs you up", but /start would then quote
- * less than this card. That story waits on the pricing rule, which is an open
- * question in the Round 1 handoff, so the card keeps today's honest price.
+ * WHAT THE CARD SAYS is the board's price story: the website is WEBSITE_PRICE
+ * (₱4,999), which is exactly what /start charges an owner with no campaign
+ * (campaignSellPrice(null) === WEBSITE_PRICE), and it can be as low as
+ * BASE_PRICE when a Tendso creator signs the owner up, because a creator may
+ * discount their own offer that far. Both figures come from lib/pricing.
  *
  * The custom domain is an optional add-on, so it stays a quiet note under the
  * card rather than a second price (Theo's earlier feedback, kept).
@@ -46,9 +46,14 @@ export default function BusinessPricingSection() {
                     <div className="t-card flex flex-col gap-6 p-6 sm:p-8 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start">
                         <div className="flex flex-col gap-3">
                             <span className="t-label">{t("r1.landing.price.tier")}</span>
-                            <span className="t-hero-fig">{formatMoney(BASE_PRICE)}</span>
+                            <span className="t-hero-fig">{formatMoney(WEBSITE_PRICE)}</span>
                             <p className="t-meta">{t("r1.landing.price.once")}</p>
                         </div>
+                        <Highlight className="px-4 py-3 text-sm leading-5 text-r1-ink-2">
+                            {fill(t("r1.landing.price.viaCreator"), {
+                                b: <strong className="t-num font-semibold text-r1-ink">{formatMoney(BASE_PRICE)}</strong>,
+                            })}
+                        </Highlight>
                         <ButtonLink variant="primary" size="lg" block href="/start">
                             {t("r1.landing.cta")}
                             <Icon icon={ArrowRight} />
