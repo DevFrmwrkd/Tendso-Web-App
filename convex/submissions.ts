@@ -480,18 +480,23 @@ export const update = mutation({
         if (mediaFieldSet && !touchedTranscriptDirectly) {
             const current = await ctx.db.get(id);
             if (current && !current.transcript && current.transcriptionStatus !== 'processing') {
-                // Determine which media we just set. Prefer video over audio if both were set.
-                const isVideo = !!(updates.videoStorageId || updates.videoUrl);
-                const storageId =
-                    (updates.videoStorageId as string | undefined) ||
-                    (updates.videoUrl as string | undefined) ||
+                // Determine which media we just set. When a video and an audio
+                // file arrive together, transcribe the audio: the mobile app
+                // records one alongside every video interview for exactly this
+                // (interview-audio.m4a), a few MB against a video of hundreds.
+                // Taking the video instead is what ran the transcription out of
+                // memory.
+                const audio =
                     (updates.audioStorageId as string | undefined) ||
                     (updates.audioUrl as string | undefined);
+                const video =
+                    (updates.videoStorageId as string | undefined) ||
+                    (updates.videoUrl as string | undefined);
 
-                await ctx.scheduler.runAfter(0, internal.submissions.transcribeMedia, {
+                await ctx.scheduler.runAfter(0, internal.transcription.transcribeMedia, {
                     submissionId: id,
-                    storageId,
-                    mediaType: isVideo ? 'video' : 'audio',
+                    storageId: audio || video,
+                    mediaType: audio ? 'audio' : 'video',
                 });
             }
         }
@@ -877,65 +882,36 @@ export const updateTranscriptionStatus = internalMutation({
     },
 });
 
-// ==================== GROQ WHISPER HELPER ====================
-
 /**
- * POST one media chunk to Groq Whisper and return the transcript text.
- * Retries once on transient connection errors. Throws on unrecoverable failures.
+ * Fail a transcription still "processing" long after it started. The action
+ * that ran it was killed (out of memory, or past its time limit) before it could
+ * record the failure, and the creator would otherwise wait for good. Scheduled
+ * by transcription.transcribeMedia as it starts.
  */
-async function callGroqWhisper(
-    chunk: ArrayBuffer,
-    filename: string,
-    groqKey: string
-): Promise<string> {
-    const form = new FormData();
-    form.append('file', new Blob([chunk]), filename);
-    form.append('model', 'whisper-large-v3');
-    form.append('response_format', 'json');
-
-    for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-            const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-                method: 'POST',
-                headers: { Authorization: `Bearer ${groqKey}` },
-                body: form,
-            });
-            if (!res.ok) {
-                const text = await res.text().catch(() => '');
-                throw new Error(`Groq API ${res.status}: ${text.slice(0, 300)}`);
-            }
-            const json: any = await res.json();
-            return typeof json?.text === 'string' ? json.text : '';
-        } catch (err: any) {
-            const isTransient =
-                err?.code === 'ECONNRESET' ||
-                err?.cause?.code === 'ECONNRESET' ||
-                /Connection error|fetch failed|network/i.test(err?.message || '');
-            if (isTransient && attempt < 2) {
-                await new Promise((r) => setTimeout(r, 3000));
-                continue;
-            }
-            throw err;
-        }
-    }
-    throw new Error('Groq transcription failed after retries');
-}
+export const failStalledTranscription = internalMutation({
+    args: {
+        submissionId: v.id('submissions'),
+        startedAt: v.number(),
+    },
+    handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission || submission.transcriptionStatus !== 'processing') return;
+        // Finished or failed since then, and processing again: a later attempt.
+        if ((submission.transcriptionUpdatedAt ?? 0) > args.startedAt) return;
+        await ctx.db.patch(args.submissionId, {
+            transcriptionStatus: 'failed',
+            transcriptionError: 'Transcription stopped before it finished.',
+            transcriptionUpdatedAt: Date.now(),
+        });
+    },
+});
 
 /**
- * Trigger transcription for a submission's media file.
- *
- * Mobile-referenced via scheduler from submissions.update. Calls Groq Whisper
- * directly with chunking support for 500MB+ files. DO NOT replace with a Next.js
- * round-trip — see docs/changes/MOBILE-PARTY-FIX-TRANSCRIBE.md for the incident
- * (2026-04-23) where the round-trip pattern 404'd in production because:
- *   1. Clerk middleware was blocking the server-to-server call, AND
- *   2. Convex in the cloud can't reach localhost during dev anyway.
- *
- * Direct-Groq removes one network hop, one auth surface, and one env-var
- * dependency. Chunking lives in convex/lib/media-chunker.ts and handles
- * webm/mp3/wav/mp4 at EBML Cluster / MP3 frame / PCM / AAC ADTS boundaries.
- *
- * Env vars required on the Convex deployment: GROQ_API_KEY, R2_PUBLIC_URL.
+ * The old home of interview transcription, kept under its name for jobs already
+ * scheduled when this deploys, and for the mobile parity list
+ * (docs/changes/MOBILE-FUNCTION-PARITY.md). The work is
+ * transcription.transcribeMedia, a Node action: this runtime caps a function at
+ * 64 MB of memory, and an interview video does not fit in that.
  */
 export const transcribeMedia = internalAction({
     args: {
@@ -944,100 +920,6 @@ export const transcribeMedia = internalAction({
         mediaType: v.optional(v.union(v.literal('video'), v.literal('audio'))),
     },
     handler: async (ctx, args) => {
-        // Mark as processing so UIs can show a spinner while Groq works.
-        await ctx.runMutation(internal.submissions.updateTranscriptionStatus, {
-            submissionId: args.submissionId,
-            status: 'processing',
-        });
-
-        try {
-            const groqKey = process.env.GROQ_API_KEY;
-            if (!groqKey) {
-                throw new Error('GROQ_API_KEY env var not set on this Convex deployment');
-            }
-
-            // Resolve the storageId/URL/path to a fetchable HTTPS URL.
-            const r2Prefix = process.env.R2_PUBLIC_URL?.replace(/\/$/, '');
-            const raw = args.storageId || '';
-            let mediaUrl: string | null = null;
-            if (raw.startsWith('http://') || raw.startsWith('https://')) {
-                mediaUrl = raw;
-            } else if (/^(images|videos|audio)\//.test(raw) && r2Prefix) {
-                mediaUrl = `${r2Prefix}/${raw}`;
-            }
-            // Fallback: re-read the submission fields directly.
-            if (!mediaUrl) {
-                const fresh: any = await ctx.runQuery(internal.submissions.getByIdInternal, {
-                    id: args.submissionId,
-                });
-                const candidates = [fresh?.videoUrl, fresh?.audioUrl, fresh?.videoStorageId, fresh?.audioStorageId]
-                    .filter(Boolean) as string[];
-                for (const f of candidates) {
-                    if (f.startsWith('http')) { mediaUrl = f; break; }
-                    if (/^(images|videos|audio)\//.test(f) && r2Prefix) {
-                        mediaUrl = `${r2Prefix}/${f}`;
-                        break;
-                    }
-                }
-            }
-            if (!mediaUrl) {
-                throw new Error(`Could not resolve a fetchable URL for storageId "${args.storageId}"`);
-            }
-
-            // Download the media into memory as an ArrayBuffer.
-            console.log(`[transcribeMedia] Fetching ${mediaUrl}`);
-            const mediaRes = await fetch(mediaUrl);
-            if (!mediaRes.ok) {
-                throw new Error(`Failed to download media (HTTP ${mediaRes.status}): ${mediaUrl}`);
-            }
-            const contentType = mediaRes.headers.get('content-type') || '';
-            const buffer = await mediaRes.arrayBuffer();
-            const sizeMB = buffer.byteLength / 1024 / 1024;
-            console.log(
-                `[transcribeMedia] Downloaded ${sizeMB.toFixed(1)}MB, content-type="${contentType}"`
-            );
-
-            // Chunk if necessary — handles webm/mp3/wav/mp4. Files under the limit
-            // return as a single-element array.
-            const { chunkMediaFile, getFileExtension } = await import('./lib/mediaChunker');
-            const chunks = chunkMediaFile(buffer, contentType, undefined, mediaUrl);
-            const extension = getFileExtension(contentType, mediaUrl);
-            console.log(`[transcribeMedia] Split into ${chunks.length} chunk(s)`);
-
-            // Transcribe each chunk. Serial rather than parallel to respect Groq's
-            // rate limits and avoid memory spikes for very large files.
-            const transcripts: string[] = [];
-            for (let i = 0; i < chunks.length; i++) {
-                const filename = chunks.length > 1
-                    ? `chunk-${i + 1}-of-${chunks.length}.${extension}`
-                    : `audio.${extension}`;
-                console.log(
-                    `[transcribeMedia] Groq request ${i + 1}/${chunks.length} (${(chunks[i].byteLength / 1024 / 1024).toFixed(1)}MB)`
-                );
-                const text = await callGroqWhisper(chunks[i], filename, groqKey);
-                transcripts.push(text);
-            }
-
-            const fullTranscript = transcripts.join(' ').trim();
-            if (!fullTranscript) {
-                throw new Error('Groq returned an empty transcript');
-            }
-
-            await ctx.runMutation(internal.submissions.updateTranscription, {
-                submissionId: args.submissionId,
-                transcription: fullTranscript,
-            });
-            console.log(
-                `[transcribeMedia] Saved transcript for ${args.submissionId} (${fullTranscript.length} chars)`
-            );
-        } catch (error) {
-            const reason = error instanceof Error ? error.message : 'Unknown transcription error';
-            console.error(`[transcribeMedia] submissionId=${args.submissionId}:`, reason);
-            await ctx.runMutation(internal.submissions.updateTranscriptionStatus, {
-                submissionId: args.submissionId,
-                status: 'failed',
-                error: reason,
-            });
-        }
+        await ctx.scheduler.runAfter(0, internal.transcription.transcribeMedia, args);
     },
 });

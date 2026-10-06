@@ -36,7 +36,7 @@ import {
     ownerTotal,
 } from "@/lib/pricing"
 
-import { directMediaUrl, errorText, firstNameOf, phoneForReading } from "../_components/flow"
+import { directMediaUrl, errorText, firstNameOf, phoneForReading, showFullLength } from "../_components/flow"
 import { ActionBar, DraftMissing, StepLoading, SubmitFrame } from "../_components/SubmitFrame"
 import { useRequiredDraftId } from "../_components/useDraftId"
 
@@ -612,9 +612,16 @@ export default function ReviewSubmissionPage() {
                     {/* Media Player */}
                     {interviewUrl &&
                         (hasVideo ? (
-                            <video src={interviewUrl} controls playsInline className="max-h-64 w-full rounded-r1 bg-r1-ink" preload="metadata" />
+                            <video
+                                src={interviewUrl}
+                                controls
+                                playsInline
+                                className="max-h-64 w-full rounded-r1 bg-r1-ink"
+                                preload="metadata"
+                                onLoadedMetadata={(e) => showFullLength(e.currentTarget)}
+                            />
                         ) : hasAudio ? (
-                            <audio src={interviewUrl} controls className="w-full" preload="metadata" />
+                            <audio src={interviewUrl} controls className="w-full" preload="metadata" onLoadedMetadata={(e) => showFullLength(e.currentTarget)} />
                         ) : null)}
                     {(hasVideo || hasAudio) && !interviewUrl && <p className="t-meta">Loading the recording…</p>}
 

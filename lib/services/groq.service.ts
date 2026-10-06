@@ -414,8 +414,9 @@ export const groqService = {
             console.log(`[GROQ] File size ${sizeMB}MB > ${(MAX_FILE_SIZE / 1024 / 1024).toFixed(0)}MB threshold, chunking...`)
             const chunks = chunkMediaFile(arrayBuffer, contentType, undefined, audioUrl)
 
-            // MP4 video → extracted as audio-only MP4 or ADTS → use .m4a extension (in Groq's allowed list)
-            const chunkExt = contentType.includes('video') || contentType.includes('mp4') ? 'm4a' : ext
+            // MP4 video → extracted as audio-only MP4 or ADTS → use .m4a extension (in Groq's allowed list).
+            // A WebM video splits into WebM chunks, so it keeps .webm.
+            const chunkExt = ext === 'webm' ? 'webm' : contentType.includes('video') || contentType.includes('mp4') ? 'm4a' : ext
 
             // Write all chunks to temp files FIRST, then release the large buffer
             const tmpPaths: string[] = []
