@@ -480,12 +480,11 @@ export const update = mutation({
         if (mediaFieldSet && !touchedTranscriptDirectly) {
             const current = await ctx.db.get(id);
             if (current && !current.transcript && current.transcriptionStatus !== 'processing') {
-                // Determine which media we just set. When a video and an audio
-                // file arrive together, transcribe the audio: the mobile app
-                // records one alongside every video interview for exactly this
-                // (interview-audio.m4a), a few MB against a video of hundreds.
-                // Taking the video instead is what ran the transcription out of
-                // memory.
+                // Determine which media we just set. A video interview from the
+                // mobile app arrives with an audio file recorded beside it
+                // (interview-audio.m4a). Transcribe the video, which holds the
+                // whole interview; that audio can stop early (seen: 0:19 of a
+                // 1:45 interview), so it is only the fallback.
                 const audio =
                     (updates.audioStorageId as string | undefined) ||
                     (updates.audioUrl as string | undefined);
@@ -495,8 +494,9 @@ export const update = mutation({
 
                 await ctx.scheduler.runAfter(0, internal.transcription.transcribeMedia, {
                     submissionId: id,
-                    storageId: audio || video,
-                    mediaType: audio ? 'audio' : 'video',
+                    storageId: video || audio,
+                    mediaType: video ? 'video' : 'audio',
+                    ...(video && audio ? { audioFallback: audio } : {}),
                 });
             }
         }

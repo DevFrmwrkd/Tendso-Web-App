@@ -94,3 +94,66 @@ describe('chunkMediaFile: fragmented MP4', () => {
         expect(chunks).toHaveLength(2);
     });
 });
+
+// ---- Plain MP4 (a phone's video file) ----
+
+const ascii = (s: string) => Uint8Array.from(s, (c) => c.charCodeAt(0));
+const handler = (kind: string) => fullBox('hdlr', 0, u32(0), ascii(kind), new Uint8Array(12), Uint8Array.of(0));
+const mediaHeader = (timescale: number, duration: number) =>
+    fullBox('mdhd', 0, u32(0), u32(0), u32(timescale), u32(duration), Uint8Array.of(0x55, 0xc4, 0, 0));
+
+/** Where a box's payload starts in `data`, found by its type (unique in these files). */
+const payloadOf = (data: Uint8Array, type: string) => {
+    for (let i = 4; i + 4 <= data.length; i++) {
+        if (String.fromCharCode(data[i], data[i + 1], data[i + 2], data[i + 3]) === type) return i + 4;
+    }
+    throw new Error(`no ${type}`);
+};
+const readU32 = (b: Uint8Array, o: number) => ((b[o] << 24) >>> 0) + (b[o + 1] << 16) + (b[o + 2] << 8) + b[o + 3];
+
+describe('chunkMediaFile: plain MP4', () => {
+    // Three AAC frames between two runs of video bytes, as a phone interleaves them.
+    const audioSamples = [filler(10, 1), filler(12, 2), filler(14, 3)];
+    const ftyp = box('ftyp', ascii('qt  '), u32(0));
+    const before = filler(1500, 5);
+    const audioOffset = ftyp.length + 8 + before.length;
+    const mdat = box('mdat', before, ...audioSamples, filler(500, 6));
+    const videoTrak = box('trak', box('mdia', mediaHeader(600, 1800), handler('vide')));
+    const audioTrak = box(
+        'trak',
+        box(
+            'mdia',
+            mediaHeader(44100, 3 * 1024),
+            handler('soun'),
+            box(
+                'minf',
+                box(
+                    'stbl',
+                    fullBox('stsd', 0, u32(1), box('mp4a', filler(28, 4))),
+                    fullBox('stts', 0, u32(1), u32(3), u32(1024)),
+                    fullBox('stsz', 0, u32(0), u32(3), u32(10), u32(12), u32(14)),
+                    fullBox('stsc', 0, u32(1), u32(1), u32(3), u32(1)),
+                    fullBox('stco', 0, u32(1), u32(audioOffset)),
+                ),
+            ),
+        ),
+    );
+    const file = bytes(ftyp, mdat, box('moov', videoTrak, audioTrak));
+
+    it('pulls out the audio track alone', () => {
+        const chunks = chunkMediaFile(toBuffer(file), 'video/mp4', 1000).map(view);
+        expect(chunks).toHaveLength(1);
+        const out = chunks[0];
+        expect(String.fromCharCode(...out.subarray(8, 12))).toBe('M4A ');
+        expect(out.subarray(out.length - 36)).toEqual(bytes(...audioSamples));
+    });
+
+    it('writes the timescale and duration where a decoder reads them', () => {
+        const out = view(chunkMediaFile(toBuffer(file), 'video/mp4', 1000)[0]);
+        // mvhd and mdhd (version 0): version and flags, creation, modification, then timescale and duration.
+        for (const type of ['mvhd', 'mdhd']) {
+            const p = payloadOf(out, type);
+            expect([type, readU32(out, p + 12), readU32(out, p + 16)]).toEqual([type, 44100, 3072]);
+        }
+    });
+});

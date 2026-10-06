@@ -802,10 +802,12 @@ function buildMinimalAudioMP4(
 
     // === Build mdia ===
     // mdhd (media header): version(1) + flags(3) + creation(4) + modification(4) + timescale(4) + duration(4) + lang(2) + quality(2)
+    // Offsets below follow that layout. They were 4 bytes early, which wrote the
+    // timescale over modification and left the decoder a nonsense timescale.
     const mdhdData = new Uint8Array(24)
-    writeUint32BE(mdhdData, 8, timescale)
-    writeUint32BE(mdhdData, 12, duration)
-    mdhdData[16] = 0x55; mdhdData[17] = 0xC4 // language: 'und' (undetermined)
+    writeUint32BE(mdhdData, 12, timescale)
+    writeUint32BE(mdhdData, 16, duration)
+    mdhdData[20] = 0x55; mdhdData[21] = 0xC4 // language: 'und' (undetermined)
     const mdhd = makeAtom('mdhd', mdhdData)
 
     // hdlr (handler): version(1) + flags(3) + pre_defined(4) + handler_type(4) + reserved(12) + name(variable)
@@ -835,14 +837,14 @@ function buildMinimalAudioMP4(
     // === Build moov ===
     // mvhd: version(1) + flags(3) + creation(4) + modification(4) + timescale(4) + duration(4) + rate(4) + volume(2) + reserved(10) + matrix(36) + pre_defined(24) + next_track_id(4)
     const mvhdData = new Uint8Array(100)
-    writeUint32BE(mvhdData, 8, timescale) // timescale
-    writeUint32BE(mvhdData, 12, duration) // duration
-    writeUint32BE(mvhdData, 16, 0x00010000) // rate = 1.0
-    mvhdData[20] = 0x01; mvhdData[21] = 0x00 // volume = 1.0
-    // matrix (identity)
-    writeUint32BE(mvhdData, 32, 0x00010000)
-    writeUint32BE(mvhdData, 48, 0x00010000)
-    writeUint32BE(mvhdData, 64, 0x40000000)
+    writeUint32BE(mvhdData, 12, timescale) // timescale
+    writeUint32BE(mvhdData, 16, duration) // duration
+    writeUint32BE(mvhdData, 20, 0x00010000) // rate = 1.0
+    mvhdData[24] = 0x01; mvhdData[25] = 0x00 // volume = 1.0
+    // matrix (identity): a, d and w of the nine values starting at 36
+    writeUint32BE(mvhdData, 36, 0x00010000)
+    writeUint32BE(mvhdData, 52, 0x00010000)
+    writeUint32BE(mvhdData, 68, 0x40000000)
     writeUint32BE(mvhdData, 96, 2) // next_track_id
     const mvhd = makeAtom('mvhd', mvhdData)
 
