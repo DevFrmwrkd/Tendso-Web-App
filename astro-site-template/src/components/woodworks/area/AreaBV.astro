@@ -19,8 +19,19 @@
  * silently, and the Content panel (which only offers paths a template binds)
  * would hide the list from the owner too.
  *
- * GATE: rows, places or the paragraph. The eyebrow and the derived headline
- * never open the section by themselves (a heading over nothing).
+ * GATE: a filled row, a place, or the paragraph — AreaBX's rule, so the
+ * woodworks family agrees. The eyebrow and the derived headline ("Serving
+ * <city>") never open the section by themselves (a heading over nothing), and
+ * because the derive layer also fills area.places with just the business
+ * city, a places list holding ONLY that city (the auto-fill) does not open it
+ * either: it would be a band that says the owner's city twice. That lone city
+ * still prints when the section opens for anything else (a paragraph).
+ *
+ * SQUEEZE: the note keeps its line as drawn (the design's short notes never
+ * wrap, even at 360px) but can never take more than HALF the row — a long
+ * owner note wraps inside that half — so the place always keeps at least
+ * half the row minus the gap and wraps between words. A place word only
+ * breaks when it is by itself wider than that half.
  *
  * NEVER FABRICATED: no distance, travel time or coverage claim is written
  * here; every note is the owner's own string. Place and note are guarded
@@ -41,7 +52,9 @@ const rows = (Array.isArray(ar.rows) ? ar.rows : [])
 const places = rows.length > 0 ? [] : (Array.isArray(ar.places) ? ar.places : [])
   .map((p: unknown, i: number) => ({ place: str(p), i }))
   .filter((p: { place: string }) => p.place !== '');
-const show = rows.length > 0 || places.length > 0 || Boolean(body);
+const city = str((content as any).business_city);
+const cityAutoFillOnly = places.length === 1 && city !== '' && places[0].place.toLowerCase() === city.toLowerCase();
+const show = rows.length > 0 || (places.length > 0 && !cityAutoFillOnly) || Boolean(body);
 ---
 {show && (
   <section class="area" id="area">
@@ -95,12 +108,16 @@ const show = rows.length > 0 || places.length > 0 || Boolean(body);
     padding: 16px 0; border-top: 1px solid rgba(var(--ink-rgb), .18);
   }
   .area-row:last-child { border-bottom: 1px solid rgba(var(--ink-rgb), .18); }
-  .area-place { min-width: 0; font-family: var(--disp); font-size: 19px; overflow-wrap: anywhere; }
-  /* flex:none as drawn, so the note keeps its line while the place wraps —
-     capped so a long owner note can never push the row past 360px. A note
-     with no place still sits right, where the column reads it. */
+  /* See SQUEEZE: break-word, so the place wraps between words and a word is
+     only split when it alone is wider than the place's share. */
+  .area-place { min-width: 0; font-family: var(--disp); font-size: 19px; overflow-wrap: break-word; }
+  /* flex:none as drawn, so the note keeps its line while the place wraps;
+     capped at half the row (the design's notes are ~45% at 360px, so they
+     still sit on one line), so a long owner note wraps in its own half
+     instead of squeezing the place. A note with no place still sits right,
+     where the column reads it. */
   .area-time {
-    flex: none; max-width: 62%; margin-left: auto; text-align: right;
+    flex: none; max-width: 50%; margin-left: auto; text-align: right;
     font-size: 14px; color: var(--ink-soft); overflow-wrap: anywhere;
   }
 </style>

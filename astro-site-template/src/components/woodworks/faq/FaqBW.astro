@@ -5,6 +5,10 @@
  * each a bold question with an orange mono "[+]" at the far end. The first
  * answer starts open, as the design's markup marks it.
  *
+ * A QUESTION WITH NO ANSWER is a static row — the same rule and type, no
+ * summary and no "[+]": a disclosure that opens onto nothing is a broken
+ * control. The "first answer open" is the first row that HAS an answer.
+ *
  * Editable hooks (all schema-owned):
  *   faq.tag · faq.headline · faq.items.${i}.q · faq.items.${i}.a
  *
@@ -15,6 +19,7 @@
  * A row with no question is dropped (the question IS the row's label), with
  * the ORIGINAL index kept on every hook; with no questions the section is
  * omitted. With neither eyebrow nor headline the list takes the row alone.
+ * faq.headline renders through set:html (the AI may emphasise a word).
  */
 interface Props { content: any; layout?: any; }
 const { content } = Astro.props;
@@ -26,6 +31,7 @@ const items: any[] = Array.isArray(faq.items) ? faq.items : (Array.isArray(faq) 
 const rows = items
   .map((it: any, i: number) => ({ i, q: str(it?.q ?? it?.question), a: str(it?.a ?? it?.answer) }))
   .filter((r) => Boolean(r.q));
+const firstOpen = rows.findIndex((r) => Boolean(r.a));
 ---
 {rows.length > 0 && (
   <section id="faq" class="fq">
@@ -33,18 +39,24 @@ const rows = items
       {(tag || headline) && (
         <div class="fq-head">
           {tag && <p class="eyebrow" data-field="faq.tag">{tag}</p>}
-          {headline && <h2 class="h2 h2--md" data-field="faq.headline">{headline}</h2>}
+          {headline && <h2 class="h2 h2--md fq-h2" data-field="faq.headline" set:html={headline}></h2>}
         </div>
       )}
       <div class="fq-list">
         {rows.map((r, k) => (
-          <details class="fq-item" open={k === 0}>
-            <summary class="fq-sum">
-              <span class="fq-q" data-field={`faq.items.${r.i}.q`}>{r.q}</span>
-              <span class="fq-plus" aria-hidden="true">[+]</span>
-            </summary>
-            {r.a && <p class="fq-a" data-field={`faq.items.${r.i}.a`}>{r.a}</p>}
-          </details>
+          r.a ? (
+            <details class="fq-item" open={k === firstOpen}>
+              <summary class="fq-sum">
+                <span class="fq-q" data-field={`faq.items.${r.i}.q`}>{r.q}</span>
+                <span class="fq-plus" aria-hidden="true">[+]</span>
+              </summary>
+              <p class="fq-a" data-field={`faq.items.${r.i}.a`}>{r.a}</p>
+            </details>
+          ) : (
+            <div class="fq-item">
+              <p class="fq-sum fq-sum--static"><span class="fq-q" data-field={`faq.items.${r.i}.q`}>{r.q}</span></p>
+            </div>
+          )
         ))}
       </div>
     </div>
@@ -54,6 +66,7 @@ const rows = items
   .fq { padding: clamp(56px,7vw,112px) 0; background-color: var(--paper-2); }
   .fq-in { display: flex; flex-wrap: wrap; gap: 36px clamp(40px,6vw,96px); }
   .fq-head { flex: 1 1 300px; min-width: 0; }
+  .fq-h2 :global(em), .fq-h2 :global(i) { font-style: normal; color: var(--accent-deep); }
   .fq-list { flex: 1.6 1 440px; min-width: 0; border-top: 1px solid var(--ink); }
   .fq-item { border-bottom: 1px solid var(--ink); }
   .fq-sum {
@@ -62,6 +75,7 @@ const rows = items
     font-family: var(--sans); font-size: clamp(17px,1.7vw,20px); font-weight: 700;
     line-height: 1.6; color: var(--ink);
   }
+  .fq-sum--static { margin: 0; cursor: auto; }
   .fq-sum::-webkit-details-marker { display: none; }
   .fq-sum::marker { content: ''; }
   .fq-q { min-width: 0; overflow-wrap: anywhere; }

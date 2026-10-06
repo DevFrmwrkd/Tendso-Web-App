@@ -25,8 +25,14 @@
  * COLOUR: the ground is --accent and every string on it --on-fill (white
  * natively; PageBW recomputes it per scheme so a gold or black fill gets an ink
  * label). The hover fill is --on-fill with --on-fill-alt on top — natively the
- * design's white fill and ink label. CLASS NAMES: .bk, never .cta-band, whose
- * `.btn` label buildOverrideCss pins to the on-ink colour.
+ * design's white fill and ink label. The ink action is the FIXED --shop black
+ * with its --on-shop label, not --ink: a scheme that remaps ink to white
+ * ("black", "dark") would otherwise paint it into its own white/grey band
+ * (1.0:1). #141414 separates from every woodworks --accent fill.
+ * The headline renders through set:html (the AI copy writer may emphasise a
+ * word in any headline); an <em> stays upright in the band's label colour.
+ * CLASS NAMES: .bk, never .cta-band, whose `.btn` label buildOverrideCss pins
+ * to the on-ink colour.
  */
 interface Props { content: any; layout: any; }
 const { content, layout } = Astro.props;
@@ -56,7 +62,7 @@ const hasActions = Boolean(ctaText || cta2Text || phone);
 {(headline || ctaText || cta2Text) && (
   <section id="book" class="bk">
     <div class="wrap">
-      {headline && <h2 class="bk-h" data-field="ctaBand.headline">{headline}</h2>}
+      {headline && <h2 class="bk-h" data-field="ctaBand.headline" set:html={headline}></h2>}
       {(sub || hasActions) && (
         <div class="bk-foot">
           {sub && <p class="bk-sub" data-field="ctaBand.sub">{sub}</p>}
@@ -83,6 +89,9 @@ const hasActions = Boolean(ctaText || cta2Text || phone);
     font-stretch: 72%; line-height: .86; letter-spacing: 0; text-transform: uppercase;
     color: var(--on-fill); text-wrap: balance; overflow-wrap: anywhere;
   }
+  /* An owner's emphasis on the orange fill: upright, in the band's own label
+     colour — no second colour clears contrast on all six scheme fills. */
+  .bk .bk-h :global(em), .bk .bk-h :global(i) { font-style: normal; color: inherit; }
   .bk-foot {
     display: flex; flex-wrap: wrap; gap: 20px 48px; align-items: center;
     justify-content: space-between; margin-top: clamp(24px,3vw,40px);
@@ -96,7 +105,7 @@ const hasActions = Boolean(ctaText || cta2Text || phone);
   .bk .bk-b1, .bk .bk-b2 {
     min-height: 56px; padding: 0 28px; letter-spacing: 0;
   }
-  .bk .bk-b1 { background-color: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .bk .bk-b1 { background-color: var(--shop); border-color: var(--shop); color: var(--on-shop); }
   .bk .bk-b1:hover { background-color: var(--on-fill); border-color: var(--on-fill); color: var(--on-fill-alt); }
   .bk .bk-b2 { background-color: transparent; border-color: var(--on-fill); color: var(--on-fill); }
   .bk .bk-b2:hover { background-color: var(--on-fill); border-color: var(--on-fill); color: var(--on-fill-alt); }

@@ -10,7 +10,8 @@
  * ROLE OF THIS FILE: the wrapper emits the WHOLE document (doctype, head,
  * tokens, fonts, Leaflet boot, skip link). It does NOT compose with
  * BaseLayout. It is the only file in the variant that touches siteData; the
- * fifteen section components receive only layout and content.
+ * sixteen section components (Header and Footer included) receive only
+ * layout and content.
  *
  * EDITABLE HOOKS OWNED BY THIS FILE: none. It only READS layout.businessName
  * and layout.tagline (for the title), the content description (meta
@@ -19,8 +20,11 @@
  * Section visibility is the camelCase visibility keys below, each tested
  * with !== false (undefined renders).
  *
- * THE ONE HARDCODED VISIBLE STRING in the whole template is the skip link's
- * "Skip to content" below: an a11y affordance, visible on focus only.
+ * HARDCODED VISIBLE STRINGS: none of them is content. The skip link's "Skip
+ * to content" below (an a11y affordance, visible on focus only), and the
+ * fixed structural labels, each rendered only beside an owner value:
+ * Address / Hours / Phone in LocationBV's ledger and the Follow heading in
+ * FooterBV (drawn only over a real social link). Nothing else is literal.
  *
  * PROP PLUMBING: every section is handed BOTH content and layout, even the
  * ones that read only content. Extra props are inert in Astro.
@@ -35,14 +39,28 @@
  *   roles the engine may move, so an admin colour pick recolours coherently
  *     ground #EFE6D8 is --paper; the oatmeal band #E4D7C3 is --paper-2; the
  *     card #F7F1E7 is --card; text #2A1D14 is --ink; the muted brown #5E4E40
- *     is --ink-soft; the rust #8A3B1E is --accent when it is a FILL (buttons,
- *     the closing band, the last how step, the message pill, the logo rings)
- *     and --accent-deep when it is TEXT on a light ground (eyebrows, stars,
- *     the FAQ plus, the directions rule). Natively the two are the same rust;
- *     under a scheme the engine maps them to primary and primaryDeep, and the
- *     deep one is the text-safe tone. The label on a rust fill is
- *     --on-primary (#FFF5EA natively; pickOn(primary) under a scheme, which
- *     is the engine's own pairing for --accent).
+ *     is --ink-soft; the rust #8A3B1E is --accent-deep when it is TEXT on a
+ *     light ground (eyebrows, stars, the FAQ plus, the directions rule) and
+ *     --accent only where nothing reads it (the logo rings, the map pin).
+ *     Natively they are the same rust; under a scheme the engine maps them
+ *     to primaryDeep and primary, and the deep one is the text-safe tone.
+ *   the rust FILL that carries a label
+ *     --fill (buttons, the header pill's hover, the closing band, the last
+ *     how step, the message pill, ::selection) under an --on-primary label
+ *     (#FFF5EA natively; the engine's pickOn(primary) under a scheme). It is
+ *     var(--accent) natively and under any scheme whose primary holds 4.5:1
+ *     against --on-primary (brown, dark, black). Where it does not (the
+ *     engine's 0.5 luminance threshold puts WHITE on orange 2.80:1, gold
+ *     2.46:1, green 3.30:1) the scheme node below re-points it to the deep
+ *     primary, and, where even that is short (gold, 3.84:1), to the deep
+ *     primary taken toward the label's opposite in 10% steps until it holds
+ *     4.5:1 — computed at build time from the engine's own values.
+ *   the tone that faces a fill
+ *     --fill-alt: the walnut the fill hovers to and the header pill's resting
+ *     fill, always under a --paper label. var(--ink) natively; where the
+ *     scheme's fill IS its ink (green's deep primary is its ink, black's
+ *     primary is its ink) the hover would be invisible, so the node points it
+ *     at --ink-soft, which the engine pairs with --paper.
  *   the FIXED WOOD WORLD the engine does not know, deliberately
  *     --wood #2A1D14, --wood-2 #3D2B1F, --on-wood #EFE6D8 and --tan #D9A77F.
  *     The walnut bands ARE the design (the PageBJ precedent for its green):
@@ -53,8 +71,12 @@
  *     --on-accent-2 #FFE9DA (body copy) and --on-accent-3 #EFE6D8 (the last
  *     step's title). They cannot be derived from --on-primary by mixing, so
  *     they are native tokens, re-pointed to --on-primary by the small style
- *     node gated on the resolved scheme below (never on the override CSS,
- *     which a font pick alone makes non-empty).
+ *     node gated on an explicit scheme below (never on the override CSS
+ *     merely being non-empty, which a font pick alone makes it).
+ *   the About portrait plate
+ *     --plate #D6C6AE, the design's plate one step darker than the oatmeal
+ *     band; under a scheme the node mixes it from --paper-2 and --ink, so the
+ *     plate keeps its relation to whatever band it sits on.
  *
  * FONT-PAIRING SENTINEL (verbatim from PageBJ): lib/astro-builder.ts defaults
  * layout.fontPairing to the literal 'modern' and lockVariant only blanks
@@ -116,16 +138,60 @@ const { scheme: __themeScheme, pairing: __resolvedPairing } = resolveTheme(layou
 const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
 const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
 const __fontHref = buildFontHref(__themePairing);
-// Gated on the resolved SCHEME, never on the override CSS: a font pick alone
-// makes that string non-empty. The two soft labels on the rust fill have no
-// engine equivalent, so under an explicit scheme they follow --on-primary,
-// the engine's own label for its --accent.
+// THE SCHEME NODE. Gated on an explicit scheme that actually produced a
+// palette (the engine block then carries --paper), never on the override CSS
+// merely being non-empty: a font pick alone fills it too.
+//   · the two soft labels on the rust fill have no engine equivalent, so they
+//     follow --on-primary, the engine's own label for its primary;
+//   · the About plate is mixed from the scheme's band and ink;
+//   · the FILL (see the doc comment) is chosen from the engine's OWN values,
+//     read back out of its override block: primary if it holds 4.5:1 under
+//     --on-primary, else the deep primary, else the deep primary taken toward
+//     the label's opposite in 10% steps until it does;
+//   · --fill-alt leaves --ink when the chosen fill is (nearly) the ink itself.
 // SPECIFICITY, not source order: Astro hoists the global block below into the
 // bundled stylesheet at the END of the document, while this set:html node
 // stays inline in the head — so a plain html[data-page] rule here would lose
 // the tie to the native tokens. The extra :root makes it (0,2,1).
-const __schemeFix = __themeScheme
-  ? 'html[data-page="BV"]:root{--on-accent-2:var(--on-primary);--on-accent-3:var(--on-primary);}'
+const __schemePicked = Boolean(__themeScheme) && /--paper:/.test(__overrideCss);
+const __hex = (name: string): string => {
+  const m = new RegExp(`--${name}:\\s*#([0-9a-fA-F]{6})\\b`).exec(__overrideCss);
+  return m ? m[1].toUpperCase() : '';
+};
+const __rgb = (h: string): number[] => [0, 2, 4].map((k) => parseInt(h.slice(k, k + 2), 16));
+const __lum = (h: string): number => {
+  const [r, g, b] = __rgb(h).map((c) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+};
+const __ratio = (a: string, b: string): number => {
+  const x = __lum(a);
+  const y = __lum(b);
+  return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+};
+const __toward = (h: string, to: number, t: number): string =>
+  __rgb(h).map((c) => Math.round(c + (to - c) * t).toString(16).padStart(2, '0')).join('').toUpperCase();
+let __fillFix = '';
+if (__schemePicked) {
+  const primary = __hex('accent');
+  const deep = __hex('accent-deep');
+  const onPrimary = __hex('on-primary');
+  const ink = __hex('ink');
+  if (primary && deep && onPrimary && ink) {
+    let fill = primary;
+    if (__ratio(primary, onPrimary) < 4.5) {
+      fill = deep;
+      const to = __lum(onPrimary) > 0.5 ? 0 : 255;
+      for (let k = 1; k <= 10 && __ratio(fill, onPrimary) < 4.5; k++) fill = __toward(deep, to, k / 10);
+    }
+    if (fill !== primary) __fillFix += `--fill:#${fill};`;
+    if (__ratio(fill, ink) < 1.25) __fillFix += '--fill-alt:var(--ink-soft);';
+  }
+}
+const __schemeFix = __schemePicked
+  ? `html[data-page="BV"]:root{--on-accent-2:var(--on-primary);--on-accent-3:var(--on-primary);--plate:color-mix(in srgb,var(--paper-2) 88%,var(--ink));${__fillFix}}`
   : '';
 const __og = layout.ogImage || layout.favicon || '';
 ---
@@ -187,9 +253,15 @@ const __og = layout.ogImage || layout.favicon || '';
          as rgba(var(--ink-rgb), alpha) to keep each of the design's alphas. */
       --line: #CCC2B5;
       --stone: #CCC2B5;
-      /* rust — a FILL is --accent, TEXT on a light ground is --accent-deep */
+      /* rust — TEXT on a light ground is --accent-deep; --accent only where
+         nothing reads it (rings, pin); a FILL carrying a label is --fill */
       --accent: #8A3B1E;
       --accent-deep: #8A3B1E;
+      /* the labelled rust fill, and the walnut that faces it (hover of a fill,
+         the header pill at rest). Engine-unknown names; the scheme node picks
+         their values from the engine's own palette (see the frontmatter). */
+      --fill: var(--accent);
+      --fill-alt: var(--ink);
       --accent-light: #D9A77F;
       --accent-soft: #D9A77F;
       /* rgb triplets for token-driven tints */
@@ -215,6 +287,8 @@ const __og = layout.ogImage || layout.favicon || '';
       /* soft labels on the rust fill (see the frontmatter) */
       --on-accent-2: #FFE9DA;
       --on-accent-3: #EFE6D8;
+      /* the About portrait plate, one step darker than the oatmeal band */
+      --plate: #D6C6AE;
       /* type + metrics */
       --disp: "Young Serif", Georgia, "Times New Roman", serif;
       --serif: "Young Serif", Georgia, "Times New Roman", serif;
@@ -246,6 +320,11 @@ const __og = layout.ogImage || layout.favicon || '';
          root covers every in-page anchor, FAQ rows and the map included. */
       scroll-padding-top: 89px;
     }
+    /* The fixed message pill (54px, 12-24px off the bottom, up to the full
+       width of a phone) would otherwise sit on top of whatever keyboard focus
+       scrolls to the viewport's bottom edge (WCAG 2.4.11). Only when the
+       pill is actually on the page. */
+    html[data-page="BV"]:has(> body > a.pill) { scroll-padding-bottom: 88px; }
     @media (prefers-reduced-motion: reduce) { html[data-page="BV"] { scroll-behavior: auto; } }
     html[data-page="BV"] body {
       margin: 0; padding: 0;
@@ -254,14 +333,21 @@ const __og = layout.ogImage || layout.favicon || '';
       -webkit-font-smoothing: antialiased; overflow-x: hidden;
     }
     html[data-page="BV"] img { max-width: 100%; display: block; }
-    html[data-page="BV"] :where(a) { color: inherit; text-decoration: none; }
+    /* Leaflet's own anchors are kept OUT of the reset and the link hover
+       (woodworks:BY's rule). Scoped, these would score (0,1,1) — the same as
+       leaflet.css `.leaflet-bar a{color:black}` and `.leaflet-container a` —
+       and, coming later, win: the zoom glyphs would take --ink, which is
+       white under the dark and black schemes, on Leaflet's own white
+       buttons. Leaflet's colours are right on Leaflet's fixed chrome. */
+    html[data-page="BV"] :where(a:not(.leaflet-container a)) { color: inherit; text-decoration: none; }
     /* the design's global a:hover{color:#8A3B1E} — BEFORE the buttons (fact 2) */
-    html[data-page="BV"] :where(a:hover) { color: var(--accent-deep); }
-    /* The page-scoped reset above ties Leaflet's own `.leaflet-container a`
-       and, coming later, would win; the design's unscoped reset did not, so
-       its map shows Leaflet's link colour in the attribution. Restore it. */
-    html[data-page="BV"] .leaflet-container .leaflet-control-attribution a { color: #0078A8; }
-    html[data-page="BV"] ::selection { background-color: var(--accent); color: var(--on-primary); }
+    html[data-page="BV"] :where(a:not(.leaflet-container a):hover) { color: var(--accent-deep); }
+    /* The design's unscoped a:hover also reached the zoom glyphs. Leaflet's
+       buttons stay white in every scheme, so their hover is the design's
+       literal rust (5.9:1 on Leaflet's #F4F4F4 hover ground), not a token a
+       scheme could turn white. */
+    html[data-page="BV"] .leaflet-container .leaflet-bar a:not(.leaflet-disabled):hover { color: #8A3B1E; }
+    html[data-page="BV"] ::selection { background-color: var(--fill); color: var(--on-primary); }
     /* text-transform is DECLARED, not defaulted: an unscoped uppercase heading
        rule from another template once capitalised every mixed-case design. */
     html[data-page="BV"] :where(h1, h2, h3, h4) {
@@ -290,6 +376,7 @@ const __og = layout.ogImage || layout.favicon || '';
     /* ── BUTTONS ─────────────────────────────────────────────────────────
        Straight from the design's style-hover specs:
          .btn--fill  rust fill + rust border, #FFF5EA label -> walnut fill, linen label
+                     (--fill -> --fill-alt; see the token plan)
          .btn--line  clear fill, walnut border + label       -> walnut fill, linen label
        Every variant DECLARES its own background-color, and every hover
        restates fill, border AND label, so a label can never strand. No
@@ -304,10 +391,10 @@ const __og = layout.ogImage || layout.favicon || '';
       cursor: pointer;
     }
     html[data-page="BV"] :where(.btn--fill) {
-      background-color: var(--accent); border-color: var(--accent); color: var(--on-primary);
+      background-color: var(--fill); border-color: var(--fill); color: var(--on-primary);
     }
     html[data-page="BV"] :where(.btn--fill:hover) {
-      background-color: var(--ink); border-color: var(--ink); color: var(--paper);
+      background-color: var(--fill-alt); border-color: var(--fill-alt); color: var(--paper);
     }
     html[data-page="BV"] :where(.btn--line) {
       background-color: transparent; border-color: var(--ink); color: var(--ink);

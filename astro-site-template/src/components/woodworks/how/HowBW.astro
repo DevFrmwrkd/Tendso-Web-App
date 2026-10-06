@@ -39,7 +39,7 @@ const rows = steps
   <section id="how" class="pr">
     <div class="wrap">
       {tag && <p class="eyebrow pr-tag" data-field="how.tag">{tag}</p>}
-      {headline && <h2 class="h2 pr-h2" data-field="how.headline">{headline}</h2>}
+      {headline && <h2 class="h2 pr-h2" data-field="how.headline" set:html={headline}></h2>}
       {sub && <p class="pr-sub" data-field="how.sub">{sub}</p>}
       <ol class="pr-steps">
         {rows.map((s, k) => (
@@ -60,6 +60,8 @@ const rows = steps
   }
   .pr .pr-tag { color: var(--accent-light); }
   .pr-h2 { color: var(--on-shop); text-wrap: balance; }
+  /* On the fixed black band the emphasis takes the orange made for it. */
+  .pr-h2 :global(em), .pr-h2 :global(i) { font-style: normal; color: var(--accent-light); }
   .pr .pr-sub {
     margin: 18px 0 0; max-width: 52ch; color: rgba(var(--on-shop-rgb),.75);
     overflow-wrap: anywhere;

@@ -17,7 +17,11 @@
  * never rounded up into a star). The hook stays on the row, as the design binds
  * it, but carries data-derived: the row RENDERS the number, it is not the
  * number, so the editor bridge must not overwrite the glyphs with the digit.
- * Its accessible name states the same number the glyphs draw.
+ * Its accessible name states the same number the glyphs draw. The glyphs are
+ * painted in --star, PageBW's own token (the design's orange natively), which
+ * PageBW re-picks under a colour scheme so a meaningful graphic keeps 3:1 on
+ * the ground — the engine's --accent is a FILL colour and drops to 2.3:1 on
+ * the "gold" paper.
  *
  * THE PULL-QUOTE'S QUOTATION MARKS are template glyphs, aria-hidden and OUTSIDE
  * the data-field span, so an inline edit can never write them into the quote;
@@ -27,6 +31,9 @@
  * line is the one place a platform claim can live, and it is the owner's text.
  * A row with no quote is dropped (the card IS the quote), with the ORIGINAL
  * index kept on every hook. The section renders only with a real quote.
+ *
+ * A LONE CARD is held to half the measure (GalleryBW's guard), and a quote to
+ * a readable line length, so one review never runs 150 characters wide.
  *
  * CLASS NAMES: .rv — never .testi, which buildOverrideCss paints on-ink.
  */
@@ -58,7 +65,7 @@ const hasSection = rows.length > 0 || Boolean(bigQuote);
       )}
       {source && <p class="rv-src" data-field="testimonials.source">{source}</p>}
       {rows.length > 0 && (
-        <div class="rv-grid">
+        <div class="rv-grid" data-n={String(rows.length)}>
           {rows.map((r) => (
             <figure class="rv-cell">
               {r.stars > 0 && (
@@ -93,13 +100,14 @@ const hasSection = rows.length > 0 || Boolean(bigQuote);
     border-top: 1px solid var(--ink); border-left: 1px solid var(--ink);
   }
   .rv-grid:first-child { margin-top: 0; }
+  .rv-grid[data-n="1"] { max-width: 600px; }
   .rv-cell {
     margin: 0; min-width: 0; padding: 26px;
     border-right: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
   }
-  .rv-stars { display: inline-block; color: var(--accent); letter-spacing: 3px; line-height: 1.6; }
+  .rv-stars { display: inline-block; color: var(--star); letter-spacing: 3px; line-height: 1.6; }
   .rv-cell .rv-q {
-    margin: 0 0 16px; font-size: 16.5px; line-height: 1.55; color: var(--ink);
+    margin: 0 0 16px; max-width: 70ch; font-size: 16.5px; line-height: 1.55; color: var(--ink);
     overflow-wrap: anywhere;
   }
   .rv-cell .rv-stars + .rv-q { margin-top: 12px; }

@@ -8,7 +8,16 @@
  * Editable hooks:
  *   services.tag · services.headline (set:html) · services.sub
  *   services.items.${i}.image (img) · .meta · .title · .desc
+ *   services.items.${i}.note   — the rust line's fallback, see below
  *   services.ctaLabel + data-href-field services.ctaHref — the band's button
+ *
+ * THE RUST LINE reads two paths, as florist/ServicesBU does and for the same
+ * reason as HeroBV's headlineLines and AreaBV's places: the design draws
+ * services.items.N.meta, while the copy extraction writes every item as
+ * { title, desc, note } (note = a 1-3 word meta line) and never meta. So meta
+ * wins when the owner typed one; otherwise the note fills the same line,
+ * bound to services.items.N.note, so the click opens the field the words came
+ * from (and the Content panel, which offers only bound paths, shows it).
  *
  * WHICH ITEM IS THE BAND. The design draws four items: three catalogue cards
  * and, last, the custom-commission slab carrying the section button. That is
@@ -25,7 +34,10 @@
  * NO PHOTO, NO FRAME: a card or band without an image draws no well — the
  * copy simply starts at the top. The card grid uses auto-fill (the design's
  * auto-fit filled row is identical at every width for three cards) so one or
- * two cards keep a card's width instead of stretching across 1184px.
+ * two cards keep a card's width instead of stretching across 1184px. Cards
+ * stretch to one row height as drawn when they are alike (all with a photo,
+ * or all without); when only SOME have a photo, each card keeps its own
+ * height, or a title-only card would become a tall empty slab beside them.
  *
  * NEVER FABRICATED: no price, lead time or item is supplied here; the section
  * renders only when the owner listed at least one item (the builder's derived
@@ -61,18 +73,21 @@ const headline = str(sv.headline);
 const sub = str(sv.sub);
 // Both shapes: the wrapped object with items, and the legacy bare array.
 const raw: any[] = Array.isArray(sv.items) ? sv.items : (Array.isArray(c.services) ? c.services : []);
-type Row = { title: string; desc: string; meta: string; image: string; i: number };
+type Row = { title: string; desc: string; meta: string; note: string; image: string; i: number };
 const rows: Row[] = raw
   .map((it: any, i: number) => ({
     title: str(it?.title) || str(it?.name),
     desc: str(it?.desc) || str(it?.description),
     meta: str(it?.meta),
+    note: str(it?.note),
     image: str(it?.image),
     i,
   }))
-  .filter((r: Row) => Boolean(r.title || r.desc || r.meta || r.image));
+  .filter((r: Row) => Boolean(r.title || r.desc || r.meta || r.note || r.image));
 const feat: Row | null = rows.length ? rows[rows.length - 1] : null;
 const cards: Row[] = rows.slice(0, -1);
+// Mixed photo / no-photo cards keep their own heights (see the doc comment).
+const ragged = cards.some((r) => r.image) && cards.some((r) => !r.image);
 // The band's button. Display falls back to the page's primary action so it is
 // never pointed at nothing; the hook stays services.ctaHref either way.
 const ctaLabel = str(sv.ctaLabel);
@@ -94,7 +109,7 @@ const ctaHref = onPage(str(sv.ctaHref) || c.hero?.cta1?.href, '#book');
       )}
 
       {cards.length > 0 && (
-        <div class="svc-grid">
+        <div class:list={['svc-grid', ragged && 'is-ragged']}>
           {cards.map((r) => (
             <article class="svc-card">
               {r.image && (
@@ -102,9 +117,11 @@ const ctaHref = onPage(str(sv.ctaHref) || c.hero?.cta1?.href, '#book');
                   <img src={r.image} alt="" decoding="async" />
                 </div>
               )}
-              {(r.meta || r.title || r.desc) && (
+              {(r.meta || r.note || r.title || r.desc) && (
                 <div class="svc-body">
-                  {r.meta && <p class="svc-meta" data-field={`services.items.${r.i}.meta`}>{r.meta}</p>}
+                  {r.meta
+                    ? <p class="svc-meta" data-field={`services.items.${r.i}.meta`}>{r.meta}</p>
+                    : r.note && <p class="svc-meta" data-field={`services.items.${r.i}.note`}>{r.note}</p>}
                   {r.title && <h3 class="svc-title" data-field={`services.items.${r.i}.title`}>{r.title}</h3>}
                   {r.desc && <p class="svc-desc" data-field={`services.items.${r.i}.desc`}>{r.desc}</p>}
                 </div>
@@ -121,9 +138,11 @@ const ctaHref = onPage(str(sv.ctaHref) || c.hero?.cta1?.href, '#book');
               <img src={feat.image} alt="" decoding="async" />
             </div>
           )}
-          {(feat.meta || feat.title || feat.desc || ctaLabel) && (
+          {(feat.meta || feat.note || feat.title || feat.desc || ctaLabel) && (
             <div class="band-copy">
-              {feat.meta && <p class="band-meta" data-field={`services.items.${feat.i}.meta`}>{feat.meta}</p>}
+              {feat.meta
+                ? <p class="band-meta" data-field={`services.items.${feat.i}.meta`}>{feat.meta}</p>
+                : feat.note && <p class="band-meta" data-field={`services.items.${feat.i}.note`}>{feat.note}</p>}
               {feat.title && <h3 class="band-title" data-field={`services.items.${feat.i}.title`}>{feat.title}</h3>}
               {feat.desc && <p class="band-desc" data-field={`services.items.${feat.i}.desc`}>{feat.desc}</p>}
               {ctaLabel && <a class="btn band-cta" href={ctaHref} data-field="services.ctaLabel" data-href-field="services.ctaHref">{ctaLabel}</a>}
@@ -158,6 +177,7 @@ const ctaHref = onPage(str(sv.ctaHref) || c.hero?.cta1?.href, '#book');
     display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
     gap: clamp(18px, 2.4vw, 28px);
   }
+  .svc-grid.is-ragged { align-items: start; }
   .svc-card {
     display: flex; flex-direction: column; min-width: 0;
     background-color: var(--card); border-radius: 10px; overflow: hidden;

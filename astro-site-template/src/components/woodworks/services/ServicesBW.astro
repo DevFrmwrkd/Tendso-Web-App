@@ -11,7 +11,14 @@
  *                                 OWNER's text, not a counter, so it is bound
  *   services.items.${i}.image   (data-image-field)
  *   services.items.${i}.title · services.items.${i}.desc
- *   services.items.${i}.meta    — the lead-time column
+ *   services.items.${i}.meta    — the lead-time column; when it is blank the
+ *                                 AI's `note` ("1-3 word meta", the only key
+ *                                 the copy writer fills for this slot) shows
+ *                                 there instead, bound to
+ *                                 services.items.${i}.note — the hook always
+ *                                 names the field the visible words came from
+ *                                 (florist/ServicesBU's rule)
+ *   services.headline renders through set:html (the AI may emphasise a word)
  *   services.whole.headline     — the band's sentence
  *   services.ctaLabel + data-href-field services.ctaHref — the band's button
  *
@@ -21,7 +28,9 @@
  * any row has a part number (or a photo), every row keeps that column — as an
  * empty, unannounced spacer where a row has none — so the titles still line up
  * down the page; with none anywhere the column is simply not there. A spacer is
- * transparent: no plate, no border, no placeholder box.
+ * transparent: no plate, no border, no placeholder box. On a phone the photo
+ * spacer keeps its WIDTH but gives up its height: once the row wraps, the title
+ * drops to its own line and a 72px-tall spacer would only leave an empty band.
  *
  * THE BAND belongs to this section (it binds services.*), sits inside it as
  * drawn, and renders only with its sentence — a lone button in a tinted box is
@@ -59,8 +68,9 @@ const rows = rawItems
     title: str(it?.title ?? it?.name),
     desc: str(it?.desc ?? it?.description),
     meta: str(it?.meta),
+    note: str(it?.note),
   }))
-  .filter((r) => Boolean(r.tag || r.image || r.title || r.desc || r.meta));
+  .filter((r) => Boolean(r.tag || r.image || r.title || r.desc || r.meta || r.note));
 const anyTag = rows.some((r) => r.tag);
 const anyImage = rows.some((r) => r.image);
 const band = str(services.whole?.headline);
@@ -76,7 +86,7 @@ const hasSection = rows.length > 0 || Boolean(band);
           {(tag || headline) && (
             <div class="sv-head-l">
               {tag && <p class="eyebrow" data-field="services.tag">{tag}</p>}
-              {headline && <h2 class="h2 sv-h2" data-field="services.headline">{headline}</h2>}
+              {headline && <h2 class="h2 sv-h2" data-field="services.headline" set:html={headline}></h2>}
             </div>
           )}
           {sub && <p class="sv-sub" data-field="services.sub">{sub}</p>}
@@ -98,7 +108,9 @@ const hasSection = rows.length > 0 || Boolean(band);
                 : anyImage && <span class="sv-img sv-img--none" aria-hidden="true"></span>}
               {r.title && <h3 class="sv-title" data-field={`services.items.${r.i}.title`}>{r.title}</h3>}
               {r.desc && <p class="sv-desc" data-field={`services.items.${r.i}.desc`}>{r.desc}</p>}
-              {r.meta && <span class="sv-meta" data-field={`services.items.${r.i}.meta`}>{r.meta}</span>}
+              {r.meta
+                ? <span class="sv-meta" data-field={`services.items.${r.i}.meta`}>{r.meta}</span>
+                : r.note && <span class="sv-meta" data-field={`services.items.${r.i}.note`}>{r.note}</span>}
             </article>
           ))}
         </div>
@@ -123,6 +135,7 @@ const hasSection = rows.length > 0 || Boolean(band);
   }
   .sv-head-l { flex: 1 1 440px; min-width: 0; }
   .sv-h2 { text-wrap: balance; }
+  .sv-h2 :global(em), .sv-h2 :global(i) { font-style: normal; color: var(--accent-deep); }
   .sv-head .sv-sub {
     flex: 1 1 320px; min-width: 0; max-width: 44ch; margin: 0;
     color: var(--ink-soft); text-wrap: pretty; overflow-wrap: anywhere;
@@ -144,6 +157,13 @@ const hasSection = rows.length > 0 || Boolean(band);
   .sv-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   /* The column spacer for a row with no photo: holds the width, draws nothing. */
   .sv-img--none { background-color: transparent; }
+  /* Phones: once the row wraps the title sits on its own line, so the spacer's
+     height would only open an empty band under the part number. It keeps its
+     width, so wherever the title still shares the line (viewports wider than
+     ~440px) the titles stay aligned. */
+  @media (max-width: 760px) {
+    .sv-img--none { aspect-ratio: auto; height: 0; }
+  }
   .sv-row .sv-title {
     flex: 1 1 220px; min-width: 0; margin: 0;
     font-family: var(--disp); font-size: clamp(24px,2.6vw,34px); font-weight: 800;

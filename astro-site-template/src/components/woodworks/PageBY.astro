@@ -60,7 +60,8 @@
  * colour, and __nightCss (gated on __themeScheme, never on __overrideCss,
  * because a font pick alone makes the override non-empty) restates the night
  * on html and body so a light scheme cannot show through in the overscroll.
- * Those two rules are the only !important in the template.
+ * Those two rules, and the [data-dead] rule the boot relies on (see DEAD
+ * IN-PAGE LINKS), are the only !important in the template.
  *
  * VERIFIED CONTRAST (sRGB relative luminance, the design's palette):
  *   bone/night 14.2 · bone/night-2 12.8 · bone/night-3 14.9
@@ -105,11 +106,16 @@
  * rail itself, the hero's buttons, a footer column, the closing band), any
  * block marked data-hide-if-empty with no live text left (the footer), and a
  * burger whose drawer went; it repeats until nothing changes. So no control
- * on the page scrolls nowhere, and nothing is left as an empty shell.
+ * on the page scrolls nowhere, and nothing is left as an empty shell. It runs
+ * as its own script BEFORE leaflet.js (it needs only the markup above it), and
+ * what it removes carries data-dead, which a global !important rule keeps
+ * hidden even when the editor preview clears a section's inline display.
  *
  * LEAFLET: this wrapper loads leaflet.css + leaflet.js and defines
  * window.__woodworksBYInitMap (family-unique: a preview harness can render two
- * wrappers in one document). LocationBY calls that exact name. Keep
+ * wrappers in one document) in a script placed BEFORE leaflet.js; a call made
+ * before the library has run is queued and flushed by the one-line script
+ * right after it. LocationBY calls that exact name. Keep
  * `el.innerHTML = ''` in the boot (it erases the drawn fallback face) and keep
  * id="map" literal. The tiles are CARTO dark_all, the basemap the design draws;
  * the URL is the design's own (as PageBK draws it), and lib/carto.ts appends the
@@ -333,6 +339,13 @@ const __nightCss = __themeScheme
     }
     html[data-page="BY"] :where(.skip:focus) { left: 0; top: 0; }
     html[data-page="BY"] :where(.skip:hover) { color: var(--night); }
+
+    /* ── What the boot removed stays removed. The editor's live preview shows
+          a section by clearing its inline display (editorBridge), which would
+          bring back a closing band with no reachable button; !important here
+          beats any inline or scoped display, so the preview matches the
+          published page. Only the boot script ever sets data-dead. ────────── */
+    html[data-page="BY"] [data-dead] { display: none !important; }
   </style>
 
   {__fontHref && <link href={__fontHref} rel="stylesheet" />}
@@ -360,7 +373,6 @@ const __nightCss = __themeScheme
   {visibility.ctaBandBlock !== false && <CtaBandBY content={content} layout={layout} />}
   <FooterBY layout={layout} content={content} />
 
-  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script is:inline>
     (function () {
       // ── Dead in-page links (see the frontmatter). A link whose #target is
@@ -368,9 +380,15 @@ const __nightCss = __themeScheme
       //    left, a text block with no live text left, and a burger whose
       //    drawer went with them. '#top' is exempt: HTML scrolls it to the
       //    top of the page whether or not an element carries that id.
+      //    Its own script, placed BEFORE leaflet.js: it reads only the markup
+      //    above it, so it must never wait on a third-party download.
       var all = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
       var live = function (el) { return !el.closest('[data-dead]'); };
       var changed = false;
+      // The data-dead attribute is what keeps a node hidden: the global
+      // [data-dead] rule wins over any inline display, so the editor bridge
+      // re-showing a section (it clears style.display) cannot bring back a
+      // band this pass removed. The inline style is a belt for first paint.
       var dead = function (el) { el.setAttribute('data-dead', ''); el.style.display = 'none'; changed = true; };
       var reaches = function (href) {
         if (!href || href.charAt(0) !== '#' || href.length < 2) return true;
@@ -404,45 +422,58 @@ const __nightCss = __themeScheme
         });
         if (!changed) break;
       }
-
-      // ── Yakal / BY Leaflet boot — (lat, lng, label) from
-      //    LocationBY. The short retry covers a slow or blocked CDN and then
-      //    gives up: the drawn fallback face is a perfectly good end state.
-      window.__woodworksBYInitMap = function (lat, lng, label) {
-        var tries = 0;
-        (function go() {
-          var el = document.getElementById('map');
-          if (!el) return;
-          if (typeof window.L === 'undefined') {
-            if (tries++ < 25) setTimeout(go, 80);
-            return;
-          }
-          // Erases LocationBY's drawn fallback face before the tiles paint.
-          el.innerHTML = '';
-          var map = window.L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 15);
-          // dark_all, as the design draws it: a labelled basemap (a client
-          // finding the workshop needs the road names) and the only one of
-          // the CARTO set that sits inside a night page rather than on it.
-          window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19, subdomains: 'abcd'
-          }).addTo(map);
-          // The design's pin: a brass lozenge in a soft brass halo. Colours are
-          // READ from the live tokens, so an explicit admin pick recolours the
-          // pin with the rest of the brass (the engine sets them on html:root).
-          var cs = window.getComputedStyle(document.documentElement);
-          var brass = (cs.getPropertyValue('--accent-light') || '').trim() || '#D6A152';
-          var rgb = (cs.getPropertyValue('--accent-rgb') || '').trim() || '214,161,82';
-          var icon = window.L.divIcon({
-            className: '',
-            iconSize: [16, 16],
-            iconAnchor: [8, 8],
-            html: '<div style="width:16px;height:16px;background:' + brass +
-                  ';transform:rotate(45deg);box-shadow:0 0 0 4px rgba(' + rgb + ',.25)"></div>'
-          });
-          window.L.marker([lat, lng], { icon: icon, title: label || '', keyboard: false }).addTo(map);
-        })();
-      };
     })();
   </script>
+  <script is:inline>
+    (function () {
+      // ── Yakal / BY Leaflet boot — (lat, lng, label) from LocationBY.
+      //    Defined BEFORE leaflet.js, so LocationBY finds it as soon as the
+      //    parser reaches this point, however slow the CDN is. A call that
+      //    lands before the library has run is queued, and the one-line
+      //    script right after leaflet.js flushes it the moment the library
+      //    has executed. If leaflet.js never arrives (blocked, failed), that
+      //    flush finds no L and the drawn fallback face stays: a perfectly
+      //    good end state. No timers, no give-up count.
+      var queued = null;
+      var mounted = false;
+      function mount() {
+        if (mounted || !queued || typeof window.L === 'undefined') return;
+        var el = document.getElementById('map');
+        if (!el) return;
+        mounted = true;
+        var lat = queued[0], lng = queued[1], label = queued[2];
+        // Erases LocationBY's drawn fallback face before the tiles paint.
+        el.innerHTML = '';
+        var map = window.L.map(el, { scrollWheelZoom: false }).setView([lat, lng], 15);
+        // dark_all, as the design draws it: a labelled basemap (a client
+        // finding the workshop needs the road names) and the only one of
+        // the CARTO set that sits inside a night page rather than on it.
+        window.L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19, subdomains: 'abcd'
+        }).addTo(map);
+        // The design's pin: a brass lozenge in a soft brass halo. Colours are
+        // READ from the live tokens, so an explicit admin pick recolours the
+        // pin with the rest of the brass (the engine sets them on html:root).
+        var cs = window.getComputedStyle(document.documentElement);
+        var brass = (cs.getPropertyValue('--accent-light') || '').trim() || '#D6A152';
+        var rgb = (cs.getPropertyValue('--accent-rgb') || '').trim() || '214,161,82';
+        var icon = window.L.divIcon({
+          className: '',
+          iconSize: [16, 16],
+          iconAnchor: [8, 8],
+          html: '<div style="width:16px;height:16px;background:' + brass +
+                ';transform:rotate(45deg);box-shadow:0 0 0 4px rgba(' + rgb + ',.25)"></div>'
+        });
+        window.L.marker([lat, lng], { icon: icon, title: label || '', keyboard: false }).addTo(map);
+      }
+      window.__woodworksBYInitMap = function (lat, lng, label) {
+        queued = [lat, lng, label];
+        mount();
+      };
+      window.__woodworksBYInitMap.flush = mount;
+    })();
+  </script>
+  <script is:inline src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script is:inline>if (window.__woodworksBYInitMap) window.__woodworksBYInitMap.flush();</script>
 </body>
 </html>

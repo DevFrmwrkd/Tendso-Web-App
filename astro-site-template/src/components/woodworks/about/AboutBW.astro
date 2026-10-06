@@ -44,7 +44,7 @@ const hasSection = Boolean(lead || name || image) || paras.length > 0;
     <div class:list={['wrap', 'ab-in', !image && 'ab-in--solo']}>
       <div class="ab-copy">
         {tag && <p class="eyebrow" data-field="about.tag">{tag}</p>}
-        {headline && <h2 class="h2 h2--md ab-h2" data-field="about.headline">{headline}</h2>}
+        {headline && <h2 class="h2 h2--md ab-h2" data-field="about.headline" set:html={headline}></h2>}
         {lead && <p class="ab-lead" data-field="about.lead">{lead}</p>}
         {paras.map((p) => (
           <p class="ab-p" data-field={`about.paragraphs.${p.i}`}>{p.text}</p>
@@ -70,6 +70,10 @@ const hasSection = Boolean(lead || name || image) || paras.length > 0;
   .ab-copy { flex: 1 1 440px; min-width: 0; }
   .ab-in--solo .ab-copy { max-width: 820px; }
   .ab-h2 { text-wrap: balance; }
+  /* An owner's emphasis (the AI copy writer may put an <em> in any section
+     headline): the design's orange text colour, kept upright because the
+     design loads no italic cut of Archivo — HeroBW's treatment. */
+  .ab-h2 :global(em), .ab-h2 :global(i) { font-style: normal; color: var(--accent-deep); }
   .ab-copy .ab-lead {
     margin: 24px 0 0; font-size: clamp(18px,1.6vw,20px); line-height: 1.55; font-weight: 500;
     color: var(--ink); text-wrap: pretty; overflow-wrap: anywhere;

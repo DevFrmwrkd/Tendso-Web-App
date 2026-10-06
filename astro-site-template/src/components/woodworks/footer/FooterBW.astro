@@ -34,7 +34,8 @@
  *
  * THE WORDMARK is sized to fit: the design's clamp, capped so the LONGEST WORD
  * of the owner's name fits the measure at any width — a long single-word name
- * shrinks instead of breaking mid-word or pushing the page sideways.
+ * shrinks instead of breaking mid-word or pushing the page sideways. The word
+ * is measured letter by letter (wide W / M count more; see `fit`).
  *
  * COLOUR: the ground is the fixed --shop black (see PageBW), so every string on
  * it is --on-shop or --accent-light and legible under every scheme.
@@ -56,7 +57,20 @@ const c = (content as any) || {};
 const f = c.footer || {};
 const str = (v: any): string => String(v ?? '').trim();
 const brand = str(f.brand) || str(layout?.businessName);
-const fit = brand ? Math.max(4, ...brand.split(/\s+/).map((w) => w.length)) : 4;
+// The wordmark's fit, in "average letters" (the CSS multiplies it by --glyph,
+// .62em natively). Letters are WEIGHTED by their measured advance in Archivo
+// 900 at 72% width, because the average undercounts the wide caps this trade
+// spells with: W .80em and M .78em (x1.3), O/Q .63em and & .65em (x1.05); every
+// other cap and digit measures .62em or less and counts 1. The 4% on top covers
+// sub-pixel rounding and a desktop scrollbar that 100vw includes. Measured:
+// "WOODWORKS" at 360px now sets 5.79em in 324px with room to spare, where a
+// plain letter count broke it after "WOODWORK".
+const __adv: Record<string, number> = { W: 1.3, M: 1.3, O: 1.05, Q: 1.05, '&': 1.05 };
+const __wordFit = (w: string): number =>
+  [...w.toUpperCase()].reduce((t, ch) => t + (__adv[ch] ?? 1), 0) * 1.04;
+const fit = brand
+  ? Math.round(Math.max(4, ...brand.split(/\s+/).map(__wordFit)) * 100) / 100
+  : 4;
 const blurb = str(f.blurb);
 const visitTitle = str(f.visit?.title);
 const address = str(layout?.contact?.address);
