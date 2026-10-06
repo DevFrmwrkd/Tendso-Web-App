@@ -100,7 +100,19 @@ const ctaHref = onPage(c.navCtaHref || hero.cta1?.href, '#book');
       hdr.classList.toggle('is-open', open);
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
-    btn.addEventListener('click', function () { setOpen(!hdr.classList.contains('is-open')); });
+    // Opening moves focus to the first drawer link: in the DOM the links come
+    // BEFORE the CTA and the burger, so without this the next Tab would leave
+    // the open drawer for the hero. (After a mouse or touch open the browser
+    // shows no focus ring for this programmatic focus.) preventScroll: the
+    // drawer hangs off the sticky rail, so it is always in view, and the
+    // root's scroll-padding must not nudge the page under it.
+    btn.addEventListener('click', function () {
+      var open = !hdr.classList.contains('is-open');
+      setOpen(open);
+      if (!open) return;
+      var first = hdr.querySelector('.links a:not([data-dead])');
+      if (first) first.focus({ preventScroll: true });
+    });
     // The CTA sits OUTSIDE the drawer, so tapping it while the drawer is open
     // must close the drawer too.
     hdr.querySelectorAll('.links a, .rail-cta').forEach(function (a) {

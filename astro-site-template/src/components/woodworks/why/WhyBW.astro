@@ -15,6 +15,10 @@
  *
  * No reason is supplied by this file; with no filled row the section is
  * omitted (the headline is derived on every site and never keeps it alive).
+ * A LONE CARD is held to half the measure (GalleryBW's guard) instead of one
+ * 1224px outline with a title in its corner.
+ *
+ * why.headline renders through set:html (the AI may emphasise a word).
  */
 interface Props { content: any; layout?: any; }
 const { content } = Astro.props;
@@ -29,8 +33,8 @@ const rows = items
 {rows.length > 0 && (
   <section id="why" class="wy">
     <div class="wrap">
-      {headline && <h2 class="h2 h2--md wy-h2" data-field="why.headline">{headline}</h2>}
-      <div class="wy-grid">
+      {headline && <h2 class="h2 h2--md wy-h2" data-field="why.headline" set:html={headline}></h2>}
+      <div class="wy-grid" data-n={String(rows.length)}>
         {rows.map((r, k) => (
           <div class="wy-card">
             <span class="wy-n" aria-hidden="true">W-{String(k + 1).padStart(2, '0')}</span>
@@ -45,11 +49,13 @@ const rows = items
 <style>
   .wy { padding: clamp(56px,7vw,112px) 0; }
   .wy-h2 { margin-top: 0; text-wrap: balance; }
+  .wy-h2 :global(em), .wy-h2 :global(i) { font-style: normal; color: var(--accent-deep); }
   .wy-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,240px), 1fr));
     gap: clamp(14px,2vw,24px); margin-top: clamp(32px,4vw,48px);
   }
   .wy-grid:first-child { margin-top: 0; }
+  .wy-grid[data-n="1"] { max-width: 600px; }
   .wy-card { min-width: 0; padding: 24px; border: 1px solid var(--ink); }
   /* Inline, as drawn: the number sits on the card's own 16.5px/1.6 strut. */
   .wy-n { font-family: var(--mono); font-size: 12px; line-height: 1.6; color: var(--accent-deep); }

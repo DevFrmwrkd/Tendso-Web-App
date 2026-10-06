@@ -24,8 +24,11 @@
  * flexible spacer keeps the links and the pill on the right. The tree-ring
  * mark is decoration (aria-hidden) and only ever sits beside a real name.
  *
- * Colour: tokens only. The pill is --ink with a --paper label, hovering to the
- * rust fill with its --on-primary label, exactly as the design's style-hover.
+ * Colour: tokens only. The pill is --fill-alt (the walnut --ink natively)
+ * with a --paper label, hovering to the rust --fill with its --on-primary
+ * label, exactly as the design's style-hover. Both are PageBV's scheme-picked
+ * fill tokens, so no scheme can put a white label on a light primary or make
+ * the hover the same colour as the pill.
  * It is not .btn / .nav-cta / .nav-right, whose labels the engine pins.
  */
 interface Props { layout: any; content: any; }
@@ -159,10 +162,10 @@ const ctaHref = onPage(str(c.navCtaHref) || hr.cta1?.href, '#book');
   .hdr-cta {
     flex: none; display: inline-flex; align-items: center;
     min-height: 44px; padding: 0 20px; border-radius: 6px;
-    background-color: var(--ink); color: var(--paper);
+    background-color: var(--fill-alt); color: var(--paper);
     font-family: var(--sans); font-size: 14px; font-weight: 600; white-space: nowrap;
   }
-  .hdr-cta:hover { background-color: var(--accent); color: var(--on-primary); }
+  .hdr-cta:hover { background-color: var(--fill); color: var(--on-primary); }
 
   .burger {
     display: none; flex: none; flex-direction: column; justify-content: center; gap: 5px;

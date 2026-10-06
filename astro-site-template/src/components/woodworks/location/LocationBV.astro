@@ -182,7 +182,17 @@ const hasCopy = Boolean(tag || headline || sub || address || hours || phone || (
     border-radius: 10px; overflow: hidden; isolation: isolate;
     background-color: var(--paper-2);
   }
-  #map { position: absolute; inset: 0; filter: sepia(.25) saturate(.8); }
+  /* The ground and face are declared on the element Leaflet mounts on, as the
+     design's inline style does: once mounted it is also .leaflet-container,
+     and another family's unscoped .leaflet-container rule (a pale blue
+     ground, its own body face) ships in the same bundle. This scoped id rule
+     outranks it, so the cell stays oatmeal while tiles load and the
+     attribution keeps Leaflet's own face, as in the design. */
+  #map {
+    position: absolute; inset: 0; filter: sepia(.25) saturate(.8);
+    background-color: var(--paper-2);
+    font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+  }
   /* Tier-3 face: a linen street grid under the design's pin (a rust dot in a
      linen ring and a walnut hairline), all token-built. */
   .map-face {

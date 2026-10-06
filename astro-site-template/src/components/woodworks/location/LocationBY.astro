@@ -14,6 +14,10 @@
  * The drawn face lives INSIDE #map until Leaflet mounts; PageBY's boot empties
  * #map first, which is what erases it. The literal id="map" and the exact
  * global name are a contract with PageBY.
+ * The wait for that global has NO count limit (LocationBI's rule): PageBY
+ * defines it in the same document, at the end of <body>, so the wait only ever
+ * lasts until the parser gets there; how long leaflet.js takes is PageBY's
+ * business, and it mounts the map whenever the library arrives.
  * No coordinates and no address ⇒ no map cell at all: a pin on a drawn street
  * grid is a claim about where the business is, and there is nothing behind it.
  *
@@ -115,21 +119,17 @@ const show = hasMap || hasRows;
 {show && hasCoords && (
   <script is:inline define:vars={{ lat, lng, label }}>
     (function init() {
-      var tries = 0;
-      (function go() {
-        if (window.__woodworksBYInitMap) window.__woodworksBYInitMap(lat, lng, label);
-        else if (tries++ < 40) setTimeout(go, 80);
-      })();
+      if (window.__woodworksBYInitMap) window.__woodworksBYInitMap(lat, lng, label);
+      else setTimeout(init, 80);
     })();
   </script>
 )}
 {show && !hasCoords && hasAddress && (
   <script is:inline define:vars={{ address, label }}>
     (function geocodeThenInit() {
-      var attempt = 0;
       function tryInit(la, ln) {
         if (window.__woodworksBYInitMap) { window.__woodworksBYInitMap(la, ln, label); }
-        else if (attempt++ < 25) { setTimeout(function () { tryInit(la, ln); }, 80); }
+        else { setTimeout(function () { tryInit(la, ln); }, 80); }
       }
       try {
         var query = encodeURIComponent(String(address).replace(/\n/g, ', '));

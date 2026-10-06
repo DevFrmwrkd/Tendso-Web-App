@@ -15,9 +15,11 @@
  *
  * THE RULES. The design rules the grid from the container (top + left) and
  * each cell (right + bottom), which only closes when the last row is full.
- * Here every cell draws all four sides and overlaps its neighbour by 1px, so
- * the lines are identical at four reasons and a short last row (three at 768)
- * ends on a clean edge instead of an open, half-ruled box.
+ * Here every cell draws all four sides and overlaps its neighbour by 1px, so a
+ * short last row (three at 768) ends on a clean edge instead of an open,
+ * half-ruled box. Overlapping translucent borders would stack into a brighter
+ * inner cross, so the rule is the design's .3 brass PRE-MIXED onto the night
+ * (an opaque colour): every line, inner or outer, paints the design's one tone.
  *
  * NEVER FABRICATED: no reason is supplied here, and the section needs at least
  * one filled row. derive-content-defaults always names a headline after the
@@ -66,6 +68,15 @@ const headline = txt(why.headline);
   .way {
     min-width: 0; padding: 30px 26px;
     border: 1px solid rgba(var(--accent-rgb), .3); margin: 0 -1px -1px 0;
+  }
+  /* The rule colour pre-mixed onto the night: opaque, so two overlapping
+     borders paint the same pixel once (#534025 on the design palette, which is
+     the design's .3 brass over the night), and it still follows a scheme pick
+     through --accent-light. @supports, not a second declaration: with var()
+     inside, an engine without color-mix would accept the declaration at parse
+     time and then drop the border altogether. */
+  @supports (color: color-mix(in srgb, red 30%, blue)) {
+    .way { border-color: color-mix(in srgb, var(--accent-light) 30%, var(--night)); }
   }
   .way-mark { color: var(--accent-light); }
   /* line-height 1.7: the design states none here, so it inherits the page's. */

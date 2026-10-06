@@ -112,6 +112,12 @@ const hasActions = Boolean(ctaText || cta2Text || phone);
   .closing-acts .btn--ink:hover { background-color: var(--night-2); border-color: var(--night-2); color: var(--bone); }
   .closing-acts .btn--inkline { background-color: transparent; border: 1px solid var(--night); color: var(--night); }
   .closing-acts .btn--inkline:hover { background-color: var(--night); border-color: var(--night); color: var(--bone); }
+  /* Focus on the brass ground. The page's duo ring (a night outline in a brass
+     halo) vanishes here: the halo is the band's own brass and the outline the
+     filled button's own night. So on this band the ring is the night alone,
+     set 3px off the button so a line of brass separates the two (night on
+     palette.accent holds 5.39:1 or better in every curated scheme). */
+  .closing-acts .btn:focus-visible { outline: 3px solid var(--night); outline-offset: 3px; box-shadow: none; }
   /* An owner's (or the copy extraction's) <em> in the headline: upright (the
      Caslon has no italic) and in the band's own ink — brass on brass would
      erase it. :global() because set:html markup cannot be scoped. */

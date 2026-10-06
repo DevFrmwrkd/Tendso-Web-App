@@ -38,7 +38,7 @@ const show = rows.length >= 2 || Boolean(body);
       {(tag || headline || body) && (
         <div class="ar-copy">
           {tag && <p class="eyebrow" data-field="area.tag">{tag}</p>}
-          {headline && <h2 class="h2 h2--md ar-h2" data-field="area.headline">{headline}</h2>}
+          {headline && <h2 class="h2 h2--md ar-h2" data-field="area.headline" set:html={headline}></h2>}
           {body && <p class="ar-body" data-field="area.body">{body}</p>}
         </div>
       )}
@@ -57,6 +57,7 @@ const show = rows.length >= 2 || Boolean(body);
   .ar-in { display: flex; flex-wrap: wrap; gap: 28px clamp(40px,6vw,96px); align-items: flex-start; }
   .ar-copy { flex: 1 1 340px; min-width: 0; }
   .ar-h2 { text-wrap: balance; }
+  .ar-h2 :global(em), .ar-h2 :global(i) { font-style: normal; color: var(--accent-deep); }
   .ar-copy .ar-body {
     margin: 16px 0 0; max-width: 42ch; color: var(--ink-soft); overflow-wrap: anywhere;
   }

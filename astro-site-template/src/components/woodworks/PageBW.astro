@@ -59,6 +59,15 @@
  *   reads the scheme's --accent out of the override block and picks whichever
  *   of white / ink contrasts more (see __onFill below). Gated on the SCHEME,
  *   never on the override string alone: a font pick also makes that non-empty.
+ *   --star — the review stars, a meaningful graphic (role="img") that needs
+ *   3:1 on the ground. Natively the design's orange (#D9481A, 3.76:1). The
+ *   engine's --accent is a FILL colour and falls to 2.26:1 ("gold") / 2.66:1
+ *   ("orange") on its own paper, so under a scheme pick this file takes the
+ *   first of the scheme's --accent / --accent-deep / --ink that reaches 3:1
+ *   on its --paper (see __star below).
+ * The map pin's keyline and the Leaflet zoom glyphs use --shop, not --ink: the
+ * CARTO tiles never recolour, so they need the fixed ink under every scheme
+ * (a remapped white ink vanishes into the light basemap).
  *
  * ACCESSIBILITY NOTE, stated not silently fixed: the design's white label on
  * its #D9481A fill measures 4.30:1 — under the 4.5:1 AA bar for 14-15px bold
@@ -114,10 +123,14 @@ const __themePairing = __resolvedPairing === 'modern' ? '' : __resolvedPairing;
 const __overrideCss = buildOverrideCss(__themeScheme, __themePairing);
 const __fontHref = buildFontHref(__themePairing);
 
-// The label on an --accent fill, recomputed for an explicit scheme pick (see
-// TOKEN PLAN above). Reads the scheme's own --accent value out of the override
-// block the engine just built, so it can never drift from the palette table.
-const __hex = /--accent:\s*(#[0-9a-fA-F]{6})/.exec(__overrideCss)?.[1] ?? '';
+// Per-scheme fixes (see TOKEN PLAN above) read the scheme's own values out of
+// the override block the engine just built, so they can never drift from the
+// palette table. __tok returns one token's hex; the boundary keeps --paper from
+// matching inside --on-paper, and --ink inside --on-ink.
+const __tok = (name: string): string =>
+  new RegExp('(?:^|[\\s;{])' + name + ':\\s*(#[0-9a-fA-F]{6})').exec(__overrideCss)?.[1] ?? '';
+// The label on an --accent fill, recomputed for an explicit scheme pick.
+const __hex = __tok('--accent');
 const __lum = (hex: string): number => {
   const v = hex.replace('#', '');
   const ch = [0, 2, 4].map((k) => parseInt(v.slice(k, k + 2), 16) / 255)
@@ -131,6 +144,12 @@ const __ratio = (a: string, b: string): number => {
 const __onFill = __themeScheme && __hex
   ? (__ratio(__hex, '#FFFFFF') >= __ratio(__hex, '#141414') ? '#FFFFFF' : '#141414')
   : '';
+// The review stars under a scheme pick (see TOKEN PLAN): the first of the
+// scheme's fill / deep / ink colours that keeps 3:1 on its paper.
+const __paperHex = __tok('--paper');
+const __star = __themeScheme && __paperHex
+  ? ([__hex, __tok('--accent-deep'), __tok('--ink')].find((c) => c && __ratio(c, __paperHex) >= 3) ?? '')
+  : '';
 // An admin FONT pick swaps Archivo's 72%-width display cut for a normal-width
 // face, and the three giant sizes (hero h1, closing headline, footer wordmark)
 // were drawn for the condensed one — a long word would then break mid-word on
@@ -140,9 +159,9 @@ const __onFill = __themeScheme && __hex
 const __fontFix = __fontHref ? '--disp-k:.76;--glyph:.8;' : '';
 // :root doubles the specificity so this wins over the static token block
 // wherever Astro chooses to hoist that block.
-const __schemeFix = __onFill
+const __schemeFix = (__onFill
   ? `--on-fill:${__onFill};--on-fill-alt:${__onFill === '#FFFFFF' ? '#141414' : '#FFFFFF'};`
-  : '';
+  : '') + (__star ? `--star:${__star};` : '');
 const __schemeFixCss = (__schemeFix || __fontFix)
   ? `html[data-page="BW"]:root{${__schemeFix}${__fontFix}}`
   : '';
@@ -216,6 +235,8 @@ const __schemeFixCss = (__schemeFix || __fontFix)
       --on-shop-rgb: 241,240,235;
       --on-fill: #FFFFFF;
       --on-fill-alt: #141414;
+      /* review stars — natively the orange; re-picked per scheme (__star) */
+      --star: #D9481A;
       /* display-size factor + wordmark glyph estimate (see __fontFix) */
       --disp-k: 1;
       --glyph: .62;
@@ -375,20 +396,37 @@ const __schemeFixCss = (__schemeFix || __fontFix)
     // ANCHOR PASS. Each section component already resolves its in-page hrefs
     // against the ids this design CAN render (onPage), but a section that is
     // switched off, or has nothing to show, is not in the document — so a nav
-    // entry or a button aimed at it would scroll nowhere. Runs before Leaflet
-    // loads, so it lands before the first paint in practice. Wayfinding lists
-    // (marked data-anchor-list) DROP a dead entry; any other in-page action is
-    // re-aimed at the closing band, then the shop section, then the page top —
-    // never at the section the action itself sits in.
+    // entry or a button aimed at it would scroll nowhere.
+    //
+    // THE href ATTRIBUTE IS NEVER REWRITTEN. It is the owner's stored value:
+    // the editor's link popover reads it straight off the element and saves it
+    // back on every edit, so a rewritten href would silently become content
+    // ('#services' stored as '#book' after one relabel).
+    //  1. Wayfinding — a list marked data-anchor-list, or a secondary action
+    //     marked data-anchor-drop ("See services" with no services on the page)
+    //     — HIDES a dead entry: its label names a place that is not there.
+    //  2. Every other dead in-page action keeps its href and is resolved when
+    //     it is CLICKED: to the closing band, then the shop section, then the
+    //     page top — never the section the action itself sits in. Inside the
+    //     editor the bridge's capture-phase handler claims every hooked link
+    //     first (preventDefault + stopPropagation), so this never runs there.
+    // '#top' always resolves: HTML scrolls it to the top of the page.
     (function () {
-      var live = function (id) { return !!id && !!document.getElementById(id); };
+      var idOf = function (a) {
+        var h = a.getAttribute('href') || '';
+        if (h.charAt(0) !== '#' || h.length < 2) return '';
+        try { return decodeURIComponent(h.slice(1)); } catch (e) { return h.slice(1); }
+      };
+      var live = function (id) { return !id || id.toLowerCase() === 'top' || !!document.getElementById(id); };
       document.querySelectorAll('a[href^="#"]').forEach(function (a) {
-        var id = (a.getAttribute('href') || '').slice(1);
-        if (!id || live(id)) return;
+        if (live(idOf(a))) return;
         if (a.closest('[data-anchor-list]')) { a.hidden = true; return; }
-        var own = a.closest('section[id]');
-        var to = ['book', 'visit', 'main'].filter(function (t) { return live(t) && !(own && own.id === t); })[0];
-        if (to) a.setAttribute('href', '#' + to);
+        if (a.hasAttribute('data-anchor-drop')) {
+          a.hidden = true;
+          // An action row left with nothing visible goes with it.
+          var row = a.parentElement;
+          if (row && !row.querySelector('a:not([hidden])')) row.setAttribute('data-empty', '');
+        }
       });
       // A wayfinding list with every entry dropped leaves nothing to show…
       document.querySelectorAll('[data-anchor-list]').forEach(function (list) {
@@ -400,6 +438,25 @@ const __schemeFixCss = (__schemeFix || __fontFix)
       Array.prototype.slice.call(document.querySelectorAll('[data-collapse]')).reverse().forEach(function (box) {
         var kids = Array.prototype.slice.call(box.children);
         if (kids.every(function (k) { return k.hasAttribute('data-empty'); })) box.setAttribute('data-empty', '');
+      });
+      document.addEventListener('click', function (e) {
+        if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        var a = e.target && e.target.closest ? e.target.closest('a[href^="#"]') : null;
+        if (!a || live(idOf(a))) return;
+        var own = a.closest('section[id]');
+        var to = ['book', 'visit', 'main'].filter(function (t) {
+          return !!document.getElementById(t) && !(own && own.id === t);
+        })[0];
+        if (!to) return;
+        e.preventDefault();
+        // A real fragment navigation (scroll-padding, smooth scroll and the
+        // focus starting point all follow it); the same hash twice would not
+        // scroll again, so that case scrolls directly. Through a local name:
+        // scripts/gen-template-fields.mjs reads any location-dot-word token in
+        // a template as the location section's editable hook.
+        var here = window.location;
+        if (here.hash === '#' + to) document.getElementById(to).scrollIntoView();
+        else here.hash = to;
       });
     })();
   </script>
@@ -420,14 +477,27 @@ const __schemeFixCss = (__schemeFix || __fontFix)
         // to this form at publish time. The design's grey is LocationBW's filter.
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { subdomains: 'abcd', maxZoom: 19, attribution: '&copy; OpenStreetMap &copy; CARTO' }).addTo(map);
         // The design's pin: an 18px orange square under a 2px ink keyline.
-        // Colours are READ from the live tokens, so an explicit admin colour
-        // pick recolours the pin too (the engine sets them on this element).
+        // The fill is READ from the live --accent, so an explicit admin colour
+        // pick recolours it. The keyline is the FIXED --shop ink, never the
+        // scheme's --ink: the CARTO tiles stay light grey under every scheme,
+        // and "dark"/"black" remap --ink (and "black" --accent) to white. A
+        // fill too light to stand on those tiles (luminance > .5) takes the
+        // keyline's ink instead, so the pin can never vanish.
         var cs = window.getComputedStyle(document.documentElement);
+        var shop = (cs.getPropertyValue('--shop') || '').trim() || '#141414';
         var accent = (cs.getPropertyValue('--accent') || '').trim() || '#D9481A';
-        var ink = (cs.getPropertyValue('--ink') || '').trim() || '#141414';
+        var lum = function (c) {
+          var m = /^#([0-9a-f]{6})$/i.exec(c); if (!m) return 0;
+          var v = parseInt(m[1], 16), w = [0.2126, 0.7152, 0.0722], t = 0;
+          [v >> 16 & 255, v >> 8 & 255, v & 255].forEach(function (x, k) {
+            x /= 255; t += w[k] * (x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4));
+          });
+          return t;
+        };
+        var fill = lum(accent) > 0.5 ? shop : accent;
         var icon = L.divIcon({
           className: '',
-          html: '<div style="width:18px;height:18px;background:' + accent + ';border:2px solid ' + ink + ';"></div>',
+          html: '<div style="width:18px;height:18px;background:' + fill + ';border:2px solid ' + shop + ';"></div>',
           iconSize: [18, 18], iconAnchor: [9, 9]
         });
         // No popup and no tooltip — the design draws neither. The map frame's

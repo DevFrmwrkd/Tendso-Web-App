@@ -36,6 +36,12 @@
  * margin, moved here so the hero keeps its breathing room when the marquee is
  * switched off).
  *
+ * THE SECOND ACTION IS WAYFINDING ("See services" on every derived site), so it
+ * carries data-anchor-drop: when its section is not on the page, PageBW's
+ * anchor pass hides it rather than sending that label somewhere else. Its href
+ * is never rewritten (the editor's link popover reads it back as the owner's
+ * value). The primary action keeps its href and is resolved on click.
+ *
  * Nothing is supplied by this file: no headline, no figure in the meta line,
  * no caption. Every element is guarded from OUTSIDE its tag.
  *
@@ -115,7 +121,7 @@ const hasSection = Boolean(kicker || meta1 || hasHeadline || sub || image);
           {hasActs && (
             <div class="top-acts">
               {cta1Text && <a class="btn btn--fill" href={cta1Href} data-field="hero.cta1.text" data-href-field="hero.cta1.href">{cta1Text}</a>}
-              {cta2Text && <a class="btn btn--line" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href">{cta2Text}</a>}
+              {cta2Text && <a class="btn btn--line" href={cta2Href} data-field="hero.cta2.text" data-href-field="hero.cta2.href" data-anchor-drop>{cta2Text}</a>}
             </div>
           )}
         </div>
@@ -177,6 +183,8 @@ const hasSection = Boolean(kicker || meta1 || hasHeadline || sub || image);
     text-wrap: pretty; overflow-wrap: anywhere;
   }
   .top-acts { flex: 0 1 auto; display: flex; flex-wrap: wrap; gap: 10px; min-width: 0; max-width: 100%; }
+  /* PageBW's anchor pass hid every action in the row (see the doc comment). */
+  .top-acts[data-empty] { display: none; }
 
   .shot { position: relative; }
   .shot-frame {

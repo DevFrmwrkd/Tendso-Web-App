@@ -37,6 +37,10 @@
  * submission photo (the intake form's uploads), as HeroBS / HeroBJ do; the
  * hook is always hero.image.
  *
+ * THE CARD overlaps the photo's lower-left corner as drawn, but in flow (one
+ * shared grid cell, see the style block), so a tall owner card grows the
+ * column downward instead of rising over the copy beside it.
+ *
  * NO PHOTO, NO FRAME. Without any photo the plate is not drawn: with spec
  * rows the card sits in the right-hand column as a plain card; with neither,
  * the copy column takes the row alone (a typographic hero, headline capped
@@ -188,29 +192,45 @@ const show = hasHeadline || Boolean(kicker || sub || image || hasCard || meta1 |
      proportion, centred, instead of a 1184px-wide print. */
   .no-copy .top-media { flex: 0 1 620px; margin-inline: auto; }
 
-  .top-media { flex: 1.1 1 400px; min-width: 0; position: relative; padding-bottom: 40px; }
-  /* Only the overlapping card needs the 40px of air under the photo. */
-  .top-media.no-card { padding-bottom: 0; }
+  /* THE OVERLAP, IN FLOW. The design stacks the card absolutely on the
+     column's bottom edge (bottom:0 inside a 40px bottom padding), so the card
+     never grows the column: a tall owner card (long spec rows) rose out of
+     the photo and over the meta line beside it at 360px. Here the photo and
+     the card share ONE grid cell: the photo sits at the top with the design's
+     40px under it, the card is aligned to the cell's bottom. With the
+     design's card that is the design's geometry exactly (card bottom 40px
+     below the photo's). A taller card grows the cell DOWNWARD instead, and
+     its top margin — min(30% of the column, 120px), well under the design's
+     own overlap at every width — always leaves that much photo showing. */
+  /* minmax(0, 1fr): the column is the media box's width, never the card's
+     340px (an auto column would take it as a minimum and overflow 360px). */
+  .top-media { flex: 1.1 1 400px; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+  .top-media > * { grid-area: 1 / 1; min-width: 0; }
   .top-photo {
     position: relative; aspect-ratio: 5 / 4; border-radius: 10px; overflow: hidden;
     background-color: var(--paper-2);
+    align-self: start; margin-bottom: 40px;
   }
+  /* Only the overlapping card needs the 40px of air under the photo. */
+  .no-card .top-photo { margin-bottom: 0; }
   /* Out of flow, so the owner photo's own proportions can never override the
      frame's ratio (a column-flex item takes its content height as a minimum). */
   .top-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
   /* The walnut spec card: part of the fixed wood world, so its linen text and
-     tan eyebrow stay legible whatever colour scheme is picked. */
+     tan eyebrow stay legible whatever colour scheme is picked. Positioned
+     (relative) so it paints above the positioned photo, as the design's
+     absolute card does. */
   .spec {
-    position: absolute; left: clamp(12px, 3vw, 32px); bottom: 0;
+    position: relative; align-self: end; justify-self: start;
     width: 340px; max-width: calc(100% - 24px);
+    margin: min(30%, 120px) 0 0 clamp(12px, 3vw, 32px);
     padding: 20px 22px; border-radius: 8px;
     background-color: var(--wood); color: var(--on-wood);
     box-shadow: 0 20px 40px rgba(var(--shadow-rgb), .2);
   }
   /* No photo to overlap: the card stands in the column as a plain card. */
-  .no-photo { padding-bottom: 0; }
-  .no-photo .spec { position: static; margin-left: clamp(12px, 3vw, 32px); }
+  .no-photo .spec { margin-top: 0; }
   .spec-k {
     font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
     color: var(--tan); overflow-wrap: anywhere;
