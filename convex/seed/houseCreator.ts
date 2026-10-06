@@ -1,5 +1,4 @@
 import { internalMutation } from '../_generated/server';
-import { BASE_PRICE } from '../../lib/pricing';
 
 /**
  * The house `creators` row — Tendso's own attribution for owner-originated
@@ -65,16 +64,6 @@ export const seedHouseCreator = internalMutation({
             totalWithdrawn: 0,
             submissionCount: 0,
             referralCode: '',
-            priceCeiling: BASE_PRICE,
-            // LOAD-BEARING. admin.approveSubmission (convex/admin.ts:173) runs
-            // `if (creator && !creator.priceUnlockedAt)` in front of an UNBOUNDED
-            // .collect() over by_creator_id. Every owner submission ever created
-            // shares this creatorId, so leaving this unset would make every admin
-            // approval re-scan the entire owner backlog — invisible at 10 rows, a
-            // hard read-limit failure on the admin's own approve click at a few
-            // thousand. Pre-unlocking it is also honest: the ceiling never moves
-            // because Tendso is not a creator earning its way up the price band.
-            priceUnlockedAt: now,
             createdAt: now,
             updatedAt: now,
         });

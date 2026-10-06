@@ -138,7 +138,7 @@ type Group = { label?: string; count?: number; items: { opt: Opt; index: number 
 
 const TRY: Record<"public" | "creator", string[]> = {
     public: ["How much does a website cost?", "How fast can my website go live?"],
-    creator: ["How do Wise payouts work?", "How do I raise my price ceiling?"],
+    creator: ["How do Wise payouts work?", "How do I set my price?"],
 };
 
 /** The FAQs, each pointing at its article (or at the FAQ fold when the article is not published). */

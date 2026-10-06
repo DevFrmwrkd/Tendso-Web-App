@@ -1,14 +1,13 @@
 import {
     BASE_PRICE,
     PRICE_CEILING,
-    UNLOCK_THRESHOLD,
     COMMISSION_RATE,
     CUSTOM_DOMAIN_ADDON,
     STANDARD_PRICE,
     CUSTOM_DOMAIN_PRICE,
-    priceCeilingFor,
-    isPriceUnlocked,
+    WEBSITE_PRICE,
     clampSellPrice,
+    creatorDiscount,
     commissionFor,
     ownerTotal,
     domainAddOnFor,
@@ -19,7 +18,6 @@ describe('lib/pricing — constants', () => {
     it('matches the confirmed pricing strategy (2026-06-15 call)', () => {
         expect(BASE_PRICE).toBe(999);
         expect(PRICE_CEILING).toBe(4999);
-        expect(UNLOCK_THRESHOLD).toBe(5);
         expect(COMMISSION_RATE).toBe(0.5);
         expect(CUSTOM_DOMAIN_ADDON).toBe(500);
         expect(STANDARD_PRICE).toBe(999);
@@ -27,41 +25,50 @@ describe('lib/pricing — constants', () => {
     });
 });
 
-describe('priceCeilingFor / isPriceUnlocked', () => {
-    it('caps at the base price below the unlock threshold', () => {
-        expect(priceCeilingFor(0)).toBe(BASE_PRICE);
-        expect(priceCeilingFor(4)).toBe(BASE_PRICE);
-        expect(isPriceUnlocked(0)).toBe(false);
-        expect(isPriceUnlocked(4)).toBe(false);
+describe('clampSellPrice', () => {
+    it('keeps an in-band price', () => {
+        expect(clampSellPrice(2500)).toBe(2500);
     });
-    it('unlocks the full ceiling at and above the threshold', () => {
-        expect(priceCeilingFor(5)).toBe(PRICE_CEILING);
-        expect(priceCeilingFor(12)).toBe(PRICE_CEILING);
-        expect(isPriceUnlocked(5)).toBe(true);
-        expect(isPriceUnlocked(12)).toBe(true);
+    it('allows both ends of the band, with nothing to unlock first', () => {
+        expect(clampSellPrice(BASE_PRICE)).toBe(BASE_PRICE);
+        expect(clampSellPrice(PRICE_CEILING)).toBe(PRICE_CEILING);
+    });
+    it('clamps below the base up to the base', () => {
+        expect(clampSellPrice(500)).toBe(BASE_PRICE);
+    });
+    it('clamps above the ceiling down to the ceiling', () => {
+        expect(clampSellPrice(9999)).toBe(PRICE_CEILING);
+    });
+    it('rounds fractional input', () => {
+        expect(clampSellPrice(2500.6)).toBe(2501);
+    });
+    it('falls back to the base on non-finite input', () => {
+        expect(clampSellPrice(NaN)).toBe(BASE_PRICE);
+        expect(clampSellPrice(Infinity)).toBe(BASE_PRICE);
     });
 });
 
-describe('clampSellPrice', () => {
-    it('keeps an in-band price for an unlocked creator', () => {
-        expect(clampSellPrice(2500, 7)).toBe(2500);
+describe('creatorDiscount', () => {
+    it('is the list price struck against the creator price', () => {
+        expect(creatorDiscount(3999, WEBSITE_PRICE)).toEqual({ listPrice: 4999, price: 3999, percentOff: 20 });
     });
-    it('clamps below the base up to the base', () => {
-        expect(clampSellPrice(500, 7)).toBe(BASE_PRICE);
+    it('rounds the percentage on the ₱100 slider steps', () => {
+        expect(creatorDiscount(999, WEBSITE_PRICE)?.percentOff).toBe(80);   // 80.016
+        expect(creatorDiscount(2499, WEBSITE_PRICE)?.percentOff).toBe(50);  // 50.01
+        expect(creatorDiscount(4899, WEBSITE_PRICE)?.percentOff).toBe(2);   // 2.0004
     });
-    it('clamps above the ceiling down to the unlocked ceiling', () => {
-        expect(clampSellPrice(9999, 7)).toBe(PRICE_CEILING);
+    it('strikes nothing at the full list price', () => {
+        expect(creatorDiscount(WEBSITE_PRICE, WEBSITE_PRICE)).toBeNull();
     });
-    it('locks a not-yet-unlocked creator to the base, even if they ask for more', () => {
-        expect(clampSellPrice(4999, 0)).toBe(BASE_PRICE);
-        expect(clampSellPrice(4999, 4)).toBe(BASE_PRICE);
+    it('strikes nothing without a frozen list price (self-serve, or priced before the change)', () => {
+        expect(creatorDiscount(999, undefined)).toBeNull();
+        expect(creatorDiscount(999, null)).toBeNull();
+        expect(creatorDiscount(999, 0)).toBeNull();
     });
-    it('rounds fractional input', () => {
-        expect(clampSellPrice(2500.6, 7)).toBe(2501);
-    });
-    it('falls back to the base on non-finite input', () => {
-        expect(clampSellPrice(NaN, 7)).toBe(BASE_PRICE);
-        expect(clampSellPrice(Infinity, 7)).toBe(BASE_PRICE);
+    it('strikes nothing when the price is above the list price or not a price', () => {
+        expect(creatorDiscount(5499, WEBSITE_PRICE)).toBeNull();
+        expect(creatorDiscount(0, WEBSITE_PRICE)).toBeNull();
+        expect(creatorDiscount(NaN, WEBSITE_PRICE)).toBeNull();
     });
 });
 
@@ -131,22 +138,20 @@ describe('formatPHP', () => {
 });
 
 describe('end-to-end pricing scenarios', () => {
-    it('intro creator (3 approved): locked to base, earns ₱500', () => {
-        const approved = 3;
-        const sell = clampSellPrice(4999, approved); // tries for max, gets base
+    it('a creator at the base price earns ₱500', () => {
+        const sell = clampSellPrice(999);
         expect(sell).toBe(999);
         expect(commissionFor(sell)).toBe(500);
         expect(ownerTotal(sell, 'standard')).toBe(999);
     });
-    it('unlocked creator (7 approved) sells at ₱2,500 + real ₱720 domain', () => {
-        const approved = 7;
-        const sell = clampSellPrice(2500, approved);
+    it('a creator sells at ₱2,500 + real ₱720 domain', () => {
+        const sell = clampSellPrice(2500);
         expect(sell).toBe(2500);
         expect(commissionFor(sell)).toBe(1250); // creator earns 50% of sell only
         expect(ownerTotal(sell, 'with_custom_domain', 720)).toBe(3220); // 2500 + real 720
     });
-    it('unlocked creator at full ceiling earns ₱2,500', () => {
-        const sell = clampSellPrice(4999, 10);
+    it('a creator on their first site can sell at the full ₱4,999 and earn ₱2,500', () => {
+        const sell = clampSellPrice(4999);
         expect(sell).toBe(4999);
         expect(commissionFor(sell)).toBe(2500);
     });

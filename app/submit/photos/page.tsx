@@ -21,7 +21,6 @@ import {
     fileSize,
     infoErrors,
     infoFromDoc,
-    isPriceLocked,
     needRows,
     savedInterviewKind,
 } from "../_components/flow"
@@ -311,8 +310,6 @@ export default function UploadPhotosPage() {
         photoCount: totalCount,
         interview: savedInterviewKind(submission),
         ownerName: submission.ownerName,
-        priceLocked: isPriceLocked(creator?.priceCeiling),
-        ownerAmount: submission.amount,
     })
 
     let barMessage: ReactNode = `Step 2 of 4 · ${files.length > 0 ? "Not saved yet" : "Draft saved"}`

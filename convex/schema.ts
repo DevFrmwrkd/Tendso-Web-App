@@ -49,10 +49,10 @@ export default defineSchema({
         totalEarnings: v.optional(v.number()),
         totalWithdrawn: v.optional(v.number()),
         submissionCount: v.optional(v.number()),
-        // Creator-set pricing band (see lib/pricing.ts). priceCeiling is the max
-        // sell price this creator may charge; it starts at BASE_PRICE and unlocks
-        // to PRICE_CEILING after UNLOCK_THRESHOLD approved submissions.
-        // priceUnlockedAt + tierChangedBy are for audit / admin override.
+        // Retired 2026-10-06: a per-creator price band that unlocked to
+        // PRICE_CEILING after 5 approved submissions. Every creator now prices
+        // from BASE_PRICE to PRICE_CEILING (lib/pricing.ts) and nothing reads
+        // these. Kept because existing rows carry them.
         priceCeiling: v.optional(v.number()),
         priceUnlockedAt: v.optional(v.number()),
         tierChangedBy: v.optional(v.string()),
@@ -142,6 +142,11 @@ export default defineSchema({
         // what somebody was quoted. See convex/ownerIntake.ts.
         campaign: v.optional(v.string()),
         source: v.optional(v.string()),
+        // The website's list price when the creator set their price, frozen by
+        // submissions.setDomainTier. The owner's bill strikes it through beside
+        // the creator's price (lib/pricing creatorDiscount). Absent on self-serve
+        // orders and on sales priced before 2026-10-06, which show no strike.
+        websiteListPrice: v.optional(v.number()),
         paymentReference: v.optional(v.string()),
         paidAt: v.optional(v.number()), // Timestamp
         sentEmailAt: v.optional(v.number()), // Timestamp when payment email was sent to client

@@ -27,10 +27,9 @@ import {
 } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { PRICE_CEILING } from "@/lib/pricing";
 
 import { ROLES, ROLE_DESC, ROLE_LABEL, avatarName, fullName, payoutLines, roleLabel, roleOf, shortDate, type Role } from "../_lib/creators";
-import { EmailValue, Facts, Line, PhoneValue, ReferrerValue, Section } from "./Bits";
+import { EmailValue, Facts, PhoneValue, ReferrerValue, Section } from "./Bits";
 import { DrawerHead } from "./DrawerFrame";
 
 /**
@@ -41,8 +40,9 @@ import { DrawerHead } from "./DrawerFrame";
  *   figures      submissions, earned, balance
  *   details      email, phone, referral code, who referred them, joined
  *   role         creators.updateRole (never your own role)
- *   pricing      the price ceiling they can charge, and in a fold what they
- *                charged each owner (getCreatorPricingSummary)
+ *   pricing      in a fold, what they charged each owner (getCreatorPricingSummary).
+ *                Every creator has the same price band (lib/pricing.ts), so
+ *                there is no per-creator ceiling to show.
  *   payout       where their money goes
  *   history      their submissions, each opening the Review screen
  *   More         Suspend / Reactivate (creators.updateStatus) and Delete
@@ -50,10 +50,6 @@ import { DrawerHead } from "./DrawerFrame";
  *
  * Admins cannot be suspended or deleted, as before: the delete route refuses
  * admin accounts, and Suspend was disabled for them on the old page.
- *
- * Not built, because no Convex function does it: the board's "Change" button
- * on the price ceiling (an admin override of priceCeiling). The ceiling shows
- * read-only, from submissions.getPricingContext.
  */
 export function PersonBody({
     creator,
@@ -77,7 +73,6 @@ export function PersonBody({
     onDelete: (submissions: number) => void;
 }) {
     const submissions = useQuery(api.submissions.getByCreatorId, { creatorId: creator._id });
-    const pricing = useQuery(api.submissions.getPricingContext, { creatorId: creator._id });
     const summary = useQuery(api.submissions.getCreatorPricingSummary, { creatorId: creator._id });
 
     const name = fullName(creator);
@@ -172,23 +167,6 @@ export function PersonBody({
                     <RolePicker labelledBy={roleHeadingId} value={role} disabled={isSelf} onPick={onPickRole} />
                     {isSelf && <p className="t-help">You cannot change your own role. Ask another admin.</p>}
                     {!isSelf && isAdmin && <p className="t-help">Admins can’t be suspended or deleted. Change their role to Creator first.</p>}
-                </Section>
-
-                <Section title="Pricing">
-                    {pricing === undefined ? (
-                        <Skeleton height={64} className="rounded-r1-card" />
-                    ) : (
-                        <Line
-                            title={`Can charge owners up to ${formatMoney(Number(pricing.priceCeiling))}`}
-                            meta={
-                                pricing.unlocked
-                                    ? creator.priceUnlockedAt
-                                        ? `Unlocked ${shortDate(creator.priceUnlockedAt, now)}`
-                                        : "Unlocked"
-                                    : `Rises to ${formatMoney(PRICE_CEILING)} after ${pricing.threshold} approved sites · ${Math.min(pricing.approvedCount, pricing.threshold)} of ${pricing.threshold} so far`
-                            }
-                        />
-                    )}
                 </Section>
 
                 <Section title="Payout method">

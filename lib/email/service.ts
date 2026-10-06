@@ -225,6 +225,7 @@ interface PaymentLinkEmailData {
     platformEmail?: string;
     customDomain?: string; // If set, template shows a website + domain breakdown
     domainCostPHP?: number; // Real frozen domain price (submissions.domainCostPHP) for the breakdown split
+    websiteListPrice?: number; // submissions.websiteListPrice → a creator's discount struck through
     editMyWebsiteUrl?: string; // Owner-portal claim link → "Edit my website" button
 }
 
@@ -239,6 +240,7 @@ export async function sendPaymentLinkEmail(data: PaymentLinkEmailData) {
             platformEmail: data.platformEmail,
             customDomain: data.customDomain,
             domainCostPHP: data.domainCostPHP,
+            websiteListPrice: data.websiteListPrice,
             editMyWebsiteUrl: data.editMyWebsiteUrl,
         });
         return await sendEmail({
@@ -262,6 +264,10 @@ interface PaymentFollowUpEmailData {
     hoursLeft?: number;
     /** true = admin manually triggered; false = automated 24h-before-unpublish cron */
     isManual?: boolean;
+    // Only to strike a creator's discount through (see PaymentLinkEmailData).
+    customDomain?: string;
+    domainCostPHP?: number;
+    websiteListPrice?: number;
 }
 
 export async function sendPaymentFollowUpEmail(data: PaymentFollowUpEmailData) {
@@ -274,6 +280,9 @@ export async function sendPaymentFollowUpEmail(data: PaymentFollowUpEmailData) {
             referenceCode: data.referenceCode,
             hoursLeft: data.hoursLeft,
             isManual: data.isManual,
+            customDomain: data.customDomain,
+            domainCostPHP: data.domainCostPHP,
+            websiteListPrice: data.websiteListPrice,
         });
         const subject = data.isManual
             ? `Following up on your website — ${data.businessName}`

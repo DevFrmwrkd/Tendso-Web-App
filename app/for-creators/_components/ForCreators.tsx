@@ -179,9 +179,8 @@ function Hero() {
  * canvas: no ₱500, no ₱2,500, no ₱1,000 referral figure, no earnings
  * calculator.)
  *
- * COPY ONLY. lib/pricing still starts a creator at BASE_PRICE and unlocks
- * PRICE_CEILING after UNLOCK_THRESHOLD approved sites; this page no longer
- * describes that rule, and changing the rule is a separate piece of work.
+ * The rule matches since 2026-10-06: every creator may price from BASE_PRICE
+ * to PRICE_CEILING from their first site (lib/pricing.ts).
  */
 function Earn() {
     const { t } = useT();

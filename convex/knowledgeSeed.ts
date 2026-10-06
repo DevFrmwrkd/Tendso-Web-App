@@ -458,19 +458,19 @@ const WIKI_ARTICLES: SeedArticle[] = [
     {
         slug: 'your-price-band',
         title: 'Your price band: ₱999 to ₱4,999',
-        summary: 'Everyone starts at ₱999. After five approved submissions your ceiling unlocks to ₱4,999 — and your commission scales with it.',
+        summary: 'Set any price from ₱999 to ₱4,999 on every website, starting with your first. Your commission is half of it.',
         categorySlug: 'payouts-earnings',
         workspace: 'wiki',
         author: 'Creator Success',
         readMin: 4,
         keywords: ['price', 'band', 'ceiling', 'unlock', '4999', 'commission', 'set price', 'tier'],
         body: [
-            p('You set your own sell price within a band. As you prove yourself, the top of that band rises.'),
+            p('You set your own sell price for every website, anywhere in a band from ₱999 to ₱4,999.'),
             h('How the band works'),
             ul(
-                'Every creator starts with a ceiling of ₱999.',
-                'After five approved submissions, your ceiling unlocks to ₱4,999.',
-                'You can charge anywhere from ₱999 up to your current ceiling.',
+                'The lowest price you can charge is ₱999, and the highest is ₱4,999.',
+                'The whole band is yours from your first submission. There is nothing to unlock.',
+                'On the last step of each submission your price starts at ₱4,999, the full list price. Lower it to give the owner a discount: their bill shows ₱4,999 struck through, then your price and the percentage off.',
             ),
             h('Why it matters for earnings'),
             p('Because commission is 50% of the sell price, a higher price means a higher payout: ₱999 pays you ₱500, while ₱4,999 pays you ₱2,500 on a single website.'),
@@ -563,7 +563,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
             h('How you earn'),
             ul(
                 'You keep 50% of every website a business owner pays for — ₱500 at the ₱999 base price.',
-                'As your price ceiling unlocks (see "Your price band"), the same 50% scales up to ₱2,500 per website.',
+                'Set a higher price (see "Your price band") and the same 50% scales up to ₱2,500 per website.',
                 'You earn a ₱1,000 referral bonus when someone you refer lands their first paid website.',
             ),
             h('What it is not'),
@@ -593,7 +593,7 @@ const WIKI_ARTICLES: SeedArticle[] = [
             ul(
                 'Approve-before-pay removes the owner\'s risk: they only pay once they see a finished site they like, which makes saying yes easy.',
                 'You choose who to approach — focus on active, owner-run businesses that clearly need a site.',
-                'There is no cost to you to run an interview, and your upside per sale grows from ₱500 to ₱2,500 as your price band unlocks.',
+                'There is no cost to you to run an interview, and your upside per sale runs from ₱500 to ₱2,500, depending on the price you set.',
             ),
             h('How to convert more interviews'),
             ol(
@@ -672,7 +672,8 @@ const FAQS: SeedFaq[] = [
     // Wiki
     { workspace: 'wiki', question: 'How much do I earn per website?', answer: 'You earn 50% of the sell price — ₱500 at the ₱999 base, up to ₱2,500 at the ₱4,999 ceiling.', linkArticleSlug: 'how-wise-payouts-work', order: 1 },
     { workspace: 'wiki', question: 'When does my payout arrive?', answer: 'After your submission is approved and the owner pays, your Wise payout is typically released within 48 hours.', linkArticleSlug: 'how-wise-payouts-work', order: 2 },
-    { workspace: 'wiki', question: 'How do I raise my price ceiling?', answer: 'Your ceiling unlocks from ₱999 to ₱4,999 after five approved submissions.', linkArticleSlug: 'your-price-band', order: 3 },
+    // The question is the upsert key: changing it would leave this row behind as a second FAQ.
+    { workspace: 'wiki', question: 'How do I raise my price ceiling?', answer: 'There is nothing to unlock. Every creator can charge anywhere from ₱999 to ₱4,999, starting with their first submission.', linkArticleSlug: 'your-price-band', order: 3 },
     { workspace: 'wiki', question: 'How long does a prospect claim last?', answer: 'A claim holds for a limited window and is auto-released after about 24 hours so the shared pool stays fresh.', linkArticleSlug: 'finding-and-claiming-prospects', order: 4 },
     { workspace: 'wiki', question: 'My upload failed — what do I do?', answer: 'Check your connection and free storage, then retry. If a transcript fails, re-upload or submit with a note for review.', linkArticleSlug: 'fixing-failed-uploads', order: 5 },
     { workspace: 'wiki', question: "If an owner doesn't pay, do I still get paid?", answer: "No — you earn 50% of each website an owner approves and pays for. Interviews that don't convert aren't separately reimbursed, and the approve-before-pay flow is designed to make paying easy.", linkArticleSlug: 'if-owner-doesnt-pay', order: 6 },
