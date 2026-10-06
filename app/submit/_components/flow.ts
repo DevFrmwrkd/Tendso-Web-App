@@ -62,6 +62,62 @@ export function clock(seconds: number): string {
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
 }
 
+/* ── Recording format ──────────────────────────────────────────────────── */
+
+/**
+ * Recording formats, best first. Chrome and Android record WebM (VP8 is the
+ * codec most phones encode in hardware); an iPhone records MP4 and may not
+ * play WebM back at all. Recording was fixed to WebM VP9, so on such a phone
+ * the creator could not watch what they had just recorded.
+ */
+const RECORDING_TYPES = {
+    video: ["video/webm;codecs=vp8,opus", "video/webm;codecs=vp9,opus", "video/webm", "video/mp4;codecs=avc1,mp4a.40.2", "video/mp4"],
+    audio: ["audio/webm;codecs=opus", "audio/webm", "audio/mp4;codecs=mp4a.40.2", "audio/mp4"],
+} as const
+
+/**
+ * The format to record in: the first this browser can both record and play
+ * back, else the first it can record, else undefined (the browser's own pick).
+ * `canPlay` is asked about the container ("video/webm").
+ */
+export function pickRecordingType(
+    kind: "video" | "audio",
+    canRecord: (type: string) => boolean,
+    canPlay: (container: string) => boolean,
+): string | undefined {
+    const types: readonly string[] = RECORDING_TYPES[kind]
+    return types.find((t) => canRecord(t) && canPlay(containerType(t))) ?? types.find((t) => canRecord(t))
+}
+
+/** "video/webm;codecs=vp8,opus" → "video/webm": the type a recording is filed under. */
+export function containerType(type: string): string {
+    return type.split(";")[0].trim().toLowerCase()
+}
+
+/** The name a recording uploads under; its R2 key takes the extension from it. */
+export function recordingFileName(type: string): string {
+    const container = containerType(type)
+    const ext = container === "video/mp4" ? "mp4" : container === "audio/mp4" ? "m4a" : container.endsWith("/ogg") ? "ogg" : "webm"
+    return `interview.${ext}`
+}
+
+/**
+ * A browser's WebM recording carries no duration, so its player shows no
+ * length and cannot seek. Seeking far past the end makes the browser work the
+ * length out, then it goes back to the start. Call it on loadedmetadata.
+ */
+export function showFullLength(media: HTMLMediaElement) {
+    if (media.duration !== Infinity) return
+    media.addEventListener(
+        "timeupdate",
+        () => {
+            media.currentTime = 0
+        },
+        { once: true },
+    )
+    media.currentTime = Number.MAX_SAFE_INTEGER
+}
+
 export function errorText(err: unknown, fallback: string): string {
     return err instanceof Error && err.message ? err.message : fallback
 }

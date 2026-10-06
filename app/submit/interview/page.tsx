@@ -17,12 +17,16 @@ import {
     MAX_AUDIO_BYTES,
     MAX_VIDEO_BYTES,
     clock,
+    containerType,
     errorText,
     fileSize,
     infoErrors,
     infoFromDoc,
     needRows,
+    pickRecordingType,
+    recordingFileName,
     savedInterviewKind,
+    showFullLength,
 } from "../_components/flow"
 import { ActionBar, DraftMissing, NeedsCard, StepLoading, SubmitFrame } from "../_components/SubmitFrame"
 import { useRequiredDraftId } from "../_components/useDraftId"
@@ -128,6 +132,11 @@ export default function InterviewUploadPage() {
     const [recordedChunks, setRecordedChunks] = useState<Blob[]>([])
     const [recordingTime, setRecordingTime] = useState(0)
     const [recordedPreviewUrl, setRecordedPreviewUrl] = useState<string | null>(null)
+    // The format the recorder actually wrote ("video/webm", "video/mp4"): the
+    // file is labelled and named by it, so a phone that records MP4 uploads MP4.
+    const [recordedType, setRecordedType] = useState<string | null>(null)
+    // This phone could not play its own recording back.
+    const [previewFailed, setPreviewFailed] = useState(false)
     const [showReminderModal, setShowReminderModal] = useState(false)
     const [hasSeenReminder, setHasSeenReminder] = useState(false)
     const [facingMode, setFacingMode] = useState<"user" | "environment">("user")
@@ -286,9 +295,20 @@ export default function InterviewUploadPage() {
         }
 
         try {
-            const options = kind === "video"
-                ? { mimeType: "video/webm;codecs=vp9" }
-                : { mimeType: "audio/webm" }
+            // A format this phone can play back too (see pickRecordingType).
+            const probe = document.createElement(kind === "video" ? "video" : "audio")
+            const mimeType = pickRecordingType(
+                kind,
+                (type) => MediaRecorder.isTypeSupported(type),
+                (container) => probe.canPlayType(container) !== "",
+            )
+            const options: MediaRecorderOptions = {
+                ...(mimeType ? { mimeType } : {}),
+                // About 8 MB a minute, against a phone's default of nearly 20:
+                // plenty for a face and a voice, and it uploads on mobile data.
+                ...(kind === "video" ? { videoBitsPerSecond: 1_000_000 } : {}),
+                audioBitsPerSecond: 64_000,
+            }
 
             const mediaRecorder = new MediaRecorder(s, options)
             mediaRecorderRef.current = mediaRecorder
@@ -301,15 +321,22 @@ export default function InterviewUploadPage() {
             }
 
             mediaRecorder.onstop = () => {
+                const type = containerType(mediaRecorder.mimeType || mimeType || `${kind}/webm`)
+                const blob = new Blob(chunks, { type })
+                if (blob.size === 0) {
+                    setError("Nothing was recorded. Try again.")
+                    setPhase("choose")
+                    return
+                }
                 setRecordedChunks(chunks)
-                // Create preview URL
-                const blob = new Blob(chunks, {
-                    type: kind === "video" ? "video/webm" : "audio/webm",
-                })
+                setRecordedType(type)
+                setPreviewFailed(false)
                 setRecordedPreviewUrl(URL.createObjectURL(blob))
             }
 
-            mediaRecorder.start()
+            // A piece every second: an MP4 recording then comes out in short
+            // fragments, which transcription can split (lib/services/media-chunker.ts).
+            mediaRecorder.start(1000)
             setError(null)
             setPhase("recording")
             setRecordingTime(0)
@@ -404,6 +431,8 @@ export default function InterviewUploadPage() {
         }
         setRecordedPreviewUrl(null)
         setRecordedChunks([])
+        setRecordedType(null)
+        setPreviewFailed(false)
         setRecordingTime(0)
         setCurrentQuestion(0)
         setError(null) // Clear any previous errors
@@ -449,10 +478,9 @@ export default function InterviewUploadPage() {
         if (!interviewType) return null
         if (phase === "file" && file) return { file, kind: interviewType }
         if (phase === "recorded" && recordedChunks.length > 0) {
-            const blob = new Blob(recordedChunks, {
-                type: interviewType === "video" ? "video/webm" : "audio/webm",
-            })
-            return { file: new File([blob], `interview.webm`, { type: blob.type }), kind: interviewType }
+            const type = recordedType ?? `${interviewType}/webm`
+            const blob = new Blob(recordedChunks, { type })
+            return { file: new File([blob], recordingFileName(type), { type }), kind: interviewType }
         }
         return null
     }
@@ -533,6 +561,7 @@ export default function InterviewUploadPage() {
             if (recordedPreviewUrl) URL.revokeObjectURL(recordedPreviewUrl)
             setRecordedPreviewUrl(null)
             setRecordedChunks([])
+            setRecordedType(null)
             setFile(null)
             setReplacing(false)
             setPhase("choose")
@@ -798,11 +827,27 @@ export default function InterviewUploadPage() {
                     }
                 >
                     {recordedPreviewUrl ? (
-                        interviewType === "video" ? (
-                            <video src={recordedPreviewUrl} controls playsInline className="max-h-[60vh] w-full rounded-[10px] bg-r1-ink" />
-                        ) : (
-                            <audio src={recordedPreviewUrl} controls className="w-full" />
-                        )
+                        <>
+                            {interviewType === "video" ? (
+                                <video
+                                    src={recordedPreviewUrl}
+                                    controls
+                                    playsInline
+                                    onLoadedMetadata={(e) => showFullLength(e.currentTarget)}
+                                    onError={() => setPreviewFailed(true)}
+                                    className="max-h-[60vh] w-full rounded-[10px] bg-r1-ink"
+                                />
+                            ) : (
+                                <audio
+                                    src={recordedPreviewUrl}
+                                    controls
+                                    onLoadedMetadata={(e) => showFullLength(e.currentTarget)}
+                                    onError={() => setPreviewFailed(true)}
+                                    className="w-full"
+                                />
+                            )}
+                            {previewFailed && <p className="t-meta">This phone can’t play the recording back here. It still uploads when you continue.</p>}
+                        </>
                     ) : (
                         <p className="t-meta">Preparing the recording…</p>
                     )}

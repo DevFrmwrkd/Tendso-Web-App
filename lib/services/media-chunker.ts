@@ -6,6 +6,11 @@
  * - WebM (Opus/VP9): Split at EBML Cluster boundaries
  * - MP3: Split at frame sync word boundaries
  * - WAV: Split PCM data with header duplication
+ * - MP4: the audio track pulled out by its sample tables; a fragmented MP4
+ *   (what a browser's MediaRecorder writes) split between its fragments
+ *
+ * The one copy: convex/lib/mediaChunker.ts re-exports it, so the Convex action
+ * and the Next.js route transcribe the same way.
  */
 
 const DEFAULT_MAX_CHUNK_SIZE = 22 * 1024 * 1024 // 22MB (3MB headroom under 25MB limit, accounting for multipart headers + form boundaries)
@@ -124,12 +129,12 @@ function chunkWebM(data: Uint8Array, maxChunkSize: number): Uint8Array[] {
             chunkEnd++
         }
 
-        // Build chunk: header + cluster data
+        // Build chunk: header + cluster data (a view: the chunk below is the one copy)
         const dataStart = clusterOffsets[chunkStart]
         const dataEnd = chunkEnd < clusterOffsets.length
             ? clusterOffsets[chunkEnd]
             : data.length
-        const clusterData = data.slice(dataStart, dataEnd)
+        const clusterData = data.subarray(dataStart, dataEnd)
 
         const chunk = new Uint8Array(header.length + clusterData.length)
         chunk.set(header, 0)
@@ -883,6 +888,9 @@ function buildMinimalAudioMP4(
  */
 function chunkMP4(data: Uint8Array, maxChunkSize: number): Uint8Array[] {
     const topAtoms = findTopLevelAtoms(data)
+    if (topAtoms.some(a => a.type === 'moof')) {
+        return chunkFragmentedMP4(data, topAtoms, maxChunkSize)
+    }
     const moovAtom = topAtoms.find(a => a.type === 'moov')
 
     if (!moovAtom) {
@@ -1045,6 +1053,78 @@ function chunkMP4(data: Uint8Array, maxChunkSize: number): Uint8Array[] {
     return adtsChunks
 }
 
+// ==================== FRAGMENTED MP4 CHUNKING ====================
+
+/**
+ * Split a fragmented MP4 between its fragments.
+ *
+ * A browser's MediaRecorder writes MP4 as an init segment (ftyp + moov) and
+ * then moof + mdat fragments; the moov's sample tables are empty, so chunkMP4
+ * cannot pull the audio out by them. Like WebM's clusters, though, every
+ * fragment plays after the init segment, so each chunk is the init segment and
+ * as many whole fragments as fit. A fragment runs from its moof to the next.
+ *
+ * Fragments must address their samples relative to their own moof (the
+ * default-base-is-moof flag MediaRecorder sets). One naming an absolute
+ * base_data_offset would point at the wrong bytes once moved, so that file is
+ * returned whole.
+ */
+function chunkFragmentedMP4(
+    data: Uint8Array,
+    topAtoms: Array<{ type: string; offset: number; size: number }>,
+    maxChunkSize: number
+): Uint8Array[] {
+    const fragmentStarts = topAtoms.filter(a => a.type === 'moof').map(a => a.offset)
+    if (fragmentStarts.length === 0 || hasAbsoluteBaseOffset(data, fragmentStarts[0])) {
+        return [data]
+    }
+
+    const init = data.subarray(0, fragmentStarts[0])
+    if (init.length >= maxChunkSize) {
+        return [data]
+    }
+
+    const maxDataPerChunk = maxChunkSize - init.length
+    const fragmentEnd = (i: number) => (i + 1 < fragmentStarts.length ? fragmentStarts[i + 1] : data.length)
+    const chunks: Uint8Array[] = []
+    let first = 0
+
+    while (first < fragmentStarts.length) {
+        // Whole fragments until the next would not fit; always at least one.
+        let next = first
+        let accumulatedSize = 0
+        while (next < fragmentStarts.length) {
+            const fragmentSize = fragmentEnd(next) - fragmentStarts[next]
+            if (accumulatedSize + fragmentSize > maxDataPerChunk && next > first) break
+            accumulatedSize += fragmentSize
+            next++
+        }
+
+        const fragments = data.subarray(fragmentStarts[first], fragmentEnd(next - 1))
+        const chunk = new Uint8Array(init.length + fragments.length)
+        chunk.set(init, 0)
+        chunk.set(fragments, init.length)
+        chunks.push(chunk)
+
+        first = next
+    }
+
+    console.log(`MP4: fragmented, ${fragmentStarts.length} fragments into ${chunks.length} chunks`)
+    return chunks
+}
+
+/** True when the first track fragment of the moof at `moofOffset` names an absolute base_data_offset. */
+function hasAbsoluteBaseOffset(data: Uint8Array, moofOffset: number): boolean {
+    const moofEnd = moofOffset + getAtomSize(data, moofOffset).size
+    const trafOffset = findAtom(data, moofOffset + 8, moofEnd, 'traf')
+    if (trafOffset === -1) return false
+    const trafEnd = trafOffset + getAtomSize(data, trafOffset).size
+    const tfhdOffset = findAtom(data, trafOffset + 8, trafEnd, 'tfhd')
+    if (tfhdOffset === -1) return false
+    // tfhd is a FullBox: version (1 byte), then flags (3 bytes). 0x000001 = base-data-offset-present.
+    return (data[tfhdOffset + 11] & 0x01) !== 0
+}
+
 // ==================== PUBLIC API ====================
 
 /**
@@ -1169,5 +1249,9 @@ export function chunkMediaFile(
     }
 
     console.log(`Split into ${chunks.length} chunks: ${chunks.map(c => `${(c.length / 1024 / 1024).toFixed(1)}MB`).join(', ')}`)
-    return chunks.map(c => c.buffer.slice(c.byteOffset, c.byteOffset + c.byteLength) as ArrayBuffer)
+    // Every chunk the splitters build owns its whole buffer: hand that over as
+    // it is. Copying each one again held the file a third time in memory.
+    return chunks.map(c => (c.byteOffset === 0 && c.byteLength === c.buffer.byteLength
+        ? c.buffer
+        : c.buffer.slice(c.byteOffset, c.byteOffset + c.byteLength)) as ArrayBuffer)
 }

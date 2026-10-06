@@ -77,6 +77,7 @@ import type * as seed_houseCreator from "../seed/houseCreator.js";
 import type * as settings from "../settings.js";
 import type * as storage from "../storage.js";
 import type * as submissions from "../submissions.js";
+import type * as transcription from "../transcription.js";
 import type * as unpublish from "../unpublish.js";
 import type * as websiteContent from "../websiteContent.js";
 import type * as withdrawals from "../withdrawals.js";
@@ -157,6 +158,7 @@ declare const fullApi: ApiFromModules<{
   settings: typeof settings;
   storage: typeof storage;
   submissions: typeof submissions;
+  transcription: typeof transcription;
   unpublish: typeof unpublish;
   websiteContent: typeof websiteContent;
   withdrawals: typeof withdrawals;

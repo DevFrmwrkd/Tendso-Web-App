@@ -73,7 +73,7 @@ export function Interview({ s }: { s: Submission }) {
                 ) : kind === "video" ? (
                     // preload="none": the fold is closed by default, and a phone
                     // should not fetch a 30-minute video nobody pressed play on.
-                    <video src={interviewUrl} controls preload="none" className="max-h-72 w-full rounded-r1 bg-r1-ink" />
+                    <video src={interviewUrl} controls playsInline preload="none" className="max-h-72 w-full rounded-r1 bg-r1-ink" />
                 ) : (
                     <audio src={interviewUrl} controls preload="none" className="w-full" />
                 )}
