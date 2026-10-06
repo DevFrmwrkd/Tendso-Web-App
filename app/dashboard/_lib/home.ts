@@ -51,13 +51,6 @@ function plural(n: number, word: string): string {
     return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
-const WORDS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"];
-
-/** A count at the start of a sentence: "Three more…". */
-export function countWord(n: number): string {
-    return WORDS[n] ?? String(n);
-}
-
 function nameOf(s: Submission): string {
     return s.businessName?.trim() || "your submission";
 }

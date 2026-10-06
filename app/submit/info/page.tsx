@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { Button, ButtonLink, Field, Icon, Input, PhoneInput, Select } from "@/components/r1"
+import { WEBSITE_PRICE, commissionFor } from "@/lib/pricing"
 import {
     BUSINESS_TYPES,
     mapCategoryToBusinessType,
@@ -21,7 +22,6 @@ import {
     DRAFT_ID_KEY,
     errorText,
     infoErrors,
-    isPriceLocked,
     needRows,
     phoneToField,
     phoneToStored,
@@ -240,6 +240,11 @@ function BusinessInfoForm() {
                 creatorId: creator._id,
                 ...fields,
                 status: "draft",
+                // A new sale starts at the full list price, no discount: the
+                // review step's slider opens here. Not the server's default,
+                // which stays ₱999 for the mobile app's older builds.
+                amount: WEBSITE_PRICE,
+                creatorPayout: commissionFor(WEBSITE_PRICE),
                 ...linkArg,
             })
             setSavedId(submissionId)
@@ -334,8 +339,6 @@ function BusinessInfoForm() {
         photoCount: (draftForRail?.photos ?? []).filter(Boolean).length,
         interview: savedInterviewKind(draftForRail),
         ownerName,
-        priceLocked: isPriceLocked(creator.priceCeiling),
-        ownerAmount: draftForRail?.amount,
     })
 
     const backed = !!(savedId ?? hydratedFrom)

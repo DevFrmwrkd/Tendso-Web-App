@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "convex/react";
-import type { FunctionReturnType } from "convex/server";
 import { ArrowRight, Plus } from "lucide-react";
 import Link from "next/link";
 import { useId, type ReactNode } from "react";
@@ -28,11 +27,9 @@ import {
 } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
-import { PRICE_CEILING } from "@/lib/pricing";
 
 import {
     activityItems,
-    countWord,
     owedOf,
     ownerShortName,
     payoutOf,
@@ -48,20 +45,17 @@ import {
 } from "../_lib/home";
 
 type Creator = Doc<"creators">;
-type PricingContext = FunctionReturnType<typeof api.submissions.getPricingContext>;
 
 /**
  * The creator's Home (board Main): "What should I do next?"
  *
  * The state of their sites in one line, the one next step (the screen's one
  * highlight and its one hero figure), a shop to visit and the referral code,
- * the price-unlock progress, and the recent activity. The caller has already
+ * and the recent activity. The caller has already
  * checked this is a certified creator; this only reads.
  */
 export function CreatorHome({ creator }: { creator: Creator }) {
     const submissions = useQuery(api.submissions.getByCreatorId, { creatorId: creator._id });
-    // Price-tier progress: approved-submission count + whether higher pricing is unlocked (see lib/pricing.ts).
-    const pricing = useQuery(api.submissions.getPricingContext, { creatorId: creator._id });
     // Team leads feed: the same listForMobileCRM query the /leads page uses, so
     // the shop suggested here is one /leads shows too. Admins never see Home
     // (they are sent to /admin), and never subscribed to it.
@@ -91,8 +85,6 @@ export function CreatorHome({ creator }: { creator: Creator }) {
                             referrals={referrals}
                         />
                     </section>
-
-                    {pricing && <PriceProgress pricing={pricing} />}
 
                     <RecentActivity items={withdrawals === undefined ? undefined : activityItems(submissions, withdrawals)} />
                 </>
@@ -385,29 +377,6 @@ function ReferralCard({ code, referrals }: { code: string; referrals: { pending:
                 <Icon icon={ArrowRight} />
             </ButtonLink>
         </Card>
-    );
-}
-
-/** Progress to the higher price band (lib/pricing.ts: the ceiling unlocks after UNLOCK_THRESHOLD approved sites). */
-function PriceProgress({ pricing }: { pricing: PricingContext }) {
-    if (pricing.unlocked) {
-        return <p className="t-meta">Pricing unlocked. You can set your own price up to {formatMoney(pricing.priceCeiling)}.</p>;
-    }
-    const done = Math.min(pricing.approvedCount, pricing.threshold);
-    const left = pricing.threshold - pricing.approvedCount;
-    const text =
-        left > 0
-            ? `${done} of ${pricing.threshold} approved sites. ${countWord(left)} more and you can set your own price up to ${formatMoney(PRICE_CEILING)}.`
-            : `${done} of ${pricing.threshold} approved sites. You can now set your own price up to ${formatMoney(PRICE_CEILING)}.`;
-    return (
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-            <span className="inline-flex flex-none gap-1" aria-hidden="true">
-                {Array.from({ length: pricing.threshold }, (_, i) => (
-                    <span key={i} className={cx("h-1 w-5 rounded-full", i < done ? "bg-r1-ink" : "bg-r1-line")} />
-                ))}
-            </span>
-            <p className="t-meta">{text}</p>
-        </div>
     );
 }
 

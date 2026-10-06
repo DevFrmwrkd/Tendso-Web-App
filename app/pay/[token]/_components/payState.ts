@@ -1,5 +1,5 @@
 import { SUPPORT_EMAIL } from "@/lib/contact";
-import { isComped } from "@/lib/pricing";
+import { creatorDiscount, domainAddOnFor, isComped, type CreatorDiscount } from "@/lib/pricing";
 
 /*
  * What the payment page shows, worked out from the token and its submission.
@@ -34,6 +34,31 @@ export function payView(
     if (token.status === "cancelled") return "notfound";
     if (token.status === "expired" || token.expiresAt < now) return "expired";
     return "pending";
+}
+
+export type PriceSplit = {
+    /** The custom domain riding on the transfer, or null. */
+    domain: string | null;
+    addOn: number;
+    /** The website half of the transfer. */
+    websiteLine: number;
+    /** The creator's discount on the website, when the sale carries a list price to strike. */
+    discount: CreatorDiscount | null;
+};
+
+/**
+ * The transfer split the way the payment email splits it (lib/email/templates.ts):
+ * a custom domain at its real price, else the flat add-on, and the website is
+ * the rest.
+ */
+export function priceSplit(
+    amount: number,
+    submission: { requestedDomain?: string | null; domainCostPHP?: number | null; websiteListPrice?: number | null } | null,
+): PriceSplit {
+    const domain = submission?.requestedDomain || null;
+    const addOn = domain ? domainAddOnFor("with_custom_domain", submission?.domainCostPHP) : 0;
+    const websiteLine = amount - addOn;
+    return { domain, addOn, websiteLine, discount: creatorDiscount(websiteLine, submission?.websiteListPrice) };
 }
 
 /** When the money arrived, if anything recorded it: the webhook's match, else submissions.markPaid. admin.markPaid records no date. */

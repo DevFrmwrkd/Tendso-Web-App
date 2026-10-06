@@ -9,9 +9,6 @@
  * under DRAFT_ID_KEY, exactly as before the redesign.
  */
 
-import { formatMoney } from "@/components/r1/money"
-import { BASE_PRICE, STANDARD_PRICE } from "@/lib/pricing"
-
 /** sessionStorage key the steps share. Unchanged: the mobile web view and old tabs read it too. */
 export const DRAFT_ID_KEY = "current_submission_id"
 
@@ -208,8 +205,6 @@ export function needRows({
     photoCount,
     interview,
     ownerName,
-    priceLocked,
-    ownerAmount,
 }: {
     step: 0 | 1 | 2
     businessErrors: Partial<Record<InfoField, string>>
@@ -217,10 +212,6 @@ export function needRows({
     /** Saved kind; "recording" while the recorder runs; "pending" for a recording or file not uploaded yet. */
     interview: "video" | "audio" | "recording" | "pending" | null
     ownerName: string
-    /** True while the creator's price is the base price (see lib/pricing priceCeilingFor). */
-    priceLocked: boolean
-    /** What the owner would pay as the draft stands: its saved amount, else the standard price. */
-    ownerAmount: number | null | undefined
 }): NeedRow[] {
     const state = (ok: boolean, own: number): NeedState => (ok ? "done" : step === own ? "now" : "todo")
     const businessOk = Object.keys(businessErrors).length === 0
@@ -228,7 +219,6 @@ export function needRows({
     const interviewOk = interview === "video" || interview === "audio"
     const first = firstNameOf(ownerName)
     const who = first || "the owner"
-    const amount = ownerAmount ?? STANDARD_PRICE
     return [
         { label: "Business details", meta: businessOk ? "All filled in" : missingLine(businessErrors), state: state(businessOk, 0) },
         {
@@ -256,16 +246,9 @@ export function needRows({
         },
         {
             label: first ? `${first}’s OK on the price` : "The owner’s OK on the price",
-            meta: priceLocked
-                ? `Ask ${who} to agree to ${formatMoney(amount)}, paid after the site is live.`
-                : `Agree your price with ${who} on the last step. It is paid after the site is live.`,
+            meta: `Agree your price with ${who} on the last step. It is paid after the site is live.`,
             // Ticked on the review step only, where this rail gives way to the price card.
             state: "todo",
         },
     ]
-}
-
-/** True while the creator cannot set a price above the base (lib/pricing: the ceiling unlocks later). */
-export function isPriceLocked(priceCeiling: number | null | undefined): boolean {
-    return (priceCeiling ?? BASE_PRICE) <= BASE_PRICE
 }

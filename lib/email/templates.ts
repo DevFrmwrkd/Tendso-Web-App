@@ -4,9 +4,51 @@
  */
 
 import { getPaymentConfig } from '@/lib/payment/config'
-import { CUSTOM_DOMAIN_ADDON, formatPHP } from '@/lib/pricing'
+import { CUSTOM_DOMAIN_ADDON, creatorDiscount, formatPHP, type CreatorDiscount } from '@/lib/pricing'
 
 const paymentConfig = getPaymentConfig()
+
+/**
+ * `amount` split into the custom domain (its real frozen price, else the flat
+ * add-on) and the website, which is the rest, plus the creator's discount on
+ * the website when the sale carries a list price to strike (see lib/pricing
+ * creatorDiscount).
+ */
+function websiteSplit(amount: number, customDomain: string, domainCostPHP: number | undefined, websiteListPrice: number | undefined) {
+    const domainLine = domainCostPHP && domainCostPHP > 0 ? domainCostPHP : CUSTOM_DOMAIN_ADDON
+    const websiteLine = customDomain ? amount - domainLine : amount
+    return { domainLine, websiteLine, discount: creatorDiscount(websiteLine, websiteListPrice) }
+}
+
+/** The list price struck through, inline-styled for email clients. */
+function struckPriceHtml(amount: number, style: string): string {
+    return `<span style="text-decoration:line-through;color:#9ca3af;${style}">${formatPHP(amount)}</span>`
+}
+
+/** "20% off", in the discount green. */
+function percentOffHtml(discount: CreatorDiscount, style: string): string {
+    return `<span style="color:#15803d;font-weight:600;${style}">${discount.percentOff}% off</span>`
+}
+
+/**
+ * A creator's discount around an amount box's big figure: the list price
+ * struck through above it, the percentage off below. Only when the figure is
+ * the website alone. With a domain the figure also holds the add-on, which is
+ * never discounted, so it is not that figure's list price (the /start rule).
+ */
+function discountAroundTotalHtml(discount: CreatorDiscount | null, hasDomain: boolean): { above: string; below: string } {
+    if (!discount || hasDomain) return { above: '', below: '' }
+    return {
+        above: `<p style="margin:0;font-size:20px;font-weight:700;">${struckPriceHtml(discount.listPrice, '')}</p>`,
+        below: `<p style="margin:6px 0 0;font-size:16px;">${percentOffHtml(discount, '')}</p>`,
+    }
+}
+
+/** "Website ₱4,999 ₱3,999 · 20% off", under a total that also holds a domain. */
+function websiteDiscountLineHtml(discount: CreatorDiscount | null): string {
+    if (!discount) return ''
+    return `<p style="margin:8px 0 0;font-size:14px;color:#374151;">Website ${struckPriceHtml(discount.listPrice, 'margin-right:6px;')}${formatPHP(discount.price)} · ${percentOffHtml(discount, '')}</p>`
+}
 
 /**
  * Entity-encode a value before it is interpolated into the markup below.
@@ -373,6 +415,9 @@ export function getPaymentLinkEmailHtml(params: {
     // itemized breakdown correctly. Falls back to the flat CUSTOM_DOMAIN_ADDON
     // only for legacy submissions that predate real-domain pricing.
     domainCostPHP?: number
+    // The list price frozen on the sale (submissions.websiteListPrice). When the
+    // creator's price is below it, the email strikes it through.
+    websiteListPrice?: number
     /**
      * @deprecated Accepted but IGNORED. This used to render an "Edit my website"
      * button pointing at the owner portal. There is no self-serve owner editor —
@@ -392,8 +437,8 @@ export function getPaymentLinkEmailHtml(params: {
     const referenceCode = escapeHtml(params.referenceCode)
     const customDomain = escapeHtml(params.customDomain)
     // Real domain charge for the line-item split; the website-package line is the remainder.
-    const domainLine = domainCostPHP && domainCostPHP > 0 ? domainCostPHP : CUSTOM_DOMAIN_ADDON
-    const websiteLine = amount - domainLine
+    const { domainLine, websiteLine, discount } = websiteSplit(amount, customDomain, domainCostPHP, params.websiteListPrice)
+    const aroundTotal = discountAroundTotalHtml(discount, !!customDomain)
     const wiseEmail = escapeHtml(platformEmail || paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com')
 
     return `
@@ -465,7 +510,9 @@ export function getPaymentLinkEmailHtml(params: {
                                 <tr>
                                     <td style="padding:24px;text-align:center;">
                                         <p style="margin:0 0 4px;font-size:14px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Total Amount to Pay</p>
+                                        ${aroundTotal.above}
                                         <p style="margin:0;font-size:40px;color:#C89548;font-weight:800;">₱${amount.toLocaleString('en-PH')}</p>
+                                        ${aroundTotal.below}
                                     </td>
                                 </tr>
                                 ${customDomain ? `
@@ -476,8 +523,8 @@ export function getPaymentLinkEmailHtml(params: {
                                                 <td style="padding:12px 16px;border-bottom:1px solid #ecfdf5;">
                                                     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                                         <tr>
-                                                            <td style="font-size:14px;color:#374151;">Website Package</td>
-                                                            <td align="right" style="font-size:14px;color:#111827;font-weight:700;">${formatPHP(websiteLine)}</td>
+                                                            <td style="font-size:14px;color:#374151;">Website Package${discount ? `<br>${percentOffHtml(discount, 'font-size:12px;')}` : ''}</td>
+                                                            <td align="right" style="font-size:14px;color:#111827;font-weight:700;">${discount ? struckPriceHtml(discount.listPrice, 'font-weight:400;margin-right:8px;') : ''}${formatPHP(websiteLine)}</td>
                                                         </tr>
                                                     </table>
                                                 </td>
@@ -1206,6 +1253,10 @@ export function getPaymentFollowUpEmailHtml(params: {
     referenceCode?: string
     hoursLeft?: number
     isManual?: boolean
+    // Only to strike a creator's discount through, split as the payment email splits it.
+    customDomain?: string
+    domainCostPHP?: number
+    websiteListPrice?: number
 }): string {
     const {
         amount,
@@ -1218,6 +1269,10 @@ export function getPaymentFollowUpEmailHtml(params: {
     const businessOwnerName = escapeHtml(params.businessOwnerName)
     const websiteUrl = escapeHtml(params.websiteUrl)
     const referenceCode = escapeHtml(params.referenceCode)
+    const { discount } = websiteSplit(amount, params.customDomain ?? '', params.domainCostPHP, params.websiteListPrice)
+    // No breakdown here to carry the strike, so with a domain the website's own
+    // line goes under the total.
+    const aroundTotal = params.customDomain ? { above: '', below: websiteDiscountLineHtml(discount) } : discountAroundTotalHtml(discount, false)
 
     const wiseEmail = escapeHtml(paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com')
     const headlineTone = isManual ? "We're following up on your website" : 'Final reminder — your website goes offline soon'
@@ -1281,7 +1336,9 @@ export function getPaymentFollowUpEmailHtml(params: {
                                 <tr>
                                     <td style="padding:24px;text-align:center;">
                                         <p style="margin:0 0 4px;font-size:14px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Amount Due</p>
+                                        ${aroundTotal.above}
                                         <p style="margin:0;font-size:40px;color:#C89548;font-weight:800;">₱${amount.toLocaleString('en-PH')}</p>
+                                        ${aroundTotal.below}
                                         <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">One-time. No monthly fees. Website stays live forever.</p>
                                     </td>
                                 </tr>

@@ -3,7 +3,7 @@ import { query, mutation, internalQuery, internalMutation, internalAction } from
 import type { MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
-import { BASE_PRICE, STANDARD_PRICE, UNLOCK_THRESHOLD, COMMISSION_RATE, CUSTOM_DOMAIN_ADDON, commissionFor, ownerTotal, domainAddOnFor, isComped, ownerChargeFor } from '../lib/pricing';
+import { BASE_PRICE, PRICE_CEILING, WEBSITE_PRICE, STANDARD_PRICE, COMMISSION_RATE, CUSTOM_DOMAIN_ADDON, clampSellPrice, commissionFor, ownerTotal, domainAddOnFor, isComped, ownerChargeFor } from '../lib/pricing';
 
 // ==================== QUERIES ====================
 
@@ -181,27 +181,29 @@ export const getByStatus = query({
 });
 
 /**
- * Pricing context for a creator: how many approved submissions they have, and
- * whether that unlocks the higher price ceiling. Used by the dashboard progress
- * meter and the review-page price picker. Keep the status set in sync with
- * admin.ts APPROVED_OR_LATER.
+ * A creator's price band: the bounds of the price slider.
+ *
+ * Referenced by the mobile app — do not remove. docs/changes/OWNER-PORTAL-PRICING-PLAN.md
+ * has its slider read these bounds and show only when `unlocked`. Since 2026-10-06
+ * every creator has the whole band from their first site, so `unlocked` is always
+ * true, `priceCeiling` is PRICE_CEILING and `threshold` (approvals needed) is 0. The
+ * shape stays the same so an installed app keeps working. `approvedCount` is still
+ * the creator's approved-or-later count.
  */
 export const getPricingContext = query({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
         const approvedStatuses = ['approved', 'deployed', 'pending_payment', 'paid', 'completed', 'website_generated', 'unpublished'];
-        const creator: any = await ctx.db.get(args.creatorId);
         const subs = await ctx.db
             .query('submissions')
             .withIndex('by_creator_id', (q) => q.eq('creatorId', args.creatorId))
             .collect();
         const approvedCount = subs.filter((s) => approvedStatuses.includes(s.status)).length;
-        const ceiling = creator?.priceCeiling ?? BASE_PRICE;
         return {
             approvedCount,
-            priceCeiling: ceiling,
-            unlocked: !!creator?.priceUnlockedAt || ceiling > BASE_PRICE,
-            threshold: UNLOCK_THRESHOLD,
+            priceCeiling: PRICE_CEILING,
+            unlocked: true,
+            threshold: 0,
             basePrice: BASE_PRICE,
         };
     },
@@ -513,7 +515,7 @@ export const setDomainTier = mutation({
         id: v.id('submissions'),
         submissionType: v.union(v.literal('standard'), v.literal('with_custom_domain')),
         requestedDomain: v.optional(v.string()),
-        // Creator-chosen sell price. Clamped server-side to the creator's band.
+        // Creator-chosen sell price. Clamped server-side to [BASE_PRICE, PRICE_CEILING].
         sellPrice: v.optional(v.number()),
         // The domain's REAL registrar price (PHP), as fetched by /api/check-domain.
         // Frozen onto domainCostPHP so the payment link/email/webhook all match.
@@ -529,13 +531,13 @@ export const setDomainTier = mutation({
             throw new Error('Custom domain is required for the with_custom_domain tier');
         }
 
-        // Clamp the creator-chosen sell price to their allowed band
-        // [BASE_PRICE, creator.priceCeiling]. Owner pays sellPrice + the domain
+        // Clamp the creator-chosen sell price to the band every creator has,
+        // [BASE_PRICE, PRICE_CEILING]. Owner pays sellPrice + the domain
         // add-on; creator commission is 50% of the sell price (the domain is a
         // registrar pass-through, not commissioned). See lib/pricing.ts.
-        const creator: any = await ctx.db.get(submission.creatorId);
-        const ceiling = creator?.priceCeiling ?? BASE_PRICE;
-        const sellPrice = Math.min(Math.max(Math.round(args.sellPrice ?? BASE_PRICE), BASE_PRICE), ceiling);
+        // A missing sellPrice stays BASE_PRICE, not WEBSITE_PRICE: an APK that
+        // predates the slider sends none, and its creator quoted the owner ₱999.
+        const sellPrice = clampSellPrice(args.sellPrice ?? BASE_PRICE);
 
         // Resolve the domain add-on from the REAL registrar price when present,
         // else fall back to the flat CUSTOM_DOMAIN_ADDON. domainAddOnFor returns
@@ -546,6 +548,9 @@ export const setDomainTier = mutation({
             submissionType: args.submissionType,
             amount: sellPrice + domainAddOn,
             creatorPayout: commissionFor(sellPrice),
+            // The list price this sale is discounted from, frozen with it: the
+            // owner's bill strikes it through beside sellPrice.
+            websiteListPrice: WEBSITE_PRICE,
             domainStatus: isWithDomain ? 'pending_payment' : 'not_requested',
         };
         if (isWithDomain) {

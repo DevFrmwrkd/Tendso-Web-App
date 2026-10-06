@@ -95,6 +95,9 @@ export async function POST(request: NextRequest) {
             referenceCode,
             hoursLeft,
             isManual,
+            customDomain: submission.requestedDomain || undefined,
+            domainCostPHP: submission.domainCostPHP || undefined,
+            websiteListPrice: submission.websiteListPrice,
         })
 
         // Record the send so the cron doesn't repeat

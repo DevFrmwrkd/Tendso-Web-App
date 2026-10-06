@@ -1,4 +1,4 @@
-import { BASE_PRICE, WEBSITE_PRICE, campaignListPrice, campaignSellPrice, clampSellPrice, ownerTotal } from '@/lib/pricing';
+import { WEBSITE_PRICE, campaignListPrice, campaignSellPrice, clampSellPrice, ownerTotal } from '@/lib/pricing';
 
 describe('OTR campaign', () => {
     it('discounts 30% off the ₱4,999 website', () => {
@@ -29,7 +29,8 @@ describe('self-serve price (no campaign)', () => {
         expect(ownerTotal(campaignSellPrice(null), 'with_custom_domain')).toBe(5499);
     });
 
-    it('leaves the creator band alone: a new creator still starts at the base price', () => {
-        expect(clampSellPrice(WEBSITE_PRICE, 0)).toBe(BASE_PRICE);
+    it('caps a creator at the website price: no creator charges more for the website than /start does', () => {
+        expect(clampSellPrice(WEBSITE_PRICE)).toBe(WEBSITE_PRICE);
+        expect(clampSellPrice(WEBSITE_PRICE + 1000)).toBe(WEBSITE_PRICE);
     });
 });

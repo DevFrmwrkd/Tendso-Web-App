@@ -11,7 +11,6 @@ import { toast } from "sonner"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 import { Button, Dialog, Dot, Fold, Icon, Status, cx } from "@/components/r1"
-import { BASE_PRICE, commissionFor } from "@/lib/pricing"
 
 import {
     INTERVIEW_QUESTIONS,
@@ -22,7 +21,6 @@ import {
     fileSize,
     infoErrors,
     infoFromDoc,
-    isPriceLocked,
     needRows,
     savedInterviewKind,
 } from "../_components/flow"
@@ -480,14 +478,11 @@ export default function InterviewUploadPage() {
         }
 
         // Update submission with R2 URL. Payout is 50% of the website sell
-        // price (set when the price is finalized on the review page); we no
-        // longer hardcode a per-capture-type rate here. See lib/pricing.ts.
+        // price, set with the draft and finalized on the review page; the
+        // interview does not touch it. See lib/pricing.ts.
         await updateSubmission({
             id: id as Id<"submissions">,
-            ...(kind === "video"
-                ? { videoUrl: publicUrl, creatorPayout: commissionFor(BASE_PRICE) }
-                : { audioUrl: publicUrl, creatorPayout: commissionFor(BASE_PRICE) }
-            ),
+            ...(kind === "video" ? { videoUrl: publicUrl } : { audioUrl: publicUrl }),
         })
     }
 
@@ -588,8 +583,6 @@ export default function InterviewUploadPage() {
         photoCount: (submission.photos ?? []).filter(Boolean).length,
         interview: hasPending ? "pending" : phase === "recording" || phase === "paused" ? "recording" : savedKind,
         ownerName: submission.ownerName,
-        priceLocked: isPriceLocked(creator?.priceCeiling),
-        ownerAmount: submission.amount,
     })
 
     let barMessage: ReactNode = `Step 3 of 4 · ${hasPending ? "Not saved yet" : "Draft saved"}`

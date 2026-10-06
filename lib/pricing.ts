@@ -6,8 +6,8 @@
  *  Confirmed 2026-06-15 (creator-compensation & pricing strategy call):
  *
  *    • Base website price ............ ₱999   (a creator's starting sell price)
- *    • Creators set their OWN price within a band. The ceiling unlocks from
- *      ₱999 → ₱4,999 after UNLOCK_THRESHOLD *approved* submissions.
+ *    • Creators set their OWN price within a band. The ceiling unlocked from
+ *      ₱999 → ₱4,999 after 5 *approved* submissions (removed 2026-10-06, below).
  *    • Creator commission ............ 50% of the website sell price.
  *    • Custom domain ................. flat ₱500 add-on (registrar pass-through,
  *                                      NOT subject to the 50% commission).
@@ -18,8 +18,16 @@
  *
  *    • The website price is ₱4,999 (WEBSITE_PRICE). That is what an owner pays
  *      on /start with no campaign, and the price the landing shows. A creator
- *      can discount their own offer down to BASE_PRICE (₱999); the creator band
- *      and its unlock rule below are unchanged.
+ *      can discount their own offer down to BASE_PRICE (₱999).
+ *
+ *  Updated 2026-10-06:
+ *
+ *    • No unlock. Every creator prices each sale anywhere from BASE_PRICE
+ *      (₱999) to PRICE_CEILING (₱4,999), starting with their first site.
+ *    • A sale starts at the full list price (WEBSITE_PRICE, 0% off) and the
+ *      creator discounts down from there. The owner's bill strikes the list
+ *      price through, then shows the creator's price and the percentage off
+ *      (creatorDiscount).
  *
  *  Change a number HERE and it propagates to the landing pages, the submit
  *  flow, the payout math, and the transactional emails. Do NOT re-hardcode
@@ -30,10 +38,10 @@
  *    commissionFor(4999) = 2500  (the "₱2,500" that kept recurring in the call)
  */
 
-/** Default / minimum website sell price. Every creator starts here. */
+/** The lowest price a creator may charge. */
 export const BASE_PRICE = 999;
 
-/** Maximum a creator may charge once their price ceiling is unlocked. */
+/** The highest price a creator may charge. */
 export const PRICE_CEILING = 4999;
 
 /**
@@ -42,9 +50,6 @@ export const PRICE_CEILING = 4999;
  * (OTR is 30% off), and a creator may offer less, down to BASE_PRICE.
  */
 export const WEBSITE_PRICE = PRICE_CEILING;
-
-/** Number of *approved* submissions that unlocks the full PRICE_CEILING. */
-export const UNLOCK_THRESHOLD = 5;
 
 /** Creator's share of the website sell price (domain add-on excluded). */
 export const COMMISSION_RATE = 0.5;
@@ -182,26 +187,40 @@ export const STANDARD_PRICE = BASE_PRICE; // ₱999
 export const CUSTOM_DOMAIN_PRICE = BASE_PRICE + CUSTOM_DOMAIN_ADDON; // ₱1,499
 
 /**
- * A creator's current maximum sell price, given how many *approved*
- * submissions they have. Below the threshold they're capped at the base price.
+ * Clamp a creator's chosen sell price into the band every creator has:
+ * [BASE_PRICE, PRICE_CEILING], rounded to the peso.
  */
-export function priceCeilingFor(approvedSubmissionCount: number): number {
-    return approvedSubmissionCount >= UNLOCK_THRESHOLD ? PRICE_CEILING : BASE_PRICE;
-}
-
-/** True once a creator has earned the right to charge above the base price. */
-export function isPriceUnlocked(approvedSubmissionCount: number): boolean {
-    return approvedSubmissionCount >= UNLOCK_THRESHOLD;
+export function clampSellPrice(desired: number): number {
+    if (!Number.isFinite(desired)) return BASE_PRICE;
+    return Math.min(Math.max(Math.round(desired), BASE_PRICE), PRICE_CEILING);
 }
 
 /**
- * Clamp a desired sell price into the creator's allowed band:
- * [BASE_PRICE, priceCeilingFor(approvedSubmissionCount)].
+ * A creator's discount on the website, as the owner is shown it: the list price
+ * struck through, the creator's price, then the percentage off ("₱4,999 ₱3,999
+ * 20% off"). No peso amount off is shown.
  */
-export function clampSellPrice(desired: number, approvedSubmissionCount: number): number {
-    const ceiling = priceCeilingFor(approvedSubmissionCount);
-    if (!Number.isFinite(desired)) return BASE_PRICE;
-    return Math.min(Math.max(Math.round(desired), BASE_PRICE), ceiling);
+export interface CreatorDiscount {
+    /** The figure struck through. */
+    listPrice: number;
+    /** The creator's price for the website (the domain add-on excluded). */
+    price: number;
+    /** Rounded: ₱3,999 against ₱4,999 is 20. */
+    percentOff: number;
+}
+
+/**
+ * The discount to show the owner beside the creator's price, or null when
+ * there is nothing to strike through.
+ *
+ * `listPrice` is the one frozen on the sale (submissions.websiteListPrice, set
+ * when the creator set their price), never today's WEBSITE_PRICE: a self-serve
+ * order or a sale priced before 2026-10-06 carries none and shows no strike,
+ * and a sale at the full list price shows none either.
+ */
+export function creatorDiscount(websitePrice: number, listPrice: number | null | undefined): CreatorDiscount | null {
+    if (!listPrice || !Number.isFinite(websitePrice) || websitePrice <= 0 || websitePrice >= listPrice) return null;
+    return { listPrice, price: websitePrice, percentOff: Math.round(((listPrice - websitePrice) / listPrice) * 100) };
 }
 
 /** Creator's payout = 50% of the website sell price (domain add-on excluded). */

@@ -26,7 +26,7 @@
  *  Pricing values mirror the canonical model in lib/pricing.ts (imported below):
  *    - Business website: ₱999 (Standard) / ₱1,499 (With Custom Domain)
  *    - Creator earnings: 50% of every sale — ₱500 at the ₱999 base price,
- *      up to ₱2,500 as higher pricing unlocks · ₱1,000 referral bonus
+ *      up to ₱2,500 at ₱4,999 · ₱1,000 referral bonus
  *
  *  ADD A NEW LIVE WEBSITE = paste one object into SHOWCASE_SITES below.
  *    - Required: slug, name, tag, category, lat, lng, city
@@ -136,7 +136,7 @@ export const CREATOR_EARNINGS = [
         slug: "per-submission",
         title: "Per Submission",
         amount: commissionFor(BASE_PRICE),
-        desc: "Earn 50% of every website you sell, paid straight to your Wise wallet — ₱500 at the starter price, up to ₱2,500 as you unlock higher pricing. Video or audio capture, same rate.",
+        desc: "Earn 50% of every website you sell, paid straight to your Wise wallet — ₱500 at the starter price, up to ₱2,500 at the top price. Video or audio capture, same rate.",
         featured: false,
     },
     {

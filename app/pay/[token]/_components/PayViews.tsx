@@ -23,6 +23,7 @@ import {
     SkeletonText,
     Status,
     Timeline,
+    cx,
     domainStatus,
     formatMoney,
     submissionStatus,
@@ -30,7 +31,6 @@ import {
 } from "@/components/r1";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { OPERATOR, SUPPORT_EMAIL } from "@/lib/contact";
-import { domainAddOnFor } from "@/lib/pricing";
 
 import {
     hostOf,
@@ -40,6 +40,7 @@ import {
     newLinkMailto,
     paidOnOf,
     paymentDetailsText,
+    priceSplit,
     shortDate,
     transferAmount,
     transferAmountShown,
@@ -100,6 +101,16 @@ function CopyRow({ label, copy, shown, copyLabel, done }: { label: string; copy:
                 Copy
             </Button>
         </div>
+    );
+}
+
+/** A list price struck through, read out as "Was ₱4,999" (the /start funnel's strike). */
+function Was({ amount, className }: { amount: number; className?: string }) {
+    return (
+        <span className={cx("tabular-nums text-r1-ink-3 line-through decoration-r1-ink-3", className)}>
+            <span className="sr-only">Was </span>
+            {formatMoney(amount)}
+        </span>
     );
 }
 
@@ -228,12 +239,13 @@ export function PendingView({ token, submission, now, wiseEmail }: ViewProps & {
     const url = liveUrlOf(submission?.websiteUrl);
     const offline = submission?.status === "unpublished";
 
-    // A custom domain rides on the same transfer. Split it out the way the
-    // payment email does (lib/email/templates.ts): the domain's real price,
-    // else the flat add-on, and the website is the rest.
-    const domain = submission?.requestedDomain || null;
-    const addOn = domain ? domainAddOnFor("with_custom_domain", submission?.domainCostPHP) : 0;
-    const websiteLine = token.amount - addOn;
+    // A custom domain rides on the same transfer; priceSplit splits it out the
+    // way the payment email does. A creator's discount is struck through
+    // beside the total on the standard tier, and on the website's own line
+    // with a domain: the total then also holds the add-on, which is never
+    // discounted, so ₱4,999 is not its list price.
+    const { domain, addOn, websiteLine, discount } = priceSplit(token.amount, submission);
+    const struckTotal = discount && !domain ? discount.listPrice : null;
 
     const copyAll = () =>
         void copyText(
@@ -281,14 +293,35 @@ export function PendingView({ token, submission, now, wiseEmail }: ViewProps & {
                 aside={
                     <div className="flex shrink-0 flex-col gap-1 border-t border-r1-line pt-4 sm:items-end sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
                         <span className="t-label">You pay</span>
-                        <span className="t-figure">{money}</span>
+                        <span className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1 sm:justify-end">
+                            {struckTotal !== null ? <Was amount={struckTotal} className="text-base" /> : null}
+                            <span className="t-figure">
+                                {struckTotal !== null ? <span className="sr-only">Now </span> : null}
+                                {money}
+                            </span>
+                        </span>
+                        {discount && !domain && <Status tone="done" word={`${discount.percentOff}% off`} />}
                         <span className="t-meta">One time. No monthly fee.</span>
                     </div>
                 }
                 footer={
                     domain && websiteLine > 0 ? (
                         <MoneyLines>
-                            <MoneyLine label="Website, paid once" amount={formatMoney(websiteLine)} />
+                            <MoneyLine
+                                label="Website, paid once"
+                                meta={discount ? `${discount.percentOff}% off` : undefined}
+                                amount={
+                                    discount ? (
+                                        <>
+                                            <Was amount={discount.listPrice} className="mr-2 font-normal" />
+                                            <span className="sr-only">Now </span>
+                                            {formatMoney(websiteLine)}
+                                        </>
+                                    ) : (
+                                        formatMoney(websiteLine)
+                                    )
+                                }
+                            />
                             <MoneyLine label={<span className="[overflow-wrap:anywhere]">Custom domain · {domain}</span>} amount={formatMoney(addOn, "credit")} />
                             <MoneyLine label="You pay" amount={money} total />
                         </MoneyLines>
@@ -392,7 +425,7 @@ export function PaidView({ token, submission, now, ownerHome }: ViewProps & { ow
     const money = formatMoney(token.amount);
     const paidAt = paidOnOf(token, submission);
     const url = liveUrlOf(submission?.websiteUrl);
-    const domain = submission?.requestedDomain || null;
+    const { domain, discount } = priceSplit(token.amount, submission);
     // Only the Wise webhook writes a transaction id: then the method is known.
     const byWise = Boolean(token.wiseTransactionId);
 
@@ -438,6 +471,13 @@ export function PaidView({ token, submission, now, ownerHome }: ViewProps & { ow
                     <ReceiptRow term="Amount paid">
                         <span className="t-num text-[15px] font-semibold">{money}</span>
                     </ReceiptRow>
+                    {discount && (
+                        <ReceiptRow term="Website">
+                            <Was amount={discount.listPrice} className="mr-2" />
+                            <span className="sr-only">Now </span>
+                            {formatMoney(discount.price)} · {discount.percentOff}% off
+                        </ReceiptRow>
+                    )}
                     {paidAt && <ReceiptRow term="Paid on">{longDate(paidAt)}</ReceiptRow>}
                     {byWise && <ReceiptRow term="Method">Wise transfer</ReceiptRow>}
                     <ReceiptRow term="Reference code">

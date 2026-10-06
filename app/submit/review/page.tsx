@@ -28,8 +28,10 @@ import {
     COMMISSION_RATE,
     CUSTOM_DOMAIN_ADDON,
     PRICE_CEILING,
-    UNLOCK_THRESHOLD,
+    WEBSITE_PRICE,
+    clampSellPrice,
     commissionFor,
+    creatorDiscount,
     domainAddOnFor,
     ownerTotal,
 } from "@/lib/pricing"
@@ -88,8 +90,9 @@ export default function ReviewSubmissionPage() {
     // Custom domain: the box says whether one is wanted, the field which one.
     const [domainOn, setDomainOn] = useState(false)
     const [domainInput, setDomainInput] = useState("")
-    // Creator-set sell price, clamped to the creator's band (see lib/pricing.ts)
-    const [sellPrice, setSellPrice] = useState<number>(BASE_PRICE)
+    // Creator-set sell price, clamped to BASE_PRICE..PRICE_CEILING (see lib/pricing.ts).
+    // Opens at the full list price, no discount; a saved draft's own price replaces it.
+    const [sellPrice, setSellPrice] = useState<number>(WEBSITE_PRICE)
     // The last availability answer, kept with the domain it answers for, so
     // an answer for an earlier spelling is never read as one for this one.
     const [domainCheck, setDomainCheck] = useState<{ domain: string; result: DomainCheckResult } | null>(null)
@@ -281,11 +284,6 @@ export default function ReviewSubmissionPage() {
         )
     }
 
-    // Creator's allowed price band — priceCeiling unlocks from BASE_PRICE to
-    // PRICE_CEILING after UNLOCK_THRESHOLD approved submissions (see lib/pricing.ts).
-    const priceCeiling = creator?.priceCeiling ?? BASE_PRICE
-    const canSetPrice = priceCeiling > BASE_PRICE
-
     // Determine interview type and payout (50% of the chosen sell price)
     // Check both R2 URLs (new) and storage IDs (legacy)
     const hasVideo = !!submission.videoUrl || !!submission.videoStorageId
@@ -376,51 +374,80 @@ export default function ReviewSubmissionPage() {
         )
     })()
 
+    // What the owner's bill will show: the list price struck through, the
+    // creator's price, then the percentage off. Beside the total on the
+    // standard tier; with a domain the total also holds the add-on, which is
+    // never discounted, so it all moves to the website's own line (the rule
+    // /start and the pay page follow).
+    const discount = creatorDiscount(sellPrice, WEBSITE_PRICE)
+    const struckTotal = discount && !wantsCustomDomain ? discount.listPrice : null
+
     const priceCard = (
         <section className="t-card t-card-pad flex flex-col gap-4" aria-labelledby="ns-price">
             <div className="flex flex-col gap-1">
                 <h2 id="ns-price" className="t-label">
                     The owner pays
                 </h2>
-                <p className="t-figure">{formatMoney(totalAmount)}</p>
+                <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    {struckTotal !== null ? (
+                        <span className="text-base tabular-nums text-r1-ink-3 line-through decoration-r1-ink-3">
+                            <span className="sr-only">Was </span>
+                            {formatMoney(struckTotal)}
+                        </span>
+                    ) : null}
+                    <span className="t-figure">
+                        {struckTotal !== null ? <span className="sr-only">Now </span> : null}
+                        {formatMoney(totalAmount)}
+                    </span>
+                </p>
+                {discount && struckTotal !== null ? <Status tone="done" word={`${discount.percentOff}% off`} /> : null}
                 <p className="t-meta">Once, only after the site is live, by bank transfer.</p>
             </div>
             <div className="flex flex-col gap-2">
                 <MoneyLines>
-                    <MoneyLine label={canSetPrice ? "Website, your price" : "Website, creator price"} amount={formatMoney(sellPrice)} />
+                    <MoneyLine
+                        label="Website, your price"
+                        meta={discount && wantsCustomDomain ? `${discount.percentOff}% off` : undefined}
+                        amount={
+                            discount && wantsCustomDomain ? (
+                                <>
+                                    <span className="mr-2 font-normal text-r1-ink-3 line-through decoration-r1-ink-3">
+                                        <span className="sr-only">Was </span>
+                                        {formatMoney(discount.listPrice)}
+                                    </span>
+                                    <span className="sr-only">Now </span>
+                                    {formatMoney(sellPrice)}
+                                </>
+                            ) : (
+                                formatMoney(sellPrice)
+                            )
+                        }
+                    />
                     {wantsCustomDomain && <MoneyLine label="Custom domain, year 1" amount={formatMoney(domainAddOnFor(tier, domainPricePHP || undefined))} />}
                 </MoneyLines>
-                {canSetPrice ? (
-                    <div className="flex flex-col gap-2 pt-1">
-                        <label htmlFor={priceId} className="t-field-label">
-                            Your price
-                        </label>
-                        <input
-                            id={priceId}
-                            type="range"
-                            min={BASE_PRICE}
-                            max={priceCeiling}
-                            step={100}
-                            value={sellPrice}
-                            aria-valuetext={formatMoney(sellPrice)}
-                            onChange={(e) => {
-                                setSellPrice(Math.min(Math.max(Number(e.target.value), BASE_PRICE), priceCeiling))
-                                setDirty(true)
-                            }}
-                            className="w-full accent-r1-ink"
-                            disabled={busy}
-                        />
-                        <p className="t-meta">
-                            List price {formatMoney(PRICE_CEILING)}. Set yours between {formatMoney(BASE_PRICE)} and {formatMoney(priceCeiling)}; you keep{" "}
-                            {Math.round(COMMISSION_RATE * 100)}%.
-                        </p>
-                    </div>
-                ) : (
+                <div className="flex flex-col gap-2 pt-1">
+                    <label htmlFor={priceId} className="t-field-label">
+                        Your price
+                    </label>
+                    <input
+                        id={priceId}
+                        type="range"
+                        min={BASE_PRICE}
+                        max={PRICE_CEILING}
+                        step={100}
+                        value={sellPrice}
+                        aria-valuetext={discount ? `${formatMoney(sellPrice)}, ${discount.percentOff}% off` : `${formatMoney(sellPrice)}, no discount`}
+                        onChange={(e) => {
+                            setSellPrice(clampSellPrice(Number(e.target.value)))
+                            setDirty(true)
+                        }}
+                        className="w-full accent-r1-ink"
+                        disabled={busy}
+                    />
                     <p className="t-meta">
-                        List price {formatMoney(PRICE_CEILING)}. You can set your own price up to {formatMoney(PRICE_CEILING)} after {UNLOCK_THRESHOLD} approved
-                        submissions.
+                        Slide left to give the owner a discount, down to {formatMoney(BASE_PRICE)}. You keep {Math.round(COMMISSION_RATE * 100)}%.
                     </p>
-                )}
+                </div>
             </div>
             <hr className="t-divider" />
             <Checkbox
