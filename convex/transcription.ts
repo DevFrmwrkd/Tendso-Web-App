@@ -99,12 +99,68 @@ async function readBody(res: Response): Promise<ArrayBuffer> {
     return out.buffer;
 }
 
+/** A storage id, R2 key or URL as a fetchable URL, or null. */
+function mediaUrlOf(raw: string | null | undefined, r2Prefix: string | undefined): string | null {
+    if (!raw) return null;
+    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
+    if (/^(images|videos|audio)\//.test(raw) && r2Prefix) return `${r2Prefix}/${raw}`;
+    return null;
+}
+
+/** Download one recording, split it if Groq needs that, and return its transcript. */
+async function transcribeFrom(mediaUrl: string, groqKey: string): Promise<string> {
+    console.log(`[transcribeMedia] Fetching ${mediaUrl}`);
+    const mediaRes = await fetch(mediaUrl);
+    if (!mediaRes.ok) {
+        throw new Error(`Failed to download media (HTTP ${mediaRes.status}): ${mediaUrl}`);
+    }
+    const declaredBytes = Number(mediaRes.headers.get('content-length'));
+    if (declaredBytes > MAX_MEDIA_BYTES) {
+        await mediaRes.body?.cancel();
+        throw new Error(`The recording is ${mb(declaredBytes)}MB; this transcribes up to ${mb(MAX_MEDIA_BYTES)}MB`);
+    }
+    const contentType = mediaRes.headers.get('content-type') || '';
+    const buffer = await readBody(mediaRes);
+    if (buffer.byteLength > MAX_MEDIA_BYTES) {
+        throw new Error(`The recording is ${mb(buffer.byteLength)}MB; this transcribes up to ${mb(MAX_MEDIA_BYTES)}MB`);
+    }
+    console.log(`[transcribeMedia] Downloaded ${mb(buffer.byteLength)}MB, content-type="${contentType}"`);
+
+    // Chunk if necessary — handles webm/mp3/wav/mp4. Files under the limit
+    // return as a single-element array. An MP4 or MOV video comes back as its
+    // audio track alone.
+    const chunks = chunkMediaFile(buffer, contentType, undefined, mediaUrl);
+    const extension = getFileExtension(contentType, mediaUrl);
+    console.log(`[transcribeMedia] Split into ${chunks.length} chunk(s)`);
+
+    // Transcribe each chunk. Serial rather than parallel to respect Groq's
+    // rate limits and avoid memory spikes for very large files.
+    const transcripts: string[] = [];
+    for (let i = 0; i < chunks.length; i++) {
+        const filename = chunks.length > 1
+            ? `chunk-${i + 1}-of-${chunks.length}.${extension}`
+            : `audio.${extension}`;
+        console.log(`[transcribeMedia] Groq request ${i + 1}/${chunks.length} (${mb(chunks[i].byteLength)}MB)`);
+        transcripts.push(await callGroqWhisper(chunks[i], filename, groqKey));
+    }
+
+    const fullTranscript = transcripts.join(' ').trim();
+    if (!fullTranscript) {
+        throw new Error('Groq returned an empty transcript');
+    }
+    return fullTranscript;
+}
+
 /** Trigger transcription for a submission's media file. */
 export const transcribeMedia = internalAction({
     args: {
         submissionId: v.id('submissions'),
         storageId: v.optional(v.string()),
         mediaType: v.optional(v.union(v.literal('video'), v.literal('audio'))),
+        // The audio the mobile app records beside a video interview
+        // (interview-audio.m4a). Used only when the video cannot be
+        // transcribed: it can stop early (seen: 0:19 of a 1:45 interview).
+        audioFallback: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         // Mark as processing so UIs can show a spinner while Groq works.
@@ -128,68 +184,28 @@ export const transcribeMedia = internalAction({
 
             // Resolve the storageId/URL/path to a fetchable HTTPS URL.
             const r2Prefix = process.env.R2_PUBLIC_URL?.replace(/\/$/, '');
-            const raw = args.storageId || '';
-            let mediaUrl: string | null = null;
-            if (raw.startsWith('http://') || raw.startsWith('https://')) {
-                mediaUrl = raw;
-            } else if (/^(images|videos|audio)\//.test(raw) && r2Prefix) {
-                mediaUrl = `${r2Prefix}/${raw}`;
-            }
+            let mediaUrl = mediaUrlOf(args.storageId, r2Prefix);
             // Fallback: re-read the submission fields directly.
             if (!mediaUrl) {
                 const fresh = await ctx.runQuery(internal.submissions.getByIdInternal, {
                     id: args.submissionId,
                 });
-                const candidates = [fresh?.videoUrl, fresh?.audioUrl, fresh?.videoStorageId, fresh?.audioStorageId]
-                    .filter(Boolean) as string[];
-                for (const f of candidates) {
-                    if (f.startsWith('http')) { mediaUrl = f; break; }
-                    if (/^(images|videos|audio)\//.test(f) && r2Prefix) {
-                        mediaUrl = `${r2Prefix}/${f}`;
-                        break;
-                    }
-                }
+                const candidates = [fresh?.videoUrl, fresh?.audioUrl, fresh?.videoStorageId, fresh?.audioStorageId];
+                mediaUrl = candidates.map((c) => mediaUrlOf(c, r2Prefix)).find(Boolean) ?? null;
             }
             if (!mediaUrl) {
                 throw new Error(`Could not resolve a fetchable URL for storageId "${args.storageId}"`);
             }
+            const fallbackUrl = mediaUrlOf(args.audioFallback, r2Prefix);
 
-            console.log(`[transcribeMedia] Fetching ${mediaUrl}`);
-            const mediaRes = await fetch(mediaUrl);
-            if (!mediaRes.ok) {
-                throw new Error(`Failed to download media (HTTP ${mediaRes.status}): ${mediaUrl}`);
-            }
-            const declaredBytes = Number(mediaRes.headers.get('content-length'));
-            if (declaredBytes > MAX_MEDIA_BYTES) {
-                throw new Error(`The recording is ${mb(declaredBytes)}MB; this transcribes up to ${mb(MAX_MEDIA_BYTES)}MB`);
-            }
-            const contentType = mediaRes.headers.get('content-type') || '';
-            const buffer = await readBody(mediaRes);
-            if (buffer.byteLength > MAX_MEDIA_BYTES) {
-                throw new Error(`The recording is ${mb(buffer.byteLength)}MB; this transcribes up to ${mb(MAX_MEDIA_BYTES)}MB`);
-            }
-            console.log(`[transcribeMedia] Downloaded ${mb(buffer.byteLength)}MB, content-type="${contentType}"`);
-
-            // Chunk if necessary — handles webm/mp3/wav/mp4. Files under the limit
-            // return as a single-element array.
-            const chunks = chunkMediaFile(buffer, contentType, undefined, mediaUrl);
-            const extension = getFileExtension(contentType, mediaUrl);
-            console.log(`[transcribeMedia] Split into ${chunks.length} chunk(s)`);
-
-            // Transcribe each chunk. Serial rather than parallel to respect Groq's
-            // rate limits and avoid memory spikes for very large files.
-            const transcripts: string[] = [];
-            for (let i = 0; i < chunks.length; i++) {
-                const filename = chunks.length > 1
-                    ? `chunk-${i + 1}-of-${chunks.length}.${extension}`
-                    : `audio.${extension}`;
-                console.log(`[transcribeMedia] Groq request ${i + 1}/${chunks.length} (${mb(chunks[i].byteLength)}MB)`);
-                transcripts.push(await callGroqWhisper(chunks[i], filename, groqKey));
-            }
-
-            const fullTranscript = transcripts.join(' ').trim();
-            if (!fullTranscript) {
-                throw new Error('Groq returned an empty transcript');
+            let fullTranscript: string;
+            try {
+                fullTranscript = await transcribeFrom(mediaUrl, groqKey);
+            } catch (videoError) {
+                if (!fallbackUrl) throw videoError;
+                const reason = videoError instanceof Error ? videoError.message : String(videoError);
+                console.warn(`[transcribeMedia] ${reason}; transcribing the audio recorded beside the video instead`);
+                fullTranscript = await transcribeFrom(fallbackUrl, groqKey);
             }
 
             await ctx.runMutation(internal.submissions.updateTranscription, {
