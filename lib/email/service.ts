@@ -298,6 +298,30 @@ export async function sendPaymentFollowUpEmail(data: PaymentFollowUpEmailData) {
     }
 }
 
+interface CreatorReminderEmailData extends Omit<PaymentFollowUpEmailData, 'isManual' | 'hoursLeft'> {
+    creatorName: string;
+}
+
+/** The payment reminder a creator asked Tendso to send (convex/creatorReminders.ts). */
+export async function sendCreatorReminderEmail(data: CreatorReminderEmailData) {
+    const html = getPaymentFollowUpEmailHtml({
+        businessName: data.businessName,
+        businessOwnerName: data.businessOwnerName,
+        websiteUrl: data.websiteUrl,
+        amount: data.amount,
+        referenceCode: data.referenceCode,
+        customDomain: data.customDomain,
+        domainCostPHP: data.domainCostPHP,
+        websiteListPrice: data.websiteListPrice,
+        fromCreator: data.creatorName,
+    });
+    return await sendEmail({
+        to: data.businessOwnerEmail,
+        subject: `${data.creatorName} asked us to remind you — ${data.businessName} website`,
+        html,
+    });
+}
+
 interface PaymentConfirmationEmailData {
     businessName: string;
     businessOwnerName: string;
