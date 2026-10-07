@@ -1257,12 +1257,16 @@ export function getPaymentFollowUpEmailHtml(params: {
     customDomain?: string
     domainCostPHP?: number
     websiteListPrice?: number
+    // The creator's first name when they asked for this reminder (the drawer's
+    // "Email a reminder"). Reads as the manual follow-up, from them.
+    fromCreator?: string
 }): string {
     const {
         amount,
         hoursLeft = 24,
-        isManual = false,
     } = params
+    const fromCreator = escapeHtml(params.fromCreator)
+    const isManual = (params.isManual ?? false) || !!fromCreator
     // Escaped at the top so no interpolation site below can be missed —
     // including the `intro` strings, which are markup too.
     const businessName = escapeHtml(params.businessName)
@@ -1275,8 +1279,12 @@ export function getPaymentFollowUpEmailHtml(params: {
     const aroundTotal = params.customDomain ? { above: '', below: websiteDiscountLineHtml(discount) } : discountAroundTotalHtml(discount, false)
 
     const wiseEmail = escapeHtml(paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com')
-    const headlineTone = isManual ? "We're following up on your website" : 'Final reminder — your website goes offline soon'
-    const intro = isManual
+    const headlineTone = fromCreator
+        ? `A reminder from ${fromCreator}`
+        : isManual ? "We're following up on your website" : 'Final reminder — your website goes offline soon'
+    const intro = fromCreator
+        ? `${fromCreator}, who made <strong style="color:#C89548;">${businessName}</strong>'s website with you, asked us to send you a reminder. Your website is live, and it stays live once it is paid — one payment, no monthly fees, no contracts.`
+        : isManual
         ? `We're checking in on <strong style="color:#C89548;">${businessName}</strong>'s website. It's been live and waiting for you. Once we receive payment, your website stays live permanently — no monthly fees, no contracts.`
         : `Your website for <strong style="color:#C89548;">${businessName}</strong> will be taken offline in about <strong style="color:#dc2626;">${hoursLeft} hours</strong> if payment is not received. We don't want you to miss this — your site has been ready and live this whole time.`
 

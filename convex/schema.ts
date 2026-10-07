@@ -151,6 +151,10 @@ export default defineSchema({
         paidAt: v.optional(v.number()), // Timestamp
         sentEmailAt: v.optional(v.number()), // Timestamp when payment email was sent to client
         followUpEmailSentAt: v.optional(v.number()), // Timestamp of last payment follow-up email (auto or manual)
+        // When the creator had Tendso email the owner a payment reminder, one
+        // entry per email. lib/creatorReminders.ts limits them to one a day,
+        // three in all; convex/creatorReminders.ts writes them.
+        creatorRemindersAt: v.optional(v.array(v.number())),
         unpublishedAt: v.optional(v.number()), // Timestamp when website was auto-unpublished
 
         // Creator payout

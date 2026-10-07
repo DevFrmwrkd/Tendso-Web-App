@@ -8,17 +8,20 @@
  * contact details, the photos, the interview recording and its transcript,
  * the status, the creator's payout, when it was started, the live site, and
  * Continue for a draft. From the board it adds what happens next, the progress
- * so far with dates, and the owner's pay link to copy and send.
+ * so far with dates, the owner's pay link to copy and send, and a reminder to
+ * an owner who has not paid (RemindOwner).
  *
  * The submission itself comes from the list's query, so the drawer can only
  * ever show one of the creator's own submissions; anything else is "not
  * found", exactly as the old page answered for someone else's.
  */
 
-import { useQueries, useQuery, type RequestForQueries } from "convex/react";
-import { ArrowRight, Banknote, Globe } from "lucide-react";
+import { useAction, useQueries, useQuery, type RequestForQueries } from "convex/react";
+import { ConvexError } from "convex/values";
+import { ArrowRight, Banknote, Globe, Mail, Share2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useSyncExternalStore, type ReactNode } from "react";
+import { useMemo, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from "react";
+import { toast } from "sonner";
 
 import {
     Button,
@@ -41,6 +44,7 @@ import {
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { REMINDER_LIMIT, reminderState } from "@/lib/creatorReminders";
 import { domainAddOnFor, isComped } from "@/lib/pricing";
 
 import {
@@ -62,7 +66,7 @@ import {
     type Stage,
     type Submission,
 } from "../_lib/derive";
-import { LinkRow } from "./LinkRow";
+import { LinkRow, copyText } from "./LinkRow";
 import { Interview, PhotoGrid } from "./Media";
 import { PanelBoundary } from "./PanelBoundary";
 import { SitePreview } from "./SitePreview";
@@ -230,6 +234,7 @@ function NextStep({ s, stage, token, now }: { s: Submission; stage: Stage; token
             return (
                 <NextBox highlight text={`When ${owner} ${pays} with the pay link, ${yourShare} moves from pending to your Wallet.`}>
                     <PayLink s={s} token={token} now={now} />
+                    <RemindOwner s={s} token={token} now={now} />
                 </NextBox>
             );
         case "offline":
@@ -239,6 +244,7 @@ function NextStep({ s, stage, token, now }: { s: Submission; stage: Stage; token
                     text={`The site was taken offline${s.unpublishedAt ? ` on ${formatDay(s.unpublishedAt, now)}` : ""} because the owner had not paid. If ${owner} still ${pays} with the pay link, ${yourShare} moves to your Wallet.`}
                 >
                     <PayLink s={s} token={token} now={now} />
+                    <RemindOwner s={s} token={token} now={now} />
                 </NextBox>
             );
         case "paid":
@@ -307,6 +313,79 @@ function PayLink({ s, token, now }: { s: Submission; token: PayToken | null | un
     }
     // Paid: the payment is being recorded and the drawer moves to Paid on its own.
     return null;
+}
+
+/**
+ * The creator's nudge to an owner who has not paid (decided 2026-10-07).
+ * Share sends the pay link from the creator's own phone, as often as they
+ * like. Email has Tendso send a reminder in their name, once a day and three
+ * times in all (lib/creatorReminders.ts, enforced by convex/creatorReminders.ts).
+ * Shown while the pay link still works; the email only while the site is live.
+ */
+function RemindOwner({ s, token, now }: { s: Submission; token: PayToken | null | undefined; now: number }) {
+    const origin = useOrigin();
+    const sendReminder = useAction(api.creatorReminders.sendReminder);
+    const [sending, setSending] = useState(false);
+    if (!token || token.status !== "pending" || token.expiresAt < now) return null;
+
+    const owner = ownerOf(s);
+    const greeting = s.ownerName?.trim() ? `Hi ${s.ownerName.trim().split(/\s+/)[0]}!` : "Hi!";
+    const message = `${greeting} Your website for ${s.businessName} is ready. You can pay${s.amount ? ` ${formatMoney(s.amount)}` : ""} for it here: ${origin}/pay/${token.token}`;
+    const canEmail = s.status === "pending_payment" && !!s.ownerEmail;
+    const state = reminderState(s.creatorRemindersAt, now);
+
+    const share = async (e: MouseEvent<HTMLButtonElement>) => {
+        const button = e.currentTarget;
+        if (typeof navigator.share === "function") {
+            try {
+                await navigator.share({ text: message });
+                return;
+            } catch (err) {
+                // Closing the share sheet is not a failure; anything else falls back to copying.
+                if (err instanceof Error && err.name === "AbortError") return;
+            }
+        }
+        if (await copyText(message, button)) toast.success(`Message copied — paste it in a chat with ${owner}`);
+        else toast.error("Couldn't copy the message. Copy the pay link above instead.");
+    };
+
+    const email = async () => {
+        setSending(true);
+        try {
+            const { left } = await sendReminder({ submissionId: s._id });
+            toast.success(`Reminder sent to ${owner}. ${left === 0 ? "That was the last one for this site." : `${left} left.`}`);
+        } catch (err) {
+            toast.error(err instanceof ConvexError && typeof err.data === "string" ? err.data : "The reminder did not send. Try again in a moment.");
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const emailNote = !canEmail
+        ? null
+        : state.canSend
+          ? `Email: Tendso sends ${owner} a reminder from you. ${state.left} of ${REMINDER_LIMIT} left.`
+          : state.reason === "too-soon"
+            ? `Email: the next reminder can go from ${formatMoment(state.nextAt)}. ${state.left} of ${REMINDER_LIMIT} left.`
+            : `Email: you have sent all ${REMINDER_LIMIT} reminders for this site.`;
+
+    return (
+        <div className="flex flex-col gap-2">
+            <div className="flex flex-wrap gap-2">
+                <Button size="sm" onClick={(e) => void share(e)}>
+                    <Icon icon={Share2} />
+                    Share pay link
+                </Button>
+                {canEmail && (
+                    <Button size="sm" onClick={() => void email()} disabled={sending || !state.canSend}>
+                        <Icon icon={Mail} />
+                        {sending ? "Sending…" : "Email a reminder"}
+                    </Button>
+                )}
+            </div>
+            {emailNote && <p className="t-meta">{emailNote}</p>}
+        </div>
+    );
 }
 
 // ── The site ─────────────────────────────────────────────────────────────

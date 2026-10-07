@@ -19,6 +19,7 @@ import type * as auditLogs from "../auditLogs.js";
 import type * as booking from "../booking.js";
 import type * as businessOwners from "../businessOwners.js";
 import type * as callReminders from "../callReminders.js";
+import type * as creatorReminders from "../creatorReminders.js";
 import type * as creators from "../creators.js";
 import type * as crons from "../crons.js";
 import type * as discord from "../discord.js";
@@ -100,6 +101,7 @@ declare const fullApi: ApiFromModules<{
   booking: typeof booking;
   businessOwners: typeof businessOwners;
   callReminders: typeof callReminders;
+  creatorReminders: typeof creatorReminders;
   creators: typeof creators;
   crons: typeof crons;
   discord: typeof discord;
