@@ -160,6 +160,23 @@ export function siteUrlForSlug(slug: string): string {
 }
 
 /**
+ * The home page of the hosted site a URL points into, written the way that
+ * site's canonical writes it ("https://<slug>.sites.tendso.com/"), or null when
+ * the URL is not one of our hosted sites. For the tendso.com sitemap, which
+ * lists the featured sites under the address each one declares.
+ */
+export function hostedSiteHome(url: string | undefined | null): string | null {
+    let host: string;
+    try {
+        host = new URL((url || '').trim()).host;
+    } catch {
+        return null;
+    }
+    const slug = slugFromHost(host);
+    return slug ? `${siteUrlForSlug(slug)}/` : null;
+}
+
+/**
  * The https origin for a site's own domain, or null when it has none.
  *
  * `customDomain` is stored inconsistently — `setCustomDomainOnWebsite` writes a
