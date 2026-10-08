@@ -6,7 +6,9 @@
     "dev": "cross-env NODE_OPTIONS=--no-node-snapshot next dev",
     "build": "cd astro-site-template && npm install --omit=dev && cd .. && next build",
     "start": "next start",
-    "test": "jest",
+    "test": "npm run test:unit -- --runInBand && npm run test:convex",
+    "test:unit": "jest",
+    "test:convex": "vitest run --config vitest.convex.config.ts",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint",
@@ -58,12 +60,14 @@
     "@types/nodemailer": "^7.0.5",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "convex-test": "0.0.54",
     "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
     "jest": "^30.3.0",
     "tailwindcss": "^4.3.0",
     "ts-jest": "^29.4.9",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.6"
   }
 }

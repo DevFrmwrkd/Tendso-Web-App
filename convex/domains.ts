@@ -179,6 +179,9 @@ export const purchaseDomainForSubmission = action({
         if (!submission) {
             throw new Error('Submission not found')
         }
+        if (submission.giveawayApplication) {
+            throw new Error('Giveaway websites use a Tendso web address; custom domains are not included.')
+        }
 
         // Save the requested domain + upgrade tier
         await ctx.runMutation(internal.domains.setRequestedDomain, {
@@ -239,6 +242,11 @@ export const setRequestedDomain = internalMutation({
         domain: v.string(),
     },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId)
+        if (!submission) throw new Error('Submission not found')
+        if (submission.giveawayApplication) {
+            throw new Error('Giveaway websites use a Tendso web address; custom domains are not included.')
+        }
         await ctx.db.patch(args.submissionId, {
             requestedDomain: args.domain,
             submissionType: 'with_custom_domain',
@@ -650,6 +658,9 @@ export const setupForSubmission = internalAction({
         if (!submission) {
             console.error(`[DOMAINS] Submission ${args.submissionId} not found`)
             return
+        }
+        if (submission.giveawayApplication) {
+            throw new Error('Giveaway websites use a Tendso web address; custom domains are not included.')
         }
 
         const domain = (submission as any).requestedDomain

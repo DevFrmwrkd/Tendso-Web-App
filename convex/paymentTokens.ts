@@ -30,6 +30,10 @@ export const storePaymentToken = internalMutation({
         expiresAt: v.number(),
     },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId)
+        if (submission?.giveawayApplication) {
+            throw new Error('Giveaway applications cannot be billed. Give the website through the comped flow instead.')
+        }
         return await ctx.db.insert('paymentTokens', {
             submissionId: args.submissionId,
             token: args.token,

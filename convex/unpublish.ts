@@ -19,7 +19,7 @@ export const getOverdueSubmissions = internalQuery({
             .collect();
 
         return submissions.filter(
-            (s) => s.sentEmailAt !== undefined && s.sentEmailAt < deadline
+            (s) => !s.giveawayApplication && s.sentEmailAt !== undefined && s.sentEmailAt < deadline
         );
     },
 });
@@ -36,6 +36,8 @@ export const getOverdueSubmissions = internalQuery({
 export const markSubmissionUnpublished = internalMutation({
     args: { submissionId: v.id('submissions') },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.submissionId);
+        if (submission?.giveawayApplication) return;
         await ctx.db.patch(args.submissionId, {
             status: 'unpublished',
             unpublishedAt: Date.now(),

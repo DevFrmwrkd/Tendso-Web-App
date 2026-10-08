@@ -169,6 +169,8 @@ export default defineSchema({
         // this field — `amount` still holds the list price (what the site was
         // worth) and `creatorPayout` still holds the ₱500, because the creator
         // genuinely earned it and every payout query must keep paying it.
+        // Owner-intake giveaway applications are the exception: amount and
+        // creatorPayout are both 0 from submission, with no field creator owed.
         //
         // v.string() rather than a union, matching `status` above: the mobile
         // app shares this schema and a union here would break its deploy the
@@ -248,6 +250,14 @@ export default defineSchema({
         // 'owner_intake' is the only value, and it must never change, because
         // queries and the /admin "Owner-submitted" badge filter on the literal.
         contentSource: v.optional(v.string()),
+        // Giveaway evidence is separate from photos: each photos index is a
+        // generated-site role. Optional for compatibility with the mobile app.
+        giveawayApplication: v.optional(v.boolean()),
+        giveawayPosterPhoto: v.optional(v.string()),
+        // Frozen at intake: shared contact edits cannot erase a reservation's
+        // original applicant identity and allow a second application.
+        giveawayPhoneKey: v.optional(v.string()),
+        giveawayEmailKey: v.optional(v.string()),
 
         // ==================== PROSPECT POOL (2026-06-01 — P0 schema only) ====================
         // Links a captured interview back to the source prospect row in the
@@ -270,6 +280,7 @@ export default defineSchema({
         .index('by_airtable_sync', ['airtableSyncStatus'])
         .index('by_creator_status', ['creatorId', 'status'])
         .index('by_city', ['city'])
+        .index('by_giveaway', ['giveawayApplication'])
         .index('by_domainStatus', ['domainStatus']),
 
     // Generated websites - technical/deployment data + content (mobile branch merged websiteContent fields here)

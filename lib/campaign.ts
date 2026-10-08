@@ -13,6 +13,8 @@
  * one in their own browser.
  */
 
+import { normalizeCampaign } from "./pricing";
+
 const KEY = "tendso:campaign:v1";
 
 /** How long a scan keeps its discount. Matches what the landing page promises. */
@@ -34,8 +36,15 @@ function cleanSource(value?: string | null): string | null {
 
 export function rememberCampaign(campaign: string, source?: string | null): void {
     try {
+        const resolved = normalizeCampaign(campaign);
+        // The giveaway is an application, never a remembered discount. Clear
+        // any earlier offer when a caller supplies an unsupported campaign.
+        if (!resolved) {
+            window.localStorage.removeItem(KEY);
+            return;
+        }
         const entry: RememberedCampaign = {
-            campaign: campaign.trim().toLowerCase(),
+            campaign: resolved,
             source: cleanSource(source),
             expiresAt: Date.now() + CAMPAIGN_TTL_MS,
         };
@@ -53,12 +62,13 @@ export function readCampaign(): RememberedCampaign | null {
         if (!raw) return null;
         const entry = JSON.parse(raw) as Partial<RememberedCampaign>;
         if (typeof entry?.campaign !== "string" || typeof entry?.expiresAt !== "number") return null;
-        if (entry.expiresAt < Date.now()) {
+        const campaign = normalizeCampaign(entry.campaign);
+        if (!campaign || !Number.isFinite(entry.expiresAt) || entry.expiresAt <= Date.now()) {
             window.localStorage.removeItem(KEY);
             return null;
         }
         return {
-            campaign: entry.campaign,
+            campaign,
             source: cleanSource(entry.source ?? null),
             expiresAt: entry.expiresAt,
         };
@@ -68,7 +78,7 @@ export function readCampaign(): RememberedCampaign | null {
 }
 
 /**
- * The campaign for this page load: what the URL says, else what we remembered.
+ * The campaign hint in the URL for this page load.
  *
  * The URL wins so a fresh scan of a different placement re-stamps the source,
  * and reading it here rather than through useSearchParams keeps the page out of
@@ -84,4 +94,19 @@ export function campaignFromLocation(): { campaign: string | null; source: strin
     } catch {
         return { campaign: null, source: null };
     }
+}
+
+/** Resolve only discount campaigns. An explicit URL replaces older memory,
+ *  including giveaway links, which must always leave the ordinary quote intact. */
+export function discountCampaignForPage(): { campaign: string | null; source: string | null } {
+    const fromUrl = campaignFromLocation();
+    if (fromUrl.campaign !== null) {
+        rememberCampaign(fromUrl.campaign, fromUrl.source);
+        return { campaign: normalizeCampaign(fromUrl.campaign), source: fromUrl.source };
+    }
+    const remembered = readCampaign();
+    return {
+        campaign: remembered?.campaign ?? null,
+        source: fromUrl.source ?? remembered?.source ?? null,
+    };
 }

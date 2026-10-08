@@ -84,7 +84,7 @@ function collectSectionImageUrls(images: any): string[] {
  * Deletes a submission and all related assets across platforms:
  * 1. Cloudflare Pages deployment
  * 2. Airtable record
- * 3. R2 media files (images, audio, video)
+ * 3. R2 media files (images, audio, video, giveaway poster)
  * 4. Convex DB records (generatedWebsites, websiteContent, submission)
  * 5. Creates audit log entry
  *
@@ -247,6 +247,7 @@ export async function POST(request: NextRequest) {
                     }
                 }
                 const submissionPhotoCount = r2Refs.length
+                if (submission.giveawayPosterPhoto) r2Refs.push(submission.giveawayPosterPhoto)
 
                 // Source 2 + 2b: Submission video (both URL and storageId — mobile uses storageId)
                 if (submission.videoUrl) r2Refs.push(submission.videoUrl)

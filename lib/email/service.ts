@@ -154,6 +154,7 @@ interface IntakeReceivedEmailData {
     businessOwnerEmail: string;
     amount: number;
     platformEmail?: string;
+    giveawayApplication?: boolean;
 }
 
 /**
@@ -172,10 +173,13 @@ export async function sendIntakeReceivedEmail(data: IntakeReceivedEmailData) {
             businessOwnerName: data.businessOwnerName,
             amount: data.amount,
             platformEmail: data.platformEmail,
+            giveawayApplication: data.giveawayApplication,
         });
         return await sendEmail({
             to: data.businessOwnerEmail,
-            subject: `We got your details — building ${data.businessName}'s website now`,
+            subject: data.giveawayApplication
+                ? `We received ${data.businessName}'s free website application`
+                : `We got your details — building ${data.businessName}'s website now`,
             html,
         });
     } catch (error: any) {

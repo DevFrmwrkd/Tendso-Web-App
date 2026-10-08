@@ -49,10 +49,11 @@ export async function POST(request: NextRequest) {
             businessName: submission.businessName,
             businessOwnerName: submission.ownerName,
             businessOwnerEmail: submission.ownerEmail,
-            // The row is written with ownerTotal(BASE_PRICE, 'standard'); the
-            // fallback only covers a row that predates the amount field.
+            // The stored amount is authoritative, including zero for giveaway
+            // applications. The fallback only covers older rows.
             amount: submission.amount ?? BASE_PRICE,
             platformEmail: process.env.WISE_EMAIL,
+            giveawayApplication: submission.giveawayApplication === true,
         })
 
         return NextResponse.json({ success: true })

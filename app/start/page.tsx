@@ -41,7 +41,7 @@ import { Button, ButtonLink, FunnelHeader, Icon, Loading, PublicPage, Skeleton, 
 import { api } from "@/convex/_generated/api";
 import { INTAKE_QUESTIONS, meetsAnswerMinimum, type IntakeQuestionKey } from "@/lib/narrativeFromQa";
 import { formatPHP, normalizeCampaign } from "@/lib/pricing";
-import { campaignFromLocation, readCampaign, rememberCampaign } from "@/lib/campaign";
+import { discountCampaignForPage, rememberCampaign } from "@/lib/campaign";
 
 import { ActionBar } from "./_components/ActionBar";
 import { BasicsStep, type BasicsErrors, type GeoStatus } from "./_components/BasicsStep";
@@ -168,19 +168,9 @@ export default function StartPage() {
     const [codeEntry, setCodeEntry] = useState("");
     const [codeRejected, setCodeRejected] = useState(false);
     useEffect(() => {
-        const fromUrl = campaignFromLocation();
-        const resolved = normalizeCampaign(fromUrl.campaign);
-        if (resolved) {
-            rememberCampaign(resolved, fromUrl.source);
-            setCampaign(resolved);
-            setSource(fromUrl.source);
-            return;
-        }
-        const remembered = readCampaign();
-        if (remembered) {
-            setCampaign(remembered.campaign);
-            setSource(fromUrl.source ?? remembered.source);
-        }
+        const discount = discountCampaignForPage();
+        setCampaign(discount.campaign);
+        setSource(discount.source);
     }, []);
     // Unchanged, and called with no submissionId — the impl accepts the field
     // and ignores it (convex/r2.ts:109-142), and there is no submission yet.

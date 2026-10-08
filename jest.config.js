@@ -12,6 +12,7 @@ module.exports = {
     testEnvironment: 'node',
     roots: ['<rootDir>/__tests__'],
     testMatch: ['**/*.test.ts'],
+    testPathIgnorePatterns: ['/node_modules/', '/__tests__/giveaway/'],
     moduleNameMapper: {
         '^@/(.*)$': '<rootDir>/$1',
     },
