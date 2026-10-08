@@ -3,12 +3,13 @@ import { internalAction, mutation } from './_generated/server';
 import type { MutationCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
-import { campaignSellPrice, normalizeCampaign, ownerTotal, type SubmissionTier } from '../lib/pricing';
+import { campaignSellPrice, commissionFor, domainAddOnFor, normalizeCampaign, ownerTotal, WEBSITE_PRICE, type SubmissionTier } from '../lib/pricing';
 import { BUSINESS_TYPES } from '../lib/prospectPrefill';
 import { BLOCKED_TLDS } from './lib/hostinger';
 import { INTAKE_QUESTIONS, buildNarrativeFromQa, meetsAnswerMinimum } from '../lib/narrativeFromQa';
 import type { IntakeQuestion, QaPair } from '../lib/narrativeFromQa';
 import { assertGiveawayIdentityAvailable, GIVEAWAY_CLOSED_MESSAGE, normalizeGiveawayEmail, normalizeGiveawayPhone, readGiveaway } from './lib/giveaway';
+import { resolveAffiliateOffer } from './lib/affiliateOffer';
 
 /**
  * Owner-supplied intake — the /start funnel's single write.
@@ -493,6 +494,9 @@ export const submitOwnerIntake = mutation({
         // here, and the source is only ever stored and counted. A price posted
         // from the client would let anyone name their own.
         campaign: v.optional(v.string()),
+        // Only the handle crosses the browser boundary. The account and price
+        // are resolved here, in the transaction that freezes the owner's bill.
+        affiliateHandle: v.optional(v.string()),
         source: v.optional(v.string()),
         giveawayApplication: v.optional(v.boolean()),
         giveawayPosterPhoto: v.optional(v.string()),
@@ -566,11 +570,17 @@ export const submitOwnerIntake = mutation({
         // Resolved against the campaigns we run, so an invented one prices at
         // full price rather than failing the submission. The source is a label
         // for counting, capped and stripped of anything that is not a plain tag.
-        const campaign = giveaway ? null : normalizeCampaign(args.campaign);
+        // An explicit affiliate offer always replaces campaign pricing. A stale
+        // or unavailable handle falls back to the full website price, not OTR.
+        const hasAffiliateHandle = args.affiliateHandle !== undefined;
+        const affiliateOffer = !giveaway && hasAffiliateHandle
+            ? await resolveAffiliateOffer(ctx, args.affiliateHandle!) : null;
+        const campaign = giveaway || hasAffiliateHandle ? null : normalizeCampaign(args.campaign);
+        const websitePrice = affiliateOffer?.price ?? campaignSellPrice(campaign);
         const source = (args.source ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40) || null;
 
-        // ---- 2. The house creator. Never fall back. -----------------------
-        // Attribution for every owner-originated submission. Seeded once per
+        // ---- 2. The configured house creator, or active affiliate. --------
+        // Default attribution for owner-originated submissions. Seeded once per
         // deployment by seed/houseCreator:seedHouseCreator; the id it returns
         // goes in this env var. There is deliberately no default: guessing a
         // creator here would silently book a real person as the author of a
@@ -584,13 +594,14 @@ export const submitOwnerIntake = mutation({
         }
         // normalizeId rather than a bare cast: a stale or hand-typed value must
         // fail here with this message, not deep inside db.get.
-        const creatorId = ctx.db.normalizeId('creators', configuredCreatorId);
-        if (!creatorId || !(await ctx.db.get(creatorId))) {
+        const houseCreatorId = ctx.db.normalizeId('creators', configuredCreatorId);
+        if (!houseCreatorId || !(await ctx.db.get(houseCreatorId))) {
             throw new Error(
                 `SELF_SERVE_CREATOR_ID (${configuredCreatorId}) does not match a creators row on this deployment. ` +
                 'Re-run seed/houseCreator:seedHouseCreator — the id differs between dev and prod.',
             );
         }
+        const creatorId = affiliateOffer?.affiliate._id ?? houseCreatorId;
 
         // ---- 3. The transcript the copy generators actually need. ---------
         // Three of the four Groq branches in app/api/generate-website/route.ts
@@ -641,38 +652,26 @@ export const submitOwnerIntake = mutation({
             // it "patches whatever it hands back". One owner's shop overwriting
             // another's is a one-line mistake away.
             status: 'submitted',
-            // ₱999, or ₱1,499 when the owner asked for their own domain. Same
-            // function the creator path bills through — the flat
-            // CUSTOM_DOMAIN_ADDON, because no real registrar quote exists at
-            // intake (nobody is logged in to fetch one) and the admin re-prices
-            // through the existing domain flow if the real one differs.
-            //
-            // A campaign takes its percentage off the WEBSITE half only, which is
-            // what `campaignSellPrice` returns; the domain stays at cost because
-            // we buy it from a registrar. With the OTR campaign that is ₱3,499
-            // (30% off ₱4,999), or ₱3,999 with a domain.
-            amount: giveaway ? 0 : ownerTotal(campaignSellPrice(campaign), submissionType),
+            // websitePrice is the active affiliate's offer, the campaign price
+            // (OTR is ₱3,499), or the full list price. ownerTotal adds only the
+            // flat CUSTOM_DOMAIN_ADDON when requested: no registrar quote
+            // exists at this anonymous intake. Neither campaign discounts nor
+            // affiliate commissions include that domain pass-through.
+            amount: giveaway ? 0 : ownerTotal(websitePrice, submissionType),
+            websiteListPrice: affiliateOffer ? WEBSITE_PRICE : undefined,
             campaign: campaign ?? undefined,
             source: source ?? undefined,
-            // EXPLICIT ₱0. There is no creator to pay: creditCreatorForPayment
-            // books this straight onto the attributed creator's balance at
-            // payment time, and on this path that is the house row.
-            // Because this is a direct db.insert, the 0 is simply written — the
-            // `args.creatorPayout ?? commissionFor(BASE_PRICE)` default at
-            // convex/submissions.ts:369 is never consulted from here. That
-            // default only becomes load-bearing if anyone ever refactors this
-            // insert into a submissions.create call, at which point it must stay
-            // `??` and not `||`, or every owner sale silently re-acquires a ₱500
-            // liability.
-            creatorPayout: 0,
+            // Only an active affiliate offer earns a commission. Freeze the
+            // website-only share now; domain add-ons never enter that payout.
+            // House attribution and giveaway applications keep an explicit 0.
+            creatorPayout: affiliateOffer ? commissionFor(websitePrice) : 0,
             // ---- The custom-domain tier, written here rather than through
             // submissions.setDomainTier. Same fields and same values that
-            // mutation would produce (convex/submissions.ts:530-543; see the
-            // domainCostPHP note below for the one exception). It is NOT CALLED
-            // because it is a public ungated mutation that re-reads the creator
-            // to clamp a sell price and re-derives creatorPayout from it — on
-            // this path that would book a ₱500 payable onto the house row and
-            // undo the explicit 0 above.
+            // mutation would produce (see the domainCostPHP note below for
+            // the one exception). It is NOT CALLED because its creator pricing
+            // logic would recompute the frozen offer and commission: house
+            // orders must keep payout 0, and affiliate orders must keep the
+            // website-only share captured above.
             //
             // These two fields are the ONLY thing that makes convex/payments.ts
             // :127 schedule domains.setupForSubmission, which registers a real
@@ -687,6 +686,7 @@ export const submitOwnerIntake = mutation({
             submissionType,
             requestedDomain,
             domainStatus: wantsCustomDomain ? 'pending_payment' : 'not_requested',
+            domainChargedPHP: domainAddOnFor(submissionType),
             // domainCostPHP is setDomainTier's fifth field and is DELIBERATELY
             // left unset here. It is a quote there, but the schema (:176) and
             // domains.getTotalHostingerDomainCostsPHP (:306) both treat it as
@@ -727,8 +727,8 @@ export const submitOwnerIntake = mutation({
 
         // ---- 7. Analytics, daily + monthly. -------------------------------
         // Unchanged from submissions.ts:661-677 and correct by construction:
-        // creatorId is a real creators id. Owner volume aggregates under the
-        // house row, isolated from every real creator's dashboard.
+        // creatorId is a real creators id. Affiliate orders aggregate under
+        // their account; other owner volume stays on the house row.
         const today = new Date().toISOString().split('T')[0];
         const month = today.substring(0, 7);
         await ctx.scheduler.runAfter(0, internal.analytics.incrementStat, {

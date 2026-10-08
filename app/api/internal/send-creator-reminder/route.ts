@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
             referenceCode: token?.referenceCode ?? submission.paymentReference,
             customDomain: submission.requestedDomain || undefined,
             domainCostPHP: submission.domainCostPHP || undefined,
+            domainChargedPHP: submission.domainChargedPHP,
             websiteListPrice: submission.websiteListPrice,
         })
 

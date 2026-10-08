@@ -114,6 +114,7 @@ export async function GET(request: NextRequest) {
                 platformEmail: process.env.WISE_EMAIL,
                 customDomain,
                 domainCostPHP: (submission as any).domainCostPHP || undefined,
+                domainChargedPHP: submission.domainChargedPHP,
                 websiteListPrice: submission.websiteListPrice,
             })
         } else if (type === 'promo_free') {

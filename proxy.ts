@@ -9,6 +9,8 @@ const isPublicRoute = createRouteMatcher([
     '/signup(.*)',
     '/affiliates',
     '/affiliates/join(.*)',
+    // Affiliate links are shared with shop owners who do not have a login.
+    '/a/(.*)',
     '/forgot-password(.*)',
     '/reset-password(.*)',
     '/auth/(.*)',

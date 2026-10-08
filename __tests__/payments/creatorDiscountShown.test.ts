@@ -26,6 +26,18 @@ describe('pay page priceSplit', () => {
         expect(split.discount).toEqual({ listPrice: 4999, price: 3999, percentOff: 20 });
     });
 
+    it('keeps an affiliate website price intact when the registrar later costs more than the owner charge', () => {
+        expect(priceSplit(2499, { requestedDomain: 'shop.com', domainCostPHP: 720, domainChargedPHP: 500, websiteListPrice: 4999 })).toMatchObject({
+            addOn: 500, websiteLine: 1999, discount: { listPrice: 4999, price: 1999, percentOff: 60 },
+        });
+    });
+
+    it('keeps the website price intact when a standard intake later receives a domain at no additional charge', () => {
+        expect(priceSplit(1999, { requestedDomain: 'shop.com', domainCostPHP: 720, domainChargedPHP: 0, websiteListPrice: 4999 })).toMatchObject({
+            addOn: 0, websiteLine: 1999, discount: { price: 1999, percentOff: 60 },
+        });
+    });
+
     it('shows no discount on a sale with no frozen list price', () => {
         expect(priceSplit(999, {}).discount).toBeNull();
         expect(priceSplit(999, null).discount).toBeNull();
@@ -39,6 +51,13 @@ describe('pay page priceSplit', () => {
 const base = { businessName: 'Aling Nena Store', businessOwnerName: 'Nena', referenceCode: 'ND-ABCD-EFGH' };
 
 describe('payment link email', () => {
+    it('uses the charged domain amount instead of later registrar cost in the website discount', () => {
+        const html = getPaymentLinkEmailHtml({ ...base, amount: 2499, customDomain: 'shop.com', domainCostPHP: 720, domainChargedPHP: 500, websiteListPrice: 4999 });
+        expect(html).toContain('margin-right:8px;">₱4,999</span>₱1,999');
+        expect(html).toContain('>60% off</span>');
+        expect(html).not.toContain('₱1,779');
+    });
+
     it('strikes ₱4,999 above the total and puts the percentage under it', () => {
         const html = getPaymentLinkEmailHtml({ ...base, amount: 3999, websiteListPrice: 4999 });
         expect(html).toContain(`${STRUCK_4999}">₱4,999</span>`);
@@ -69,6 +88,13 @@ describe('payment link email', () => {
 });
 
 describe('payment follow-up email', () => {
+    it('preserves the affiliate website price for a later uncharged domain upgrade', () => {
+        const html = getPaymentFollowUpEmailHtml({ ...base, amount: 1999, customDomain: 'shop.com', domainCostPHP: 720, domainChargedPHP: 0, websiteListPrice: 4999 });
+        expect(html).toContain(`Website <span style="${STRUCK_4999}margin-right:6px;">₱4,999</span>₱1,999 · `);
+        expect(html).toContain('>60% off</span>');
+        expect(html).not.toContain('₱1,279');
+    });
+
     it('strikes ₱4,999 above the amount due and puts the percentage under it', () => {
         const html = getPaymentFollowUpEmailHtml({ ...base, amount: 2499, websiteListPrice: 4999 });
         expect(html).toContain(`${STRUCK_4999}">₱4,999</span>`);

@@ -4,18 +4,18 @@
  */
 
 import { getPaymentConfig } from '@/lib/payment/config'
-import { CUSTOM_DOMAIN_ADDON, creatorDiscount, formatPHP, type CreatorDiscount } from '@/lib/pricing'
+import { creatorDiscount, domainAddOnFor, formatPHP, type CreatorDiscount } from '@/lib/pricing'
 
 const paymentConfig = getPaymentConfig()
 
 /**
- * `amount` split into the custom domain (its real frozen price, else the flat
- * add-on) and the website, which is the rest, plus the creator's discount on
+ * `amount` split into the custom domain (the frozen owner charge, or the legacy
+ * registrar price/add-on) and the website, plus the creator's discount on
  * the website when the sale carries a list price to strike (see lib/pricing
  * creatorDiscount).
  */
-function websiteSplit(amount: number, customDomain: string, domainCostPHP: number | undefined, websiteListPrice: number | undefined) {
-    const domainLine = domainCostPHP && domainCostPHP > 0 ? domainCostPHP : CUSTOM_DOMAIN_ADDON
+function websiteSplit(amount: number, customDomain: string, domainCostPHP: number | undefined, websiteListPrice: number | undefined, domainChargedPHP?: number) {
+    const domainLine = domainAddOnFor(customDomain ? 'with_custom_domain' : 'standard', domainCostPHP, domainChargedPHP)
     const websiteLine = customDomain ? amount - domainLine : amount
     return { domainLine, websiteLine, discount: creatorDiscount(websiteLine, websiteListPrice) }
 }
@@ -411,10 +411,13 @@ export function getPaymentLinkEmailHtml(params: {
     referenceCode: string
     platformEmail?: string
     customDomain?: string
-    // The REAL frozen domain price (submissions.domainCostPHP). Used to split the
+    // The registrar cost used by legacy sales without a frozen owner charge.
+    // Used to split the
     // itemized breakdown correctly. Falls back to the flat CUSTOM_DOMAIN_ADDON
     // only for legacy submissions that predate real-domain pricing.
     domainCostPHP?: number
+    // The owner charge fixed at intake; later registrar costs cannot change it.
+    domainChargedPHP?: number
     // The list price frozen on the sale (submissions.websiteListPrice). When the
     // creator's price is below it, the email strikes it through.
     websiteListPrice?: number
@@ -437,7 +440,7 @@ export function getPaymentLinkEmailHtml(params: {
     const referenceCode = escapeHtml(params.referenceCode)
     const customDomain = escapeHtml(params.customDomain)
     // Real domain charge for the line-item split; the website-package line is the remainder.
-    const { domainLine, websiteLine, discount } = websiteSplit(amount, customDomain, domainCostPHP, params.websiteListPrice)
+    const { domainLine, websiteLine, discount } = websiteSplit(amount, customDomain, domainCostPHP, params.websiteListPrice, params.domainChargedPHP)
     const aroundTotal = discountAroundTotalHtml(discount, !!customDomain)
     const wiseEmail = escapeHtml(platformEmail || paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com')
 
@@ -1256,6 +1259,7 @@ export function getPaymentFollowUpEmailHtml(params: {
     // Only to strike a creator's discount through, split as the payment email splits it.
     customDomain?: string
     domainCostPHP?: number
+    domainChargedPHP?: number
     websiteListPrice?: number
     // The creator's first name when they asked for this reminder (the drawer's
     // "Email a reminder"). Reads as the manual follow-up, from them.
@@ -1273,7 +1277,7 @@ export function getPaymentFollowUpEmailHtml(params: {
     const businessOwnerName = escapeHtml(params.businessOwnerName)
     const websiteUrl = escapeHtml(params.websiteUrl)
     const referenceCode = escapeHtml(params.referenceCode)
-    const { discount } = websiteSplit(amount, params.customDomain ?? '', params.domainCostPHP, params.websiteListPrice)
+    const { discount } = websiteSplit(amount, params.customDomain ?? '', params.domainCostPHP, params.websiteListPrice, params.domainChargedPHP)
     // No breakdown here to carry the strike, so with a domain the website's own
     // line goes under the total.
     const aroundTotal = params.customDomain ? { above: '', below: websiteDiscountLineHtml(discount) } : discountAroundTotalHtml(discount, false)

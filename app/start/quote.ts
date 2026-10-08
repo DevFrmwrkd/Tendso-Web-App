@@ -20,9 +20,12 @@ import {
     campaignDiscountRate,
     campaignListPrice,
     campaignSellPrice,
+    clampSellPrice,
+    creatorDiscount,
     domainAddOnFor,
     normalizeCampaign,
     ownerTotal,
+    WEBSITE_PRICE,
     type SubmissionTier,
 } from "@/lib/pricing";
 
@@ -63,7 +66,7 @@ export function campaignCode(campaign: string | null | undefined): string | null
     return typed ?? key.toUpperCase();
 }
 
-export function quoteFor(campaign: string | null | undefined, wantsCustomDomain: boolean, giveaway = false): Quote {
+export function quoteFor(campaign: string | null | undefined, wantsCustomDomain: boolean, giveaway = false, affiliatePrice?: number | null): Quote {
     if (giveaway) {
         return {
             giveaway: true, tier: "standard", listPrice: 0, sellPrice: 0,
@@ -72,8 +75,12 @@ export function quoteFor(campaign: string | null | undefined, wantsCustomDomain:
         };
     }
     const tier: SubmissionTier = wantsCustomDomain ? "with_custom_domain" : "standard";
-    const listPrice = campaignListPrice(campaign);
-    const sellPrice = campaignSellPrice(campaign);
+    // A selected but unavailable affiliate offer replaces an older campaign
+    // with full price. Undefined alone means this is the ordinary campaign path.
+    const affiliate = affiliatePrice !== undefined;
+    const listPrice = affiliate ? WEBSITE_PRICE : campaignListPrice(campaign);
+    const sellPrice = affiliate ? affiliatePrice === null ? WEBSITE_PRICE : clampSellPrice(affiliatePrice) : campaignSellPrice(campaign);
+    const affiliateDiscount = affiliate ? creatorDiscount(sellPrice, listPrice) : null;
     const discounted = sellPrice !== listPrice;
     return {
         giveaway: false,
@@ -84,7 +91,40 @@ export function quoteFor(campaign: string | null | undefined, wantsCustomDomain:
         total: ownerTotal(sellPrice, tier),
         struckTotal: discounted && tier === "standard" ? listPrice : null,
         discounted,
-        code: discounted ? campaignCode(campaign) : null,
-        percentOff: Math.round(campaignDiscountRate(campaign) * 100),
+        code: discounted && !affiliate ? campaignCode(campaign) : null,
+        percentOff: affiliate ? affiliateDiscount?.percentOff ?? 0 : Math.round(campaignDiscountRate(campaign) * 100),
+    };
+}
+
+/** New receipts retain the frozen order figures, rather than consulting the
+ *  affiliate's current offer or today's domain add-on on the thanks page. */
+export function quoteForReceipt(receipt: {
+    amount: number | null;
+    campaign: string | null;
+    customDomain: boolean | null;
+    giveawayApplication?: boolean;
+    websitePrice?: number;
+    websiteListPrice?: number;
+}): Quote | null {
+    if (receipt.giveawayApplication) return quoteFor(null, false, true);
+    if (receipt.amount === null || receipt.customDomain === null) return null;
+    if (receipt.websitePrice === undefined) {
+        const legacy = quoteFor(receipt.campaign, receipt.customDomain);
+        return legacy.total === receipt.amount ? legacy : null;
+    }
+    const sellPrice = receipt.websitePrice;
+    const listPrice = receipt.websiteListPrice ?? sellPrice;
+    const addOn = receipt.amount - sellPrice;
+    if (!Number.isFinite(sellPrice) || sellPrice < 0 || !Number.isFinite(listPrice)
+        || listPrice < sellPrice || !Number.isFinite(addOn) || addOn < 0
+        || (!receipt.customDomain && addOn !== 0)) return null;
+    const tier = receipt.customDomain ? "with_custom_domain" : "standard";
+    const discount = creatorDiscount(sellPrice, listPrice);
+    return {
+        giveaway: false, tier, listPrice, sellPrice, addOn, total: receipt.amount,
+        struckTotal: discount && tier === "standard" ? listPrice : null,
+        discounted: discount !== null,
+        code: discount ? campaignCode(receipt.campaign) : null,
+        percentOff: discount?.percentOff ?? 0,
     };
 }

@@ -18,6 +18,7 @@
  */
 
 import { INTAKE_QUESTIONS, type IntakeQuestionKey } from "@/lib/narrativeFromQa";
+import type { IntakeCampaign } from "@/lib/campaign";
 
 const DRAFT_KEY = "tendso:start:draft:v1";
 /** Where the thanks page reads the address we promised to email. Session-scoped
@@ -229,6 +230,16 @@ export function resolveGiveawayDraft(
     };
 }
 
+/** A newer paid offer replaces old application intent while retaining the
+ *  owner's answers and photos. An untagged return still resumes a giveaway. */
+export function resolveIntakeDraft(draft: StartDraft, offer: IntakeCampaign, giveawayOpen: boolean): StartDraft {
+    const paidOffer = !offer.giveaway && (offer.affiliateHandle !== undefined || offer.campaign !== null);
+    return resolveGiveawayDraft(
+        draft, offer.giveaway, offer.giveaway ? offer.source : null, giveawayOpen,
+        offer.fullPrice || (draft.giveawayApplication && paidOffer),
+    );
+}
+
 export function saveDraft(draft: StartDraft): void {
     if (typeof window === "undefined") return;
     try {
@@ -268,6 +279,9 @@ export interface SubmittedReceipt {
     /** null = unknown (an older receipt), not "standard". */
     customDomain: boolean | null;
     giveawayApplication?: boolean;
+    /** Frozen website figures from the submitted row, only for receipt display. */
+    websitePrice?: number;
+    websiteListPrice?: number;
 }
 
 export function rememberSubmitted(receipt: SubmittedReceipt): void {
@@ -302,6 +316,10 @@ function parseReceipt(raw: string | null): SubmittedReceipt | null {
             campaign: stringOrNull(parsed.campaign),
             customDomain: typeof parsed.customDomain === "boolean" ? parsed.customDomain : null,
             giveawayApplication: parsed.giveawayApplication === true,
+            ...(typeof parsed.websitePrice === "number" && Number.isFinite(parsed.websitePrice) && parsed.websitePrice >= 0
+                ? { websitePrice: parsed.websitePrice } : {}),
+            ...(typeof parsed.websiteListPrice === "number" && Number.isFinite(parsed.websiteListPrice) && parsed.websiteListPrice >= 0
+                ? { websiteListPrice: parsed.websiteListPrice } : {}),
         };
     } catch {
         return null;

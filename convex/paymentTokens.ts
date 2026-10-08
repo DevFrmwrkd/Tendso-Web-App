@@ -3,6 +3,7 @@ import { v } from 'convex/values'
 import { api, internal } from './_generated/api'
 import type { Id } from './_generated/dataModel'
 import type { PaymentTokenStatus } from '../types/payment-tokens'
+import { isComped, ownerChargeFor } from '../lib/pricing'
 
 /**
  * Generate a cryptographic payment token using Web Crypto API
@@ -31,14 +32,20 @@ export const storePaymentToken = internalMutation({
     },
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.submissionId)
-        if (submission?.giveawayApplication) {
+        if (!submission) throw new Error('Submission not found')
+        if (submission.giveawayApplication) {
             throw new Error('Giveaway applications cannot be billed. Give the website through the comped flow instead.')
         }
+        if (isComped(submission)) throw new Error('Comped websites cannot be billed.')
+        // The public action retains its mobile amount argument, but the order
+        // owns the charge. A browser-created cheap token cannot settle it.
+        const amount = ownerChargeFor(submission)
+        if (!Number.isFinite(amount) || amount <= 0) throw new Error('A positive order amount is required.')
         return await ctx.db.insert('paymentTokens', {
             submissionId: args.submissionId,
             token: args.token,
             referenceCode: args.referenceCode,
-            amount: args.amount,
+            amount,
             status: 'pending' as PaymentTokenStatus,
             createdAt: args.createdAt,
             expiresAt: args.expiresAt,
@@ -73,17 +80,9 @@ export const createPaymentToken = action({
             }
         )
 
-        return {
-            _id: tokenId,
-            _creationTime: now,
-            submissionId: args.submissionId,
-            token,
-            referenceCode: args.referenceCode,
-            amount: args.amount,
-            status: 'pending' as const,
-            createdAt: now,
-            expiresAt,
-        }
+        const stored = await ctx.runQuery(internal.paymentTokens.getByTokenInternal, { token })
+        if (!stored || stored._id !== tokenId) throw new Error('Payment token was not stored')
+        return stored
     }) as any,
 })
 

@@ -35,6 +35,7 @@ export const log = internalMutation({
             v.literal('submission'),
             v.literal('creator'),
             v.literal('website'),
+            v.literal('payment'),
             v.literal('withdrawal')
         ),
         targetId: v.string(),
@@ -63,6 +64,7 @@ export const getByTarget = query({
             v.literal('submission'),
             v.literal('creator'),
             v.literal('website'),
+            v.literal('payment'),
             v.literal('withdrawal')
         ),
         targetId: v.string(),

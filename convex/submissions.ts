@@ -481,6 +481,14 @@ export const update = mutation({
 
         const submission = await ctx.db.get(id);
         if (!submission) throw new Error('Submission not found');
+        const attributedAccount = await ctx.db.get(submission.creatorId);
+        if (submission.contentSource === 'owner_intake' || attributedAccount?.role === 'affiliate') {
+            // Shared publish/transcription callers can still edit content. They
+            // cannot replace the price and commission frozen at owner intake.
+            delete filteredUpdates.amount;
+            delete filteredUpdates.creatorPayout;
+            delete filteredUpdates.platformFee;
+        }
         if (submission.giveawayApplication) {
             // An applicant's zero-price offer survives shared mobile/admin edits.
             filteredUpdates.amount = 0;
@@ -575,6 +583,9 @@ export const setDomainTier = mutation({
         await requireCreatorCallerIfSignedIn(ctx);
         const account = await ctx.db.get(submission.creatorId);
         if (account?.role === 'affiliate') throw new Error('Affiliate orders cannot use creator pricing.');
+        if (submission.contentSource === 'owner_intake' && !submission.giveawayApplication) {
+            throw new Error('Owner-intake orders cannot use creator pricing.');
+        }
 
         if (submission.giveawayApplication) {
             if (args.submissionType !== 'standard' || args.requestedDomain?.trim()) {
