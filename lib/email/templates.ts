@@ -1480,8 +1480,9 @@ export function getIntakeReceivedEmailHtml(params: {
     businessOwnerName: string
     amount: number
     platformEmail?: string
+    giveawayApplication?: boolean
 }): string {
-    const { amount, platformEmail } = params
+    const { amount, platformEmail, giveawayApplication = false } = params
     // The one template whose inputs reach us with NO admin in between (see
     // escapeHtml) — escaped at the top so no interpolation site below can be missed.
     const businessName = escapeHtml(params.businessName)
@@ -1509,7 +1510,7 @@ export function getIntakeReceivedEmailHtml(params: {
                     <tr>
                         <td style="background-color:#E4B05E;padding:32px 40px;text-align:center;">
                             <p style="margin:0 0 4px;font-size:13px;color:rgba(255,255,255,0.85);font-weight:600;letter-spacing:1px;text-transform:uppercase;">Tendso</p>
-                            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;line-height:1.25;">We got your details!</h1>
+                            <h1 style="margin:0;color:#ffffff;font-size:28px;font-weight:800;line-height:1.25;">${giveawayApplication ? 'Giveaway application received!' : 'We got your details!'}</h1>
                         </td>
                     </tr>
 
@@ -1520,7 +1521,9 @@ export function getIntakeReceivedEmailHtml(params: {
                                 Hi <strong>${businessOwnerName}</strong>,
                             </p>
                             <p style="margin:0;font-size:16px;color:#374151;line-height:1.7;">
-                                Thank you — everything you sent for <strong style="color:#E4B05E;">${businessName}</strong> arrived safely, and we have started building your website.
+                                ${giveawayApplication
+                                    ? `Thank you — we received your giveaway application for <strong style="color:#E4B05E;">${businessName}</strong>. Your slot is held while we review your eligibility and poster photo.`
+                                    : `Thank you — everything you sent for <strong style="color:#E4B05E;">${businessName}</strong> arrived safely, and we have started building your website.`}
                             </p>
                         </td>
                     </tr>
@@ -1531,9 +1534,9 @@ export function getIntakeReceivedEmailHtml(params: {
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color:#f0fdf4;border:2px solid #bbf7d0;border-radius:12px;">
                                 <tr>
                                     <td style="padding:24px;text-align:center;">
-                                        <p style="margin:0 0 4px;font-size:14px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Your Website Will Be Ready In</p>
+                                        <p style="margin:0 0 4px;font-size:14px;color:#6b7280;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">${giveawayApplication ? 'We Aim To Review Your Application In' : 'Your Website Will Be Ready In'}</p>
                                         <p style="margin:0;font-size:40px;color:#C89548;font-weight:800;">48&ndash;72 hours</p>
-                                        <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">We will email you the moment it is done.</p>
+                                        <p style="margin:6px 0 0;font-size:12px;color:#6b7280;">${giveawayApplication ? 'We will email you when your application has been reviewed.' : 'We will email you the moment it is done.'}</p>
                                     </td>
                                 </tr>
                             </table>
@@ -1549,21 +1552,21 @@ export function getIntakeReceivedEmailHtml(params: {
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:12px;">
                                 <tr>
                                     <td valign="top" width="36"><div style="width:28px;height:28px;background-color:#E4B05E;border-radius:50%;text-align:center;line-height:28px;color:#ffffff;font-weight:800;font-size:14px;">1</div></td>
-                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Our team builds your website from the answers and photos you sent. <strong>Nothing else is needed from you right now.</strong></p></td>
+                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">${giveawayApplication ? 'Our team checks your business details and poster photo to confirm eligibility.' : 'Our team builds your website from the answers and photos you sent.'} <strong>Nothing else is needed from you right now.</strong></p></td>
                                 </tr>
                             </table>
                             <!-- Step 2 -->
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:12px;">
                                 <tr>
                                     <td valign="top" width="36"><div style="width:28px;height:28px;background-color:#E4B05E;border-radius:50%;text-align:center;line-height:28px;color:#ffffff;font-weight:800;font-size:14px;">2</div></td>
-                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">Within <strong>48&ndash;72 hours</strong> we email you the <strong>link to your finished website</strong>, so you can open it and see it for yourself.</p></td>
+                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">${giveawayApplication ? 'If your application is eligible, we build your free website and email you the link when it is ready.' : 'Within <strong>48&ndash;72 hours</strong> we email you the <strong>link to your finished website</strong>, so you can open it and see it for yourself.'}</p></td>
                                 </tr>
                             </table>
                             <!-- Step 3 -->
                             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
                                     <td valign="top" width="36"><div style="width:28px;height:28px;background-color:#E4B05E;border-radius:50%;text-align:center;line-height:28px;color:#ffffff;font-weight:800;font-size:14px;">3</div></td>
-                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">That same email carries the payment instructions — <strong>₱${amount.toLocaleString('en-PH')}</strong>, payable from GCash, Maya, or any bank app.</p></td>
+                                    <td style="padding-left:10px;"><p style="margin:0;font-size:15px;color:#374151;line-height:1.6;">${giveawayApplication ? 'Your free website includes a <strong>Tendso web address</strong>. Custom domains are not included.' : `That same email carries the payment instructions — <strong>₱${amount.toLocaleString('en-PH')}</strong>, payable from GCash, Maya, or any bank app.`}</p></td>
                                 </tr>
                             </table>
                         </td>
@@ -1574,7 +1577,7 @@ export function getIntakeReceivedEmailHtml(params: {
                         <td style="padding:0 40px 24px;">
                             <div style="padding:16px 20px;background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;">
                                 <p style="margin:0;font-size:15px;color:#1e40af;line-height:1.6;">
-                                    💡 <strong>Nothing to pay today.</strong> The price is <strong>₱${amount.toLocaleString('en-PH')}</strong>, one time — no monthly fees, no contract — and you only pay after you have seen your finished website.
+                                    ${giveawayApplication ? '<strong>If eligible, your website is free — nothing to pay.</strong> Your application is awaiting eligibility review.' : `💡 <strong>Nothing to pay today.</strong> The price is <strong>₱${amount.toLocaleString('en-PH')}</strong>, one time — no monthly fees, no contract — and you only pay after you have seen your finished website.`}
                                 </p>
                             </div>
                         </td>

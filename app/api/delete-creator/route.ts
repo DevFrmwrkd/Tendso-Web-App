@@ -29,6 +29,7 @@ function collectR2UrlsFromSubmission(submission: any): string[] {
     }
     if (submission.videoUrl && submission.videoUrl.startsWith('http')) urls.push(submission.videoUrl)
     if (submission.audioUrl && submission.audioUrl.startsWith('http')) urls.push(submission.audioUrl)
+    if (submission.giveawayPosterPhoto) urls.push(submission.giveawayPosterPhoto)
 
     return urls
 }

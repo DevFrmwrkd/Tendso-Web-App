@@ -69,6 +69,7 @@ export const REFERRAL_BONUS = 1000;
  *
  * The keys are the only values the server accepts. Anything else is no campaign
  * at all, which is what makes it safe for the discount to arrive from a URL.
+ * Giveaway applications are handled separately and never belong in this table.
  */
 export const CAMPAIGN_DISCOUNTS: Record<string, number> = {
     /** Off The Record: viewers scan a QR in the episode and in stores. */
@@ -101,8 +102,9 @@ export function normalizeCampaign(value?: string | null): string | null {
     const trimmed = value.trim();
     if (!trimmed) return null;
     const lower = trimmed.toLowerCase();
-    if (lower in CAMPAIGN_DISCOUNTS) return lower;
-    const fromCode = CAMPAIGN_CODES[trimmed.toUpperCase()];
+    if (Object.prototype.hasOwnProperty.call(CAMPAIGN_DISCOUNTS, lower)) return lower;
+    const code = trimmed.toUpperCase();
+    const fromCode = Object.prototype.hasOwnProperty.call(CAMPAIGN_CODES, code) ? CAMPAIGN_CODES[code] : null;
     return fromCode ?? null;
 }
 
@@ -164,9 +166,9 @@ export function isComped(row: { pricingMode?: string | null } | null | undefined
 
 /**
  * What the owner was actually charged — ₱0 for a promo site, otherwise the
- * submission's stored total. `amount` deliberately keeps the list price on a
- * comped row (it is what the site was worth, and the creator's commission is
- * derived from it), so revenue readers must go through this rather than
+ * submission's stored total. Creator-led comped rows keep the list price in
+ * `amount` (the creator's commission is derived from it); owner-intake giveaway
+ * rows use 0 from submission. Revenue readers must go through this rather than
  * reading `amount` directly.
  */
 export function ownerChargeFor(

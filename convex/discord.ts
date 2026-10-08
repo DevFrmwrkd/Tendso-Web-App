@@ -22,6 +22,37 @@ import { internal } from './_generated/api';
 
 const DISCORD_API = 'https://discord.com/api/v10';
 
+/** Operational giveaway alerts use the existing bot and approvals channel by default. */
+export const notifyGiveawayMilestone = internalAction({
+    args: {
+        milestone: v.union(v.literal('all_held'), v.literal('all_given')),
+        held: v.number(),
+        given: v.number(),
+        cap: v.number(),
+    },
+    handler: async (_ctx, args) => {
+        const botToken = process.env.DISCORD_BOT_TOKEN;
+        const channelId = process.env.DISCORD_GIVEAWAY_ALERTS_CHANNEL_ID || process.env.DISCORD_PENDING_APPROVALS_CHANNEL_ID;
+        const content = args.milestone === 'all_held'
+            ? `All ${args.cap} free website giveaway slots are held (${args.given} given). Applications have closed while supplies last.`
+            : `The 100th free website has been given! Giveaway totals: ${args.given} given, ${args.held}/${args.cap} slots held.`;
+        if (!botToken || !channelId) {
+            console.warn(`[GIVEAWAY] Discord alert not delivered: ${content}`);
+            return;
+        }
+        try {
+            const response = await fetch(`${DISCORD_API}/channels/${channelId}/messages`, {
+                method: 'POST',
+                headers: { Authorization: `Bot ${botToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content, allowed_mentions: { parse: [] } }),
+            });
+            if (!response.ok) console.error(`[GIVEAWAY] Discord alert failed (${response.status}): ${(await response.text()).slice(0, 300)}`);
+        } catch (error) {
+            console.error('[GIVEAWAY] Discord alert failed:', error);
+        }
+    },
+});
+
 /** Register (or refresh) the /ask slash command. Guild-scoped if DISCORD_GUILD_ID is set (instant), else global. */
 export const registerCommands = internalAction({
     args: {},

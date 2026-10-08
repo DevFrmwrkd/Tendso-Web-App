@@ -43,7 +43,16 @@ export const creditCreatorForPayment = internalMutation({
         // never accidentally re-classify one as a real sale.
         const comped = args.comped === true || isComped(submission as any)
 
-        const payoutAmount = submission.creatorPayout ?? 0
+        if (submission.giveawayApplication) {
+            // Only admin.markComped can turn a held application into a given
+            // site. A paid webhook or legacy caller cannot settle it first.
+            if (!isComped(submission)) throw new Error('Giveaway websites must be comped, not marked paid.')
+            // An admin can reject while this scheduled credit is pending. Do
+            // not revive the row and silently reacquire its released slot.
+            if (submission.status === 'rejected') return
+        }
+
+        const payoutAmount = submission.giveawayApplication ? 0 : submission.creatorPayout ?? 0
 
         // 1. Update submission status
         await ctx.db.patch(args.submissionId, {

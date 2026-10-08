@@ -41,6 +41,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
         }
 
+        if (submission.giveawayApplication) {
+            return NextResponse.json({ error: 'Giveaway websites are free. Use Give Free to send the owner their website.' }, { status: 400 })
+        }
+
         if (!submission.ownerEmail) {
             return NextResponse.json({ error: 'Business owner email not found' }, { status: 400 })
         }

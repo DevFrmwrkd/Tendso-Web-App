@@ -4,6 +4,7 @@ import type { MutationCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
 import { BASE_PRICE, PRICE_CEILING, WEBSITE_PRICE, STANDARD_PRICE, COMMISSION_RATE, CUSTOM_DOMAIN_ADDON, clampSellPrice, commissionFor, ownerTotal, domainAddOnFor, isComped, ownerChargeFor } from '../lib/pricing';
+import { assertGiveawayCanActivate, assertGiveawayIdentityAvailable, normalizeGiveawayEmail, normalizeGiveawayPhone, readGiveaway } from './lib/giveaway';
 
 // ==================== QUERIES ====================
 
@@ -453,6 +454,27 @@ export const update = mutation({
             Object.entries(updates).filter(([, value]) => value !== undefined)
         );
 
+        const submission = await ctx.db.get(id);
+        if (!submission) throw new Error('Submission not found');
+        if (submission.giveawayApplication) {
+            // An applicant's zero-price offer survives shared mobile/admin edits.
+            filteredUpdates.amount = 0;
+            filteredUpdates.creatorPayout = 0;
+            filteredUpdates.platformFee = 0;
+            filteredUpdates.giveawayPhoneKey = submission.giveawayPhoneKey ?? normalizeGiveawayPhone(submission.ownerPhone);
+            if (submission.ownerEmail) {
+                filteredUpdates.giveawayEmailKey = submission.giveawayEmailKey ?? normalizeGiveawayEmail(submission.ownerEmail);
+            }
+            if (submission.status !== 'rejected' &&
+                (updates.ownerPhone !== undefined || updates.ownerEmail !== undefined)) {
+                const giveaway = await readGiveaway(ctx);
+                assertGiveawayIdentityAvailable(giveaway.applications, {
+                    ownerPhone: updates.ownerPhone ?? submission.ownerPhone,
+                    ownerEmail: updates.ownerEmail ?? submission.ownerEmail,
+                }, id);
+            }
+        }
+
         if (prospectLeadId) {
             const existing = await ctx.db.get(id);
             // Only ever SET the link — never overwrite one that's already there.
@@ -530,6 +552,24 @@ export const setDomainTier = mutation({
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
 
+        if (submission.giveawayApplication) {
+            if (args.submissionType !== 'standard' || args.requestedDomain?.trim()) {
+                throw new Error('Giveaway websites use a Tendso web address; custom domains are not included.');
+            }
+            await ctx.db.patch(args.id, {
+                submissionType: 'standard',
+                amount: 0,
+                creatorPayout: 0,
+                platformFee: 0,
+                campaign: undefined,
+                websiteListPrice: undefined,
+                requestedDomain: undefined,
+                domainCostPHP: undefined,
+                domainStatus: 'not_requested',
+            });
+            return;
+        }
+
         // Determine amount based on tier
         const isWithDomain = args.submissionType === 'with_custom_domain';
         if (isWithDomain && !args.requestedDomain) {
@@ -593,6 +633,13 @@ export const updateStatus = mutation({
         ),
     },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.id);
+        if (!submission) throw new Error('Submission not found');
+        if (submission.giveawayApplication && !isComped(submission) &&
+            (args.status === 'paid' || args.status === 'completed' || args.status === 'pending_payment')) {
+            throw new Error('Giveaway websites must be given away rather than marked paid.');
+        }
+        if (args.status !== 'rejected') await assertGiveawayCanActivate(ctx, submission);
         await ctx.db.patch(args.id, { status: args.status });
     },
 });
@@ -609,6 +656,9 @@ export const updateStatus = mutation({
 export const setUnpublished = mutation({
     args: { id: v.id('submissions') },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.id);
+        if (!submission) throw new Error('Submission not found');
+        await assertGiveawayCanActivate(ctx, submission);
         await ctx.db.patch(args.id, {
             status: 'unpublished',
             unpublishedAt: Date.now(),
@@ -738,6 +788,9 @@ export const saveWebsite = mutation({
         websiteCode: v.string(),
     },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.id);
+        if (!submission) throw new Error('Submission not found');
+        await assertGiveawayCanActivate(ctx, submission);
         await ctx.db.patch(args.id, {
             websiteUrl: args.websiteUrl,
             websiteCode: args.websiteCode,
@@ -755,6 +808,11 @@ export const markPaid = mutation({
         paymentReference: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const submission = await ctx.db.get(args.id);
+        if (!submission) throw new Error('Submission not found');
+        if (submission.giveawayApplication) {
+            throw new Error('Giveaway websites must be given away rather than marked paid.');
+        }
         await ctx.db.patch(args.id, {
             status: 'paid',
             paymentReference: args.paymentReference,
@@ -798,7 +856,11 @@ export const markPayoutComplete = mutation({
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
 
+        if (submission.giveawayApplication && !isComped(submission)) {
+            throw new Error('Give the giveaway website away before completing its payout.');
+        }
         // Update submission
+        await assertGiveawayCanActivate(ctx, submission);
         await ctx.db.patch(args.id, {
             creatorPaidAt: Date.now(),
             status: 'completed',

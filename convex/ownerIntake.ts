@@ -8,6 +8,7 @@ import { BUSINESS_TYPES } from '../lib/prospectPrefill';
 import { BLOCKED_TLDS } from './lib/hostinger';
 import { INTAKE_QUESTIONS, buildNarrativeFromQa, meetsAnswerMinimum } from '../lib/narrativeFromQa';
 import type { IntakeQuestion, QaPair } from '../lib/narrativeFromQa';
+import { assertGiveawayIdentityAvailable, GIVEAWAY_CLOSED_MESSAGE, normalizeGiveawayEmail, normalizeGiveawayPhone, readGiveaway } from './lib/giveaway';
 
 /**
  * Owner-supplied intake — the /start funnel's single write.
@@ -493,8 +494,14 @@ export const submitOwnerIntake = mutation({
         // from the client would let anyone name their own.
         campaign: v.optional(v.string()),
         source: v.optional(v.string()),
+        giveawayApplication: v.optional(v.boolean()),
+        giveawayPosterPhoto: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        // Check availability inside this transaction, never trust the public
+        // query the owner saw before completing the form.
+        const giveaway = args.giveawayApplication === true ? await readGiveaway(ctx) : null;
+        if (giveaway && !giveaway.open) reject(GIVEAWAY_CLOSED_MESSAGE);
         // ---- 1. Revalidate everything. The client is a stranger. ----------
         const businessName = requireText(args.businessName, 'Business name', MAX_BUSINESS_NAME);
         const businessType = requireText(args.businessType, 'Business type', MAX_BUSINESS_TYPE);
@@ -511,6 +518,13 @@ export const submitOwnerIntake = mutation({
 
         const ownerEmail = requireText(args.ownerEmail, 'Email address', MAX_OWNER_EMAIL);
         if (!EMAIL_PATTERN.test(ownerEmail)) reject('That email address does not look right.');
+        if (giveaway) {
+            if (!/^\d{10}$/.test(normalizeGiveawayPhone(ownerPhone))) reject('Please enter a valid Philippine phone number.');
+            assertGiveawayIdentityAvailable(giveaway.applications, { ownerPhone, ownerEmail });
+            if (args.submissionType === 'with_custom_domain' || args.requestedDomain?.trim()) {
+                reject('Giveaway websites use a Tendso web address. Custom domains are not included.');
+            }
+        }
 
         // Non-finite or out-of-range coordinates would survive v.number() and
         // then poison the map embed and the LocalBusiness structured data.
@@ -539,13 +553,20 @@ export const submitOwnerIntake = mutation({
         const r2PublicUrl = process.env.R2_PUBLIC_URL;
         if (!r2PublicUrl) throw new Error('R2_PUBLIC_URL not configured');
         const photos = normalizePhotos(args.photos, r2PublicUrl.replace(/\/$/, ''));
+        let giveawayPosterPhoto: string | undefined;
+        if (giveaway) {
+            giveawayPosterPhoto = requireText(args.giveawayPosterPhoto ?? '', 'Poster photo', 2048);
+            if (!giveawayPosterPhoto.startsWith(`${r2PublicUrl.replace(/\/$/, '')}/`)) {
+                reject('The poster photo must be uploaded through this form.');
+            }
+        }
 
         const interviewQa = normalizeQa(args.qa);
 
         // Resolved against the campaigns we run, so an invented one prices at
         // full price rather than failing the submission. The source is a label
         // for counting, capped and stripped of anything that is not a plain tag.
-        const campaign = normalizeCampaign(args.campaign);
+        const campaign = giveaway ? null : normalizeCampaign(args.campaign);
         const source = (args.source ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 40) || null;
 
         // ---- 2. The house creator. Never fall back. -----------------------
@@ -609,6 +630,10 @@ export const submitOwnerIntake = mutation({
             photos,
             transcript,
             interviewQa,
+            giveawayApplication: giveaway ? true : undefined,
+            giveawayPosterPhoto,
+            giveawayPhoneKey: giveaway ? normalizeGiveawayPhone(ownerPhone) : undefined,
+            giveawayEmailKey: giveaway ? normalizeGiveawayEmail(ownerEmail) : undefined,
             // Never 'draft'. Under the house creator a stray draft is inert in
             // the sense that nobody can log in as that row — but
             // getDraftByCreatorId returns a creator's newest draft with NO
@@ -626,7 +651,7 @@ export const submitOwnerIntake = mutation({
             // what `campaignSellPrice` returns; the domain stays at cost because
             // we buy it from a registrar. With the OTR campaign that is ₱3,499
             // (30% off ₱4,999), or ₱3,999 with a domain.
-            amount: ownerTotal(campaignSellPrice(campaign), submissionType),
+            amount: giveaway ? 0 : ownerTotal(campaignSellPrice(campaign), submissionType),
             campaign: campaign ?? undefined,
             source: source ?? undefined,
             // EXPLICIT ₱0. There is no creator to pay: creditCreatorForPayment
@@ -678,6 +703,12 @@ export const submitOwnerIntake = mutation({
             airtableSyncStatus: 'pending_push',
             contentSource: 'owner_intake',
         });
+
+        if (giveaway && giveaway.held + 1 === giveaway.config.cap) {
+            await ctx.scheduler.runAfter(0, internal.discord.notifyGiveawayMilestone, {
+                milestone: 'all_held', held: giveaway.held + 1, given: giveaway.given, cap: giveaway.config.cap,
+            });
+        }
 
         // ---- 6. Lead row. -------------------------------------------------
         // Mirrors submissions.ts:648-659. The prospect-reconciliation branch

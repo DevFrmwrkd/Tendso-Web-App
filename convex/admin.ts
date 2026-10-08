@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { PRICING_MODE_COMPED, isComped } from '../lib/pricing';
+import { assertGiveawayCanActivate, readGiveaway } from './lib/giveaway';
 
 // ==================== QUERIES ====================
 
@@ -151,6 +152,7 @@ export const approveSubmission = mutation({
         const previousStatus = submission.status;
 
         // Update submission status
+        await assertGiveawayCanActivate(ctx, submission);
         await ctx.db.patch(args.submissionId, {
             status: 'approved',
             reviewedBy: args.adminId,
@@ -295,6 +297,7 @@ export const markWebsiteGenerated = mutation({
 
         const updates: Record<string, unknown> = { status: 'website_generated' };
         if (args.websiteUrl) updates.websiteUrl = args.websiteUrl;
+        await assertGiveawayCanActivate(ctx, submission);
         await ctx.db.patch(args.submissionId, updates);
 
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
@@ -365,6 +368,7 @@ export const markDeployed = mutation({
         // Update submission status
         const updates: any = { status: 'deployed' };
         if (resolvedUrl) updates.websiteUrl = resolvedUrl;
+        await assertGiveawayCanActivate(ctx, submission);
         await ctx.db.patch(args.submissionId, updates);
 
         // Audit log
@@ -435,6 +439,12 @@ export const markPaid = mutation({
             .first();
         if (!actor || actor.role !== 'admin') throw new Error('Forbidden: admin access required');
 
+        const submission = await ctx.db.get(args.submissionId);
+        if (!submission) throw new Error('Submission not found');
+        if (submission.giveawayApplication) {
+            throw new Error('Giveaway websites must be given away rather than marked paid.');
+        }
+
         // Delegate to shared credit logic (also used by auto-payment webhook)
         await ctx.scheduler.runAfter(0, internal.payments.creditCreatorForPayment, {
             submissionId: args.submissionId,
@@ -485,6 +495,8 @@ export const markComped = mutation({
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
+        if (isComped(submission)) return args.submissionId;
+
         // Same double-pay guard creditCreatorForPayment applies, surfaced here
         // so the admin gets a real message instead of a silent no-op.
         if (submission.status === 'completed' || submission.creatorPaidAt) {
@@ -510,6 +522,11 @@ export const markComped = mutation({
             throw new Error('Generate the website before giving it away — there is nothing to hand over yet.');
         }
 
+        await assertGiveawayCanActivate(ctx, submission);
+        const giveawayBefore = submission.giveawayApplication && !isComped(submission)
+            ? await readGiveaway(ctx)
+            : null;
+
         // Written BEFORE the credit is scheduled, so creditCreatorForPayment
         // reads 'comped' off the row itself and cannot mistake this for a sale
         // even if the flag it is passed were ever dropped.
@@ -518,7 +535,29 @@ export const markComped = mutation({
             compedBy: args.adminId,
             compedAt: Date.now(),
             compedReason: args.reason?.trim() || undefined,
+            ...(submission.giveawayApplication ? {
+                amount: 0,
+                creatorPayout: 0,
+                platformFee: 0,
+                campaign: undefined,
+                websiteListPrice: undefined,
+                // Reacquire a released slot within this mutation, before the
+                // asynchronous credit can complete the submission.
+                ...(submission.status === 'rejected' ? { status: 'website_generated' } : {}),
+            } : {}),
         } as any);
+
+        if (giveawayBefore) {
+            const giveawayAfter = await readGiveaway(ctx);
+            if (giveawayBefore.given < 100 && giveawayAfter.given >= 100) {
+                await ctx.scheduler.runAfter(0, internal.discord.notifyGiveawayMilestone, {
+                    milestone: 'all_given',
+                    held: giveawayAfter.held,
+                    given: giveawayAfter.given,
+                    cap: giveawayAfter.config.cap,
+                });
+            }
+        }
 
         await ctx.scheduler.runAfter(0, internal.payments.creditCreatorForPayment, {
             submissionId: args.submissionId,
@@ -595,6 +634,10 @@ export const markEmailSent = mutation({
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
+
+        if (submission.giveawayApplication) {
+            throw new Error('Giveaway applications do not require a payment email. Give the website away instead.');
+        }
 
         await ctx.db.patch(args.submissionId, {
             status: 'pending_payment',
@@ -924,6 +967,10 @@ export const markPayoutPaid = mutation({
         const submission = await ctx.db.get(args.submissionId);
         if (!submission) throw new Error('Submission not found');
 
+        if (submission.giveawayApplication && !isComped(submission)) {
+            throw new Error('Give the giveaway website away before completing its payout.');
+        }
+        await assertGiveawayCanActivate(ctx, submission);
         await ctx.db.patch(args.submissionId, {
             creatorPaidAt: Date.now(),
             status: 'completed',
@@ -1071,6 +1118,12 @@ export const bulkMarkPayoutsPaid = mutation({
         const now = Date.now();
 
         for (const id of args.submissionIds) {
+            const submission = await ctx.db.get(id);
+            if (!submission) throw new Error('Submission not found');
+            if (submission.giveawayApplication && !isComped(submission)) {
+                throw new Error('Give the giveaway website away before completing its payout.');
+            }
+            await assertGiveawayCanActivate(ctx, submission);
             await ctx.db.patch(id, {
                 creatorPaidAt: now,
                 status: 'completed',

@@ -1,5 +1,8 @@
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
+import { requireAdmin } from './lib/auth';
+import { readGiveaway, validateGiveawayConfig } from './lib/giveaway';
+import { internal } from './_generated/api';
 
 // ==================== QUERIES ====================
 
@@ -45,6 +48,27 @@ export const set = mutation({
         adminId: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        let value = args.value;
+        let updatedBy = args.adminId;
+        // This setting controls an entitlement, so anonymous callers must not
+        // be able to enable it or raise its cap. Other settings keep their API.
+        if (args.key === 'giveaway') {
+            const { identity } = await requireAdmin(ctx);
+            updatedBy = identity.subject;
+            const config = validateGiveawayConfig(value);
+            value = config;
+            const previous = await readGiveaway(ctx);
+            if (config.endsAt !== undefined && config.endsAt > Date.now()) {
+                await ctx.scheduler.runAt(config.endsAt, internal.giveaway.expireGiveaway, { endsAt: config.endsAt });
+            }
+            // Reducing the cap or enabling a full allocation also closes it.
+            if (config.enabled && previous.held >= config.cap &&
+                (!previous.config.enabled || previous.held < previous.config.cap)) {
+                await ctx.scheduler.runAfter(0, internal.discord.notifyGiveawayMilestone, {
+                    milestone: 'all_held', held: previous.held, given: previous.given, cap: config.cap,
+                });
+            }
+        }
         const existing = await ctx.db
             .query('settings')
             .withIndex('by_key', (q) => q.eq('key', args.key))
@@ -52,20 +76,20 @@ export const set = mutation({
 
         if (existing) {
             await ctx.db.patch(existing._id, {
-                value: args.value,
+                value,
                 description: args.description ?? existing.description,
                 updatedAt: Date.now(),
-                updatedBy: args.adminId,
+                updatedBy,
             });
             return existing._id;
         }
 
         return await ctx.db.insert('settings', {
             key: args.key,
-            value: args.value,
+            value,
             description: args.description,
             updatedAt: Date.now(),
-            updatedBy: args.adminId,
+            updatedBy,
         });
     },
 });
@@ -76,6 +100,7 @@ export const set = mutation({
 export const remove = mutation({
     args: { key: v.string() },
     handler: async (ctx, args) => {
+        if (args.key === 'giveaway') await requireAdmin(ctx);
         const setting = await ctx.db
             .query('settings')
             .withIndex('by_key', (q) => q.eq('key', args.key))
