@@ -112,7 +112,7 @@ export function EnterCodeDialog({
             }
         >
             {done ? (
-                <p>The creator who invited you now gets the credit.</p>
+                <p>The person who invited you now gets the credit.</p>
             ) : (
                 <form
                     id={formId}
@@ -123,8 +123,8 @@ export function EnterCodeDialog({
                         void apply();
                     }}
                 >
-                    <p>If another creator invited you, add their code so they get the credit. You can add one code, once.</p>
-                    <Field label="Invite code" help="Letters and numbers, as the creator sent it." error={error ?? undefined}>
+                    <p>If a creator or affiliate invited you, add their code so they get the credit. You can add one code, once.</p>
+                    <Field label="Invite code" help="Letters and numbers, as they sent it." error={error ?? undefined}>
                         <Input
                             ref={inputRef}
                             type="text"

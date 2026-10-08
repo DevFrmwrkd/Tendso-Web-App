@@ -16,7 +16,7 @@
 import { v } from "convex/values";
 import { action, internalMutation, mutation, query } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { requireAuth } from "./lib/auth";
+import { requireCreatorAccount } from "./lib/auth";
 import type { Id } from "./_generated/dataModel";
 import { bucketCategory } from "./lib/quality";
 import { latLngToH3Cells } from "./lib/h3";
@@ -136,12 +136,7 @@ export const scrapeNearby = action({
         limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
-        const identity = await requireAuth(ctx);
-        // Resolve creator record via internal query — actions can't ctx.db.
-        const me = (await ctx.runQuery(internal.creators.getMeForAuthInternal, {
-            clerkId: identity.subject,
-        })) as { _id: any; clerkId: string } | null;
-        if (!me) throw new Error("No creator record found for this account.");
+        const { me } = await requireCreatorAccount(ctx);
 
         const apiKey = process.env.OUTSCRAPER_API_KEY;
         if (!apiKey) {
@@ -782,7 +777,7 @@ export const listScrapedLeads = query({
         limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
-        await requireAuth(ctx);
+        await requireCreatorAccount(ctx);
 
         const all = await ctx.db.query("leads").collect();
         // `!l.submissionId` drops prospects that have already been interviewed —
@@ -879,7 +874,7 @@ export const listScrapedLeads = query({
 export const claimProspect = mutation({
     args: { leadId: v.id('leads') },
     handler: async (ctx, args) => {
-        const identity = await requireAuth(ctx);
+        const { me: creator } = await requireCreatorAccount(ctx);
         const lead = await ctx.db.get(args.leadId);
         if (!lead) throw new Error('Lead not found');
         if (lead.source !== 'outscraper') {
@@ -888,12 +883,6 @@ export const claimProspect = mutation({
         if (lead.submissionId) {
             throw new Error('This prospect has already been interviewed');
         }
-
-        const creator = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-            .first();
-        if (!creator) throw new Error('Creator profile not found');
 
         await ctx.db.patch(args.leadId, {
             claimedByCreatorId: creator._id,
@@ -909,15 +898,9 @@ export const claimProspect = mutation({
 export const releaseProspect = mutation({
     args: { leadId: v.id('leads') },
     handler: async (ctx, args) => {
-        const identity = await requireAuth(ctx);
+        const { me: creator } = await requireCreatorAccount(ctx);
         const lead = await ctx.db.get(args.leadId);
         if (!lead) throw new Error('Lead not found');
-
-        const creator = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-            .first();
-        if (!creator) throw new Error('Creator profile not found');
 
         const isAdmin = creator.role === 'admin';
         if (!isAdmin && String((lead as any).claimedByCreatorId) !== String(creator._id)) {
@@ -939,7 +922,7 @@ export const releaseProspect = mutation({
 export const getProspect = query({
     args: { leadId: v.id('leads') },
     handler: async (ctx, args) => {
-        await requireAuth(ctx);
+        await requireCreatorAccount(ctx);
         const lead = await ctx.db.get(args.leadId);
         if (!lead || lead.source !== 'outscraper') return null;
 

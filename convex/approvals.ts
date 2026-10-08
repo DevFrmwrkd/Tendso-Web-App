@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { internalAction, internalMutation, internalQuery } from './_generated/server';
 import { internal } from './_generated/api';
 import type { Doc, Id } from './_generated/dataModel';
+import { isCreatorAccount } from '../lib/accounts';
 
 /**
  * Discord "new creator approval" loop.
@@ -61,6 +62,8 @@ function displayName(creator: Pick<Doc<'creators'>, 'firstName' | 'lastName' | '
 export const claimForPost = internalMutation({
     args: { creatorId: v.id('creators'), quizPassedAt: v.number() },
     handler: async (ctx, args): Promise<Id<'approvalRequests'> | null> => {
+        const creator = await ctx.db.get(args.creatorId);
+        if (!isCreatorAccount(creator) || creator?.isDeleted || creator?.status === 'suspended' || creator?.status === 'deleted') return null;
         const rows = await ctx.db
             .query('approvalRequests')
             .withIndex('by_creator', (q) => q.eq('creatorId', args.creatorId))
@@ -124,7 +127,7 @@ export const listPendingCreators = internalQuery({
     handler: async (ctx) => {
         const all = await ctx.db.query('creators').collect();
         return all
-            .filter((c) => c.quizPassedAt && !c.certifiedAt && !c.rejectedAt && !c.isDeleted)
+            .filter((c) => isCreatorAccount(c) && c.quizPassedAt && !c.certifiedAt && !c.rejectedAt && !c.isDeleted && c.status !== 'deleted' && c.status !== 'suspended')
             .map((c) => ({ _id: c._id }));
     },
 });
@@ -227,7 +230,7 @@ export const createAndPost = internalAction({
         if (!creator) return;
         // Only post creators genuinely awaiting approval.
         const quizPassedAt = creator.quizPassedAt;
-        if (!quizPassedAt || creator.certifiedAt || creator.rejectedAt || creator.isDeleted) return;
+        if (!isCreatorAccount(creator) || !quizPassedAt || creator.certifiedAt || creator.rejectedAt || creator.isDeleted || creator.status === 'suspended' || creator.status === 'deleted') return;
 
         // Atomic dedup + claim — null means this pending episode was already posted.
         const id = await ctx.runMutation(internal.approvals.claimForPost, { creatorId: args.creatorId, quizPassedAt });
@@ -384,11 +387,11 @@ export const pollPending = internalAction({
                 // Also retire if the creator was deleted after posting (a reaction
                 // must not certify a soft-deleted creator).
                 const creator = await ctx.runQuery(internal.creators.getByIdInternal, { id: req.creatorId });
-                if (!creator || creator.isDeleted) {
+                if (!creator || !isCreatorAccount(creator) || creator.isDeleted || creator.status === 'suspended' || creator.status === 'deleted') {
                     await ctx.runMutation(internal.approvals.patchApproval, {
                         id: req._id,
                         status: 'error',
-                        error: creator ? 'creator deleted' : 'creator not found',
+                        error: creator ? 'account is not an eligible field creator' : 'creator not found',
                     });
                     continue;
                 }

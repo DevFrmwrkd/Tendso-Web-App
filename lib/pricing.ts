@@ -38,10 +38,10 @@
  *    commissionFor(4999) = 2500  (the "₱2,500" that kept recurring in the call)
  */
 
-/** The lowest price a creator may charge. */
+/** The lowest website price a creator or affiliate may charge. */
 export const BASE_PRICE = 999;
 
-/** The highest price a creator may charge. */
+/** The highest website price a creator or affiliate may charge. */
 export const PRICE_CEILING = 4999;
 
 /**
@@ -51,7 +51,7 @@ export const PRICE_CEILING = 4999;
  */
 export const WEBSITE_PRICE = PRICE_CEILING;
 
-/** Creator's share of the website sell price (domain add-on excluded). */
+/** Creator or affiliate share of the website sell price (domain add-on excluded). */
 export const COMMISSION_RATE = 0.5;
 
 /** Flat add-on charged to the owner for a custom domain (year 1 + setup). */
@@ -225,7 +225,7 @@ export function creatorDiscount(websitePrice: number, listPrice: number | null |
     return { listPrice, price: websitePrice, percentOff: Math.round(((listPrice - websitePrice) / listPrice) * 100) };
 }
 
-/** Creator's payout = 50% of the website sell price (domain add-on excluded). */
+/** Creator or affiliate payout = 50% of the website sell price (domain add-on excluded). */
 export function commissionFor(sellPrice: number): number {
     return Math.round(sellPrice * COMMISSION_RATE);
 }

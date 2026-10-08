@@ -1,6 +1,8 @@
 import { v } from 'convex/values';
 import { query, internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
+import { isCreatorAccount } from '../lib/accounts';
+import { isComped, ownerChargeFor, REFERRAL_BONUS } from '../lib/pricing';
 
 // ==================== INTERNAL MUTATIONS ====================
 
@@ -14,6 +16,14 @@ export const createFromSignup = internalMutation({
         referralCode: v.string(),
     },
     handler: async (ctx, args) => {
+        const referred = await ctx.db.get(args.referredId);
+        if (!isCreatorAccount(referred)) throw new Error('Only creator accounts can be referred. Affiliates cannot be referred.');
+        const referrer = await ctx.db.get(args.referrerId);
+        if (!referrer || referrer.isDeleted || referrer.status === 'suspended'
+            || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate')
+            || referrer.referralCode !== args.referralCode || args.referrerId === args.referredId) {
+            throw new Error('Invalid referrer');
+        }
         // Dedup: check if referral already exists
         const existing = await ctx.db
             .query('referrals')
@@ -41,6 +51,9 @@ export const qualifyByCreator = internalMutation({
         bonusAmount: v.number(),
     },
     handler: async (ctx, args) => {
+        const referred = await ctx.db.get(args.referredId);
+        if (!isCreatorAccount(referred)) throw new Error('Only creator accounts can qualify a referral.');
+        if (args.bonusAmount !== REFERRAL_BONUS) throw new Error('Invalid referral bonus amount');
         // Find the pending referral for this referred creator
         const referral = await ctx.db
             .query('referrals')
@@ -50,6 +63,15 @@ export const qualifyByCreator = internalMutation({
 
         if (!referral) return;
 
+        // The ledger needs a real submissions id, and a real sale is the bonus
+        // trigger. The old cast of referredId failed earnings.create validation.
+        const completed = await ctx.db.query('submissions')
+            .withIndex('by_creator_status', (q) => q.eq('creatorId', args.referredId).eq('status', 'completed')).collect();
+        const firstPaid = completed.find((submission) => !isComped(submission) && ownerChargeFor(submission) > 0);
+        if (!firstPaid) return;
+        const referrer = await ctx.db.get(referral.referrerId);
+        if (!referrer || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate')) return;
+
         // Mark referral as qualified
         await ctx.db.patch(referral._id, {
             status: 'qualified',
@@ -58,7 +80,6 @@ export const qualifyByCreator = internalMutation({
         });
 
         // Credit the referrer
-        const referrer = await ctx.db.get(referral.referrerId);
         if (referrer) {
             await ctx.db.patch(referral.referrerId, {
                 balance: (referrer.balance || 0) + args.bonusAmount,
@@ -68,7 +89,7 @@ export const qualifyByCreator = internalMutation({
             // Create earning record for referrer
             await ctx.scheduler.runAfter(0, internal.earnings.create, {
                 creatorId: referral.referrerId,
-                submissionId: referral.referredId as any, // Use referredId as reference
+                submissionId: firstPaid._id,
                 amount: args.bonusAmount,
                 type: 'referral_bonus',
             });

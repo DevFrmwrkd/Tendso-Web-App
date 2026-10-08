@@ -67,7 +67,7 @@ export function shortName(full: string | undefined): string {
     return `${words[0]} ${words[words.length - 1].charAt(0).toUpperCase()}.`;
 }
 
-export const OWN_CODE_ERROR = "That's your own code. Enter the code of the creator who invited you.";
+export const OWN_CODE_ERROR = "That's your own code. Enter the code of the person who invited you.";
 
 /**
  * Words for a failed applyReferralCode. In production Convex sends the client
@@ -76,9 +76,9 @@ export const OWN_CODE_ERROR = "That's your own code. Enter the code of the creat
  */
 export function referralErrorText(err: unknown): string {
     const raw = err instanceof Error ? err.message : "";
-    if (raw.includes("Invalid referral code")) return "We can't find that code. Check it with the creator who invited you.";
+    if (raw.includes("Invalid referral code")) return "We can't find that code. Check it with the person who invited you.";
     if (raw.includes("own referral code")) return OWN_CODE_ERROR;
     if (raw.includes("already applied")) return "You've already added an invite code.";
     if (raw.includes("already been recorded")) return "Your account already has an invite on record, so a code can't be added.";
-    return "That code didn't work. Check it with the creator who invited you, then try again.";
+    return "That code didn't work. Check it with the person who invited you, then try again.";
 }

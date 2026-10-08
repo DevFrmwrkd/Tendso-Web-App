@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useConvex, useMutation, useQuery } from "convex/react";
+import { useConvex, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent } from "react";
@@ -9,6 +9,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { FootActions, FunnelFrame, StepBody, StepCard } from "@/app/training/_funnel/FunnelFrame";
 import { Button, Field, Icon, Input, PhoneInput } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
+import { creatorRedirect } from "@/lib/creatorGate";
 
 /**
  * Onboarding profile (board Certification, stage 1 "Your profile"): the
@@ -29,6 +30,7 @@ function generateReferralCode(firstName: string, lastName: string): string {
 export default function OnboardingPage() {
     const router = useRouter();
     const { user, isLoaded, isSignedIn } = useUser();
+    const { isAuthenticated } = useConvexAuth();
     const existingCreator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip");
 
     useEffect(() => {
@@ -39,7 +41,7 @@ export default function OnboardingPage() {
 
     useEffect(() => {
         if (isLoaded && isSignedIn && existingCreator) {
-            router.push("/dashboard");
+            router.replace(existingCreator.role === "admin" ? "/admin" : creatorRedirect(existingCreator) ?? "/dashboard");
         }
     }, [isLoaded, isSignedIn, existingCreator, router]);
 
@@ -53,7 +55,7 @@ export default function OnboardingPage() {
     // onboarding form for ~200ms before the dashboard-redirect useEffect fires,
     // which is the "flash of old onboarding page" we're fixing. (Nor do they
     // see the certification frame: the page stays blank until it knows.)
-    const isRedirecting = !isLoaded || !isSignedIn || existingCreator === undefined || existingCreator !== null;
+    const isRedirecting = !isLoaded || !isSignedIn || !isAuthenticated || existingCreator === undefined || existingCreator !== null;
 
     if (isRedirecting || !user) {
         return (
@@ -120,9 +122,7 @@ function ProfileStep({ clerkId, email, firstName, lastName }: { clerkId: string;
 
         setLoading(true);
         try {
-            // create() keeps whatever code it is given, even one that matches
-            // nobody, and a creator can apply a code only once. So a typo here
-            // would block the right code later: look it up first.
+            // Give immediate field feedback before the server validates the code.
             const code = refCode.trim().toUpperCase();
             if (code) {
                 let referrer: unknown;
@@ -134,7 +134,7 @@ function ProfileStep({ clerkId, email, firstName, lastName }: { clerkId: string;
                     return;
                 }
                 if (!referrer) {
-                    setErrors({ ref: "No creator has that code. Check it with the person who invited you, or leave it empty." });
+                    setErrors({ ref: "No account has that code. Check it with the person who invited you, or leave it empty." });
                     refRef.current?.focus();
                     return;
                 }
@@ -240,7 +240,7 @@ function ProfileStep({ clerkId, email, firstName, lastName }: { clerkId: string;
                                 }}
                             />
                         </Field>
-                        <Field label={<>Referral code {optional}</>} error={errors.ref} help="From the creator who invited you.">
+                        <Field label={<>Referral code {optional}</>} error={errors.ref} help="From the creator or affiliate who invited you.">
                             <Input
                                 ref={refRef}
                                 placeholder="e.g. JUD8A3BK"

@@ -1,7 +1,7 @@
 "use client"
 
 import { useUser } from "@clerk/nextjs"
-import { useQuery } from "convex/react"
+import { useConvexAuth, useQuery } from "convex/react"
 import { Home, Inbox, ListChecks, MapPin, Megaphone, Phone, Sparkles, Users, Wallet, LayoutTemplate } from "lucide-react"
 
 import { AppShell, type NavEntry, type SidebarProps } from "@/components/r1"
@@ -29,8 +29,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     // Who is looking. Needed BEFORE the badge queries below, which are
     // admin-only and may throw rather than return undefined for anyone else.
     const { user } = useUser()
+    const { isAuthenticated } = useConvexAuth()
     const me = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip") as Me
-    const isAdmin = me?.role === "admin"
+    const isAdmin = me?.role === "admin" && isAuthenticated
 
     // Badges are SKIPPED for everyone but an admin, deliberately.
     // `listPendingApproval` THROWS "Forbidden: admin access required" for a
@@ -59,6 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             alsoCurrent: ["/admin/pending-approvals", "/admin/rejected-creators"],
         },
         { href: "/admin/leads", label: "Leads", icon: MapPin },
+        { href: "/admin/affiliates", label: "Affiliates", icon: Users },
         {
             href: "/admin/payouts",
             label: "Payouts",

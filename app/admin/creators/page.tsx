@@ -26,7 +26,7 @@
  */
 
 import { useUser } from "@clerk/nextjs"
-import { useQuery } from "convex/react"
+import { useConvexAuth, useQuery } from "convex/react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Suspense, useCallback, useState } from "react"
 import { toast } from "sonner"
@@ -82,11 +82,12 @@ function CreatorsBoard() {
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const { user, isLoaded } = useUser()
+    const { isAuthenticated } = useConvexAuth()
     // One reading of the clock per visit: "Sep 27" against "Sep 27, 2025", days waited.
     const [now] = useState(() => Date.now())
 
     const me = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip")
-    const isAdmin = me?.role === "admin"
+    const isAdmin = me?.role === "admin" && isAuthenticated
 
     // The three lists behind the tabs; each tab's count is its list's length.
     const pending = useQuery(api.creators.listPendingApproval, isAdmin ? {} : "skip")
@@ -122,7 +123,7 @@ function CreatorsBoard() {
 
     // Same <AdminLayout> element as the loaded page below, so the frame stays
     // mounted when the content arrives instead of being built twice.
-    if (!isLoaded || (user && me === undefined)) {
+    if (!isLoaded || (user && (me === undefined || !isAuthenticated))) {
         return (
             <AdminLayout>
                 <CreatorsLoading />

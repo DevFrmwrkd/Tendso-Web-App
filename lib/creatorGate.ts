@@ -4,6 +4,7 @@
  *
  * State priority (mutually exclusive at any moment):
  *   internal staff (role 'staff')                  → /admin
+ *   affiliate (role 'affiliate')                  → /affiliates/dashboard
  *   rejected (rejectedAt)                          → /verification-rejected
  *   passed quiz, not yet approved (quizPassedAt && !certifiedAt) → /pending
  *   hasn't passed the quiz                         → /training
@@ -21,6 +22,8 @@ export interface CreatorGateInput {
 
 export function creatorRedirect(creator: CreatorGateInput | null | undefined): string | null {
     if (!creator) return null; // not loaded / no profile — caller handles separately
+
+    if (creator.role === "affiliate") return "/affiliates/dashboard";
 
     // Internal staff run the Field Agent calls; they are not creators and never
     // become one. Checked FIRST and before certifiedAt, so a staff account is

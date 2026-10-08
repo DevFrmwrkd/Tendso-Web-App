@@ -1,10 +1,11 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useQuery } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { Bell, BookOpen, Gift, Home, Inbox, MapPin, Plus, User, Wallet } from "lucide-react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, type ReactNode } from "react";
 
 import { AppShell, Dot, Icon, TabBar, type NavLinkEntry, type SidebarProps } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
@@ -41,10 +42,19 @@ const WALLET: NavLinkEntry = { href: "/wallet", label: "Wallet", icon: Wallet };
 const ACCOUNT: NavLinkEntry = { href: "/profile", label: "Account", icon: User, alsoCurrent: ["/edit-profile", "/change-password", "/connect-ai"] };
 
 export function CreatorShell({ children }: { children: ReactNode }) {
-    const { user } = useUser();
+    const router = useRouter();
+    const { user, isLoaded, isSignedIn } = useUser();
+    const { isAuthenticated } = useConvexAuth();
     const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip");
-    const submissions = useQuery(api.submissions.getByCreatorId, creator ? { creatorId: creator._id } : "skip");
-    const unread = useQuery(api.notifications.getUnreadCount, creator ? { creatorId: creator._id } : "skip");
+    const affiliate = creator?.role === "affiliate";
+    const missingProfile = creator === null;
+    const submissions = useQuery(api.submissions.getByCreatorId, creator && !affiliate ? { creatorId: creator._id } : "skip");
+    const unread = useQuery(api.notifications.getUnreadCount, creator && !affiliate ? { creatorId: creator._id } : "skip");
+    useEffect(() => {
+        if (isLoaded && !isSignedIn) router.replace("/login");
+        else if (isLoaded && isSignedIn && missingProfile) router.replace("/onboarding");
+        else if (affiliate) router.replace("/affiliates/dashboard");
+    }, [isLoaded, isSignedIn, missingProfile, affiliate, router]);
 
     const open = submissions?.filter((s) => OPEN_STATUSES.has(s.status)).length ?? 0;
     const name = [creator?.firstName, creator?.lastName].filter(Boolean).join(" ") || user?.fullName || "";
@@ -63,6 +73,9 @@ export function CreatorShell({ children }: { children: ReactNode }) {
         footItems: [{ href: "/notifications", label: "Notifications", icon: Bell, badge: unread ? { tone: "attn", count: unread } : null }],
         me: name ? { name, meta: "Creator", href: ACCOUNT.href } : null,
     };
+
+    // Wait for account type before mounting capture pages nested in this shell.
+    if (!isAuthenticated || creator === undefined || affiliate) return <div className="r1 min-h-dvh" aria-busy="true" />;
 
     return (
         <AppShell

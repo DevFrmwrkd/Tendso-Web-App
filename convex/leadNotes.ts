@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
+import { requireCreatorAccount } from './lib/auth';
 
 // ==================== MUTATIONS ====================
 
@@ -13,6 +14,7 @@ export const create = mutation({
         content: v.string(),
     },
     handler: async (ctx, args) => {
+        await requireCreatorAccount(ctx, args.creatorId);
         return await ctx.db.insert('leadNotes', {
             leadId: args.leadId,
             creatorId: args.creatorId,
@@ -34,13 +36,7 @@ export const add = mutation({
         content: v.string(),
     },
     handler: async (ctx, args) => {
-        const identity = await ctx.auth.getUserIdentity();
-        if (!identity) throw new Error('Not authenticated');
-        const creator = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-            .first();
-        if (!creator) throw new Error('Creator profile not found');
+        const { me: creator } = await requireCreatorAccount(ctx);
 
         const trimmed = args.content.trim();
         if (!trimmed) throw new Error('Note content cannot be empty');
@@ -61,6 +57,7 @@ export const add = mutation({
 export const remove = mutation({
     args: { id: v.id('leadNotes') },
     handler: async (ctx, args) => {
+        await requireCreatorAccount(ctx);
         await ctx.db.delete(args.id);
     },
 });
@@ -73,6 +70,7 @@ export const remove = mutation({
 export const getByLead = query({
     args: { leadId: v.id('leads') },
     handler: async (ctx, args) => {
+        await requireCreatorAccount(ctx);
         return await ctx.db
             .query('leadNotes')
             .withIndex('by_lead', (q) => q.eq('leadId', args.leadId))

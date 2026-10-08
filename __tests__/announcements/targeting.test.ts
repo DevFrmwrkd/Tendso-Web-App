@@ -30,6 +30,12 @@ describe('selectTargets', () => {
         expect(ids(selectTargets(rows, { audience: 'certified', creatorIds: ['a', 'b'] }))).toEqual(['a', 'b']);
     });
 
+    it('can explicitly reach an affiliate without adding them to creator broadcasts', () => {
+        const affiliate: Row = { _id: 'affiliate', role: 'affiliate', email: 'affiliate@x.com', status: 'active' };
+        expect(selectTargets([affiliate], { audience: 'active' })).toEqual([]);
+        expect(selectTargets([affiliate], { audience: 'active', creatorIds: ['affiliate'] })).toEqual([affiliate]);
+    });
+
     it('can reach people no audience would', () => {
         // Explicitly choosing an admin or a rejected creator is legitimate:
         // you picked them by name.

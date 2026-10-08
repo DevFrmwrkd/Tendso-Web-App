@@ -37,7 +37,7 @@ export const outreachChannel = v.union(
 );
 
 export default defineSchema({
-    // Creators table (users - both creators and admins)
+    // Accounts share a creators id for submissions, referrals and payouts.
     creators: defineTable({
         clerkId: v.string(),
         email: v.string(), // Required (mobile requires it)
@@ -77,11 +77,20 @@ export default defineSchema({
         referredByName: v.optional(v.string()),
         payoutMethod: v.optional(v.string()),
         payoutDetails: v.optional(v.string()),
+        // Affiliate-only page settings. Optional because the mobile app shares
+        // this schema and existing creator rows do not carry affiliate fields.
+        affiliateHandle: v.optional(v.string()),
+        affiliatePhoto: v.optional(v.string()),
+        affiliateDisplayName: v.optional(v.string()),
+        affiliateMessage: v.optional(v.string()),
+        affiliateSocialLink: v.optional(v.string()),
+        affiliatePrice: v.optional(v.number()),
     })
         // Use mobile's index names (by_clerk_id, not by_clerkId)
         .index('by_clerk_id', ['clerkId'])
         .index('by_email', ['email'])
         .index('by_referral_code', ['referralCode'])
+        .index('by_affiliate_handle', ['affiliateHandle'])
         .index('by_status', ['status']),
 
     // Business submissions

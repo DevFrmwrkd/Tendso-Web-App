@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { query, mutation, internalQuery, internalMutation, type QueryCtx, type MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireAdmin } from './lib/auth';
+import { isCreatorAccount } from '../lib/accounts';
 import type { Doc, Id } from './_generated/dataModel';
 
 /**
@@ -32,8 +33,8 @@ async function getViewer(ctx: QueryCtx | MutationCtx): Promise<Doc<'creators'> |
 // A creator may read the internal wiki if they're an admin or a certified
 // (approved) field-agent creator.
 function creatorCanAccessWiki(me: Doc<'creators'> | null): boolean {
-    if (!me) return false;
-    return me.role === 'admin' || !!me.certifiedAt;
+    if (!me || me.isDeleted || me.status === 'deleted' || me.status === 'suspended') return false;
+    return me.role === 'admin' || (isCreatorAccount(me) && !!me.certifiedAt);
 }
 
 async function ensureWorkspaceReadable(

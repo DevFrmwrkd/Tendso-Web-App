@@ -202,6 +202,11 @@ export const claimWebsite = mutation({
     handler: async (ctx, args) => {
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) throw new Error('Sign in to claim your website');
+        const account = await ctx.db.query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).first();
+        if (account?.role === 'affiliate' && !account.isDeleted) {
+            throw new Error('This login is an affiliate account. Use a different email for a business owner account.');
+        }
         if (!isValidClaimTokenFormat(args.token)) throw new Error('Invalid claim link');
 
         const tokenRow = await ctx.db

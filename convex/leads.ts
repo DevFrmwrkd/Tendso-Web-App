@@ -4,6 +4,8 @@ import { internal } from './_generated/api';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { normalizePhone } from './lib/phone';
+import { requireCreatorAccount } from './lib/auth';
+import { isCreatorAccount } from '../lib/accounts';
 
 // Admin-curated lead-content image upload constraints
 const PREVIEW_IMAGE_MAX_BYTES = 2_000_000; // 2MB cap
@@ -87,6 +89,7 @@ export const updateStatus = mutation({
         ),
     },
     handler: async (ctx, args) => {
+        await requireCreatorAccount(ctx);
         await ctx.db.patch(args.id, { status: args.status });
     },
 });
@@ -110,6 +113,7 @@ export const update = mutation({
         )),
     },
     handler: async (ctx, args) => {
+        await requireCreatorAccount(ctx);
         const { id, ...updates } = args
         // Remove undefined fields so we don't overwrite with undefined
         const patch: Record<string, any> = {}
@@ -130,6 +134,7 @@ export const update = mutation({
 export const remove = mutation({
     args: { id: v.id('leads') },
     handler: async (ctx, args) => {
+        await requireCreatorAccount(ctx);
         // Delete associated notes
         const notes = await ctx.db
             .query('leadNotes')
@@ -166,6 +171,7 @@ export const getBySubmission = query({
 export const getAll = query({
     args: {},
     handler: async (ctx) => {
+        await requireCreatorAccount(ctx);
         const leads = await ctx.db.query('leads').order('desc').take(500)
         const enriched = await Promise.all(
             leads.map(async (lead) => {
@@ -188,6 +194,7 @@ export const getAll = query({
 export const getByCreator = query({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
+        await requireCreatorAccount(ctx, args.creatorId);
         return await ctx.db
             .query('leads')
             .withIndex('by_creator', (q) => q.eq('creatorId', args.creatorId))
@@ -210,6 +217,7 @@ export const getByStatus = query({
         ),
     },
     handler: async (ctx, args) => {
+        await requireCreatorAccount(ctx);
         return await ctx.db
             .query('leads')
             .withIndex('by_status', (q) => q.eq('status', args.status))
@@ -324,7 +332,7 @@ export const listForMobileCRM = query({
             .query('creators')
             .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
             .first();
-        if (!currentCreator) {
+        if (!currentCreator || (!isCreatorAccount(currentCreator) && currentCreator.role !== 'admin') || currentCreator.isDeleted || currentCreator.status === 'deleted' || currentCreator.status === 'suspended') {
             return {
                 leads: [],
                 stats: { total: 0, new: 0, contacted: 0, qualified: 0, converted: 0, lost: 0, mine: 0 },
@@ -491,6 +499,10 @@ export const listForMap = query({
         const identity = await ctx.auth.getUserIdentity();
         if (!identity) return [];
 
+        const currentCreator = await ctx.db.query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).first();
+        if (!currentCreator || (!isCreatorAccount(currentCreator) && currentCreator.role !== 'admin') || currentCreator.isDeleted || currentCreator.status === 'deleted' || currentCreator.status === 'suspended') return [];
+
         const allLeads = await ctx.db.query('leads').order('desc').collect();
 
         // Cache submissions/creators so we don't re-fetch per row.
@@ -631,7 +643,7 @@ export const getDetailForMobileCRM = query({
             .query('creators')
             .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
             .first();
-        if (!currentCreator) return null;
+        if (!currentCreator || (!isCreatorAccount(currentCreator) && currentCreator.role !== 'admin') || currentCreator.isDeleted || currentCreator.status === 'deleted' || currentCreator.status === 'suspended') return null;
 
         const lead = await ctx.db.get(args.id);
         if (!lead) return null;

@@ -19,6 +19,8 @@
  * Unit-tested in __tests__/announcements/audience.test.ts.
  */
 
+import { isCreatorAccount } from '../accounts';
+
 export type AudienceKey = 'certified' | 'active' | 'awaiting_approval' | 'all';
 
 /** The minimum shape this logic needs. Matches the `creators` row. */
@@ -55,7 +57,7 @@ export const AUDIENCES: ReadonlyArray<{
     {
         key: 'all',
         label: 'Everyone, admins included',
-        description: 'Every live account on the platform. Includes you — use it to see exactly what creators receive.',
+        description: 'Every live account on the platform, including affiliates and admins.',
     },
 ];
 
@@ -65,10 +67,6 @@ export function isSendable(row: AudienceRow): boolean {
     if (row.status === 'deleted') return false;
     if (!row.email || !row.email.includes('@')) return false;
     return true;
-}
-
-function isAdmin(row: AudienceRow): boolean {
-    return row.role === 'admin';
 }
 
 function isRejected(row: AudienceRow): boolean {
@@ -89,14 +87,14 @@ export function matchesAudience(row: AudienceRow, key: AudienceKey): boolean {
             return true;
 
         case 'active':
-            return !isAdmin(row) && !isRejected(row);
+            return isCreatorAccount(row) && !isRejected(row);
 
         case 'certified':
-            return !isAdmin(row) && !isRejected(row) && typeof row.certifiedAt === 'number';
+            return isCreatorAccount(row) && !isRejected(row) && typeof row.certifiedAt === 'number';
 
         case 'awaiting_approval':
             return (
-                !isAdmin(row) &&
+                isCreatorAccount(row) &&
                 !isRejected(row) &&
                 typeof row.quizPassedAt === 'number' &&
                 typeof row.certifiedAt !== 'number'

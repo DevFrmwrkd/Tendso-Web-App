@@ -22,6 +22,7 @@ import { FootActions, FunnelFallback, FunnelFrame, NoteBlock, StepBody, StepCard
 import { Button, ButtonLink, Icon, Status, creatorStatus } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import { SUPPORT_EMAIL } from "@/lib/contact";
+import { isCreatorAccount } from "@/lib/accounts";
 
 export default function VerificationRejectedPage() {
     const { user, isLoaded, isSignedIn } = useUser();
@@ -37,6 +38,14 @@ export default function VerificationRejectedPage() {
     // If the admin re-approves or clears the rejection, route them onward.
     useEffect(() => {
         if (creator === undefined || creator === null) return;
+        if (creator.role === "affiliate") {
+            router.replace("/affiliates/dashboard");
+            return;
+        }
+        if (creator.role === "staff") {
+            router.replace("/admin");
+            return;
+        }
         if (creator.role === "admin" || creator.certifiedAt) {
             router.replace("/dashboard");
         } else if (!creator.rejectedAt) {
@@ -45,7 +54,7 @@ export default function VerificationRejectedPage() {
         }
     }, [creator, router]);
 
-    const rejected = !!creator && creator.role !== "admin" && !!creator.rejectedAt;
+    const rejected = !!creator && isCreatorAccount(creator) && !!creator.rejectedAt;
 
     if (!isLoaded || !isSignedIn || !creator || !rejected) return <FunnelFallback view="rejected" creator={creator} />;
 

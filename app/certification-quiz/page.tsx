@@ -22,10 +22,12 @@ export default function CertificationQuizPage() {
 
     // Redirect admins to admin dashboard — they don't need certification
     useEffect(() => {
+        if (creator?.role === "affiliate") router.replace("/affiliates/dashboard");
+        if (creator?.role === "staff") router.replace("/admin");
         if (creator && creator.role === "admin") router.push("/admin");
     }, [creator, router]);
 
-    if (!isLoaded || creator === undefined) return <FunnelFallback view={3} />;
+    if (!isLoaded || creator === undefined || creator?.role === "affiliate" || creator?.role === "staff" || creator?.role === "admin") return <FunnelFallback view={3} />;
 
     return (
         <FunnelFrame view={3} creator={creator}>

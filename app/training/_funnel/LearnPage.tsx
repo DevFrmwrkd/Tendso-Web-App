@@ -27,6 +27,10 @@ export function LearnPage({ guarded }: { guarded: boolean }) {
     }, [guarded, isLoaded, user, router]);
 
     useEffect(() => {
+        if (creator?.role === "affiliate") {
+            router.replace("/affiliates/dashboard");
+            return;
+        }
         if (!guarded) return;
         // Internal staff have no training to do — send them home. Nothing routes
         // them here any more, but typing the URL used to strand them: no
@@ -42,7 +46,7 @@ export function LearnPage({ guarded }: { guarded: boolean }) {
     // certified creator never saw the lessons on the way to /dashboard).
     // /training-lessons only needs the signed-in user, whose id keys the
     // lesson progress.
-    if (!isLoaded || !user || (guarded && creator === undefined)) return <FunnelFallback view={2} creator={creator} />;
+    if (!isLoaded || !user || creator === undefined || creator?.role === "affiliate") return <FunnelFallback view={2} />;
 
     return (
         <FunnelFrame view={2} creator={creator}>

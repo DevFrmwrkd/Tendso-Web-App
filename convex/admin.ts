@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import { PRICING_MODE_COMPED, isComped } from '../lib/pricing';
 import { assertGiveawayCanActivate, readGiveaway } from './lib/giveaway';
 import { requireAdmin } from './lib/auth';
+import { isCreatorAccount } from '../lib/accounts';
 
 // ==================== QUERIES ====================
 
@@ -108,7 +109,7 @@ export const getDashboardStats = query({
     args: {},
     handler: async (ctx) => {
         const submissions = await ctx.db.query('submissions').collect();
-        const creators = await ctx.db.query('creators').collect();
+        const creators = (await ctx.db.query('creators').collect()).filter((c) => isCreatorAccount(c) && !c.isDeleted && c.status !== 'deleted');
 
         const totalSubmissions = submissions.length;
         const pendingReview = submissions.filter(
