@@ -9,6 +9,7 @@
  */
 
 import type * as admin from "../admin.js";
+import type * as affiliates from "../affiliates.js";
 import type * as aiKeys from "../aiKeys.js";
 import type * as airtable from "../airtable.js";
 import type * as analytics from "../analytics.js";
@@ -94,6 +95,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   admin: typeof admin;
+  affiliates: typeof affiliates;
   aiKeys: typeof aiKeys;
   airtable: typeof airtable;
   analytics: typeof analytics;

@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { query, mutation, internalQuery, internalMutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireAdmin, requireAuth } from './lib/auth';
+import { isCreatorAccount } from '../lib/accounts';
 
 // ==================== QUERIES ====================
 
@@ -13,7 +14,7 @@ export const count = query({
     args: {},
     handler: async (ctx) => {
         const creators = await ctx.db.query('creators').collect();
-        return creators.length;
+        return creators.filter((creator) => isCreatorAccount(creator) && !creator.isDeleted && creator.status !== 'deleted').length;
     },
 });
 
@@ -151,7 +152,10 @@ export const getByReferralCode = query({
 export const getAll = query({
     args: {},
     handler: async (ctx) => {
-        return await ctx.db.query('creators').collect();
+        await requireAdmin(ctx);
+        const accounts = await ctx.db.query('creators').collect();
+        // Preserve the admin/staff role management view; affiliates have their own list.
+        return accounts.filter((account) => account.role !== 'affiliate');
     },
 });
 
@@ -161,7 +165,9 @@ export const getAll = query({
 export const getAllWithStats = query({
     args: {},
     handler: async (ctx) => {
-        const creators = await ctx.db.query('creators').collect();
+        await requireAdmin(ctx);
+        const accounts = await ctx.db.query('creators').collect();
+        const creators = accounts.filter((account) => account.role !== 'affiliate');
 
         const creatorsWithStats = await Promise.all(
             creators.map(async (creator) => {
@@ -204,6 +210,8 @@ export const create = mutation({
         referredByCode: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
+        const identity = await requireAuth(ctx);
+        if (identity.subject !== args.clerkId) throw new Error('Forbidden: you can only create your own account');
         // Check if creator already exists
         const existing = await ctx.db
             .query('creators')
@@ -212,7 +220,29 @@ export const create = mutation({
 
         // A LIVE account already exists — reuse it.
         if (existing && !existing.isDeleted) {
+            if (existing.role === 'affiliate') {
+                throw new Error('This login is an affiliate account. Use a different email for a creator account.');
+            }
             return existing._id;
+        }
+
+        if (args.email) {
+            const accounts = await ctx.db.query('creators').collect();
+            if (accounts.some((account) => !account.isDeleted && account.role === 'affiliate'
+                && account.email.trim().toLowerCase() === args.email!.trim().toLowerCase())) {
+                throw new Error('This email is an affiliate account. Use a different email for a creator account.');
+            }
+        }
+
+        const incomingCode = args.referredByCode?.trim().toUpperCase();
+        const referrer = incomingCode ? await ctx.db.query('creators')
+            .withIndex('by_referral_code', (q) => q.eq('referralCode', incomingCode)).first() : null;
+        if (incomingCode && (!referrer || referrer.isDeleted || referrer.status === 'suspended'
+            || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate'))) {
+            throw new Error('Invalid referral code');
+        }
+        if (args.referredBy && referrer && args.referredBy !== referrer._id) {
+            throw new Error('Referral code does not match the referrer');
         }
 
         // A soft-deleted account exists for this clerkId (same Clerk user signed in
@@ -234,8 +264,9 @@ export const create = mutation({
             email: args.email || '',
             phone: args.phone,
             referralCode: args.referralCode || '',
-            referredBy: args.referredBy,
-            referredByCode: args.referredByCode,
+            referredBy: referrer?._id ?? args.referredBy,
+            referredByCode: incomingCode,
+            referredByName: referrer ? [referrer.firstName, referrer.lastName].filter(Boolean).join(' ') : undefined,
             balance: 0,
             totalEarnings: 0,
             totalWithdrawn: 0,
@@ -245,26 +276,13 @@ export const create = mutation({
             createdAt: Date.now(),
         });
 
-        // Wire referral: if referredByCode was provided, create a referral record and save referrer name
-        if (args.referredByCode) {
-            const referrer = await ctx.db
-                .query('creators')
-                .withIndex('by_referral_code', (q) => q.eq('referralCode', args.referredByCode!))
-                .first();
-
-            if (referrer && referrer._id !== creatorId) {
-                // Save referrer's name on the new creator
-                await ctx.db.patch(creatorId, {
-                    referredBy: referrer._id,
-                    referredByName: `${referrer.firstName} ${referrer.lastName}`,
-                });
-
-                await ctx.scheduler.runAfter(0, internal.referrals.createFromSignup, {
-                    referrerId: referrer._id,
-                    referredId: creatorId,
-                    referralCode: args.referredByCode!,
-                });
-            }
+        // Creators and affiliates may invite creators; affiliate signup never enters here.
+        if (referrer && incomingCode) {
+            await ctx.scheduler.runAfter(0, internal.referrals.createFromSignup, {
+                referrerId: referrer._id,
+                referredId: creatorId,
+                referralCode: incomingCode,
+            });
         }
 
         return creatorId;
@@ -350,6 +368,9 @@ export const updateRole = mutation({
     },
     handler: async (ctx, args) => {
         await requireAdmin(ctx);
+        const account = await ctx.db.get(args.id);
+        if (!account) throw new Error('Account not found');
+        if (account.role === 'affiliate') throw new Error('Affiliate accounts cannot change account type. Use a different email.');
         await ctx.db.patch(args.id, { role: args.role });
     },
 });
@@ -394,6 +415,7 @@ export const certify = mutation({
         await requireAdmin(ctx);
         const creator = await ctx.db.get(args.id);
         if (!creator) throw new Error('Creator not found');
+        if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can be certified');
 
         await ctx.db.patch(args.id, { certifiedAt: Date.now() });
 
@@ -416,8 +438,12 @@ export const applyReferralCode = mutation({
         referredByCode: v.string(),
     },
     handler: async (ctx, args) => {
+        const identity = await requireAuth(ctx);
         const creator = await ctx.db.get(args.id);
         if (!creator) throw new Error('Creator not found');
+        if (creator.clerkId !== identity.subject) throw new Error('Forbidden: you can only apply a referral code to your own account');
+        if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can use a referral code. Affiliates cannot be referred.');
+        if (creator.isDeleted || creator.status === 'suspended') throw new Error('Your account is not active');
 
         // Reject if already has a referral code applied
         if (creator.referredByCode) {
@@ -441,6 +467,8 @@ export const applyReferralCode = mutation({
         if (!referrer) {
             throw new Error('Invalid referral code');
         }
+        if (referrer.isDeleted || referrer.status === 'suspended'
+            || (!isCreatorAccount(referrer) && referrer.role !== 'affiliate')) throw new Error('Invalid referral code');
 
         // Prevent self-referral
         if (referrer._id === args.id) {
@@ -451,7 +479,7 @@ export const applyReferralCode = mutation({
         await ctx.db.patch(args.id, {
             referredByCode: args.referredByCode,
             referredBy: referrer._id,
-            referredByName: `${referrer.firstName} ${referrer.lastName}`,
+            referredByName: [referrer.firstName, referrer.lastName].filter(Boolean).join(' '),
         });
 
         // Create referral record
@@ -504,6 +532,7 @@ export const markQuizPassed = mutation({
         if (!creator || creator.clerkId !== identity.subject) {
             throw new Error('Forbidden: you can only update your own account');
         }
+        if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can take the certification quiz');
         if (creator.certifiedAt) return;
         if (creator.quizPassedAt) return;
         await ctx.db.patch(args.id, {
@@ -535,6 +564,7 @@ export const approveCreator = mutation({
 
         const creator = await ctx.db.get(args.id);
         if (!creator) throw new Error('Creator not found');
+        if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can be approved');
         if (creator.certifiedAt) return;
 
         await ctx.db.patch(args.id, {
@@ -570,7 +600,7 @@ export const listPendingApproval = query({
         return all
             // Exclude rejected creators from the pending queue — they live in
             // the separate "Rejected creators" view.
-            .filter((c) => c.quizPassedAt && !c.certifiedAt && !c.rejectedAt && !c.isDeleted)
+            .filter((c) => isCreatorAccount(c) && c.quizPassedAt && !c.certifiedAt && !c.rejectedAt && !c.isDeleted)
             .map((c) => ({
                 _id: c._id,
                 clerkId: c.clerkId,
@@ -627,6 +657,7 @@ export const rejectCreator = mutation({
 
         const creator = await ctx.db.get(args.id);
         if (!creator) throw new Error('Creator not found');
+        if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can be rejected for certification');
         if (creator.rejectedAt) return; // idempotent
         if (creator.certifiedAt) {
             throw new Error('Cannot reject a creator who has already been approved');
@@ -673,6 +704,7 @@ export const approveCreatorInternal = internalMutation({
     ): Promise<{ outcome: 'approved' | 'already_approved' | 'already_rejected' | 'not_found'; name: string }> => {
         const creator = await ctx.db.get(args.id);
         if (!creator) return { outcome: 'not_found', name: '' };
+        if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can be approved');
         const name = [creator.firstName, creator.lastName].filter(Boolean).join(' ') || creator.email || 'creator';
         if (creator.certifiedAt) return { outcome: 'already_approved', name };
         if (creator.rejectedAt) return { outcome: 'already_rejected', name };
@@ -702,6 +734,7 @@ export const rejectCreatorInternal = internalMutation({
     ): Promise<{ outcome: 'rejected' | 'already_rejected' | 'already_approved' | 'not_found'; name: string }> => {
         const creator = await ctx.db.get(args.id);
         if (!creator) return { outcome: 'not_found', name: '' };
+        if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can be rejected for certification');
         const name = [creator.firstName, creator.lastName].filter(Boolean).join(' ') || creator.email || 'creator';
         if (creator.rejectedAt) return { outcome: 'already_rejected', name };
         if (creator.certifiedAt) return { outcome: 'already_approved', name };
@@ -742,6 +775,7 @@ export const requestRecertification = mutation({
         if (!creator || creator.clerkId !== identity.subject) {
             throw new Error('Forbidden: you can only update your own account');
         }
+        if (!isCreatorAccount(creator)) throw new Error('Only creator accounts can request recertification');
         if (!creator.rejectedAt) {
             throw new Error('Only rejected creators can request recertification');
         }
@@ -775,7 +809,7 @@ export const listRejected = query({
 
         const all = await ctx.db.query('creators').collect();
         return all
-            .filter((c) => c.rejectedAt && !c.certifiedAt && !c.isDeleted)
+            .filter((c) => isCreatorAccount(c) && c.rejectedAt && !c.certifiedAt && !c.isDeleted)
             .map((c) => ({
                 _id: c._id,
                 clerkId: c.clerkId,

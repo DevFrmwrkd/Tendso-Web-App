@@ -6,6 +6,7 @@ import type { Doc, Id } from './_generated/dataModel';
 import { Agent } from '@convex-dev/agent';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { APICallError } from 'ai';
+import { isCreatorAccount } from '../lib/accounts';
 
 /**
  * Gemini-powered RAG for the Tendso knowledge base.
@@ -630,7 +631,7 @@ export const ask = action({
             const me = await ctx.runQuery(internal.creators.getMeForAuthInternal, {
                 clerkId: identity.subject,
             });
-            if (!me || (me.role !== 'admin' && !me.certifiedAt)) {
+            if (!me || me.isDeleted || me.status === 'deleted' || me.status === 'suspended' || (me.role !== 'admin' && (!isCreatorAccount(me) || !me.certifiedAt))) {
                 throw new Error('Field-agent access required to ask the internal wiki.');
             }
         }

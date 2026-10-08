@@ -89,7 +89,7 @@ export function LeadsMap({ layer }: { layer: MapLayer }) {
         }
     }, [isLoaded, isSignedIn, creator, router]);
 
-    const ready = isLoaded && isSignedIn && creator !== undefined && !!creator && (creator.role === "admin" || !!creator.certifiedAt);
+    const ready = isLoaded && isSignedIn && creator !== undefined && !!creator && creatorRedirect(creator) === null && (creator.role === "admin" || !!creator.certifiedAt);
 
     return (
         <CreatorShell>

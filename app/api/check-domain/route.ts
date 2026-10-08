@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
-import { fetchAction } from 'convex/nextjs'
+import { fetchAction, fetchQuery } from 'convex/nextjs'
 import { api } from '@/convex/_generated/api'
 import { checkRateLimit, RATE_LIMITS, validateString } from '@/lib/security'
+import { isCreatorAccount } from '@/lib/accounts'
 
 /**
  * POST /api/check-domain
@@ -18,6 +19,11 @@ export async function POST(request: NextRequest) {
         const { userId } = await auth()
         if (!userId) {
             return NextResponse.json({ valid: false, error: 'Unauthorized' }, { status: 401 })
+        }
+
+        const account = await fetchQuery(api.creators.getByClerkId, { clerkId: userId })
+        if (!account || (!isCreatorAccount(account) && account.role !== 'admin') || account.status === 'suspended' || account.status === 'deleted') {
+            return NextResponse.json({ valid: false, error: 'Creator access required' }, { status: 403 })
         }
 
         const { allowed } = checkRateLimit(

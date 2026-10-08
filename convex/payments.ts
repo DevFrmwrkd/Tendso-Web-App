@@ -4,6 +4,7 @@ import { internal } from './_generated/api'
 import { extractReferenceFromText } from '../lib/payments/referenceCode'
 import { determinePaymentStatus } from '../lib/payments/webhookParser'
 import { REFERRAL_BONUS, PRICING_MODE_COMPED, isComped, ownerChargeFor } from '../lib/pricing'
+import { isCreatorAccount } from '../lib/accounts'
 
 // ==================== SHARED CREDIT LOGIC ====================
 // Used by both admin.markPaid (manual) and auto-payment (webhook)
@@ -142,7 +143,9 @@ export const creditCreatorForPayment = internalMutation({
         // sold anything. Comped rows are excluded on BOTH sides: they never fire
         // the bonus, and they never count toward "is this the first", so the
         // referred creator's first REAL sale still qualifies later.
-        if (!comped) {
+        // Affiliate sales still use the shared commission ledger, but nobody
+        // can earn a referral bonus for recruiting an affiliate account.
+        if (!comped && isCreatorAccount(creator)) {
             const referral = await ctx.db
                 .query('referrals')
                 .withIndex('by_referred', (q) => q.eq('referredId', submission.creatorId))

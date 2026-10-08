@@ -19,7 +19,7 @@ import {
 import { v } from 'convex/values';
 import { Doc, Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
-import { requireAuth } from './lib/auth';
+import { requireCreatorAccount } from './lib/auth';
 import {
     latLngToH3Cells,
     getNeighborCellsRes7,
@@ -76,7 +76,7 @@ export const searchNearby = query({
         limit: v.optional(v.number()),
     },
     handler: async (ctx, args) => {
-        await requireAuth(ctx);
+        await requireCreatorAccount(ctx);
         const limit = Math.min(args.limit ?? 50, 200);
 
         const ringSize = args.radiusKm && args.radiusKm > 5 ? 2 : 1;
@@ -189,12 +189,7 @@ export const searchNearbyInternal = internalQuery({
 export const listMyReservations = query({
     args: {},
     handler: async (ctx) => {
-        const identity = await requireAuth(ctx);
-        const creator = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-            .first();
-        if (!creator) return [];
+        const { me: creator } = await requireCreatorAccount(ctx);
 
         const now = Date.now();
         const all = await ctx.db
@@ -301,7 +296,7 @@ export const getLocaleConfig = internalQuery({
 export const reserve = mutation({
     args: { prospectId: v.id('prospects') },
     handler: async (ctx, args) => {
-        const identity = await requireAuth(ctx);
+        const { me: creator } = await requireCreatorAccount(ctx);
         const prospect = await ctx.db.get(args.prospectId);
         if (!prospect) throw new Error('Prospect not found');
 
@@ -316,12 +311,6 @@ export const reserve = mutation({
                 `Cannot reserve a prospect in state "${prospect.state}"`,
             );
         }
-
-        const creator = await ctx.db
-            .query('creators')
-            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-            .first();
-        if (!creator) throw new Error('Creator profile not found');
 
         await ctx.db.patch(args.prospectId, {
             state: 'reserved',
@@ -506,14 +495,9 @@ async function assertOwnedByCaller(
     ctx: any,
     prospectId: Id<'prospects'>,
 ): Promise<{ prospect: Doc<'prospects'>; creator: Doc<'creators'> }> {
-    const identity = await requireAuth(ctx);
+    const { me: creator } = await requireCreatorAccount(ctx);
     const prospect = await ctx.db.get(prospectId);
     if (!prospect) throw new Error('Prospect not found');
-    const creator = await ctx.db
-        .query('creators')
-        .withIndex('by_clerk_id', (q: any) => q.eq('clerkId', identity.subject))
-        .first();
-    if (!creator) throw new Error('Creator profile not found');
     if (
         prospect.reservedByCreatorId &&
         prospect.reservedByCreatorId !== creator._id

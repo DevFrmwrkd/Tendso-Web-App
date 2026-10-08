@@ -4,6 +4,7 @@ import { groqService } from '@/lib/services/groq.service'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
+import { isCreatorAccount } from '@/lib/accounts'
 
 const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
 
@@ -28,6 +29,11 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
             }
             authedUserId = userId
+
+            const account = await convex.query(api.creators.getByClerkId, { clerkId: userId })
+            if (!account || (!isCreatorAccount(account) && account.role !== 'admin') || account.status === 'suspended' || account.status === 'deleted') {
+                return NextResponse.json({ error: 'Creator access required' }, { status: 403 })
+            }
 
             // Rate limit: expensive operation (5/min) — only applied to user-initiated calls.
             // Internal calls come from our own scheduler so we don't rate-limit them.

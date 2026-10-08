@@ -30,6 +30,7 @@ import { Certificate, certificateName, issuedOn, useCertificateDownload } from "
 import { Button, ButtonLink, Dot, Icon, Status, creatorStatus, type Tone } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import type { Doc } from "@/convex/_generated/dataModel";
+import { isCreatorAccount } from "@/lib/accounts";
 
 export default function PendingPage() {
     const { user, isLoaded, isSignedIn } = useUser();
@@ -37,14 +38,14 @@ export default function PendingPage() {
 
     const creator = useQuery(api.creators.getByClerkId, user ? { clerkId: user.id } : "skip");
 
-    const pending = !!creator && creator.role !== "admin" && !!creator.quizPassedAt && !creator.certifiedAt && !creator.rejectedAt;
+    const pending = !!creator && isCreatorAccount(creator) && !!creator.quizPassedAt && !creator.certifiedAt && !creator.rejectedAt;
 
     // Remember that this visit saw the wait, so an approval that arrives while
     // the page is open shows the certificate instead of leaving. (Adjusted
     // while rendering, so the redirect below already knows on the same pass.)
     const [sawWaiting, setSawWaiting] = useState(false);
     if (pending && !sawWaiting) setSawWaiting(true);
-    const approvedHere = sawWaiting && !!creator?.certifiedAt && creator.role !== "admin";
+    const approvedHere = sawWaiting && !!creator?.certifiedAt && isCreatorAccount(creator);
 
     // Not signed in → login.
     useEffect(() => {
@@ -54,6 +55,14 @@ export default function PendingPage() {
     // Live auto-route the moment an admin acts (Convex live query fires ~1s).
     useEffect(() => {
         if (creator === undefined || creator === null) return;
+        if (creator.role === "affiliate") {
+            router.replace("/affiliates/dashboard");
+            return;
+        }
+        if (creator.role === "staff") {
+            router.replace("/admin");
+            return;
+        }
         if (creator.role === "admin" || creator.certifiedAt) {
             if (approvedHere) return; // approved while watching: stage 5 below
             router.replace("/dashboard");

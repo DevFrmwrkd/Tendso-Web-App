@@ -83,7 +83,11 @@ export default function AccountView() {
         if (isLoaded && isSignedIn && creator === null && owner === null) router.push("/onboarding");
     }, [isLoaded, isSignedIn, creator, owner, router]);
 
-    if (!isLoaded || !isSignedIn || !user || creator === undefined) return <AccountFallback />;
+    useEffect(() => {
+        if (creator?.role === "affiliate") router.replace("/affiliates/dashboard");
+    }, [creator?.role, router]);
+
+    if (!isLoaded || !isSignedIn || !user || creator === undefined || creator?.role === "affiliate") return <AccountFallback />;
 
     const signIn: SignInFacts = {
         google: user.externalAccounts.some((a) => a.provider === "google"),

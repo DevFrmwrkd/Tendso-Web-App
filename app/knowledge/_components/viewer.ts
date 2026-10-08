@@ -44,7 +44,7 @@ export function useViewer(): Viewer {
     if (creator === undefined) return { status: "loading" };
     if (creator) {
         const name = [creator.firstName, creator.lastName].filter(Boolean).join(" ").trim() || fallbackName;
-        return { status: "signedIn", home: homeOf(creator), name, accountHref: "/profile" };
+        return { status: "signedIn", home: homeOf(creator), name, accountHref: creator.role === "affiliate" ? "/affiliates/dashboard" : "/profile" };
     }
     if (convexAuth.isLoading || (convexAuth.isAuthenticated && owner === undefined)) return { status: "loading" };
     if (owner) return { status: "signedIn", home: "/my-business", name: owner.name || fallbackName, accountHref: "/my-business" };

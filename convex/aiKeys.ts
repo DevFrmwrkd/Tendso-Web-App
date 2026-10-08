@@ -4,6 +4,7 @@ import { internal } from './_generated/api';
 import { requireAuth, requireAdmin } from './lib/auth';
 import { encryptSecret, isEncrypted } from './lib/encryption';
 import type { Doc } from './_generated/dataModel';
+import { isCreatorAccount } from '../lib/accounts';
 
 /**
  * BYOK Gemini key pool.
@@ -32,10 +33,17 @@ function mask(key: string): string {
 
 async function getCreator(ctx: QueryCtx | MutationCtx): Promise<Doc<'creators'> | null> {
     const identity = await requireAuth(ctx);
-    return await ctx.db
-        .query('creators')
-        .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject))
-        .first();
+    const me = await ctx.db.query('creators')
+        .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).first();
+    requireContributor(me);
+    return me;
+}
+
+/** Staff contribute keys from their team profile as well as field creators. */
+function requireContributor(me: Doc<'creators'> | null) {
+    if (!me || (!isCreatorAccount(me) && me.role !== 'admin' && me.role !== 'staff') || me.isDeleted || me.status === 'deleted' || me.status === 'suspended') {
+        throw new Error('Forbidden: creator access required for contributing an AI key');
+    }
 }
 
 // ==================== CREATOR-FACING ====================
@@ -53,7 +61,8 @@ export const addMyGeminiKey = action({
     handler: async (ctx, args): Promise<{ ok: boolean; label: string; replaced: boolean }> => {
         // Auth is enforced again in the internal mutation (by clerk identity);
         // we just need a non-empty, plausible key before spending crypto on it.
-        await requireAuth(ctx);
+        const identity = await requireAuth(ctx);
+        requireContributor(await ctx.runQuery(internal.creators.getMeForAuthInternal, { clerkId: identity.subject }));
         const key = args.key.trim();
         if (key.length < 20) throw new Error('That does not look like a valid Gemini API key.');
 

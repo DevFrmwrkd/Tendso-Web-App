@@ -136,7 +136,7 @@ export function LeadsScreen() {
     // throws without one, and listForMobileCRM answers an empty feed, so both
     // wait for Convex's own auth rather than only Clerk's.
     const { isAuthenticated: convexAuthed } = useConvexAuth();
-    const signedInCreator = !!isSignedIn && !!creator && convexAuthed;
+    const signedInCreator = !!isSignedIn && !!creator && convexAuthed && creatorRedirect(creator) === null;
     const feed = useQuery(
         api.leads.listForMobileCRM,
         signedInCreator ? { search: debouncedSearch || undefined, statusFilter: filters.status, onlyMine: filters.onlyMine } : "skip",
@@ -243,7 +243,7 @@ export function LeadsScreen() {
     const visitId = useId();
 
     // Certified creators only, as before; an admin only with a lead to open (see above).
-    const ready = isLoaded && isSignedIn && !!creator && (creator.role === "admin" ? !!leadParam : !!creator.certifiedAt);
+    const ready = isLoaded && isSignedIn && !!creator && creatorRedirect(creator) === null && (creator.role === "admin" ? !!leadParam : !!creator.certifiedAt);
 
     if (!ready || !creator) return <LeadsLoading />;
 

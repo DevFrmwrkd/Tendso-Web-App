@@ -67,6 +67,16 @@ describe('matchesAudience', () => {
         expect(matchesAudience(admin, 'all')).toBe(true);
     });
 
+    it('keeps affiliates and staff out of creator audiences, even with stale certification fields', () => {
+        for (const role of ['affiliate', 'staff']) {
+            for (const key of ['certified', 'active', 'awaiting_approval'] as const) {
+                expect(matchesAudience(row({ role, certifiedAt: 1, quizPassedAt: 1 }), key)).toBe(false);
+            }
+            expect(matchesAudience(row({ role }), 'all')).toBe(true);
+        }
+        expect(matchesAudience(row({ role: undefined, certifiedAt: 1 }), 'certified')).toBe(true);
+    });
+
     it('sends to NOBODY on an unrecognised audience key', () => {
         // A typo or a stale client must not fall through to a full broadcast.
         expect(matchesAudience(row({ certifiedAt: 1 }), 'everyone' as AudienceKey)).toBe(false);

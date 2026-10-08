@@ -7,6 +7,8 @@ const isPublicRoute = createRouteMatcher([
     '/',
     '/login(.*)',
     '/signup(.*)',
+    '/affiliates',
+    '/affiliates/join(.*)',
     '/forgot-password(.*)',
     '/reset-password(.*)',
     '/auth/(.*)',

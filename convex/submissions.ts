@@ -1,10 +1,28 @@
 import { v } from 'convex/values';
 import { query, mutation, internalQuery, internalMutation, internalAction } from './_generated/server';
-import type { MutationCtx } from './_generated/server';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
 import { BASE_PRICE, PRICE_CEILING, WEBSITE_PRICE, STANDARD_PRICE, COMMISSION_RATE, CUSTOM_DOMAIN_ADDON, clampSellPrice, commissionFor, ownerTotal, domainAddOnFor, isComped, ownerChargeFor } from '../lib/pricing';
 import { assertGiveawayCanActivate, assertGiveawayIdentityAvailable, normalizeGiveawayEmail, normalizeGiveawayPhone, readGiveaway } from './lib/giveaway';
+import { requireAdmin, requireCreatorAccount } from './lib/auth';
+import { isCreatorAccount } from '../lib/accounts';
+
+/** Shared server pipelines still call these endpoints without a Clerk token. */
+async function requireCreatorCallerIfSignedIn(ctx: MutationCtx) {
+    if (await ctx.auth.getUserIdentity()) await requireCreatorAccount(ctx);
+}
+
+/** Mobile reads drafts before its token hydrates; preserve that read contract. */
+async function canReadCreatorContext(ctx: QueryCtx, creatorId: Id<'creators'>): Promise<boolean> {
+    if (await ctx.auth.getUserIdentity()) {
+        await requireCreatorAccount(ctx, creatorId);
+        return true;
+    }
+    const account = await ctx.db.get(creatorId);
+    return !!account && (isCreatorAccount(account) || account.role === 'admin') &&
+        !account.isDeleted && account.status !== 'deleted' && account.status !== 'suspended';
+}
 
 // ==================== QUERIES ====================
 
@@ -84,6 +102,7 @@ export const getByCreatorId = query({
 export const getDraftByCreatorId = query({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
+        if (!await canReadCreatorContext(ctx, args.creatorId)) return null;
         const drafts = await ctx.db
             .query('submissions')
             .withIndex('by_creator_id', (q) => q.eq('creatorId', args.creatorId))
@@ -194,6 +213,7 @@ export const getByStatus = query({
 export const getPricingContext = query({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
+        if (!await canReadCreatorContext(ctx, args.creatorId)) return null;
         const approvedStatuses = ['approved', 'deployed', 'pending_payment', 'paid', 'completed', 'website_generated', 'unpublished'];
         const subs = await ctx.db
             .query('submissions')
@@ -222,6 +242,9 @@ export const getPricingContext = query({
 export const getCreatorPricingSummary = query({
     args: { creatorId: v.id('creators') },
     handler: async (ctx, args) => {
+        await requireAdmin(ctx);
+        const account = await ctx.db.get(args.creatorId);
+        if (account?.role === 'affiliate') throw new Error('Affiliate accounts do not have creator pricing summaries.');
         const subs = await ctx.db
             .query('submissions')
             .withIndex('by_creator_id', (q) => q.eq('creatorId', args.creatorId))
@@ -364,6 +387,7 @@ export const create = mutation({
         prospectLeadId: v.optional(v.id('leads')),
     },
     handler: async (ctx, args) => {
+        await requireCreatorAccount(ctx, args.creatorId);
         const submissionId = await ctx.db.insert('submissions', {
             creatorId: args.creatorId,
             businessName: args.businessName,
@@ -443,6 +467,7 @@ export const update = mutation({
         prospectLeadId: v.optional(v.id('leads')),
     },
     handler: async (ctx, args) => {
+        await requireCreatorCallerIfSignedIn(ctx);
         // prospectLeadId is pulled out of the generic spread deliberately: it
         // needs validation, and letting it flow through filteredUpdates would
         // let a re-entry silently re-point an in-progress interview at a
@@ -528,14 +553,9 @@ export const update = mutation({
 /**
  * Set the custom domain tier and domain on a submission (creator review page).
  *
- * UNAUTHENTICATED: there is no identity or ownership check below — any caller
- * with a submission id can set submissionType, requestedDomain and amount on it.
- * Left as-is deliberately: this sits on the creator funnel's live path
- * (app/submit/review/page.tsx) and the Next routes that reach it forward no Clerk
- * token, so bolting a check on here would break paying customers mid-flow.
- * TODO(auth): thread the creator identity through every caller — the review page
- * and mobile, which shares this mutation — then gate it on "caller must own the
- * creator that owns the submission".
+ * Signed-in callers must be creators or admins; affiliate prices are configured
+ * on the affiliate account instead. Shared server calls without Clerk tokens
+ * retain their contract while affiliate-owned orders cannot use this capture path.
  */
 export const setDomainTier = mutation({
     args: {
@@ -551,6 +571,10 @@ export const setDomainTier = mutation({
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
+
+        await requireCreatorCallerIfSignedIn(ctx);
+        const account = await ctx.db.get(submission.creatorId);
+        if (account?.role === 'affiliate') throw new Error('Affiliate orders cannot use creator pricing.');
 
         if (submission.giveawayApplication) {
             if (args.submissionType !== 'standard' || args.requestedDomain?.trim()) {
@@ -679,6 +703,7 @@ export const submit = mutation({
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
+        await requireCreatorAccount(ctx, submission.creatorId);
 
         // Idempotency. Without this a double-tap on the review page re-inserts
         // the lead, double-fires both analytics increments, and re-triggers the
@@ -886,6 +911,7 @@ export const markPayoutComplete = mutation({
 export const remove = mutation({
     args: { id: v.id('submissions') },
     handler: async (ctx, args) => {
+        await requireCreatorCallerIfSignedIn(ctx);
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
 

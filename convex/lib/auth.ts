@@ -1,5 +1,7 @@
 import type { ActionCtx, MutationCtx, QueryCtx } from "../_generated/server";
-import type { Doc } from "../_generated/dataModel";
+import type { UserIdentity } from "convex/server";
+import type { Doc, Id } from "../_generated/dataModel";
+import { isCreatorAccount } from "../../lib/accounts";
 
 /**
  * Shared auth helpers used by mutations, queries, and actions.
@@ -13,17 +15,41 @@ import type { Doc } from "../_generated/dataModel";
 type AnyCtx = QueryCtx | MutationCtx | ActionCtx;
 
 function isActionCtx(ctx: AnyCtx): ctx is ActionCtx {
-    return typeof (ctx as any).runQuery === "function" && (ctx as any).db === undefined;
+    return 'runQuery' in ctx && !('db' in ctx);
 }
 
 /**
  * Require a signed-in Clerk identity. Returns the identity object.
  * Throws "Not authenticated" if no Clerk session attached to the call.
  */
-export async function requireAuth(ctx: AnyCtx) {
+export async function requireAuth(ctx: AnyCtx): Promise<UserIdentity> {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
     return identity;
+}
+
+/** Creator capture/CRM access, with admin access for existing operational tools. */
+export async function requireCreatorAccount(ctx: AnyCtx, creatorId?: Id<"creators">): Promise<{ identity: UserIdentity; me: Doc<"creators"> }> {
+    const identity = await requireAuth(ctx);
+    const { internal } = await import("../_generated/api");
+    const me: Doc<"creators"> | null = isActionCtx(ctx)
+        ? await ctx.runQuery(internal.creators.getMeForAuthInternal, { clerkId: identity.subject })
+        : await ctx.db.query("creators").withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject)).first();
+    if (!me || (!isCreatorAccount(me) && me.role !== "admin") || me.isDeleted || me.status === "deleted" || me.status === "suspended") {
+        throw new Error("Forbidden: creator access required");
+    }
+    if (creatorId) {
+        const target = isActionCtx(ctx)
+            ? await ctx.runQuery(internal.creators.getByIdInternal, { id: creatorId })
+            : await ctx.db.get(creatorId);
+        if (!target || (!isCreatorAccount(target) && target.role !== "admin") || target.isDeleted || target.status === "deleted" || target.status === "suspended") {
+            throw new Error("Forbidden: creator account required");
+        }
+        if (me.role !== "admin" && me._id !== creatorId) {
+            throw new Error("Forbidden: you can only access your own creator account");
+        }
+    }
+    return { identity, me };
 }
 
 /**
@@ -33,10 +59,10 @@ export async function requireAuth(ctx: AnyCtx) {
  * Action variant uses `internal.creators.getMeForAuthInternal` (an internal
  * query introduced just for this), since actions can't reach `ctx.db` directly.
  */
-export async function requireAdmin(ctx: AnyCtx) {
+export async function requireAdmin(ctx: AnyCtx): Promise<{ identity: UserIdentity; me: Doc<"creators"> }> {
     const identity = await requireAuth(ctx);
 
-    let me: any;
+    let me: Doc<"creators"> | null;
     if (isActionCtx(ctx)) {
         // Lazy import to avoid circular ref at module-eval time.
         const { internal } = await import("../_generated/api");
@@ -65,7 +91,7 @@ export async function requireAdmin(ctx: AnyCtx) {
  * It grants nothing else — every other admin check in the app compares against
  * 'admin' exactly, so a staff account fails all of them.
  */
-export async function requireStaff(ctx: AnyCtx) {
+export async function requireStaff(ctx: AnyCtx): Promise<{ identity: UserIdentity; me: Doc<"creators">; isAdmin: boolean }> {
     const identity = await requireAuth(ctx);
 
     let me: Doc<"creators"> | null;
