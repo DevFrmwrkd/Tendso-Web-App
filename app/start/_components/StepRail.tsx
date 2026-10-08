@@ -48,7 +48,7 @@ export function PriceNote({ quote, className }: { quote: Quote; className?: stri
                     {quote.struckTotal !== null ? <span className="sr-only">Now </span> : null}
                     {quote.giveaway ? "Free" : formatPHP(quote.total)}
                 </span>
-                {quote.discounted && quote.code ? <span className="t-meta">with {quote.code}</span> : null}
+                {quote.discounted ? <span className="t-meta">{quote.code ? `with ${quote.code}` : `${quote.percentOff}% off`}</span> : null}
             </p>
             <p className="t-meta">
                 {quote.giveaway ? "A free website with a Tendso web address, if your application qualifies. We review your poster photo before building it." : <>

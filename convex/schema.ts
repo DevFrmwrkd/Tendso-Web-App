@@ -223,6 +223,10 @@ export default defineSchema({
         // Actual cost the platform paid Hostinger for this registration (PHP).
         // Used by the admin dashboard to deduct from gross earnings → net earnings.
         domainCostPHP: v.optional(v.number()),
+        // Frozen owner charge for the domain add-on (0 when none). Separate
+        // from domainCostPHP, which later records the registrar's actual bill.
+        // Optional because existing rows and the mobile app share this schema.
+        domainChargedPHP: v.optional(v.number()),
         // Cloudflare zone for this custom domain
         cloudflareZoneId: v.optional(v.string()),
 

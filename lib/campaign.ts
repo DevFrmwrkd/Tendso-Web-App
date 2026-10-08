@@ -16,6 +16,7 @@
 import { normalizeCampaign } from "./pricing";
 
 const KEY = "tendso:campaign:v1";
+const AFFILIATE_KEY = "tendso:affiliate:v1";
 const GIVEAWAY_KEY = "tendso:giveaway:v1";
 const FULL_PRICE_KEY = "tendso:start:full-price:v1";
 
@@ -29,6 +30,12 @@ export type RememberedCampaign = {
     expiresAt: number;
 };
 
+export type RememberedAffiliate = { handle: string; expiresAt: number };
+
+function clearFullPrice(): void {
+    try { window.sessionStorage?.removeItem(FULL_PRICE_KEY); } catch { /* optional storage */ }
+}
+
 /** Tags are stored and counted, never rendered as markup or trusted as input. */
 function cleanSource(value?: string | null): string | null {
     if (!value) return null;
@@ -37,8 +44,10 @@ function cleanSource(value?: string | null): string | null {
 }
 
 export function rememberCampaign(campaign: string, source?: string | null): void {
+    const resolved = normalizeCampaign(campaign);
+    if (resolved) clearFullPrice();
     try {
-        const resolved = normalizeCampaign(campaign);
+        window.localStorage.removeItem(AFFILIATE_KEY);
         // The giveaway is an application, never a remembered discount. Clear
         // any earlier offer when a caller supplies an unsupported campaign.
         if (!resolved) {
@@ -51,12 +60,47 @@ export function rememberCampaign(campaign: string, source?: string | null): void
             expiresAt: Date.now() + CAMPAIGN_TTL_MS,
         };
         window.localStorage.removeItem(GIVEAWAY_KEY);
-        window.sessionStorage?.removeItem(FULL_PRICE_KEY);
         window.localStorage.setItem(KEY, JSON.stringify(entry));
     } catch {
         // Private windows and blocked site data. The link still carries the
         // campaign in its query, and the code on the page is the other way back.
     }
+}
+
+/** A fresh affiliate entrance replaces older offers before lookup. An unknown
+ *  or suspended handle still means full price, rather than reviving old OTR. */
+export function rememberAffiliate(handle: string): void {
+    clearFullPrice();
+    try {
+        window.localStorage.removeItem(KEY);
+        window.localStorage.removeItem(GIVEAWAY_KEY);
+        window.localStorage.setItem(AFFILIATE_KEY, JSON.stringify({
+            handle, expiresAt: Date.now() + CAMPAIGN_TTL_MS,
+        }));
+    } catch {
+        // The explicit affiliate query keeps this visit working without storage.
+    }
+}
+
+export function readAffiliate(): RememberedAffiliate | null {
+    try {
+        const raw = window.localStorage.getItem(AFFILIATE_KEY);
+        if (!raw) return null;
+        const entry = JSON.parse(raw) as Partial<RememberedAffiliate>;
+        if (typeof entry?.handle !== "string" || typeof entry.expiresAt !== "number"
+            || !Number.isFinite(entry.expiresAt) || entry.expiresAt <= Date.now()) {
+            window.localStorage.removeItem(AFFILIATE_KEY);
+            return null;
+        }
+        return { handle: entry.handle, expiresAt: entry.expiresAt };
+    } catch {
+        return null;
+    }
+}
+
+function affiliateFromLocation(): string | null {
+    try { return new URLSearchParams(window.location.search).get("affiliate"); }
+    catch { return null; }
 }
 
 /** What we remember, or null once it has expired or was never stored. */
@@ -117,12 +161,13 @@ export function discountCampaignForPage(): { campaign: string | null; source: st
 
 /** An application hint kept separately from discounts. Availability is checked by /start. */
 export function rememberGiveaway(source?: string | null): void {
+    clearFullPrice();
     try {
         window.localStorage.removeItem(KEY);
+        window.localStorage.removeItem(AFFILIATE_KEY);
         window.localStorage.setItem(GIVEAWAY_KEY, JSON.stringify({
             source: cleanSource(source), expiresAt: Date.now() + CAMPAIGN_TTL_MS,
         }));
-        window.sessionStorage?.removeItem(FULL_PRICE_KEY);
     } catch {
         // The application link still carries the mode and source.
     }
@@ -147,6 +192,7 @@ export function clearCampaign(): void {
     try {
         window.localStorage.removeItem(KEY);
         window.localStorage.removeItem(GIVEAWAY_KEY);
+        window.localStorage.removeItem(AFFILIATE_KEY);
     } catch {
         // Storage can be disabled; ordinary intake still defaults to full price.
     }
@@ -167,16 +213,24 @@ export type IntakeCampaign = {
     campaign: string | null;
     source: string | null;
     fullPrice?: boolean;
+    /** Kept even when the public offer is unavailable; the server decides it. */
+    affiliateHandle?: string;
 };
 
 export function intakeCampaignForPage(): IntakeCampaign {
     const fromUrl = campaignFromLocation();
+    // An explicit application remains separate from paid-sale attribution.
+    if (fromUrl.campaign?.trim().toLowerCase() === "giveaway") {
+        rememberGiveaway(fromUrl.source);
+        return { giveaway: true, campaign: null, source: fromUrl.source };
+    }
+    const handle = affiliateFromLocation();
+    if (handle !== null) {
+        rememberAffiliate(handle);
+        return { giveaway: false, campaign: null, source: fromUrl.source, affiliateHandle: handle };
+    }
     if (fromUrl.campaign !== null) {
-        try { window.sessionStorage?.removeItem(FULL_PRICE_KEY); } catch { /* optional storage */ }
-        if (fromUrl.campaign.trim().toLowerCase() === "giveaway") {
-            rememberGiveaway(fromUrl.source);
-            return { giveaway: true, campaign: null, source: fromUrl.source };
-        }
+        clearFullPrice();
         const campaign = normalizeCampaign(fromUrl.campaign);
         clearCampaign();
         if (campaign) rememberCampaign(campaign, fromUrl.source);
@@ -189,6 +243,8 @@ export function intakeCampaignForPage(): IntakeCampaign {
     } catch { /* optional storage */ }
     const giveaway = readGiveaway();
     if (giveaway) return { giveaway: true, campaign: null, source: fromUrl.source ?? giveaway.source };
+    const affiliate = readAffiliate();
+    if (affiliate) return { giveaway: false, campaign: null, source: fromUrl.source, affiliateHandle: affiliate.handle };
     const discount = discountCampaignForPage();
     return { giveaway: false, ...discount };
 }

@@ -193,7 +193,7 @@ export function ReviewStep({
                             <p className="t-body">A free website with a Tendso web address, if your application qualifies.</p>
                         ) : quote.discounted ? (
                             <Status tone="done" className="whitespace-normal">
-                                {quote.code} applied — {formatPHP(quote.listPrice - quote.sellPrice)} off your website
+                                {quote.code ? `${quote.code} applied — ${formatPHP(quote.listPrice - quote.sellPrice)} off your website` : `${quote.percentOff}% off your website`}
                             </Status>
                         ) : (
                             <Field
@@ -235,7 +235,7 @@ export function ReviewStep({
                             <MoneyLines className="pt-1">
                                 <MoneyLine
                                     label="Website"
-                                    meta={quote.discounted ? `${quote.percentOff}% off with ${quote.code}` : undefined}
+                                    meta={quote.discounted ? `${quote.percentOff}% off${quote.code ? ` with ${quote.code}` : ""}` : undefined}
                                     amount={
                                         quote.discounted ? (
                                             <>

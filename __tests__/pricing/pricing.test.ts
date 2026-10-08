@@ -88,6 +88,7 @@ describe('domainAddOnFor', () => {
     it('is 0 for the standard tier regardless of any price', () => {
         expect(domainAddOnFor('standard')).toBe(0);
         expect(domainAddOnFor('standard', 720)).toBe(0);
+        expect(domainAddOnFor('standard', 720, 500)).toBe(0);
     });
     it('uses the REAL registrar price when provided', () => {
         expect(domainAddOnFor('with_custom_domain', 720)).toBe(720);
@@ -95,6 +96,14 @@ describe('domainAddOnFor', () => {
     });
     it('rounds a fractional real price', () => {
         expect(domainAddOnFor('with_custom_domain', 719.6)).toBe(720);
+    });
+    it('uses the frozen owner charge ahead of later registrar costs, including a zero charge', () => {
+        expect(domainAddOnFor('with_custom_domain', 720, 500)).toBe(500);
+        expect(domainAddOnFor('with_custom_domain', 720, 0)).toBe(0);
+        expect(domainAddOnFor('with_custom_domain', 720, 499.6)).toBe(500);
+    });
+    it.each([undefined, null, -1, NaN, Infinity])('preserves the legacy real-cost fallback for an invalid frozen charge %p', (charge) => {
+        expect(domainAddOnFor('with_custom_domain', 720, charge)).toBe(720);
     });
     it('falls back to the flat add-on when no real price is known', () => {
         expect(domainAddOnFor('with_custom_domain')).toBe(CUSTOM_DOMAIN_ADDON);

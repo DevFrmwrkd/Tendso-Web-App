@@ -123,6 +123,7 @@ export async function POST(request: NextRequest) {
             platformEmail: process.env.WISE_EMAIL,
             customDomain: (submission as any).requestedDomain || undefined,
             domainCostPHP: (submission as any).domainCostPHP || undefined,
+            domainChargedPHP: submission.domainChargedPHP,
             websiteListPrice: submission.websiteListPrice,
             editMyWebsiteUrl,
         })

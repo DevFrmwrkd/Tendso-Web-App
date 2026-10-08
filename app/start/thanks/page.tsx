@@ -32,7 +32,7 @@ import { formatPHP } from "@/lib/pricing";
 
 import { HEADER_ALIGN } from "../_components/frame";
 import { readSubmitted, type SubmittedReceipt } from "../draft";
-import { quoteFor } from "../quote";
+import { quoteForReceipt } from "../quote";
 
 /** sessionStorage is written once, on the page before this one, and never
  *  changes underneath us — so there is nothing to subscribe to. */
@@ -53,13 +53,15 @@ const noServerValue = () => null;
 function priceDetail(receipt: SubmittedReceipt, amount: number): { was: number | null; note: string | null } {
     if (receipt.giveawayApplication) return { was: null, note: "With a Tendso web address, if your application qualifies" };
     if (receipt.customDomain === null) return { was: null, note: null };
-    const quote = quoteFor(receipt.campaign, receipt.customDomain);
-    if (quote.total !== amount) return { was: null, note: null };
+    const quote = quoteForReceipt(receipt);
+    if (!quote || quote.total !== amount) return { was: null, note: null };
     const domainLine = `${formatPHP(quote.sellPrice)} website + ${formatPHP(quote.addOn)} for your .com`;
     if (quote.discounted) {
         return {
             was: quote.struckTotal,
-            note: quote.tier === "with_custom_domain" ? `with ${quote.code} · ${domainLine}` : `with ${quote.code} · ${quote.percentOff}% off the website`,
+            note: quote.tier === "with_custom_domain"
+                ? `${quote.code ? `with ${quote.code} · ` : ""}${domainLine}`
+                : `${quote.code ? `with ${quote.code} · ` : ""}${quote.percentOff}% off the website`,
         };
     }
     return { was: null, note: quote.tier === "with_custom_domain" ? domainLine : null };

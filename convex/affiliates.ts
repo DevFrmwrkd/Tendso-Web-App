@@ -7,6 +7,27 @@ import {
     affiliatePhotoError, affiliatePriceError, affiliateSocialLinkError,
 } from '../lib/affiliates';
 import { clampSellPrice, ownerChargeFor } from '../lib/pricing';
+import { resolveAffiliateOffer } from './lib/affiliateOffer';
+
+/** Anonymous page data only. Private account, contact and payout data stay private. */
+export const publicPage = query({
+    args: { handle: v.string() },
+    handler: async (ctx, args) => {
+        const offer = await resolveAffiliateOffer(ctx, args.handle);
+        if (!offer) return null;
+        const { affiliate, price } = offer;
+        return {
+            handle: affiliate.affiliateHandle!,
+            photo: affiliate.affiliatePhoto,
+            displayName: affiliate.affiliateDisplayName?.trim()
+                || [affiliate.firstName, affiliate.lastName].filter(Boolean).join(' ') || args.handle,
+            message: affiliate.affiliateMessage,
+            socialLink: affiliate.affiliateSocialLink,
+            referralCode: affiliate.referralCode,
+            price,
+        };
+    },
+});
 
 /** Signup has no incoming referral fields: Convex rejects extra arguments. */
 export const create = mutation({

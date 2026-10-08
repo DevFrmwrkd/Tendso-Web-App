@@ -48,15 +48,15 @@ export type PriceSplit = {
 
 /**
  * The transfer split the way the payment email splits it (lib/email/templates.ts):
- * a custom domain at its real price, else the flat add-on, and the website is
- * the rest.
+ * a custom domain at the frozen owner charge, or its legacy real price/add-on,
+ * and the website is the rest.
  */
 export function priceSplit(
     amount: number,
-    submission: { requestedDomain?: string | null; domainCostPHP?: number | null; websiteListPrice?: number | null } | null,
+    submission: { requestedDomain?: string | null; domainCostPHP?: number | null; domainChargedPHP?: number | null; websiteListPrice?: number | null } | null,
 ): PriceSplit {
     const domain = submission?.requestedDomain || null;
-    const addOn = domain ? domainAddOnFor("with_custom_domain", submission?.domainCostPHP) : 0;
+    const addOn = domain ? domainAddOnFor("with_custom_domain", submission?.domainCostPHP, submission?.domainChargedPHP) : 0;
     const websiteLine = amount - addOn;
     return { domain, addOn, websiteLine, discount: creatorDiscount(websiteLine, submission?.websiteListPrice) };
 }

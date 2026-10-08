@@ -34,14 +34,14 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useAction, useMutation, useQuery } from "convex/react";
+import { useAction, useConvex, useMutation, useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
 import { ArrowRight, Send } from "lucide-react";
 
 import { Button, ButtonLink, Card, FunnelHeader, Icon, Loading, PublicPage, Skeleton, Stepper, cx } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import { INTAKE_QUESTIONS, meetsAnswerMinimum, type IntakeQuestionKey } from "@/lib/narrativeFromQa";
-import { formatPHP, normalizeCampaign } from "@/lib/pricing";
+import { campaignListPrice, domainAddOnFor, formatPHP, normalizeCampaign, ownerChargeFor } from "@/lib/pricing";
 import { clearCampaign, intakeCampaignForPage, rememberCampaign } from "@/lib/campaign";
 import { GIVEAWAY_CLOSED } from "@/lib/giveaway";
 
@@ -58,7 +58,7 @@ import {
     loadDraft,
     rememberSubmitted,
     saveDraft,
-    resolveGiveawayDraft,
+    resolveIntakeDraft,
     GIVEAWAY_STEPS,
     TOTAL_STEPS,
     type StartBasics,
@@ -151,6 +151,7 @@ const header = <FunnelHeader exit={{ href: "/", label: "Save and exit" }} classN
 
 export default function StartPage() {
     const router = useRouter();
+    const convex = useConvex();
     /** The one layout difference CSS cannot make: step 2 is one question per
      *  screen on a phone and all eight at once on a desk. See useIsDesktop. */
     const isDesktop = useIsDesktop();
@@ -169,7 +170,10 @@ export default function StartPage() {
      * mutation resolves the campaign again and works the amount out itself.
      */
     const [campaign, setCampaign] = useState<string | null>(null);
+    const [affiliateHandle, setAffiliateHandle] = useState<string | null>(null);
     const [source, setSource] = useState<string | null>(null);
+    const affiliateOffer = useQuery(api.affiliates.publicPage, affiliateHandle !== null ? { handle: affiliateHandle } : "skip");
+    const affiliatePrice = affiliateHandle === null ? undefined : affiliateOffer?.price ?? null;
     const [codeEntry, setCodeEntry] = useState("");
     const [codeRejected, setCodeRejected] = useState(false);
     const [arrival, setArrival] = useState<{ offer: ReturnType<typeof intakeCampaignForPage>; saved: StartDraft } | null>(null);
@@ -216,9 +220,10 @@ export default function StartPage() {
         // A fresh giveaway entrance waits for the live query instead of briefly
         // promising a free site after the last slot has already been taken.
         if (offer.giveaway && !offer.fullPrice && giveawayStatus === undefined) return;
-        const next = resolveGiveawayDraft(saved, offer.giveaway, offer.giveaway ? offer.source : null, giveawayStatus?.open === true, offer.fullPrice);
+        const next = resolveIntakeDraft(saved, offer, giveawayStatus?.open === true);
         setDraft(next);
         setCampaign(next.giveawayApplication || offer.fullPrice || offer.giveaway ? null : offer.campaign);
+        setAffiliateHandle(next.giveawayApplication || offer.fullPrice || offer.giveaway ? null : offer.affiliateHandle ?? null);
         setSource(next.giveawayApplication ? next.giveawaySource : offer.fullPrice ? null : offer.source);
         if (offer.giveaway && !giveawayStatus?.open && !next.giveawayApplication) clearCampaign();
     }, [arrival, draft, giveawayStatus]);
@@ -229,7 +234,7 @@ export default function StartPage() {
 
     const step = draft?.step ?? 1;
     const questionIndex = draft?.questionIndex ?? 0;
-    const loaded = draft !== null;
+    const loaded = draft !== null && (affiliateHandle === null || affiliateOffer !== undefined);
 
     // Every step and every question is a new screen; a phone that keeps the old
     // scroll position hides the question the owner just moved to. Focus follows
@@ -393,7 +398,7 @@ export default function StartPage() {
     }, []);
 
     const handleSubmit = useCallback(async () => {
-        if (!draft || submittedRef.current) return;
+        if (!draft || submittedRef.current || (affiliateHandle !== null && affiliateOffer === undefined)) return;
         if (draft.giveawayApplication && giveawayStatus?.open === false) {
             setGiveawayClosed(true);
             setSubmitError("The giveaway is closed. Your draft is saved on this device.");
@@ -418,7 +423,7 @@ export default function StartPage() {
 
         const { basics } = draft;
         try {
-            await submitOwnerIntake({
+            const submissionId = await submitOwnerIntake({
                 businessName: basics.businessName.trim(),
                 businessType: basics.businessType,
                 ownerName: basics.ownerName.trim(),
@@ -451,23 +456,30 @@ export default function StartPage() {
                 // the ones we run and bills from that; anything else is ignored
                 // and the owner pays the ordinary price.
                 campaign: draft.giveawayApplication ? undefined : campaign ?? undefined,
+                affiliateHandle: draft.giveawayApplication ? undefined : affiliateHandle ?? undefined,
                 source: draft.giveawayApplication ? draft.giveawaySource ?? undefined : source ?? undefined,
                 giveawayApplication: draft.giveawayApplication ? true : undefined,
                 giveawayPosterPhoto: draft.giveawayApplication ? draft.giveawayPosterPhoto ?? undefined : undefined,
             });
 
-            // Recomputed here rather than read from the quote below: a dependency
-            // on it would be evaluated during render, above its own declaration.
-            // Same inputs, same function, same number the page was showing.
-            const quoted = quoteFor(campaign, draft.wantsCustomDomain, draft.giveawayApplication);
+            // Read the committed figures: the offer may have changed since the
+            // last review render. A failed receipt read must never retry a
+            // successful mutation or create a duplicate order.
+            const submitted = await convex.query(api.submissions.getById, { id: submissionId }).catch(() => null);
+            const quoted = quoteFor(campaign, draft.wantsCustomDomain, draft.giveawayApplication, affiliatePrice);
+            const amount = submitted ? ownerChargeFor(submitted) : affiliateHandle !== null ? null : quoted.total;
             rememberSubmitted({
                 email: basics.ownerEmail.trim(),
-                amount: quoted.total,
+                amount,
                 businessName: basics.businessName.trim(),
                 city: basics.city.trim(),
-                campaign: draft.giveawayApplication ? null : normalizeCampaign(campaign),
-                customDomain: !draft.giveawayApplication && draft.wantsCustomDomain,
+                campaign: submitted ? submitted.campaign ?? null : draft.giveawayApplication ? null : normalizeCampaign(campaign),
+                customDomain: submitted ? submitted.submissionType === "with_custom_domain" : !draft.giveawayApplication && draft.wantsCustomDomain,
                 giveawayApplication: draft.giveawayApplication,
+                ...(amount !== null ? {
+                    websitePrice: submitted ? amount - domainAddOnFor(submitted.submissionType ?? "standard", submitted.domainCostPHP, submitted.domainChargedPHP) : quoted.sellPrice,
+                    websiteListPrice: submitted ? submitted.websiteListPrice ?? campaignListPrice(submitted.campaign) : quoted.listPrice,
+                } : {}),
             });
             // Order matters: clear first, then leave. The draft must be gone
             // before /start/thanks can be back-navigated out of.
@@ -485,9 +497,9 @@ export default function StartPage() {
                 setSubmitError("The giveaway is closed. Your draft is saved on this device.");
             } else setSubmitError(message);
         }
-    }, [campaign, draft, giveawayStatus?.open, goToStep, router, source, submitOwnerIntake]);
+    }, [affiliateHandle, affiliateOffer, affiliatePrice, campaign, convex, draft, giveawayStatus?.open, goToStep, router, source, submitOwnerIntake]);
 
-    if (!draft) {
+    if (!draft || !loaded) {
         return (
             <PublicPage header={header}>
                 <Loading label="Loading your form" className={cx(CONTAINER, "flex flex-col gap-8 pb-16 pt-6 sm:pt-8 lg:pl-[360px] lg:pt-10")}>
@@ -516,7 +528,7 @@ export default function StartPage() {
     /** What the payment email will ask for, and everything the screens say
      *  about it. Derived, never typed: lib/pricing is the same module the
      *  mutation prices the row with. The domain is never discounted. */
-    const quote = quoteFor(campaign, wantsCustomDomain, giveaway);
+    const quote = quoteFor(campaign, wantsCustomDomain, giveaway, affiliatePrice);
     // loadDraft already clamps questionIndex, but the value it clamps came out of
     // localStorage — belt and braces, because every read below assumes a question
     // and a miss here is a white screen the owner cannot refresh their way out of.
@@ -652,6 +664,7 @@ export default function StartPage() {
         }
         rememberCampaign(resolved, source);
         setCampaign(resolved);
+        setAffiliateHandle(null);
         setCodeRejected(false);
     };
 

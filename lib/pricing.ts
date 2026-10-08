@@ -233,14 +233,19 @@ export function commissionFor(sellPrice: number): number {
 /**
  * Total the business owner pays = sell price + the custom-domain add-on.
  *
- * The add-on is the domain's REAL registrar price when known (passed in as
+ * A frozen owner charge takes precedence over later registrar costs, including
+ * an explicit zero on a standard intake that later receives a custom domain.
+ * Without that field, the add-on is the REAL registrar price when known (passed in as
  * `domainPricePHP` — the value /api/check-domain returns), falling back to the
  * flat CUSTOM_DOMAIN_ADDON only when a real price isn't available. The domain is
  * a registrar pass-through and is NEVER part of the 50% commission (see
  * commissionFor, which takes the sell price only).
  */
-export function domainAddOnFor(tier: SubmissionTier, domainPricePHP?: number | null): number {
+export function domainAddOnFor(tier: SubmissionTier, domainPricePHP?: number | null, chargedDomainPricePHP?: number | null): number {
     if (tier !== 'with_custom_domain') return 0;
+    if (typeof chargedDomainPricePHP === 'number' && Number.isFinite(chargedDomainPricePHP) && chargedDomainPricePHP >= 0) {
+        return Math.round(chargedDomainPricePHP);
+    }
     if (typeof domainPricePHP === 'number' && Number.isFinite(domainPricePHP) && domainPricePHP > 0) {
         return Math.round(domainPricePHP);
     }

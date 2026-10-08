@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
             isManual,
             customDomain: submission.requestedDomain || undefined,
             domainCostPHP: submission.domainCostPHP || undefined,
+            domainChargedPHP: submission.domainChargedPHP,
             websiteListPrice: submission.websiteListPrice,
         })
 

@@ -249,7 +249,8 @@ interface PaymentLinkEmailData {
     referenceCode: string;
     platformEmail?: string;
     customDomain?: string; // If set, template shows a website + domain breakdown
-    domainCostPHP?: number; // Real frozen domain price (submissions.domainCostPHP) for the breakdown split
+    domainCostPHP?: number; // Legacy registrar price when no frozen owner charge exists
+    domainChargedPHP?: number; // Frozen owner charge; may be 0 even when a domain is added later
     websiteListPrice?: number; // submissions.websiteListPrice → a creator's discount struck through
     editMyWebsiteUrl?: string; // Owner-portal claim link → "Edit my website" button
 }
@@ -265,6 +266,7 @@ export async function sendPaymentLinkEmail(data: PaymentLinkEmailData) {
             platformEmail: data.platformEmail,
             customDomain: data.customDomain,
             domainCostPHP: data.domainCostPHP,
+            domainChargedPHP: data.domainChargedPHP,
             websiteListPrice: data.websiteListPrice,
             editMyWebsiteUrl: data.editMyWebsiteUrl,
         });
@@ -292,6 +294,7 @@ interface PaymentFollowUpEmailData {
     // Only to strike a creator's discount through (see PaymentLinkEmailData).
     customDomain?: string;
     domainCostPHP?: number;
+    domainChargedPHP?: number;
     websiteListPrice?: number;
 }
 
@@ -307,6 +310,7 @@ export async function sendPaymentFollowUpEmail(data: PaymentFollowUpEmailData) {
             isManual: data.isManual,
             customDomain: data.customDomain,
             domainCostPHP: data.domainCostPHP,
+            domainChargedPHP: data.domainChargedPHP,
             websiteListPrice: data.websiteListPrice,
         });
         const subject = data.isManual
@@ -337,6 +341,7 @@ export async function sendCreatorReminderEmail(data: CreatorReminderEmailData) {
         referenceCode: data.referenceCode,
         customDomain: data.customDomain,
         domainCostPHP: data.domainCostPHP,
+        domainChargedPHP: data.domainChargedPHP,
         websiteListPrice: data.websiteListPrice,
         fromCreator: data.creatorName,
     });
