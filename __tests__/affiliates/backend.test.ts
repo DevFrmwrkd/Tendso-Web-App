@@ -115,13 +115,16 @@ describe('affiliate signup and page foundation', () => {
         expect((await t.run((ctx) => ctx.db.get(tokenId)))?.status).toBe('pending');
     });
 
-    it('saves optional page fields for the signed-in active affiliate and validates whole-peso price boundaries', async () => {
+    it('saves optional page fields for the signed-in active affiliate and clamps whole-peso price boundaries', async () => {
         const { t, affiliate, admin } = await setup();
         const id = await affiliate.mutation(api.affiliates.create, signup);
-        await affiliate.mutation(api.affiliates.updatePage, { photo: 'https://example.com/photo.jpg', displayName: ' Alex ', message: ' Websites for your shop. ', socialLink: 'https://example.com/alex', price: 999 });
+        await affiliate.mutation(api.affiliates.updatePage, { photo: 'https://example.com/photo.jpg', displayName: ' Alex ', message: ' Websites for your shop. ', socialLink: 'https://facebook.com/alex', price: 999 });
         expect(await t.run((ctx) => ctx.db.get(id))).toMatchObject({ affiliateDisplayName: 'Alex', affiliateMessage: 'Websites for your shop.', affiliatePrice: 999 });
         await affiliate.mutation(api.affiliates.updatePage, { price: 4999 });
-        for (const price of [998, 5000, 999.5]) await expect(affiliate.mutation(api.affiliates.updatePage, { price })).rejects.toThrow('whole-peso');
+        for (const [price, expected] of [[998, 999], [5000, 4999], [999.5, 1000]]) {
+            await affiliate.mutation(api.affiliates.updatePage, { price });
+            expect((await t.run((ctx) => ctx.db.get(id)))?.affiliatePrice).toBe(expected);
+        }
         await expect(affiliate.mutation(api.affiliates.updatePage, { socialLink: 'javascript:alert(1)' })).rejects.toThrow('HTTPS');
         await expect(admin.mutation(api.affiliates.updatePage, { price: 999 })).rejects.toThrow('affiliate account');
         await affiliate.mutation(api.affiliates.updatePage, { message: '' });
@@ -226,11 +229,12 @@ describe('affiliate referral direction and bonus ledger', () => {
 });
 
 describe('shared affiliate input rules', () => {
-    it('accepts valid handles and both price bounds while rejecting invalid input', () => {
+    it('accepts valid handles and finite price input while rejecting invalid input', () => {
         expect(affiliateHandleError('alex-123')).toBeNull();
         expect(affiliateHandleError('tendso')).toContain('reserved');
         expect(affiliatePriceError(999)).toBeNull();
         expect(affiliatePriceError(4999)).toBeNull();
-        for (const price of [NaN, Infinity, -1, 998, 5000, 1000.1]) expect(affiliatePriceError(price)).not.toBeNull();
+        for (const price of [-1, 998, 5000, 1000.1]) expect(affiliatePriceError(price)).toBeNull();
+        for (const price of [NaN, Infinity, -Infinity]) expect(affiliatePriceError(price)).not.toBeNull();
     });
 });

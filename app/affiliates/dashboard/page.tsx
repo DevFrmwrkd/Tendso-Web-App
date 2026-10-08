@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { AuthAlert } from "@/app/auth/_components/AuthParts";
-import { Button, FunnelHeader, PublicFooter, PublicPage, Status } from "@/components/r1";
+import { Button, FunnelHeader, PublicFooter, PublicPage } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
-import { SUPPORT_EMAIL } from "@/lib/contact";
 
 import { AffiliateAccountLoading, DifferentAccount } from "../_components/AccountState";
+import { DashboardContent } from "./_components/Dashboard";
 
 export default function AffiliateDashboardPage() {
     const router = useRouter();
@@ -42,32 +42,15 @@ export default function AffiliateDashboardPage() {
     if (account === null) return owner ? <DifferentAccount role="owner" /> : <AffiliateAccountLoading />;
     if (account.role !== "affiliate") return <DifferentAccount role={account.role} />;
 
-    const suspended = account.status === "suspended";
-
     return (
         <PublicPage
             header={<FunnelHeader exit={{ href: "/affiliates", label: "About affiliates" }} />}
             footer={<PublicFooter />}
-            mainClassName="items-center px-4 py-10 sm:px-6 sm:py-16"
+            mainClassName="items-center px-4 py-8 sm:px-6 sm:py-12"
         >
-            <div className="flex w-full max-w-[640px] flex-col gap-6">
-                <div className="flex flex-col gap-2">
-                    <p className="t-label">Affiliate dashboard</p>
-                    <h1 className="t-h1">Welcome, {account.firstName || "affiliate"}.</h1>
-                    <Status tone={suspended ? "bad" : "done"} word={suspended ? "Suspended" : "Active"} />
-                </div>
+            <div className="flex w-full max-w-[1120px] flex-col gap-8">
                 {error && <AuthAlert>{error}</AuthAlert>}
-                <section className="t-card t-card-pad flex flex-col gap-3">
-                    <h2 className="t-h2">{suspended ? "Your account is suspended" : "Your affiliate account is ready"}</h2>
-                    {suspended ? (
-                        <p className="t-body">Contact <a className="t-link" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> for help with your account.</p>
-                    ) : (
-                        <>
-                            <p className="t-body">Your page handle is <strong>@{account.affiliateHandle}</strong>.</p>
-                            <p className="t-body">Your public page, price settings, and sales dashboard are coming next. You&apos;ll be able to manage them here.</p>
-                        </>
-                    )}
-                </section>
+                <DashboardContent key={account._id} account={account} />
                 <Button variant="ghost" className="self-start" onClick={handleSignOut} disabled={signingOut} aria-busy={signingOut}>
                     {signingOut ? "Signing out…" : "Sign out"}
                 </Button>

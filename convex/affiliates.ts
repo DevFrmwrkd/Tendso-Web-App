@@ -1,7 +1,12 @@
 import { ConvexError, v } from 'convex/values';
+import { paginationOptsValidator } from 'convex/server';
 import { mutation, query } from './_generated/server';
 import { requireAdmin, requireAuth } from './lib/auth';
-import { affiliateHandleError, affiliatePhoneError, affiliatePriceError } from '../lib/affiliates';
+import {
+    AFFILIATE_MESSAGE_MAX_LENGTH, affiliateHandleError, affiliatePhoneError,
+    affiliatePhotoError, affiliatePriceError, affiliateSocialLinkError,
+} from '../lib/affiliates';
+import { clampSellPrice, ownerChargeFor } from '../lib/pricing';
 
 /** Signup has no incoming referral fields: Convex rejects extra arguments. */
 export const create = mutation({
@@ -86,19 +91,15 @@ function optionalText(value: string | undefined, maxLength: number, label: strin
     return trimmed || undefined;
 }
 
-function optionalHttpsUrl(value: string | undefined, label: string) {
+function optionalUrl(value: string | undefined, label: string, errorFor: (value: string) => string | null) {
     const trimmed = optionalText(value, 2048, label);
     if (!trimmed) return undefined;
-    try {
-        const url = new URL(trimmed);
-        if (url.protocol !== 'https:' || url.username || url.password) throw new Error();
-    } catch {
-        throw new ConvexError(`${label} must be a valid HTTPS URL.`);
-    }
+    const error = errorFor(trimmed);
+    if (error) throw new ConvexError(error);
     return trimmed;
 }
 
-/** Foundation for the later dashboard editor; the handle stays fixed. */
+/** Save the affiliate's page settings; the public handle stays fixed. */
 export const updatePage = mutation({
     args: {
         photo: v.optional(v.string()),
@@ -118,12 +119,40 @@ export const updatePage = mutation({
             if (priceError) throw new ConvexError(priceError);
         }
         const updates: Partial<typeof affiliate> = { updatedAt: Date.now() };
-        if (args.photo !== undefined) updates.affiliatePhoto = optionalHttpsUrl(args.photo, 'Photo');
+        if (args.photo !== undefined) updates.affiliatePhoto = optionalUrl(args.photo, 'Photo', affiliatePhotoError);
         if (args.displayName !== undefined) updates.affiliateDisplayName = optionalText(args.displayName, 100, 'Display name');
-        if (args.message !== undefined) updates.affiliateMessage = optionalText(args.message, 280, 'Short message');
-        if (args.socialLink !== undefined) updates.affiliateSocialLink = optionalHttpsUrl(args.socialLink, 'Social link');
-        if (args.price !== undefined) updates.affiliatePrice = args.price;
+        if (args.message !== undefined) updates.affiliateMessage = optionalText(args.message, AFFILIATE_MESSAGE_MAX_LENGTH, 'Short message');
+        if (args.socialLink !== undefined) updates.affiliateSocialLink = optionalUrl(args.socialLink, 'Social link', affiliateSocialLinkError);
+        if (args.price !== undefined) updates.affiliatePrice = clampSellPrice(args.price);
         await ctx.db.patch(affiliate._id, updates);
+    },
+});
+
+/** Only the caller's sales, with frozen amounts and no owner contact details. */
+export const sales = query({
+    args: { paginationOpts: paginationOptsValidator },
+    handler: async (ctx, args) => {
+        const identity = await requireAuth(ctx);
+        const affiliate = await ctx.db.query('creators')
+            .withIndex('by_clerk_id', (q) => q.eq('clerkId', identity.subject)).unique();
+        if (!affiliate || affiliate.role !== 'affiliate' || affiliate.isDeleted) {
+            throw new ConvexError('An affiliate account is required.');
+        }
+        // Suspension stops new page edits, while earned sales remain readable.
+        const result = await ctx.db.query('submissions')
+            .withIndex('by_creator_id', (q) => q.eq('creatorId', affiliate._id))
+            .order('desc').paginate(args.paginationOpts);
+        return {
+            ...result,
+            page: result.page.map((submission) => ({
+                _id: submission._id,
+                businessName: submission.businessName,
+                price: ownerChargeFor(submission),
+                commission: submission.creatorPayout ?? 0,
+                status: submission.status,
+                createdAt: submission._creationTime,
+            })),
+        };
     },
 });
 
