@@ -1475,6 +1475,35 @@ export function getPaymentFollowUpEmailHtml(params: {
 // saying so is the truth. Style mirrors getPaymentLinkEmailHtml (white card,
 // gold header) so the email that follows it looks like the same sender.
 
+export function getGiveawayRejectedEmailHtml(params: {
+    businessName: string
+    businessOwnerName: string
+    reason: string
+    applyUrl: string
+    platformEmail?: string
+}): string {
+    const businessName = escapeHtml(params.businessName)
+    const ownerName = escapeHtml(params.businessOwnerName)
+    const reason = escapeHtml(params.reason)
+    const applyUrl = escapeHtml(params.applyUrl)
+    const replyEmail = escapeHtml(params.platformEmail || paymentConfig.wiseEmail || 'frmwrkd.media@gmail.com')
+    return `<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Your giveaway application — ${businessName}</title></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0"><tr><td align="center" style="padding:32px 16px;">
+<table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;width:100%;background:#fff;border-radius:16px;overflow:hidden;">
+<tr><td style="padding:28px 24px;background:#E4B05E;text-align:center;"><p style="margin:0 0 8px;color:#fff;font-size:13px;letter-spacing:1px;text-transform:uppercase;">Tendso</p><h1 style="margin:0;color:#111827;font-size:26px;line-height:1.25;">An update on your giveaway application</h1></td></tr>
+<tr><td style="padding:28px 24px;color:#374151;font-size:16px;line-height:1.7;">
+<p style="margin:0 0 16px;">Hi <strong>${ownerName}</strong>,</p>
+<p style="margin:0 0 20px;">Thank you for applying for a free website for <strong>${businessName}</strong>. We reviewed your application and couldn't accept it for this reason:</p>
+<div style="padding:16px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;">${reason}</div>
+<p style="margin:20px 0 16px;">Your held slot has been released. You can fix the issue above and apply again while slots remain. A new application holds a new slot; your earlier application no longer holds one.</p>
+<p style="margin:0 0 24px;"><a href="${applyUrl}" style="display:inline-block;background:#111827;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600;">Check slots and apply again</a></p>
+<p style="margin:0;">If anything is unclear, reply to this email and we'll help.</p>
+</td></tr><tr><td style="padding:20px 24px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;line-height:1.6;text-align:center;">Questions? Reply or email <a href="mailto:${replyEmail}" style="color:#C89548;">${replyEmail}</a><br>&copy; ${new Date().getFullYear()} Tendso</td></tr>
+</table></td></tr></table></body></html>`
+}
+
 export function getIntakeReceivedEmailHtml(params: {
     businessName: string
     businessOwnerName: string

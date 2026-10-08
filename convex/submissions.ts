@@ -635,6 +635,9 @@ export const updateStatus = mutation({
     handler: async (ctx, args) => {
         const submission = await ctx.db.get(args.id);
         if (!submission) throw new Error('Submission not found');
+        if (submission.giveawayApplication && args.status === 'rejected') {
+            throw new Error('Reject giveaway applications through the admin review action so the owner receives the reason.');
+        }
         if (submission.giveawayApplication && !isComped(submission) &&
             (args.status === 'paid' || args.status === 'completed' || args.status === 'pending_payment')) {
             throw new Error('Giveaway websites must be given away rather than marked paid.');

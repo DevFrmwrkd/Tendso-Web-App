@@ -26,6 +26,7 @@ export function EmailsFold({ s, emails }: { s: SubmissionDoc; emails: ClientEmai
     const [preview, setPreview] = useState<{ email: ClientEmail; html: string | null; error: string | null } | null>(null);
 
     async function handleSend(email: ClientEmail) {
+        if (!email.sendEndpoint) return;
         setSendingType(email.type);
         try {
             const response = await fetch(email.sendEndpoint, {
@@ -69,7 +70,7 @@ export function EmailsFold({ s, emails }: { s: SubmissionDoc; emails: ClientEmai
         <div className="flex flex-col">
             {emails.map((email) => {
                 const meta = [
-                    email.sentAt ? `Sent ${formatDate(email.sentAt)}` : null,
+                    email.sentAt ? `Sent ${formatDate(email.sentAt)}` : email.type.startsWith("giveaway_") ? "Send not recorded" : null,
                     s.ownerEmail ? `to ${s.ownerEmail}` : "No owner email on file",
                 ]
                     .filter(Boolean)
@@ -87,7 +88,7 @@ export function EmailsFold({ s, emails }: { s: SubmissionDoc; emails: ClientEmai
                             <button type="button" className={linkBtn} onClick={() => void openPreview(email)}>
                                 Preview
                             </button>
-                            <button
+                            {email.sendEndpoint ? <button
                                 type="button"
                                 className={linkBtn}
                                 onClick={() => void handleSend(email)}
@@ -95,7 +96,7 @@ export function EmailsFold({ s, emails }: { s: SubmissionDoc; emails: ClientEmai
                                 title={!s.ownerEmail ? "Business owner email is missing" : `Send to ${s.ownerEmail}`}
                             >
                                 {sendingType === email.type ? "Sending…" : "Send again"}
-                            </button>
+                            </button> : null}
                         </div>
                     </div>
                 );

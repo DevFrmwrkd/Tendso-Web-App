@@ -28,6 +28,7 @@ import {
 import { QueueDrawer } from "./QueueDrawer"
 import { QueueHead, QueueRowButton, QueueSkeleton } from "./Rows"
 import { QueueSearch, SortMenu } from "./Toolbar"
+import { GiveawaySummary } from "./GiveawaySummary"
 
 /** A list page shows one table page of about ten rows (admin tables: 8–10 a page). */
 const PAGE_SIZE = 10
@@ -43,7 +44,7 @@ function useNow(stepMs = 60_000): number {
 }
 
 /**
- * The queue itself: status tabs with counts, search, two filter chips, sort,
+ * The queue itself: status tabs with counts, search, filter chips, sort,
  * a table page of ten, and the details drawer. page.tsx mounts it while the
  * role loads and for an admin (anyone else gets "Admin access required"),
  * inside a Suspense boundary (useSearchParams) and an error boundary (the
@@ -67,6 +68,7 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
     // page shows. Convex shares one subscription per query+args, so reading the
     // same query the hook reads costs nothing extra.
     const submissions = useQuery(api.submissions.getAllWithCreator, isAdmin ? {} : "skip")
+    const giveaway = useQuery(api.giveaway.giveawayReviewStatus, isAdmin ? {} : "skip")
     const updateStatus = useMutation(api.submissions.updateStatus)
     const now = useNow()
 
@@ -81,6 +83,7 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
     const [query, setQuery] = useState("")
     const [domainOnly, setDomainOnly] = useState(false)
     const [ownerOnly, setOwnerOnly] = useState(false)
+    const [giveawayOnly, setGiveawayOnly] = useState(false)
     const [page, setPage] = useState(1)
 
     // Delete: the API route cascades to Cloudflare Pages, Airtable, R2 and the
@@ -106,8 +109,8 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
     const rows = useMemo(() => submissions ?? [], [submissions])
     const counts = useMemo(() => tabCounts(rows), [rows])
     const listed = useMemo(
-        () => listRows(rows, { tab, query, domainOnly, ownerOnly, sort }),
-        [rows, tab, query, domainOnly, ownerOnly, sort],
+        () => listRows(rows, { tab, query, domainOnly, ownerOnly, giveawayOnly, sort }),
+        [rows, tab, query, domainOnly, ownerOnly, giveawayOnly, sort],
     )
 
     /** The URL for a tab and an open drawer; any other parameter on it is kept. */
@@ -217,7 +220,7 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
     // that no longer exists (deleted, or a bad link) simply opens nothing.
     const opened = openId ? (rows.find((s) => s._id === openId) ?? null) : null
 
-    const empty = emptyCopy(tab, query, domainOnly || ownerOnly)
+    const empty = emptyCopy(tab, query, domainOnly || ownerOnly || giveawayOnly)
     const runEmptyAction = () => {
         if (empty.next.kind === "tab") {
             changeTab(empty.next.tab)
@@ -226,6 +229,7 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
         setQuery("")
         setDomainOnly(false)
         setOwnerOnly(false)
+        setGiveawayOnly(false)
         setPage(1)
     }
 
@@ -236,6 +240,7 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
 
     return (
         <>
+            <GiveawaySummary status={giveaway} />
             <Tabs
                 label="Status"
                 tabs={STATUS_TABS.map((t) => ({ value: t.key, label: t.label, count: counts[t.key] }))}
@@ -271,6 +276,17 @@ export function Queue({ isAdmin }: { isAdmin: boolean }) {
                             }}
                         >
                             Owner-submitted
+                        </button>
+                        <button
+                            type="button"
+                            className="t-chip"
+                            aria-pressed={giveawayOnly}
+                            onClick={() => {
+                                setGiveawayOnly((v) => !v)
+                                setPage(1)
+                            }}
+                        >
+                            Giveaway
                         </button>
                         <SortMenu options={SORT_OPTIONS} value={sort} onChange={changeSort} className="ml-auto" />
                     </div>

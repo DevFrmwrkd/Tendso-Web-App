@@ -8,8 +8,7 @@ import {
     daysText,
     isOwnerSubmitted,
     joinDot,
-    moneyCell,
-    ownerPays,
+    ownerPrice,
     placeLine,
     priceNote,
     shortDate,
@@ -18,6 +17,7 @@ import {
     waitingDays,
     type QueueRow,
 } from "./model"
+import { GiveawaySummary } from "./GiveawaySummary"
 
 /*
  * The queue table (ComponentKit "Table header and rows"): a header and rows
@@ -76,11 +76,18 @@ export function QueueRowButton({
             selected={selected}
             onClick={onOpen}
             // One name for the whole row, as the board gives it: business, city, status.
-            aria-label={[name, row.city.trim(), status.word].filter(Boolean).join(", ")}
+            aria-label={[name, row.city.trim(), status.word, row.giveawayApplication === true ? "Giveaway" : null].filter(Boolean).join(", ")}
             className="items-start lg:items-center"
         >
             <span className={COL.biz}>
-                <span className="t-row-title">{name}</span>
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="t-row-title">{name}</span>
+                    {row.giveawayApplication === true && (
+                        <span className="rounded-full border border-r1-line bg-r1-fill px-2 py-0.5 text-[11px] font-medium text-r1-ink-2">
+                            Giveaway
+                        </span>
+                    )}
+                </span>
                 <span className="t-meta hidden truncate lg:block">{placeLine(row)}</span>
                 {/* Phone: the creator column folds into the meta line. */}
                 <span className="t-meta truncate lg:hidden">{joinDot(row.city, owner ? "Owner-submitted" : creator)}</span>
@@ -98,7 +105,7 @@ export function QueueRowButton({
                 {note && <span className={cx("t-meta truncate pl-3.5", note.problem && "text-r1-red")}>{note.text}</span>}
             </span>
             <span className={COL.pay}>
-                <span className="t-body t-num max-w-full truncate text-r1-ink">{moneyCell(ownerPays(row))}</span>
+                <span className="t-body t-num max-w-full truncate text-r1-ink">{ownerPrice(row)}</span>
                 {why && <span className="t-meta hidden max-w-full truncate lg:block">{why}</span>}
                 {/* Phone: the waiting column folds in under the price. */}
                 <span className="t-meta t-num max-w-full truncate lg:hidden">{wait !== null ? daysText(wait) : date}</span>
@@ -140,6 +147,7 @@ function SkeletonRow() {
 export function QueueSkeleton() {
     return (
         <Loading label="Loading submissions" className="flex flex-col gap-4">
+            <GiveawaySummary />
             <div className="flex h-10 items-center gap-6 overflow-hidden border-b border-r1-line">
                 {[28, 104, 52, 84, 40, 72, 92].map((width, i) => (
                     <Skeleton key={i} width={width} height={12} className="flex-none" />
@@ -149,6 +157,7 @@ export function QueueSkeleton() {
                 <Skeleton height={40} className="w-full lg:w-[380px]" />
                 <Skeleton width={118} height={32} round />
                 <Skeleton width={132} height={32} round />
+                <Skeleton width={92} height={32} round />
                 <Skeleton height={40} className="ml-auto w-10 sm:w-[180px]" />
             </div>
             <div className="t-card overflow-hidden" aria-hidden="true">

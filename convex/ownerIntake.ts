@@ -799,7 +799,7 @@ export const submitOwnerIntake = mutation({
  */
 export const sendIntakeReceivedEmailAction = internalAction({
     args: { submissionId: v.id('submissions') },
-    handler: async (_ctx, args) => {
+    handler: async (ctx, args) => {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SITE_URL || 'https://tendso.vercel.app';
         const internalSecret = process.env.INTERNAL_API_SECRET || '';
 
@@ -823,6 +823,11 @@ export const sendIntakeReceivedEmailAction = internalAction({
                 console.error(
                     `[owner-intake] Acknowledgement email failed for ${args.submissionId}: ${response.status} ${text}`,
                 );
+                return;
+            }
+            const result = await response.json();
+            if (result.sent === true) {
+                await ctx.runMutation(internal.giveawayEmails.markReceivedSent, { submissionId: args.submissionId });
             }
         } catch (error) {
             console.error(`[owner-intake] Error sending acknowledgement email for ${args.submissionId}:`, error);

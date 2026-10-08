@@ -127,6 +127,8 @@ export default defineSchema({
         reviewedBy: v.optional(v.string()), // Admin Clerk ID
         reviewedAt: v.optional(v.number()), // Review timestamp
         rejectionReason: v.optional(v.string()),
+        intakeReceivedEmailSentAt: v.optional(v.number()),
+        giveawayRejectedEmailSentAt: v.optional(v.number()),
         platformFee: v.optional(v.number()), // Platform fee charged
 
         // Status — v.string() for cross-deploy safety (mobile uses v.string(), admin used v.union())

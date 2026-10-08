@@ -7,7 +7,7 @@ import { cleanGiftedBy, isHouseCreator } from '@/lib/houseCreator'
 
 /**
  * Preview the email that was (or would be) sent to the client.
- * GET /api/preview-email?submissionId=xxx&type=approval|payment_confirmation|promo_free
+ * GET /api/preview-email?submissionId=xxx&type=approval|payment_confirmation|promo_free|giveaway_received|giveaway_rejected
  */
 export async function GET(request: NextRequest) {
     try {
@@ -37,6 +37,9 @@ export async function GET(request: NextRequest) {
         if (!submission) {
             return NextResponse.json({ error: 'Submission not found' }, { status: 404 })
         }
+        if (submission.giveawayApplication && !['giveaway_received', 'giveaway_rejected', 'promo_free'].includes(type)) {
+            return NextResponse.json({ error: 'Giveaway applications do not have payment emails' }, { status: 400 })
+        }
 
         // Get published URL
         let publishedUrl = ''
@@ -57,11 +60,33 @@ export async function GET(request: NextRequest) {
             getDomainSetupInProgressEmailHtml,
             getDomainRenewalReminderEmailHtml,
             getPromoWebsiteLiveEmailHtml,
+            getIntakeReceivedEmailHtml,
+            getGiveawayRejectedEmailHtml,
         } = await import('@/lib/email/templates')
 
         let html: string
 
-        if (type === 'approval') {
+        if (type === 'giveaway_received' || type === 'giveaway_rejected') {
+            if (!submission.giveawayApplication) {
+                return NextResponse.json({ error: 'This submission is not a giveaway application' }, { status: 400 })
+            }
+            const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.SITE_URL || 'https://tendso.vercel.app'
+            html = type === 'giveaway_received'
+                ? getIntakeReceivedEmailHtml({
+                    businessName: submission.businessName,
+                    businessOwnerName: submission.ownerName,
+                    amount: 0,
+                    giveawayApplication: true,
+                    platformEmail: process.env.WISE_EMAIL,
+                })
+                : getGiveawayRejectedEmailHtml({
+                    businessName: submission.businessName,
+                    businessOwnerName: submission.ownerName,
+                    reason: submission.rejectionReason || 'The reviewer’s reason will appear here.',
+                    applyUrl: `${baseUrl.replace(/\/$/, '')}/100-pages-giveaway`,
+                    platformEmail: process.env.WISE_EMAIL,
+                })
+        } else if (type === 'approval') {
             // Render the SAME template that send-website-email actually sends (payment-link
             // email). Fetch the existing payment token if any so the preview mirrors the
             // real email; otherwise show placeholder values.
@@ -104,7 +129,9 @@ export async function GET(request: NextRequest) {
                 // the real email names whoever the admin types at "Give free", so
                 // the preview takes ?giftedBy= and otherwise shows the unnamed variant.
                 creatorName = isHouseCreator(withCreator?.creator)
-                    ? cleanGiftedBy(searchParams.get('giftedBy'))
+                    ? cleanGiftedBy(searchParams.get('giftedBy')) || (submission.giveawayApplication
+                        ? cleanGiftedBy(submission.compedReason?.match(/gifted as "([^"]+)"\s*$/)?.[1])
+                        : '')
                     : [withCreator?.creator?.firstName, withCreator?.creator?.lastName]
                         .filter(Boolean)
                         .join(' ')

@@ -44,6 +44,9 @@ export async function POST(request: NextRequest) {
         if (!submission.ownerEmail) {
             return NextResponse.json({ error: 'No owner email on submission' }, { status: 400 })
         }
+        if (submission.intakeReceivedEmailSentAt || (submission.giveawayApplication && submission.status === 'rejected')) {
+            return NextResponse.json({ success: true, sent: false });
+        }
 
         await sendIntakeReceivedEmail({
             businessName: submission.businessName,
@@ -54,9 +57,10 @@ export async function POST(request: NextRequest) {
             amount: submission.amount ?? BASE_PRICE,
             platformEmail: process.env.WISE_EMAIL,
             giveawayApplication: submission.giveawayApplication === true,
+            idempotencyKey: `intake-received:${submission._id}`,
         })
 
-        return NextResponse.json({ success: true })
+        return NextResponse.json({ success: true, sent: true })
     } catch (error: any) {
         console.error('send-intake-received-email error:', error)
         return NextResponse.json({ error: error.message || 'Failed to send email' }, { status: 500 })

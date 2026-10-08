@@ -3,6 +3,7 @@ import { query, mutation } from './_generated/server';
 import { internal } from './_generated/api';
 import { PRICING_MODE_COMPED, isComped } from '../lib/pricing';
 import { assertGiveawayCanActivate, readGiveaway } from './lib/giveaway';
+import { requireAdmin } from './lib/auth';
 
 // ==================== QUERIES ====================
 
@@ -223,17 +224,40 @@ export const rejectSubmission = mutation({
         if (!submission) throw new Error('Submission not found');
 
         const previousStatus = submission.status;
+        let reason = args.reason;
+        if (submission.giveawayApplication) {
+            const { identity } = await requireAdmin(ctx);
+            if (identity.subject !== args.adminId) throw new Error('Forbidden: reviewer identity does not match');
+            reason = args.reason?.trim();
+            if (!reason) throw new Error('Give the owner a reason for rejecting their giveaway application.');
+            if (reason.length > 2000) throw new Error('Keep the rejection reason under 2,000 characters.');
+            // A repeated tap cannot schedule a second owner email or double-count
+            // the rejection. Authorization still runs before this no-op.
+            if (previousStatus === 'rejected') return args.submissionId;
+        }
+        // Distinguish review events even when two transitions land in one ms.
+        const reviewedAt = submission.giveawayApplication
+            ? Math.max(Date.now(), (submission.reviewedAt ?? 0) + 1)
+            : Date.now();
 
         // Update submission status
         const updates: any = {
             status: 'rejected',
             reviewedBy: args.adminId,
-            reviewedAt: Date.now(),
+            reviewedAt,
         };
-        if (args.reason) {
-            updates.rejectionReason = args.reason;
+        if (reason) {
+            updates.rejectionReason = reason;
         }
+        if (submission.giveawayApplication) updates.giveawayRejectedEmailSentAt = undefined;
         await ctx.db.patch(args.submissionId, updates);
+        // Scheduling and releasing the held slot commit together. Delivery runs
+        // later, so a mail outage can never roll the rejection back.
+        if (submission.giveawayApplication) {
+            await ctx.scheduler.runAfter(0, internal.giveawayEmails.sendRejected, {
+                submissionId: args.submissionId, reviewedAt, reason: reason!,
+            });
+        }
 
         // Audit log
         await ctx.scheduler.runAfter(0, internal.auditLogs.log, {
@@ -241,11 +265,11 @@ export const rejectSubmission = mutation({
             action: 'submission_rejected',
             targetType: 'submission',
             targetId: args.submissionId,
-            metadata: { businessName: submission.businessName, reason: args.reason, previousStatus },
+            metadata: { businessName: submission.businessName, reason, previousStatus },
         });
 
         // Notification to creator
-        const reasonText = args.reason ? ` Reason: ${args.reason}` : '';
+        const reasonText = reason ? ` Reason: ${reason}` : '';
         await ctx.scheduler.runAfter(0, internal.notifications.createAndSend, {
             creatorId: submission.creatorId,
             type: 'submission_rejected',

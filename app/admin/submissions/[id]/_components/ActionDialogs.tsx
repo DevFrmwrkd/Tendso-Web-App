@@ -11,9 +11,17 @@
 
 import { Button, ConfirmDialog, Dialog, Dot, Field, Input, Textarea, formatMoney } from "@/components/r1";
 import { GIFTED_BY_MAX } from "@/lib/houseCreator";
+import { useId } from "react";
 
 const costBox = "flex flex-col gap-1 rounded-[10px] border border-r1-line bg-r1-fill-2 px-4 py-3.5";
 const bullets = "m-0 flex list-disc flex-col gap-1 pl-[18px] text-sm leading-5 text-r1-ink-2";
+
+export const GIVEAWAY_REJECTION_REASONS = [
+    "Poster not visible in the photo",
+    "Not a walk-in business",
+    "Duplicate application",
+    "Other",
+] as const;
 
 /**
  * PROMO — give the website to the owner for free; the creator is still paid
@@ -54,6 +62,7 @@ export function GiveFreeDialog({
             open={open}
             onClose={busy ? () => {} : onClose}
             title="Give this website free"
+            className="max-h-[calc(100dvh_-_max(16px,14vh)_-_16px)]"
             footer={
                 <>
                     <Button onClick={onClose} disabled={busy}>
@@ -216,6 +225,7 @@ export function RejectDialog({
     reason,
     onReason,
     showError,
+    giveawayReason,
 }: {
     open: boolean;
     onClose: () => void;
@@ -225,7 +235,9 @@ export function RejectDialog({
     onReason: (v: string) => void;
     /** Reject was pressed with no reason. */
     showError: boolean;
+    giveawayReason?: { selected: string | null; onSelect: (value: string) => void };
 }) {
+    const reasonGroupId = useId();
     return (
         <Dialog
             open={open}
@@ -243,14 +255,44 @@ export function RejectDialog({
             }
         >
             <p>It leaves the review queue and no site is published.</p>
-            <Field
-                label="Reason"
-                required
-                help="Saved on the submission so the next admin knows why."
-                error={showError ? "Add a reason before rejecting." : undefined}
-            >
-                <Textarea rows={4} value={reason} onChange={(e) => onReason(e.target.value)} placeholder="Reason for rejection…" disabled={busy} />
-            </Field>
+            {giveawayReason ? (
+                <>
+                    <p className="t-help">The reserved slot is released. The owner receives an email with this reason.</p>
+                    <fieldset disabled={busy} className="m-0 flex min-w-0 flex-col gap-2 border-0 p-0" aria-describedby={`${reasonGroupId}-help`}>
+                        <legend className="t-field-label mb-2">Reason <span className="t-req" aria-hidden="true">*</span></legend>
+                        {GIVEAWAY_REJECTION_REASONS.map((option) => (
+                            <label key={option} className="flex cursor-pointer items-start gap-2.5 rounded-r1 border border-r1-line px-3 py-2.5 text-sm leading-5">
+                                <input
+                                    type="radio"
+                                    name={reasonGroupId}
+                                    value={option}
+                                    checked={giveawayReason.selected === option}
+                                    onChange={() => giveawayReason.onSelect(option)}
+                                    className="mt-1 flex-none accent-r1-ink"
+                                />
+                                <span>{option}</span>
+                            </label>
+                        ))}
+                        <p id={`${reasonGroupId}-help`} className={showError && giveawayReason.selected !== "Other" ? "t-error" : "t-help"}>
+                            {showError && giveawayReason.selected !== "Other" ? "Choose a reason before rejecting." : "Saved on the submission and included in the owner's email."}
+                        </p>
+                    </fieldset>
+                    {giveawayReason.selected === "Other" && (
+                        <Field label="Other reason" required error={showError ? "Add a reason before rejecting." : undefined}>
+                            <Textarea rows={4} value={reason} onChange={(e) => onReason(e.target.value)} placeholder="Explain why the application was rejected…" disabled={busy} />
+                        </Field>
+                    )}
+                </>
+            ) : (
+                <Field
+                    label="Reason"
+                    required
+                    help="Saved on the submission so the next admin knows why."
+                    error={showError ? "Add a reason before rejecting." : undefined}
+                >
+                    <Textarea rows={4} value={reason} onChange={(e) => onReason(e.target.value)} placeholder="Reason for rejection…" disabled={busy} />
+                </Field>
+            )}
         </Dialog>
     );
 }
