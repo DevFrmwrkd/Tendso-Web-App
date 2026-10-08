@@ -49,6 +49,7 @@ export function BasicsStep({
     errors,
     onChange,
     onSubmit,
+    giveaway = false,
     isDesktop,
     coordinates,
     onCoordinatesChange,
@@ -61,6 +62,7 @@ export function BasicsStep({
     errors: BasicsErrors;
     onChange: (key: keyof StartBasics, value: string) => void;
     onSubmit: () => void;
+    giveaway?: boolean;
     isDesktop: boolean;
     coordinates: Coordinates | null;
     onCoordinatesChange: (next: Coordinates | null) => void;
@@ -149,7 +151,9 @@ export function BasicsStep({
 
                 <Field
                     label="Email address"
-                    help="We send your finished website and the payment details here. Please double-check it."
+                    help={giveaway
+                        ? "We email your application update and, if you qualify, your website link here. Please double-check it."
+                        : "We send your finished website and the payment details here. Please double-check it."}
                     error={errors.ownerEmail}
                 >
                     <Input

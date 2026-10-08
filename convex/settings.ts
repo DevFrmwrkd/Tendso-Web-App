@@ -50,11 +50,13 @@ export const set = mutation({
     handler: async (ctx, args) => {
         let value = args.value;
         let updatedBy = args.adminId;
-        // This setting controls an entitlement, so anonymous callers must not
-        // be able to enable it or raise its cap. Other settings keep their API.
-        if (args.key === 'giveaway') {
+        // Entitlements and the printed QR's destination are operator controls.
+        // Other settings keep their existing API.
+        if (args.key === 'giveaway' || args.key === 'poster_redirect_target') {
             const { identity } = await requireAdmin(ctx);
             updatedBy = identity.subject;
+        }
+        if (args.key === 'giveaway') {
             const config = validateGiveawayConfig(value);
             value = config;
             const previous = await readGiveaway(ctx);
@@ -100,7 +102,7 @@ export const set = mutation({
 export const remove = mutation({
     args: { key: v.string() },
     handler: async (ctx, args) => {
-        if (args.key === 'giveaway') await requireAdmin(ctx);
+        if (args.key === 'giveaway' || args.key === 'poster_redirect_target') await requireAdmin(ctx);
         const setting = await ctx.db
             .query('settings')
             .withIndex('by_key', (q) => q.eq('key', args.key))

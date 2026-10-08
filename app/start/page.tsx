@@ -1,7 +1,8 @@
 "use client";
 
 /**
- * /start — the owner-intake funnel. ONE public route, four client-side steps.
+ * /start — the owner-intake funnel. One public route, four client-side steps,
+ * plus a poster-photo step for giveaway applications.
  *
  * The person on the other end of this page is a Filipino shop owner on a phone,
  * on mobile data, typing Taglish with one thumb while the shop is open. Every
@@ -10,7 +11,7 @@
  * forward always under the thumb, and — above all — nothing they type is ever
  * lost (see draft.ts).
  *
- * FOUR STEPS, ONE URL. Not four routes: a route change is a network round-trip
+ * ALL STEPS, ONE URL. A route change is a network round-trip
  * on a slow connection, and every one of them is a chance for the browser to
  * drop the form. The only navigation in the whole flow is the last one, to
  * /start/thanks, and that one is deliberate — a separate URL means a refresh
@@ -33,28 +34,32 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useAction, useMutation } from "convex/react";
+import { useAction, useMutation, useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
 import { ArrowRight, Send } from "lucide-react";
 
-import { Button, ButtonLink, FunnelHeader, Icon, Loading, PublicPage, Skeleton, Stepper, cx } from "@/components/r1";
+import { Button, ButtonLink, Card, FunnelHeader, Icon, Loading, PublicPage, Skeleton, Stepper, cx } from "@/components/r1";
 import { api } from "@/convex/_generated/api";
 import { INTAKE_QUESTIONS, meetsAnswerMinimum, type IntakeQuestionKey } from "@/lib/narrativeFromQa";
 import { formatPHP, normalizeCampaign } from "@/lib/pricing";
-import { discountCampaignForPage, rememberCampaign } from "@/lib/campaign";
+import { clearCampaign, intakeCampaignForPage, rememberCampaign } from "@/lib/campaign";
+import { GIVEAWAY_CLOSED } from "@/lib/giveaway";
 
 import { ActionBar } from "./_components/ActionBar";
 import { BasicsStep, type BasicsErrors, type GeoStatus } from "./_components/BasicsStep";
 import { CONTAINER, HEADER_ALIGN, STEP_TITLE_ID, Spinner, revealField } from "./_components/frame";
 import { InterviewStep, answerFieldId } from "./_components/InterviewStep";
 import { PhotosStep, PRODUCTS_QUESTION_ID, slotCardId, type PhotoError } from "./_components/PhotosStep";
+import { PosterStep, POSTER_PHOTO_ID } from "./_components/PosterStep";
 import { ReviewStep } from "./_components/ReviewStep";
-import { PriceNote, SavedNote, STEP_LABELS, StepRail } from "./_components/StepRail";
+import { GIVEAWAY_STEP_LABELS, PriceNote, SavedNote, STEP_LABELS, StepRail } from "./_components/StepRail";
 import {
     clearDraft,
     loadDraft,
     rememberSubmitted,
     saveDraft,
+    resolveGiveawayDraft,
+    GIVEAWAY_STEPS,
     TOTAL_STEPS,
     type StartBasics,
     type StartDraft,
@@ -80,9 +85,6 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  *  the owner cannot debug. */
 const DOMAIN_PATTERN = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z]{2,24})+$/;
 
-/** The step names, for the phone stepper. */
-const STEP_NAMES = STEP_LABELS.map((entry) => entry.title);
-
 /** The same rejections normalizeRequestedDomain makes, in the same order and on
  *  the same grounds, so nothing that passes here is turned away by the mutation.
  *  Availability is NOT checked — see the note on that function; what the owner
@@ -106,7 +108,7 @@ function validateDomain(raw: string): string | undefined {
     return undefined;
 }
 
-function validateBasics(basics: StartBasics): BasicsErrors {
+function validateBasics(basics: StartBasics, giveaway = false): BasicsErrors {
     const errors: BasicsErrors = {};
     if (!basics.businessName.trim()) errors.businessName = "We need the name that goes on the site.";
     if (!basics.businessType) errors.businessType = "Pick the closest one.";
@@ -118,7 +120,9 @@ function validateBasics(basics: StartBasics): BasicsErrors {
     // no creator standing in the shop it is the ONLY channel back to the owner:
     // /api/send-website-email 400s without it and the 72h follow-up cron skips
     // rows that lack it.
-    if (!basics.ownerEmail.trim()) errors.ownerEmail = "We send your website and the bill here.";
+    if (!basics.ownerEmail.trim()) errors.ownerEmail = giveaway
+        ? "We need an email to update you about your application."
+        : "We send your website and the bill here.";
     else if (!EMAIL_PATTERN.test(basics.ownerEmail.trim())) errors.ownerEmail = "That address doesn't look right.";
     if (!basics.address.trim()) errors.address = "Customers need to find you.";
     if (!basics.city.trim()) errors.city = "Which city or municipality?";
@@ -151,6 +155,7 @@ export default function StartPage() {
      *  screen on a phone and all eight at once on a desk. See useIsDesktop. */
     const isDesktop = useIsDesktop();
     const submitOwnerIntake = useMutation(api.ownerIntake.submitOwnerIntake);
+    const giveawayStatus = useQuery(api.giveaway.giveawayStatus);
 
     /**
      * The campaign this owner arrived under, if any.
@@ -167,11 +172,7 @@ export default function StartPage() {
     const [source, setSource] = useState<string | null>(null);
     const [codeEntry, setCodeEntry] = useState("");
     const [codeRejected, setCodeRejected] = useState(false);
-    useEffect(() => {
-        const discount = discountCampaignForPage();
-        setCampaign(discount.campaign);
-        setSource(discount.source);
-    }, []);
+    const [arrival, setArrival] = useState<{ offer: ReturnType<typeof intakeCampaignForPage>; saved: StartDraft } | null>(null);
     // Unchanged, and called with no submissionId — the impl accepts the field
     // and ignores it (convex/r2.ts:109-142), and there is no submission yet.
     const generateUploadUrl = useAction(api.r2.generateUploadUrl);
@@ -188,7 +189,11 @@ export default function StartPage() {
     const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
     /** Shown on the slot it belongs to, not above the list. */
     const [photoError, setPhotoError] = useState<PhotoError | null>(null);
+    const [posterUploading, setPosterUploading] = useState(false);
+    const [posterError, setPosterError] = useState<string | null>(null);
+    const [showPosterProblem, setShowPosterProblem] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [giveawayClosed, setGiveawayClosed] = useState(false);
     /** Same shape as showBasicsErrors: the domain field stays quiet until the
      *  owner tries to send, so it isn't scolding them at the first letter. */
     const [showDomainError, setShowDomainError] = useState(false);
@@ -202,8 +207,21 @@ export default function StartPage() {
     const submittedRef = useRef(false);
 
     useEffect(() => {
-        setDraft(loadDraft());
+        setArrival({ offer: intakeCampaignForPage(), saved: loadDraft() });
     }, []);
+
+    useEffect(() => {
+        if (!arrival || draft) return;
+        const { offer, saved } = arrival;
+        // A fresh giveaway entrance waits for the live query instead of briefly
+        // promising a free site after the last slot has already been taken.
+        if (offer.giveaway && !offer.fullPrice && giveawayStatus === undefined) return;
+        const next = resolveGiveawayDraft(saved, offer.giveaway, offer.giveaway ? offer.source : null, giveawayStatus?.open === true, offer.fullPrice);
+        setDraft(next);
+        setCampaign(next.giveawayApplication || offer.fullPrice || offer.giveaway ? null : offer.campaign);
+        setSource(next.giveawayApplication ? next.giveawaySource : offer.fullPrice ? null : offer.source);
+        if (offer.giveaway && !giveawayStatus?.open && !next.giveawayApplication) clearCampaign();
+    }, [arrival, draft, giveawayStatus]);
 
     useEffect(() => {
         if (draft) saveDraft(draft);
@@ -242,7 +260,7 @@ export default function StartPage() {
         [patch],
     );
 
-    const basicsErrors = useMemo(() => (draft ? validateBasics(draft.basics) : {}), [draft]);
+    const basicsErrors = useMemo(() => (draft ? validateBasics(draft.basics, draft.giveawayApplication) : {}), [draft]);
 
     /** What the desktop map writes. The same field requestLocation writes, so
      *  the two ways of answering "where is the shop" cannot diverge — and `null`
@@ -327,6 +345,23 @@ export default function StartPage() {
         [patch],
     );
 
+    const handlePosterPick = useCallback(async (file: File) => {
+        const problem = validatePhotoFile(file);
+        if (problem) { setPosterError(problem); return; }
+        setPosterError(null);
+        setPosterUploading(true);
+        try {
+            const { uploadUrl, publicUrl } = await generateUploadUrl({ fileName: file.name, fileType: file.type, mediaType: "photo" });
+            const response = await fetch(uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
+            if (!response.ok) throw new Error(`R2 responded ${response.status}`);
+            patch((previous) => ({ ...previous, giveawayPosterPhoto: publicUrl }));
+        } catch {
+            setPosterError("Your poster photo didn't upload. Check your signal and try again.");
+        } finally {
+            setPosterUploading(false);
+        }
+    }, [generateUploadUrl, patch]);
+
     const setAnswer = useCallback(
         (key: IntakeQuestionKey, value: string) =>
             patch((previous) => ({ ...previous, answers: { ...previous.answers, [key]: value } })),
@@ -359,10 +394,20 @@ export default function StartPage() {
 
     const handleSubmit = useCallback(async () => {
         if (!draft || submittedRef.current) return;
+        if (draft.giveawayApplication && giveawayStatus?.open === false) {
+            setGiveawayClosed(true);
+            setSubmitError("The giveaway is closed. Your draft is saved on this device.");
+            return;
+        }
+        if (draft.giveawayApplication && !draft.giveawayPosterPhoto) {
+            setShowPosterProblem(true);
+            goToStep(4);
+            return;
+        }
         // Before the guard, and before anything is spent: a bad domain is the one
         // thing on this screen the owner can still get wrong, and the mutation
         // would reject it anyway.
-        if (draft.wantsCustomDomain && validateDomain(draft.requestedDomain)) {
+        if (!draft.giveawayApplication && draft.wantsCustomDomain && validateDomain(draft.requestedDomain)) {
             setShowDomainError(true);
             revealField(document.querySelector('[name="requestedDomain"]'));
             return;
@@ -398,28 +443,31 @@ export default function StartPage() {
                 // The tier decides `amount` server-side; the domain is sent
                 // already trimmed and lower-cased, the form the mutation stores
                 // and a registrar would eventually receive.
-                submissionType: draft.wantsCustomDomain ? "with_custom_domain" : "standard",
-                requestedDomain: draft.wantsCustomDomain
+                submissionType: !draft.giveawayApplication && draft.wantsCustomDomain ? "with_custom_domain" : "standard",
+                requestedDomain: !draft.giveawayApplication && draft.wantsCustomDomain
                     ? draft.requestedDomain.trim().toLowerCase()
                     : undefined,
                 // A hint, not a price. The mutation resolves the campaign against
                 // the ones we run and bills from that; anything else is ignored
                 // and the owner pays the ordinary price.
-                campaign: campaign ?? undefined,
-                source: source ?? undefined,
+                campaign: draft.giveawayApplication ? undefined : campaign ?? undefined,
+                source: draft.giveawayApplication ? draft.giveawaySource ?? undefined : source ?? undefined,
+                giveawayApplication: draft.giveawayApplication ? true : undefined,
+                giveawayPosterPhoto: draft.giveawayApplication ? draft.giveawayPosterPhoto ?? undefined : undefined,
             });
 
             // Recomputed here rather than read from the quote below: a dependency
             // on it would be evaluated during render, above its own declaration.
             // Same inputs, same function, same number the page was showing.
-            const quoted = quoteFor(campaign, draft.wantsCustomDomain);
+            const quoted = quoteFor(campaign, draft.wantsCustomDomain, draft.giveawayApplication);
             rememberSubmitted({
                 email: basics.ownerEmail.trim(),
                 amount: quoted.total,
                 businessName: basics.businessName.trim(),
                 city: basics.city.trim(),
-                campaign: normalizeCampaign(campaign),
-                customDomain: draft.wantsCustomDomain,
+                campaign: draft.giveawayApplication ? null : normalizeCampaign(campaign),
+                customDomain: !draft.giveawayApplication && draft.wantsCustomDomain,
+                giveawayApplication: draft.giveawayApplication,
             });
             // Order matters: clear first, then leave. The draft must be gone
             // before /start/thanks can be back-navigated out of.
@@ -431,9 +479,13 @@ export default function StartPage() {
             // produce a second submission.
             submittedRef.current = false;
             setSubmitting(false);
-            setSubmitError(messageFor(error));
+            const message = messageFor(error);
+            if (draft.giveawayApplication && message === "The free website giveaway is closed. You can still apply for a website at the regular price.") {
+                setGiveawayClosed(true);
+                setSubmitError("The giveaway is closed. Your draft is saved on this device.");
+            } else setSubmitError(message);
         }
-    }, [campaign, draft, router, source, submitOwnerIntake]);
+    }, [campaign, draft, giveawayStatus?.open, goToStep, router, source, submitOwnerIntake]);
 
     if (!draft) {
         return (
@@ -457,11 +509,14 @@ export default function StartPage() {
     }
 
     const { basics, answers, photos, hasProducts, wantsCustomDomain, requestedDomain } = draft;
-    const domainError = wantsCustomDomain ? validateDomain(requestedDomain) : undefined;
+    const giveaway = draft.giveawayApplication;
+    const finalStep = giveaway ? GIVEAWAY_STEPS : TOTAL_STEPS;
+    const stepNames = (giveaway ? GIVEAWAY_STEP_LABELS : STEP_LABELS).map((entry) => entry.title);
+    const domainError = !giveaway && wantsCustomDomain ? validateDomain(requestedDomain) : undefined;
     /** What the payment email will ask for, and everything the screens say
      *  about it. Derived, never typed: lib/pricing is the same module the
      *  mutation prices the row with. The domain is never discounted. */
-    const quote = quoteFor(campaign, wantsCustomDomain);
+    const quote = quoteFor(campaign, wantsCustomDomain, giveaway);
     // loadDraft already clamps questionIndex, but the value it clamps came out of
     // localStorage — belt and braces, because every read below assumes a question
     // and a miss here is a white screen the owner cannot refresh their way out of.
@@ -589,6 +644,7 @@ export default function StartPage() {
     };
 
     const applyCode = () => {
+        if (giveaway) return;
         const resolved = normalizeCampaign(codeEntry);
         if (!resolved) {
             setCodeRejected(true);
@@ -600,7 +656,7 @@ export default function StartPage() {
     };
 
     // ── The action bar: what this step is waiting on, and the way forward ────
-    const stepOf = `Step ${step} of ${TOTAL_STEPS}`;
+    const stepOf = `Step ${step} of ${finalStep}`;
     let barInfo: string;
     let barError: ReactNode = null;
     let barExtra: ReactNode = null;
@@ -634,8 +690,11 @@ export default function StartPage() {
             if (hasProducts === null) barError = "Tell us whether you sell products first.";
             else if (missingSlots.length > 0) barError = `Add ${missingSlots.map((slot) => `"${slot.label}"`).join(" and ")} to continue.`;
         }
+    } else if (giveaway && step === 4) {
+        barInfo = `${stepOf} · ${draft.giveawayPosterPhoto ? "Your poster photo is saved." : "Add a photo of your poster in the shop."}`;
+        if (showPosterProblem && !draft.giveawayPosterPhoto) barError = "Add your poster photo to continue.";
     } else {
-        barInfo = `${stepOf} · Nothing to pay now. You pay ${formatPHP(quote.total)} after it is live.`;
+        barInfo = giveaway ? `${stepOf} · Free, if your application qualifies.` : `${stepOf} · Nothing to pay now. You pay ${formatPHP(quote.total)} after it is live.`;
         // A bad web address is the current blocker; a server rejection is from
         // the last attempt and is said until the next one clears it.
         barError = showDomainError && domainError ? "Fix the web address, then send it in." : submitError;
@@ -653,7 +712,21 @@ export default function StartPage() {
                 <StepRail step={step} quote={quote} onJump={jumpToStep} disabled={submitting} />
 
                 <div className="flex min-w-0 flex-1 flex-col gap-8">
-                    <Stepper steps={STEP_NAMES} current={step - 1} label="Your progress" className="lg:hidden" />
+                    <Stepper
+                        steps={stepNames}
+                        current={step - 1}
+                        label="Your progress"
+                        className={cx("lg:hidden", giveaway && "max-lg:gap-1 max-lg:[&>.t-step]:gap-1 max-lg:[&>.t-step-line]:min-w-1")}
+                    />
+
+                    {giveawayClosed ? (
+                        <Card pad className="flex flex-col gap-3" role="alert">
+                            <h2 className="t-h2">{GIVEAWAY_CLOSED.heading}</h2>
+                            <p className="t-body">{GIVEAWAY_CLOSED.thanks}</p>
+                            <p className="t-body">Your draft is saved on this device. A slot is held only after an application is sent successfully.</p>
+                            <ButtonLink href="/100-pages-giveaway" size="lg" className="self-start">See your options</ButtonLink>
+                        </Card>
+                    ) : null}
 
                     {step === 1 && (
                         <BasicsStep
@@ -661,6 +734,7 @@ export default function StartPage() {
                             errors={showBasicsErrors ? basicsErrors : {}}
                             onChange={setBasic}
                             onSubmit={handleBasicsContinue}
+                            giveaway={giveaway}
                             isDesktop={isDesktop}
                             coordinates={draft.coordinates}
                             onCoordinatesChange={setCoordinates}
@@ -697,7 +771,15 @@ export default function StartPage() {
                         />
                     )}
 
-                    {step === 4 && (
+                    {giveaway && step === 4 ? (
+                        <PosterStep
+                            photo={draft.giveawayPosterPhoto} busy={posterUploading} error={posterError} tried={showPosterProblem}
+                            onPick={(file) => void handlePosterPick(file)}
+                            onRemove={() => { patch((previous) => ({ ...previous, giveawayPosterPhoto: null })); setPosterError(null); }}
+                        />
+                    ) : null}
+
+                    {step === finalStep && (
                         <ReviewStep
                             draft={draft}
                             quote={quote}
@@ -705,6 +787,7 @@ export default function StartPage() {
                             onEditBasics={() => jumpToStep(1)}
                             onEditAnswers={() => jumpToStep(2)}
                             onEditPhotos={() => jumpToStep(3)}
+                            onEditPoster={() => jumpToStep(4)}
                             codeEntry={codeEntry}
                             onCodeEntry={(value) => {
                                 setCodeEntry(value);
@@ -777,7 +860,24 @@ export default function StartPage() {
                     </>
                 )}
 
-                {step === 4 && (
+                {giveaway && step === 4 ? (
+                    <>
+                        {back}
+                        <Button variant="primary" size="lg" disabled={posterUploading} className="max-sm:flex-1" onClick={() => {
+                            if (!draft.giveawayPosterPhoto) {
+                                setShowPosterProblem(true);
+                                revealField(document.querySelector(`#${POSTER_PHOTO_ID} button`));
+                                return;
+                            }
+                            setShowPosterProblem(false);
+                            goToStep(GIVEAWAY_STEPS);
+                        }}>
+                            {posterUploading ? <><Spinner />Uploading…</> : <>Continue<Icon icon={ArrowRight} /></>}
+                        </Button>
+                    </>
+                ) : null}
+
+                {step === finalStep && (
                     <>
                         {back}
                         <Button variant="primary" size="lg" onClick={handleSubmit} disabled={submitting} className="max-sm:flex-1">

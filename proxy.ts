@@ -73,6 +73,9 @@ const isPublicRoute = createRouteMatcher([
     // scan lands on /login, which is exactly what happened the first time this
     // page was served locally.
     '/otr(.*)',
+    '/100-pages-giveaway(.*)',
+    '/poster(.*)',
+    '/libre(.*)',
     // Serves the /start desktop map picker, which decides where the map opens
     // from the address the owner typed. Public for the same reason /start is:
     // there is no account, so there is no session to authenticate. The handler

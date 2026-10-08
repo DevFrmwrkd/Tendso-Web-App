@@ -16,6 +16,8 @@
 import { normalizeCampaign } from "./pricing";
 
 const KEY = "tendso:campaign:v1";
+const GIVEAWAY_KEY = "tendso:giveaway:v1";
+const FULL_PRICE_KEY = "tendso:start:full-price:v1";
 
 /** How long a scan keeps its discount. Matches what the landing page promises. */
 export const CAMPAIGN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
@@ -48,6 +50,8 @@ export function rememberCampaign(campaign: string, source?: string | null): void
             source: cleanSource(source),
             expiresAt: Date.now() + CAMPAIGN_TTL_MS,
         };
+        window.localStorage.removeItem(GIVEAWAY_KEY);
+        window.sessionStorage?.removeItem(FULL_PRICE_KEY);
         window.localStorage.setItem(KEY, JSON.stringify(entry));
     } catch {
         // Private windows and blocked site data. The link still carries the
@@ -109,4 +113,82 @@ export function discountCampaignForPage(): { campaign: string | null; source: st
         campaign: remembered?.campaign ?? null,
         source: fromUrl.source ?? remembered?.source ?? null,
     };
+}
+
+/** An application hint kept separately from discounts. Availability is checked by /start. */
+export function rememberGiveaway(source?: string | null): void {
+    try {
+        window.localStorage.removeItem(KEY);
+        window.localStorage.setItem(GIVEAWAY_KEY, JSON.stringify({
+            source: cleanSource(source), expiresAt: Date.now() + CAMPAIGN_TTL_MS,
+        }));
+        window.sessionStorage?.removeItem(FULL_PRICE_KEY);
+    } catch {
+        // The application link still carries the mode and source.
+    }
+}
+
+function readGiveaway(): { source: string | null } | null {
+    try {
+        const raw = window.localStorage.getItem(GIVEAWAY_KEY);
+        if (!raw) return null;
+        const entry = JSON.parse(raw) as { source?: unknown; expiresAt?: unknown };
+        if (typeof entry.expiresAt !== "number" || !Number.isFinite(entry.expiresAt) || entry.expiresAt <= Date.now()) {
+            window.localStorage.removeItem(GIVEAWAY_KEY);
+            return null;
+        }
+        return { source: cleanSource(typeof entry.source === "string" ? entry.source : null) };
+    } catch {
+        return null;
+    }
+}
+
+export function clearCampaign(): void {
+    try {
+        window.localStorage.removeItem(KEY);
+        window.localStorage.removeItem(GIVEAWAY_KEY);
+    } catch {
+        // Storage can be disabled; ordinary intake still defaults to full price.
+    }
+}
+
+/** Explicitly choosing the paid CTA also overrides a saved giveaway draft. */
+export function requestFullPriceIntake(): void {
+    clearCampaign();
+    try {
+        window.sessionStorage.setItem(FULL_PRICE_KEY, "1");
+    } catch {
+        // If storage is unavailable there is no stored giveaway draft to override.
+    }
+}
+
+export type IntakeCampaign = {
+    giveaway: boolean;
+    campaign: string | null;
+    source: string | null;
+    fullPrice?: boolean;
+};
+
+export function intakeCampaignForPage(): IntakeCampaign {
+    const fromUrl = campaignFromLocation();
+    if (fromUrl.campaign !== null) {
+        try { window.sessionStorage?.removeItem(FULL_PRICE_KEY); } catch { /* optional storage */ }
+        if (fromUrl.campaign.trim().toLowerCase() === "giveaway") {
+            rememberGiveaway(fromUrl.source);
+            return { giveaway: true, campaign: null, source: fromUrl.source };
+        }
+        const campaign = normalizeCampaign(fromUrl.campaign);
+        clearCampaign();
+        if (campaign) rememberCampaign(campaign, fromUrl.source);
+        return { giveaway: false, campaign, source: fromUrl.source };
+    }
+    try {
+        if (window.sessionStorage?.getItem(FULL_PRICE_KEY) === "1") {
+            return { giveaway: false, campaign: null, source: null, fullPrice: true };
+        }
+    } catch { /* optional storage */ }
+    const giveaway = readGiveaway();
+    if (giveaway) return { giveaway: true, campaign: null, source: fromUrl.source ?? giveaway.source };
+    const discount = discountCampaignForPage();
+    return { giveaway: false, ...discount };
 }
