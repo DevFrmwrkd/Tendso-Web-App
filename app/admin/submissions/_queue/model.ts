@@ -128,14 +128,15 @@ export function matchesSearch(s: QueueRow, q: string): boolean {
         .some((field) => String(field).toLowerCase().includes(q))
 }
 
-export type ListFilter = { tab: TabKey; query: string; domainOnly: boolean; ownerOnly: boolean; sort: SortKey }
+export type ListFilter = { tab: TabKey; query: string; domainOnly: boolean; ownerOnly: boolean; giveawayOnly: boolean; sort: SortKey }
 
-/** The rows the table lists, in order: tab, then the two chips, then search, then sort. */
+/** The rows the table lists, in order: tab, then filter chips, then search, then sort. */
 export function listRows(rows: QueueRow[], f: ListFilter): QueueRow[] {
     const statuses = STATUS_TABS.find((t) => t.key === f.tab)?.statuses ?? null
     let result = statuses ? rows.filter((s) => statuses.includes(s.status)) : rows
     if (f.domainOnly) result = result.filter((s) => s.submissionType === "with_custom_domain")
     if (f.ownerOnly) result = result.filter(isOwnerSubmitted)
+    if (f.giveawayOnly) result = result.filter((s) => s.giveawayApplication === true)
     const q = f.query.trim().toLowerCase()
     if (q) result = result.filter((s) => matchesSearch(s, q))
     const sorted = [...result]
@@ -250,8 +251,14 @@ export function moneyCell(amount: number | null): string {
     return amount === null ? "—" : formatMoney(amount)
 }
 
+/** Giveaway applications have no owner charge throughout review and fulfillment. */
+export function ownerPrice(s: QueueRow): string {
+    return s.giveawayApplication ? "Free" : moneyCell(ownerPays(s))
+}
+
 /** The drawer's "Owner pays" line: "₱3,499 · OTR price", "₱0 · free promo site". */
 export function ownerPaysLine(s: QueueRow): string {
+    if (s.giveawayApplication) return "Free · giveaway"
     const amount = ownerPays(s)
     if (amount === null) return "No price set yet"
     if (isComped(s)) return `${formatMoney(0)} · free promo site`
@@ -261,7 +268,7 @@ export function ownerPaysLine(s: QueueRow): string {
 
 /** When the owner pays. Nothing on a promo site (it is free) or a rejected one (nothing will be due). */
 export function ownerPaysWhen(s: QueueRow): string | null {
-    if (isComped(s) || s.status === "rejected") return null
+    if (s.giveawayApplication || isComped(s) || s.status === "rejected") return null
     switch (s.status) {
         case "paid":
         case "completed":

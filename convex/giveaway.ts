@@ -1,6 +1,7 @@
 import { internalMutation, query } from './_generated/server';
 import { v } from 'convex/values';
 import { readGiveaway } from './lib/giveaway';
+import { requireAdmin } from './lib/auth';
 
 /** Public availability for /start. Contact details and configuration stay out of the response. */
 export const giveawayStatus = query({
@@ -9,6 +10,17 @@ export const giveawayStatus = query({
     handler: async (ctx): Promise<{ open: boolean; slotsLeft: number; given: number }> => {
         const { open, slotsLeft, given } = await readGiveaway(ctx);
         return { open, slotsLeft, given };
+    },
+});
+
+/** Review totals include all active reservations, even sites already given away. */
+export const giveawayReviewStatus = query({
+    args: {},
+    returns: v.object({ held: v.number(), given: v.number(), slotsLeft: v.number(), cap: v.number() }),
+    handler: async (ctx) => {
+        await requireAdmin(ctx);
+        const { held, given, slotsLeft, config } = await readGiveaway(ctx);
+        return { held, given, slotsLeft, cap: config.cap };
     },
 });
 

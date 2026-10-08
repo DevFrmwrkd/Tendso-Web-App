@@ -33,6 +33,7 @@ import type * as files from "../files.js";
 import type * as followUp from "../followUp.js";
 import type * as generatedWebsites from "../generatedWebsites.js";
 import type * as giveaway from "../giveaway.js";
+import type * as giveawayEmails from "../giveawayEmails.js";
 import type * as http from "../http.js";
 import type * as hyperagent from "../hyperagent.js";
 import type * as intakeVoice from "../intakeVoice.js";
@@ -117,6 +118,7 @@ declare const fullApi: ApiFromModules<{
   followUp: typeof followUp;
   generatedWebsites: typeof generatedWebsites;
   giveaway: typeof giveaway;
+  giveawayEmails: typeof giveawayEmails;
   http: typeof http;
   hyperagent: typeof hyperagent;
   intakeVoice: typeof intakeVoice;

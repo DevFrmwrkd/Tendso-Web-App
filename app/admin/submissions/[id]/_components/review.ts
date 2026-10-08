@@ -116,7 +116,7 @@ export interface ClientEmail {
     label: string;
     description: string;
     /** API endpoint to POST { submissionId } to in order to (re)send this email */
-    sendEndpoint: string;
+    sendEndpoint?: string;
     /** Optional `type` body field forwarded to the send endpoint */
     sendType?: string;
     /** When the row records the send; most emails leave no timestamp. */
@@ -133,6 +133,26 @@ export function clientEmailsFor(s: SubmissionDoc): ClientEmail[] {
     const status = s.status;
     const hasCustomDomain = Boolean(s.requestedDomain);
     const list: ClientEmail[] = [];
+    if (s.giveawayApplication) {
+        list.push({
+            type: "giveaway_received",
+            label: "Giveaway application received",
+            description: "Acknowledges the held slot and eligibility review, with a 48–72 hour review window. No payment request.",
+            sentAt: s.intakeReceivedEmailSentAt,
+        });
+        if (status === "rejected") list.push({
+            type: "giveaway_rejected",
+            label: "Giveaway application rejected",
+            description: "Includes the reviewer's reason, confirms the slot was released, and explains how to fix the issue and reapply while slots remain.",
+            sentAt: s.giveawayRejectedEmailSentAt,
+        });
+        if (s.pricingMode === "comped") list.push({
+            type: "promo_free",
+            label: "Your free website is live",
+            description: "Shares the published website and confirms the giveaway website is free.",
+        });
+        return list;
+    }
 
     if (["pending_payment", "paid", "completed"].includes(status)) {
         list.push({

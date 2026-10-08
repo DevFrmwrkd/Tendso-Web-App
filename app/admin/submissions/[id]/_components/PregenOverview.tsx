@@ -29,6 +29,7 @@ import {
     type FoldKey,
 } from "./DetailsPanel";
 import { DriveFact } from "./DriveFact";
+import { GiveawayEvidence } from "./GiveawayEvidence";
 import { formatDate, type ClientEmail, type IntakeRow, type SubmissionDoc } from "./review";
 
 /** Answers shown before "Show all". */
@@ -49,6 +50,7 @@ export function PregenOverview({
     notice,
     websiteError,
     photoUrls,
+    posterUrl,
     checklist,
     intakeRows,
     emails,
@@ -66,6 +68,7 @@ export function PregenOverview({
     notice: { title: string; body: ReactNode } | null;
     websiteError: string | null;
     photoUrls: string[];
+    posterUrl: string | null;
     checklist: { label: string; done: boolean }[];
     intakeRows: IntakeRow[] | null;
     emails: ClientEmail[];
@@ -89,6 +92,7 @@ export function PregenOverview({
     return (
         <div className="min-h-0 flex-1 overflow-y-auto bg-r1-paper px-4 pb-12 pt-6 sm:px-6 lg:px-12 lg:pt-8">
             <div className="mx-auto flex max-w-[1080px] flex-col gap-6">
+                <GiveawayEvidence s={s} posterUrl={posterUrl} />
                 {notice && (
                     <Highlight className="flex flex-col gap-1 px-5 py-4 sm:px-6 sm:py-5">
                         <h2 className="t-h2">{notice.title}</h2>
@@ -206,7 +210,7 @@ export function PregenOverview({
                                     {s.requestedDomain ? "Manage the domain" : "Check a domain"}
                                 </button>
                             </Kv>
-                            <Kv label="Emails sent">
+                            <Kv label={s.giveawayApplication ? "Owner emails" : "Emails sent"}>
                                 <span className="t-num">{emails.length}</span>
                                 {emails.length > 0 && (
                                     <button type="button" className={linkBtn} onClick={() => onOpenDetails("emails")}>

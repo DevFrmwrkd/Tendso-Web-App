@@ -25,6 +25,7 @@ import { isHouseCreator } from "@/lib/houseCreator";
 
 import { DomainFold } from "./DomainFold";
 import { DriveFact } from "./DriveFact";
+import { GiveawayEvidence } from "./GiveawayEvidence";
 import { EmailsFold } from "./EmailsFold";
 import { formatDate, type ClientEmail, type IntakeRow, type SubmissionDoc } from "./review";
 
@@ -91,6 +92,14 @@ export function DetailFold({
 
 /** The price, said once: what the owner pays, and where that figure came from. */
 export function priceFact(s: SubmissionDoc): { text: string; meta: string | null } {
+    if (s.giveawayApplication) {
+        return {
+            text: "Free",
+            meta: s.status === "rejected"
+                ? "Giveaway application · slot released"
+                : isComped(s) ? "Giveaway website · given" : "Giveaway application · slot held",
+        };
+    }
     if (isComped(s)) {
         return { text: `${formatMoney(0)} · Free (promo)`, meta: ["Comped — owner pays nothing", s.compedReason].filter(Boolean).join(" · ") };
     }
@@ -309,6 +318,7 @@ export interface DetailsContentProps {
     s: SubmissionDoc;
     isOwnerSubmitted: boolean;
     photoUrls: string[];
+    posterUrl: string | null;
     checklist: { label: string; done: boolean }[];
     intakeRows: IntakeRow[] | null;
     emails: ClientEmail[];
@@ -326,6 +336,7 @@ export function DetailsContent({
     s,
     isOwnerSubmitted,
     photoUrls,
+    posterUrl,
     checklist,
     intakeRows,
     emails,
@@ -356,6 +367,7 @@ export function DetailsContent({
 
     return (
         <div className="flex flex-col">
+            <GiveawayEvidence s={s} posterUrl={posterUrl} compact />
             <Fact label="Status">
                 <Status {...submissionStatus(s.status, "admin")} />
                 {s.status === "rejected" && s.rejectionReason && <span className="t-meta">Reason: {s.rejectionReason}</span>}
@@ -396,7 +408,7 @@ export function DetailsContent({
                     canSync={canSync}
                 />
             </Fact>
-            <Fact label="Emails sent">
+            <Fact label={s.giveawayApplication ? "Owner emails" : "Emails sent"}>
                 <span className="t-num">{emails.length}</span>
             </Fact>
             <button type="button" className={`${linkBtn} mt-2`} onClick={() => copyBusinessInfo(s)}>
@@ -473,7 +485,7 @@ export function DetailsContent({
                     defaultOpen={initialFold === "emails"}
                     title={
                         <span>
-                            Emails sent <span className="t-count">{emails.length}</span>
+                            {s.giveawayApplication ? "Owner emails" : "Emails sent"} <span className="t-count">{emails.length}</span>
                         </span>
                     }
                 >

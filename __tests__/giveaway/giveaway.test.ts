@@ -11,6 +11,7 @@ import { WEBSITE_PRICE } from '../../lib/pricing';
 const modules = {
     './_generated/server.js': () => import('../../convex/_generated/server'),
     './giveaway.ts': () => import('../../convex/giveaway'),
+    './giveawayEmails.ts': () => import('../../convex/giveawayEmails'),
     './ownerIntake.ts': () => import('../../convex/ownerIntake'),
     './settings.ts': () => import('../../convex/settings'),
     './admin.ts': () => import('../../convex/admin'),
@@ -102,7 +103,7 @@ describe('giveawayStatus and slot lifecycle', () => {
         const first = await seedApplication(t, creatorId, 1);
         const second = await seedApplication(t, creatorId, 2);
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: false, slotsLeft: 0, given: 0 });
-        await t.mutation(api.admin.rejectSubmission, { submissionId: first, adminId: ADMIN_ID });
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.admin.rejectSubmission, { submissionId: first, adminId: ADMIN_ID, reason: 'The poster is not visible.' });
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: true, slotsLeft: 1, given: 0 });
         await t.mutation(api.admin.deleteSubmissionRecords, { submissionId: second, adminId: ADMIN_ID });
         expect(await t.query(api.giveaway.giveawayStatus)).toEqual({ open: true, slotsLeft: 2, given: 0 });
@@ -329,7 +330,7 @@ describe('shared submission mutations', () => {
         await t.mutation(api.submissions.update, { id, ownerPhone: application(2).ownerPhone, ownerEmail: application(2).ownerEmail });
         expect(await storedSubmission(t, id)).toMatchObject({ giveawayPhoneKey: '9170000001', giveawayEmailKey: 'shop1@example.com' });
         await expect(t.mutation(api.ownerIntake.submitOwnerIntake, { ...application(3), ...original })).rejects.toThrow('already exists');
-        await t.mutation(api.admin.rejectSubmission, { submissionId: id, adminId: ADMIN_ID });
+        await t.withIdentity({ subject: ADMIN_ID }).mutation(api.admin.rejectSubmission, { submissionId: id, adminId: ADMIN_ID, reason: 'The poster is not visible.' });
         await expect(t.mutation(api.ownerIntake.submitOwnerIntake, { ...application(3), ...original })).resolves.toBeTruthy();
     });
 

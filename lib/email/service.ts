@@ -39,6 +39,7 @@ import {
     getWithdrawalRequestedEmailHtml,
     getAnnouncementEmailHtml,
     getIntakeReceivedEmailHtml,
+    getGiveawayRejectedEmailHtml,
 } from './templates';
 
 // ── Transport ─────────────────────────────────────────────────────────
@@ -66,6 +67,7 @@ interface SendArgs {
     to: string;
     subject: string;
     html: string;
+    idempotencyKey?: string;
 }
 
 /**
@@ -132,7 +134,7 @@ async function sendEmail(args: SendArgs): Promise<{ success: true; messageId: st
         subject: sanitizeHeader(args.subject),
         html: args.html,
         ...(replyTo ? { replyTo } : {}),
-    });
+    }, args.idempotencyKey ? { idempotencyKey: args.idempotencyKey } : undefined);
 
     if (result.error) {
         // Resend's error object has { message, name, statusCode? }.
@@ -155,6 +157,7 @@ interface IntakeReceivedEmailData {
     amount: number;
     platformEmail?: string;
     giveawayApplication?: boolean;
+    idempotencyKey?: string;
 }
 
 /**
@@ -181,11 +184,29 @@ export async function sendIntakeReceivedEmail(data: IntakeReceivedEmailData) {
                 ? `We received ${data.businessName}'s free website application`
                 : `We got your details — building ${data.businessName}'s website now`,
             html,
+            idempotencyKey: data.idempotencyKey,
         });
     } catch (error: any) {
         console.error('Error in sendIntakeReceivedEmail:', error);
         throw error;
     }
+}
+
+export async function sendGiveawayRejectedEmail(data: {
+    businessName: string;
+    businessOwnerName: string;
+    businessOwnerEmail: string;
+    reason: string;
+    applyUrl: string;
+    platformEmail?: string;
+    idempotencyKey: string;
+}) {
+    return sendEmail({
+        to: data.businessOwnerEmail,
+        subject: `Your free website application for ${data.businessName}`,
+        html: getGiveawayRejectedEmailHtml(data),
+        idempotencyKey: data.idempotencyKey,
+    });
 }
 
 interface ApprovalEmailData {

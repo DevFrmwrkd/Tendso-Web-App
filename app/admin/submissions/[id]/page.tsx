@@ -121,6 +121,15 @@ function SubmissionReview() {
         return result;
     })();
 
+    // Poster evidence has its own resolver and never enters site photo indices.
+    const posterPhoto = submissionData?.giveawayApplication ? submissionData.giveawayPosterPhoto : undefined;
+    const posterIsHttp = !!posterPhoto && /^https?:\/\//i.test(posterPhoto);
+    const resolvedPosterUrls = useQuery(
+        api.files.getMultipleUrls,
+        posterPhoto && !posterIsHttp ? { storageIds: [posterPhoto] } : "skip"
+    );
+    const posterUrl = posterIsHttp ? posterPhoto! : resolvedPosterUrls?.[0] ?? null;
+
     const existingWebsite = useQuery(
         api.generatedWebsites.getBySubmissionId,
         submissionData ? { submissionId: submissionData._id } : "skip"
@@ -329,6 +338,7 @@ function SubmissionReview() {
 
     const [showRejectModal, setShowRejectModal] = useState(false);
     const [rejectionReason, setRejectionReason] = useState("");
+    const [rejectionQuickReason, setRejectionQuickReason] = useState<string | null>(null);
     const [rejectionReasonMissing, setRejectionReasonMissing] = useState(false);
     const [rejecting, setRejecting] = useState(false);
 
@@ -580,7 +590,12 @@ function SubmissionReview() {
             });
             setShowRejectModal(false);
             setRejectionReason("");
-            toast.success("Submission rejected", { description: "The reason is saved on it." });
+            setRejectionQuickReason(null);
+            toast.success("Submission rejected", {
+                description: submissionData.giveawayApplication
+                    ? "The reserved slot is released and the owner's email is queued."
+                    : "The reason is saved on it.",
+            });
         } catch {
             toast.error("Failed to reject. Please try again.");
         } finally {
@@ -1092,7 +1107,10 @@ function SubmissionReview() {
                     : later("Send to client", "after publishing"),
             );
         }
-        if (canGiveFree) items.push({ label: "Give free (comp)…", onSelect: () => setShowGiveFreeModal(true) });
+        if (canGiveFree) items.push({ label: "Give free (comp)…", onSelect: () => {
+            if (s.giveawayApplication) setGiveFreeGiftedBy("Tendso");
+            setShowGiveFreeModal(true);
+        } });
         if (canMarkPaid) items.push({ label: "Mark as paid…", onSelect: () => setShowMarkPaidModal(true) });
         else if (websiteGenerated && !published && !comped && !["paid", "completed"].includes(status)) items.push(later("Mark as paid", "after publishing"));
         return items;
@@ -1193,6 +1211,7 @@ function SubmissionReview() {
             s={s}
             isOwnerSubmitted={isOwnerSubmitted}
             photoUrls={photoUrls}
+            posterUrl={posterUrl}
             checklist={checklist}
             intakeRows={intakeRows}
             emails={emails}
@@ -1335,6 +1354,7 @@ function SubmissionReview() {
                                 notice={pregenNotice}
                                 websiteError={websiteError}
                                 photoUrls={photoUrls}
+                                posterUrl={posterUrl}
                                 checklist={checklist}
                                 intakeRows={intakeRows}
                                 emails={emails}
@@ -1393,6 +1413,7 @@ function SubmissionReview() {
                 onClose={() => {
                     setShowRejectModal(false);
                     setRejectionReason("");
+                    setRejectionQuickReason(null);
                     setRejectionReasonMissing(false);
                 }}
                 onConfirm={() => void handleRejectWithReason()}
@@ -1403,6 +1424,14 @@ function SubmissionReview() {
                     if (v.trim()) setRejectionReasonMissing(false);
                 }}
                 showError={rejectionReasonMissing}
+                giveawayReason={s.giveawayApplication ? {
+                    selected: rejectionQuickReason,
+                    onSelect: (value) => {
+                        setRejectionQuickReason(value);
+                        setRejectionReason(value === "Other" ? "" : value);
+                        setRejectionReasonMissing(false);
+                    },
+                } : undefined}
             />
             <DeleteDialog
                 open={showDeleteModal}
