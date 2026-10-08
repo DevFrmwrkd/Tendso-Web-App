@@ -129,6 +129,20 @@ describe('giveawayStatus and slot lifecycle', () => {
         await expect(t.mutation(api.settings.remove, { key: 'giveaway' })).rejects.toThrow('Not authenticated');
     });
 
+    it('lets admins repoint the poster QR without exposing it to anonymous writes', async () => {
+        const { t } = await setup();
+        const key = 'poster_redirect_target';
+        await expect(t.mutation(api.settings.set, { key, value: '/otr?src=poster' })).rejects.toThrow('Not authenticated');
+        const admin = t.withIdentity({ subject: ADMIN_ID });
+        await admin.mutation(api.settings.set, { key, value: '/otr?src=poster' });
+        expect(await t.query(api.settings.get, { key })).toBe('/otr?src=poster');
+        await admin.mutation(api.settings.set, { key, value: '/100-pages-giveaway?src=poster' });
+        expect(await t.query(api.settings.get, { key })).toBe('/100-pages-giveaway?src=poster');
+        await expect(t.mutation(api.settings.remove, { key })).rejects.toThrow('Not authenticated');
+        await admin.mutation(api.settings.remove, { key });
+        expect(await t.query(api.settings.get, { key })).toBeNull();
+    });
+
     it('schedules deadline invalidation and closes live availability at the configured deadline', async () => {
         const { t } = await setup();
         const endsAt = NOW + 1000;

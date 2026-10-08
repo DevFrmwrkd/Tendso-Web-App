@@ -32,6 +32,7 @@ const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
  *  than in page.tsx because loadDraft clamps `step` to it — a bound that can
  *  drift from the steps actually rendered is the exact bug it exists to stop. */
 export const TOTAL_STEPS = 4;
+export const GIVEAWAY_STEPS = 5;
 
 export interface StartBasics {
     businessName: string;
@@ -51,7 +52,8 @@ export interface StartBasics {
 export interface StartDraft {
     version: 1;
     updatedAt: number;
-    /** 1 basics · 2 interview · 3 photos · 4 confirm. */
+    /** 1 basics · 2 interview · 3 photos · 4 confirm; giveaways insert
+     *  the poster at 4 and move confirmation to 5. */
     step: number;
     /** Which of the 8 interview questions is on screen during step 2. */
     questionIndex: number;
@@ -70,6 +72,11 @@ export interface StartDraft {
      *  switches back to standard: toggling is one mis-tap, and re-typing a
      *  domain on a phone is not something to make anyone do twice. */
     requestedDomain: string;
+    /** Giveaway intent survives a closure while the owner is filling the form. */
+    giveawayApplication: boolean;
+    giveawaySource: string | null;
+    /** Eligibility evidence, separate from the website's indexed photo roles. */
+    giveawayPosterPhoto: string | null;
 }
 
 export function emptyDraft(): StartDraft {
@@ -96,6 +103,9 @@ export function emptyDraft(): StartDraft {
         coordinates: null,
         wantsCustomDomain: false,
         requestedDomain: "",
+        giveawayApplication: false,
+        giveawaySource: null,
+        giveawayPosterPhoto: null,
     };
 }
 
@@ -160,7 +170,7 @@ export function loadDraft(): StartDraft {
             ...fresh,
             ...parsed,
             version: 1,
-            step: clampCursor(parsed.step, 1, TOTAL_STEPS, fresh.step),
+            step: clampCursor(parsed.step, 1, parsed.giveawayApplication === true ? GIVEAWAY_STEPS : TOTAL_STEPS, fresh.step),
             questionIndex: clampCursor(parsed.questionIndex, 0, INTAKE_QUESTIONS.length - 1, fresh.questionIndex),
             // Merge rather than replace so a field added to StartBasics later
             // reads as "" for an in-flight draft instead of undefined.
@@ -176,6 +186,9 @@ export function loadDraft(): StartDraft {
             // refresh. A dropped tier re-asks one question on the last screen.
             wantsCustomDomain: typeof parsed.wantsCustomDomain === "boolean" ? parsed.wantsCustomDomain : false,
             requestedDomain: typeof parsed.requestedDomain === "string" ? parsed.requestedDomain : "",
+            giveawayApplication: parsed.giveawayApplication === true,
+            giveawaySource: stringOrNull(parsed.giveawaySource),
+            giveawayPosterPhoto: stringOrNull(parsed.giveawayPosterPhoto),
             coordinates:
                 parsed.coordinates &&
                 typeof parsed.coordinates.lat === "number" &&
@@ -186,6 +199,34 @@ export function loadDraft(): StartDraft {
     } catch {
         return emptyDraft();
     }
+}
+
+/** A remembered offer alone does not reserve a slot. Work already entered into
+ *  a giveaway draft retains its intent if the offer closes before submission. */
+export function hasDraftProgress(draft: StartDraft): boolean {
+    return draft.step > 1 || Object.values(draft.basics).some((value) => value.trim().length > 0)
+        || Object.values(draft.answers).some((value) => value?.trim())
+        || Object.keys(draft.photos).length > 0 || !!draft.giveawayPosterPhoto;
+}
+
+export function resolveGiveawayDraft(
+    draft: StartDraft,
+    wantsGiveaway: boolean,
+    source: string | null,
+    open: boolean,
+    fullPrice = false,
+): StartDraft {
+    const resume = draft.giveawayApplication && hasDraftProgress(draft);
+    const giveawayApplication = !fullPrice && (resume || (wantsGiveaway && open));
+    return {
+        ...draft,
+        giveawayApplication,
+        giveawaySource: giveawayApplication ? source ?? draft.giveawaySource : null,
+        // Existing standard drafts on the review screen land on the poster
+        // step when they opt into the giveaway, before they can submit.
+        step: Math.min(draft.step, giveawayApplication ? GIVEAWAY_STEPS : TOTAL_STEPS),
+        wantsCustomDomain: giveawayApplication || fullPrice ? false : draft.wantsCustomDomain,
+    };
 }
 
 export function saveDraft(draft: StartDraft): void {
@@ -226,6 +267,7 @@ export interface SubmittedReceipt {
     campaign: string | null;
     /** null = unknown (an older receipt), not "standard". */
     customDomain: boolean | null;
+    giveawayApplication?: boolean;
 }
 
 export function rememberSubmitted(receipt: SubmittedReceipt): void {
@@ -259,6 +301,7 @@ function parseReceipt(raw: string | null): SubmittedReceipt | null {
             city: stringOrNull(parsed.city),
             campaign: stringOrNull(parsed.campaign),
             customDomain: typeof parsed.customDomain === "boolean" ? parsed.customDomain : null,
+            giveawayApplication: parsed.giveawayApplication === true,
         };
     } catch {
         return null;

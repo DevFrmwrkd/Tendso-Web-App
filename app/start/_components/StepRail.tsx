@@ -17,6 +17,12 @@ export const STEP_LABELS = [
     { title: "Last look", note: "Check it, then send it in" },
 ] as const;
 
+export const GIVEAWAY_STEP_LABELS = [
+    ...STEP_LABELS.slice(0, 3),
+    { title: "Poster photo", note: "Show the poster in your business" },
+    STEP_LABELS[3],
+];
+
 /**
  * "Nothing to pay now", with the price. The rail carries it on a desk; on a
  * phone the first step shows it under the form, beside the Continue button, so
@@ -30,7 +36,7 @@ export const STEP_LABELS = [
 export function PriceNote({ quote, className }: { quote: Quote; className?: string }) {
     return (
         <div className={cx("flex flex-col gap-2 rounded-r1-card border border-r1-line bg-r1-fill-2 p-4", className)}>
-            <p className="t-label">Nothing to pay now</p>
+            <p className="t-label">{quote.giveaway ? "Your giveaway website" : "Nothing to pay now"}</p>
             <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                 {quote.struckTotal !== null ? (
                     <span className="text-sm tabular-nums text-r1-ink-3 line-through decoration-r1-ink-3">
@@ -40,13 +46,15 @@ export function PriceNote({ quote, className }: { quote: Quote; className?: stri
                 ) : null}
                 <span className="text-xl font-semibold leading-6 tabular-nums">
                     {quote.struckTotal !== null ? <span className="sr-only">Now </span> : null}
-                    {formatPHP(quote.total)}
+                    {quote.giveaway ? "Free" : formatPHP(quote.total)}
                 </span>
                 {quote.discounted && quote.code ? <span className="t-meta">with {quote.code}</span> : null}
             </p>
             <p className="t-meta">
-                We build the site first and email it to you. You only pay once it&apos;s live —{" "}
-                {quote.tier === "with_custom_domain" ? `${formatPHP(quote.total)} with your own .com.` : "one time."}
+                {quote.giveaway ? "A free website with a Tendso web address, if your application qualifies. We review your poster photo before building it." : <>
+                    We build the site first and email it to you. You only pay once it&apos;s live —{" "}
+                    {quote.tier === "with_custom_domain" ? `${formatPHP(quote.total)} with your own .com.` : "one time."}
+                </>}
             </p>
         </div>
     );
@@ -96,11 +104,11 @@ export function StepRail({
         <aside className="hidden lg:sticky lg:top-10 lg:flex lg:w-64 lg:flex-none lg:flex-col lg:gap-6 lg:self-start" aria-label="Your progress">
             <div className="flex flex-col gap-1 px-3">
                 <p className="t-h2">Tell us about your business</p>
-                <p className="t-meta">Four short steps, about eight minutes.</p>
+                <p className="t-meta">{quote.giveaway ? "Five" : "Four"} short steps, about eight minutes.</p>
             </div>
 
             <ol className="flex flex-col gap-0.5">
-                {STEP_LABELS.map((entry, index) => {
+                {(quote.giveaway ? GIVEAWAY_STEP_LABELS : STEP_LABELS).map((entry, index) => {
                     const number = index + 1;
                     if (number < step) {
                         return (

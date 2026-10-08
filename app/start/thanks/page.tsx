@@ -3,7 +3,7 @@
 /**
  * /start/thanks — the end of the owner funnel.
  *
- * WHY THIS IS A SEPARATE URL and not a fifth step on /start: the intake is one
+ * WHY THIS IS A SEPARATE URL and not another step on /start: the intake is one
  * mutation call, and the browser must not be able to repeat it. On its own route
  * a refresh, a bookmark, or a back-then-forward re-renders this page and nothing
  * else — there is no submit handler here to fire a second time.
@@ -51,6 +51,7 @@ const noServerValue = () => null;
  * figure beside it is worse than none.
  */
 function priceDetail(receipt: SubmittedReceipt, amount: number): { was: number | null; note: string | null } {
+    if (receipt.giveawayApplication) return { was: null, note: "With a Tendso web address, if your application qualifies" };
     if (receipt.customDomain === null) return { was: null, note: null };
     const quote = quoteFor(receipt.campaign, receipt.customDomain);
     if (quote.total !== amount) return { was: null, note: null };
@@ -72,6 +73,7 @@ export default function StartThanksPage() {
     // somebody who was just promised a discount is worse than saying none, so the
     // sentence drops the figure rather than guessing it.
     const amount = receipt?.amount ?? null;
+    const giveaway = receipt?.giveawayApplication === true;
     const detail = receipt && amount !== null ? priceDetail(receipt, amount) : { was: null, note: null };
     const forLine = [receipt?.businessName, receipt?.city].filter(Boolean).join(" · ");
     const howToPay = amount === null ? "how to pay" : `how to pay ${formatPHP(amount)}`;
@@ -84,11 +86,11 @@ export default function StartThanksPage() {
                 </span>
 
                 <div className="flex flex-col gap-3">
-                    <h1 className="t-h1">Salamat — we have everything we need.</h1>
+                    <h1 className="t-h1">{giveaway ? "Salamat — your giveaway application is in." : "Salamat — we have everything we need."}</h1>
                     <p className="t-sub">
-                        We&apos;ll build it and email you at{" "}
+                        {giveaway ? "Your slot is held while we review your application. We'll email you at " : "We'll build it and email you at "}
                         <strong className="font-semibold text-r1-ink [overflow-wrap:anywhere]">{email ?? "the address you gave us"}</strong>{" "}
-                        within 48–72 hours with your site and {howToPay}.
+                        {giveaway ? "once your application is reviewed." : `within 48–72 hours with your site and ${howToPay}.`}
                     </p>
                 </div>
 
@@ -110,27 +112,31 @@ export default function StartThanksPage() {
                                     ) : null}
                                     <span className="text-xl font-semibold leading-6 tabular-nums">
                                         {detail.was !== null ? <span className="sr-only">Now </span> : null}
-                                        {formatPHP(amount)}
+                                        {giveaway ? "Free" : formatPHP(amount)}
                                     </span>
                                     {detail.note ? <span className="t-meta">{detail.note}</span> : null}
                                 </span>
                             </Fact>
                         ) : null}
-                        <Fact term="When you pay">Once, only after your site is live</Fact>
+                        <Fact term={giveaway ? "Your web address" : "When you pay"}>{giveaway ? "A Tendso web address" : "Once, only after your site is live"}</Fact>
                         {forLine ? <Fact term="For">{forLine}</Fact> : null}
                     </dl>
                 </Highlight>
 
                 <section className="flex flex-col gap-4" aria-labelledby="start-next-hours">
                     <h2 id="start-next-hours" className="t-h2">
-                        The next 48–72 hours
+                        {giveaway ? "What happens next" : "The next 48–72 hours"}
                     </h2>
                     <ol className="m-0 flex list-none flex-col gap-3.5 p-0">
-                        {[
+                        {(giveaway ? [
+                            "Our team reviews your application and checks the poster photo.",
+                            "If your application qualifies, we build your free website from your answers and photos.",
+                            "We email you once your application is reviewed, and send your website link when it is ready.",
+                        ] : [
                             "Our team reads your answers and builds your site from them — your words, your photos.",
                             "We check it and put it live.",
                             `We email you the link and ${howToPay}. That email is the first time you see it.`,
-                        ].map((line, index) => (
+                        ]).map((line, index) => (
                             <li key={index} className="flex items-start gap-3">
                                 <span className="inline-flex size-6 flex-none items-center justify-center rounded-full text-xs font-semibold tabular-nums text-r1-ink-3 ring-[1.5px] ring-inset ring-r1-line-2">
                                     {index + 1}
@@ -144,7 +150,7 @@ export default function StartThanksPage() {
                 <Card className="flex flex-col gap-2.5 px-5 py-5 sm:px-6">
                     <h2 className="text-sm font-semibold leading-5">Nothing to do now</h2>
                     <ul className="t-body m-0 flex list-disc flex-col gap-1.5 pl-[18px]">
-                        <li>You don&apos;t pay anything until your site is live.</li>
+                        <li>{giveaway ? "There's nothing to pay for an eligible giveaway website." : "You don't pay anything until your site is live."}</li>
                         <li>There&apos;s no account to make and nothing to install.</li>
                         <li>Keep an eye on that inbox — check spam too, in case our email lands there.</li>
                     </ul>

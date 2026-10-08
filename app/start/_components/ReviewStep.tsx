@@ -42,6 +42,7 @@ export function ReviewStep({
     onEditBasics,
     onEditAnswers,
     onEditPhotos,
+    onEditPoster,
     codeEntry,
     onCodeEntry,
     codeRejected,
@@ -56,6 +57,7 @@ export function ReviewStep({
     onEditBasics: () => void;
     onEditAnswers: () => void;
     onEditPhotos: () => void;
+    onEditPoster: () => void;
     codeEntry: string;
     onCodeEntry: (value: string) => void;
     codeRejected: boolean;
@@ -153,6 +155,14 @@ export function ReviewStep({
                             ))}
                         </div>
                     </SummaryCard>
+                    {quote.giveaway ? (
+                        <SummaryCard title="Your poster photo" editLabel="Edit your poster photo" onEdit={onEditPoster} disabled={submitting}>
+                            {draft.giveawayPosterPhoto ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={draft.giveawayPosterPhoto} alt="Your poster hanging in your business" className="max-h-56 w-full rounded-r1 object-contain bg-r1-fill-2" />
+                            ) : <p className="t-error">Add your poster photo before sending your application.</p>}
+                        </SummaryCard>
+                    ) : null}
                 </div>
 
                 <div className="flex min-w-0 flex-col gap-4">
@@ -176,10 +186,12 @@ export function ReviewStep({
                             ) : null}
                             <span className="t-figure">
                                 {quote.struckTotal !== null ? <span className="sr-only">Now </span> : null}
-                                {formatPHP(quote.total)}
+                                {quote.giveaway ? "Free" : formatPHP(quote.total)}
                             </span>
                         </p>
-                        {quote.discounted ? (
+                        {quote.giveaway ? (
+                            <p className="t-body">A free website with a Tendso web address, if your application qualifies.</p>
+                        ) : quote.discounted ? (
                             <Status tone="done" className="whitespace-normal">
                                 {quote.code} applied — {formatPHP(quote.listPrice - quote.sellPrice)} off your website
                             </Status>
@@ -246,7 +258,7 @@ export function ReviewStep({
                                 />
                             </MoneyLines>
                         ) : null}
-                        <p className="t-meta">You pay once, only after your site is live. Nothing to pay now.</p>
+                        <p className="t-meta">{quote.giveaway ? "We review your poster photo to check eligibility. There's nothing to pay for an eligible giveaway website." : "You pay once, only after your site is live. Nothing to pay now."}</p>
                     </Card>
 
                     {/* The tier. The ONE money decision on this form, and the only
@@ -256,7 +268,12 @@ export function ReviewStep({
                         a logged-in user and there is no account here, so the name
                         typed below is a request our team confirms during the
                         review they already do. */}
-                    <Card pad className="flex flex-col gap-3">
+                    {quote.giveaway ? (
+                        <Card pad className="flex flex-col gap-2">
+                            <h2 className="t-h2">Your web address</h2>
+                            <p className="t-body">Your free website comes with a Tendso web address.</p>
+                        </Card>
+                    ) : <Card pad className="flex flex-col gap-3">
                         <RadioCards<SubmissionTier>
                             name="tier"
                             legend={
@@ -313,16 +330,20 @@ export function ReviewStep({
                                 />
                             </Field>
                         ) : null}
-                    </Card>
+                    </Card>}
 
                     <Highlight className="flex flex-col gap-2 p-5">
                         <h2 className="text-sm font-semibold leading-5">What happens next</h2>
-                        <p className="t-body text-r1-ink">
+                        {quote.giveaway ? <p className="t-body text-r1-ink">
+                            Our team reviews your application and emails{" "}
+                            <strong className="font-semibold [overflow-wrap:anywhere]">{email || "the address you gave us"}</strong>{" "}
+                            once it has been reviewed. If you qualify, we build your free website with a Tendso web address.
+                        </p> : <p className="t-body text-r1-ink">
                             Our team builds your website and emails it to{" "}
                             <strong className="font-semibold [overflow-wrap:anywhere]">{email || "the address you gave us"}</strong> within
                             48–72 hours, with how to pay {formatPHP(quote.total)}. Nothing to pay now, nothing to install.
-                        </p>
-                        {wantsCustomDomain ? (
+                        </p>}
+                        {!quote.giveaway && wantsCustomDomain ? (
                             <p className="t-body text-r1-ink">That bill only goes out once we&apos;ve confirmed your .com is still free.</p>
                         ) : null}
                     </Highlight>

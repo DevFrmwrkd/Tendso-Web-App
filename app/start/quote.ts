@@ -27,6 +27,7 @@ import {
 } from "@/lib/pricing";
 
 export interface Quote {
+    giveaway: boolean;
     tier: SubmissionTier;
     /** The website half before any campaign. */
     listPrice: number;
@@ -62,12 +63,20 @@ export function campaignCode(campaign: string | null | undefined): string | null
     return typed ?? key.toUpperCase();
 }
 
-export function quoteFor(campaign: string | null | undefined, wantsCustomDomain: boolean): Quote {
+export function quoteFor(campaign: string | null | undefined, wantsCustomDomain: boolean, giveaway = false): Quote {
+    if (giveaway) {
+        return {
+            giveaway: true, tier: "standard", listPrice: 0, sellPrice: 0,
+            addOn: 0, total: 0, struckTotal: null, discounted: false,
+            code: null, percentOff: 0,
+        };
+    }
     const tier: SubmissionTier = wantsCustomDomain ? "with_custom_domain" : "standard";
     const listPrice = campaignListPrice(campaign);
     const sellPrice = campaignSellPrice(campaign);
     const discounted = sellPrice !== listPrice;
     return {
+        giveaway: false,
         tier,
         listPrice,
         sellPrice,
