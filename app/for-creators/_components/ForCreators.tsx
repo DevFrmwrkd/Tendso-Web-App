@@ -24,7 +24,7 @@ import type { ReactNode } from "react";
 import ChatBot from "@/components/landing/ChatBot";
 import { fill, fillText } from "@/components/landing/copy";
 import { FaqList, type FaqItem } from "@/components/landing/FaqSection";
-import { siteMeta, useFeaturedSites } from "@/components/landing/featuredSites";
+import { siteMeta, useFeaturedSites, type FeaturedSite } from "@/components/landing/featuredSites";
 import { useT } from "@/components/landing/i18n";
 import LiveSitePreview from "@/components/landing/LiveSitePreview";
 import { ButtonLink, Card, Highlight, Icon, PublicFooter, PublicHeader, PublicPage, cx, formatMoney } from "@/components/r1";
@@ -301,11 +301,12 @@ function Needs() {
 /**
  * Four real sites, the same curated list as the landing's grid (the landing
  * shows them all; "See more sites" goes there). Each is a live preview of the
- * real page and opens it.
+ * real page and opens it. `initialSites` is the list read on the server, so the
+ * links are in the HTML.
  */
-function Sites() {
+function Sites({ initialSites }: { initialSites?: FeaturedSite[] | null }) {
     const { t } = useT();
-    const sites = useFeaturedSites().slice(0, 4);
+    const sites = useFeaturedSites(initialSites).slice(0, 4);
     return (
         <section id="sites" aria-labelledby="fc-sites-title" className={cx(BAND, "bg-r1-fill-2")}>
             <div className={cx(WRAP, "flex flex-col gap-6")}>
@@ -472,7 +473,7 @@ function Closing() {
     );
 }
 
-export default function ForCreators() {
+export default function ForCreators({ initialSites }: { initialSites?: FeaturedSite[] | null }) {
     const { t } = useT();
     // pb-24: room under the footer's last line for the chat button, which stays
     // pinned to the bottom-right corner and would otherwise cover the phone number.
@@ -498,7 +499,7 @@ export default function ForCreators() {
                 <Earn />
                 <Steps />
                 <Needs />
-                <Sites />
+                <Sites initialSites={initialSites} />
                 <AppAndDiscord />
                 <Questions />
                 <Closing />

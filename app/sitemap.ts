@@ -1,10 +1,21 @@
 import type { MetadataRoute } from "next";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
+import { loadFeaturedSites } from "@/components/landing/loadFeaturedSites";
 import { SITE_URL } from "@/lib/seo";
+import { hostedSiteHome } from "@/lib/siteSlug";
 
 /**
- * sitemap.xml for tendso.com — static marketing pages + published KB articles.
+ * sitemap.xml for tendso.com — static marketing pages + published KB articles
+ * + the featured client sites we host.
+ *
+ * The featured sites are the admin's curated list (the landing's "Real sites"),
+ * limited to <slug>.sites.tendso.com addresses and written as each site's
+ * canonical home page. They are on other hosts, which Google only accepts from
+ * this sitemap when tendso.com is verified as a Domain property in Search
+ * Console (that covers every subdomain); until then it ignores these entries
+ * and still reads the rest. Each site also has its own robots.txt and sitemap.
+ * Sites on their own domains are left out: verifying tendso.com cannot cover them.
  *
  * Business-profile URLs (/businesses/[slug]) are intentionally NOT here yet:
  * they need the generatedWebsites.slug field + content gate (Track B / D-E-F),
@@ -54,5 +65,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         // Convex unreachable at build/revalidate — ship static-only.
     }
 
-    return [...staticEntries, ...articleEntries];
+    // null when unreachable or unset: no site entries, the rest still ships.
+    const featured = await loadFeaturedSites();
+    const siteHomes = new Set((featured ?? []).map((s) => hostedSiteHome(s?.url)).filter((u): u is string => !!u));
+    const siteEntries: MetadataRoute.Sitemap = [...siteHomes].map((url) => ({
+        url,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+    }));
+
+    return [...staticEntries, ...articleEntries, ...siteEntries];
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { LanguageProvider } from "@/components/landing/i18n";
+import { loadFeaturedSites } from "@/components/landing/loadFeaturedSites";
 import { OPERATOR } from "@/lib/contact";
 import { BASE_PRICE, COMMISSION_RATE, PRICE_CEILING, formatPHP } from "@/lib/pricing";
 
@@ -40,11 +41,16 @@ export const metadata: Metadata = {
     twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
+// Prerendered, refreshed every five minutes like the landing: the curated sites
+// are read here so their links are in the HTML (see loadFeaturedSites).
+export const revalidate = 300;
+
 /** /for-creators (board: ForCreators). Bilingual: EN/TL through LanguageProvider, copy in components/landing/strings/forCreators.ts. */
-export default function ForCreatorsPage() {
+export default async function ForCreatorsPage() {
+    const featuredSites = await loadFeaturedSites();
     return (
         <LanguageProvider>
-            <ForCreators />
+            <ForCreators initialSites={featuredSites} />
         </LanguageProvider>
     );
 }

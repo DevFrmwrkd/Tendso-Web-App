@@ -4,7 +4,7 @@ import { ArrowUpRight } from "lucide-react";
 
 import { Icon } from "@/components/r1";
 
-import { siteMeta, useFeaturedSites } from "./featuredSites";
+import { siteMeta, useFeaturedSites, type FeaturedSite } from "./featuredSites";
 import { useT } from "./i18n";
 import { LANDING_BAND, LANDING_BAND_IN, SectionHead } from "./layout";
 import SiteFrame from "./SiteFrame";
@@ -14,16 +14,17 @@ import SiteFrame from "./SiteFrame";
  *
  * Everything here is TRUE: each card is a real client site, shown as a LIVE
  * preview of the actual page and opening it in a new tab. The list is the
- * admin's curated Featured sites, with the four built-in sites standing in
- * while it loads or when it is unset (see featuredSites.ts).
+ * admin's curated Featured sites, read on the server (`initialSites`) so the
+ * links are in the HTML, with the four built-in sites standing in when it is
+ * unset (see featuredSites.ts).
  *
  * The old band's counters (live sites from generatedWebsites.countPublished,
  * creators from creators.count) are gone with the old layout: the board has
  * no place for a number here, and the grid is the proof.
  */
-export default function RealSitesSection() {
+export default function RealSitesSection({ initialSites }: { initialSites?: FeaturedSite[] | null }) {
     const { t } = useT();
-    const sites = useFeaturedSites();
+    const sites = useFeaturedSites(initialSites);
 
     return (
         <section id="sites" aria-labelledby="sites-title" className={LANDING_BAND}>

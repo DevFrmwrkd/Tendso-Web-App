@@ -11,6 +11,7 @@ import {
     resolveSiteSlug,
     slugFromHost,
     siteUrlForSlug,
+    hostedSiteHome,
     RESERVED_SLUGS,
 } from "@/lib/siteSlug";
 
@@ -136,5 +137,29 @@ describe("slugFromHost", () => {
 describe("siteUrlForSlug", () => {
     it("builds the public address", () => {
         expect(siteUrlForSlug("neighborhood")).toBe("https://neighborhood.sites.tendso.com");
+    });
+});
+
+describe("hostedSiteHome", () => {
+    it("gives the home page the way the site's canonical writes it", () => {
+        expect(hostedSiteHome("https://layug-wood-works.sites.tendso.com/")).toBe("https://layug-wood-works.sites.tendso.com/");
+        expect(hostedSiteHome("https://layug-wood-works.sites.tendso.com")).toBe("https://layug-wood-works.sites.tendso.com/");
+        expect(hostedSiteHome(" http://Aurora-Villa.Sites.Tendso.com/rooms?x=1 ")).toBe("https://aurora-villa.sites.tendso.com/");
+    });
+
+    it("refuses URLs that are not one of our hosted sites", () => {
+        for (const u of [
+            "https://benjoetiresupply.com/",
+            "https://hapag.pages.dev/",
+            "https://www.tendso.com/",
+            "https://admin.sites.tendso.com/",  // reserved
+            "https://a.b.sites.tendso.com/",    // two labels
+            "layug-wood-works.sites.tendso.com", // no scheme, not a URL
+            "",
+            null,
+            undefined,
+        ]) {
+            expect(hostedSiteHome(u as string)).toBeNull();
+        }
     });
 });

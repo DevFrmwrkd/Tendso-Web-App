@@ -5,6 +5,7 @@ import FaqSection from "@/components/landing/FaqSection";
 import HeroSection from "@/components/landing/HeroSection";
 import HowItWorks from "@/components/landing/HowItWorks";
 import { LanguageProvider } from "@/components/landing/i18n";
+import { loadFeaturedSites } from "@/components/landing/loadFeaturedSites";
 import RealSitesSection from "@/components/landing/RealSitesSection";
 import { PublicFooter, PublicHeader, PublicPage } from "@/components/r1";
 
@@ -23,7 +24,13 @@ import { PublicFooter, PublicHeader, PublicPage } from "@/components/r1";
  * header links to those three anchors from every public page.
  *
  * DATA-TRUE, as before: no invented counters, creators or testimonials. The
- * only live data is the curated list of real client sites.
+ * only live data is the curated list of real client sites, read here on the
+ * server as well, so its links are in the HTML search engines crawl (the
+ * hosted sites have no other link from tendso.com).
+ *
+ * PRERENDERED, refreshed every five minutes, so a curated change reaches the
+ * HTML within about ten minutes (this plus loadFeaturedSites' own cache).
+ * Visitors see it at once: the live query replaces the list after load.
  *
  * BILINGUAL (EN/TL), through LanguageProvider and the header's EN/TL switch.
  * Copy lives in components/landing/strings/landing.ts.
@@ -34,7 +41,10 @@ import { PublicFooter, PublicHeader, PublicPage } from "@/components/r1";
  * the manifesto band (not in the design). The metadata for "/" is the root
  * layout's.
  */
-export default function Home() {
+export const revalidate = 300;
+
+export default async function Home() {
+    const featuredSites = await loadFeaturedSites();
     // pb-24: room under the footer's last line for the chat button, which stays
     // pinned to the bottom-right corner and would otherwise cover it.
     const footer = <PublicFooter variant="full" className="pb-24" />;
@@ -42,7 +52,7 @@ export default function Home() {
         <LanguageProvider>
             <PublicPage header={<PublicHeader showLang />} footer={footer}>
                 <HeroSection />
-                <RealSitesSection />
+                <RealSitesSection initialSites={featuredSites} />
                 <HowItWorks />
                 <BusinessPricingSection />
                 <FaqSection />
