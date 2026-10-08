@@ -1,7 +1,6 @@
-import { BASE_PRICE, PRICE_CEILING, formatPHP } from './pricing';
-
 export const AFFILIATE_HANDLE_MIN_LENGTH = 3;
 export const AFFILIATE_HANDLE_MAX_LENGTH = 30;
+export const AFFILIATE_MESSAGE_MAX_LENGTH = 200;
 
 /** Reserved routes and Tendso identities cannot become an affiliate address. */
 export const AFFILIATE_RESERVED_HANDLES = [
@@ -37,9 +36,36 @@ export function affiliatePhoneError(phone: string): string | null {
         : 'Enter a Philippine mobile number, like 09171234567.';
 }
 
-/** Reject invalid quotes rather than silently charging a different price. */
+/** Finite editor input is rounded and clamped by updatePage before saving. */
 export function affiliatePriceError(price: number): string | null {
-    return Number.isInteger(price) && price >= BASE_PRICE && price <= PRICE_CEILING
-        ? null
-        : `Set a whole-peso price from ${formatPHP(BASE_PRICE)} to ${formatPHP(PRICE_CEILING)}.`;
+    return Number.isFinite(price) ? null : 'Enter a valid price.';
+}
+
+function httpsUrlError(value: string, label: string): string | null {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (trimmed.length > 2048) return `${label} must be 2048 characters or fewer.`;
+    try {
+        const url = new URL(trimmed);
+        if (url.protocol === 'https:' && !url.username && !url.password) return null;
+    } catch {
+        // Invalid URL syntax uses the same actionable message as an unsafe URL.
+    }
+    return `${label} must be a valid HTTPS URL.`;
+}
+
+export function affiliatePhotoError(value: string): string | null {
+    return httpsUrlError(value, 'Photo');
+}
+
+/** An empty value clears the link; otherwise it must point to Facebook/Messenger. */
+export function affiliateSocialLinkError(value: string): string | null {
+    const urlError = httpsUrlError(value, 'Social link');
+    if (urlError) return urlError;
+    if (!value.trim()) return null;
+    const url = new URL(value.trim());
+    const allowedHost = ['facebook.com', 'messenger.com'].some((domain) =>
+        url.hostname === domain || url.hostname.endsWith(`.${domain}`));
+    if ((allowedHost || url.hostname === 'm.me') && !url.port) return null;
+    return 'Use a Facebook or Messenger link, like https://facebook.com/yourpage or https://m.me/yourpage.';
 }

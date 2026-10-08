@@ -1,0 +1,34 @@
+.poster { display: none; }
+
+@media print {
+    @page { size: A4 portrait; margin: 14mm; }
+    :global(body):has(.poster) > :not(.poster) { display: none !important; }
+    :global(body):has(.poster) { background: white !important; margin: 0 !important; }
+    .poster {
+        display: flex !important;
+        flex-direction: column;
+        align-items: center;
+        gap: 5mm;
+        width: 100%;
+        min-height: 258mm;
+        padding: 8mm;
+        box-sizing: border-box;
+        border: 0.4mm solid #111;
+        color: #111;
+        background: white;
+        text-align: center;
+        break-inside: avoid;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+    .brand { margin: 0; font-size: 30px; font-weight: 700; letter-spacing: -1.5px; }
+    .byline { margin: 0; font-size: 16px; overflow-wrap: anywhere; }
+    .headline { margin: 3mm 0 0; font-size: 64px; line-height: 1; letter-spacing: -2px; font-weight: 600; }
+    .intro { margin: 0; font-size: 18px; }
+    .price { display: flex; flex-direction: column; align-items: center; gap: 1mm; }
+    .price > div { justify-content: center; }
+    .price > p { margin: 0; font-size: 13px; color: #444; }
+    .qr { width: 76mm; height: 76mm; flex-shrink: 0; }
+    .scan { margin: 0; font-size: 19px; font-weight: 600; }
+    .url { margin: 0; font-size: 15px; overflow-wrap: anywhere; }
+}
