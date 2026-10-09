@@ -1,4 +1,5 @@
 import { v } from 'convex/values';
+import { knowledgeSlugError } from '../lib/knowledgeArticle';
 import { query, mutation, internalQuery, internalMutation, type QueryCtx, type MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireAdmin } from './lib/auth';
@@ -216,11 +217,13 @@ export const upsertFaq = mutation({
 const bodyBlockArg = v.array(v.any());
 
 /**
- * Admin: create or update an article (idempotent by slug). Resolves the
+ * Admin: create or update an article (idempotent by slug, or by an explicit
+ * article id when renaming). Resolves the
  * category by slug and schedules an embedding regeneration so RAG stays fresh.
  */
 export const upsertArticle = mutation({
     args: {
+        articleId: v.optional(v.id('knowledgeArticles')),
         slug: v.string(),
         title: v.string(),
         summary: v.string(),
@@ -245,10 +248,22 @@ export const upsertArticle = mutation({
         }
 
         const now = Date.now();
-        const existing = await ctx.db
+        const slugOwners = await ctx.db
             .query('knowledgeArticles')
             .withIndex('by_slug', (q) => q.eq('slug', args.slug))
-            .first();
+            .collect();
+        const existing = args.articleId ? await ctx.db.get(args.articleId) : slugOwners[0];
+        if (args.articleId && !existing) {
+            throw new Error('This article no longer exists. Reload the page before saving.');
+        }
+        if (args.articleId && slugOwners.some((owner) => owner._id !== args.articleId)) {
+            throw new Error('That slug is already used by another article.');
+        }
+        // Existing legacy slugs remain editable without forcing a rename.
+        if (!existing || existing.slug !== args.slug) {
+            const slugError = knowledgeSlugError(args.slug);
+            if (slugError) throw new Error(slugError);
+        }
 
         const fields = {
             slug: args.slug,
@@ -271,6 +286,14 @@ export const upsertArticle = mutation({
         if (existing) {
             await ctx.db.patch(existing._id, fields);
             id = existing._id;
+            if (existing.slug !== args.slug) {
+                const faqs = await ctx.db.query('knowledgeFaqs').collect();
+                for (const faq of faqs) {
+                    if (faq.linkArticleSlug === existing.slug) {
+                        await ctx.db.patch(faq._id, { linkArticleSlug: args.slug });
+                    }
+                }
+            }
         } else {
             id = await ctx.db.insert('knowledgeArticles', { ...fields, createdAt: now });
         }

@@ -24,6 +24,7 @@ import {
 } from "@/components/r1"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+import { knowledgeSlugError, parseKnowledgeKeywords } from "@/lib/knowledgeArticle"
 
 import { errorText, trainedStatus, WORKSPACE_NAME, WORKSPACE_OPTIONS, type Workspace } from "../_lib/train"
 import PanelBoundary from "./PanelBoundary"
@@ -184,8 +185,8 @@ export default function TrainedSection() {
 
 /**
  * Edit one trained answer in place. The list only carries a 300-character
- * summary, and knowledge.upsertArticle (the admin article editor, keyed by
- * slug) rewrites the whole article, so the full article and both workspaces'
+ * summary, and knowledge.upsertArticle rewrites the whole article, so the
+ * full article and both workspaces'
  * categories are loaded only while this one answer is open.
  */
 function EditTrained({ row, onDone }: { row: TrainedRow; onDone: () => void }) {
@@ -231,7 +232,9 @@ function EditTrainedForm({
     // would be flattened by this form, so such an article is left alone.
     const plain = article.body.every((b) => b.t === "p")
     const [question, setQuestion] = useState(article.title)
+    const [slug, setSlug] = useState(article.slug)
     const [summary, setSummary] = useState(article.summary)
+    const [keywords, setKeywords] = useState(() => article.keywords.join(", "))
     const [answer, setAnswer] = useState(() => article.body.map((b) => ("text" in b ? b.text : "")).join("\n\n"))
     const [workspace, setWorkspace] = useState<Workspace>(article.workspace)
     const [categorySlugs, setCategorySlugs] = useState<Record<Workspace, string>>(() => ({
@@ -239,11 +242,19 @@ function EditTrainedForm({
         wiki: (categories.wiki.find((c) => c._id === article.categoryId) ?? categories.wiki[0])?.slug ?? "",
     }))
     const [error, setError] = useState("")
+    const [slugError, setSlugError] = useState("")
     const [saving, setSaving] = useState(false)
     const categoryOptions = categories[workspace]
     const selectedCategory = categoryOptions.find((c) => c.slug === categorySlugs[workspace]) ?? categoryOptions[0]
 
     async function save() {
+        const nextSlug = slug.trim()
+        const invalidSlug = nextSlug !== article.slug ? knowledgeSlugError(nextSlug) : undefined
+        if (invalidSlug) {
+            setSlugError(invalidSlug)
+            setError(invalidSlug)
+            return
+        }
         if (question.trim().length < 4 || answer.trim().length < 2) {
             setError("Both the question and the answer need some text.")
             return
@@ -259,16 +270,17 @@ function EditTrainedForm({
         setSaving(true)
         setError("")
         try {
-            // Same slug, so the article is updated in place (and its embedding
-            // regenerated); everything this form does not show is carried over.
+            // Identify the existing article by id so a new slug cannot create
+            // a duplicate. Everything this form does not show is carried over.
             await upsertArticle({
-                slug: article.slug,
+                articleId: article._id,
+                slug: nextSlug,
                 title: question.replace(/\s+/g, " ").trim(),
                 summary: summary.trim() || paras.join(" ").slice(0, 300),
                 categorySlug: selectedCategory.slug,
                 workspace,
                 body: paras.map((text) => ({ t: "p" as const, text })),
-                keywords: article.keywords,
+                keywords: parseKnowledgeKeywords(keywords),
                 author: article.author,
                 readMin: article.readMin,
                 popular: article.popular ?? false,
@@ -307,6 +319,20 @@ function EditTrainedForm({
                     }}
                 />
             </Field>
+            <Field label="Slug" help="The article’s link name. Changing it changes the link; old links will stop working." error={slugError || undefined}>
+                <Input
+                    type="text"
+                    value={slug}
+                    disabled={saving}
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    onChange={(e) => {
+                        setSlug(e.target.value)
+                        setSlugError("")
+                        setError("")
+                    }}
+                />
+            </Field>
             <Field label="Summary" help="Shown in search. Leave blank to use the start of the answer.">
                 <Textarea
                     rows={2}
@@ -318,7 +344,18 @@ function EditTrainedForm({
                     }}
                 />
             </Field>
-            <Field label="Answer" error={error || undefined}>
+            <Field label="Keywords" help="Words that help the AI find this answer. Separate them with commas or new lines.">
+                <Textarea
+                    rows={2}
+                    value={keywords}
+                    disabled={saving}
+                    onChange={(e) => {
+                        setKeywords(e.target.value)
+                        setError("")
+                    }}
+                />
+            </Field>
+            <Field label="Answer">
                 <Textarea
                     rows={4}
                     value={answer}
@@ -365,6 +402,7 @@ function EditTrainedForm({
                     </Select>
                 </Field>
             </div>
+            {error ? <p className="t-error" role="alert">{error}</p> : null}
             <div className="flex justify-end gap-2">
                 <Button variant="ghost" onClick={onDone} disabled={saving}>
                     Cancel
